@@ -443,7 +443,7 @@ class ReportReconciliationTest extends VenQoreTestCase
         // Karachi timezone sale at local 2026-06-21 02:30 AM = 2026-06-20 21:30:00 UTC.
         $utcCreatedAt = Carbon::create(2026, 6, 20, 21, 30, 0, 'UTC');
 
-        $sale = Sale::create([
+        $sale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id' => $tenant->id,
             'reference_number' => 'SAL-DS-RECON-0001',
             'source' => 'manual',
@@ -464,7 +464,7 @@ class ReportReconciliationTest extends VenQoreTestCase
             'posted_at' => $utcCreatedAt,
             'created_at' => $utcCreatedAt,
             'updated_at' => $utcCreatedAt,
-        ]);
+        ]));
 
         $start = '2026-06-21';
         $end = '2026-06-21';

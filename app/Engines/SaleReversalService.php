@@ -202,7 +202,17 @@ class SaleReversalService
                             $batch->original_qty - $batch->remaining_qty
                         );
                         $batch->increment('remaining_qty', $restoredQty);
-                        $restoredQtyByItem[$saleItem->id] = ($restoredQtyByItem[$saleItem->id] ?? 0) + $restoredQty;
+
+                        // Restore stock aggregate for the product associated with this batch
+                        // (correctly handles raw recipe ingredients as well as regular products)
+                        $stock = \App\Models\Stock::where('product_id', $batch->product_id)
+                            ->where('warehouse_id', $sale->warehouse_id)
+                            ->first();
+                        if ($stock) {
+                            $stock->increment('quantity', $restoredQty);
+                        }
+                        \App\Models\Product::where('id', $batch->product_id)
+                            ->increment('stock_quantity', $restoredQty);
 
                         Log::info("FIFO restoration: batch {$batch->id}, restored {$restoredQty} units");
                     }
@@ -210,7 +220,6 @@ class SaleReversalService
                     // ─── THE FIX: Mark, never delete ──────────────────────────
                     // The row stays in the database permanently as proof that
                     // these items were deducted and then legally restored.
-                    // A forensic auditor sees: deducted → reversed. Nothing is hidden.
                     $sib->markReversed($reversalNote);
                 }
                 $fifoItemsRestored++;
@@ -223,38 +232,7 @@ class SaleReversalService
 
         $summary['fifo_restored']   = true;
         $summary['items_restored']  = $fifoItemsRestored;
-
-        // ─── Step 3: Restore Stock Aggregates ────────────────────────────────
-        // Regardless of FIFO restoration above, we must also update the
-        // stocks table (the denormalised quantity cache used by the dashboard
-        // and low-stock alerts).
-        foreach ($sale->items as $saleItem) {
-            $productType = DB::table('products')
-                ->where('id', $saleItem->product_id)
-                ->value('type');
-
-            if ($productType === 'service') {
-                continue;
-            }
-
-            // Put back what actually went back into the batches. A legacy line's
-            // quantity excludes its free units while a V3 promotional line's
-            // includes them, so quantity + free_quantity double-counted the
-            // latter; the batch paper trail is right for both. Lines with no
-            // FIFO trail (pre-FIFO) keep the old quantity + free rule.
-            $totalQty = (float) ($restoredQtyByItem[$saleItem->id] ?? ($saleItem->quantity + ($saleItem->free_quantity ?? 0)));
-
-            $stock = \App\Models\Stock::where('product_id', $saleItem->product_id)
-                ->where('warehouse_id', $sale->warehouse_id)
-                ->first();
-            if ($stock) {
-                $stock->increment('quantity', $totalQty);
-            }
-            // Also restore the Product master stock quantity
-            \App\Models\Product::where('id', $saleItem->product_id)
-                ->increment('stock_quantity', $totalQty);
-        }
-        $summary['stock_restored'] = true;
+        $summary['stock_restored']  = true;
 
         // ─── Step 4: Transition the Sale Status ──────────────────────────────
         // This is the ONLY permissible mutation of a posted sale.

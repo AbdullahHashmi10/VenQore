@@ -12,6 +12,7 @@ import {
     ScanBarcode,
     MinusCircle,
     PlusCircle,
+    ChefHat,
     Trash2,
     ShoppingCart,
     Receipt,
@@ -49,7 +50,8 @@ import {
     Keyboard,
     Maximize2,
     Minimize2,
-    AlertTriangle
+    AlertTriangle,
+    Lock
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -67,6 +69,11 @@ import PaymentModal from '@/Components/Pos/PaymentModal';
 import ApprovalPinModal from '@/Components/Pos/ApprovalPinModal';
 import { parseApprovalRequired, withApproval } from '@/Domain/pos/approval';
 
+import OpenShiftModal from '@/Components/Pos/OpenShiftModal';
+import CashMovementModal from '@/Components/Pos/CashMovementModal';
+import CloseShiftModal from '@/Components/Pos/CloseShiftModal';
+import ZReportModal from '@/Components/Pos/ZReportModal';
+
 import FormModal from '@/Components/FormModal';
 import QuickPartyModal from '@/Components/QuickPartyModal';
 import ProductModal from '@/Components/ProductModal';
@@ -83,9 +90,12 @@ import RegisterSettings, { DEFAULT_SURFACE } from '@/Components/Pos/RegisterSett
    lives in these four modules and is mounted only when the terminal is
    `table`, so a counter till carries none of it -- not a mock floor, not a
    dead settings row, not eight hard-coded tables that wrote nowhere. */
-import useTableService, { serverLineToCart, ORDER_TYPES } from '@/Pos/Table/useTableService';
+import useTableService, { serverLineToCart, cartLineToServer, ORDER_TYPES } from '@/Pos/Table/useTableService';
+import { KitchenPrintService } from '@/Utils/KitchenPrintService';
 import FloorPane, { elapsed as tableElapsed, toneOf as tableTone } from '@/Pos/Table/FloorPane';
 import TableBar, { SeatDialog, MoveSheet, NewTicketDialog } from '@/Pos/Table/TableBar';
+import { DeliveryPanel } from '@/Pos/Table/Delivery';
+import { QuickFloorModal } from '@/Pos/Table/QuickFloorSetup';
 import SplitSheet from '@/Pos/Table/SplitSheet';
 import ModifierSheet from '@/Pos/Table/ModifierSheet';
 
@@ -100,14 +110,101 @@ const POSInterface = ({
        work -- "the unit of work is the table, not the sale". Same component,
        same cart, same tender, same offline queue; the terminal decides which
        panes exist and which controls make sense. */
-    terminal = 'counter',
+    terminal: initialTerminal = 'counter',
     positions: initialPositions = [],
     tickets: initialTickets = [],
     zones: initialZones = [],
     kitchen: initialKitchen = 0,
 }) => {
-    const tableMode = terminal === 'table';
     const { auth, store, modules = [] } = usePage().props;
+
+    /* ── WHICH TERMINAL THIS IS ───────────────────────────────────────────
+       This used to be whichever URL you arrived on: /pos was a counter and
+       /tables was a floor. Two routes rendering the same component, which
+       meant a restaurant had a "POS page" and a "Tables page" that were the
+       same screen wearing different props — and switching between them was a
+       full page navigation that threw away the cart.
+
+       It is a REGISTER SETTING now, sitting in the preset picker beside the
+       other seven shapes, because that is what it actually is: the Table
+       preset is the one whose composition has a floor. Turning it on is the
+       same gesture as switching from Grid to Scan, and it happens in place.
+
+       Three things decide it, in order:
+         1. Whether the BUSINESS runs tables at all (`service_mode`). A counter
+            shop is never offered it and can never be put into it.
+         2. What this DEVICE last chose — a phone on the pass and the till by
+            the door can want different answers, which is why it is local and
+            not another store-wide row.
+         3. Failing both, the server's seed: `?view=floor`, or a store whose
+            service mode is tables-only.
+       Read synchronously in the initialiser so the first paint is already
+       right — a flash of the counter before the floor appears reads as a bug. */
+    /* Read straight off `settings` rather than the `serviceMode` STATE further
+       down: this has to be available before the first paint (the terminal
+       initialiser below depends on it) and that state is declared much later.
+       `saveServiceMode` reloads the `settings` prop when it changes, so this
+       stays current without a second source of truth. */
+    const storeServiceMode = settings?.service_mode || 'counter';
+    const storeRunsTables = storeServiceMode === 'tables' || storeServiceMode === 'both';
+
+    /* TURNING TABLE SERVICE ON IS THE SAME GESTURE AS PICKING THE PRESET.
+       The first cut gated the Table preset on `service_mode` already being
+       tables/both — which hid it from every shop that had not already found
+       and flipped a store setting somewhere else. That is the exact
+       chicken-and-egg the whole change was meant to remove: the register had a
+       floor, and the only way to ask for one was to already have asked.
+
+       So the preset is always offered, and choosing it turns the store's
+       service mode on as part of choosing it. `tablesForced` carries the
+       moment between that POST and the `settings` prop coming back, so the
+       "stranded till" effect below does not yank the operator to the counter
+       in the half-second before the server's answer arrives. */
+    const [tablesForced, setTablesForced] = useState(false);
+    const tablesAvailable = storeRunsTables || tablesForced;
+
+    const [terminal, setTerminalState] = useState(() => {
+        if (!tablesAvailable) return 'counter';
+        /* An explicit ?view= wins over the remembered choice: it is how the
+           Tables nav entry and the setup wizard say "open on the floor", and a
+           request made this second outranks one made last week. */
+        try {
+            const want = new URLSearchParams(window.location.search).get('view');
+            if (want === 'floor') return 'table';
+            if (want === 'counter') return 'counter';
+        } catch (_) { /* no window, or a URL we cannot parse */ }
+        try {
+            const saved = localStorage.getItem('pos_terminal_v1');
+            if (saved === 'table' || saved === 'counter') return saved;
+        } catch (_) { /* private mode */ }
+        return initialTerminal === 'table' ? 'table' : (storeServiceMode === 'tables' ? 'table' : 'counter');
+    });
+
+    const setTerminal = React.useCallback((next) => {
+        const t = next === 'table' ? 'table' : 'counter';
+        setTerminalState(t);
+        try { localStorage.setItem('pos_terminal_v1', t); } catch (_) {}
+    }, []);
+
+    /* An explicit ?view= STICKS. Clicking Tables in the sidebar means "I am
+       working the floor now", not "show me the floor once" — so the choice is
+       written through to this device's memory, the same as picking the preset
+       by hand would. Without it the operator gets the floor, walks away, comes
+       back to the register and is on the counter again. */
+    useEffect(() => {
+        let want = null;
+        try { want = new URLSearchParams(window.location.search).get('view'); } catch (_) { return; }
+        if (want !== 'floor' && want !== 'counter') return;
+        setTerminal(want === 'floor' ? 'table' : 'counter');
+    }, [setTerminal]);
+
+    /* A store that turns table service OFF must not leave a till stranded on a
+       floor it is no longer allowed to draw. */
+    useEffect(() => {
+        if (!tablesAvailable && terminal !== 'counter') setTerminal('counter');
+    }, [tablesAvailable, terminal, setTerminal]);
+
+    const tableMode = terminal === 'table';
     const { t, tp } = useTerms();
     const tt = useTermText();
     // Module-gated surface features. Unlisted modules never hide anything
@@ -123,6 +220,13 @@ const POSInterface = ({
        pos.void_item and pos.refund. It gates in-place rate editing now. */
     const hasPriceOverridePerm = userRole === 'owner' || userRole === 'admin' || userRole === 'manager'
         || userPerms.some(p => p === 'pos.price_override' || p.startsWith('pos.price_override.'));
+    /* Service style, lanes and the floor are STORE-WIDE — rows in `settings`
+       and `positions` that every till in the building reads. The endpoints
+       gate them on admin.settings_manage, so the wizard has to know before it
+       offers the steps: showing a cashier a floor builder that 403s on submit
+       is worse than not showing it. */
+    const canManageStore = userRole === 'owner' || userRole === 'admin' || userRole === 'manager'
+        || userPerms.some(p => p === 'admin.settings_manage' || p.startsWith('admin.settings_manage.'));
     const posReturnMode = settings?.pos_return_mode || 'reference';
     const posReturnWindow = settings?.pos_return_window ? parseInt(settings.pos_return_window) : null;
     const posReturnWindowBehavior = settings?.pos_return_window_behavior || 'warn';
@@ -214,6 +318,38 @@ const POSInterface = ({
             addToast('Cash drawer trigger failed: ' + e.message, 'error');
         }
     };
+
+    // Register Shift & Cash Drawer State (R20)
+    const [registerShift, setRegisterShift] = useState(null);
+    const [shiftMetrics, setShiftMetrics] = useState(null);
+    const [isShiftLoading, setIsShiftLoading] = useState(true);
+    const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
+    const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
+    const [showCashMovementModal, setShowCashMovementModal] = useState(false);
+    const [showZReportModal, setShowZReportModal] = useState(false);
+    const [activeZReport, setActiveZReport] = useState(null);
+    const [shiftMenuOpen, setShiftMenuOpen] = useState(false);
+
+    const fetchCurrentShift = React.useCallback(async () => {
+        try {
+            const res = await axios.get(route('store.shifts.current', { store_slug: store?.slug }));
+            if (res.data?.has_open_shift && res.data?.shift) {
+                setRegisterShift(res.data.shift);
+                setShiftMetrics(res.data.metrics);
+            } else {
+                setRegisterShift(null);
+                setShiftMetrics(null);
+            }
+        } catch (err) {
+            console.error('Error fetching register shift:', err);
+        } finally {
+            setIsShiftLoading(false);
+        }
+    }, [store?.slug]);
+
+    useEffect(() => {
+        fetchCurrentShift();
+    }, [fetchCurrentShift]);
 
     // Cart Clear with 10-Second Undo
     const handleClearCartWithUndo = () => {
@@ -431,6 +567,47 @@ const POSInterface = ({
         return localStorage.getItem('pos_show_top_hardware') === 'true';
     });
 
+    // Catalog Custom Preferences
+    const [catalogSort, setCatalogSortState] = useState(() => {
+        try { return localStorage.getItem('pos_catalog_sort') || 'top_selling'; }
+        catch (_) { return 'top_selling'; }
+    });
+    const setCatalogSort = (v) => {
+        setCatalogSortState(v);
+        try { localStorage.setItem('pos_catalog_sort', v); } catch (_) {}
+    };
+
+    const [showCatalogImages, setShowCatalogImagesState] = useState(() => {
+        try {
+            const v = localStorage.getItem('pos_catalog_show_images');
+            return v === null ? true : v !== 'false';
+        } catch (_) { return true; }
+    });
+    const setShowCatalogImages = (v) => {
+        setShowCatalogImagesState(v);
+        try { localStorage.setItem('pos_catalog_show_images', String(v)); } catch (_) {}
+    };
+
+    const [showCatalogStock, setShowCatalogStockState] = useState(() => {
+        try {
+            const v = localStorage.getItem('pos_catalog_show_stock');
+            return v === null ? true : v !== 'false';
+        } catch (_) { return true; }
+    });
+    const setShowCatalogStock = (v) => {
+        setShowCatalogStockState(v);
+        try { localStorage.setItem('pos_catalog_show_stock', String(v)); } catch (_) {}
+    };
+
+    const [hideOutOfStock, setHideOutOfStockState] = useState(() => {
+        try { return localStorage.getItem('pos_catalog_hide_oos') === 'true'; }
+        catch (_) { return false; }
+    });
+    const setHideOutOfStock = (v) => {
+        setHideOutOfStockState(v);
+        try { localStorage.setItem('pos_catalog_hide_oos', String(v)); } catch (_) {}
+    };
+
     /* ── RANK-3 OPERATIONAL SETTINGS ──────────────────────────────────────
        Five values that the old page read straight out of `settings` (or, in
        two cases, out of localStorage inside the effect that used them) with no
@@ -592,6 +769,27 @@ const POSInterface = ({
         }
     };
 
+    const [preparesOrders, setPreparesOrdersState] = useState(
+        () => (settings?.prepares_orders ?? '0') === '1'
+    );
+
+    const savePreparesOrders = async (enabled) => {
+        const previous = preparesOrders;
+        setPreparesOrdersState(enabled);
+        try {
+            await axios.post(route('store.tables.prepares-orders', { store_slug: store?.slug }), {
+                prepares_orders: enabled ? '1' : '0',
+            });
+            addToast(enabled ? 'Kitchen preparation enabled' : 'Kitchen preparation disabled', 'success');
+            router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
+        } catch (e) {
+            setPreparesOrdersState(previous);
+            addToast(e?.response?.status === 403
+                ? 'You do not have permission to change kitchen settings.'
+                : 'Could not save kitchen setting.', 'error');
+        }
+    };
+
     // Icon Rail Toggle State
     // Fullscreen by default: the rail is hidden unless the cashier asks for
     // it back. A register is the one screen in the product where the extra
@@ -662,7 +860,8 @@ const POSInterface = ({
         'pos_enable_tax', 'pos_enable_fulfilment', 'pos_enable_free_qty', 'pos_discount_presets',
         'pos_auto_fill_cash', 'pos_auto_print', 'pos_round_off', 'pos_show_margin',
         'pos_ui_scale', 'pos_open_drawer_on_cash', 'pos_show_top_till', 'pos_show_top_hardware',
-        'pos_surface_buttons',
+        'pos_surface_buttons', 'pos_catalog_sort', 'pos_catalog_show_images',
+        'pos_catalog_show_stock', 'pos_catalog_hide_oos',
     ];
 
     const handleResetRegister = () => {
@@ -688,6 +887,10 @@ const POSInterface = ({
                 setEnableFulfilment(false);
                 setEnableFreeQty(false);
                 setDiscountPresets([5, 10, 15, 20]);
+                setCatalogSort('top_selling');
+                setShowCatalogImages(true);
+                setShowCatalogStock(true);
+                setHideOutOfStock(false);
                 setSurfaceButtonsState({ ...DEFAULT_SURFACE });
                 setSettingsOpen(false);
                 addToast('Register reset to defaults', 'success');
@@ -751,9 +954,22 @@ const POSInterface = ({
             addToast(`${occupancy.label || 'That table'} has nothing on it yet.`, 'warning');
             return;
         }
-        updateActiveSale({ cart: lines, notes: occupancy.note || '' });
+        const isDelivery = (occupancy.order_type === 'delivery') || (occupancy.session_data?.order_type === 'delivery');
+        const deliveryFee = isDelivery
+            ? Number(occupancy.delivery?.fee || occupancy.session_data?.delivery?.fee || occupancy.delivery_fee || 0)
+            : 0;
+
+        updateActiveSale({
+            cart: lines,
+            notes: occupancy.note || occupancy.session_data?.note || '',
+            ...(deliveryFee > 0 ? {
+                additionalCharges: deliveryFee,
+                additionalChargesLabel: 'Delivery Fee',
+                delivery_charge: deliveryFee
+            } : {})
+        });
         setSettlingOccupancy(occupancy);
-        addToast(`${occupancy.label || 'Table'} loaded — take the payment`, 'info');
+        addToast(`${occupancy.label || (isDelivery ? 'Delivery' : 'Table')} loaded — take the payment`, 'info');
     }, [occupancy]);
 
     const releaseSettledTable = async (saleId) => {
@@ -817,6 +1033,34 @@ const POSInterface = ({
 
     const [newTicketFor, setNewTicketFor] = useState(null);   /* 'takeaway' | 'delivery' */
 
+    /* A TABLE TERMINAL WITH NO TABLES ON IT.
+       Until now that was a floor screen saying "no tables" with no way to have
+       any -- the only route to the builder was a nav entry on a different
+       page, which a restaurant switching the till on for the first time has no
+       reason to look for. It opens itself once, and only for somebody who is
+       actually allowed to create tables; anyone else just sees the empty floor
+       rather than a dialog they cannot submit. */
+    const [quickFloorOpen, setQuickFloorOpen] = useState(false);
+    const floorOffered = useRef(false);
+    useEffect(() => {
+        if (!tableMode || floorOffered.current || !canManageStore) return;
+        if (!tables.loaded) return;
+        if (tables.positions.length > 0) return;
+        if (store?.slug && localStorage.getItem(`quick_floor_dismissed_${store.slug}`)) return;
+        floorOffered.current = true;
+        setQuickFloorOpen(true);
+    }, [tableMode, canManageStore, tables.loaded, tables.positions.length, store?.slug]);
+
+    const dismissQuickFloor = () => {
+        setQuickFloorOpen(false);
+        floorOffered.current = true;
+        if (store?.slug) {
+            try {
+                localStorage.setItem(`quick_floor_dismissed_${store.slug}`, '1');
+            } catch (_) {}
+        }
+    };
+
     const openFloorPlan = () => router.visit(route('store.tables.plan', { store_slug: store?.slug }));
     const [seatFor, setSeatFor] = useState(null);      /* a free table being opened */
     const [movingTable, setMovingTable] = useState(false);
@@ -844,7 +1088,17 @@ const POSInterface = ({
         loadedOccupancy.current = t.occupancy_id;
         const lines = (t.cart || []).map(serverLineToCart);
         tables.prime(lines);
-        updateActiveSale({ cart: lines, notes: t.note || '' });
+        const isDelivery = t.order_type === 'delivery';
+        const deliveryFee = isDelivery ? Number(t.delivery?.fee || 0) : 0;
+        updateActiveSale({
+            cart: lines,
+            notes: t.note || '',
+            ...(deliveryFee > 0 ? {
+                additionalCharges: deliveryFee,
+                additionalChargesLabel: 'Delivery Fee',
+                delivery_charge: deliveryFee
+            } : {})
+        });
     }, [tableMode, tables.selectedId, tables.selected?.occupancy_id]);
 
     /* …and every edit to it saves back, debounced. */
@@ -920,6 +1174,39 @@ const POSInterface = ({
                waiting for the next poll keeps the Fire button honest between
                the tap and the refresh. */
             updateActiveSale({ cart: activeSale.cart.map(l => ({ ...l, sent: true })) });
+            if (res.kot) {
+                KitchenPrintService.printKOT(res.kot);
+            }
+        }
+    };
+
+    const [firingCounter, setFiringCounter] = useState(false);
+    const handleCounterFire = async () => {
+        const unsent = activeSale.cart.filter(l => !l.sent);
+        if (unsent.length === 0) return;
+        setFiringCounter(true);
+        try {
+            const { data } = await axios.post(route('store.tables.kitchen.counter-fire', { store_slug: store?.slug }), {
+                cart: activeSale.cart.map(cartLineToServer),
+                order_type: activeSale.order_type || 'takeaway',
+                customer_name: activeSale.customer?.name || null,
+                phone: activeSale.customer?.phone || null,
+                note: activeSale.remarks || activeSale.notes || '',
+                party_id: activeSale.customer?.id || null,
+            });
+            if (data?.kots?.length) {
+                data.kots.forEach(kot => KitchenPrintService.printKOT(kot, { printerName: kot.printer_name }));
+            } else if (data?.kot) {
+                KitchenPrintService.printKOT(data.kot);
+            }
+            updateActiveSale({
+                cart: activeSale.cart.map(l => ({ ...l, sent: true })),
+            });
+            addToast(`${data?.sent || unsent.length} item${(data?.sent || unsent.length) === 1 ? '' : 's'} sent to kitchen`, 'success');
+        } catch (err) {
+            addToast(err?.response?.data?.message || 'Could not send order to kitchen', 'error');
+        } finally {
+            setFiringCounter(false);
         }
     };
 
@@ -1089,12 +1376,12 @@ const POSInterface = ({
        these the engine stops drawing a column at all, so they are the point
        the handle must stop at. */
     const SPLIT_BOUNDS = {
-        catalog: { min: 0.12, max: 0.55 },
-        tender:  { min: 0.16, max: 0.45 },
+        catalog: { min: 0.15, max: 0.75 },
+        tender:  { min: 0.16, max: 0.50 },
     };
 
     const commitShare = (key, share) => {
-        const b = SPLIT_BOUNDS[key] || { min: 0, max: 0.55 };
+        const b = SPLIT_BOUNDS[key] || { min: 0.15, max: 0.75 };
         const clamped = Math.max(b.min, Math.min(b.max, share));
         updateComposition(prev => (key === 'catalog'
             ? { ...prev, catalog: { ...prev.catalog, size: clamped } }
@@ -1118,10 +1405,11 @@ const POSInterface = ({
         const total = Math.max(1, rect.width);
         setDragging(key);
         host.setAttribute('data-resizing', '1');
-        try { e.currentTarget.setPointerCapture?.(e.pointerId); } catch (_) {}
 
         const onMove = (ev) => {
-            const px = edge === 'right' ? rect.right - ev.clientX : ev.clientX - rect.left;
+            const clientX = ev.touches && ev.touches.length ? ev.touches[0].clientX : ev.clientX;
+            if (clientX === undefined) return;
+            const px = edge === 'right' ? rect.right - clientX : clientX - rect.left;
             const wanted = px / total;
             const { clamped, atFloor } = commitShare(key, wanted);
             setDragInfo({ key, px: Math.round(clamped * total), pct: Math.round(clamped * 100), atFloor });
@@ -1131,11 +1419,19 @@ const POSInterface = ({
             setDragInfo(null);
             host.removeAttribute('data-resizing');
             window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('touchmove', onMove);
             window.removeEventListener('pointerup', onUp);
+            window.removeEventListener('mouseup', onUp);
+            window.removeEventListener('touchend', onUp);
             window.removeEventListener('pointercancel', onUp);
         };
         window.addEventListener('pointermove', onMove);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('touchmove', onMove, { passive: false });
         window.addEventListener('pointerup', onUp);
+        window.addEventListener('mouseup', onUp);
+        window.addEventListener('touchend', onUp);
         window.addEventListener('pointercancel', onUp);
     };
 
@@ -1144,7 +1440,7 @@ const POSInterface = ({
     const onSplitKeyDown = (key, edge) => (e) => {
         const grow = edge === 'right' ? 'ArrowLeft' : 'ArrowRight';
         const shrink = edge === 'right' ? 'ArrowRight' : 'ArrowLeft';
-        const b = SPLIT_BOUNDS[key] || { min: 0, max: 0.55 };
+        const b = SPLIT_BOUNDS[key] || { min: 0.15, max: 0.75 };
         const step = e.shiftKey ? 0.05 : 0.01;
         let next = null;
 
@@ -1444,6 +1740,37 @@ const POSInterface = ({
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [categoryProducts, setCategoryProducts] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+    // Filtered & Sorted Catalog Products (Instant client-side sorting)
+    const sortedCategoryProducts = React.useMemo(() => {
+        let list = Array.isArray(categoryProducts) ? [...categoryProducts] : [];
+        if (hideOutOfStock) {
+            list = list.filter(p => {
+                const isService = p.type === 'service' || p.is_service || p.item_type === 'service';
+                if (isService) return true;
+                return p.stock_quantity === undefined || Number(p.stock_quantity) > 0;
+            });
+        }
+        switch (catalogSort) {
+            case 'name_asc':
+                return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            case 'name_desc':
+                return list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+            case 'price_asc':
+                return list.sort((a, b) => (Number(a.price || a.selling_price || 0)) - (Number(b.price || b.selling_price || 0)));
+            case 'price_desc':
+                return list.sort((a, b) => (Number(b.price || b.selling_price || 0)) - (Number(a.price || a.selling_price || 0)));
+            case 'stock_desc':
+                return list.sort((a, b) => (Number(b.stock_quantity || 0)) - (Number(a.stock_quantity || 0)));
+            case 'stock_asc':
+                return list.sort((a, b) => (Number(a.stock_quantity || 0)) - (Number(b.stock_quantity || 0)));
+            case 'newest':
+                return list.sort((a, b) => (Number(b.id || 0)) - (Number(a.id || 0)));
+            case 'top_selling':
+            default:
+                return list.sort((a, b) => (Number(b.recent_sold || 0)) - (Number(a.recent_sold || 0)));
+        }
+    }, [categoryProducts, catalogSort, hideOutOfStock]);
 
     // Customer search debounce
     useEffect(() => {
@@ -1961,26 +2288,29 @@ const POSInterface = ({
     const handleCheckoutClick = () => {
         if (activeSale.cart.length === 0) return;
 
-        // If no amount is typed, block checkout and focus the Amount Tendered input
-        const rawTendered = activeSale.cashReceived;
+        let rawTendered = activeSale.cashReceived;
         if (!rawTendered || parseFloat(rawTendered) <= 0) {
-            addToast('Please enter the Amount Tendered first', 'warning');
-            
-            // Highlight and focus input
-            if (cashReceivedInputRef.current) {
-                cashReceivedInputRef.current.focus();
-                cashReceivedInputRef.current.select();
+            if (autoFillCash || !cashReceivedInputRef.current || layout.tender?.mode === 'bar') {
+                rawTendered = cartTotal;
+            } else {
+                addToast('Please enter the Amount Tendered first', 'warning');
                 
-                // Add temporary shake animation class if element is available
-                const container = document.getElementById('tour-pos-paid');
-                if (container) {
-                    container.classList.add('animate-shake', 'ring-2', 'ring-rose-500');
-                    setTimeout(() => {
-                        container.classList.remove('animate-shake', 'ring-2', 'ring-rose-500');
-                    }, 500);
+                // Highlight and focus input
+                if (cashReceivedInputRef.current) {
+                    cashReceivedInputRef.current.focus();
+                    cashReceivedInputRef.current.select();
+                    
+                    // Add temporary shake animation class if element is available
+                    const container = document.getElementById('tour-pos-paid');
+                    if (container) {
+                        container.classList.add('animate-shake', 'ring-2', 'ring-rose-500');
+                        setTimeout(() => {
+                            container.classList.remove('animate-shake', 'ring-2', 'ring-rose-500');
+                        }, 500);
+                    }
                 }
+                return;
             }
-            return;
         }
 
         const tendered = parseFloat(rawTendered);
@@ -2067,6 +2397,8 @@ const POSInterface = ({
                 discount_type: item.discountType || 'fixed'
             })),
             customer_id: activeSale.customer?.id || null,
+            register_shift_id: registerShift?.id || null,
+            register_id: settings?.register_id || 'REG-1',
             payment_method: 'split',
             warehouse_id: selectedWarehouseId,
             payments: adjustedPayments,
@@ -2075,6 +2407,7 @@ const POSInterface = ({
             tax_rate: taxRate,
             tax_inclusive: taxInclusive,
             discount: globalDiscount,
+            delivery_charge: (activeSale.additionalChargesLabel?.toLowerCase().includes('delivery') ? additionalCharges : 0) || (activeSale.delivery_charge || 0),
             extra_charge_value: additionalCharges,
             extra_charge_label: additionalCharges > 0 ? (activeSale.additionalChargesLabel || 'Additional charge') : null,
             service_charge: serviceCharge,
@@ -2090,7 +2423,7 @@ const POSInterface = ({
             let responseData;
 
             if (isOnline) {
-                const response = await axios.post(route('store.sales.store', { store_slug: store?.slug }), payload);
+                const response = await axios.post(route('store.pos.sales.store', { store_slug: store?.slug }), payload);
                 responseData = response.data;
             } else {
                 throw new Error("Offline");
@@ -2159,6 +2492,9 @@ const POSInterface = ({
 
         // Clear current sale
         updateActiveSale({ cart: [], cashReceived: '', searchTerm: '', customer: null });
+
+        // Refresh shift metrics
+        fetchCurrentShift();
 
         // Refresh product catalog to show updated stock quantities
         setTimeout(() => {
@@ -3236,11 +3572,13 @@ const POSInterface = ({
             className="w-full bg-surface rounded-xl border border-line hover:border-brand-500 transition-all shadow-sm text-left flex items-center justify-between p-2.5 gap-3 relative overflow-hidden cursor-pointer group"
         >
             <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-10 h-10 rounded-lg bg-sunken flex items-center justify-center overflow-hidden shrink-0 border border-line/60">
-                    {product.image_url || product.image_path
-                        ? <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
-                        : <Package className="text-ink-muted" size={19} />}
-                </div>
+                {showCatalogImages && (
+                    <div className="w-10 h-10 rounded-lg bg-sunken flex items-center justify-center overflow-hidden shrink-0 border border-line/60">
+                        {product.image_url || product.image_path
+                            ? <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
+                            : <Package className="text-ink-muted" size={19} />}
+                    </div>
+                )}
                 <div className="min-w-0 flex-1">
                     <h4 className="vq-clip-2 font-bold text-ink leading-snug text-xs sm:text-sm group-hover:text-brand-600 transition-colors">
                         {product.name}
@@ -3251,20 +3589,22 @@ const POSInterface = ({
                 </div>
             </div>
             <div className="text-right shrink-0 flex items-center gap-3">
-                {(product.type === 'service' || product.is_service || product.item_type === 'service') ? (
-                    <div>
-                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
-                        <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
-                            {tt('Service')}
-                        </span>
-                    </div>
-                ) : (
-                    <div>
-                        <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
-                        <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                            {formatNumber(product.stock_quantity || 0, 0)}
-                        </span>
-                    </div>
+                {showCatalogStock && (
+                    (product.type === 'service' || product.is_service || product.item_type === 'service') ? (
+                        <div>
+                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
+                            <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
+                                {tt('Service')}
+                            </span>
+                        </div>
+                    ) : (
+                        <div>
+                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
+                            <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
+                                {formatNumber(product.stock_quantity || 0, 0)}
+                            </span>
+                        </div>
+                    )
                 )}
                 <div>
                     <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Price</span>
@@ -3280,17 +3620,7 @@ const POSInterface = ({
     );
 
     /* ── THE PILL ────────────────────────────────────────────────────────
-       The third shape, and the one a short menu actually wants. A card gives
-       every product a picture and a stock read-out; a row gives it a full line.
-       A menu of twenty-five things needs neither -- it needs all twenty-five
-       ON SCREEN AT ONCE, which is what turns the catalog from something you
-       search into something you point at.
-
-       So a pill is the name, the price, and nothing else, wrapped as many to a
-       row as fit. It keeps the two things the other shapes would not give up:
-       the in-cart count, because a tap with no feedback is how the same coffee
-       gets rung twice, and the out-of-stock state, because selling something
-       that is not there is worse than any layout problem. */
+       The third shape, and the one a short menu actually wants. */
     const renderProductPill = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
@@ -3319,11 +3649,7 @@ const POSInterface = ({
         );
     };
 
-    /* Catalog tiles — the `grid-2up` / `grid-3up` fits and the band. */
-    /* How much of this product is already in the cart. The catalog had no idea
-       the cart existed, so on a catalog-led layout -- where the cart may not
-       even be on screen -- an operator tapping tiles had no feedback at all
-       and no way to tell a double-tap from a missed one. */
+    /* In-cart count map */
     const inCartQty = React.useMemo(() => {
         const m = new Map();
         for (const l of (activeSale.cart || [])) {
@@ -3332,6 +3658,71 @@ const POSInterface = ({
         return m;
     }, [activeSale.cart]);
 
+    /* SHOWCASE / BIG VISUAL CARD — Double height with prominent top photo (~55-65%) */
+    const renderProductLargeTile = (product) => {
+        const inCart = inCartQty.get(product.id) || 0;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const stock = product.stock_quantity;
+        const out = !isService && stock !== undefined && Number(stock) <= 0;
+        const hasImage = Boolean(product.image_url || product.image_path);
+
+        return (
+            <button
+                key={product.id}
+                type="button"
+                onClick={() => pickProduct(product)}
+                data-incart={inCart > 0 ? '1' : '0'}
+                className="vq-tile-large group"
+                title={product.name}
+            >
+                {showCatalogImages && (
+                    <div className="vq-tile-large-img">
+                        {hasImage ? (
+                            <img src={product.image_url || product.image_path} alt="" loading="lazy" />
+                        ) : (
+                            <Package size={40} strokeWidth={1.5} className="opacity-40" />
+                        )}
+                        {product.variants && product.variants.length > 0 && (
+                            <span className="vq-tile-dot absolute top-2.5 left-2.5" title="Has variants" />
+                        )}
+                        {inCart > 0 && (
+                            <span className="vq-tile-badge vq-num" aria-label={`${inCart} in the current order`}>
+                                {formatNumber(inCart, 0)}
+                            </span>
+                        )}
+                    </div>
+                )}
+
+                <div className="vq-tile-large-body">
+                    <div className="vq-tile-large-title-box">
+                        <span className="vq-tile-large-name">{product.name}</span>
+                        <span className="vq-tile-large-meta">
+                            {product.category?.name || product.category_name || product.sku || ''}
+                        </span>
+                    </div>
+
+                    <div className="vq-tile-large-foot">
+                        {showCatalogStock && (
+                            <span className={`vq-tile-large-stock${out ? ' is-out' : ''}`}>
+                                {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                            </span>
+                        )}
+                        <span className="vq-num vq-tile-large-price ml-auto">
+                            {money(product.price || product.selling_price || 0)}
+                        </span>
+                    </div>
+                </div>
+
+                {!showCatalogImages && inCart > 0 && (
+                    <span className="vq-tile-badge vq-num" aria-label={`${inCart} in the current order`}>
+                        {formatNumber(inCart, 0)}
+                    </span>
+                )}
+            </button>
+        );
+    };
+
+    /* Standard Compact Catalog Tile */
     const renderProductTile = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
@@ -3343,20 +3734,17 @@ const POSInterface = ({
                 type="button"
                 onClick={() => pickProduct(product)}
                 data-incart={inCart > 0 ? '1' : '0'}
-                /* Type, radius and spacing all come off the V6 ramp now. The old
-                   tile mixed text-xs / text-3xs / rounded-xl / p-3 with hand-picked
-                   min-heights, none of which appear in the token set -- which is
-                   why the catalog read as a different product from the panes
-                   around it. */
                 className="vq-tile group"
                 title={product.name}
             >
                 <span className="vq-tile-top">
-                    <span className="vq-tile-thumb">
-                        {product.image_url || product.image_path
-                            ? <img src={product.image_url || product.image_path} alt="" loading="lazy" />
-                            : <Package size={16} strokeWidth={2} />}
-                    </span>
+                    {showCatalogImages && (
+                        <span className="vq-tile-thumb">
+                            {product.image_url || product.image_path
+                                ? <img src={product.image_url || product.image_path} alt="" loading="lazy" />
+                                : <Package size={16} strokeWidth={2} />}
+                        </span>
+                    )}
                     <span className="vq-tile-id">
                         <span className="vq-tile-name vq-clip-2">{product.name}</span>
                         <span className="vq-tile-meta vq-clip">
@@ -3369,17 +3757,16 @@ const POSInterface = ({
                 </span>
 
                 <span className="vq-tile-foot">
-                    <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
-                        {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
-                    </span>
-                    <span className="vq-num vq-tile-price">
+                    {showCatalogStock && (
+                        <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
+                            {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                        </span>
+                    )}
+                    <span className="vq-num vq-tile-price ml-auto">
                         {money(product.price || product.selling_price || 0)}
                     </span>
                 </span>
 
-                {/* In the cart, and how many. Sits on the tile rather than in a
-                    corner of the pane, because the question it answers -- "did
-                    that tap land?" -- is asked of THIS tile. */}
                 {inCart > 0 && (
                     <span className="vq-tile-badge vq-num" aria-label={`${inCart} in the current order`}>
                         {formatNumber(inCart, 0)}
@@ -3390,22 +3777,36 @@ const POSInterface = ({
     };
 
     const renderCatalogBody = ({ variant = 'list', tiles = 0 } = {}) => {
-        /* The engine derives a shape from the width it can afford, which is
-           the right default and the wrong answer for a shop with an opinion.
-           A stated preference outranks the derivation in both directions --
-           rows in a wide column, cards in a narrow one. */
         const shape = composition?.catalogShape || 'auto';
         const asPills = shape === 'pills';
-        const asTiles = shape === 'cards' ? true
+        const asLargeCards = shape === 'large_cards';
+        const asTiles = (shape === 'cards' || asLargeCards) ? true
             : (shape === 'rows' || asPills) ? false
             : (variant !== 'list' || tiles > 0);
         const cols = tiles || (variant === 'grid-3up' ? 3 : 2);
 
         if (isLoadingProducts) {
-            /* A skeleton shaped like the real grid/list, not a spinner --
-               the catalog appears to already be "there", just not filled
-               in yet, which reads faster than a centered spinner even when
-               the actual wait time is identical. */
+            if (asLargeCards) {
+                return (
+                    <div className="vq-tiles-large p-3">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="bg-surface border border-line rounded-xl overflow-hidden flex flex-col p-2 gap-1.5" style={{ minHeight: 255 }} aria-hidden="true">
+                                <div className="w-[170px] h-[170px] max-w-full aspect-square rounded-lg bg-sunken shrink-0 animate-pulse mx-auto" />
+                                <div className="p-1 space-y-2 flex-1 flex flex-col justify-between">
+                                    <div className="space-y-1.5">
+                                        <div className="h-3.5 rounded-full bg-sunken animate-pulse" style={{ width: '80%' }} />
+                                        <div className="h-2.5 rounded-full bg-sunken animate-pulse" style={{ width: '45%' }} />
+                                    </div>
+                                    <div className="flex items-center justify-between pt-1.5 border-t border-line/50">
+                                        <div className="h-3 w-10 rounded-full bg-sunken animate-pulse" />
+                                        <div className="h-4.5 w-14 rounded-md bg-sunken animate-pulse" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
             if (asTiles) {
                 return (
                     <div className="vq-tiles p-3" style={{ '--vq-tiles': cols }}>
@@ -3442,7 +3843,7 @@ const POSInterface = ({
                 </div>
             );
         }
-        if (selectedCategory && categoryProducts.length === 0) {
+        if (selectedCategory && sortedCategoryProducts.length === 0) {
             return (
                 <div className="py-16 text-center">
                     <Archive className="mx-auto text-ink-muted opacity-40 mb-4" size={44} />
@@ -3450,7 +3851,7 @@ const POSInterface = ({
                 </div>
             );
         }
-        if (!selectedCategory && categoryProducts.length === 0) {
+        if (!selectedCategory && sortedCategoryProducts.length === 0) {
             return (
                 <div className="py-16 flex flex-col items-center justify-center text-ink-muted gap-4 opacity-60">
                     <div className="w-16 h-16 rounded-lg bg-sunken flex items-center justify-center">
@@ -3466,20 +3867,27 @@ const POSInterface = ({
         if (asPills) {
             return (
                 <div className="vq-pills p-3">
-                    {(Array.isArray(categoryProducts) ? categoryProducts : []).map(renderProductPill)}
+                    {sortedCategoryProducts.map(renderProductPill)}
+                </div>
+            );
+        }
+        if (asLargeCards) {
+            return (
+                <div className="vq-tiles-large p-3">
+                    {sortedCategoryProducts.map(renderProductLargeTile)}
                 </div>
             );
         }
         if (asTiles) {
             return (
                 <div className="vq-tiles p-3" style={{ '--vq-tiles': cols }}>
-                    {(Array.isArray(categoryProducts) ? categoryProducts : []).map(renderProductTile)}
+                    {sortedCategoryProducts.map(renderProductTile)}
                 </div>
             );
         }
         return (
             <div className="p-3 space-y-2">
-                {(Array.isArray(categoryProducts) ? categoryProducts : []).map(renderProductRow)}
+                {sortedCategoryProducts.map(renderProductRow)}
             </div>
         );
     };
@@ -3493,7 +3901,7 @@ const POSInterface = ({
        from — which is why the two are inverted on the way through. */
     const renderSplit = (key, edge, offsetPx) => {
         const live = dragInfo && dragInfo.key === key;
-        const b = SPLIT_BOUNDS[key] || { min: 0, max: 0.55 };
+        const b = SPLIT_BOUNDS[key] || { min: 0.15, max: 0.75 };
         const pct = Math.round(shareOf(key) * 100);
         const name = key === 'catalog' ? 'Catalog' : 'Payment';
         return (
@@ -3510,10 +3918,12 @@ const POSInterface = ({
                 data-dragging={dragging === key ? '1' : '0'}
                 data-atfloor={live && dragInfo.atFloor ? '1' : '0'}
                 onPointerDown={startSplitDrag(key, edge)}
+                onMouseDown={startSplitDrag(key, edge)}
+                onTouchStart={startSplitDrag(key, edge)}
                 onKeyDown={onSplitKeyDown(key, edge)}
                 onDoubleClick={resetSplit(key)}
                 title={`Drag, or focus and use \u2190 \u2192. Double-click to reset. Stops at this pane's floor.`}
-                style={{ [edge]: `${offsetPx - 7}px` }}
+                style={{ [edge]: `${offsetPx - 10}px` }}
             >
                 {live && (
                     <span className="vq-split-readout" aria-hidden="true">
@@ -3639,7 +4049,10 @@ const POSInterface = ({
 
     const renderCatalogBand = () => {
         const rows = Math.max(1, cat?.rows || 1);
-        const tilesH = rows * 152 + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
+        const shape = composition?.catalogShape || 'auto';
+        const isLarge = shape === 'large_cards';
+        const baseH = isLarge ? 255 : 152;
+        const tilesH = rows * baseH + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
         return (
             <section
                 className="vq-pane vq-catband bg-surface border border-line shrink-0"
@@ -3649,11 +4062,15 @@ const POSInterface = ({
                 {renderCategoryStrip()}
                 <div className="vq-pane-body">
                     <div
-                        className={(composition?.catalogShape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
+                        className={(shape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
                         data-rows={rows}
+                        data-shape={shape}
                     >
-                        {(Array.isArray(categoryProducts) ? categoryProducts : [])
-                            .map(composition?.catalogShape === 'pills' ? renderProductPill : renderProductTile)}
+                        {sortedCategoryProducts.map(
+                            shape === 'pills' ? renderProductPill :
+                            isLarge ? renderProductLargeTile :
+                            renderProductTile
+                        )}
                     </div>
                 </div>
             </section>
@@ -3664,14 +4081,16 @@ const POSInterface = ({
        One number, derived the same way the band derives it. */
     const bandOuterH = () => {
         const rows = Math.max(1, cat?.rows || 1);
-        return rows * 152 + (rows - 1) * GUTTER + CAT_STRIP_H;
+        const shape = composition?.catalogShape || 'auto';
+        const baseH = shape === 'large_cards' ? 255 : 152;
+        return rows * baseH + (rows - 1) * GUTTER + CAT_STRIP_H;
     };
 
     const renderCatalogPane = (fit, tiles) => (
         <section className="vq-pane bg-surface border border-line" data-pane="catalog">
-            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
+            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line flex items-center justify-between px-3">
                 <span>Catalog</span>
-                <span className="vq-num ml-auto text-2xs opacity-80 font-bold">{categoryProducts.length} items</span>
+                <span className="vq-num ml-auto text-2xs opacity-80 font-bold">{sortedCategoryProducts.length} items</span>
             </header>
             {catalogHostsScan && renderScan()}
             {renderCategoryStrip()}
@@ -3985,10 +4404,28 @@ const POSInterface = ({
                 />
             )}
 
+            {/* A DELIVERY KEEPS MOVING AFTER THE KITCHEN IS DONE WITH IT.
+                Dine-in and takeaway end at the counter; a delivery still has a
+                rider to assign, a road to be on and a door to reach. Those
+                controls sit directly under the table strip, above the cart,
+                because "where has it got to" is the question asked about an
+                open delivery and "what is on it" is the question asked about
+                everything else. Nothing renders for the other two types. */}
+            {tableMode && selectedTable?.delivery && (
+                <div className="px-3 pt-3">
+                    <DeliveryPanel
+                        ticket={selectedTable}
+                        money={money}
+                        onUpdate={tables.updateDelivery}
+                        onError={(m) => addToast(m, 'error')}
+                    />
+                </div>
+            )}
+
             {!catalogHostsScan && renderScan()}
             {returnMode && renderReturnBanner()}
 
-            <div ref={cartListRef} className="vq-pane-body vq-cart-lines p-3 space-y-2">
+            <div ref={cartListRef} className="vq-pane-body vq-cart-lines p-3 space-y-2 flex-1 min-h-0 overflow-y-auto">
                 {activeSale.cart.map(renderCartLine)}
                 {activeSale.cart.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
@@ -4018,6 +4455,43 @@ const POSInterface = ({
                     </div>
                 )}
             </div>
+
+            {tenderDock && tenderDock.inline && catIsColumn && resizable && (
+                <footer className="p-3 bg-surface border-t border-line shrink-0">
+                    <div className="vq-tender-bar bg-surface border border-line rounded-[20px] shadow-sm min-w-0 px-4 py-3 flex items-center gap-3">
+                        <div className="min-w-0">
+                            <span className="text-3xs uppercase font-extrabold tracking-wider text-ink-muted block mb-0.5">
+                                {activeSale.cart.length} lines · {cartQty} qty
+                            </span>
+                            <span className="vq-num font-extrabold text-emerald-600 dark:text-emerald-400 block leading-none text-xl sm:text-2xl font-numeric"
+                                  title={money(cartTotal)}>
+                                {money(cartTotal)}
+                            </span>
+                        </div>
+                        <div className="flex-1" />
+                        <button
+                            type="button"
+                            onClick={openTender}
+                            className="h-10 sm:h-11 px-4 sm:px-5 rounded-[14px] bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-ink font-bold text-xs sm:text-sm border border-line transition-all shrink-0 cursor-pointer active:scale-95"
+                            data-primary="0"
+                        >
+                            Details
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCheckoutClick}
+                            disabled={processingPayment || activeSale.cart.length === 0}
+                            className="h-10 sm:h-11 px-6 sm:px-8 rounded-[14px] bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 cursor-pointer active:scale-95"
+                            data-primary="1"
+                        >
+                            {processingPayment
+                                ? <Loader2 size={17} className="animate-spin" />
+                                : printOnComplete ? <Printer size={17} /> : <Check size={17} />}
+                            <span className="vq-clip">{processingPayment ? 'Processing…' : 'Pay'}</span>
+                        </button>
+                    </div>
+                </footer>
+            )}
         </section>
     );
 
@@ -4509,6 +4983,18 @@ const POSInterface = ({
                         <Pause size={17} /> {parkingBill ? 'Holding…' : 'Hold'}
                     </button>
                 )}
+                {!tableMode && !returnMode && preparesOrders && (
+                    <button
+                        type="button"
+                        onClick={handleCounterFire}
+                        disabled={firingCounter || activeSale.cart.length === 0 || activeSale.cart.every(l => l.sent)}
+                        className={`flex-1 bg-amber-500 hover:bg-amber-600 text-white active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${firingCounter || activeSale.cart.length === 0 || activeSale.cart.every(l => l.sent) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title="Send order to kitchen"
+                    >
+                        {firingCounter ? <Loader2 size={17} className="animate-spin" /> : <ChefHat size={17} />}
+                        <span>{firingCounter ? 'Sending…' : (activeSale.cart.some(l => !l.sent) ? 'Kitchen' : 'Sent')}</span>
+                    </button>
+                )}
                 <button
                     type="button"
                     onClick={handleClearCartWithUndo}
@@ -4626,6 +5112,9 @@ const POSInterface = ({
         /* Not `dock.length`: catalog and floor sit in the dock list but
            reserve no height, and an empty dock row still eats a gutter. */
         if (!tenderDock) return null;
+
+        /* If the tender dock is embedded directly in the cart column footer, suppress the full-width bottom dock */
+        if (tenderDock && tenderDock.inline && catIsColumn && resizable) return null;
 
         /* An inline tender bar is not a button that opens something — it IS
            the tender, stacked. The total is printed on the control itself,
@@ -4972,6 +5461,84 @@ const POSInterface = ({
                                 </>
                             )}
 
+                            {/* ── REGISTER SHIFT & CASH DRAWER (R20) ────── */}
+                            <div className="relative">
+                                {registerShift ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShiftMenuOpen(prev => !prev)}
+                                        className="h-11 px-3.5 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                                        title={`Shift #${registerShift.id} Open — Click for Cash In/Out or Close Shift`}
+                                    >
+                                        <span className="relative flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                        </span>
+                                        <span className="text-xs font-bold font-mono">Shift #{registerShift.id}</span>
+                                        <ChevronDown size={14} className={`transition-transform duration-150 ${shiftMenuOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowOpenShiftModal(true)}
+                                        className="h-11 px-3.5 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                                        title="Open Register Shift"
+                                    >
+                                        <Clock size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                        <span className="text-xs font-bold">Open Shift</span>
+                                    </button>
+                                )}
+
+                                {shiftMenuOpen && registerShift && (
+                                    <div 
+                                        className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-dropdown text-slate-200 animate-in fade-in zoom-in-95 duration-150"
+                                        onClick={() => setShiftMenuOpen(false)}
+                                    >
+                                        <div className="p-2.5 border-b border-slate-800 mb-1">
+                                            <div className="text-xs font-bold text-white flex items-center justify-between">
+                                                <span>Shift #{registerShift.id}</span>
+                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">OPEN</span>
+                                            </div>
+                                            <div className="text-[11px] text-slate-400 mt-1 flex justify-between">
+                                                <span>Expected Cash:</span>
+                                                <span className="font-mono font-bold text-emerald-400">
+                                                    {money(shiftMetrics?.expected_cash ?? registerShift.opening_float)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCashMovementModal(true)}
+                                            className="w-full text-left px-3 py-2 text-xs font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition cursor-pointer"
+                                        >
+                                            <ArrowLeftRight size={15} className="text-indigo-400 shrink-0" />
+                                            <span>Cash In / Cash Out (Petty)</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleOpenCashDrawer}
+                                            className="w-full text-left px-3 py-2 text-xs font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition cursor-pointer"
+                                        >
+                                            <Unlock size={15} className="text-amber-400 shrink-0" />
+                                            <span>Open Drawer (Hardware Pulse)</span>
+                                        </button>
+
+                                        <div className="border-t border-slate-800 my-1"></div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCloseShiftModal(true)}
+                                            className="w-full text-left px-3 py-2 text-xs font-bold rounded-xl hover:bg-rose-950/60 text-rose-400 hover:text-rose-300 flex items-center gap-2.5 transition cursor-pointer"
+                                        >
+                                            <Lock size={15} className="text-rose-400 shrink-0" />
+                                            <span>Close Shift & Z-Report</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* ── THE ONE SETTINGS BUTTON ──────────────────
                                 Three lived here: a layout picker, a quick-settings
                                 dropdown and a register-settings modal, all writing
@@ -5041,6 +5608,7 @@ const POSInterface = ({
                                     onSetup={openFloorPlan}
                                     money={money}
                                     now={floorNow}
+                                    storeSlug={store?.slug}
                                     variant={layout.floor.fit === 'map' ? 'map' : 'list'}
                                 />
                             )}
@@ -5069,6 +5637,7 @@ const POSInterface = ({
                                             onSetup={openFloorPlan}
                                             money={money}
                                             now={floorNow}
+                                            storeSlug={store?.slug}
                                             variant={layout.cart && layout.cart.px >= 484 ? 'map' : 'list'}
                                         />
                                     </section>
@@ -5260,6 +5829,7 @@ const POSInterface = ({
             {tableMode && newTicketFor && (
                 <NewTicketDialog
                     orderType={newTicketFor}
+                    storeSlug={store?.slug}
                     busy={tables.busy}
                     onCancel={() => setNewTicketFor(null)}
                     onConfirm={async (meta) => {
@@ -5271,6 +5841,22 @@ const POSInterface = ({
                             updateActiveSale({ cart: [], cashReceived: '', customer: null, remarks: '' });
                             addToast(`${t.code} opened`, 'success');
                         }
+                    }}
+                />
+            )}
+
+            {tableMode && quickFloorOpen && (
+                <QuickFloorModal
+                    storeSlug={store?.slug}
+                    onClose={dismissQuickFloor}
+                    onError={(m) => addToast(m, 'error')}
+                    onDone={(v) => {
+                        dismissQuickFloor();
+                        addToast(`${v.count} tables added to ${v.zone}`, 'success');
+                        /* The floor is server state, so the new tables arrive
+                           through the hook's own refresh rather than a page
+                           reload that would throw away an in-progress cart. */
+                        tables.refresh?.();
                     }}
                 />
             )}
@@ -5584,6 +6170,7 @@ const POSInterface = ({
 
             <ProductModal
                 isOpen={showProductModal}
+                mode="create"
                 onClose={() => setShowProductModal(false)}
                 initialName={searchQueryForProduct}
                 onSuccess={(newProduct) => {
@@ -5591,6 +6178,48 @@ const POSInterface = ({
                     setShowProductModal(false);
                     addToast(`Product ${newProduct.name} added!`, 'success');
                 }}
+            />
+
+            {/* ── Register Shift & Cash Drawer Modals (R20) ───────────── */}
+            <OpenShiftModal
+                isOpen={showOpenShiftModal}
+                onClose={() => setShowOpenShiftModal(false)}
+                onSuccess={(shift, metrics) => {
+                    setRegisterShift(shift);
+                    setShiftMetrics(metrics);
+                    addToast(`Shift #${shift.id} opened with float ${money(shift.opening_float)}`, 'success');
+                }}
+                registerId={settings?.register_id || 'REG-1'}
+            />
+
+            <CashMovementModal
+                isOpen={showCashMovementModal}
+                onClose={() => setShowCashMovementModal(false)}
+                shiftId={registerShift?.id}
+                onSuccess={(movement, metrics) => {
+                    setShiftMetrics(metrics);
+                    addToast(`${movement.type === 'in' ? 'Cash In' : 'Cash Out'} of ${money(movement.amount)} recorded`, 'success');
+                }}
+            />
+
+            <CloseShiftModal
+                isOpen={showCloseShiftModal}
+                onClose={() => setShowCloseShiftModal(false)}
+                shift={registerShift}
+                metrics={shiftMetrics || {}}
+                onSuccess={(closedShift, zReport, metrics) => {
+                    setRegisterShift(null);
+                    setShiftMetrics(null);
+                    setActiveZReport(zReport);
+                    setShowZReportModal(true);
+                    addToast(`Shift #${closedShift.id} closed. Generating Z-Report...`, 'success');
+                }}
+            />
+
+            <ZReportModal
+                isOpen={showZReportModal}
+                onClose={() => setShowZReportModal(false)}
+                zReport={activeZReport}
             />
 
             <FormModal
@@ -6058,10 +6687,76 @@ const POSInterface = ({
                     presetId={currentPresetId}
                     composition={composition}
                     layout={layout}
-                    onApplyPreset={id => { applyPreset(id); addToast(`${id.charAt(0).toUpperCase()}${id.slice(1)} layout applied`, 'success'); }}
+                    /* A PRESET CAN NOW CHANGE THE TERMINAL.
+                       The Table preset is the one whose composition carries a
+                       floor, so choosing it IS choosing table service on this
+                       device — there is no second switch and no navigation.
+                       The order matters: the terminal is set first so the
+                       layout hook reads the right stored composition and the
+                       right localStorage key when the preset lands. */
+                    onApplyPreset={id => {
+                        const wants = LAYOUT_PRESETS.find(p => p.id === id)?.terminal === 'table'
+                            ? 'table' : 'counter';
+
+                        /* CHANGING THE TERMINAL IS NOT "APPLY A PRESET TOO".
+                           Switching loads that terminal's OWN remembered
+                           composition — and on a device that has never been on
+                           the floor, `loadComposition` already falls back to
+                           the Table preset. Calling applyPreset as well would
+                           race it: the preset would land under the outgoing
+                           terminal's storage key and then be overwritten the
+                           moment the switch resolved. So: switch, or apply.
+                           Never both in one gesture. */
+                        if (wants !== terminal) {
+                            if (wants === 'counter') {
+                                setTerminal('counter');
+                                addToast('Back to the counter', 'success');
+                                return;
+                            }
+
+                            /* Choosing Table on a shop that has never run
+                               tables turns table service ON as part of
+                               choosing it — `both`, not `tables`, so the
+                               counter this till was just using does not
+                               disappear out from under it. */
+                            if (!tablesAvailable) {
+                                if (!canManageStore) {
+                                    addToast('Table service is a store-wide setting — ask an owner or manager to turn it on.', 'error');
+                                    return;
+                                }
+                                setTablesForced(true);
+                                setTerminal('table');
+                                axios.post(route('store.tables.service-mode', { store_slug: store?.slug }), { mode: 'both' })
+                                    .then(() => {
+                                        addToast('Table service on for this store — the floor is in the register now', 'success');
+                                        router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
+                                    })
+                                    .catch(() => {
+                                        /* Undo BOTH halves. A till left on a
+                                           floor the store does not run is a
+                                           screen whose tables can never load. */
+                                        setTablesForced(false);
+                                        setTerminal('counter');
+                                        addToast('Table service could not be turned on for this store.', 'error');
+                                    });
+                                return;
+                            }
+
+                            setTerminal('table');
+                            addToast('Table service on — the floor is in the register now', 'success');
+                            return;
+                        }
+
+                        applyPreset(id);
+                        addToast(`${id.charAt(0).toUpperCase()}${id.slice(1)} layout applied`, 'success');
+                    }}
+                    tablesAvailable={tablesAvailable}
+                    canManageStore={canManageStore}
                     onUpdateComposition={updateComposition}
                     serviceMode={serviceMode}
                     setServiceMode={saveServiceMode}
+                    preparesOrders={preparesOrders}
+                    setPreparesOrders={savePreparesOrders}
                     serviceCharge={serviceChargeSetting}
                     onOpenFloorPlan={() => {
                         setSettingsOpen(false);
@@ -6094,6 +6789,14 @@ const POSInterface = ({
                     setShowRail={v => { setShowRail(v); try { localStorage.setItem('pos_show_rail', JSON.stringify(v)); } catch (_) {} }}
                     uiScale={uiScale}
                     setUiScale={setUiScale}
+                    catalogSort={catalogSort}
+                    setCatalogSort={setCatalogSort}
+                    showCatalogImages={showCatalogImages}
+                    setShowCatalogImages={setShowCatalogImages}
+                    showCatalogStock={showCatalogStock}
+                    setShowCatalogStock={setShowCatalogStock}
+                    hideOutOfStock={hideOutOfStock}
+                    setHideOutOfStock={setHideOutOfStock}
 
                     enableTax={enableTax}
                     setEnableTax={v => { setEnableTax(v); try { localStorage.setItem('pos_enable_tax', String(v)); } catch (_) {} }}
@@ -6140,6 +6843,25 @@ const POSInterface = ({
                     onApply={handleWizardApply}
                     currentPrefs={wizardPrefs}
                     store={store}
+                    settings={settings}
+                    canManageStore={canManageStore}
+                    /* Choosing table service on a COUNTER terminal has no
+                       visible effect until the page that owns the floor is
+                       loaded -- the operator would set it up and be left
+                       looking at the same till. So the wizard's answer decides
+                       where they land. */
+                    /* No navigation. Table service is a shape this register
+                       takes, not a page it goes to — so the wizard turns the
+                       floor on where the operator already is, and `settings`
+                       is reloaded so `service_mode` (which gates the preset
+                       being offered at all) is current. */
+                    onDone={({ service }) => {
+                        /* Switch only — the terminal change loads the floor
+                           composition by itself. See onApplyPreset above for
+                           why applying the preset on top would race it. */
+                        if (service !== 'counter') setTerminal('table');
+                        router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
+                    }}
                 />
             </React.Fragment>
         </OneGlanceLayout>

@@ -14,8 +14,6 @@ const PaymentModal = ({
          { amount: x }  one row for x, the rest left to settle */
     seedSplit = null,
 }) => {
-    if (!isOpen) return null;
-
     const [payments, setPayments] = useState([
         {
             method: 'cash',
@@ -128,6 +126,8 @@ const PaymentModal = ({
             printReceipt,
         });
     };
+
+    if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">

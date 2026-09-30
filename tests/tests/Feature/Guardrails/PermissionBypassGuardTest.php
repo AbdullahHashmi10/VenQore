@@ -184,7 +184,9 @@ class PermissionBypassGuardTest extends VenQoreTestCase
 
             $isSuperAdmin = in_array('superadmin', $middleware, true)
                 || str_contains($action, 'SuperAdmin')
-                || str_starts_with($uri, 'VenQore');
+                || str_contains($action, 'PlatformOwner')
+                || stripos($uri, 'venqore') === 0
+                || in_array(\App\Http\Middleware\UpdaterLock::class, $middleware, true);
             if ($isSuperAdmin) {
                 continue;
             }

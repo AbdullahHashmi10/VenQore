@@ -286,6 +286,13 @@ class StoreProvisioner
                 );
             }
 
+            $foodPresets = ['restaurant', 'cafe', 'bakery', 'food_counter', 'catering'];
+            $preparesOrders = in_array((string) $presetKey, $foodPresets, true) ? '1' : '0';
+            Setting::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'key' => 'prepares_orders'],
+                ['value' => $preparesOrders]
+            );
+
             try {
                 PlanAiAllowance::applyTo($tenant, $tenant->plan);
             } catch (\Throwable $e) {

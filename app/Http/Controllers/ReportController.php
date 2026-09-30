@@ -2533,4 +2533,9 @@ class ReportController extends Controller
             'reasons' => $reasons,
         ]);
     }
+
+    public function analytics(Request $request)
+    {
+        return $this->graphAnalytics($request);
+    }
 }

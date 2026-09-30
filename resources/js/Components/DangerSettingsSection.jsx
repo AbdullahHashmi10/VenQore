@@ -202,90 +202,70 @@ export default function DangerSettingsSection({ data, setData }) {
     };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow">
-            {/* Header / Intro */}
-            <div className="mb-8 p-8 rounded-2xl bg-gradient-to-br from-red-950 via-red-900 to-neutral-900 relative overflow-hidden shadow-2xl border border-red-900/50">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
 
-                <div className="relative z-10">
-                    <div className="flex items-center gap-4 mb-2">
-                        <div className="p-2 bg-red-500/20 rounded-lg backdrop-blur-md border border-white/10">
-                            <AlertOctagon className="text-red-400" size={24} />
-                        </div>
-                        <h2 className="text-3xl font-bold text-white tracking-tight">Danger Zone</h2>
-                    </div>
-                    <p className="text-red-200/60 font-medium ml-14 text-lg max-w-2xl">
-                        Irreversible destructive actions. Proceed with extreme caution.
+            <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs space-y-6">
+                {/* Full Factory Reset */}
+                <div className="space-y-3">
+                    <h3 className="text-sm font-bold text-ink">Complete Store Factory Reset</h3>
+                    <p className="text-xs text-ink-muted">
+                        Wipes all catalog items, sales, invoices, customers, and financial journals. Only your administrator credentials will be retained.
                     </p>
-                </div>
-            </div>
-
-            <div className="p-8 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-500/20">
-                <div className="space-y-6">
-                    {/* Factory Reset Button */}
                     <button
                         type="button"
                         onClick={() => handleFactoryReset('all')}
                         disabled={resetting}
-                        className={`w-full py-6 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl  text-xl tracking-wide group ${resetting ? 'bg-red-900/80 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:scale-95'}`}
+                        className={`w-full py-3.5 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-95 ${
+                            resetting ? 'bg-red-900/80 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
+                        }`}
                     >
                         {resetting ? (
-                            <div className="flex items-center gap-3">
-                                <Loader2 className="animate-spin text-red-200" size={24} />
-                                <span className="animate-pulse">Processing...</span>
-                            </div>
+                            <>
+                                <Loader2 className="animate-spin text-red-200" size={18} />
+                                <span>Processing Wipe Sequence...</span>
+                            </>
                         ) : (
                             <>
-                                <div className="p-2 bg-white/20 rounded-lg group-hover:rotate-12 transition-transform">
-                                    <Trash2 size={24} />
-                                </div>
-                                FACTORY RESET (DELETE ALL DATA)
+                                <Trash2 size={16} />
+                                <span>FACTORY RESET (WIPE ALL DATA)</span>
                             </>
                         )}
                     </button>
+                </div>
 
-                    <div className="relative py-4">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-red-200 dark:border-red-800/50"></div>
-                        </div>
-                        <div className="relative flex justify-center">
-                            <span className="px-4 bg-red-50 dark:bg-[#2A1818] text-xs font-bold uppercase tracking-widest text-red-400">Selective Deletion</span>
-                        </div>
-                    </div>
+                <div className="pt-4 border-t border-line space-y-3">
+                    <h3 className="text-sm font-bold text-ink">Selective Data Deletion</h3>
+                    <p className="text-xs text-ink-muted">
+                        Delete specific data partitions while preserving the rest of your store configuration.
+                    </p>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                         <button
                             type="button"
                             onClick={() => handleFactoryReset('products')}
                             disabled={resetting}
-                            className="py-6 bg-surface border-2 border-line hover:border-red-500 text-ink-secondary hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
+                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
                         >
-                            <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
-                                <Trash2 size={20} />
-                            </span>
-                            {tt('Delete All Products')}
+                            <Trash2 size={15} className="text-red-500" />
+                            <span>{tt('Delete All Products')}</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => handleFactoryReset('sales')}
                             disabled={resetting}
-                            className="py-6 bg-surface border-2 border-line hover:border-red-500 text-ink-secondary hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
+                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
                         >
-                            <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
-                                <Trash2 size={20} />
-                            </span>
-                            Delete All Sales
+                            <Trash2 size={15} className="text-red-500" />
+                            <span>Delete All Sales</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => handleFactoryReset('stock')}
                             disabled={resetting}
-                            className="py-6 bg-surface border-2 border-line hover:border-red-500 text-ink-secondary hover:text-red-600 rounded-2xl font-bold text-sm flex flex-col items-center justify-center gap-3 transition-all hover:shadow-lg group disabled:opacity-50"
+                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
                         >
-                            <span className="p-2 bg-sunken rounded-lg group-hover:bg-red-50 dark:group-hover:bg-red-900/20 transition-colors">
-                                <Trash2 size={20} />
-                            </span>
-                            Reset Stock to 0
+                            <Trash2 size={15} className="text-red-500" />
+                            <span>Reset Stock to 0</span>
                         </button>
                     </div>
                 </div>

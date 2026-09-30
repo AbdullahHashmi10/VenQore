@@ -1,1034 +1,247 @@
 <?php
 
+/**
+ * VenQore Canonical Dashboard Role Pools & Presets
+ * Curated presets strictly <= 40 cards per role.
+ */
+
 return array (
-  'roles' => 
+  'roles' =>
   array (
-    'cashier' => 
+    'owner' =>
     array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'sales.gross_margin_pct',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      2 => 
-      array (
-        'key' => 'staff.on_shift_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      3 => 
-      array (
-        'key' => 'party.customer_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.live_feed',
-        'class' => 'feed',
-        'period' => 'live',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'today',
-      ),
+      0 => 'core.revenue',
+      1 => 'core.revenue_trend',
+      2 => 'core.net_profit',
+      3 => 'core.profit_trend',
+      4 => 'core.gross_profit',
+      5 => 'core.gross_margin_pct',
+      6 => 'core.net_margin_pct',
+      7 => 'core.cogs',
+      8 => 'core.expenses_total',
+      9 => 'core.total_liquidity',
+      10 => 'core.liquidity_trend',
+      11 => 'core.cash_flow_trend',
+      12 => 'core.net_cash_position',
+      13 => 'core.working_capital',
+      14 => 'core.receivables',
+      15 => 'core.receivables_aging',
+      16 => 'core.payables',
+      17 => 'core.payables_aging',
+      18 => 'pos.revenue',
+      19 => 'pos.sale_count',
+      20 => 'pos.avg_ticket',
+      21 => 'inventory.stock_value',
+      22 => 'inventory.low_stock_count',
+      23 => 'approval.awaiting_review',
+      24 => 'approval.pending_aging',
+      25 => 'approval.reviewer_decisions_completed',
+      26 => 'approval.reviewer_returned_to_maker',
     ),
-    'accountant' => 
+    'admin' =>
     array (
-      0 => 
-      array (
-        'key' => 'finance.net_profit',
-        'class' => 'headline',
-        'period' => 'this_month',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.total_liquidity',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'finance.payables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'finance.profit_trend',
-        'class' => 'trend',
-        'period' => 'this_year',
-      ),
-      5 => 
-      array (
-        'key' => 'finance.expenses_by_category',
-        'class' => 'breakdown',
-        'period' => 'this_month',
-      ),
-      6 => 
-      array (
-        'key' => 'finance.receivables_aging',
-        'class' => 'breakdown',
-        'period' => 'live',
-      ),
-      7 => 
-      array (
-        'key' => 'finance.balance_sheet_ok',
-        'class' => 'status',
-        'period' => 'live',
-      ),
-      8 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
+      0 => 'core.revenue',
+      1 => 'core.revenue_trend',
+      2 => 'core.net_profit',
+      3 => 'core.profit_trend',
+      4 => 'core.gross_profit',
+      5 => 'core.gross_margin_pct',
+      6 => 'core.net_margin_pct',
+      7 => 'core.cogs',
+      8 => 'core.expenses_total',
+      9 => 'core.total_liquidity',
+      10 => 'core.liquidity_trend',
+      11 => 'core.cash_flow_trend',
+      12 => 'core.net_cash_position',
+      13 => 'core.working_capital',
+      14 => 'core.receivables',
+      15 => 'core.receivables_aging',
+      16 => 'core.payables',
+      17 => 'core.payables_aging',
+      18 => 'pos.revenue',
+      19 => 'pos.sale_count',
+      20 => 'pos.avg_ticket',
+      21 => 'inventory.stock_value',
+      22 => 'inventory.low_stock_count',
+      23 => 'approval.awaiting_review',
+      24 => 'approval.pending_aging',
+      25 => 'approval.reviewer_decisions_completed',
+      26 => 'approval.reviewer_returned_to_maker',
     ),
-    'purchasing_officer' => 
+    'manager' =>
     array (
-      0 => 
-      array (
-        'key' => 'purchasing.spend',
-        'class' => 'headline',
-        'period' => 'this_month',
-      ),
-      1 => 
-      array (
-        'key' => 'purchasing.count',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.payables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'finance.paid_to_suppliers',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      4 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'party.supplier_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
+      0 => 'core.revenue',
+      1 => 'core.revenue_trend',
+      2 => 'core.gross_profit',
+      3 => 'core.gross_margin_pct',
+      4 => 'core.expenses_total',
+      5 => 'core.receivables',
+      6 => 'core.payables',
+      7 => 'pos.revenue',
+      8 => 'pos.revenue_trend',
+      9 => 'pos.sale_count',
+      10 => 'pos.avg_ticket',
+      11 => 'pos.payment_breakdown',
+      12 => 'inventory.stock_value',
+      13 => 'inventory.low_stock_count',
+      14 => 'inventory.out_of_stock_count',
+      15 => 'inventory.turnover_ratio',
+      16 => 'invoicing.count',
+      17 => 'invoicing.unpaid_value',
+      18 => 'approval.awaiting_review',
+      19 => 'approval.pending_aging',
+      20 => 'approval.reviewer_decisions_completed',
+      21 => 'approval.reviewer_returned_to_maker',
     ),
-    'viewer' => 
+    'accountant' =>
     array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.net_profit',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      2 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'party.customer_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
+      0 => 'core.revenue',
+      1 => 'core.net_profit',
+      2 => 'core.gross_profit',
+      3 => 'core.cogs',
+      4 => 'core.expenses_total',
+      5 => 'core.expense_ratio',
+      6 => 'core.receivables',
+      7 => 'core.receivables_aging',
+      8 => 'core.payables',
+      9 => 'core.payables_aging',
+      10 => 'core.total_liquidity',
+      11 => 'core.liquidity_trend',
+      12 => 'core.cash_flow_trend',
+      13 => 'core.net_cash_position',
+      14 => 'core.working_capital',
+      15 => 'core.balance_sheet_ok',
+      16 => 'approval.awaiting_review',
+      17 => 'approval.pending_aging',
+      18 => 'approval.reviewer_decisions_completed',
+      19 => 'approval.reviewer_returned_to_maker',
+    ),
+    'inventory_controller' =>
+    array (
+      0 => 'inventory.stock_value',
+      1 => 'inventory.stock_value_trend',
+      2 => 'inventory.low_stock_count',
+      3 => 'inventory.out_of_stock_count',
+      4 => 'inventory.turnover_ratio',
+      5 => 'inventory.dead_stock_value',
+      6 => 'inventory.units_on_hand',
+      7 => 'inventory.low_stock_list',
+      8 => 'stocktakes.pending_count',
+      9 => 'stocktakes.variance_value',
+      10 => 'purchases.spend',
+      11 => 'purchases.count',
+      12 => 'products.count',
+      13 => 'products.active_count',
+    ),
+    'shift_supervisor' =>
+    array (
+      0 => 'pos.revenue',
+      1 => 'pos.revenue_trend',
+      2 => 'pos.sale_count',
+      3 => 'pos.avg_ticket',
+      4 => 'pos.max_sale',
+      5 => 'pos.items_per_sale',
+      6 => 'pos.payment_breakdown',
+      7 => 'pos.hourly_heatmap',
+      8 => 'pos.discount_total',
+      9 => 'pos.live_feed',
+      10 => 'register.open_count',
+      11 => 'register.variance_total',
+      12 => 'tables.occupied',
+      13 => 'tables.occupancy_rate',
+    ),
+    'purchasing_officer' =>
+    array (
+      0 => 'purchases.spend',
+      1 => 'purchases.spend_trend',
+      2 => 'purchases.count',
+      3 => 'purchases.unpaid_value',
+      4 => 'purchases.by_supplier',
+      5 => 'suppliers.count',
+      6 => 'suppliers.active',
+      7 => 'suppliers.top_suppliers',
+      8 => 'suppliers.spend_total',
+      9 => 'suppliers.owed_list',
+      10 => 'inventory.low_stock_count',
+      11 => 'inventory.low_stock_list',
+      12 => 'approval.my_pending',
+      13 => 'approval.my_returned',
+      14 => 'approval.my_submitted',
+      15 => 'approval.my_approved',
+    ),
+    'sales_executive' =>
+    array (
+      0 => 'pos.revenue',
+      1 => 'pos.sale_count',
+      2 => 'pos.avg_ticket',
+      3 => 'pos.discount_total',
+      4 => 'invoicing.count',
+      5 => 'invoicing.value',
+      6 => 'invoicing.unpaid_value',
+      7 => 'quotations.count',
+      8 => 'quotations.open_value',
+      9 => 'quotations.win_rate',
+      10 => 'sales_orders.open_count',
+      11 => 'sales_orders.open_value',
+      12 => 'approval.my_pending',
+      13 => 'approval.my_returned',
+      14 => 'approval.my_submitted',
+      15 => 'approval.my_approved',
+    ),
+    'cashier' =>
+    array (
+      0 => 'pos.revenue',
+      1 => 'pos.sale_count',
+      2 => 'pos.avg_ticket',
+      3 => 'pos.items_per_sale',
+      4 => 'pos.payment_breakdown',
+      5 => 'pos.hourly_heatmap',
+      6 => 'pos.discount_total',
+      7 => 'pos.live_feed',
+      8 => 'products.count',
+      9 => 'customers.count',
+      10 => 'approval.my_pending',
+      11 => 'approval.my_returned',
+      12 => 'approval.my_submitted',
+      13 => 'approval.my_approved',
+    ),
+    'viewer' =>
+    array (
+      0 => 'core.revenue',
+      1 => 'core.revenue_trend',
+      2 => 'pos.revenue',
+      3 => 'pos.sale_count',
+      4 => 'invoicing.count',
+      5 => 'products.count',
+      6 => 'inventory.stock_value',
+      7 => 'customers.count',
     ),
   ),
-  'business' => 
+  'business' =>
   array (
-    'default' => 
+    'default' =>
     array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.net_profit',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      7 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      8 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-    ),
-    'pos_only' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'sales.gross_margin_pct',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      3 => 
-      array (
-        'key' => 'party.customer_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-    ),
-    'retail_shop' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.net_profit',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      7 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      8 => 
-      array (
-        'key' => 'party.customer_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-    ),
-    'grocery' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'finance.payables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-      7 => 
-      array (
-        'key' => 'finance.total_liquidity',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      8 => 
-      array (
-        'key' => 'inventory.out_of_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-    ),
-    'pharmacy' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'finance.expenses_by_category',
-        'class' => 'breakdown',
-        'period' => 'this_month',
-      ),
-    ),
-    'cafe' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'sales.gross_margin_pct',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      3 => 
-      array (
-        'key' => 'staff.on_shift_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'today',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-    ),
-    'restaurant' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'restaurant.tables_occupied',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'restaurant.kitchen_orders_pending',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'staff.on_shift_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'today',
-      ),
-      6 => 
-      array (
-        'key' => 'finance.expenses_by_category',
-        'class' => 'breakdown',
-        'period' => 'this_month',
-      ),
-    ),
-    'bakery' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'production.run_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      2 => 
-      array (
-        'key' => 'operations.open_sales_orders',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'today',
-      ),
-      6 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      7 => 
-      array (
-        'key' => 'production.total_cost',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-    ),
-    'mobile_electronics' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'sales.gross_margin_pct',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_customers',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-    ),
-    'clothing' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'sales.gross_margin_pct',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      2 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-    ),
-    'hardware_store' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.payables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_customers',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-    ),
-    'wholesale' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'this_month',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.payables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'finance.profit_trend',
-        'class' => 'trend',
-        'period' => 'this_year',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_customers',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      6 => 
-      array (
-        'key' => 'finance.receivables_aging',
-        'class' => 'breakdown',
-        'period' => 'live',
-      ),
-      7 => 
-      array (
-        'key' => 'purchasing.spend',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      8 => 
-      array (
-        'key' => 'finance.net_profit',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-    ),
-    'multi_branch_retail' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.total_liquidity',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'staff.on_shift_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_products',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-    ),
-    'manufacturing' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'this_month',
-      ),
-      1 => 
-      array (
-        'key' => 'production.run_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      2 => 
-      array (
-        'key' => 'production.total_cost',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      3 => 
-      array (
-        'key' => 'inventory.stock_value',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'purchasing.spend',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-    ),
-    'freelancer' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'this_month',
-      ),
-      1 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      3 => 
-      array (
-        'key' => 'finance.net_profit',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      4 => 
-      array (
-        'key' => 'finance.profit_trend',
-        'class' => 'trend',
-        'period' => 'this_year',
-      ),
-      5 => 
-      array (
-        'key' => 'finance.receivables_aging',
-        'class' => 'breakdown',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_customers',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-    ),
-    'salon' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'staff.on_shift_count',
-        'class' => 'kpi',
-        'period' => 'today',
-      ),
-      2 => 
-      array (
-        'key' => 'finance.expenses_total',
-        'class' => 'kpi',
-        'period' => 'this_month',
-      ),
-      3 => 
-      array (
-        'key' => 'party.customer_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'sales.top_customers',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.payment_breakdown',
-        'class' => 'breakdown',
-        'period' => 'today',
-      ),
-    ),
-    'repair_workshop' => 
-    array (
-      0 => 
-      array (
-        'key' => 'sales.revenue',
-        'class' => 'headline',
-        'period' => 'today',
-      ),
-      1 => 
-      array (
-        'key' => 'operations.open_sales_orders',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      2 => 
-      array (
-        'key' => 'inventory.low_stock_count',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      3 => 
-      array (
-        'key' => 'finance.receivables',
-        'class' => 'kpi',
-        'period' => 'live',
-      ),
-      4 => 
-      array (
-        'key' => 'sales.revenue_trend',
-        'class' => 'trend',
-        'period' => 'this_month',
-      ),
-      5 => 
-      array (
-        'key' => 'inventory.low_stock_list',
-        'class' => 'ledger',
-        'period' => 'live',
-      ),
-      6 => 
-      array (
-        'key' => 'sales.top_customers',
-        'class' => 'ranking',
-        'period' => 'this_month',
-      ),
+      0 => 'core.revenue',
+      1 => 'core.net_profit',
+      2 => 'core.gross_profit',
+      3 => 'core.total_liquidity',
+      4 => 'core.receivables',
+      5 => 'core.payables',
+      6 => 'core.revenue_trend',
+      7 => 'products.count',
+      8 => 'inventory.stock_value',
+      9 => 'inventory.low_stock_count',
+      10 => 'customers.count',
+      11 => 'core.balance_sheet_ok',
     ),
   ),
-  'aliases' => 
+  'aliases' =>
   array (
-    'retail' => 'retail_shop',
-    'generic' => 'default',
-    'automotive' => 'hardware_store',
-    'services' => 'freelancer',
-    'kiryana' => 'grocery',
-    'supermarket' => 'grocery',
-    'cafe_bakery' => 'cafe',
-    'distribution' => 'wholesale',
-    'field_service' => 'repair_workshop',
-    'professional_services' => 'freelancer',
-    'membership_studio' => 'salon',
-    'rental_hire' => 'repair_workshop',
-    'food_counter' => 'cafe',
-    'catering' => 'bakery',
-    'light_manufacturing' => 'manufacturing',
-    'tailoring' => 'manufacturing',
+    'retail_store' => 'default',
+    'grocery' => 'default',
+    'pharmacy' => 'default',
+    'apparel' => 'default',
+    'electronics' => 'default',
+    'services' => 'default',
   ),
 );

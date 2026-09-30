@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
 
 class DebitNoteController extends Controller
 {
@@ -75,18 +78,85 @@ class DebitNoteController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $note = \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
+        $goods = 0.0;
+        foreach ($validated['items'] as $item) {
+            $goods += (float) $item['quantity'] * (float) $item['unit_price'];
+        }
+        $discount = round((float) ($validated['discount'] ?? 0), 2);
+        $tax = round((float) ($validated['tax'] ?? 0), 2);
+        $amount = round(max(0, $goods - $discount) + $tax, 2);
 
-            $goods = 0.0;
-            foreach ($validated['items'] as $item) {
-                $goods += (float) $item['quantity'] * (float) $item['unit_price'];
+        $tenant = app('current.tenant');
+        $user = Auth::user();
+
+        // A request waiting for approval must live only in the approval tables.
+        // Creating a pending DebitNote here would expose a draft as a real
+        // financial document and would split the posting logic in two places.
+        if ($tenant && $user) {
+            $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+                tenant:       $tenant,
+                user:         $user,
+                documentType: \App\Models\ApprovalDocument::TYPE_PURCHASE_RETURN,
+                amount:       $amount,
+            );
+            if ($policy['requires_approval']) {
+                if (empty($validated['purchase_id'])) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'purchase_id' => 'Choose the supplier bill being returned before sending this debit note for approval.',
+                    ]);
+                }
+
+                $approvalItems = [];
+                foreach ($validated['items'] as $index => $item) {
+                    $purchaseItem = \App\Models\PurchaseItem::query()
+                        ->where('purchase_id', $validated['purchase_id'])
+                        ->where('product_id', $item['product_id'])
+                        ->first();
+
+                    if (!$purchaseItem) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            "items.{$index}.product_id" => 'This product is not present on the selected supplier bill.',
+                        ]);
+                    }
+
+                    $approvalItems[] = [
+                        'purchase_item_id' => $purchaseItem->id,
+                        'return_qty'       => (float) $item['quantity'],
+                    ];
+                }
+
+                $doc = resolve(\App\Services\Approval\ApprovalExecutionEngine::class)->submit(
+                    tenant:         $tenant,
+                    maker:          $user,
+                    documentType:   \App\Models\ApprovalDocument::TYPE_PURCHASE_RETURN,
+                    payload:        [
+                        'purchase_id' => $validated['purchase_id'],
+                        'return_date' => $validated['date'],
+                        'reason'      => trim((string) ($validated['reason'] ?? '')) ?: 'Supplier debit note',
+                        'items'       => $approvalItems,
+                    ],
+                    amount:         $amount,
+                    description:    'Purchase return / debit note for bill #' . $validated['purchase_id'],
+                    idempotencyKey: $request->header('Idempotency-Key'),
+                );
+
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success'          => true,
+                        'status'           => 'pending_approval',
+                        'approval_id'      => $doc->id,
+                        'document_number'  => $doc->document_number,
+                    ], 202);
+                }
+
+                return redirect()->route('store.approvals.show', [
+                    'store_slug' => $tenant->slug,
+                    'id' => $doc->id,
+                ])->with('info', 'Debit note submitted for approval.');
             }
-            $goods = round($goods, 2);
-            $discount = round((float) ($validated['discount'] ?? 0), 2);
-            $tax = round((float) ($validated['tax'] ?? 0), 2);
-            /* What the supplier is being told they are owed less. */
-            $amount = round(max(0, $goods - $discount) + $tax, 2);
+        }
 
+        $note = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $goods, $discount, $tax, $amount) {
             $movesStock = (bool) ($validated['returns_stock'] ?? false) && ! empty($validated['warehouse_id']);
 
             $note = \App\Models\DebitNote::create([
@@ -397,6 +467,31 @@ class DebitNoteController extends Controller
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'refund_date' => 'required|date|before_or_equal:today',
         ]);
+
+        // ── Approval interception ───────────────────────────────────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_SUPPLIER_REFUND,
+            amount:       (float) $note->amount,
+        );
+
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_SUPPLIER_REFUND,
+                payload:        array_merge($validated, ['debit_note_id' => $note->id]),
+                amount:         (float) $note->amount,
+                description:    'Supplier refund — Debit Note ' . $note->reference_number,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return redirect()->back()->with('info', 'Refund submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+        // ────────────────────────────────────────────────────────────────────────
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($note, $validated) {
             $accounting = app(\App\Engines\AccountingService::class);

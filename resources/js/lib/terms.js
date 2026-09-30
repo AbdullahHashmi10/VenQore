@@ -1,7 +1,31 @@
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
+
+function getTermsMap() {
+    // 1. Try React context (works inside standard Inertia React tree)
+    try {
+        const page = usePage();
+        if (page?.props?.terms) return page.props.terms;
+    } catch (_) {}
+
+    // 2. Try router.page (works outside React tree, e.g. PrintService, standalone mounts, utilities)
+    try {
+        if (router?.page?.props?.terms) return router.page.props.terms;
+    } catch (_) {}
+
+    // 3. Try global dataset (fallback)
+    try {
+        const appEl = typeof document !== 'undefined' ? document.getElementById('app') : null;
+        if (appEl?.dataset?.page) {
+            const parsed = JSON.parse(appEl.dataset.page);
+            if (parsed?.props?.terms) return parsed.props.terms;
+        }
+    } catch (_) {}
+
+    return {};
+}
 
 export function useTerms() {
-    const map = usePage().props.terms ?? {};
+    const map = getTermsMap();
     
     const t = (key, fallback) => {
         return map[key]?.singular ?? fallback ?? key;
@@ -38,7 +62,7 @@ const NAV_TERMS = {
 };
 
 export function useNavLabel() {
-    const map = usePage().props.terms ?? {};
+    const map = getTermsMap();
     return (label) => {
         const rule = NAV_TERMS[label];
         if (!rule) return label;
@@ -92,6 +116,6 @@ export function applyTerms(text, map) {
 }
 
 export function useTermText() {
-    const map = usePage().props.terms ?? {};
+    const map = getTermsMap();
     return (text) => applyTerms(text, map);
 }

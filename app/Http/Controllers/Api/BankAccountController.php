@@ -15,6 +15,12 @@ class BankAccountController extends Controller
         if (!app()->bound('current.tenant')) {
             return response()->json([], 403);
         }
+
+        $user = $request->user();
+        if (!$user || (!$user->hasPermission('finance.balances') && !$user->hasRole('owner') && !$user->isPlatformAdmin())) {
+            abort(403, 'Unauthorized.');
+        }
+
         $tenantId = app('current.tenant')->id;
         return response()->json(\Illuminate\Support\Facades\DB::table('bank_accounts')->where('tenant_id', $tenantId)->get());
     }

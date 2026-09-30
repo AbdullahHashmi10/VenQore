@@ -185,8 +185,7 @@ class SyncController extends Controller
 
         // SEC-02: batch sync creates sales — require the same permission as the
         // POS/sales routes instead of bypassing route-level checks.
-        $perms = (array) (auth()->user()->permissions ?? []);
-        if (! in_array('*', $perms, true) && ! in_array('sales.create', $perms, true) && ! in_array('pos', $perms, true)) {
+        if (! auth()->user()->hasAnyPermission(['sales.create', 'pos.checkout', 'pos'])) {
             return response()->json(['message' => 'You do not have permission to record sales.'], 403);
         }
 

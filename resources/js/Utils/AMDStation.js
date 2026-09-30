@@ -95,6 +95,7 @@ export const AMDStation = {
                 printerName: options.printerName,
                 copies: options.copies || 1,
                 paperWidth: options.paperWidth || '80mm',
+                autoCut: options.autoCut !== undefined ? options.autoCut : true,
             };
 
             try {

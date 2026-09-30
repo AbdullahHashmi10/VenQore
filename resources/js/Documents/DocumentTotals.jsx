@@ -174,15 +174,27 @@ export default function DocumentTotals({
                                 {totals.settleLabel}
                                 {!locked && (
                                     <span className="vqdoc-quickamt">
-                                        {/* Exact fills in what is owed to the paisa —
-                                            the thing an operator reaches for most and
-                                            the thing they used to have to retype. */}
-                                        <button type="button" className="vqdoc-btn xs" title="Settled in full"
-                                            disabled={totals.grandTotal <= 0 || Math.abs((d.amountPaid || 0) - totals.grandTotal) < 0.005}
-                                            onClick={() => patchSettle({ amountPaid: totals.grandTotal })}>
-                                            Exact
-                                        </button>
-                                        {!!d.amountPaid && (
+                                        {Array.isArray(ctx.quickSettles) && ctx.quickSettles.length > 0 ? (
+                                            ctx.quickSettles.map((qs) => (
+                                                <button
+                                                    key={qs.key}
+                                                    type="button"
+                                                    className={`vqdoc-btn xs ${qs.active ? 'pri' : ''}`}
+                                                    title={qs.hint || qs.label}
+                                                    disabled={qs.disabled}
+                                                    onClick={qs.onClick}
+                                                >
+                                                    {qs.label}
+                                                </button>
+                                            ))
+                                        ) : (
+                                            <button type="button" className="vqdoc-btn xs" title="Settled in full"
+                                                disabled={totals.grandTotal <= 0 || Math.abs((d.amountPaid || 0) - totals.grandTotal) < 0.005}
+                                                onClick={() => patchSettle({ amountPaid: totals.grandTotal })}>
+                                                Exact
+                                            </button>
+                                        )}
+                                        {!!parseFloat(d.amountPaid) && (
                                             <button type="button" className="vqdoc-icon xs quiet"
                                                 title="Clear" aria-label="Clear the amount" onClick={() => patchSettle({ amountPaid: 0 })}>
                                                 <X size={13} />

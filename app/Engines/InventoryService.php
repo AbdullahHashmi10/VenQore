@@ -126,7 +126,7 @@ class InventoryService
                     'type'         => 'adjustment_out',
                     'reference_id' => 'V3 Adjustment',
                     'description'  => "Stock adjustment loss: {$reason}",
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -189,7 +189,7 @@ class InventoryService
                     'type'         => 'adjustment_in',
                     'reference_id' => 'V3 Adjustment',
                     'description'  => "Stock adjustment gain: {$reason}",
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -328,7 +328,7 @@ class InventoryService
                     'type'         => 'transfer_out',
                     'reference_id' => 'V3 Transfer',
                     'description'  => "Transfer to Warehouse #" . $toWarehouseId . ($reason ? ': ' . $reason : ''),
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ],
@@ -341,7 +341,7 @@ class InventoryService
                     'type'         => 'transfer_in',
                     'reference_id' => 'V3 Transfer',
                     'description'  => "Transfer from Warehouse #" . $fromWarehouseId . ($reason ? ': ' . $reason : ''),
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]

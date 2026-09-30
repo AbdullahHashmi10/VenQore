@@ -40,6 +40,13 @@ class User extends Authenticatable implements MustVerifyEmail
     protected bool $membershipResolved = false;
     protected ?string $temp_passcode = null;
 
+    protected $attributes = [
+        'is_platform_admin' => false,
+        'email_verified_at' => null,
+        'permissions'       => null,
+        'last_store_id'     => null,
+    ];
+
     protected $fillable = [
         'name',
         'email',
@@ -51,6 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'permissions',
         'passcode',
+        'is_platform_admin',
     ];
 
     protected $hidden = [
@@ -173,22 +181,25 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isPlatformAdmin(): bool
     {
-        return (bool) ($this->attributes['is_platform_admin'] ?? false);
+        return (bool) (array_key_exists('is_platform_admin', $this->attributes) ? $this->attributes['is_platform_admin'] : false);
     }
 
     public function isPlatformOwner(): bool
     {
-        return $this->isPlatformAdmin() && (($this->attributes['platform_role'] ?? null) === 'platform_owner');
+        $role = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        return $this->isPlatformAdmin() && ($role === 'platform_owner');
     }
 
     public function isPlatformSuperAdmin(): bool
     {
-        return $this->isPlatformAdmin() && in_array($this->attributes['platform_role'] ?? null, ['platform_owner', 'platform_manager', 'product_manager']);
+        $role = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        return $this->isPlatformAdmin() && in_array($role, ['platform_owner', 'platform_manager', 'product_manager']);
     }
 
     public function isPlatformSupport(): bool
     {
-        return $this->isPlatformAdmin() && in_array($this->attributes['platform_role'] ?? null, [
+        $role = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        return $this->isPlatformAdmin() && in_array($role, [
             'platform_owner', 'platform_manager', 'product_manager',
             'support_director', 'support_dept_manager', 'support_agent', 'support_qa', 'tech_escalation'
         ]);
@@ -196,8 +207,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isPlatformStaff(): bool
     {
-        $platformRole = $this->attributes['platform_role'] ?? null;
-        $staffRole = $this->attributes['staff_role'] ?? null;
+        $platformRole = array_key_exists('platform_role', $this->attributes) ? $this->attributes['platform_role'] : null;
+        $staffRole    = array_key_exists('staff_role', $this->attributes) ? $this->attributes['staff_role'] : null;
 
         return $this->isPlatformAdmin() ||
             ($platformRole !== 'none' && !empty($platformRole)) ||
@@ -224,15 +235,63 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasPermission(string $permission): bool
     {
-        if ($this->is_platform_admin) return true;
+        if ($this->isPlatformAdmin()) return true;
 
         $membership = $this->getActiveMembership();
-        if ($membership && in_array($membership->role, ['owner', 'admin'])) {
+        if (!$membership) return false;
+
+        // Owner retains full control across all store capabilities
+        if ($membership->role === 'owner') {
             return true;
         }
 
         $perms = $this->permissions; // delegates to getPermissionsAttribute()
-        return in_array($permission, $perms);
+        if (!is_array($perms)) {
+            $perms = [];
+        }
+
+        if (in_array('*', $perms, true) || in_array($permission, $perms, true)) {
+            return true;
+        }
+
+        // Wildcard matching: e.g. "sales.*" matches "sales.view" or "admin.*" matches "admin.staff_view"
+        foreach ($perms as $p) {
+            if (str_ends_with($p, '.*')) {
+                $prefix = substr($p, 0, -2);
+                if (str_starts_with($permission, $prefix . '.')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the user holds ANY of the given permissions (OR semantics).
+     */
+    public function hasAnyPermission(array|string $permissions): bool
+    {
+        $perms = is_array($permissions) ? $permissions : func_get_args();
+        foreach ($perms as $perm) {
+            if ($this->hasPermission($perm)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if the user holds ALL of the given permissions (AND semantics).
+     */
+    public function hasAllPermissions(array $permissions): bool
+    {
+        foreach ($permissions as $perm) {
+            if (!$this->hasPermission($perm)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -248,8 +307,19 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getActiveMembership(): ?TenantUser
     {
+        $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')?->id : null;
+
+        // 1. If container already has active membership for this user and tenant, use it directly (0 queries, always fresh)
+        if (app()->bound('current.membership')) {
+            $membership = app('current.membership');
+            if ($membership && (string)$membership->user_id === (string)$this->id && ($boundTenantId === null || (string)$membership->tenant_id === (string)$boundTenantId) && $membership->status === 'active') {
+                $this->resolvedMembership = $membership;
+                $this->membershipResolved = true;
+                return $membership;
+            }
+        }
+
         if ($this->membershipResolved) {
-            $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
             if ($boundTenantId === null || ($this->resolvedMembership && (string)$this->resolvedMembership->tenant_id === (string)$boundTenantId)) {
                 return $this->resolvedMembership;
             }
@@ -257,22 +327,21 @@ class User extends Authenticatable implements MustVerifyEmail
             $this->resolvedMembership = null;
         }
 
-
-        // 1. If we are in a tenant context, query/match the membership for this specific tenant first
-        if (app()->bound('current.tenant')) {
+        // 2. If we are in a tenant context, query/match the membership for this specific tenant ONLY.
+        // B07: Never fall back to another store or mutate last_store_id during authorization.
+        if (app()->bound('current.tenant') && app('current.tenant')) {
             $tenant = app('current.tenant');
             $membership = $this->memberships()
                 ->where('tenant_id', $tenant->id)
                 ->where('status', 'active')
                 ->first();
-            if ($membership) {
-                $this->resolvedMembership = $membership;
-                $this->membershipResolved = true;
-                return $membership;
-            }
+
+            $this->resolvedMembership = $membership;
+            $this->membershipResolved = true;
+            return $membership;
         }
 
-        // 2. Fallback to globally bound current.membership if it matches this user and is active
+        // 2. Fallback in tenantless context (e.g. Hub / Store Switcher):
         if (app()->bound('current.membership')) {
             $membership = app('current.membership');
             if ((string)$membership->user_id === (string)$this->id && $membership->status === 'active') {
@@ -282,16 +351,16 @@ class User extends Authenticatable implements MustVerifyEmail
             }
         }
 
-        // 3. Fallback to last store or first available store
-        if (!$this->last_store_id) {
-            $firstMembership = $this->memberships()->where('status', 'active')->first();
-            if ($firstMembership) {
-                $this->resolvedMembership = $firstMembership;
-                $this->updateQuietly(['last_store_id' => $firstMembership->tenant_id]);
-            }
-        } else {
+        // 3. Fallback to last store or first available store without mutating DB during read
+        if ($this->last_store_id) {
             $this->resolvedMembership = $this->memberships()
                 ->where('tenant_id', $this->last_store_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if (!$this->resolvedMembership) {
+            $this->resolvedMembership = $this->memberships()
                 ->where('status', 'active')
                 ->first();
         }
@@ -319,7 +388,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getRoleAttribute(): ?string
     {
-        if ($this->is_platform_admin) return 'platform_admin';
+        if ($this->isPlatformAdmin()) return 'platform_admin';
         
         $membership = $this->getActiveMembership();
         if ($membership && !empty($membership->role)) {
@@ -402,18 +471,34 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getPermissionsAttribute(): array
     {
         // Platform level super admin only
-        if ($this->is_platform_admin) return ['*'];
+        if ($this->isPlatformAdmin()) return ['*'];
 
         // Resolve the active membership
         $membership = $this->getActiveMembership();
 
         if ($membership) {
-            // 1. Use custom per-user permissions set by admin (non-empty array stored in pivot)
+            if ($membership->role === 'owner') {
+                return config('permissions.owner', ['*']);
+            }
+
+            $mode = $membership->permission_override_mode;
+
+            // 1. 'inherit' mode: strictly resolve role permissions from config/permissions.php (ignore any stale custom array)
+            if ($mode === 'inherit') {
+                $role = $membership->role ?? 'viewer';
+                return config('permissions.' . $role, []);
+            }
+
+            // 2. 'custom' mode: use stored custom permissions verbatim, including an empty array
+            if ($mode === 'custom') {
+                return is_array($membership->permissions) ? $membership->permissions : [];
+            }
+
+            // 3. Null / legacy mode: fallback to custom permissions if non-empty, otherwise role defaults
             if (!empty($membership->permissions) && is_array($membership->permissions)) {
                 return $membership->permissions;
             }
 
-            // 2. Delegate to config/permissions.php — the CANONICAL permission map
             $role = $membership->role ?? 'viewer';
             return config('permissions.' . $role, []);
         }

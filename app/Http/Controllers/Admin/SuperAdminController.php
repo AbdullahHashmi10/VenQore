@@ -556,6 +556,57 @@ class SuperAdminController extends Controller
         return back()->with('success', "'{$tenant->name}' {$state}.");
     }
 
+    /**
+     * Batch update feature flags for a specific store.
+     */
+    public function updateStoreFeatureFlags(Request $request, $tenant)
+    {
+        $this->gateSuperAdmin();
+
+        $routeTenant = $request->route('tenant') ?? $tenant;
+        $tenantModel = $routeTenant instanceof Tenant ? $routeTenant : Tenant::find($routeTenant);
+        if (!$tenantModel) {
+            abort(404, 'Store not found.');
+        }
+
+        $request->validate([
+            'features' => 'required|array',
+            'features.*' => 'boolean',
+        ]);
+
+        $allowedFeatures = [
+            'woocommerce', 'api_access', 'growth_engine', 'multi_branch',
+            'variants', 'serials', 'batches', 'manufacturing',
+            'vensynq', 'smartcapture', 'ai_assistant', 'offline_sync',
+            'custom_roles', 'advanced_reports', 'loyalty_module', 'tables_module'
+        ];
+
+        foreach (array_keys($request->features) as $featureKey) {
+            if (!in_array($featureKey, $allowedFeatures, true)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'features' => "Invalid feature flag '{$featureKey}'."
+                ]);
+            }
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $tenantModel) {
+            $limits = (array) ($tenantModel->plan_limits ?? []);
+            foreach ($request->features as $key => $val) {
+                $limits[$key] = filter_var($val, FILTER_VALIDATE_BOOLEAN);
+            }
+            $tenantModel->update(['plan_limits' => $limits]);
+
+            \App\Models\ActivityLog::log(
+                'feature_flags_updated',
+                'Platform admin updated store feature flags for ' . $tenantModel->name,
+                $tenantModel,
+                ['features' => $request->features]
+            );
+        });
+
+        return back()->with('success', "Feature flags updated for '{$tenantModel->name}'.");
+    }
+
     public function appsumoCodes(Request $request)
     {
         $this->checkAppSumo();

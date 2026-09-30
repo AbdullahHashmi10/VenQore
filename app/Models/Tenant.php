@@ -370,6 +370,22 @@ class Tenant extends Model
             return false;
         }
 
+        $numericKeys = [
+            'sku_limit', 'staff_limit', 'locations', 'location_limit', 'registers',
+            'devices_per_seat', 'visible_history_days', 'transactions_per_month',
+            'service_jobs_per_month', 'ai_credits_monthly', 'ai_scans_monthly',
+            'ai_credits_annual', 'free_trial_days', 'cart_tabs_limit',
+        ];
+
+        if (in_array($key, $numericKeys, true)) {
+            if (is_numeric($raw)) {
+                return (int) $raw;
+            }
+            if ($raw === 'unlimited') {
+                return null;
+            }
+        }
+
         // If known boolean feature from canonical config, return boolean
         $configVal = config("plans.solo.{$key}", config("plans.scale.{$key}"));
         if (is_bool($configVal) || in_array($key, ['report_profit_loss', 'recurring_invoices', 'fund_management', 'production', 'multi_branch', 'ltd'])) {

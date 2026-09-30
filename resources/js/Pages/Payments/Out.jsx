@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { ArrowUpCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2 } from 'lucide-react';
+import { ArrowUpCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2, BookOpen } from 'lucide-react';
 import axios from 'axios';
+import ChequeSelector from '@/Components/Cheque/ChequeSelector';
 
 const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
 
@@ -186,11 +187,12 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
 const METHODS = [
     { value: 'cash', label: 'Cash', icon: Banknote },
     { value: 'bank', label: 'Bank', icon: Building2 },
+    { value: 'cheque', label: 'Cheque', icon: BookOpen },
     { value: 'card', label: 'Card', icon: CreditCard },
     { value: 'upi', label: 'UPI/JazzCash', icon: Smartphone },
 ];
 
-export default function PaymentOut({ parties = [], bankAccounts = [], selected_party_id = null }) {
+export default function PaymentOut({ parties = [], bankAccounts = [], selected_party_id = null, approval_correction = null }) {
     const {
         store
     } = usePage().props;
@@ -204,6 +206,8 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
         amount: '',
         payment_method: 'cash',
         bank_account_id: '',
+        cheque_leaf_id: '',
+        cheque_date: new Date().toISOString().split('T')[0],
         reference: '',
         description: ''
     });
@@ -216,13 +220,31 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
     };
 
     useEffect(() => {
-        if (selected_party_id) {
+        if (approval_correction?.payload) {
+            const p = approval_correction.payload;
+            setFormData(prev => ({
+                ...prev,
+                date: p.date || prev.date,
+                party_id: p.party_id || prev.party_id,
+                amount: p.amount || prev.amount,
+                payment_method: p.payment_method || prev.payment_method,
+                bank_account_id: p.bank_account_id || prev.bank_account_id,
+                reference: p.reference || prev.reference,
+                description: p.description || p.notes || prev.description,
+            }));
+            if (p.party_id) {
+                const party = parties.find(pt => String(pt.id) === String(p.party_id));
+                if (party) {
+                    setSelectedParty(party);
+                }
+            }
+        } else if (selected_party_id) {
             const party = parties.find(p => String(p.id) === String(selected_party_id));
             if (party) {
                 handlePartySelect(party);
             }
         }
-    }, [selected_party_id, parties]);
+    }, [selected_party_id, parties, approval_correction]);
 
     const handlePartyClear = () => {
         setSelectedParty(null);
@@ -234,9 +256,19 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
         setLoading(true);
         setErrors({});
         try {
-            await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'out' });
-            setSuccess(true);
-            setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+            if (approval_correction) {
+                await axios.post(approval_correction.resubmit_url, {
+                    payload: { ...formData, type: 'out' },
+                    expected_version: approval_correction.expected_version,
+                    notes: 'Resubmitted with corrections'
+                });
+                setSuccess(true);
+                setTimeout(() => router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id })), 1200);
+            } else {
+                await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'out' });
+                setSuccess(true);
+                setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+            }
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
@@ -249,8 +281,8 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
     };
 
     return (
-        <OneGlanceLayout title="Payment Out">
-            <Head title="Record Payment Out" />
+        <OneGlanceLayout title={approval_correction ? "Correct Payment Out Approval" : "Payment Out"}>
+            <Head title={approval_correction ? "Correct Payment Out" : "Record Payment Out"} />
 
             <div className="h-full flex flex-col items-center justify-center overflow-auto py-6 px-4">
 
@@ -261,6 +293,26 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
 
                     <div className="relative bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden">
 
+                        {approval_correction && (
+                            <div className="bg-amber-500/10 border-b border-amber-500/30 p-4 text-amber-900 dark:text-amber-200">
+                                <div className="flex items-center gap-2 font-bold text-sm">
+                                    <span>⚠️ Correction Mode — Returned for Correction (Revision #{approval_correction.version})</span>
+                                </div>
+                                {approval_correction.return_notes && (
+                                    <p className="text-xs mt-1 text-ink"><strong>Reviewer Notes:</strong> {approval_correction.return_notes}</p>
+                                )}
+                                {approval_correction.return_reason_codes?.length > 0 && (
+                                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                                        {approval_correction.return_reason_codes.map((code, idx) => (
+                                            <span key={idx} className="text-2xs bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded font-mono">
+                                                {code}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Header Band */}
                         <div className="relative bg-gradient-to-r from-rose-600 to-red-600 px-6 py-5 overflow-hidden">
                             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -270,8 +322,8 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                     <ArrowUpCircle size={22} className="text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-bold text-white tracking-tight">Record Payment Out</h1>
-                                    <p className="text-rose-100 text-sm">Money paid out to a contact</p>
+                                    <h1 className="text-xl font-bold text-white tracking-tight">{approval_correction ? 'Resubmit Payment' : 'Record Payment Out'}</h1>
+                                    <p className="text-rose-100 text-sm">{approval_correction ? 'Update returned details and resubmit' : 'Money paid out to a contact'}</p>
                                 </div>
                             </div>
                         </div>
@@ -332,7 +384,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                                     Payment Method <span className="text-red-500">*</span>
                                 </label>
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className="grid grid-cols-5 gap-2">
                                     {METHODS.map(m => {
                                         const isSelected = formData.payment_method === m.value;
                                         return (
@@ -353,7 +405,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                 </div>
                             </div>
 
-                            {/* Bank Account (conditional) */}
+                            {/* Bank Account (conditional for Bank) */}
                             {formData.payment_method === 'bank' && (
                                 <div>
                                     <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">Bank Account</label>
@@ -365,6 +417,46 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                                         <option value="">Select account...</option>
                                         {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                                     </select>
+                                </div>
+                            )}
+
+                            {/* Cheque Details & Selector (conditional for Cheque) */}
+                            {formData.payment_method === 'cheque' && (
+                                <div className="space-y-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                                    <div>
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                            Bank Account <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={formData.bank_account_id}
+                                            onChange={e => setFormData(p => ({ ...p, bank_account_id: e.target.value, cheque_leaf_id: '' }))}
+                                            className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none focus:ring-2 ring-rose-500/20 focus:border-rose-500 transition"
+                                            required
+                                        >
+                                            <option value="">Select bank account...</option>
+                                            {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({acc.bank_name})</option>)}
+                                        </select>
+                                        {errors.bank_account_id && <p className="mt-1 text-xs text-red-500">{errors.bank_account_id[0]}</p>}
+                                    </div>
+
+                                    <ChequeSelector
+                                        bankAccountId={formData.bank_account_id}
+                                        value={formData.cheque_leaf_id}
+                                        onChange={(leafId) => setFormData(p => ({ ...p, cheque_leaf_id: leafId }))}
+                                        error={errors.cheque_leaf_id?.[0]}
+                                    />
+
+                                    <div>
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                            Cheque Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.cheque_date || formData.date}
+                                            onChange={e => setFormData(p => ({ ...p, cheque_date: e.target.value }))}
+                                            className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none"
+                                        />
+                                    </div>
                                 </div>
                             )}
 

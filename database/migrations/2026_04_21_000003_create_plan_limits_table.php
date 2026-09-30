@@ -9,17 +9,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('plan_limits', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('plan_id')->constrained('plans')->cascadeOnDelete();
-            $table->string('key', 100);
-            $table->string('value', 255)->nullable();
-            $table->enum('reset_period', ['never', 'monthly', 'annually'])->default('never');
-            $table->timestamps();
+        if (!Schema::hasTable('plan_limits')) {
+            Schema::create('plan_limits', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('plan_id')->constrained('plans')->cascadeOnDelete();
+                $table->string('key', 100);
+                $table->string('value', 255)->nullable();
+                $table->enum('reset_period', ['never', 'monthly', 'annually'])->default('never');
+                $table->timestamps();
 
-            $table->unique(['plan_id', 'key']);
-            $table->index('key');
-        });
+                $table->unique(['plan_id', 'key']);
+                $table->index('key');
+            });
+        }
 
         // Run the canonical matrix seeder to fully populate all feature keys
         (new \Database\Seeders\PlanFeatureMatrixSeeder())->run();

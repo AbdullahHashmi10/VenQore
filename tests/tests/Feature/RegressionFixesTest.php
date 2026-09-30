@@ -201,27 +201,30 @@ class RegressionFixesTest extends VenQoreTestCase
         $owner = $this->createTenantUser($tenant, 'owner');
         $this->actingAsTenantUserModel($owner, $tenant);
 
-        // Create standard posted sale
-        $sale1 = \App\Models\Sale::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $owner->id,
-            'reference_number' => 'SAL-TEST-0001',
-            'status' => 'posted',
-            'net_sales' => 1000.00,
-            'total' => 1000.00,
-            'posted_at' => now(),
-        ]);
+        // Create standard posted sale and returned sale within canonical scope
+        [$sale1, $sale2] = \App\Services\CanonicalPostingScope::run(function () use ($tenant, $owner) {
+            $s1 = \App\Models\Sale::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $owner->id,
+                'reference_number' => 'SAL-TEST-0001',
+                'status' => 'posted',
+                'net_sales' => 1000.00,
+                'total' => 1000.00,
+                'posted_at' => now(),
+            ]);
 
-        // Create returned sale
-        $sale2 = \App\Models\Sale::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $owner->id,
-            'reference_number' => 'RET-TEST-0001',
-            'status' => 'returned',
-            'net_sales' => 500.00,
-            'total' => 500.00,
-            'posted_at' => now(),
-        ]);
+            $s2 = \App\Models\Sale::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $owner->id,
+                'reference_number' => 'RET-TEST-0001',
+                'status' => 'returned',
+                'net_sales' => 500.00,
+                'total' => 500.00,
+                'posted_at' => now(),
+            ]);
+
+            return [$s1, $s2];
+        });
 
         // Add a payment for sale1
         \App\Models\Payment::create([

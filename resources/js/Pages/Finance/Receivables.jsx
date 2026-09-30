@@ -288,7 +288,13 @@ export default function Receivables({ parties = [] }) {
                                         </td>
                                         <td className="p-3 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity">
-                                                <a href={`https://wa.me/${party.phone}`} target="_blank" rel="noreferrer" className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors" title="WhatsApp">
+                                                <a
+                                                    href={`https://wa.me/${(party.phone || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Dear ${party.name}, gentle reminder from ${store?.name || 'our store'}. Your outstanding balance is ${formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}. Thank you.`)}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                                    title="Send Payment Reminder via WhatsApp"
+                                                >
                                                     <MessageCircle size={14} />
                                                 </a>
                                                 <a href={`tel:${party.phone}`} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Call">
@@ -355,7 +361,13 @@ export default function Receivables({ parties = [] }) {
                                     <div className="flex items-center gap-1">
                                         {party.phone && (
                                             <>
-                                                <a href={`https://wa.me/${party.phone}`} target="_blank" rel="noreferrer" className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors" title="WhatsApp">
+                                                <a
+                                                    href={`https://wa.me/${(party.phone || '').replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Dear ${party.name}, gentle reminder from ${store?.name || 'our store'}. Your outstanding balance is ${formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}. Thank you.`)}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
+                                                    title="Send Payment Reminder via WhatsApp"
+                                                >
                                                     <MessageCircle size={14} />
                                                 </a>
                                                 <a href={`tel:${party.phone}`} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Call">

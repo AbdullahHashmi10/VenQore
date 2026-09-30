@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ApprovalDocument;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\BankAccount;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -12,6 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class ExpenseController extends Controller
 {
+    public function __construct(
+        private ?ApprovalPolicyResolver $policyResolver = null,
+        private ?ApprovalExecutionEngine $approvalEngine = null
+    ) {
+        $this->policyResolver = $this->policyResolver ?? app(ApprovalPolicyResolver::class);
+        $this->approvalEngine = $this->approvalEngine ?? app(ApprovalExecutionEngine::class);
+    }
     public function index(Request $request)
     {
         $query = Expense::with(['expenseCategory', 'serviceJob']);
@@ -178,13 +188,14 @@ class ExpenseController extends Controller
             'stats' => $stats,
             'bankAccounts' => $bankAccounts,
             'cashBalance' => $cashBalance,
-            'serviceJobs' => $serviceJobs,
-            'filters' => $request->only(['search', 'filter', 'from_date', 'to_date'])
+            'serviceJobs'         => $serviceJobs,
+            'filters'             => $request->only(['search', 'filter', 'from_date', 'to_date']),
+            'approval_correction' => app(\App\Services\Approval\ApprovalCorrectionResolver::class)->resolveForEdit($request, 'operating_expense'),
         ]);
     }
 
     /** The full-page voucher. The modal on the list page still posts to store(). */
-    public function create()
+    public function create(Request $request)
     {
         $tenantId = app('current.tenant')->id;
         $serviceJobs = \App\Models\ServiceJob::where('tenant_id', $tenantId)
@@ -192,11 +203,13 @@ class ExpenseController extends Controller
             ->select('id', 'number', 'title')
             ->orderBy('number', 'desc')
             ->get();
+        $correction = app(\App\Services\Approval\ApprovalCorrectionResolver::class)->resolveForEdit($request, 'operating_expense');
 
         return Inertia::render('Expenses/Create', [
-            'categories'   => ExpenseCategory::orderBy('name')->get(),
-            'bankAccounts' => BankAccount::all(),
-            'serviceJobs'  => $serviceJobs,
+            'categories'          => ExpenseCategory::orderBy('name')->get(),
+            'bankAccounts'        => BankAccount::all(),
+            'serviceJobs'         => $serviceJobs,
+            'approval_correction' => $correction,
         ]);
     }
 
@@ -246,6 +259,41 @@ class ExpenseController extends Controller
         $validated['category']    = $category->name;
         $validated['tax_amount']  = $validated['tax_amount'] ?? 0;
 
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+
+        // ── Maker-Checker Approval Interception ──────────────────────────────
+        $policy = $this->policyResolver->resolve(
+            tenant: $tenant,
+            user: $user,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            amount: (float)$validated['amount']
+        );
+
+        if ($policy['requires_approval']) {
+            $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+            $doc = $this->approvalEngine->submit(
+                tenant: $tenant,
+                maker: $user,
+                documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                payload: $validated,
+                amount: (float)$validated['amount'],
+                description: 'Operating expense — ' . ($validated['description'] ?? $validated['category'] ?? ''),
+                idempotencyKey: $idempotencyKey
+            );
+
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'status'               => 'pending_approval',
+                    'approval_document_id' => $doc->id,
+                    'document_number'      => $doc->document_number,
+                    'message'              => 'Operating expense submitted for approval.',
+                ], 202);
+            }
+
+            return redirect()->route('expenses.index')->with('info', 'Operating expense submitted for approval.');
+        }
+
         $expense = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request) {
             $lines = $validated['items'] ?? [];
             unset($validated['items']);
@@ -280,6 +328,26 @@ class ExpenseController extends Controller
     public function update(Request $request, $id)
     {
         $expense = Expense::findOrFail($id);
+
+        $tenant = app('current.tenant');
+        $user   = auth()->user();
+        if ($tenant && $user) {
+            $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+                tenant:       $tenant,
+                user:         $user,
+                documentType: \App\Models\ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                amount:       (float) ($request->amount ?? $expense->amount),
+            );
+            if ($policy['requires_approval']) {
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'When approval workflow is required, posted expenses cannot be directly modified.',
+                    ], 422);
+                }
+                return back()->with('error', 'When approval workflow is required, posted expenses cannot be directly modified.');
+            }
+        }
 
         /* Freight, duty and clearing on a purchase are capitalised INTO the
            stock by the purchase itself — they are already in what the goods are
@@ -398,6 +466,26 @@ class ExpenseController extends Controller
     {
         $expense = Expense::findOrFail($id);
 
+        $tenant = app('current.tenant');
+        $user   = auth()->user();
+        if ($tenant && $user) {
+            $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+                tenant:       $tenant,
+                user:         $user,
+                documentType: \App\Models\ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                amount:       (float) $expense->amount,
+            );
+            if ($policy['requires_approval']) {
+                if (request()->wantsJson() || request()->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'When approval workflow is required, posted expenses cannot be directly deleted.',
+                    ], 422);
+                }
+                return back()->with('error', 'When approval workflow is required, posted expenses cannot be directly deleted.');
+            }
+        }
+
         /* Same reason as update(): deleting it here would leave the purchase's
            capitalisation standing with nothing to explain it. */
         if ($expense->is_landed_cost) {
@@ -462,6 +550,43 @@ class ExpenseController extends Controller
         ]);
 
         $category = ExpenseCategory::where('name', $validated['category_name'])->first();
+        $tenant = app('current.tenant');
+        $user = auth()->user();
+
+        // ── Maker-Checker Approval Interception ──────────────────────────────
+        $policy = $this->policyResolver->resolve(
+            tenant: $tenant,
+            user: $user,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            amount: (float)$validated['amount']
+        );
+
+        if ($policy['requires_approval']) {
+            $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+            $doc = $this->approvalEngine->submit(
+                tenant: $tenant,
+                maker: $user,
+                documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                payload: [
+                    'amount'              => (float)$validated['amount'],
+                    'payment_method'      => 'cash',
+                    'expense_category_id' => $category?->id,
+                    'category_id'         => $category?->id,
+                    'description'         => $validated['description'] ?? $validated['category_name'],
+                    'date'                => now()->toDateString(),
+                ],
+                amount: (float)$validated['amount'],
+                description: 'Operating expense — ' . ($validated['description'] ?? $validated['category_name']),
+                idempotencyKey: $idempotencyKey
+            );
+
+            return response()->json([
+                'status'               => 'pending_approval',
+                'approval_document_id' => $doc->id,
+                'document_number'      => $doc->document_number,
+                'message'              => 'Operating expense submitted for approval.',
+            ], 202);
+        }
 
         $expense = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $category) {
             $expense = Expense::create([

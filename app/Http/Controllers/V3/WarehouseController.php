@@ -59,6 +59,9 @@ class WarehouseController extends Controller
 
             // ── Phase 4.3: Locations Limit Gate ───────────────────────────
             if (app()->bound('current.tenant')) {
+                if ($count >= 1) {
+                    PlanGate::enforce('multi_branch', app('current.tenant'));
+                }
                 PlanGate::enforce('locations', $count);
             }
 

@@ -214,6 +214,8 @@ test('prevents platform admin settings cache from bleeding into global fallback 
     SettingsHelper::clearCache();
     
     // 4. Authenticate as a Platform Admin in global context (unbound tenant)
+    app()->forgetInstance('current.tenant');
+    app()->forgetInstance('current.membership');
     $admin = \App\Models\User::factory()->create(['role' => 'platform_admin']);
     $this->actingAs($admin);
     
@@ -304,6 +306,8 @@ test('enforces tenant bounds when settings are updated globally or via platform 
     ]);
     
     // Authenticate as platform admin
+    app()->forgetInstance('current.tenant');
+    app()->forgetInstance('current.membership');
     $admin = \App\Models\User::factory()->create(['role' => 'platform_admin']);
     $this->actingAs($admin);
     
@@ -349,5 +353,5 @@ test('resolves the settings panel without redirecting to the hub', function () {
     // Request Settings Panel - must return 200 OK and render Settings panel view
     $response = $this->get("/s/{$tenant->slug}/settings");
     $response->assertStatus(200);
-    $response->assertInertia(fn ($page) => $page->component('Settings/SettingsPanel'));
+    $response->assertInertia(fn ($page) => $page->component('Admin/Settings'));
 });

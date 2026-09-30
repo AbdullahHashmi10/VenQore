@@ -1,8 +1,58 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals($store->decimal_places ?? 2);
+    $currSymbol = \App\Helpers\SettingsHelper::get('currency_symbol') ?? ($store->currency_symbol ?? 'Rs.');
+    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
+    @if(($theme ?? 'classic') === 'elegant')
+    body {
+        font-family: DejaVu Serif, Georgia, serif;
+        font-size: 11px;
+        color: #1a1a1a;
+        margin: 0;
+        padding: 0;
+    }
+    .page { padding: 40px; }
+    .header { display: table; width: 100%; margin-bottom: 32px; }
+    .header-left { display: table-cell; width: 60%; vertical-align: top; }
+    .header-right { display: table-cell; width: 40%; vertical-align: top; text-align: right; }
+    .company-name { font-size: 24px; font-weight: bold; color: {{ $primaryColor }}; letter-spacing: 0.5px; }
+    .invoice-title { font-size: 26px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .invoice-number { font-size: 13px; color: #666; font-style: italic; }
+    table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    table.items thead th {
+        background: transparent; padding: 8px 10px;
+        text-align: left; font-size: 11px; text-transform: uppercase;
+        color: {{ $primaryColor }}; border-top: 1px solid {{ $primaryColor }}; border-bottom: 2px solid {{ $primaryColor }};
+    }
+    table.items tbody td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    @elseif(($theme ?? 'classic') === 'modern')
+    body {
+        font-family: DejaVu Sans, sans-serif;
+        font-size: 12px;
+        color: #111;
+        margin: 0;
+        padding: 0;
+    }
+    .page { padding: 40px; }
+    .header { display: table; width: 100%; margin-bottom: 32px; background: #f8fafc; padding: 16px; border-radius: 8px; }
+    .header-left { display: table-cell; width: 60%; vertical-align: top; }
+    .header-right { display: table-cell; width: 40%; vertical-align: top; text-align: right; }
+    .company-name { font-size: 22px; font-weight: bold; color: #111; }
+    .invoice-title { font-size: 28px; font-weight: bold; color: {{ $primaryColor }}; margin-bottom: 4px; }
+    .invoice-number { font-size: 14px; color: #555; font-weight: bold; }
+    table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    table.items thead th {
+        background: {{ $primaryColor }}; padding: 9px 10px;
+        text-align: left; font-size: 11px; text-transform: uppercase;
+        color: #ffffff; font-weight: bold;
+    }
+    table.items tbody td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    @else
     body {
         font-family: DejaVu Sans, sans-serif;
         font-size: 12px;
@@ -11,45 +61,20 @@
         padding: 0;
     }
     .page { padding: 40px; }
-
-    /* Header */
     .header { display: table; width: 100%; margin-bottom: 32px; }
-    .header-left {
-        display: table-cell; width: 60%; vertical-align: top;
-    }
-    .header-right {
-        display: table-cell; width: 40%; vertical-align: top;
-        text-align: right;
-    }
+    .header-left { display: table-cell; width: 60%; vertical-align: top; }
+    .header-right { display: table-cell; width: 40%; vertical-align: top; text-align: right; }
     .company-name { font-size: 22px; font-weight: bold; color: #111; }
-    .invoice-title {
-        font-size: 28px; font-weight: bold;
-        color: {{ $primaryColor }}; margin-bottom: 4px;
-    }
+    .invoice-title { font-size: 28px; font-weight: bold; color: {{ $primaryColor }}; margin-bottom: 4px; }
     .invoice-number { font-size: 14px; color: #555; }
-
-    /* Bill To */
-    .section-label {
-        font-size: 10px; text-transform: uppercase;
-        color: #888; letter-spacing: 1px; margin-bottom: 4px;
-    }
-    .bill-to { margin-bottom: 28px; }
-
-    /* Line items table */
-    table.items {
-        width: 100%; border-collapse: collapse; margin-bottom: 24px;
-    }
+    table.items { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
     table.items thead th {
         background: #f3f4f6; padding: 8px 10px;
-        text-align: left; font-size: 11px;
-        text-transform: uppercase; color: #555;
-        border-bottom: 2px solid #e5e7eb;
+        text-align: left; font-size: 11px; text-transform: uppercase;
+        color: #555; border-bottom: 2px solid #e5e7eb;
     }
-    table.items tbody td {
-        padding: 8px 10px;
-        border-bottom: 1px solid #e5e7eb;
-        vertical-align: top;
-    }
+    table.items tbody td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    @endif
     table.items tbody tr:last-child td { border-bottom: none; }
     .text-right { text-align: right; }
 
@@ -89,19 +114,25 @@
             </div>
         </div>
         <div class="header-right">
-            <div class="invoice-title">INVOICE</div>
-            <div class="invoice-number">{{ $sale->reference_number }}</div>
+            <div class="invoice-title" @if(!empty($isReturn)) style="color: #dc2626;" @endif>
+                {{ $docTitle ?? (!empty($isReturn) ? 'CREDIT NOTE / SALE RETURN' : 'INVOICE') }}
+            </div>
+            @if($showInvoiceNumber)
+            <div class="invoice-number">
+                {{ !empty($isReturn) ? 'Credit Note #: ' : 'Invoice #: ' }}{{ $docRef ?? $sale->reference_number }}
+            </div>
+            @endif
             <div style="margin-top:8px; color:#555;">
-                Date: {{ \Carbon\Carbon::parse($sale->posted_at)->format('d M Y') }}
+                Date: {{ \Carbon\Carbon::parse($sale->posted_at ?? now())->format('d M Y') }}
             </div>
         </div>
     </div>
 
     {{-- ── Bill To ─────────────────────────────────────────────── --}}
     <div class="bill-to">
-        <div class="section-label">Bill To</div>
+        <div class="section-label">{{ !empty($isReturn) ? 'Credit To / Party' : 'Bill To' }}</div>
         <div style="font-weight:bold; font-size:13px;">
-            {{ $sale->customer_name }}
+            {{ $sale->customer_name ?: 'Walk-in Customer' }}
         </div>
         @if($sale->customer_address)
             <div style="color:#555; margin-top:2px;">
@@ -150,10 +181,10 @@
                 </td>
                 <td>{{ $item->sale_uom }}</td>
                 <td class="text-right">
-                    {{ number_format($item->quantity, 2) }}
+                    {{ \App\Helpers\SettingsHelper::formatQuantity($item->quantity, $decimals) }}
                 </td>
                 <td class="text-right">
-                    {{ number_format($item->unit_price, 2) }}
+                    {{ number_format($item->unit_price, $decimals) }}
                 </td>
                 <td class="text-right">
                     {{ $item->discount_amount > 0 && $item->gross_amount > 0
@@ -173,7 +204,7 @@
                 </td>
                 @endif
                 <td class="text-right">
-                    {{ number_format($item->line_total, 2) }}
+                    {{ number_format($item->line_total, $decimals) }}
                 </td>
             </tr>
             @endforeach
@@ -182,38 +213,68 @@
 
     {{-- ── Totals ──────────────────────────────────────────────── --}}
     <table class="totals-table">
+        @if(!empty($isReturn))
+        <tr>
+            <td>Return Gross</td>
+            <td class="text-right">
+                {{ number_format(abs($sale->subtotal_gross ?? $sale->total ?? 0), $decimals) }}
+            </td>
+        </tr>
+        @if(!empty($sale->total_tax) && $sale->total_tax != 0)
+        <tr>
+            <td>Tax Adjustment</td>
+            <td class="text-right">
+                {{ number_format(abs($sale->total_tax), $decimals) }}
+            </td>
+        </tr>
+        @endif
+        <tr class="grand-total">
+            <td><strong>Total Credit Amount</strong></td>
+            <td class="text-right">
+                <strong style="color: #dc2626;">{{ $currSymbol }} {{ number_format(abs($sale->invoice_total ?? $sale->total ?? 0), $decimals) }}</strong>
+            </td>
+        </tr>
+        <tr>
+            <td style="color:#888; font-size:11px;">Document Type</td>
+            <td class="text-right">
+                <span style="font-weight: bold; font-size: 11px; color: #dc2626; text-transform: uppercase;">
+                    Credit Note / Return
+                </span>
+            </td>
+        </tr>
+        @else
         <tr>
             <td>Subtotal (Gross)</td>
             <td class="text-right">
-                {{ number_format($sale->subtotal_gross, 2) }}
+                {{ number_format($sale->subtotal_gross, $decimals) }}
             </td>
         </tr>
         @if($sale->total_item_discounts > 0)
         <tr>
             <td>Discounts</td>
             <td class="text-right" style="color:#dc2626;">
-                ({{ number_format($sale->total_item_discounts, 2) }})
+                ({{ number_format($sale->total_item_discounts, $decimals) }})
             </td>
         </tr>
         @endif
         <tr>
             <td>Net Sales</td>
             <td class="text-right">
-                {{ number_format($sale->net_sales, 2) }}
+                {{ number_format($sale->net_sales, $decimals) }}
             </td>
         </tr>
         @if($sale->total_tax > 0)
         <tr>
             <td>Tax</td>
             <td class="text-right">
-                {{ number_format($sale->total_tax, 2) }}
+                {{ number_format($sale->total_tax, $decimals) }}
             </td>
         </tr>
         @endif
         <tr class="grand-total">
             <td><strong>Total</strong></td>
             <td class="text-right">
-                <strong>Rs. {{ number_format($sale->invoice_total, 2) }}</strong>
+                <strong>{{ $currSymbol }} {{ number_format($sale->invoice_total, $decimals) }}</strong>
             </td>
         </tr>
         <tr>
@@ -232,6 +293,7 @@
                 </span>
             </td>
         </tr>
+        @endif
     </table>
 
     {{-- ── Footer ──────────────────────────────────────────────── --}}

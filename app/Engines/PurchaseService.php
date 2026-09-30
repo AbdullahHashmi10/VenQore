@@ -147,7 +147,7 @@ class PurchaseService
                 'payment_method'   => $validated['payment_method'] ?? null,
                 'notes'            => $validated['notes'] ?? null,
                 'journal_entry_id' => $journalEntryId,
-                'created_by'       => auth()->id() ?? 1,
+                'created_by'       => auth()->id(),
                 'created_at'       => now(),
                 'updated_at'       => now(),
             ]);
@@ -554,7 +554,7 @@ class PurchaseService
                     'type'         => 'purchase_return',
                     'reference_id' => $purchase->invoice_number,
                     'description'  => "Purchase return for invoice {$purchase->invoice_number}",
-                    'user_id'      => auth()->id() ?? 1,
+                    'user_id'      => auth()->id(),
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
@@ -628,7 +628,7 @@ class PurchaseService
                 'reason'           => $data['reason'],
                 'total_amount'     => $totalReturnValue,
                 'journal_entry_id' => $journalEntry->id,
-                'created_by'       => auth()->id() ?? 1,
+                'created_by'       => $data['created_by'] ?? $data['user_id'] ?? auth()->id() ?? 1,
                 'created_at'       => now(),
                 'updated_at'       => now(),
             ]);
@@ -1471,7 +1471,7 @@ class PurchaseService
             'type'         => 'purchase',
             'reference_id' => $reference,
             'description'  => "Goods received — {$reference}",
-            'user_id'      => auth()->id() ?? 1,
+            'user_id'      => auth()->id(),
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);

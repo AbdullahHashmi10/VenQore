@@ -173,7 +173,8 @@ final class Reckoner
             }
 
             // 3. Permission (ANY-of)
-            if (! $this->passesPermissions($u, $definition['permissions'] ?? [])) {
+            $passes = $this->passesPermissions($u, $definition['permissions'] ?? []);
+            if (! $passes) {
                 $results[$id] = ReckonerResult::failure($id, $key, 'forbidden', 'You do not have permission to view this.');
 
                 continue;
@@ -279,7 +280,7 @@ final class Reckoner
 
             // Cache lookup.
             $ttl = $definition['cache_ttl'] ?? 60;
-            $cacheKey = $this->cacheKey($t?->id, $key, $period, $request->granularity, $request->args);
+            $cacheKey = $this->cacheKey($t?->id, $key, $period, $request->granularity, $request->args, $u);
 
             if ($ttl > 0 && Cache::has($cacheKey)) {
                 $envelope = Cache::get($cacheKey);
@@ -319,9 +320,10 @@ final class Reckoner
             }
 
             // MeasureEngine dispatch for contract cards (§4, §7.4)
+            $sourceClass = $definition['source'] ?? null;
             $cardContract = \App\Reckoner\CardRegistry::get($key);
             $contractState = $cardContract['contract_state'] ?? 'unimplemented';
-            if ($cardContract && in_array($contractState, ['verified', 'implemented_unverified'], true)) {
+            if ((!$sourceClass || $sourceClass === \App\Reckoner\Sources\MeasureEngineSource::class) && $cardContract && in_array($contractState, ['verified', 'implemented_unverified'], true)) {
                 $ctx = new ReckonerContext($t, $u);
                 $engine = app(\App\Reckoner\Engine\MeasureEngine::class);
                 $engineResults = $engine->resolve([$request], $ctx);
@@ -376,7 +378,7 @@ final class Reckoner
             // Comparison setup
             if (($definition['supports_comparison'] ?? false) && $period->compareStart !== null) {
                 $comparePeriod = $period->comparisonWindow();
-                $compareCacheKey = $this->cacheKey($t?->id, $key, $comparePeriod, $request->granularity, $request->args);
+                $compareCacheKey = $this->cacheKey($t?->id, $key, $comparePeriod, $request->granularity, $request->args, $u);
 
                 $compareValue = null;
                 $compareValueCached = false;
@@ -683,9 +685,9 @@ final class Reckoner
         }
 
         if (is_array($value)) {
-            $current = is_numeric($value['value'] ?? null) ? (float) $value['value'] : null;
+            $current = is_numeric($value['value'] ?? null) ? (float) $value['value'] : (is_numeric($value['count'] ?? null) ? (float) $value['count'] : null);
             $prev = $previous ?? ($value['previous'] ?? null);
-            return [
+            return array_merge($value, [
                 'value'         => $current,
                 'previous'      => $prev,
                 'change_pct'    => ($prev !== null && $prev > 0 && $current !== null)
@@ -693,7 +695,7 @@ final class Reckoner
                     : ($value['change_pct'] ?? null),
                 'compare_label' => $period->compareLabel ?: ($value['compare_label'] ?? ''),
                 'series'        => $value['series'] ?? null,
-            ];
+            ]);
         }
 
         $current = is_numeric($value) ? (float) $value : null;
@@ -710,15 +712,23 @@ final class Reckoner
         ];
     }
 
-    private function cacheKey(int|string|null $tenantId, string $metric, ReckonerPeriod $period, ?string $granularity, array $args): string
+    private function cacheKey(int|string|null $tenantId, string $metric, ReckonerPeriod $period, ?string $granularity, array $args, ?User $user = null): string
     {
+        $tenant = $tenantId ? app(\App\Models\Tenant::class)->find($tenantId) : null;
+        $scope = 'tenant';
+        if ($user) {
+            $ctx = new ReckonerContext($tenant, $user);
+            $scope = $ctx->scopeFingerprint($metric);
+        }
+
         return sprintf(
-            'vq_reckoner:%s:%s:%s:%s:%s',
+            'vq_reckoner:%s:%s:%s:%s:%s:%s',
             $tenantId ?? 'null',
             $metric,
             $period->start->toDateString().'_'.$period->end->toDateString(),
             $granularity ?? '',
-            md5(json_encode($args))
+            md5(json_encode($args)),
+            $scope
         );
     }
 

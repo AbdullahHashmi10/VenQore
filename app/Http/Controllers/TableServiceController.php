@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Occupancy;
+use App\Models\Party;
 use App\Models\Position;
 use App\Models\Setting;
 use App\Models\WorkOrder;
+use App\Services\KitchenTicketService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -90,53 +93,31 @@ class TableServiceController extends Controller
      * to table four should not change pages to do it, and a bill that lives on
      * one screen while the money lives on another is how the two disagree.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): RedirectResponse
     {
-        $tenant = app('current.tenant');
+        /* THERE IS NO TABLES PAGE ANY MORE.
+           This used to render `Pos` with `terminal => 'table'`, which meant the
+           product had a "POS page" and a "Tables page" that were the SAME
+           React component with one prop different. Two URLs for one screen is
+           two things to keep in sync, and worse, moving between them was a full
+           Inertia navigation — so a waiter who wanted the floor while a cart
+           was open on the counter had to lose the cart to get it.
 
-        $this->seedIfEmpty($tenant->id);
+           Table service is a REGISTER SHAPE now: the Table preset, in the
+           settings drawer, beside the other seven. `?view=floor` is how a link
+           still says "open on the floor", so this route, the sidebar entry and
+           every existing bookmark keep working and all land on the one page.
 
-        $floor = $this->floorState($tenant->id);
-
-        return Inertia::render('Pos', [
-            'terminal'     => 'table',
-            /* The envelope is UNPACKED here rather than passed through. `positions`
-               has always been an array of shaped positions and the Pos page
-               destructures it as one — handing it an object instead would render
-               an empty floor. `tickets` is simply a new prop beside it. */
-            'positions'    => $floor['positions'],
-            'tickets'      => $floor['tickets'],
-            'zones'        => $floor['zones'],
-            'kitchen'      => $floor['kitchen'],
-
-            /* Everything the register itself needs. It is the same screen, so
-               it needs the same props — a table terminal that could not pick a
-               bank account or a warehouse would be a register with two of its
-               fields quietly missing. */
-            'recalledSale' => null,
-            'occupancy'    => null,
-            'bankAccounts' => \App\Models\BankAccount::where(function ($q) {
-                    $q->whereNull('account_type')->orWhere('account_type', '!=', 'cash');
-                })
-                ->where(function ($q) {
-                    $q->whereNull('type')->orWhere('type', '!=', 'cash');
-                })
-                ->get(['id', 'name', 'account_number as code', 'account_number']),
-            'warehouses'   => \App\Models\Warehouse::all(['id', 'name', 'is_default']),
-            'settings'     => Setting::all()->pluck('value', 'key'),
-            'storeSlug'    => $tenant->slug,
+           The old demo seeder is deliberately NOT called on the way through.
+           It created twelve tables named after somebody else's dining room,
+           which this file's own notes complain about; a register that reaches
+           the floor with nothing on it now offers to build the real one. */
+        return redirect()->route('store.pos', [
+            'store_slug' => app('current.tenant')->slug,
+            'view'       => 'floor',
         ]);
     }
 
-    /**
-     * The floor as JSON, for polling.
-     *
-     * floorState() now returns the whole envelope — { positions, tickets,
-     * zones, kitchen } — so this is a straight pass-through. The response is a
-     * strict SUPERSET of what it was: `positions` is still the same array of
-     * shaped positions, `zones` and `kitchen` are unchanged, and `tickets` is
-     * new. Every existing reader keeps working untouched.
-     */
     public function state(Request $request): JsonResponse
     {
         $tenant = app('current.tenant');
@@ -216,12 +197,46 @@ class TableServiceController extends Controller
             'party_id'                  => 'nullable|integer',
         ]);
 
-        $occ = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json([
+                'message' => 'Table session is closed.',
+                'closed'  => true,
+            ], 200);
+        }
         $session = $occ->session_data ?? [];
+        $oldCart = $session['cart'] ?? [];
+
+        // Check if any previously sent lines were removed or reduced (R12 cancellation docket)
+        $cancelledItems = [];
+        $newCart = array_values($data['cart']);
+        foreach ($oldCart as $oldLine) {
+            if (!empty($oldLine['sent'])) {
+                $newLine = null;
+                foreach ($newCart as $nl) {
+                    $oldIdent = $oldLine['line_id'] ?? $oldLine['id'] ?? null;
+                    $newIdent = $nl['line_id'] ?? $nl['id'] ?? null;
+                    if ($oldIdent !== null && $newIdent !== null && (string)$oldIdent === (string)$newIdent) {
+                        $newLine = $nl;
+                        break;
+                    }
+                }
+                $oldQty = (float)($oldLine['qty'] ?? 1);
+                $newQty = $newLine ? (float)($newLine['qty'] ?? 0) : 0;
+                if ($newQty < $oldQty) {
+                    $cancelledItems[] = [
+                        'name'      => $oldLine['name'],
+                        'qty'       => $oldQty - $newQty,
+                        'notes'     => $oldLine['notes'] ?? '',
+                        'modifiers' => array_map(fn ($m) => (string) ($m['name'] ?? ''), array_values($oldLine['mods'] ?? [])),
+                    ];
+                }
+            }
+        }
 
         // Settled rows are taken from the stored session, never from the request:
         // a handheld showing a stale table must not be able to un-sell them.
-        $cart = $this->preservePaidLines(array_values($data['cart']), $session['cart'] ?? []);
+        $cart = $this->preservePaidLines($newCart, $oldCart);
         $cart = array_map(fn ($l) => $this->priceLine($l), $cart);
 
         $session['cart']        = $cart;
@@ -234,7 +249,14 @@ class TableServiceController extends Controller
         if (array_key_exists('party_id', $data)) $occ->party_id = $data['party_id'];
         $occ->save();
 
-        return response()->json($this->cardFor($occ));
+        $cancellationKot = null;
+        if (!empty($cancelledItems)) {
+            $cancellationKot = app(KitchenTicketService::class)->formatCancellation($occ, $cancelledItems);
+        }
+
+        return response()->json($this->cardFor($occ) + [
+            'cancellation_kot' => $cancellationKot,
+        ]);
     }
 
     /**
@@ -243,7 +265,7 @@ class TableServiceController extends Controller
      * cooking two mains, and it is the single most common complaint about
      * table-service software.
      */
-    public function sendToKitchen(Request $request): JsonResponse
+    public function sendToKitchen(Request $request, KitchenTicketService $kitchenTicketService): JsonResponse
     {
         $tenant = app('current.tenant');
         $data = $request->validate(['occupancy_id' => 'required|integer']);
@@ -257,46 +279,12 @@ class TableServiceController extends Controller
             return response()->json(['message' => 'Nothing new to send.'], 422);
         }
 
-        DB::transaction(function () use ($tenant, $occ, $unsent, &$session, $cart) {
-            WorkOrder::create([
-                'tenant_id'    => $tenant->id,
-                'kind'         => 'kitchen',
-                // The link back to the floor that this ticket never had. The code
-                // is COPIED, not joined: the occupancy closes when the table is
-                // settled and the position is re-seated minutes later, and a
-                // ticket still on the pass must keep naming the table it was
-                // cooked for rather than following whoever is sitting there now.
-                'occupancy_id'  => $occ->id,
-                'position_code' => $occ->position?->code,
-                'station'       => 'kitchen',
-                'order_number'  => $occ->label ?: ('#' . $occ->id),
-                'items'         => array_map(fn ($l) => [
-                    'name'  => $l['name'],
-                    'qty'   => $l['qty'],
-                    'notes' => $l['notes'] ?? '',
-                    // Objects for anything that has to price or reprint the line,
-                    // and the plain names as well because that is what the pass
-                    // reads at arm's length — and what the KDS already renders.
-                    'mods'      => array_values($l['mods'] ?? []),
-                    'modifiers' => array_map(fn ($m) => (string) ($m['name'] ?? ''), array_values($l['mods'] ?? [])),
-                ], $unsent),
-                'status'        => 'pending',
-                // When the KITCHEN got it. created_at is when the row was written,
-                // which stops being the same thing the moment tickets can be held.
-                'fired_at'      => now(),
-            ]);
-
-            $session['cart'] = array_map(function ($l) {
-                $l['sent'] = true;
-                return $l;
-            }, $cart);
-            $session['sent_at'] = now()->toIso8601String();
-            $occ->session_data = $session;
-            $occ->save();
-        });
+        $res = $kitchenTicketService->fireOccupancy($occ, $cart);
 
         return response()->json($this->cardFor($occ->fresh() ?? $occ) + [
-            'sent' => count($unsent),
+            'sent' => $res['sent_count'],
+            'kot'  => $res['kot'],
+            'kots' => $res['kots'],
         ]);
     }
 
@@ -380,7 +368,10 @@ class TableServiceController extends Controller
             'force'        => 'nullable|boolean',
         ]);
 
-        $occ = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json($this->floorState($tenant->id));
+        }
 
         // The guard is about money that would be LOST, so it asks the same
         // helper everything else asks: what is still owed. A table whose lines
@@ -562,7 +553,14 @@ class TableServiceController extends Controller
             'part_id'      => 'nullable',
         ]);
 
-        $occ     = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json([
+                'ok'              => true,
+                'closed'          => true,
+                'remaining_total' => 0.0,
+            ]);
+        }
         $session = $occ->session_data ?? [];
         $pending = $session['pending_settle'] ?? null;
         $partId  = isset($data['part_id']) ? (string) $data['part_id'] : null;
@@ -704,7 +702,146 @@ class TableServiceController extends Controller
         return response()->json(['percent' => round((float) $data['percent'], 3)]);
     }
 
+    /**
+     * Store setting: whether this shop prepares orders before handing them over.
+     * Independent of service_mode (tables vs counter).
+     */
+    public function setPreparesOrders(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'prepares_orders' => 'required|in:0,1',
+        ]);
+
+        Setting::updateOrCreate(
+            ['key' => 'prepares_orders'],
+            ['value' => (string) $data['prepares_orders']],
+        );
+
+        return response()->json(['prepares_orders' => (string) $data['prepares_orders']]);
+    }
+
+    /**
+     * Fire an order to the kitchen directly from a counter till.
+     * Automatically creates a takeaway lane ticket without needing a floor plan.
+     */
+    public function fireCounter(Request $request, KitchenTicketService $kitchenTicketService): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate([
+            'cart'          => 'required|array|min:1',
+            'customer_name' => 'nullable|string|max:120',
+            'phone'         => 'nullable|string|max:40',
+            'note'          => 'nullable|string|max:500',
+            'party_id'      => 'nullable|integer',
+        ]);
+
+        $res = $kitchenTicketService->fireCounter(
+            $tenant->id,
+            $data['cart'],
+            [
+                'customer_name' => $data['customer_name'] ?? '',
+                'phone'         => $data['phone'] ?? '',
+                'note'          => $data['note'] ?? '',
+                'party_id'      => $data['party_id'] ?? null,
+            ],
+            $request->user()
+        );
+
+        return response()->json([
+            'success'      => true,
+            'occupancy_id' => $res['occupancy_id'],
+            'ticket_code'  => $res['ticket_code'],
+            'sent'         => $res['sent_count'],
+            'kot'          => $res['kot'],
+            'kots'         => $res['kots'],
+            'occupancy'    => $res['occupancy'],
+        ]);
+    }
+
+    /**
+     * Reprint a KOT docket for a ticket from the KDS or register.
+     */
+    public function reprintKOT(Request $request, KitchenTicketService $kitchenTicketService): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate([
+            'ticket_id' => 'required|integer',
+        ]);
+
+        $workOrder = WorkOrder::where('tenant_id', $tenant->id)->findOrFail($data['ticket_id']);
+        $kot = $kitchenTicketService->reprint($workOrder);
+
+        return response()->json([
+            'success' => true,
+            'kot'     => $kot,
+        ]);
+    }
+
     /* ── LANES: the orders that are not sitting anywhere ─────────────────── */
+
+    /**
+     * Fire / release a specific course for a dine-in occupancy.
+     * The table-side UI sends this when the waiter presses "Fire Course 2" etc.
+     */
+    public function fireCourse(Request $request, KitchenTicketService $kitchenTicketService): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate([
+            'occupancy_id' => 'required|integer',
+            'course'       => 'required|integer|min:1|max:10',
+        ]);
+
+        $occ = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $session = $occ->session_data ?? [];
+        $cart = $session['cart'] ?? [];
+
+        // Check there are unsent lines in this course
+        $courseLines = array_filter($cart, fn ($l) =>
+            empty($l['sent']) && (int) ($l['course'] ?? 1) === (int) $data['course']
+        );
+
+        if (!count($courseLines)) {
+            return response()->json(['message' => 'No unsent items in that course.'], 422);
+        }
+
+        $res = $kitchenTicketService->fireOccupancy($occ, $cart, [
+            'only_course' => $data['course'],
+        ]);
+
+        return response()->json($this->cardFor($occ->fresh() ?? $occ) + [
+            'sent' => $res['sent_count'],
+            'kot'  => $res['kot'],
+            'kots' => $res['kots'],
+        ]);
+    }
+
+    /**
+     * Toggle a product in/out of the "86 list" (temporarily unavailable).
+     * Each call flips the state. The current list is broadcast on every state poll.
+     */
+    public function toggle86(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'product_id' => 'required|integer',
+        ]);
+
+        $productId = (int) $data['product_id'];
+        $setting = Setting::where('key', 'pos_86_products')->first();
+        $ids = json_decode($setting?->value ?? '[]', true) ?: [];
+
+        if (in_array($productId, $ids)) {
+            $ids = array_values(array_filter($ids, fn ($id) => $id !== $productId));
+        } else {
+            $ids[] = $productId;
+        }
+
+        Setting::updateOrCreate(
+            ['key' => 'pos_86_products'],
+            ['value' => json_encode($ids)],
+        );
+
+        return response()->json(['eighty_six_ids' => $ids]);
+    }
 
     /**
      * Start a takeaway or delivery ticket.
@@ -722,38 +859,270 @@ class TableServiceController extends Controller
     {
         $tenant = app('current.tenant');
         $data = $request->validate([
-            'order_type'    => 'required|string|in:takeaway,delivery',
-            'customer_name' => 'nullable|string|max:120',
-            'phone'         => 'nullable|string|max:40',
-            'address'       => 'nullable|string|max:500',
-            'party_id'      => 'nullable|integer',
+            'order_type'       => 'required|string|in:takeaway,delivery',
+            'customer_name'    => 'nullable|string|max:120',
+            'phone'            => 'nullable|string|max:40',
+            'address'          => 'nullable|string|max:500',
+            'party_id'         => 'nullable|integer',
+
+            /* DELIVERY. A bag on a counter needs a name; a bag on a motorbike
+               needs an address somebody can find, a door instruction, a fare,
+               a rider and a promise about when. Every one of these used to be
+               typed into the ticket's single free-text `note`, which meant the
+               address was unsearchable, the fee was never charged, and "where
+               is it" could only be answered by the person holding the phone. */
+            'delivery_note'    => 'nullable|string|max:500',
+            'delivery_fee'     => 'nullable|numeric|min:0|max:9999999',
+            'rider'            => 'nullable|string|max:80',
+            'rider_id'         => 'nullable|string',
+            'eta_minutes'      => 'nullable|integer|min:0|max:600',
+            'payment_method'   => 'nullable|string|in:cash,card,online,prepaid',
+            /* Writing an address back onto the customer record is a decision
+               the operator makes, not one inferred from them typing. */
+            'save_to_customer' => 'nullable|boolean',
         ]);
 
-        $code = $this->nextTicketNumber($tenant->id, $data['order_type']);
+        $isDelivery = $data['order_type'] === 'delivery';
+        $code       = $this->nextTicketNumber($tenant->id, $data['order_type']);
+        $partyId    = $data['party_id'] ?? null;
+        $address    = trim((string) ($data['address'] ?? ''));
+
+        /* Keep the customer record and the ticket agreeing. Only ever FILLS a
+           blank address or one the operator explicitly asked to update — an
+           address silently overwritten because somebody sent one order to a
+           workplace is a parcel delivered to the wrong door next month. */
+        if ($partyId && $address !== '' && ($data['save_to_customer'] ?? false)) {
+            $party = Party::where('tenant_id', $tenant->id)->find($partyId);
+            if ($party) {
+                $party->address = $address;
+                $party->save();
+            }
+        }
+
+        $session = [
+            'order_type'    => $data['order_type'],
+            'covers'        => 0,
+            'cart'          => [],
+            'order_total'   => 0.0,
+            'note'          => '',
+            'sent_at'       => null,
+            'customer_name' => (string) ($data['customer_name'] ?? ''),
+            'phone'         => (string) ($data['phone'] ?? ''),
+            'address'       => $address,
+        ];
+
+        if ($isDelivery) {
+            /* Resolve rider name and commission from the employee record when
+               a rider_id is provided. Stamping commission at open time means
+               a later rate change cannot rewrite history. */
+            $riderName       = (string) ($data['rider'] ?? '');
+            $riderId         = $data['rider_id'] ?? null;
+            $commissionRate  = 0.0;
+
+            if ($riderId) {
+                $employee = \App\Models\Employee::where('tenant_id', $tenant->id)
+                    ->find($riderId);
+                if ($employee) {
+                    if ($riderName === '') $riderName = $employee->name;
+                    $commissionRate = (float) $employee->commission_rate;
+                }
+            }
+
+            $session['delivery'] = $this->freshDelivery([
+                'note'            => (string) ($data['delivery_note'] ?? ''),
+                'fee'             => round((float) ($data['delivery_fee'] ?? 0), 2),
+                'rider'           => $riderName,
+                'rider_id'        => $riderId,
+                'eta_minutes'     => $data['eta_minutes'] ?? null,
+                'payment_method'  => $data['payment_method'] ?? 'cash',
+                'commission_rate' => $commissionRate,
+            ]);
+        }
 
         $occ = Occupancy::create([
             'tenant_id'    => $tenant->id,
             'position_id'  => null,
             'label'        => $code,
-            'party_id'     => $data['party_id'] ?? null,
+            'party_id'     => $partyId,
             'opened_by'    => $request->user()?->id,
             'opened_at'    => now(),
-            'session_data' => [
-                'order_type'    => $data['order_type'],
-                'covers'        => 0,
-                'cart'          => [],
-                'order_total'   => 0.0,
-                'note'          => '',
-                'sent_at'       => null,
-                'customer_name' => (string) ($data['customer_name'] ?? ''),
-                'phone'         => (string) ($data['phone'] ?? ''),
-                'address'       => (string) ($data['address'] ?? ''),
-            ],
+            'session_data' => $session,
         ]);
 
         $occ->load('user');
 
         return response()->json(['ticket' => $this->ticketShape($occ, [])]);
+    }
+
+    /**
+     * Everything about a delivery that is not the food.
+     *
+     * WHY THIS IS ONE ENDPOINT AND NOT FIVE
+     * -------------------------------------
+     * Status, rider, ETA, fare and address all change from the same place at
+     * the same moment — a dispatcher picks a rider, and in doing so sets the
+     * status to `out` and the ETA to twenty minutes. Five endpoints would mean
+     * five round trips from a phone on a bad connection and five chances for
+     * the ticket to end up half-updated, with a rider assigned to an order the
+     * floor still shows as being cooked.
+     *
+     * WHY THE STATUS IS STAMPED RATHER THAN COUNTED
+     * ---------------------------------------------
+     * Same reason `check_dropped_at` is a timestamp: "out for delivery" is not
+     * interesting, "out for delivery for thirty-five minutes" is. The floor
+     * derives its escalation from the stamp, so nobody has to maintain a
+     * duration anywhere.
+     */
+    public function deliveryUpdate(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate([
+            'occupancy_id'    => 'required|integer',
+            'status'          => 'nullable|string|in:' . implode(',', self::DELIVERY_STATES),
+            'rider'           => 'nullable|string|max:80',
+            'rider_id'        => 'nullable|string',
+            'eta_minutes'     => 'nullable|integer|min:0|max:600',
+            'fee'             => 'nullable|numeric|min:0|max:9999999',
+            'note'            => 'nullable|string|max:500',
+            'customer_name'   => 'nullable|string|max:120',
+            'phone'           => 'nullable|string|max:40',
+            'address'         => 'nullable|string|max:500',
+            'payment_method'  => 'nullable|string|in:cash,card,online,prepaid',
+            'collected_amount'=> 'nullable|numeric|min:0|max:9999999',
+        ]);
+
+        $occ     = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
+        $session = $occ->session_data ?? [];
+
+        if (($session['order_type'] ?? '') !== 'delivery') {
+            return response()->json(['message' => 'That ticket is not a delivery.'], 422);
+        }
+
+        $delivery = $this->freshDelivery($session['delivery'] ?? []);
+
+        /* Only what was SENT is changed. A dispatcher assigning a rider must
+           not blank the door instructions just because their form did not
+           carry them. */
+        if ($request->has('note')) $delivery['note'] = (string) ($data['note'] ?? '');
+        if ($request->has('eta_minutes')) $delivery['eta_minutes'] = $data['eta_minutes'];
+        if ($request->has('fee'))         $delivery['fee']         = round((float) ($data['fee'] ?? 0), 2);
+        if ($request->has('payment_method'))   $delivery['payment_method']   = $data['payment_method'];
+        if ($request->has('collected_amount')) $delivery['collected_amount'] = round((float) ($data['collected_amount'] ?? 0), 2);
+
+        /* Rider: accept rider_id (resolves name + stamps commission) or raw name string. */
+        if ($request->has('rider_id')) {
+            $riderId = $data['rider_id'];
+            $delivery['rider_id'] = $riderId;
+            if ($riderId) {
+                $employee = \App\Models\Employee::where('tenant_id', $tenant->id)->find($riderId);
+                if ($employee) {
+                    $delivery['rider']           = $employee->name;
+                    $delivery['commission_rate'] = (float) $employee->commission_rate;
+                }
+            } else {
+                $delivery['rider'] = '';
+            }
+        } elseif ($request->has('rider')) {
+            $delivery['rider'] = (string) ($data['rider'] ?? '');
+        }
+
+        if ($request->filled('status') && $data['status'] !== ($delivery['status'] ?? null)) {
+            $delivery['status']    = $data['status'];
+            $delivery['status_at'] = now()->toIso8601String();
+            /* The whole journey, kept. "It sat as `preparing` for fifty
+               minutes" is the only way to answer a complaint honestly, and a
+               single mutable status field can never say it. */
+            $delivery['history'][] = ['status' => $data['status'], 'at' => $delivery['status_at']];
+            $delivery['history']   = array_slice($delivery['history'], -12);
+        }
+
+        foreach (['customer_name', 'phone', 'address'] as $k) {
+            if ($request->has($k)) $session[$k] = (string) ($data[$k] ?? '');
+        }
+
+        $session['delivery'] = $delivery;
+        $occ->session_data   = $session;
+        $occ->save();
+        $occ->load('user');
+
+        return response()->json(['ticket' => $this->ticketShape($occ, [])]);
+    }
+
+    /**
+     * Who has ordered before, and where it went.
+     *
+     * A delivery counter takes the same order from the same twelve people every
+     * week. Making somebody re-type a five-line address they have already
+     * typed is both slower and less accurate than offering it back — most
+     * wrong-address deliveries are typos, not changes of address.
+     *
+     * Two sources, deliberately: the customer RECORD (the address they told
+     * you to keep) and the recent TICKETS (the addresses actually used, which
+     * is how you catch "the office one, not the home one"). Scoped to the
+     * tenant, capped, and read-only.
+     */
+    public function addressBook(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $q      = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['matches' => []]);
+        }
+
+        $like = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $q) . '%';
+
+        $parties = Party::where('tenant_id', $tenant->id)
+            ->where(fn ($w) => $w->where('name', 'like', $like)->orWhere('phone', 'like', $like))
+            ->orderBy('name')
+            ->limit(8)
+            ->get(['id', 'name', 'phone', 'address']);
+
+        $matches = $parties->map(fn ($p) => [
+            'party_id' => $p->id,
+            'name'     => (string) $p->name,
+            'phone'    => (string) $p->phone,
+            'address'  => (string) $p->address,
+            'source'   => 'customer',
+        ])->all();
+
+        /* Addresses that were actually delivered to, newest first. Only ones
+           this search already matched by name or phone -- this is an aid to
+           the operator in front of the customer, never a way to page through
+           where everybody in town lives. */
+        $recent = Occupancy::where('tenant_id', $tenant->id)
+            ->whereNull('position_id')
+            ->orderByDesc('id')
+            ->limit(200)
+            ->get(['id', 'session_data']);
+
+        $seen = [];
+        foreach ($matches as $m) {
+            if ($m['address'] !== '') $seen[mb_strtolower($m['address'])] = true;
+        }
+
+        foreach ($recent as $r) {
+            $sd = $r->session_data ?? [];
+            if (($sd['order_type'] ?? '') !== 'delivery') continue;
+            $addr = trim((string) ($sd['address'] ?? ''));
+            $name = trim((string) ($sd['customer_name'] ?? ''));
+            $ph   = trim((string) ($sd['phone'] ?? ''));
+            if ($addr === '') continue;
+            if (mb_stripos($name, $q) === false && mb_stripos($ph, $q) === false) continue;
+            $key = mb_strtolower($addr);
+            if (isset($seen[$key])) continue;
+            $seen[$key] = true;
+            $matches[] = [
+                'party_id' => null,
+                'name'     => $name,
+                'phone'    => $ph,
+                'address'  => $addr,
+                'source'   => 'recent',
+            ];
+            if (count($matches) >= 12) break;
+        }
+
+        return response()->json(['matches' => array_values($matches)]);
     }
 
     /**
@@ -1207,6 +1576,39 @@ class TableServiceController extends Controller
     | arithmetic lives here, once, and every caller asks.
     */
 
+    /**
+     * A complete delivery block, whatever shape the stored one is in.
+     *
+     * Tickets opened before delivery grew past a free-text note have no block
+     * at all, and one opened by an older client may have half of one. Readers
+     * should never have to null-check five keys, so every read goes through
+     * here and gets the full shape back.
+     */
+    private function freshDelivery(array $given = []): array
+    {
+        $status = $given['status'] ?? 'placed';
+        if (!in_array($status, self::DELIVERY_STATES, true)) {
+            $status = 'placed';
+        }
+
+        return [
+            'status'           => $status,
+            'status_at'        => $given['status_at'] ?? now()->toIso8601String(),
+            'rider'            => (string) ($given['rider'] ?? ''),
+            'rider_id'         => $given['rider_id'] ?? null,
+            'note'             => (string) ($given['note'] ?? ''),
+            'fee'              => round((float) ($given['fee'] ?? 0), 2),
+            'eta_minutes'      => isset($given['eta_minutes']) && $given['eta_minutes'] !== ''
+                                    ? (int) $given['eta_minutes'] : null,
+            'payment_method'   => $given['payment_method'] ?? 'cash',
+            'collected_amount' => round((float) ($given['collected_amount'] ?? 0), 2),
+            'cash_handed_in'   => !empty($given['cash_handed_in']),
+            'commission_rate'  => (float) ($given['commission_rate'] ?? 0),
+            'tracking_token'   => $given['tracking_token'] ?? bin2hex(random_bytes(16)),
+            'history'          => array_values($given['history'] ?? []),
+        ];
+    }
+
     /** A line's unit price after its modifiers move it. Signed: deltas may reduce. */
     private function lineUnitPrice(array $line): float
     {
@@ -1277,10 +1679,13 @@ class TableServiceController extends Controller
         return round($paid, 2);
     }
 
-    /** What the table still owes: unpaid lines, less anything paid off the lines. */
+    /** What the table still owes: unpaid lines, less anything paid off the lines, plus delivery fee if delivery order. */
     private function unpaidTotal(array $session): float
     {
         $owed = $this->cartTotal($this->unpaidLines($session['cart'] ?? [])) - $this->offLinePaid($session);
+        if (($session['order_type'] ?? '') === 'delivery' && !empty($session['delivery']['fee'])) {
+            $owed += (float) $session['delivery']['fee'];
+        }
         return round(max(0, $owed), 2);
     }
 
@@ -1326,7 +1731,13 @@ class TableServiceController extends Controller
 
     private function ownedOccupancy(int $tenantId, int $id): Occupancy
     {
-        return Occupancy::where('tenant_id', $tenantId)->whereNull('closed_at')->findOrFail($id);
+        $occ = Occupancy::where('tenant_id', $tenantId)->whereNull('closed_at')->find($id);
+        if (!$occ) {
+            abort(response()->json([
+                'message' => "Table or occupancy session #{$id} is no longer active or does not exist.",
+            ], 404));
+        }
+        return $occ;
     }
 
     /**
@@ -1336,6 +1747,12 @@ class TableServiceController extends Controller
      * zone vocabulary.
      */
     private const RESERVED_ZONE = 'counter';
+
+    /* THE DELIVERY JOURNEY, in order. `placed` is stamped when the ticket is
+       opened; the rest are somebody pressing a button. Four states and not
+       nine, because every state a counter does not actually update becomes a
+       lie on the floor within a week. */
+    public const DELIVERY_STATES = ['placed', 'preparing', 'out', 'delivered'];
 
     /**
      * The areas of this floor.
@@ -1424,12 +1841,13 @@ class TableServiceController extends Controller
         }
 
         return [
-            'positions' => $shapedPositions,
-            'tickets'   => $shapedTickets,
-            'zones'     => $this->zones($tenantId),
-            'kitchen'   => WorkOrder::where('tenant_id', $tenantId)
-                               ->whereIn('status', ['pending', 'preparing'])
-                               ->count(),
+            'positions'      => $shapedPositions,
+            'tickets'        => $shapedTickets,
+            'zones'          => $this->zones($tenantId),
+            'kitchen'        => WorkOrder::where('tenant_id', $tenantId)
+                                   ->whereIn('status', ['pending', 'preparing'])
+                                   ->count(),
+            'eighty_six_ids' => json_decode(Setting::where('key', 'pos_86_products')->value('value') ?? '[]', true) ?: [],
         ];
     }
 
@@ -1690,6 +2108,12 @@ class TableServiceController extends Controller
             'customer_name' => (string) ($s['customer_name'] ?? ''),
             'phone'         => (string) ($s['phone'] ?? ''),
             'address'       => (string) ($s['address'] ?? ''),
+
+            /* Null on a takeaway, so the floor can branch on presence rather
+               than on comparing the order type in four separate components. */
+            'delivery'      => ($s['order_type'] ?? '') === 'delivery'
+                                   ? $this->freshDelivery($s['delivery'] ?? [])
+                                   : null,
 
             'check_dropped_at' => $s['check_dropped_at'] ?? null,
             'server'           => $this->serverOf($occ),

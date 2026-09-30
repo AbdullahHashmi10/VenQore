@@ -8,25 +8,29 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('bill_of_materials', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('product_id');
-            $table->integer('version')->default(1);
-            $table->date('effective_from');
-            $table->boolean('is_active')->default(true);
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('bill_of_materials')) {
+            Schema::create('bill_of_materials', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('product_id');
+                $table->integer('version')->default(1);
+                $table->date('effective_from');
+                $table->boolean('is_active')->default(true);
+                $table->text('notes')->nullable();
+                $table->timestamps();
+            });
+        }
 
-        Schema::create('bom_items', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('bom_id');
-            $table->uuid('product_id');
-            $table->decimal('qty_per_unit', 10, 4);
-            $table->boolean('is_byproduct')->default(false);
-            $table->decimal('byproduct_nrv', 15, 2)->default(0);
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('bom_items')) {
+            Schema::create('bom_items', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('bom_id');
+                $table->uuid('product_id');
+                $table->decimal('qty_per_unit', 10, 4);
+                $table->boolean('is_byproduct')->default(false);
+                $table->decimal('byproduct_nrv', 15, 2)->default(0);
+                $table->timestamps();
+            });
+        }
 
         Schema::table('production_runs', function (Blueprint $table) {
             if (!Schema::hasColumn('production_runs', 'bom_id')) {

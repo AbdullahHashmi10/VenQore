@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Engines\AccountingService;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\ExpensePostingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ExpenseController extends Controller
 {
-    public function __construct(private AccountingService $accounting) {}
+    public function __construct(
+        private ExpensePostingService $postingService,
+        private ApprovalPolicyResolver $policyResolver,
+        private ApprovalExecutionEngine $approvalEngine
+    ) {}
 
     public function store(Request $request)
     {
@@ -24,23 +30,43 @@ class ExpenseController extends Controller
         $amount      = (float) $validated['amount'];
         $inputTax    = (float) ($validated['input_tax'] ?? 0);
         $totalPaid   = round($amount + $inputTax, 2);
-        $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
 
-        $lines = [
-            ['account_code' => '6000',       'debit'  => $amount,    'credit' => 0],
-            ['account_code' => $cashAccount, 'debit'  => 0,          'credit' => $totalPaid],
-        ];
+        $tenant = app('current.tenant');
+        $user = auth()->user();
 
-        if ($inputTax > 0) {
-            $lines[] = ['account_code' => '2300', 'debit' => $inputTax, 'credit' => 0];
+        // ── Maker-Checker Approval Interception ──────────────────────────────
+        $policy = $this->policyResolver->resolve(
+            tenant: $tenant,
+            user: $user,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            amount: $totalPaid
+        );
+
+        if ($policy['requires_approval']) {
+            $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+            $doc = $this->approvalEngine->submit(
+                tenant: $tenant,
+                maker: $user,
+                documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                payload: $validated,
+                amount: $totalPaid,
+                description: 'Expense — ' . ($validated['description'] ?? ''),
+                idempotencyKey: $idempotencyKey
+            );
+
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'status'               => 'pending_approval',
+                    'approval_document_id' => $doc->id,
+                    'document_number'      => $doc->document_number,
+                    'message'              => 'Operating expense submitted for approval.',
+                ], 202);
+            }
+
+            return redirect()->back()->with('info', 'Operating expense submitted for approval.');
         }
 
-        $this->accounting->createEntry([
-            'date'     => $validated['expense_date'],
-            'reference_type' => 'operating_expense',
-            'reference'   => Str::uuid()->toString(),
-            'description'    => "Expense — {$validated['description']}",
-        ], $lines);
+        $result = $this->postingService->post($tenant, $validated, $user);
 
         return redirect()->back()->with('success', 'Expense posted.');
     }

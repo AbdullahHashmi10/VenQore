@@ -123,7 +123,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                         <button
                             key={num}
                             onClick={() => handleNumberClick(num.toString())}
-                            className="h-14 rounded-2xl bg-sunken text-xl font-bold text-ink-secondary dark:text-ink hover:bg-white dark:hover:bg-interactive-hover hover:shadow-lg transition-all active:scale-95"
+                            className="h-14 rounded-2xl bg-sunken text-xl font-bold text-ink hover:bg-interactive-hover hover:shadow-sm transition-all active:scale-95"
                         >
                             {num}
                         </button>
@@ -132,7 +132,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                     <div className="col-start-1">
                         <button
                             onClick={() => verifyPasscode(input)}
-                            className="w-full h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-800/30 hover:shadow-lg transition-all active:scale-95 flex items-center justify-center"
+                            className="w-full h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-800/30 hover:shadow-sm transition-all active:scale-95 flex items-center justify-center"
                         >
                             <Check size={28} />
                         </button>
@@ -141,7 +141,7 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, externalErro
                     <div className="col-start-2">
                         <button
                             onClick={() => handleNumberClick('0')}
-                            className="w-full h-14 rounded-2xl bg-sunken text-xl font-bold text-ink-secondary dark:text-ink hover:bg-white dark:hover:bg-interactive-hover hover:shadow-lg transition-all active:scale-95"
+                            className="w-full h-14 rounded-2xl bg-sunken text-xl font-bold text-ink hover:bg-interactive-hover hover:shadow-sm transition-all active:scale-95"
                         >
                             0
                         </button>

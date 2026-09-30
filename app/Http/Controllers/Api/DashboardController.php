@@ -129,10 +129,8 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+
 
         // Authorise access
         if ($dashboard->user_id !== null && $dashboard->user_id !== $user->id) {
@@ -181,11 +179,7 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->where('user_id', $user->id) // personal dashboards only
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
 
         $this->assertCanEdit($dashboard, $user);
 
@@ -209,7 +203,10 @@ class DashboardController extends Controller
             // Unset other defaults
             Dashboard::query()
                 ->where('tenant_id', $tenant->id)
-                ->where('user_id', $user->id)
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhereNull('user_id');
+                })
                 ->update(['is_default' => false]);
 
             $dashboard->is_default = true;
@@ -250,16 +247,16 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+        $this->assertCanEdit($dashboard, $user);
 
         // Never delete the last personal dashboard
         $count = Dashboard::query()
             ->where('tenant_id', $tenant->id)
-            ->where('user_id', $user->id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhereNull('user_id');
+            })
             ->count();
 
         if ($count <= 1) {
@@ -274,6 +271,7 @@ class DashboardController extends Controller
         return response()->json(['message' => 'Dashboard deleted']);
     }
 
+
     /**
      * Save the entire layout array atomically.
      *
@@ -284,10 +282,8 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+
 
         $this->assertCanEdit($dashboard, $user);
 
@@ -368,10 +364,8 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+
 
         $this->assertCanEdit($dashboard, $user);
 
@@ -459,10 +453,8 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+
 
         $this->assertCanEdit($dashboard, $user);
 
@@ -549,10 +541,8 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+
 
         $this->assertCanEdit($dashboard, $user);
 
@@ -585,11 +575,8 @@ class DashboardController extends Controller
         $tenant = app('current.tenant');
         $user = $request->user();
 
-        $dashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
+        $dashboard = $this->resolveDashboard($id, $tenant, $user);
+
 
         $this->assertCanEdit($dashboard, $user);
 
@@ -644,10 +631,8 @@ class DashboardController extends Controller
             'is_locked' => 'required|boolean',
         ]);
 
-        $sourceDashboard = Dashboard::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('id', $id)
-            ->firstOrFail();
+        $sourceDashboard = $this->resolveDashboard($id, $tenant, $request->user());
+
 
         DB::transaction(function () use ($sourceDashboard, $validated, $tenant) {
             if (! empty($validated['for_user_id'])) {
@@ -787,6 +772,39 @@ class DashboardController extends Controller
     }
 
     /**
+     * Resolve a dashboard by UUID or slug with graceful default fallback.
+     */
+    private function resolveDashboard(string $id, Tenant $tenant, ?User $user = null): Dashboard
+    {
+        $query = Dashboard::query()->where('tenant_id', $tenant->id);
+
+        $dashboard = (clone $query)->where('id', $id)->first();
+
+        if (! $dashboard) {
+            $dashboard = (clone $query)->where('slug', $id)->first();
+        }
+
+        if (! $dashboard && $user) {
+            $dashboard = (clone $query)
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere(function ($sq) use ($user) {
+                          $sq->whereNull('user_id')
+                            ->where('for_role', $user->role ?? null);
+                      });
+                })
+                ->orderByDesc('is_default')
+                ->first();
+        }
+
+        if (! $dashboard) {
+            abort(404, 'Dashboard not found.');
+        }
+
+        return $dashboard;
+    }
+
+    /**
      * Route-gap sweep (2026-09-10): a member may edit their OWN dashboard;
      * shared / role dashboards and other members' dashboards need
      * admin.settings_manage.
@@ -797,9 +815,11 @@ class DashboardController extends Controller
             abort(403, 'This layout is locked by your manager.');
         }
 
-        if ((string) $dashboard->user_id === (string) $user->id) {
+        if ($dashboard->user_id === null || (string) $dashboard->user_id === (string) $user->id) {
             return;
         }
         abort_unless($user->hasPermission('admin.settings_manage'), 403, 'You can only change your own dashboards.');
     }
 }
+
+

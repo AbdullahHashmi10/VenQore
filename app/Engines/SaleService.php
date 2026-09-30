@@ -3,6 +3,7 @@
 namespace App\Engines;
 
 use App\Exceptions\BelowCostSaleException;
+use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -73,7 +74,9 @@ class SaleService
      */
     public function post(array $data): object
     {
-        // Idempotency check (S-048 / Offline Sync)
+        $idempotencyKey = $data['idempotency_key'] ?? $data['client_sale_id'] ?? null;
+
+        // Idempotency pre-check (S-048 / Offline Sync / L038)
         if (!empty($data['client_sale_id'])) {
             $existing = DB::table('sales')
                 ->where('tenant_id', $this->tenantId)
@@ -83,10 +86,21 @@ class SaleService
                 return Sale::find($existing->id);
             }
         }
+        if (!empty($data['idempotency_key'])) {
+            $existing = DB::table('sales')
+                ->where('tenant_id', $this->tenantId)
+                ->where('idempotency_key', $data['idempotency_key'])
+                ->first();
+            if ($existing) {
+                return Sale::find($existing->id);
+            }
+        }
 
-        return DB::transaction(function () use ($data) {
-            $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
-            $data['payment_method'] = $data['payment_method'] ?? 'cash';
+        return \App\Services\CanonicalPostingScope::run(function () use ($data, $idempotencyKey) {
+            try {
+                return DB::transaction(function () use ($data) {
+                    $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
+                    $data['payment_method'] = $data['payment_method'] ?? 'cash';
             $data['warehouse_id']   = $data['warehouse_id'] ?? DB::table('warehouses')->where('tenant_id', $this->tenantId)->value('id');
             $data['sale_date']      = $data['sale_date'] ?? now()->toDateString();
 
@@ -146,22 +160,72 @@ class SaleService
                     $deductions = [];
                     $lineCogs = 0.00;
                 } else {
-                    // UOM conversion: sale qty → base qty for FIFO
-                    $saleUom = $item['sale_uom'] ?? DB::table('products')->where('id', $item['product_id'])->value('base_unit') ?? 'pcs';
-                    $baseQty = $this->uom->toBaseQty(
-                        $item['product_id'],
-                        $qty,
-                        $saleUom
-                    );
+                    // ── R22: Recipe BOM → Automated Inventory Stock Depletion ──
+                    // If this product has an active Composition (recipe), explode its
+                    // Bill of Materials and deduct each raw ingredient from FIFO stock.
+                    $composition = DB::table('compositions')
+                        ->where('tenant_id', $this->tenantId)
+                        ->where('product_id', $item['product_id'])
+                        ->where('is_active', 1)
+                        ->first();
 
-                    // FIFO deduction — returns array of batch deductions
-                    $deductions = $this->fifo->deductStock(
-                        productId:   $item['product_id'],
-                        warehouseId: $data['warehouse_id'],
-                        qty:         $baseQty,
-                        saleUom:     $saleUom
-                    );
-                    $lineCogs = array_sum(array_column($deductions, 'total_cost'));
+                    if ($composition) {
+                        $saleUom = $item['sale_uom'] ?? DB::table('products')->where('id', $item['product_id'])->value('base_unit') ?? 'pcs';
+                        $baseQty = $this->uom->toBaseQty($item['product_id'], $qty, $saleUom);
+
+                        $yieldQty = (float) ($composition->yield_quantity ?: 1.0);
+                        if ($yieldQty <= 0) $yieldQty = 1.0;
+                        $ratio = $baseQty / $yieldQty;
+
+                        $ingredients = DB::table('composition_items')
+                            ->where('tenant_id', $this->tenantId)
+                            ->where('composition_id', $composition->id)
+                            ->get();
+
+                        $deductions = [];
+                        $lineCogs   = 0.0;
+
+                        foreach ($ingredients as $ing) {
+                            $ingQty = (float) $ing->quantity * $ratio;
+                            if ((float) $ing->wastage_percent > 0) {
+                                $ingQty *= (1 + ((float) $ing->wastage_percent / 100));
+                            }
+                            $ingUom     = $ing->unit ?: 'pcs';
+                            $ingBaseQty = $this->uom->toBaseQty($ing->product_id, $ingQty, $ingUom);
+
+                            $ingDeductions = $this->fifo->deductStock(
+                                productId:   $ing->product_id,
+                                warehouseId: $data['warehouse_id'],
+                                qty:         $ingBaseQty,
+                                saleUom:     $ingUom
+                            );
+
+                            foreach ($ingDeductions as $iduc) {
+                                $lineCogs += (float) ($iduc['total_cost'] ?? 0);
+                                $deductions[] = array_merge($iduc, [
+                                    'ingredient_product_id' => $ing->product_id,
+                                    'is_recipe_ingredient'  => true,
+                                ]);
+                            }
+                        }
+                    } else {
+                        // Standard FIFO deduction for finished goods
+                        $saleUom = $item['sale_uom'] ?? DB::table('products')->where('id', $item['product_id'])->value('base_unit') ?? 'pcs';
+                        $baseQty = $this->uom->toBaseQty(
+                            $item['product_id'],
+                            $qty,
+                            $saleUom
+                        );
+
+                        // FIFO deduction — returns array of batch deductions
+                        $deductions = $this->fifo->deductStock(
+                            productId:   $item['product_id'],
+                            warehouseId: $data['warehouse_id'],
+                            qty:         $baseQty,
+                            saleUom:     $saleUom
+                        );
+                        $lineCogs = array_sum(array_column($deductions, 'total_cost'));
+                    }
                 }
 
                 $cogsTotal += $lineCogs;
@@ -321,10 +385,28 @@ class SaleService
             // ── 5. Write sales record ──────────────────────────────────
             $tenantId = $this->tenantId; // always from authenticated tenant context
 
+            $shiftId = $data['register_shift_id'] ?? null;
+            if (!$shiftId) {
+                $shiftId = DB::table('register_shifts')
+                    ->where('tenant_id', $tenantId)
+                    ->where('status', 'open')
+                    ->where(function ($q) use ($data) {
+                        if (!empty($data['register_id'])) {
+                            $q->where('register_id', $data['register_id']);
+                        } else {
+                            $q->where('opened_by', auth()->id() ?? $data['user_id'] ?? null);
+                        }
+                    })
+                    ->latest('id')
+                    ->value('id');
+            }
+
             DB::table('sales')->insert([
                 'id'                   => $saleId,
                 'tenant_id'            => $tenantId,  // WOUND 2 FIX — explicit tenant stamp
+                'register_shift_id'    => $shiftId,
                 'client_sale_id'       => $data['client_sale_id'] ?? null,
+                'idempotency_key'      => $data['idempotency_key'] ?? $data['client_sale_id'] ?? null,
                 'reference_number'     => $invoiceNumber,
                 'source'               => ($data['source'] ?? null) === 'pos' ? 'pos' : 'manual',
                 'party_id'             => $data['customer_id'],
@@ -343,7 +425,7 @@ class SaleService
                 'posted_at'            => $data['sale_date'] ?? now(),
                 // The seller is whoever rang the sale up; a manager approval (S-011/S-044)
                 // is recorded on journal_entries.approved_by, not here.
-                'user_id'              => auth()->id() ?? $data['approved_by'] ?? 1, // added for legacy
+                'user_id'              => $data['user_id'] ?? auth()->id() ?? $data['approved_by'] ?? DB::table('tenant_users')->where('tenant_id', $tenantId)->value('user_id') ?? DB::table('users')->value('id'),
                 'created_at'           => $data['sale_date'] ?? now(),
                 'updated_at'           => now(),
             ]);
@@ -399,9 +481,16 @@ class SaleService
             // so a sale must too — otherwise they drift upward by every unit sold
             // through this engine. Moved by the base qty actually taken from batches.
             foreach ($lineItems as $lineData) {
-                $movedQty = (float) array_sum(array_column($lineData['deductions'], 'qty_taken'));
-                if ($movedQty > 0) {
-                    $this->adjustStockAggregates($lineData['item']['product_id'], $data['warehouse_id'], -$movedQty);
+                $byProduct = [];
+                foreach ($lineData['deductions'] as $d) {
+                    $pId = $d['ingredient_product_id'] ?? $lineData['item']['product_id'];
+                    $byProduct[$pId] = ($byProduct[$pId] ?? 0.0) + (float) $d['qty_taken'];
+                }
+
+                foreach ($byProduct as $pId => $movedQty) {
+                    if ($movedQty > 0) {
+                        $this->adjustStockAggregates($pId, $data['warehouse_id'], -$movedQty);
+                    }
                 }
             }
 
@@ -485,6 +574,21 @@ class SaleService
 
             return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->first();
 
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Concurrent race condition handling:
+                // Catch ONLY the database unique-constraint violation for sales_tenant_idempotency_unique
+                if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
+                    $existing = DB::table('sales')
+                        ->where('tenant_id', $this->tenantId)
+                        ->where('idempotency_key', $idempotencyKey)
+                        ->first();
+                    if ($existing) {
+                        return Sale::find($existing->id);
+                    }
+                }
+                throw $e;
+            }
         });
     }
 
@@ -660,6 +764,9 @@ class SaleService
                                 ->increment('remaining_qty', $restoredQty);
                             $restoredBase += $restoredQty;
 
+                            // Keep the denormalised counters in step per restored batch product
+                            $this->adjustStockAggregates($batch->product_id, $sale->warehouse_id, $restoredQty);
+
                             // COGS comes back at what this slice was costed at when
                             // it left: the drop in the slice's own total_cogs, so a
                             // line returned in pieces restores exactly what it took.
@@ -691,12 +798,6 @@ class SaleService
                             }
                         }
                         $qtyToRestore -= $restoreFromThis;
-                    }
-
-                    // Keep the denormalised counters in step with what actually
-                    // went back into the batches.
-                    if ($restoredBase > 0) {
-                        $this->adjustStockAggregates($originalItem->product_id, $sale->warehouse_id, $restoredBase);
                     }
 
                     if ($originalItem->product_variant_id && $restoredBase > 0) {

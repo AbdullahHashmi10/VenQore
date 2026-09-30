@@ -137,6 +137,16 @@ class AccountingService
 
         $tenantId = $this->getTenantId();
 
+        $entryDate = $data['entry_date'] ?? $data['date'] ?? now()->toDateString();
+        $refType   = $data['reference_type'] ?? 'manual';
+        app(\App\Services\Accounting\AccountingPeriodGuard::class)->enforce(
+            tenantId: $tenantId,
+            accountingDate: $entryDate,
+            operationType: 'create',
+            actor: auth()->user(),
+            postingSource: $refType
+        );
+
         // ── Resolve EVERY account before writing anything ────────────────
         // Previously the header was inserted first and accounts were resolved
         // line-by-line afterwards, so a missing account code threw half-way
@@ -183,7 +193,7 @@ class AccountingService
                 'approved_by'      => $data['approved_by']      ?? null,
                 'idempotency_key'  => $data['idempotency_key']  ?? null,
                 'party_id'         => $data['party_id']         ?? null,
-                'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? 1,
+                'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? DB::table('tenant_users')->where('tenant_id', $tenantId)->value('user_id') ?? DB::table('users')->value('id'),
                 'is_reversed'      => $data['is_reversed']      ?? 0,
                 'reversed_by'      => $data['reversed_by']      ?? null,
                 'is_reversal'      => $data['is_reversal']      ?? false,
@@ -270,6 +280,14 @@ class AccountingService
             if ($original->is_reversed) {
                 throw new \LogicException("Journal entry {$journalEntryId} is already reversed.");
             }
+
+            app(\App\Services\Accounting\AccountingPeriodGuard::class)->enforce(
+                tenantId: $tid,
+                accountingDate: $original->date,
+                operationType: 'reverse_original',
+                actor: auth()->user(),
+                postingSource: 'reversal'
+            );
 
             app(PaymentService::class)->voidAllocations($journalEntryId);
 

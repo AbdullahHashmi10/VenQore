@@ -124,6 +124,7 @@ class FullRouteSweepTest extends TestCase
         'global'           => 'Global administrative / platform routes',
         'new-dashboard'    => 'Unified executive dashboard',
         'public'           => 'Public marketing & utility routes',
+        'tracking'         => 'Shipment and delivery tracking routes',
         'v6'               => 'V6 marketing and pricing landing pages',
         'workspace'        => 'Workspace switching and environment routes',
     ];

@@ -189,6 +189,7 @@ export default function SidebarItem({
                             'Main Dashboard': 'store.dashboard',
                             'Executive Dashboard': 'store.admin.dashboard',
                             'User Management': 'store.admin.users',
+                            'Approvals': 'store.approvals.inbox',
                             'Staff Attendance': 'store.admin.attendance',
                             'Data Management': 'store.admin.data',
                             'System Settings': 'store.admin.settings',
@@ -198,11 +199,10 @@ export default function SidebarItem({
                             'System Builder': 'store.builder',
                             'Customize Modules': 'store.builder',
                             'Subscription': 'store.billing',
-                            'Agent Inbox': 'store.admin.chatbot.inbox',
-                            'Chatbot Settings': 'store.admin.chatbot.settings',
                             'POS': 'store.pos',
                             'Tables': 'store.tables.index',
                             'Floor Plan': 'store.tables.plan',
+                            'Kitchen': 'store.restaurant.kitchen',
                             'Analytics': 'store.sales.analytics',
                             'Orders': 'store.sales.index',
                             'Invoices': 'store.sales.invoice.create',
@@ -292,6 +292,8 @@ export default function SidebarItem({
                             'Quotations / Pre-Sales': 'store.pre-sales.index',
                             'Pre-Purchases': 'store.purchase-orders.index', 
                             'Fund Management': 'store.funds.index',
+                            'Approval Inbox': 'store.approvals.inbox',
+                            'My Submissions': 'store.approvals.my-submissions',
                         };
                         return routeMap[itemName];
                     };
@@ -349,9 +351,6 @@ export default function SidebarItem({
                                                         className="block pl-4 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                                     >
                                                         <span className="flex items-center gap-1.5">
-                                                            {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
-                                                                <VenaLogo size={13} className="shrink-0" />
-                                                            )}
                                                             {navLabel(itemName)}
                                                         </span>
                                                     </Link>
@@ -407,9 +406,6 @@ export default function SidebarItem({
                                         className="block pl-4 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                     >
                                         <span className="flex items-center gap-1.5">
-                                            {(itemName === 'Agent Inbox' || itemName === 'Chatbot Settings') && (
-                                                <VenaLogo size={13} className="shrink-0" />
-                                            )}
                                             {navLabel(itemName)}
                                         </span>
                                     </Link>

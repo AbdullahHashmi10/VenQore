@@ -27,6 +27,7 @@ class Employee extends Model
         'hire_date',
         'termination_date',
         'status',
+        'is_rider',
         'default_warehouse_id',
         'hourly_cost',
         'hourly_rate',
@@ -39,7 +40,15 @@ class Employee extends Model
         'termination_date' => 'date',
         'monthly_salary'   => 'decimal:2',
         'commission_rate'  => 'decimal:2',
+        'is_rider'         => 'boolean',
     ];
+
+    /** Active staff members who can be assigned deliveries. */
+    public function scopeRiders($query)
+    {
+        return $query->where('is_rider', true)->where('status', 'active');
+    }
+
 
     public function party()
     {

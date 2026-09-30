@@ -202,16 +202,20 @@ class GoldenAuditSeeder extends Seeder
             ]);
 
             if (DB::getSchemaBuilder()->hasTable('parked_sales')) {
-                DB::table('parked_sales')->insert([
-                    'id' => (string) \Illuminate\Support\Str::uuid(),
-                    'tenant_id' => self::TENANT_ID,
-                    'cart_data' => json_encode([['product_id' => $productId, 'quantity' => 1, 'price' => 100]]),
-                    'user_id' => self::USER_OWNER,
-                    'customer_name' => 'Walk-In Customer',
-                    'expires_at' => '2035-01-01 09:00:00',
+                $parkedRow = [
+                    'tenant_id'  => self::TENANT_ID,
+                    'cart_data'  => json_encode([['product_id' => $productId, 'quantity' => 1, 'price' => 100]]),
+                    'user_id'    => self::USER_OWNER,
                     'created_at' => $nowStr,
-                    'updated_at' => $nowStr
-                ]);
+                    'updated_at' => $nowStr,
+                ];
+                if (DB::getSchemaBuilder()->hasColumn('parked_sales', 'customer_name')) {
+                    $parkedRow['customer_name'] = 'Walk-In Customer';
+                }
+                if (DB::getSchemaBuilder()->hasColumn('parked_sales', 'expires_at')) {
+                    $parkedRow['expires_at'] = '2035-01-01 09:00:00';
+                }
+                DB::table('parked_sales')->insert($parkedRow);
             }
 
             if (DB::getSchemaBuilder()->hasTable('occupancies') && DB::getSchemaBuilder()->hasTable('positions')) {

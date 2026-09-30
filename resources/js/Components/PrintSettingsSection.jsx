@@ -18,34 +18,41 @@ import { createPortal } from 'react-dom';
 
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
+import { useAMDStation, AMDStation, isAMDStationAvailable } from '@/Utils/AMDStation';
 // ... (imports remain the same, ensuring createPortal is added)
 
 export default function PrintSettingsSection({ data, setData, saveSettings }) {
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
  const [isFullScreen, setIsFullScreen] = useState(false);
  const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
+ const [activePrintTab, setActivePrintTab] = useState(() => {
+   const saved = typeof window !== 'undefined' ? window.localStorage.getItem('active_printer_subtab') : null;
+   return ['thermal', 'regular', 'b2b', 'hardware'].includes(saved) ? saved : 'regular';
+ });
 
  // Persist printer sub-tab selection (thermal vs regular) across refreshes
- useEffect(() => {
- const storedTab = localStorage.getItem('active_printer_subtab');
- if (storedTab && (storedTab === 'thermal' || storedTab === 'regular')) {
- setData('_print_tab', storedTab);
- }
- }, []);
-
  const handleSubtabChange = (tabName) => {
- setData('_print_tab', tabName);
+ setActivePrintTab(tabName);
  localStorage.setItem('active_printer_subtab', tabName);
  };
 
- // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background
+ // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background & listens for Escape (U05)
  useEffect(() => {
  if (isFullScreen) {
  document.body.style.overflow = 'hidden';
+ const handleKeyDown = (e) => {
+ if (e.key === 'Escape') {
+ setIsFullScreen(false);
+ }
+ };
+ window.addEventListener('keydown', handleKeyDown);
+ return () => {
+ document.body.style.overflow = '';
+ window.removeEventListener('keydown', handleKeyDown);
+ };
  } else {
  document.body.style.overflow = '';
  }
- return () => { document.body.style.overflow = ''; };
  }, [isFullScreen]);
 
  /**
@@ -55,7 +62,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  * This guarantees 100% identical output between what you see in the preview and what prints.
  */
  const handleTestPrint = (currentData) => {
- const type = currentData._print_tab === 'thermal' ? 'thermal' : 'regular';
+ const type = activePrintTab === 'thermal' ? 'thermal' : 'regular';
  const isThermal = type === 'thermal';
 
  // Determine paper/window dimensions (mirrors PrintPreview logic)
@@ -114,7 +121,12 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  body { margin: 0; padding: 0; background: white; }
  @page {
  margin: 0;
- ${isThermal ? `size: ${width / MM_TO_PX}mm 297mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
+ ${isThermal
+      ? `size: ${width / MM_TO_PX}mm 297mm;`
+      : currentData.paper_size === 'Custom'
+        ? `size: ${parseFloat(currentData.custom_paper_width) || 210}mm ${parseFloat(currentData.custom_paper_height) || 297}mm;`
+        : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`
+    }
  }
  @media print {
  html, body {
@@ -174,21 +186,21 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  };
 
  const content = (
- <div id="fullscreen-portal-root" className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
+ <div id="fullscreen-portal-root" role={isFullScreen ? 'dialog' : undefined} aria-modal={isFullScreen ? 'true' : undefined} aria-label={isFullScreen ? 'Fullscreen Print Designer' : undefined} className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'min-h-[560px] h-[calc(100vh-14rem)]'}`}>
  {/* Header Toolbar */}
  <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-line bg-surface z-10">
  <div className="flex items-center gap-4">
  <div className="flex items-center gap-2 text-ink">
  <Printer size={18} className="text-brand-500" />
- <span className="font-bold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
+ <span className="font-bold text-sm tracking-tight">Print preview</span>
  </div>
 
- {/* Format Tabs (Thermal vs Regular) */}
+ {/* Format Tabs (Thermal vs Regular vs B2B) */}
  <div className="flex bg-sunken rounded-lg p-1">
  <button
  type="button"
  onClick={() => handleSubtabChange('regular')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab !== 'thermal'
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'regular'
  ? 'bg-sunken text-brand-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -197,11 +209,29 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('thermal')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'thermal'
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'thermal'
  ? 'bg-sunken text-emerald-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
  Thermal / POS
+ </button>
+ <button
+ type="button"
+ onClick={() => handleSubtabChange('b2b')}
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'b2b'
+ ? 'bg-sunken text-indigo-600 shadow-sm'
+ : 'text-ink-muted hover:text-ink-secondary'}`}
+ >
+ Invoice &amp; PDF (B2B)
+ </button>
+ <button
+ type="button"
+ onClick={() => handleSubtabChange('hardware')}
+ className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'hardware'
+ ? 'bg-sunken text-amber-600 shadow-sm'
+ : 'text-ink-muted hover:text-ink-secondary'}`}
+ >
+ Hardware &amp; Station
  </button>
  </div>
  </div>
@@ -293,9 +323,13 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  {/* Scrollable Settings Sidebar */}
  <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
  <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
- {data._print_tab !== 'thermal'
- ? <RegularSettings data={data} setData={setData} />
- : <ThermalSettings data={data} setData={setData} />
+ {activePrintTab === 'thermal'
+ ? <ThermalSettings data={data} setData={setData} />
+ : activePrintTab === 'b2b'
+ ? <B2BSettings data={data} setData={setData} />
+ : activePrintTab === 'hardware'
+ ? <HardwareSettings data={data} setData={setData} />
+ : <RegularSettings data={data} setData={setData} />
  }
  </div>
  </div>
@@ -305,7 +339,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <div className={`transform transition-all duration-slow ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
  <PrintPreview
  data={data}
- type={data._print_tab === 'thermal' ? 'thermal' : 'regular'}
+ type={activePrintTab === 'thermal' ? 'thermal' : 'regular'}
  mode={previewMode}
  />
  </div>
@@ -418,7 +452,7 @@ const RegularSettings = ({ data, setData }) => {
  </Section>
 
  <Section title="Header Content" icon={FileText}>
- <TextInput label="Company Name" value={data.business_name} onChange={v => setData('business_name', v)} />
+ <div className="text-xs text-ink-muted">Business name: <strong className="text-ink">{data.business_name}</strong>. Change it in Business Profile.</div>
  <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} />
  <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} />
 
@@ -694,7 +728,7 @@ const TextInput = ({ label, value, onChange, placeholder }) => (
  value={value || ''}
  onChange={e => onChange(e.target.value)}
  placeholder={placeholder}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink-secondary dark:text-white"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink placeholder:text-ink-faint"
  />
  </div>
 );
@@ -706,7 +740,7 @@ const NumberInput = ({ label, value, onChange }) => (
  type="number"
  value={value || 0}
  onChange={e => onChange(parseFloat(e.target.value) || 0)}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-center"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-ink text-center"
  />
  </div>
 );
@@ -717,7 +751,7 @@ const SelectInput = ({ label, value, onChange, options }) => (
  <select
  value={value}
  onChange={e => onChange(e.target.value)}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line dark:border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold text-ink"
  >
  {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
  </select>
@@ -819,3 +853,196 @@ const LogoUploader = ({ data, setData }) => (
  </div>
  </div>
 );
+
+const B2BSettings = ({ data, setData }) => {
+  return (
+    <div className="space-y-6 animate-in fade-in duration-fast">
+      <div>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Invoice &amp; PDF Styling (B2B)</h4>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Invoice Template Theme</label>
+            <select
+              value={data.invoice_theme || 'classic'}
+              onChange={(e) => setData('invoice_theme', e.target.value)}
+              className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+            >
+              <option value="classic">Classic Minimalist</option>
+              <option value="modern">Modern Professional</option>
+              <option value="elegant">Elegant Serif</option>
+            </select>
+            <p className="text-2xs text-ink-muted">Choose the layout aesthetic for downloadable B2B invoices and statements.</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Primary Brand Color</label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="color"
+                value={data.invoice_primary_color || '#4f46e5'}
+                onChange={(e) => setData('invoice_primary_color', e.target.value)}
+                className="h-9 w-12 bg-app border border-line rounded-lg cursor-pointer p-0.5"
+              />
+              <input
+                type="text"
+                value={data.invoice_primary_color || '#4f46e5'}
+                onChange={(e) => setData('invoice_primary_color', e.target.value)}
+                className="flex-1 px-3 py-2 bg-app border border-line rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-brand-500 outline-none"
+              />
+            </div>
+            <p className="text-2xs text-ink-muted">Applied to header accents, table headers, and primary totals.</p>
+          </div>
+
+          <div className="pt-4 border-t border-line">
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <span className="text-xs font-bold text-ink block">Show Margin on Invoices</span>
+                <span className="text-2xs text-ink-muted">Display item cost profit margin on generated B2B invoices</span>
+              </div>
+              <input
+                type="checkbox"
+                checked={data.show_margin_on_invoice === '1' || data.show_margin_on_invoice === true}
+                onChange={(e) => setData('show_margin_on_invoice', e.target.checked)}
+                className="w-4 h-4 accent-brand-500 rounded border-line focus:ring-brand-500"
+              />
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+const HardwareSettings = ({ data, setData }) => {
+	const { isConnected, printers, defaultPrinter, setDefaultPrinter, openDrawer } = useAMDStation();
+	const [pulsing, setPulsing] = useState(false);
+
+	const handlePulseDrawer = async () => {
+		setPulsing(true);
+		try {
+			if (isAMDStationAvailable()) {
+				const res = await openDrawer();
+				if (res?.success !== false) {
+					Swal.fire({
+						title: 'Drawer Signal Sent',
+						text: 'Trigger pulse sent to cash drawer kickout port.',
+						icon: 'success',
+						timer: 1500,
+						showConfirmButton: false,
+					});
+				} else {
+					Swal.fire({
+						title: 'Drawer Trigger Failed',
+						text: 'VenQore Station could not reach the printer kickout port.',
+						icon: 'error',
+					});
+				}
+			} else {
+				Swal.fire({
+					title: 'Direct Hardware Required',
+					text: 'Hardware drawer kickout requires VenQore Station companion app to be active.',
+					icon: 'info',
+				});
+			}
+		} finally {
+			setPulsing(false);
+		}
+	};
+
+	return (
+		<div className="space-y-6 animate-in fade-in duration-fast">
+			<div>
+				<h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Hardware Devices &amp; Routing</h4>
+				<div className="space-y-4">
+					{/* Connection Status Card */}
+					<div className="p-4 rounded-xl bg-app border border-line space-y-2">
+						<div className="flex items-center justify-between">
+							<span className="text-xs font-bold text-ink">VenQore Station Status</span>
+							<span className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider ${isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
+								{isConnected ? 'Connected & Active' : 'Standalone Browser Mode'}
+							</span>
+						</div>
+						<p className="text-2xs text-ink-muted leading-relaxed">
+							{isConnected
+								? 'Desktop companion connected. Silent high-speed ESC/POS thermal printing and hardware cash drawer triggers are active.'
+								: 'Running directly in browser. Printing opens the system print dialog. Connect VenQore Station desktop companion for silent receipts and automated drawer kicks.'}
+						</p>
+					</div>
+
+					{/* Printer Device Selection */}
+					<div className="space-y-2">
+						<label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Device Receipt Printer</label>
+						{printers && printers.length > 0 ? (
+							<select
+								value={defaultPrinter || ''}
+								onChange={(e) => setDefaultPrinter(e.target.value)}
+								className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+							>
+								{printers.map((p) => (
+									<option key={p.name} value={p.name}>
+										{p.name} {p.isDefault ? '(System Default)' : ''}
+									</option>
+								))}
+							</select>
+						) : (
+							<div className="p-3 bg-sunken rounded-xl text-2xs text-ink-muted">
+								System default printer selected. Launch VenQore Station to detect named thermal hardware.
+							</div>
+						)}
+						<p className="text-2xs text-ink-muted">Physical printer assigned specifically to this cash register station.</p>
+					</div>
+
+					{/* Cash Drawer Configuration */}
+					<div className="pt-3 border-t border-line space-y-3">
+						<label className="flex items-center justify-between cursor-pointer">
+							<div>
+								<span className="text-xs font-bold text-ink block">Pulse Drawer on Cash Sale</span>
+								<span className="text-2xs text-ink-muted">Send 24V kickout pulse via RJ11/RJ12 printer port</span>
+							</div>
+							<input
+								type="checkbox"
+								checked={data.thermal_open_drawer === '1' || data.thermal_open_drawer === true}
+								onChange={(e) => setData('thermal_open_drawer', e.target.checked)}
+								className="w-4 h-4 accent-brand-500 rounded border-line focus:ring-brand-500 cursor-pointer"
+							/>
+						</label>
+
+						<button
+							type="button"
+							disabled={pulsing}
+							onClick={handlePulseDrawer}
+							className="w-full py-2 px-3 bg-sunken hover:bg-interactive-hover border border-line rounded-xl text-xs font-bold text-ink transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+						>
+							<span>{pulsing ? 'Pulsing...' : 'Test Cash Drawer Kickout'}</span>
+						</button>
+					</div>
+
+					{/* Auto-Cut Configuration */}
+					<div className="pt-3 border-t border-line space-y-2">
+						<label className="flex items-center justify-between cursor-pointer">
+							<div>
+								<span className="text-xs font-bold text-ink block">Automatic Paper Cut</span>
+								<span className="text-2xs text-ink-muted">Trigger guillotine paper knife at end of thermal receipt</span>
+							</div>
+							<input
+								type="checkbox"
+								checked={data.thermal_auto_cut !== '0' && data.thermal_auto_cut !== false}
+								onChange={(e) => setData('thermal_auto_cut', e.target.checked)}
+								className="w-4 h-4 accent-brand-500 rounded border-line focus:ring-brand-500 cursor-pointer"
+							/>
+						</label>
+					</div>
+
+					{/* Fallback Reliability Guarantee (M17) */}
+					<div className="p-3 bg-brand-50 dark:bg-brand-950/20 border border-brand-200 dark:border-brand-800 rounded-xl space-y-1">
+						<span className="text-xs font-bold text-brand-700 dark:text-brand-300 block">Print Fault Protection (M17)</span>
+						<p className="text-3xs text-brand-600 dark:text-brand-400 leading-relaxed">
+							If the hardware station drops offline, AMD POS automatically routes receipt jobs through the browser print dialog. No receipt or transaction proof is ever silently dropped.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+};

@@ -278,7 +278,10 @@ class RouteGapSweepTest extends VenQoreTestCase
     {
         $store = $this->createTenant('sweep-tz', 'ltd_3', 'active');
         $owner = $this->createTenantUser($store, 'owner');
-        \App\Models\Setting::withoutGlobalScopes()->create(['tenant_id' => $store->id, 'key' => 'timezone', 'value' => 'Asia/Karachi']);
+        \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+            ['tenant_id' => $store->id, 'key' => 'timezone'],
+            ['value' => 'Asia/Karachi']
+        );
         $owner->forceFill(['last_store_id' => $store->id])->save();
 
         // Outside a store, a signed-in member used to fill the shared

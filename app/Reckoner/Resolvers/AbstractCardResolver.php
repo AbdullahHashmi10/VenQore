@@ -128,7 +128,11 @@ abstract class AbstractCardResolver implements CardResolverInterface
                 if (!$reporting) {
                     return ReckonerResult::empty($id, $key, $shape, $card, $period);
                 }
-                $pl = $reporting->getProfitAndLoss($startDate, $endDate, $tenantId);
+                try {
+                    $pl = $reporting->getProfitAndLoss($startDate, $endDate, $tenantId);
+                } catch (\App\Exceptions\MissingFinancialAccountException) {
+                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
+                }
                 $metricMap = [
                     'core.revenue' => 'revenue',
                     'core.cogs' => 'cogs',
@@ -181,7 +185,11 @@ abstract class AbstractCardResolver implements CardResolverInterface
                 if (!$reporting) {
                     return ReckonerResult::empty($id, $key, $shape, $card, $period);
                 }
-                $pl = $reporting->getProfitAndLoss($startDate, $endDate, $tenantId);
+                try {
+                    $pl = $reporting->getProfitAndLoss($startDate, $endDate, $tenantId);
+                } catch (\App\Exceptions\MissingFinancialAccountException) {
+                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
+                }
                 $rev = (float) ($pl['revenue'] ?? 0.0);
                 if ($rev <= 0.0) {
                     return ReckonerResult::empty($id, $key, $shape, $card, $period);
@@ -310,7 +318,11 @@ abstract class AbstractCardResolver implements CardResolverInterface
                 if (!$reporting) {
                     return ReckonerResult::empty($id, $key, $shape, $card, $period);
                 }
-                $byPeriod = $reporting->getProfitByPeriod($startDate, $endDate, 'daily', $tenantId);
+                try {
+                    $byPeriod = $reporting->getProfitByPeriod($startDate, $endDate, 'daily', $tenantId);
+                } catch (\App\Exceptions\MissingFinancialAccountException) {
+                    return ReckonerResult::empty($id, $key, $shape, $card, $period);
+                }
                 $series = [];
                 $metricField = $key === 'core.revenue_trend' ? 'revenue' : 'profit';
                 foreach ($byPeriod as $d => $m) {

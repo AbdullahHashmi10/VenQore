@@ -201,14 +201,9 @@ describe('formatCurrency (settings.js)', () => {
         expect(result).toBe('Rs. 0.00');
     });
 
-    it('[F-11] BUG: decimal_places="0" is ignored by settings.js (parseInt("0")||2 = 2)', () => {
-        // REAL BUG DOCUMENTED: settings.js line 26: `parseInt(settings?.decimal_places) || 2`
-        // parseInt('0') = 0, which is falsy, so `0 || 2 = 2`.
-        // This means decimal_places='0' CANNOT suppress decimals in the settings.js version.
-        // Use format.js with print_amount_decimal='0' instead for 0-decimal output.
+    it('[F-11] decimal_places="0" produces 0 decimals in settings.js', () => {
         const result = formatCurrency(90000, { currency: 'PKR', decimal_places: '0' });
-        // BUG: returns 2 decimals despite explicit decimal_places='0'
-        expect(result).toBe('Rs. 90,000.00'); // Documents the bug — not the desired behavior
+        expect(result).toBe('Rs. 90,000');
     });
 
     it('[F-12] Negative amount formats correctly', () => {
@@ -526,10 +521,8 @@ describe('Manifest Cross-Checks (JS arithmetic vs Golden Company manifest)', () 
         expect(formatted).toBe('Rs. 1,578,430.00');
     });
 
-    it('[MC-05] BUG: settings.js formatCurrency cannot produce 0-decimal output (decimal_places="0" ignored)', () => {
-        // Same root bug as F-11: parseInt('0')||2 = 2 in settings.js
-        // Annual revenue always shows 2 decimal places regardless of decimal_places='0'
+    it('[MC-05] settings.js formatCurrency produces 0-decimal output with decimal_places="0"', () => {
         const formatted = formatCurrency(MANIFEST.annual_revenue, { currency: 'PKR', decimal_places: '0' });
-        expect(formatted).toBe('Rs. 1,578,430.00'); // BUG: should be 'Rs. 1,578,430' but can't be
+        expect(formatted).toBe('Rs. 1,578,430');
     });
 });

@@ -12,14 +12,14 @@ import {
 import { formatCurrency } from '@/Utils/format';
 
 import { vq } from '@/theme/runtime';
-export default function GraphAnalytics({ trendData, paymentStatus, stats, filters, module = 'sales' }) {
+export default function GraphAnalytics({ trendData = [], paymentStatus = [], stats = {}, filters = {}, module = 'sales' }) {
     const {
         store
     } = usePage().props;
 
-    const [range, setRange] = useState(filters.range || '30_days');
-    const [startDate, setStartDate] = useState(filters.start_date || '');
-    const [endDate, setEndDate] = useState(filters.end_date || '');
+    const [range, setRange] = useState(filters?.range || '30_days');
+    const [startDate, setStartDate] = useState(filters?.start_date || '');
+    const [endDate, setEndDate] = useState(filters?.end_date || '');
     const [isModuleMenuOpen, setIsModuleMenuOpen] = useState(false);
 
     const modules = [
@@ -39,9 +39,9 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
 
     // Sync state with filters from server (e.g. on reload or back button)
     React.useEffect(() => {
-        setRange(filters.range || '30_days');
-        setStartDate(filters.start_date || '');
-        setEndDate(filters.end_date || '');
+        setRange(filters?.range || '30_days');
+        setStartDate(filters?.start_date || '');
+        setEndDate(filters?.end_date || '');
     }, [filters]);
 
     const handleRangeChange = (r) => {
@@ -173,25 +173,25 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-2 shrink-0">
                     <StatCard
                         title="Total Revenue"
-                        value={formatCurrency(stats.total_revenue)}
+                        value={formatCurrency(stats?.total_revenue || 0)}
                         icon={<DollarSign />}
                         color="indigo"
                     />
                     <StatCard
                         title="Transactions"
-                        value={stats.total_transactions}
+                        value={stats?.total_transactions || 0}
                         icon={<CreditCard />}
                         color="blue"
                     />
                     <StatCard
                         title="Avg Ticket Size"
-                        value={formatCurrency(stats.avg_ticket)}
+                        value={formatCurrency(stats?.avg_ticket || 0)}
                         icon={<TrendingUp />}
                         color="emerald"
                     />
                     <StatCard
                         title="Highest Sale"
-                        value={formatCurrency(stats.max_sale)}
+                        value={formatCurrency(stats?.max_sale || 0)}
                         icon={<Calendar />}
                         color="amber"
                     />
@@ -298,7 +298,7 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
                                     <div className="text-center">
                                         <p className="text-2xs text-ink-muted font-bold uppercase tracking-wider mb-0.5">Recovery</p>
                                         <p className="text-2xl font-bold text-ink">
-                                            {stats.total_revenue > 0 ? Math.round((paymentStatus[0].value / stats.total_revenue) * 100) : 0}%
+                                            {(stats?.total_revenue > 0 && paymentStatus?.[0]?.value) ? Math.round((paymentStatus[0].value / stats.total_revenue) * 100) : 0}%
                                         </p>
                                     </div>
                                 </div>

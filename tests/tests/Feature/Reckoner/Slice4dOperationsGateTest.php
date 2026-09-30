@@ -53,6 +53,13 @@ class Slice4dOperationsGateTest extends TestCase
         } else {
             $this->user = User::where('email', 'golden-owner@venqore.com')->first();
         }
+
+        if ($this->user && $this->tenant) {
+            $this->user->current_tenant_id = $this->tenant->id;
+            $this->user->getActiveMembership($this->tenant->id);
+            // Prime permissions attribute in memory
+            $this->user->getPermissionsAttribute();
+        }
     }
 
     /**
@@ -229,7 +236,7 @@ class Slice4dOperationsGateTest extends TestCase
         }
 
         // Test with another tenant
-        $otherTenant = Tenant::where('slug', '!=', 'golden-store')->first();
+        $otherTenant = Tenant::factory()->create(['status' => 'active', 'plan' => 'scale', 'slug' => 'empty-isolation-store-' . \Illuminate\Support\Str::random(6)]);
         if ($otherTenant) {
             $otherUser = User::whereIn('id', DB::table('tenant_users')->where('tenant_id', $otherTenant->id)->pluck('user_id'))->first() ?? User::first();
             $ctx2 = new ReckonerContext($otherTenant, $otherUser, 'scale');

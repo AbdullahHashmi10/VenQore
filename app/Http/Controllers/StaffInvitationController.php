@@ -41,9 +41,10 @@ class StaffInvitationController extends Controller
                 'invitee_phone' => $inv->invitee_phone,
                 'roles'         => $inv->roles ?? [$inv->role ?? 'cashier'],
                 'short_code'    => $inv->short_code,
-                'status'        => $inv->status ?? 'pending',
-                'status_label'  => $inv->statusLabel(),
-                'expires_at'    => $inv->expires_at?->toIso8601String(),
+                'status'                    => $inv->status ?? 'pending',
+                'status_label'              => $inv->statusLabel(),
+                'transaction_approval_mode' => $inv->transaction_approval_mode ?? 'inherit',
+                'expires_at'                => $inv->expires_at?->toIso8601String(),
                 'accepted_at'   => $inv->accepted_at?->toIso8601String(),
                 'approved_at'   => $inv->approved_at?->toIso8601String(),
                 'invited_by'    => $inv->inviter?->name ?? 'System',
@@ -114,25 +115,44 @@ class StaffInvitationController extends Controller
         }
         $rolesOrder .= "ELSE " . count($roles) . " END";
 
+        $userDocSettings = \App\Models\Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'like', 'approval_user_%')
+            ->get();
+
         $users = TenantUser::where('tenant_id', $tenant->id)
             ->with('user:id,name,email')
             ->orderByRaw($rolesOrder)
             ->orderBy('status')
             ->get()
-            ->map(fn($m) => [
-                'id'            => $m->user_id,
-                'membership_id' => $m->id,
-                'name'          => $m->user?->name ?? $m->display_name,
-                'display_name'  => $m->display_name,
-                'email'         => $m->user?->email,
-                'role'             => $m->role,
-                'custom_role_name' => $m->custom_role_name,
-                'status'        => $m->status,
-                'pos_pin_set'   => !is_null($m->pos_pin),
-                'joined_at'     => $m->joined_at,
-                'created_at'    => $m->joined_at ?? $m->created_at,
-                'permissions'   => $m->permissions ?? [],
-            ])
+            ->map(function ($m) use ($userDocSettings) {
+                $overrides = [];
+                $prefix = "approval_user_{$m->user_id}_";
+                foreach ($userDocSettings as $s) {
+                    if (str_starts_with($s->key, $prefix)) {
+                        $docType = substr($s->key, strlen($prefix));
+                        $overrides[$docType] = $s->value;
+                    }
+                }
+
+                return [
+                    'id'            => $m->user_id,
+                    'membership_id' => $m->id,
+                    'name'          => $m->user?->name ?? $m->display_name,
+                    'display_name'  => $m->display_name,
+                    'email'         => $m->user?->email,
+                    'role'                      => $m->role,
+                    'custom_role_name'          => $m->custom_role_name,
+                    'status'                    => $m->status,
+                    'pos_pin_set'               => !is_null($m->pos_pin),
+                    'joined_at'                 => $m->joined_at,
+                    'created_at'                => $m->joined_at ?? $m->created_at,
+                    'permissions'               => $m->permissions ?? [],
+                    'transaction_approval_mode' => $m->transaction_approval_mode ?? 'inherit',
+                    'permission_override_mode'  => $m->permission_override_mode ?? 'inherit',
+                    'approval_overrides'        => $overrides,
+                ];
+            })
             ->toArray();
 
         $staffData = User::whereHas('memberships', function($q) use ($tenant) {
@@ -188,12 +208,13 @@ class StaffInvitationController extends Controller
         $tenant = app('current.tenant');
 
         $validated = $request->validate([
-            'invitee_name'  => 'required|string|max:255',
-            'invitee_email' => 'required|email|max:255',
-            'invitee_phone' => 'nullable|string|max:30',
-            'roles'         => 'required|array|min:1',
-            'roles.*'       => 'string|in:admin,manager,cashier,inventory_staff,accountant,support,custom,viewer',
-            'permissions'   => 'nullable|array',
+            'invitee_name'              => 'required|string|max:255',
+            'invitee_email'             => 'required|email|max:255',
+            'invitee_phone'             => 'nullable|string|max:30',
+            'roles'                     => 'required|array|min:1',
+            'roles.*'                   => 'string|in:owner,admin,franchise_admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,production_supervisor,kitchen_manager,dispenser,sales_executive,fulfillment_lead,delivery_driver,cashier,viewer,custom,inventory_staff,support',
+            'permissions'               => 'nullable|array',
+            'transaction_approval_mode' => 'nullable|string|in:inherit,required,direct',
         ]);
 
         // Check for existing active invite to this email
@@ -211,19 +232,20 @@ class StaffInvitationController extends Controller
         $hasAccount = User::where('email', $validated['invitee_email'])->exists();
 
         $invitation = StaffInvitation::create([
-            'tenant_id'     => $tenant->id,
-            'invited_by'    => Auth::id(),
-            'invitee_name'  => $validated['invitee_name'],
-            'invitee_email' => $validated['invitee_email'],
-            'email'         => $validated['invitee_email'], // legacy compat
-            'invitee_phone' => $validated['invitee_phone'],
-            'roles'         => $validated['roles'],
-            'permissions'   => $validated['permissions'] ?? [],
-            'role'          => $validated['roles'][0] ?? 'cashier', // legacy compat
-            'token'         => StaffInvitation::generateToken(),
-            'short_code'    => StaffInvitation::generateShortCode(),
-            'status'        => $hasAccount ? 'pending' : 'no_account',
-            'expires_at'    => now()->addHours(48),
+            'tenant_id'                 => $tenant->id,
+            'invited_by'                => Auth::id(),
+            'invitee_name'              => $validated['invitee_name'],
+            'invitee_email'             => $validated['invitee_email'],
+            'email'                     => $validated['invitee_email'], // legacy compat
+            'invitee_phone'             => $validated['invitee_phone'] ?? null,
+            'roles'                     => $validated['roles'],
+            'permissions'               => $validated['permissions'] ?? [],
+            'transaction_approval_mode' => $validated['transaction_approval_mode'] ?? 'inherit',
+            'role'                      => $validated['roles'][0] ?? 'cashier', // legacy compat
+            'token'                     => StaffInvitation::generateToken(),
+            'short_code'                => StaffInvitation::generateShortCode(),
+            'status'                    => $hasAccount ? 'pending' : 'no_account',
+            'expires_at'                => now()->addHours(48),
         ]);
 
         return back()->with('success', 'Invitation sent! Code: ' . $invitation->short_code);
@@ -280,11 +302,12 @@ class StaffInvitationController extends Controller
         TenantUser::firstOrCreate(
             ['tenant_id' => $tenant->id, 'user_id' => $user->id],
             [
-                'role'        => $invitation->primaryRole(),
-                'status'      => 'active',
-                'display_name' => $invitation->invitee_name,
-                'permissions' => $invitation->permissions,
-                'joined_at'   => now(),
+                'role'                      => $invitation->primaryRole(),
+                'status'                    => 'active',
+                'display_name'              => $invitation->invitee_name,
+                'permissions'               => $invitation->permissions,
+                'transaction_approval_mode' => $invitation->transaction_approval_mode ?? 'inherit',
+                'joined_at'                 => now(),
             ]
         );
 

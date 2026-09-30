@@ -12,6 +12,10 @@ use App\Engines\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 /**
@@ -214,7 +218,55 @@ class PurchaseController extends Controller
 
     public function store(StorePurchaseRequest $request)
     {
-        $purchase = $this->purchaseService->store($request->validated());
+        // ── Approval interception ───────────────────────────────────────────────
+        $tenant  = app('current.tenant');
+        $user    = Auth::user();
+        $payload = $request->validated();
+
+        // R09 FIX: 'total' and 'grand_total' are not defined in StorePurchaseRequest,
+        // so $payload['total'] ?? $payload['grand_total'] ?? 0 always resolved to 0.
+        // A zero amount can never exceed a positive threshold, disabling threshold-based
+        // approval for all purchases. Compute the canonical total server-side.
+        $lineTotal = 0.0;
+        foreach ($payload['items'] ?? [] as $item) {
+            $lineTotal += (float)($item['qty'] ?? 0) * (float)($item['unit_cost'] ?? 0)
+                        - (float)($item['discount_amount'] ?? 0);
+        }
+        $headerDiscount = (float)($payload['discount'] ?? 0);
+        $roundOff       = (float)($payload['round_off'] ?? 0);
+        $amount         = round(max(0.0, $lineTotal - $headerDiscount) + $roundOff, 2);
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_PURCHASE_POSTING,
+            amount:       $amount,
+        );
+
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_PURCHASE_POSTING,
+                payload:        $payload,
+                amount:         $amount,
+                description:    'Purchase from ' . ($payload['supplier_name'] ?? $payload['party_id'] ?? 'supplier'),
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'pending_approval' => true,
+                    'document_number'  => $doc->document_number,
+                ], 202);
+            }
+
+            return $this->redirectTo('index')
+                ->with('info', 'Purchase submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+
+        // Direct path
+        $purchase = $this->purchaseService->store($payload);
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'purchase' => $purchase], 200);
@@ -360,6 +412,26 @@ class PurchaseController extends Controller
 
     public function update(UpdatePurchaseRequest $request, string $id)
     {
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+
+        $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: \App\Models\ApprovalDocument::TYPE_PURCHASE_POSTING,
+            amount:       0,
+        );
+
+        if ($policy['requires_approval']) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'When approval workflow is required, posted purchases cannot be directly modified. Please void or return the purchase.',
+                ], 422);
+            }
+            return back()->with('error', 'When approval workflow is required, posted purchases cannot be directly modified. Please void or return the purchase.');
+        }
+
         try {
             $this->purchaseService->update($id, $request->validated());
         } catch (\DomainException $e) {
@@ -392,6 +464,26 @@ class PurchaseController extends Controller
                 'purchase_id' => $id,
             ]);
             abort(403, 'Unauthorized action. Only Owners and Admins can void purchases.');
+        }
+
+        $tenant = app('current.tenant');
+        $purchase = \App\Models\Purchase::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        $policy = resolve(\App\Services\Approval\ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: \App\Models\ApprovalDocument::TYPE_PURCHASE_RETURN,
+            amount:       (float) ($purchase->total ?? 0),
+        );
+
+        if ($policy['requires_approval']) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'When approval workflow is required, posted purchases cannot be directly voided.',
+                ], 422);
+            }
+            return back()->with('error', 'When approval workflow is required, posted purchases cannot be directly voided.');
         }
 
         try {
@@ -435,6 +527,59 @@ class PurchaseController extends Controller
 
     public function storeReceive(ReceivePurchaseRequest $request, string $id)
     {
+        // ── Approval interception (PO receive — Phase 1 sub-group 6b) ──────────
+        // Audited 2026-09-23: storeReceive() posted directly with no approval
+        // gate at all, unlike store() above. PurchasePostingApprovalAdapter now
+        // supports a `_path: receive` dispatch for this shape.
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $items  = $request->validated()['items'];
+
+        $lineIds = collect($items)->pluck('purchase_item_id')->filter()->all();
+        $costByLine = \App\Models\PurchaseItem::whereIn('id', $lineIds)->pluck('unit_cost', 'id');
+        $estimatedAmount = 0.0;
+        foreach ($items as $line) {
+            $qty  = (float)($line['receiving_qty'] ?? 0);
+            $cost = (float)($costByLine[$line['purchase_item_id']] ?? 0);
+            $estimatedAmount += $qty * $cost;
+        }
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_PURCHASE_POSTING,
+            amount:       $estimatedAmount,
+        );
+
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_PURCHASE_POSTING,
+                payload:        [
+                    '_path'       => 'receive',
+                    'purchase_id' => $id,
+                    'items'       => $items,
+                    'notes'       => $request->validated()['notes'] ?? null,
+                ],
+                amount:         $estimatedAmount,
+                description:    'Goods receipt against purchase #' . $id,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'pending_approval' => true,
+                    'document_number'  => $doc->document_number,
+                    'message'          => 'Goods receipt submitted for approval.',
+                ], 202);
+            }
+
+            return $this->redirectTo('show', ['purchase' => $id])
+                ->with('info', 'Goods receipt submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+
+        // Direct path
         try {
             $result = $this->purchaseService->receive($id, $request->validated()['items']);
 

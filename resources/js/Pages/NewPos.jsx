@@ -91,7 +91,7 @@ function newLine(product, qty = 1, variant = null) {
     };
 }
 
-function newTab(seq = 1, ops = {}, defaultParty = null, defaultWarehouse = 1, defaultTaxRate = 0, defaultTaxMode = 'exclusive') {
+function newTab(seq = 1, ops = {}, defaultParty = null, defaultWarehouse = 1, defaultTaxRate = 0, defaultTaxMode = 'exclusive', defaultTaxType = 'percentage', defaultTaxId = null) {
     return {
         id: uid(),
         seq,
@@ -100,6 +100,8 @@ function newTab(seq = 1, ops = {}, defaultParty = null, defaultWarehouse = 1, de
         discount: { mode: 'pct', value: 0 },
         taxRate: defaultTaxRate,
         taxMode: defaultTaxMode,
+        taxType: defaultTaxType,
+        taxId: defaultTaxId,
         charges: [],
         notes: '',
         warehouse: defaultWarehouse,
@@ -156,23 +158,34 @@ export default function NewPos({
         try {
             if (settings?.tax_rates) {
                 const parsed = typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates;
-                if (Array.isArray(parsed)) list = parsed.map((t, idx) => ({ id: idx + 1, label: `${t.name || 'Tax'} (${t.rate}%)`, rate: Number(t.rate) }));
+                if (Array.isArray(parsed)) {
+                    list = parsed.map((t, idx) => ({
+                        id: t.id ?? (idx + 1),
+                        name: t.name || 'Tax',
+                        label: t.type === 'fixed' ? `${t.name || 'Tax'} (${t.rate} Fixed)` : `${t.name || 'Tax'} (${t.rate}%)`,
+                        rate: Number(t.rate),
+                        type: t.type || 'percentage'
+                    }));
+                }
             }
         } catch (_) {}
         if (!list.length) {
             list = [
-                { id: 0, label: 'No tax', rate: 0 },
-                { id: 1, label: 'GST 18%', rate: 18 },
-                { id: 2, label: 'GST 5%', rate: 5 },
-                { id: 3, label: `${tt('Services')} 15%`, rate: 15 },
+                { id: 0, label: 'No tax', rate: 0, type: 'percentage' },
+                { id: 1, label: 'GST 18%', rate: 18, type: 'percentage' },
+                { id: 2, label: 'GST 5%', rate: 5, type: 'percentage' },
+                { id: 3, label: `${tt('Services')} 15%`, rate: 15, type: 'percentage' },
             ];
         }
-        if (!list.some((t) => t.rate === 0)) list.unshift({ id: 0, label: 'No tax', rate: 0 });
+        if (!list.some((t) => t.rate === 0)) list.unshift({ id: 0, label: 'No tax', rate: 0, type: 'percentage' });
         return list;
     }, [settings?.tax_rates]);
 
     const defaultTaxRate = Number(settings?.default_tax_rate ?? 0);
-    const defaultTaxMode = settings?.tax_type === 'inclusive' ? 'inclusive' : 'exclusive';
+    const defaultTaxMode = (settings?.default_tax_basis || settings?.tax_type) === 'inclusive' ? 'inclusive' : 'exclusive';
+    const defaultTaxItem = parsedTaxRates.find(t => (settings?.default_tax_id && String(t.id) === String(settings.default_tax_id)) || t.rate === defaultTaxRate);
+    const defaultTaxType = defaultTaxItem?.type || 'percentage';
+    const defaultTaxId = defaultTaxItem?.id ?? null;
 
     const walkInCustomer = useMemo(() => {
         if (defaultCustomer) {
@@ -260,7 +273,7 @@ export default function NewPos({
     ]));
 
     /* ── User Preferences ─────────────────────────────────────────────────── */
-    const [prefs, setPrefs] = useState(() => loadPrefs(userId));
+    const [prefs, setPrefs] = useState(() => loadPrefs(userId, undefined, settings));
     useEffect(() => savePrefs(userId, prefs), [prefs, userId]);
 
     /* ── Viewport & Layout Law Composition ─────────────────────────────────── */
@@ -314,16 +327,18 @@ export default function NewPos({
                 hue: HUES[(item.product_id || 0) % HUES.length],
             }));
             const recTab = {
-                ...newTab(1, prefs.ops, recalledSale.customer || walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode),
+                ...newTab(1, prefs.ops, recalledSale.customer || walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode, defaultTaxType, defaultTaxId),
                 lines,
                 notes: recalledSale.notes || '',
                 discount: { mode: recalledSale.discount_type === 'percentage' ? 'pct' : 'amt', value: Number(recalledSale.discount || 0) },
                 taxRate: Number(recalledSale.tax_rate ?? defaultTaxRate),
+                taxType: recalledSale.tax_type ?? defaultTaxType,
+                taxId: recalledSale.tax_id ?? defaultTaxId,
                 docNo: recalledSale.invoice_number || `INV-${recalledSale.id}`,
             };
             return [recTab];
         }
-        return [newTab(1, prefs.ops, walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode)];
+        return [newTab(1, prefs.ops, walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode, defaultTaxType, defaultTaxId)];
     });
 
     const [active, setActive] = useState(0);
@@ -404,7 +419,7 @@ export default function NewPos({
         const pending = queue.filter((q) => q.state !== 'error');
         for (const item of pending) {
             try {
-                const url = storeSlug ? route('store.sales.store', { store_slug: storeSlug }) : '/sales';
+                const url = storeSlug ? route('store.pos.sales.store', { store_slug: storeSlug }) : '/pos/sales';
                 // eslint-disable-next-line no-await-in-loop
                 const res = await axios.post(url, item.payload);
                 if (res.data?.success) {
@@ -439,7 +454,9 @@ export default function NewPos({
 
         let tax = 0;
         if (tab.taxRate > 0) {
-            if (tab.taxMode === 'inclusive') {
+            if (tab.taxType === 'fixed') {
+                tax = Math.min(taxable, Number(tab.taxRate));
+            } else if (tab.taxMode === 'inclusive') {
                 tax = Math.round((taxable - (taxable / (1 + tab.taxRate / 100))) * 100) / 100;
             } else {
                 tax = Math.round(((taxable * tab.taxRate) / 100) * 100) / 100;
@@ -456,10 +473,11 @@ export default function NewPos({
         return {
             gross, lineDisc, sub, docDisc, charges, tax, total, round,
             count: lines.reduce((a, l) => a + l.qty, 0),
-            taxLabel: tab.taxRate > 0 ? `${tab.taxRate}%` : '0%',
+            taxLabel: tab.taxType === 'fixed' ? `${tab.taxRate} Fixed` : (tab.taxRate > 0 ? `${tab.taxRate}%` : '0%'),
             taxMode: tab.taxMode,
+            taxType: tab.taxType || 'percentage',
         };
-    }, [tab.charges, tab.discount, tab.lines, tab.taxMode, tab.taxRate, prefs?.ops?.roundOff]);
+    }, [tab.charges, tab.discount, tab.lines, tab.taxMode, tab.taxRate, tab.taxType, prefs?.ops?.roundOff]);
 
     const change = tab.tendered > 0 ? tab.tendered - m.total : 0;
 
@@ -473,7 +491,8 @@ export default function NewPos({
         // Check negative stock
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
         const stock = isService ? 999999 : Number(variant ? (variant.stock ?? variant.stock_quantity ?? product.stock_quantity ?? product.stock) : (product.stock_quantity ?? product.stock ?? 999));
-        if (!isService && stock <= 0 && settings?.prevent_negative_stock === '1') {
+        const stopNegative = settings?.stop_sale_negative_stock === '1' || settings?.stop_sale_negative_stock === true || settings?.prevent_negative_stock === '1';
+        if (!isService && stock <= 0 && stopNegative) {
             toast(`"${product.name}" is out of stock.`, { tone: 'bad' });
             return;
         }
@@ -484,15 +503,20 @@ export default function NewPos({
             const existingIdx = t.lines.findIndex((l) => (variant ? l.variant_id === variant.id : l.product_id === product.id && !l.variant_id) || (targetSku && l.sku === targetSku));
 
             if (existingIdx >= 0) {
+                const currentQty = t.lines[existingIdx].qty;
+                if (!isService && stopNegative && currentQty + 1 > stock) {
+                    toast(`Cannot add more. Only ${stock} available in stock.`, { tone: 'bad' });
+                    return t;
+                }
                 const lines = [...t.lines];
-                lines[existingIdx] = { ...lines[existingIdx], qty: lines[existingIdx].qty + 1 };
+                lines[existingIdx] = { ...lines[existingIdx], qty: currentQty + 1 };
                 return { ...t, lines };
             }
             return { ...t, lines: [newLine(product, 1, variant), ...t.lines] };
         }));
         setSel(0);
         toast(`Added ${variant ? `${product.name} (${variant.name})` : product.name}`, { tone: 'good', ms: 1600 });
-    }, [active, settings?.prevent_negative_stock, toast]);
+    }, [active, settings?.stop_sale_negative_stock, settings?.prevent_negative_stock, toast]);
 
     const removeLine = useCallback((line) => {
         patchTab({ lines: tab.lines.filter((l) => l.u !== line.u) });
@@ -635,6 +659,8 @@ export default function NewPos({
             discount_type: tab.discount?.mode === 'pct' ? 'percentage' : 'fixed',
             tax: Number(m.tax || 0),
             tax_rate: Number(tab.taxRate || 0),
+            tax_type: tab.taxType || 'percentage',
+            tax_id: tab.taxId || null,
             tax_inclusive: tab.taxMode === 'inclusive',
             delivery_charge: Number(tab.charges?.find((c) => /delivery|shipping/i.test(c.label))?.amount || 0),
             extra_charge_value: Number(tab.charges?.filter((c) => !/delivery|shipping/i.test(c.label)).reduce((a, c) => a + Number(c.amount || 0), 0)),
@@ -660,7 +686,7 @@ export default function NewPos({
             toast(`Saved offline (${offlineSale.id}). Will sync when connected.`, { tone: 'good', ms: 5000 });
         } else {
             try {
-                const url = storeSlug ? route('store.sales.store', { store_slug: storeSlug }) : '/sales';
+                const url = storeSlug ? route('store.pos.sales.store', { store_slug: storeSlug }) : '/pos/sales';
                 // The approval (manager id + PIN) rides only on this online post, never the offline queue.
                 const res = await axios.post(url, withApproval(payload, opts.approval));
                 setApproval(null);
@@ -710,19 +736,19 @@ export default function NewPos({
         // Reset the current tab
         const tabId = tab.id;
         setTabs((ts) => ts.map((t) => (t.id === tabId
-            ? { ...newTab(t.seq, prefs.ops, walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode), party: t.party, warehouse: t.warehouse }
+            ? { ...newTab(t.seq, prefs.ops, walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode, defaultTaxType, defaultTaxId), party: t.party, warehouse: t.warehouse }
             : t)));
         setSel(-1);
         clearRescue(userId);
         return true;
-    }, [defaultTaxMode, defaultTaxRate, defaultWarehouseId, fetchFeatured, m.docDisc, m.tax, m.total, online, openDrawer, patchTab, prefs.ops, settings, storeSlug, tab, toast, userId, walkInCustomer]);
+    }, [defaultTaxId, defaultTaxMode, defaultTaxRate, defaultTaxType, defaultWarehouseId, fetchFeatured, m.docDisc, m.tax, m.total, online, openDrawer, patchTab, prefs.ops, settings, storeSlug, tab, toast, userId, walkInCustomer]);
 
     /* ── Tabs Management ──────────────────────────────────────────────────── */
     const addTab = useCallback(() => {
-        setTabs((ts) => [...ts, newTab(ts.length + 1, prefs.ops, walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode)]);
+        setTabs((ts) => [...ts, newTab(ts.length + 1, prefs.ops, walkInCustomer, defaultWarehouseId, defaultTaxRate, defaultTaxMode, defaultTaxType, defaultTaxId)]);
         setActive(tabs.length);
         setSel(-1);
-    }, [defaultTaxMode, defaultTaxRate, defaultWarehouseId, prefs.ops, tabs.length, walkInCustomer]);
+    }, [defaultTaxId, defaultTaxMode, defaultTaxRate, defaultTaxType, defaultWarehouseId, prefs.ops, tabs.length, walkInCustomer]);
 
     const closeTab = useCallback((i) => {
         if (tabs.length === 1) {
@@ -985,7 +1011,8 @@ export default function NewPos({
         </div>
     );
 
-    const taxLabel = parsedTaxRates.find((t) => t.rate === tab.taxRate)?.label || `${tab.taxRate}%`;
+    const taxLabel = parsedTaxRates.find((t) => t.rate === tab.taxRate && (tab.taxId ? t.id === tab.taxId : true))?.label
+        || (tab.taxType === 'fixed' ? `${tab.taxRate} Fixed` : `${tab.taxRate}%`);
 
     const renderTenderBody = (fit, w, full) => {
         const avail = Math.max(90, w - 40 - 110);
@@ -1810,14 +1837,14 @@ export default function NewPos({
                                 key={t.id}
                                 className="nqp-row"
                                 onClick={() => {
-                                    patchTab({ taxRate: t.rate });
+                                    patchTab({ taxRate: t.rate, taxType: t.type || 'percentage', taxId: t.id });
                                     setSheet(null);
                                 }}
                             >
                                 <span className="nqp-rowmain">
                                     <span className="nqp-rowtitle">{t.label}</span>
                                 </span>
-                                {tab.taxRate === t.rate ? <Flag>Active</Flag> : null}
+                                {tab.taxRate === t.rate && (tab.taxId ? tab.taxId === t.id : true) ? <Flag>Active</Flag> : null}
                             </RowButton>
                         ))}
                     </div>

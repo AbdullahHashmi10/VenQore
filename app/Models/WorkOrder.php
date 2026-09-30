@@ -26,6 +26,7 @@ class WorkOrder extends Model
     protected $fillable = [
         'tenant_id',
         'kind',
+        'order_type',
         'occupancy_id',
         'position_code',
         'station',

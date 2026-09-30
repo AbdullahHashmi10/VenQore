@@ -47,7 +47,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
             'price'           => 100.0,
             'cost'            => 60.0,
             'stock_qty'       => 50,
-            'sale_revenue'    => 1000.0,
+            'sale_revenue'    => 2000.0,
             'sale_cogs'       => 600.0,
             'sale_ref'        => 'SALE-A-001',
             'expense_amount'  => 200.0,
@@ -83,7 +83,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
             'price'           => 500.0,
             'cost'            => 300.0,
             'stock_qty'       => 500,
-            'sale_revenue'    => 15000.0,
+            'sale_revenue'    => 30000.0,
             'sale_cogs'       => 9000.0,
             'sale_ref'        => 'SALE-B-999',
             'expense_amount'  => 3000.0,
@@ -219,7 +219,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
         // Sale with items & Journal Entry
         $revenue = $vals['sale_revenue'] ?? 1000.00;
         $cogs    = $vals['sale_cogs'] ?? 600.00;
-        $sale = Sale::create([
+        $sale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenantId,
             'user_id'          => $user->id,
             'party_id'         => $customer->id,
@@ -230,7 +230,7 @@ class L1TenantIsolationTest extends VenQoreTestCase
             'subtotal'         => $revenue,
             'net_sales'        => $revenue,
             'payment_method'   => 'cash',
-        ]);
+        ]));
         SaleItem::create([
             'tenant_id'   => $tenantId,
             'sale_id'     => $sale->id,

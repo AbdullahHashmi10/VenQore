@@ -50,7 +50,11 @@ export default function useDocumentDrafts({ doc, seed, enabled = true }) {
     );
 
     const patch = useCallback((p) => {
-        setList((prev) => prev.map((x) => (x.id === activeId ? { ...x, ...p } : x)));
+        setList((prev) => prev.map((x) => {
+            if (x.id !== activeId) return x;
+            const patchObj = typeof p === 'function' ? p(x) : p;
+            return { ...x, ...patchObj };
+        }));
     }, [activeId]);
 
     const add = useCallback((initial) => {

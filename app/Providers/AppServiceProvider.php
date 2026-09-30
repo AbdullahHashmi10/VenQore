@@ -10,6 +10,9 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Gate;
+use App\Models\ApprovalDocument;
+use App\Policies\ApprovalDocumentPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -66,6 +69,9 @@ class AppServiceProvider extends ServiceProvider
 
         // 3. Phase 1.2 — Immutable Lock: The Deadbolt
         Sale::observe(SaleObserver::class);
+
+        // Phase 5 — Model Policies
+        Gate::policy(ApprovalDocument::class, ApprovalDocumentPolicy::class);
 
         // Chatbot session state machine observer
         \App\Models\ChatSession::observe(\App\Observers\ChatSessionObserver::class);

@@ -4,6 +4,7 @@ namespace App\Services\Dashboard;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Reckoner\CardRegistry;
 use App\Reckoner\DashboardSanitizer;
 use App\Reckoner\LayoutLaw;
 use App\Reckoner\Reckoner;
@@ -35,8 +36,8 @@ final class FrameFiller
         $pool = $this->pool($role, $tenant);
         $primaryCandidates = [];
         foreach ($pool as $entry) {
-            $key = $entry['key'];
-            if (! in_array($key, $availableKeys, true)) {
+            $key = is_array($entry) ? ($entry['key'] ?? null) : (is_string($entry) ? $entry : null);
+            if (! is_string($key) || ! in_array($key, $availableKeys, true)) {
                 continue;
             }
             $definition = ReckonerRegistry::find($key);
@@ -44,9 +45,14 @@ final class FrameFiller
                 continue;
             }
             $shape = $definition['shape'];
-            $class = $entry['class'] ?? CardClass::forShape($shape);
+            $class = (is_array($entry) && isset($entry['class'])) ? $entry['class'] : CardClass::forShape($shape);
             $chart = LayoutLaw::defaultChartForShape(strtoupper($shape->value));
-            $period = $entry['period'] ?? ($shape->value === 'scalar' ? 'today' : 'this_month');
+            $period = (is_array($entry) && isset($entry['period'])) ? $entry['period'] : match ($shape->value) {
+                'scalar' => 'today',
+                'series', 'multi_series' => 'this_year',
+                'ranking', 'breakdown' => 'this_month',
+                default => 'live'
+            };
             $primaryCandidates[] = [
                 'key' => $key,
                 'class' => $class,
@@ -61,6 +67,8 @@ final class FrameFiller
             if ($definition === null) {
                 continue;
             }
+            $cardDef = CardRegistry::find($key);
+            $weight = (int) ($cardDef['weight'] ?? 50);
             $shape = $definition['shape'];
             $class = CardClass::forShape($shape);
             $chart = LayoutLaw::defaultChartForShape(strtoupper($shape->value));
@@ -75,13 +83,15 @@ final class FrameFiller
                 'class' => $class,
                 'chart' => $chart,
                 'period' => $period,
+                'weight' => $weight,
             ];
         }
+        usort($secondaryCandidates, fn (array $a, array $b) => $b['weight'] <=> $a['weight']);
 
         $usedKeys = [];
         $slotCards = [];
 
-        // Pass 1: Match slots with unused primary pool candidates matching accepted classes
+        // Pass 1: Match slots with unused primary pool / default12 candidates matching accepted classes
         foreach ($frame['slots'] as $slot) {
             $match = null;
             foreach ($slot['accepts'] as $acceptedClass) {
@@ -157,26 +167,8 @@ final class FrameFiller
             }
         }
 
-        // Pass 4: If any slot is still unfilled (edge case: very few enabled readings), reuse legal candidates
-        foreach ($frame['slots'] as $slot) {
-            if (isset($slotCards[$slot['slot']])) {
-                continue;
-            }
-            $match = null;
-            foreach ($secondaryCandidates as $cand) {
-                if (! LayoutLaw::isCategoryLegal($cand['chart'], $slot['category'])) {
-                    continue;
-                }
-                $match = $cand;
-                break;
-            }
-            if ($match !== null) {
-                $slotCards[$slot['slot']] = [
-                    'slot' => $slot,
-                    'cand' => $match,
-                ];
-            }
-        }
+        // Note: Slots that cannot be filled with a unique available reading remain empty slots.
+        // They render as dashed "Add a card" placeholder slots on the frontend without collapsing grid geometry.
 
         $cards = [];
         foreach ($frame['slots'] as $slot) {
@@ -217,16 +209,34 @@ final class FrameFiller
     private function pool(string $role, Tenant $tenant): array
     {
         $roles = config('dashboard_pool.roles', []);
+        if (isset($roles[$role]) && ! in_array($role, ['owner', 'admin', 'superadmin'], true)) {
+            return $roles[$role];
+        }
+
+        $type = strtolower((string) ($tenant->business_type ?? ''));
+        $businesses = CardRegistry::businesses();
+        if (isset($businesses[$type]['default12']) && is_array($businesses[$type]['default12'])) {
+            return $businesses[$type]['default12'];
+        }
+
+        $presets = CardRegistry::presets();
+        $presetKey = $businesses[$type]['preset'] ?? BusinessTypes::presetFor($type) ?? $type;
+        if (isset($presets[$presetKey]['default12']) && is_array($presets[$presetKey]['default12'])) {
+            return $presets[$presetKey]['default12'];
+        }
+
+        $businessPool = config('dashboard_pool.business', []);
+        $aliases = config('dashboard_pool.aliases', []);
+        $resolvedKey = isset($businessPool[$presetKey]) ? $presetKey : ($aliases[$presetKey] ?? $presetKey);
+
+        if (isset($businessPool[$resolvedKey])) {
+            return $businessPool[$resolvedKey];
+        }
+
         if (isset($roles[$role])) {
             return $roles[$role];
         }
 
-        $business = config('dashboard_pool.business', []);
-        $aliases = config('dashboard_pool.aliases', []);
-        $type = strtolower((string) ($tenant->business_type ?? ''));
-        $key = BusinessTypes::presetFor($type) ?? $type;
-        $key = isset($business[$key]) ? $key : ($aliases[$key] ?? $key);
-
-        return $business[$key] ?? $business['default'] ?? [];
+        return $businessPool['default'] ?? [];
     }
 }

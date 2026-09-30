@@ -93,7 +93,7 @@ test('attributes revenue and COGS to posted_at date range instead of created_at 
     ]);
 
     // Create a sale created in May but posted in June
-    $sale = \App\Models\Sale::create([
+    $sale = \App\Services\CanonicalPostingScope::run(fn () => \App\Models\Sale::create([
         'tenant_id' => $tenant->id,
         'user_id' => auth()->id(),
         'status' => 'posted',
@@ -101,7 +101,7 @@ test('attributes revenue and COGS to posted_at date range instead of created_at 
         'invoice_total' => 1200.0,
         'created_at' => '2026-05-31 23:59:00',
         'posted_at' => '2026-06-01 00:01:00',
-    ]);
+    ]));
 
     // Hitting dashboard for June should see 1200 sales
     \Carbon\Carbon::setTestNow('2026-06-02 12:00:00');
@@ -182,7 +182,7 @@ test('scopes all cashier dashboard widgets and session stats strictly to the cur
     app()->instance('current.tenant', $tenantA);
 
     // Seed sale on Tenant A
-    \App\Models\Sale::create([
+    \App\Services\CanonicalPostingScope::run(fn () => \App\Models\Sale::create([
         'tenant_id' => $tenantA->id,
         'user_id' => $user->id,
         'status' => 'posted',
@@ -190,10 +190,10 @@ test('scopes all cashier dashboard widgets and session stats strictly to the cur
         'invoice_total' => 500.0,
         'created_at' => now(),
         'posted_at' => now(),
-    ]);
+    ]));
 
     // Seed sale on Tenant B (should be isolated)
-    \App\Models\Sale::create([
+    \App\Services\CanonicalPostingScope::run(fn () => \App\Models\Sale::create([
         'tenant_id' => $tenantB->id,
         'user_id' => $user->id,
         'status' => 'posted',
@@ -201,7 +201,7 @@ test('scopes all cashier dashboard widgets and session stats strictly to the cur
         'invoice_total' => 1000.0,
         'created_at' => now(),
         'posted_at' => now(),
-    ]);
+    ]));
 
     $response = $this->getJson("/s/{$tenantA->slug}/dashboard");
     $response->assertOk();
@@ -223,7 +223,8 @@ test('handles zero activity onboarding state without throwing unhandled exceptio
     expect((float)$props['outstanding']['Today']['receivables'])->toBe(0.0);
     expect((float)$props['netProfit']['Today']['value'])->toBe(0.0);
     expect($props['recentTransactions'])->toBeEmpty();
-    expect($props['cashData'])->toBeNull();
+    expect($props['cashData'])->toBeArray();
+    expect($props['cashData']['balance'])->toBe(0.0);
 });
 
 test('restricts V3 dashboard endpoint to users without financial permissions', function () {
@@ -244,5 +245,4 @@ test('restricts V3 dashboard endpoint to users without financial permissions', f
     $response = $this->getJson("/s/{$tenant->slug}/v3/dashboard");
     $response->assertStatus(403);
 });
-
 

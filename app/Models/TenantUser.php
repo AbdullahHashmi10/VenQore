@@ -31,14 +31,19 @@ class TenantUser extends Model
         'invited_at',
         'joined_at',
         'permissions',
+        'permission_override_mode',
         'security_pin',
+        'transaction_approval_mode',
+        'approval_mode_changed_by',
+        'approval_mode_changed_at',
     ];
 
     protected $casts = [
-        'invite_expires_at' => 'datetime',
-        'invited_at'        => 'datetime',
-        'joined_at'         => 'datetime',
-        'permissions'       => 'array',
+        'invite_expires_at'        => 'datetime',
+        'invited_at'               => 'datetime',
+        'joined_at'                => 'datetime',
+        'approval_mode_changed_at' => 'datetime',
+        'permissions'              => 'array',
     ];
 
     protected $hidden = [

@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Setting;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalExecutionEngine;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\ExpensePostingService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +47,7 @@ class CharityController extends Controller
             'amount' => 'required|numeric|min:1'
         ]);
 
-        // Find or create charity expense category
+        // Find or create charity expense category (idempotent — safe before any branch)
         $category = ExpenseCategory::firstOrCreate(
             ['name' => 'Charity/Donations'],
             [
@@ -54,41 +58,52 @@ class CharityController extends Controller
             ]
         );
 
-        // Create expense record
-        $expense = Expense::create([
-            'date'                => now()->toDateString(),
-            'expense_category_id' => $category->id,
-            'category'            => 'Charity/Donations',
-            'amount'              => $validated['amount'],
-            'payment_method'      => 'cash',
-            'description'         => 'Charity donation',
-        ]);
-
-        // Post proper double-entry journal:
-        // DR 6000 Charity/Donations Expense  CR 1000 Cash in Hand
         $tenant = app('current.tenant');
-        $expenseAccount = \App\Models\Account::where('tenant_id', $tenant->id)
-            ->where('code', '6000')
-            ->firstOrCreate(
-                ['code' => '6000', 'tenant_id' => $tenant->id],
-                ['name' => 'Charity & Donations', 'type' => 'expense', 'is_active' => true]
-            );
-        $cashAccount = \App\Models\Account::where('tenant_id', $tenant->id)
-            ->where('code', '1000')
-            ->first();
+        $user   = Auth::user();
+        $amount = (float) $validated['amount'];
 
-        if ($expenseAccount && $cashAccount) {
-            app(\App\Engines\AccountingService::class)->createEntry([
-                'date'           => now()->toDateString(),
-                'reference_type' => 'expense',
-                'reference'      => $expense->id,
-                'description'    => 'Charity Donation — ' . \App\Helpers\SettingsHelper::formatCurrency($validated['amount']),
-                'party_id'       => null,
-            ], [
-                ['account_id' => $expenseAccount->id, 'debit' => $validated['amount'], 'credit' => 0],
-                ['account_id' => $cashAccount->id,    'debit' => 0, 'credit' => $validated['amount']],
+        // ── Approval interception — treat charity as an operating expense ──
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+            amount:       $amount,
+        );
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:       $tenant,
+                maker:        $user,
+                documentType: ApprovalDocument::TYPE_OPERATING_EXPENSE,
+                payload:      [
+                    'expense_category_id' => $category->id,
+                    'amount'              => $amount,
+                    'payment_method'      => 'cash',
+                    'expense_date'        => now()->toDateString(),
+                    'description'         => 'Charity Donation',
+                    'notes'               => 'Charity Donation',
+                ],
+                amount:       $amount,
+                description:  'Charity donation — Rs ' . number_format($amount),
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return response()->json([
+                'success'     => false,
+                'pending'     => true,
+                'message'     => 'Charity donation submitted for approval (ref: ' . $doc->document_number . ').',
+                'today_total' => Expense::whereDate('date', Carbon::today())
+                    ->where('expense_category_id', $category->id)->sum('amount'),
             ]);
         }
+        // ── Direct path: post atomically through ExpensePostingService ────────
+
+        $result = resolve(ExpensePostingService::class)->post($tenant, [
+            'expense_category_id' => $category->id,
+            'amount'              => $amount,
+            'payment_method'      => 'cash',
+            'expense_date'        => now()->toDateString(),
+            'description'         => 'Charity Donation',
+            'notes'               => 'Charity Donation',
+        ], $user);
 
         $todayTotal = Expense::whereDate('date', Carbon::today())
             ->where('expense_category_id', $category->id)

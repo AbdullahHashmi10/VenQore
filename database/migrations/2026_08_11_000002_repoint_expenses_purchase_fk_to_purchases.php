@@ -44,8 +44,8 @@ return new class extends Migration
 
         $this->dropForeignIfExists('expenses', 'expenses_purchase_id_foreign');
 
-        if (DB::connection()->getDriverName() === 'mariadb') {
-            DB::statement('ALTER TABLE expenses MODIFY purchase_id UUID NULL');
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            DB::statement('ALTER TABLE expenses MODIFY purchase_id CHAR(36) NULL');
         }
 
         Schema::table('expenses', function (Blueprint $table) {

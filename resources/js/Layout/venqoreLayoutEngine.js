@@ -806,6 +806,27 @@ export const LAW = {
     }
    },
    {
+    "id": "express",
+    "name": "Express Touch",
+    "tagline": "Catalog on the left (50%), cart and fast payment on the right.",
+    "for": "Touchscreen counters, fast retail, bakeries, cafes, and legacy POS migrations.",
+    "why": "Gives the catalog 50% prominence for visual touch selection while keeping the order list and one-tap payment stacked directly on the right.",
+    "comp": {
+     "catalog": {
+      "mode": "left",
+      "size": 0.5,
+      "rows": 1,
+      "tiles": null
+     },
+     "split": {
+      "cart": 1.0,
+      "tender": 0.0
+     },
+     "tender": "bar",
+     "floor": "off"
+    }
+   },
+   {
     "id": "stack",
     "name": "Stack",
     "tagline": "Catalog above, cart below, pay takes the screen.",
@@ -3209,7 +3230,8 @@ export function composeTerminal(comp, vw, vh) {
   const dock = [], overlays = [], notes = [];
 
   const CART_MIN = F.cart_line_min, TENDER_MIN = F.tender_min, CAT_LIST = F.catalog_list;
-  const RESIDENT_MIN = LAW.pos.catalogResidentMinAvail;
+  const needForCatCol = CAT_LIST + G + CART_MIN + (tenderMode === 'column' ? TENDER_MIN + G : 0);
+  const RESIDENT_MIN = Math.min(LAW.pos.catalogResidentMinAvail || 1062, needForCatCol);
 
   /* ---- REGIME ---- */
   const twoColMin = CART_MIN + TENDER_MIN + G;
@@ -3245,9 +3267,10 @@ export function composeTerminal(comp, vw, vh) {
 
   const allocateColumns = (wantCat, wantFloor, wantTender) => {
     const f = {};
-    if (wantCat) f.catalog = clampN(C_.catalog.size, .12, .55);
-    f.cart = Math.max(.20, C_.split.cart);
+    if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.75);
     if (wantTender) f.tender = clampN(C_.split.tender, 0, .45);
+    const assigned = (f.catalog || 0) + (f.tender || 0);
+    f.cart = Math.max(.15, 1 - assigned);
 
     const tracks = Object.keys(f).length + (wantFloor ? 1 : 0);
     const pool = avail - G * Math.max(0, tracks - 1);
@@ -3342,20 +3365,8 @@ export function composeTerminal(comp, vw, vh) {
   if (catMode !== "off" && !catRes) dock.push({ id: "catalog", label: "Catalog",
                                                 rank: 2, shows: "count" });
   if (floorMode !== "off" && !floorRes) dock.push({ id: "floor", label: "Floor", rank: 2 });
-  /* AMENDED: only a TENDER dock is a real layout row.
-     The law's rule -- "the dock is a real layout row and its height is
-     subtracted before anything else is measured, so it cannot overlap anything
-     by construction" -- exists to stop a Browse-catalog button covering the
-     payment panel. It was implemented as "any dock entry costs every pane 72px
-     of height", and that overshoots: a single narrow Catalog or Floor trigger
-     in the bottom-left was shortening the payment COLUMN, which has nothing
-     below it at all, leaving dead space beside the button and a cut-off panel
-     above it.
-     A secondary trigger is now rendered inside the Current Order pane's own
-     header instead -- still in flow, still incapable of overlapping anything,
-     and costing no height at all. Only the tender dock, which genuinely spans
-     the full width, still reserves a row. */
-  const dockNeedsRow = dock.some(d => d.id === 'tender');
+  const tenderBarInCart = tenderBar && catRes && (catMode === "left" || catMode === "right") && regime === "columns";
+  const dockNeedsRow = dock.some(d => d.id === 'tender') && !tenderBarInCart;
   let dockH = !dockNeedsRow ? 0 : (dock.some(d => d.inline) ? T.tender_bar_h : 72);
   let usableH = H - (dockH ? dockH + G : 0);
   const { frac, px } = allocateColumns(catRes && (catMode === "left" || catMode === "right"),

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { ArrowDownCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2 } from 'lucide-react';
+import { ArrowDownCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2, BookOpen } from 'lucide-react';
 import axios from 'axios';
 
 const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
@@ -190,11 +190,12 @@ function PartySearchField({ value, selectedParty, onSelect, onClear, accentClass
 const METHODS = [
     { value: 'cash', label: 'Cash', icon: Banknote, color: 'emerald' },
     { value: 'bank', label: 'Bank', icon: Building2, color: 'blue' },
+    { value: 'cheque', label: 'Cheque', icon: BookOpen, color: 'amber' },
     { value: 'card', label: 'Card', icon: CreditCard, color: 'purple' },
     { value: 'upi', label: 'UPI/JazzCash', icon: Smartphone, color: 'orange' },
 ];
 
-export default function PaymentIn({ parties = [], bankAccounts = [], selected_party_id = null }) {
+export default function PaymentIn({ parties = [], bankAccounts = [], selected_party_id = null, approval_correction = null }) {
     const {
         store
     } = usePage().props;
@@ -208,6 +209,9 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
         amount: '',
         payment_method: 'cash',
         bank_account_id: '',
+        cheque_number: '',
+        bank_name: '',
+        cheque_date: new Date().toISOString().split('T')[0],
         reference: '',
         description: ''
     });
@@ -220,13 +224,31 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
     };
 
     useEffect(() => {
-        if (selected_party_id) {
+        if (approval_correction?.payload) {
+            const p = approval_correction.payload;
+            setFormData(prev => ({
+                ...prev,
+                date: p.date || prev.date,
+                party_id: p.party_id || prev.party_id,
+                amount: p.amount || prev.amount,
+                payment_method: p.payment_method || prev.payment_method,
+                bank_account_id: p.bank_account_id || prev.bank_account_id,
+                reference: p.reference || prev.reference,
+                description: p.description || p.notes || prev.description,
+            }));
+            if (p.party_id) {
+                const party = parties.find(pt => String(pt.id) === String(p.party_id));
+                if (party) {
+                    setSelectedParty(party);
+                }
+            }
+        } else if (selected_party_id) {
             const party = parties.find(p => String(p.id) === String(selected_party_id));
             if (party) {
                 handlePartySelect(party);
             }
         }
-    }, [selected_party_id, parties]);
+    }, [selected_party_id, parties, approval_correction]);
 
     const handlePartyClear = () => {
         setSelectedParty(null);
@@ -238,9 +260,19 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
         setLoading(true);
         setErrors({});
         try {
-            await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'in' });
-            setSuccess(true);
-            setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+            if (approval_correction) {
+                await axios.post(approval_correction.resubmit_url, {
+                    payload: { ...formData, type: 'in' },
+                    expected_version: approval_correction.expected_version,
+                    notes: 'Resubmitted with corrections'
+                });
+                setSuccess(true);
+                setTimeout(() => router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id })), 1200);
+            } else {
+                await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'in' });
+                setSuccess(true);
+                setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+            }
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
@@ -253,8 +285,8 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
     };
 
     return (
-        <OneGlanceLayout title="Payment In">
-            <Head title="Record Payment In" />
+        <OneGlanceLayout title={approval_correction ? "Correct Receipt Approval" : "Payment In"}>
+            <Head title={approval_correction ? "Correct Receipt" : "Record Payment In"} />
 
             <div className="h-full flex flex-col items-center justify-center overflow-auto py-6 px-4">
 
@@ -266,6 +298,26 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
 
                     <div className="relative bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden">
 
+                        {approval_correction && (
+                            <div className="bg-amber-500/10 border-b border-amber-500/30 p-4 text-amber-900 dark:text-amber-200">
+                                <div className="flex items-center gap-2 font-bold text-sm">
+                                    <span>⚠️ Correction Mode — Returned for Correction (Revision #{approval_correction.version})</span>
+                                </div>
+                                {approval_correction.return_notes && (
+                                    <p className="text-xs mt-1 text-ink"><strong>Reviewer Notes:</strong> {approval_correction.return_notes}</p>
+                                )}
+                                {approval_correction.return_reason_codes?.length > 0 && (
+                                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                                        {approval_correction.return_reason_codes.map((code, idx) => (
+                                            <span key={idx} className="text-2xs bg-amber-200 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 px-2 py-0.5 rounded font-mono">
+                                                {code}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         {/* Header Band */}
                         <div className="relative bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 overflow-hidden">
                             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -275,8 +327,8 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                                     <ArrowDownCircle size={22} className="text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-bold text-white tracking-tight">Record Payment In</h1>
-                                    <p className="text-emerald-100 text-sm">Money received from a contact</p>
+                                    <h1 className="text-xl font-bold text-white tracking-tight">{approval_correction ? 'Resubmit Receipt' : 'Record Payment In'}</h1>
+                                    <p className="text-emerald-100 text-sm">{approval_correction ? 'Update returned details and resubmit' : 'Money received from a contact'}</p>
                                 </div>
                             </div>
                         </div>
@@ -339,7 +391,7 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                                 <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                                     Payment Method <span className="text-red-500">*</span>
                                 </label>
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className="grid grid-cols-5 gap-2">
                                     {METHODS.map(m => {
                                         const isSelected = formData.payment_method === m.value;
                                         return (
@@ -372,6 +424,57 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                                         <option value="">Select account...</option>
                                         {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
                                     </select>
+                                </div>
+                            )}
+
+                            {/* Cheque Received Details (conditional) */}
+                            {formData.payment_method === 'cheque' && (
+                                <div className="space-y-4 p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/60 border border-neutral-200 dark:border-neutral-700">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                                Cheque Number <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. 100452"
+                                                value={formData.cheque_number}
+                                                onChange={e => setFormData(p => ({ ...p, cheque_number: e.target.value }))}
+                                                className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink font-mono outline-none"
+                                                required
+                                            />
+                                            {errors.cheque_number && <p className="mt-1 text-xs text-red-500">{errors.cheque_number[0]}</p>}
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                                Drawer Bank Name <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="e.g. HBL, Meezan"
+                                                value={formData.bank_name}
+                                                onChange={e => setFormData(p => ({ ...p, bank_name: e.target.value }))}
+                                                className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none"
+                                                required
+                                            />
+                                            {errors.bank_name && <p className="mt-1 text-xs text-red-500">{errors.bank_name[0]}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
+                                            Cheque Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={formData.cheque_date || formData.date}
+                                            onChange={e => setFormData(p => ({ ...p, cheque_date: e.target.value }))}
+                                            className="w-full px-3 py-2.5 text-sm rounded-xl bg-app border border-line text-ink outline-none"
+                                            required
+                                        />
+                                        <p className="text-2xs text-ink-muted mt-1">This cheque will be held in "Cheques in Hand" (GL 1020) until deposited into a bank account.</p>
+                                    </div>
                                 </div>
                             )}
 

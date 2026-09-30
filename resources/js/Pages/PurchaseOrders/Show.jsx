@@ -3,6 +3,7 @@ import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
 import { ShoppingCart, ArrowLeft, CheckCircle, Printer, Calendar, MapPin, Truck, Play } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
 export default function PurchaseOrdersShow({ order }) {
@@ -192,10 +193,10 @@ export default function PurchaseOrdersShow({ order }) {
                                         </td>
                                     )}
                                     <td className="p-4 text-right text-ink-secondary">
-                                        ${parseFloat(item.unit_cost).toFixed(2)}
+                                        {formatCurrency(item.unit_cost)}
                                     </td>
                                     <td className="p-4 text-right font-bold text-ink">
-                                        ${parseFloat(item.total_cost).toFixed(2)}
+                                        {formatCurrency(item.total_cost)}
                                     </td>
                                 </tr>
                             ))}
@@ -204,7 +205,7 @@ export default function PurchaseOrdersShow({ order }) {
                             <tr>
                                 <td colSpan={isIntaking ? 5 : 4} className="p-4 text-right font-bold text-ink-muted uppercase">Total Amount</td>
                                 <td className="p-4 text-right font-bold text-xl text-ink">
-                                    ${parseFloat(order.total_amount).toFixed(2)}
+                                    {formatCurrency(order.total_amount)}
                                 </td>
                             </tr>
                         </tfoot>

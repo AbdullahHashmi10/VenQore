@@ -51,6 +51,8 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             items: [
                 { id: 'funds', label: 'Fund Management', href: getRoute('funds.index'), icon: Wallet },
                 { id: 'accounts', label: 'Bank Accounts', href: getRoute('bank-accounts.index'), icon: Wallet },
+                { id: 'cheque-books', label: 'Chequebooks', href: getRoute('banking.cheque-books.index'), icon: BookOpen },
+                { id: 'received-cheques', label: 'Received Cheques', href: getRoute('banking.received-cheques.index'), icon: FileText },
                 { id: 'reconciliation', label: 'Bank Reconciliation', href: getRoute('bank-reconciliation.index'), icon: Check },
             ]
         },
@@ -65,6 +67,8 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
         'all': ['payments', 'expenses'],
         'funds': ['bank_accounts'],
         'accounts': ['bank_accounts'],
+        'cheque-books': ['bank_accounts'],
+        'received-cheques': ['bank_accounts', 'payments'],
         'reconciliation': ['bank_reconciliation', 'bank_accounts'],
     };
 
@@ -124,10 +128,12 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
                     {groups.map((group) => {
                         const Icon = group.icon;
                         const isActive = activeGroup === group.id;
+                        const targetHref = group.items[0]?.href || '#';
 
                         return (
-                            <button
+                            <Link
                                 key={group.id}
+                                href={targetHref}
                                 onClick={() => setActiveGroup(group.id)}
                                 className={`
                                     flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-normal whitespace-nowrap
@@ -135,11 +141,11 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
                                         ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                                         : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 hover:bg-interactive-hover dark:hover:bg-interactive-hover'
                                     }
-`}
+                                `}
                             >
                                 <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
                                 {group.label}
-                            </button>
+                            </Link>
                         );
                     })}
                 </div>

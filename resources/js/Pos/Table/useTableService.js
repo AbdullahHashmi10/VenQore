@@ -22,6 +22,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
+import { KitchenPrintService } from '@/Utils/KitchenPrintService';
 
 /* How often the floor re-reads itself. A restaurant floor changes on human
    timescales -- a table is seated, a course goes out -- so a 15s poll is
@@ -160,7 +161,12 @@ export function useTableService({
     const [zone, setZone] = useState('all');
     const [selectedId, setSelectedId] = useState(null);
     const [busy, setBusy] = useState(false);
+    const [loaded, setLoaded] = useState(initialPositions.length > 0);
     const [, setTick] = useState(0);
+    /* Products the kitchen has run out of — broadcast on every state poll so
+       every till and the floor all agree on what's available without needing
+       a dedicated socket. */
+    const [eightySixIds, setEightySixIds] = useState([]);
 
     /* A poll must never overwrite a change that has not landed yet. One flag,
        checked by the poll and held for the whole life of a mutation, is the
@@ -189,6 +195,7 @@ export function useTableService({
         if (Array.isArray(d.tickets)) setTickets(d.tickets);
         if (Array.isArray(d.zones)) setZones(d.zones);
         if (typeof d.kitchen === 'number') setKitchen(d.kitchen);
+        if (Array.isArray(d.eighty_six_ids)) setEightySixIds(d.eighty_six_ids);
     }, []);
 
     const refresh = useCallback(async () => {
@@ -200,11 +207,19 @@ export function useTableService({
             /* A failed poll is not worth a toast. The next one is 15s away and
                the operator has lost nothing -- saying so on every dropped
                packet is how a status line becomes noise nobody reads. */
+        } finally {
+            setLoaded(true);
         }
     }, [enabled, r, applyState]);
 
+    /* THE FIRST READ IS IMMEDIATE, not one poll interval away.
+       The floor used to arrive with the page, so an interval was enough. Now
+       that table service is a preset the operator can switch on mid-shift, the
+       hook can go from off to on with nothing seeded -- and waiting fifteen
+       seconds to draw the room makes the switch look broken. */
     useEffect(() => {
         if (!enabled) return undefined;
+        refresh();
         const id = setInterval(refresh, POLL_MS);
         return () => clearInterval(id);
     }, [enabled, refresh]);
@@ -237,6 +252,9 @@ export function useTableService({
                     if (i === -1) return [...prev, data.ticket];
                     const next = prev.slice(); next[i] = data.ticket; return next;
                 });
+            }
+            if (data?.cancellation_kot) {
+                KitchenPrintService.printKOT(data.cancellation_kot, { isCancellation: true });
             }
             return data;
         } catch (e) {
@@ -365,8 +383,40 @@ export function useTableService({
         if (data && onNotice) {
             onNotice(`${data.sent} item${data.sent === 1 ? '' : 's'} fired to the kitchen`);
         }
+        /* Multi-station: one KOT per station/course group. Print each separately
+           so the bar gets its slip and the grill gets its own. */
+        if (data?.kots?.length) {
+            data.kots.forEach(kot => KitchenPrintService.printKOT(kot, { printerName: kot.printer_name }));
+        } else if (data?.kot) {
+            KitchenPrintService.printKOT(data.kot);
+        }
         return data;
     }, [post, onNotice]);
+
+    /* Release a specific course to the kitchen (e.g., "Fire starters now"). */
+    const fireCourse = useCallback(async (occupancyId, course) => {
+        const data = await post('store.tables.kitchen.course-fire',
+            { occupancy_id: occupancyId, course },
+            'That course could not be fired to the kitchen.');
+        if (data && onNotice) {
+            onNotice(`Course ${course} fired to the kitchen`);
+        }
+        if (data?.kots?.length) {
+            data.kots.forEach(kot => KitchenPrintService.printKOT(kot, { printerName: kot.printer_name }));
+        } else if (data?.kot) {
+            KitchenPrintService.printKOT(data.kot);
+        }
+        return data;
+    }, [post, onNotice]);
+
+    /* Toggle a product on / off the 86 list. Returns updated eighty_six_ids. */
+    const toggle86 = useCallback(async (productId) => {
+        const data = await post('store.tables.kitchen.86',
+            { product_id: productId },
+            'The 86 list could not be updated.');
+        if (data?.eighty_six_ids) setEightySixIds(data.eighty_six_ids);
+        return data;
+    }, [post]);
 
     const transfer = useCallback((occupancyId, toPosition) =>
         post('store.tables.transfer', { occupancy_id: occupancyId, to_position: toPosition },
@@ -376,7 +426,15 @@ export function useTableService({
         post('store.tables.merge', { from_occupancy: fromOccupancy, into_occupancy: intoOccupancy },
             'Those tables could not be merged.'), [post]);
 
+    const select = useCallback((id) => {
+        if (id === null) {
+            clearTimeout(saveTimer.current);
+        }
+        setSelectedId(id);
+    }, []);
+
     const closeTable = useCallback(async (occupancyId, force = false) => {
+        clearTimeout(saveTimer.current);
         const data = await post('store.tables.close', { occupancy_id: occupancyId, force },
             'That table could not be closed.');
         if (data) setSelectedId(null);
@@ -390,17 +448,36 @@ export function useTableService({
             customer_name: meta.customerName ?? null,
             phone: meta.phone ?? null,
             address: meta.address ?? null,
+            party_id: meta.partyId ?? null,
+
+            /* Delivery only. The server ignores these on a takeaway rather
+               than refusing them, so one dialog can open either kind without
+               the caller branching on the order type twice. */
+            delivery_note: meta.deliveryNote ?? null,
+            delivery_fee: meta.deliveryFee ?? null,
+            rider: meta.rider ?? null,
+            eta_minutes: meta.etaMinutes ?? null,
+            save_to_customer: meta.saveToCustomer ?? false,
         }, 'That ticket could not be opened.');
         if (data?.ticket) setSelectedId(data.ticket.id);
         return data?.ticket || null;
     }, [post]);
+
+    /* Everything about a delivery that is not the food: status, rider, ETA,
+       fare, address. One call, because a dispatcher sets rider AND status AND
+       ETA in a single gesture -- and because `post` already folds the returned
+       ticket back into local state, the floor updates without waiting for the
+       next fifteen-second poll. */
+    const updateDelivery = useCallback((occupancyId, patch = {}) =>
+        post('store.tables.delivery', { occupancy_id: occupancyId, ...patch },
+            'That delivery could not be updated.'), [post]);
 
     /* The bill has been printed and they have not paid yet. It is the state
        that turns into an alarm twelve minutes later, which is the whole
        reason it is worth recording rather than leaving in a waiter's head. */
     const dropCheck = useCallback((occupancyId, clear = false) =>
         post('store.tables.check', { occupancy_id: occupancyId, clear },
-            'That could not be recorded.'), [post]);
+            'The check status could not be saved.'), [post]);
 
     const setStatus = useCallback((positionId, status) =>
         post('store.tables.status', { position_id: positionId, status },
@@ -408,7 +485,7 @@ export function useTableService({
 
     const split = useCallback((occupancyId, spec) =>
         post('store.tables.split', { occupancy_id: occupancyId, ...spec },
-            'That bill could not be split.'), [post]);
+            'The split could not be created.'), [post]);
 
     const cancelSplit = useCallback((occupancyId) =>
         post('store.tables.split.cancel', { occupancy_id: occupancyId },
@@ -418,6 +495,7 @@ export function useTableService({
        forgiving: the sale is already posted, so a table left showing as open
        is a nuisance to be reported, never a reason to fail a completed sale. */
     const markSettled = useCallback(async (occupancyId, saleId, partId = null) => {
+        clearTimeout(saveTimer.current);
         try {
             const { data } = await axios.post(r('store.tables.settled'), {
                 occupancy_id: occupancyId,
@@ -436,11 +514,14 @@ export function useTableService({
 
     return {
         enabled,
+        loaded,
         positions, tickets, visible, zones, tabs, zone, setZone, kitchen, counts, lanes,
-        selected, selectedId, select: setSelectedId,
+        selected, selectedId, select,
         busy,
+        eightySixIds,
         refresh,
-        openTable, openLane, dropCheck, prime, pushOrder, flushOrder, sendToKitchen,
+        openTable, openLane, updateDelivery, dropCheck, prime, pushOrder, flushOrder, sendToKitchen,
+        fireCourse, toggle86,
         transfer, merge, closeTable, setStatus,
         split, cancelSplit, markSettled,
     };

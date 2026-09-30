@@ -7,13 +7,15 @@ import {
     Package, BarChart2, DollarSign, Settings, FileText, Truck,
     UserCheck, Eye, Lock, Crown, Star, Calendar, Timer, Activity,
     User, BadgeCheck, Zap, Copy, MessageCircle, Phone, RotateCcw,
-    ChevronDown, AlertCircle, Send, Ban, RefreshCw, BarChart, Sparkles, Award, TrendingUp, ChevronRight
+    ChevronDown, AlertCircle, Send, Ban, RefreshCw, BarChart, Sparkles, Award, TrendingUp, ChevronRight,
+    CreditCard
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine
 } from 'recharts';
 import { getCurrencySymbol } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import STAFF_PRESETS from '@/data/staff_presets.json';
 
 import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
@@ -34,40 +36,56 @@ const ROLE_PERMISSIONS = {
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
-        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
         'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
-        'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
-        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery'
+        'finance.customer_refund', 'finance.supplier_refund', 'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer', 'finance.balance_adjustment',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear', 'finance.cheques.override_duplicate',
+        'finance.fiscal_year.view', 'finance.fiscal_year.manage', 'finance.fiscal_year.close', 'finance.period_lock', 'finance.period_reopen', 'finance.period_exception',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.resubmit', 'approvals.withdraw', 'approvals.configure',
+        'parties.view', 'parties.contact_view',
+        'reports.summary', 'reports.sales', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
+        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store', 'data.export', 'vensynq.manage'
     ],
     manager: [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
-        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers',
-        'reports.summary', 'reports.stock', 'reports.performance',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
+        'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses',
+        'finance.cheque_books.view', 'finance.cheques.clear',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.resubmit',
+        'parties.view', 'parties.contact_view',
+        'reports.summary', 'reports.sales', 'reports.stock', 'reports.performance',
         'admin.staff_view', 'admin.settings_view', 'admin.receipt_print'
     ],
     cashier: [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.close_session',
-        'inventory.view'
+        'inventory.view',
+        'approvals.view_own', 'approvals.submit'
     ],
     inventory_staff: [
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
-        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers',
-        'reports.stock'
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
+        'reports.stock',
+        'approvals.view_own', 'approvals.submit'
     ],
     accountant: [
+        'sales.view', 'purchases.view', 'inventory.view', 'parties.view', 'parties.contact_view',
         'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
-        'reports.summary', 'reports.financial', 'reports.audit',
-        'sales.view', 'purchases.view', 'inventory.view'
+        'finance.customer_refund', 'finance.supplier_refund', 'finance.internal_transfer',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear',
+        'finance.fiscal_year.view',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.resubmit',
+        'reports.summary', 'reports.sales', 'reports.financial', 'reports.audit', 'data.export'
     ],
     support: [
         'reports.audit',
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage'
     ],
     viewer: [
-        'reports.summary', 'reports.financial', 'reports.stock',
-        'sales.view', 'inventory.view', 'purchases.view', 'finance.transactions'
+        'reports.summary', 'reports.sales', 'reports.financial', 'reports.stock',
+        'sales.view', 'inventory.view', 'purchases.view', 'parties.view', 'finance.transactions',
+        'finance.cheque_books.view',
     ],
     custom: []
 };
@@ -75,19 +93,22 @@ const ROLE_PERMISSIONS = {
 const PERMISSION_CATEGORIES = [
     {
         id: 'pos_register',
-        name: 'POS & Register',
-        desc: 'Register cash flow and checkout operations',
+        name: 'POS & Register Operations',
+        desc: 'Shift opening, terminal checkout, cart discounts, voids and returns',
         icon: ShoppingCart,
         permissions: [
+            { id: 'pos.open_session', name: 'Open Register Session', desc: 'Start POS shifts and record opening float balances' },
             { id: 'pos.checkout', name: 'Scan & Checkout', desc: 'Process sales and payments at the register' },
             { id: 'pos.discounts', name: 'Apply Cart Discounts', desc: 'Apply discounts to active shopping cart items' },
+            { id: 'pos.void_item', name: 'Void Cart Items', desc: 'Void scanned items and clear active carts' },
             { id: 'pos.refund', name: 'Register Refunds', desc: 'Process customer returns & refunds directly at the POS' },
+            { id: 'pos.close_session', name: 'Close Shift & Count Drawer', desc: 'Perform end-of-day drawer counts and close register' },
         ]
     },
     {
         id: 'sales_invoices',
-        name: 'Sales & Invoices',
-        desc: 'Direct sales orders, invoices, and quotations',
+        name: 'Sales, Invoicing & Orders',
+        desc: 'Direct sales orders, B2B invoices, estimates and credit notes',
         icon: FileText,
         permissions: [
             { id: 'sales.view', name: 'View Sales Directory', desc: 'View complete list of store sales and invoice records' },
@@ -100,15 +121,15 @@ const PERMISSION_CATEGORIES = [
     },
     {
         id: 'stock_inventory',
-        name: 'Stock & Inventory',
-        desc: 'Product catalog and warehouse adjustments',
+        name: 'Stock, Products & Manufacturing',
+        desc: 'Product catalog, BOM assemblies and warehouse adjustments',
         icon: Package,
         permissions: [
             { id: 'inventory.view', name: 'View Products & Stock', desc: 'Access the products catalog and view stock levels' },
             { id: 'inventory.create', name: 'Add New Products', desc: 'Add new items and setup product variations' },
-            { id: 'inventory.edit', name: 'Edit Products', desc: 'Edit product details, selling prices, and attributes' },
-            { id: 'inventory.delete', name: 'Delete Products', desc: 'Permanently remove items from the catalog' },
-            { id: 'inventory.adjust', name: 'Manual Stock Adjustments', desc: 'Manually adjust stock for lost/damaged inventory' },
+            { id: 'inventory.edit', name: 'Edit Products', desc: 'Edit product details, selling prices, tiers and BOMs' },
+            { id: 'inventory.delete', name: 'Delete Products', desc: 'Permanently remove items and BOMs from catalog' },
+            { id: 'inventory.adjust', name: 'Manual Stock Adjustments', desc: 'Manually adjust stock and execute production runs' },
             { id: 'inventory.transfer', name: 'Warehouse Transfers', desc: 'Record moving stock between warehouse depots' },
             { id: 'inventory.barcodes', name: 'Print Barcode Labels', desc: 'Generate barcode stickers for items' },
         ]
@@ -116,7 +137,7 @@ const PERMISSION_CATEGORIES = [
     {
         id: 'purchasing_suppliers',
         name: 'Purchasing & Procurement',
-        desc: 'Vendor POs, supply records, and COGS margins',
+        desc: 'Vendor POs, supply records, debit notes and COGS margins',
         icon: Truck,
         permissions: [
             { id: 'purchases.view', name: 'View Purchases', desc: 'View past supplier purchases & expense records' },
@@ -125,12 +146,13 @@ const PERMISSION_CATEGORIES = [
             { id: 'purchases.void', name: 'Void Purchase Orders', desc: 'Cancel or delete purchase orders' },
             { id: 'purchases.costs', name: 'Wholesale Cost Viewer', desc: 'View wholesale purchase prices & cost histories' },
             { id: 'purchases.suppliers', name: 'Manage Suppliers', desc: 'Create supplier directories and log ledgers' },
+            { id: 'purchases.returns', name: 'Purchase Returns', desc: 'Return goods to suppliers and log debit notes' },
         ]
     },
     {
         id: 'money_finance',
-        name: 'Money & Finance',
-        desc: 'Petty cash, bank accounts, and giving/taking money',
+        name: 'Cash Flow & Fund Management',
+        desc: 'Cash in hand, bank accounts, expenses, payments and equity transfers',
         icon: DollarSign,
         permissions: [
             { id: 'finance.balances', name: 'View Cash & Bank Balances', desc: 'View safe deposit box, registers, & bank balances' },
@@ -139,6 +161,66 @@ const PERMISSION_CATEGORIES = [
             { id: 'finance.send_payment', name: 'Record Vendor Payments', desc: 'Record payouts & pay outstanding supplier balances' },
             { id: 'finance.expenses', name: 'Record Business Expenses', desc: 'Record operational expenses (bills, rent, electricity)' },
             { id: 'finance.journal', name: 'Accounting Journal Entries', desc: 'Create debit/credit adjustments (bookkeeper overrides)' },
+            { id: 'finance.customer_refund', name: 'Issue Customer Refunds', desc: 'Approve and post refund payments back to customers' },
+            { id: 'finance.supplier_refund', name: 'Receive Supplier Refunds', desc: 'Approve and record refunds received from suppliers' },
+            { id: 'finance.capital_add', name: 'Capital Injection', desc: 'Record owner injecting personal funds into the business' },
+            { id: 'finance.owner_drawings', name: 'Owner Drawings', desc: 'Record owner withdrawing funds from the business for personal use' },
+            { id: 'finance.internal_transfer', name: 'Internal Fund Transfers', desc: 'Move money between cash and bank accounts within the store' },
+            { id: 'finance.balance_adjustment', name: 'Cash/Bank Balance Adjustment', desc: 'Adjust physical cash or bank balance to correct figure' },
+        ]
+    },
+    {
+        id: 'banking_cheques',
+        name: 'Cheque Management & Banking',
+        desc: 'Bank cheque registers, leaf tracking, clearance and duplicates',
+        icon: CreditCard,
+        permissions: [
+            { id: 'finance.cheque_books.view', name: 'View Chequebooks & Cheques', desc: 'View bank chequebooks, cheque registers, and statuses' },
+            { id: 'finance.cheque_books.manage', name: 'Manage Chequebooks', desc: 'Register new chequebooks, void unused leaves, and manage books' },
+            { id: 'finance.cheques.clear', name: 'Clear & Bounce Cheques', desc: 'Mark issued or received cheques as cleared or bounced' },
+            { id: 'finance.cheques.override_duplicate', name: 'Override Duplicate Cheques', desc: 'Authorize recording of cheques flagged as duplicates' },
+        ]
+    },
+    {
+        id: 'fiscal_governance',
+        name: 'Fiscal Governance & Periods',
+        desc: 'Fiscal years, year-end closing, period locks and backdating rules',
+        icon: Calendar,
+        permissions: [
+            { id: 'finance.fiscal_year.view', name: 'View Fiscal Calendar', desc: 'View current and historical fiscal years, periods and locks' },
+            { id: 'finance.fiscal_year.manage', name: 'Configure Fiscal Periods', desc: 'Set up fiscal years, quarters and accounting period dates' },
+            { id: 'finance.fiscal_year.close', name: 'Close Fiscal Year', desc: 'Perform year-end close and carry forward retained earnings' },
+            { id: 'finance.period_lock', name: 'Lock Accounting Periods', desc: 'Lock past calendar months/quarters against new entries' },
+            { id: 'finance.period_reopen', name: 'Reopen Locked Periods', desc: 'Reopen closed historical periods for retrospective adjustments' },
+            { id: 'finance.period_exception', name: 'Grant Backdating Exceptions', desc: 'Authorize specific users to post into locked past periods' },
+        ]
+    },
+    {
+        id: 'approvals_workflow',
+        name: 'Approvals & Governance Workflows',
+        desc: 'Multi-tier authorization workflows for high-value transactions',
+        icon: CheckCircle,
+        permissions: [
+            { id: 'approvals.view', name: 'View Approvals Center', desc: 'Access the central approvals queue and company inbox' },
+            { id: 'approvals.view_own', name: 'View Personal Submissions', desc: 'Track status of personally submitted approval requests' },
+            { id: 'approvals.submit', name: 'Submit for Authorization', desc: 'Submit transactions exceeding limits to the approval queue' },
+            { id: 'approvals.review', name: 'Review Approval Requests', desc: 'Examine documents, line items, and audit trail before action' },
+            { id: 'approvals.approve', name: 'Approve Transactions', desc: 'Grant official authorization to execute queued transactions' },
+            { id: 'approvals.reject', name: 'Reject Transactions', desc: 'Decline queued transactions and notify submitter with reason' },
+            { id: 'approvals.return', name: 'Return for Revision', desc: 'Send documents back to submitter for corrections' },
+            { id: 'approvals.resubmit', name: 'Resubmit Corrected Items', desc: 'Submit revised documents back into the approval pipeline' },
+            { id: 'approvals.withdraw', name: 'Withdraw Submissions', desc: 'Cancel own pending authorization requests before review' },
+            { id: 'approvals.configure', name: 'Configure Approval Policies', desc: 'Set approval thresholds, required tiers and document triggers' },
+        ]
+    },
+    {
+        id: 'parties_contacts',
+        name: 'Customer & Supplier Contacts',
+        desc: 'Directory of customer accounts, vendors and privacy controls',
+        icon: Users,
+        permissions: [
+            { id: 'parties.view', name: 'View Parties Directory', desc: 'Browse customer and supplier names, balances and credit terms' },
+            { id: 'parties.contact_view', name: 'View Confidential Contacts', desc: 'View protected phone numbers, emails, addresses and tax IDs' },
         ]
     },
     {
@@ -148,6 +230,7 @@ const PERMISSION_CATEGORIES = [
         icon: BarChart2,
         permissions: [
             { id: 'reports.summary', name: 'Dashboard KPI Viewer', desc: 'View net margins, global sales stats, & dashboard KPIs' },
+            { id: 'reports.sales', name: 'Sales & Margin Reports', desc: 'Analyze sales trends, gross margins and product stats' },
             { id: 'reports.financial', name: 'Financial Statements', desc: 'Export Balance Sheets, Tax Summaries, & Profit/Loss reports' },
             { id: 'reports.stock', name: 'Stock Reports', desc: 'Track low-stock warnings and movement histories' },
             { id: 'reports.performance', name: 'Staff Sales Performance', desc: 'Access leaderboard metrics & staff sales counts' },
@@ -157,7 +240,7 @@ const PERMISSION_CATEGORIES = [
     {
         id: 'store_admin',
         name: 'Store Administration',
-        desc: 'Staff recruitments, VAT configurations, and system backups',
+        desc: 'Staff recruitments, VAT configurations, integrations and backups',
         icon: Settings,
         permissions: [
             { id: 'admin.staff_view', name: 'View Staff & Attendance', desc: 'View staff schedules, attendance logs, and hour sheets' },
@@ -168,7 +251,9 @@ const PERMISSION_CATEGORIES = [
             { id: 'admin.taxes_methods', name: 'Manage Taxes & Payments', desc: 'Configure VAT sales tax rates & store payment modes' },
             { id: 'admin.warehouses', name: 'Manage Warehouses', desc: 'Create new branches and inventory warehouses' },
             { id: 'admin.data_recovery', name: 'Data & Disaster Recovery', desc: 'Restore voided items via recycle bin, or export tables' },
-            { id: 'admin.billing_store', name: 'Billing & Store Deletion', desc: 'Upgrade subscriptions, change cards, or delete store database (owner)' },
+            { id: 'admin.billing_store', name: 'Billing & Store Deletion', desc: 'Upgrade subscriptions, change cards, or delete store database' },
+            { id: 'data.export', name: 'Export Store Data', desc: 'Download full CSV/JSON database exports and backups' },
+            { id: 'vensynq.manage', name: 'VenSynQ & Cloud Sync', desc: 'Manage multichannel integrations, webhooks and ecommerce sync' },
         ]
     }
 ];
@@ -199,7 +284,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
     };
 
     return (
-        <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10 max-h-[500px]">
+        <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10 max-h-[520px]">
             {PERMISSION_CATEGORIES.map(cat => {
                 const catPerms = cat.permissions;
                 const isCatActive = catPerms.every(p => selectedPermissions.includes(p.id));
@@ -207,16 +292,16 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                 const CatIcon = cat.icon;
 
                 return (
-                    <div key={cat.id} className="bg-neutral-800/30 border border-neutral-700/30 rounded-2xl p-4 transition-all hover:border-line-strong">
+                    <div key={cat.id} className="bg-surface border border-line rounded-2xl p-4 md:p-5 transition-all hover:border-line-strong shadow-sm">
                         {/* Category Header */}
-                        <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-neutral-800/60">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-neutral-800 text-ink-faint`}>
-                                    <CatIcon size={16} />
+                        <div className="flex items-center justify-between gap-4 mb-3.5 pb-3.5 border-b border-line">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-app dark:bg-neutral-800 text-brand-600 dark:text-brand-400 border border-line shrink-0">
+                                    <CatIcon size={18} />
                                 </div>
                                 <div>
-                                    <h4 className="text-xs font-bold text-white leading-tight">{tt(cat.name)}</h4>
-                                    <p className="text-3xs text-ink-muted leading-tight mt-0.5">{tt(cat.desc)}</p>
+                                    <h4 className="text-sm font-bold text-ink leading-tight">{tt(cat.name)}</h4>
+                                    <p className="text-xs text-ink-muted leading-tight mt-0.5">{tt(cat.desc)}</p>
                                 </div>
                             </div>
 
@@ -224,12 +309,12 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                 type="button"
                                 disabled={disabled}
                                 onClick={() => handleToggleCategory(cat.id, catPerms)}
-                                className={`px-2 py-0.5 rounded-lg text-3xs font-bold uppercase tracking-wider transition-all border ${
+                                className={`px-3 py-1 rounded-xl text-2xs font-bold uppercase tracking-wider transition-all border shrink-0 ${
                                     isCatActive
-                                        ? 'bg-brand-600/20 border-brand-500 text-brand-400'
+                                        ? 'bg-brand-50 border-brand-300 text-brand-700 dark:bg-brand-950/40 dark:border-brand-500/50 dark:text-brand-300 shadow-sm'
                                         : isCatPartial
-                                            ? 'bg-amber-600/15 border-amber-500/50 text-amber-400'
-                                            : 'bg-sunken/50 border-neutral-700/50 text-ink-muted hover:text-white'
+                                            ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/40 dark:border-amber-500/50 dark:text-amber-300 shadow-sm'
+                                            : 'bg-app border-line text-ink-muted hover:text-ink dark:bg-neutral-800/60 dark:text-ink-muted dark:hover:text-ink'
                                 } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
                             >
                                 {isCatActive ? 'Full Access' : isCatPartial ? 'Partial' : 'No Access'}
@@ -237,7 +322,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                         </div>
 
                         {/* Sub Permissions Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
                             {catPerms.map(perm => {
                                 const isActive = selectedPermissions.includes(perm.id);
                                 return (
@@ -246,22 +331,22 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                                         type="button"
                                         disabled={disabled}
                                         onClick={() => handleToggle(perm.id)}
-                                        className={`p-2.5 rounded-xl border flex items-center gap-2.5 text-left transition-all duration-normal group/mod ${
+                                        className={`p-3 rounded-xl border flex items-start gap-3 text-left transition-all group/mod ${
                                             isActive
-                                                ? 'bg-brand-600/10 border-brand-500/40 shadow-[0_0_15px_rgba(79,70,229,0.05)]'
-                                                : 'bg-sunken/20 border-neutral-900 opacity-60 hover:opacity-100 hover:border-line-strong hover:bg-interactive-hover'
+                                                ? 'bg-brand-50/80 border-brand-300 dark:bg-brand-950/40 dark:border-brand-600/50 shadow-sm ring-1 ring-brand-500/20'
+                                                : 'bg-app/50 border-line hover:border-line-strong hover:bg-interactive-hover text-ink-secondary dark:bg-neutral-800/20 dark:border-neutral-700/60 dark:hover:bg-neutral-800/60'
                                         } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
                                     >
-                                        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                        <div className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center shrink-0 transition-all ${
                                             isActive
-                                                ? 'bg-brand-600 border-brand-500 text-white'
-                                                : 'border-neutral-700 bg-neutral-800'
+                                                ? 'bg-brand-600 border-brand-500 text-white shadow-sm'
+                                                : 'border-line dark:border-neutral-600 bg-surface dark:bg-neutral-800'
                                         }`}>
-                                            {isActive && <Check size={8} strokeWidth={3} />}
+                                            {isActive && <Check size={10} strokeWidth={3} />}
                                         </div>
                                         <div className="flex flex-col justify-center min-w-0">
-                                            <div className={`text-2xs font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-ink-muted group-hover/mod:text-neutral-300'}`}>{tt(perm.name)}</div>
-                                            <div className="text-4xs text-ink-muted leading-tight mt-0.5 truncate">{tt(perm.desc)}</div>
+                                            <div className={`text-xs font-bold leading-tight ${isActive ? 'text-brand-950 dark:text-brand-200' : 'text-ink group-hover/mod:text-ink'}`}>{tt(perm.name)}</div>
+                                            <div className={`text-2xs leading-relaxed mt-1 line-clamp-2 ${isActive ? 'text-brand-800/80 dark:text-brand-300/80 font-medium' : 'text-ink-muted'}`}>{tt(perm.desc)}</div>
                                         </div>
                                     </button>
                                 );
@@ -270,6 +355,145 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                     </div>
                 );
             })}
+        </div>
+    );
+};
+
+const StaffPresetPicker = ({ onApplyPreset, disabled = false }) => {
+    const tt = useTermText();
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedGroup, setSelectedGroup] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const groups = ['All', 'Sales floor', 'Stock & purchasing', 'Money & accounting', 'Review & administration', 'Leadership'];
+
+    const filteredPresets = useMemo(() => {
+        return (STAFF_PRESETS || []).filter(preset => {
+            const matchesGroup = selectedGroup === 'All' || preset.group === selectedGroup;
+            const q = searchQuery.toLowerCase().trim();
+            const matchesSearch = !q || preset.name.toLowerCase().includes(q) || (preset.purpose && preset.purpose.toLowerCase().includes(q));
+            return matchesGroup && matchesSearch;
+        });
+    }, [selectedGroup, searchQuery]);
+
+    return (
+        <div className="mb-4 relative z-20">
+            <div className="flex items-center justify-between gap-3 bg-app/80 dark:bg-neutral-800/80 border border-line p-2.5 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-2.5 pl-1">
+                    <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                        <Zap size={14} />
+                    </div>
+                    <div>
+                        <div className="text-xs font-bold text-ink flex items-center gap-2">
+                            <span>{tt('Role Templates & Presets')}</span>
+                            <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">32 Presets</span>
+                        </div>
+                        <p className="text-2xs text-ink-muted">{tt('Load preconfigured permission bundles by job title')}</p>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setIsOpen(!isOpen)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${
+                        isOpen
+                            ? 'bg-brand-600 text-white border-brand-500 shadow-sm'
+                            : 'bg-surface hover:bg-interactive-hover border-line text-ink-secondary hover:text-ink'
+                    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    <span>{isOpen ? tt('Hide Presets') : tt('Browse Presets')}</span>
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+            </div>
+
+            {isOpen && (
+                <div className="mt-2.5 bg-surface border border-line rounded-2xl p-4 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+                    {/* Header + Search */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3 pb-3 border-b border-line">
+                        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+                            {groups.map(g => (
+                                <button
+                                    key={g}
+                                    type="button"
+                                    onClick={() => setSelectedGroup(g)}
+                                    className={`px-2.5 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
+                                        selectedGroup === g
+                                            ? 'bg-brand-600 text-white border-brand-500 shadow-sm'
+                                            : 'bg-app border-line text-ink-muted hover:text-ink'
+                                    }`}
+                                >
+                                    {tt(g)}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="relative min-w-[200px]">
+                            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder={tt('Search preset...')}
+                                className="w-full bg-app border border-line rounded-xl pl-8 pr-3 py-1.5 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:border-brand-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Presets Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+                        {filteredPresets.map(preset => (
+                            <div
+                                key={preset.id}
+                                className="p-3 bg-app/50 hover:bg-app border border-line hover:border-line-strong rounded-xl flex flex-col justify-between gap-2.5 transition-all"
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <h5 className="text-xs font-bold text-ink">{tt(preset.name)}</h5>
+                                        <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 whitespace-nowrap">
+                                            {preset.permissions.length} perms
+                                        </span>
+                                    </div>
+                                    <p className="text-2xs text-ink-muted leading-tight line-clamp-2">{preset.purpose}</p>
+                                    {preset.caution && (
+                                        <p className="text-3xs text-amber-600 dark:text-amber-400 mt-1 font-medium">⚠️ {preset.caution}</p>
+                                    )}
+                                </div>
+                                <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-line/60">
+                                    <button
+                                        type="button"
+                                        disabled={disabled}
+                                        onClick={() => {
+                                            onApplyPreset(preset, 'merge');
+                                            setIsOpen(false);
+                                        }}
+                                        title="Merge preset permissions with currently checked permissions"
+                                        className="px-2.5 py-1 text-2xs font-bold uppercase tracking-wider rounded-lg border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-colors"
+                                    >
+                                        + {tt('Merge')}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        disabled={disabled}
+                                        onClick={() => {
+                                            onApplyPreset(preset, 'replace');
+                                            setIsOpen(false);
+                                        }}
+                                        title="Replace current permissions with this preset"
+                                        className="px-3 py-1 text-2xs font-bold uppercase tracking-wider rounded-lg bg-brand-600 hover:bg-brand-500 text-white shadow-sm transition-all active:scale-95"
+                                    >
+                                        {tt('Apply (Replace)')}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                        {filteredPresets.length === 0 && (
+                            <div className="col-span-full py-8 text-center text-xs text-ink-muted">
+                                {tt('No matching presets found.')}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -441,6 +665,17 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             ...d,
             roles: [roleKey],
             permissions: ROLE_PERMISSIONS[roleKey] || []
+        }));
+    };
+
+    const handleApplyPreset = (preset, mode) => {
+        const targetPerms = mode === 'merge'
+            ? Array.from(new Set([...(data.permissions || []), ...preset.permissions]))
+            : [...preset.permissions];
+        setData(d => ({
+            ...d,
+            roles: ['custom'],
+            permissions: targetPerms,
         }));
     };
 
@@ -771,137 +1006,139 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
             )}
 
             {showAddModal && (
-                <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
-                    <div className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-[1200px] border border-neutral-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+                <div className="fixed inset-0 bg-neutral-950/70 dark:bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] border border-line flex flex-col lg:flex-row relative my-auto max-h-[92vh] overflow-hidden">
 
                         <button onClick={() => { setShowAddModal(false); reset(); }}
-                            className="absolute top-6 right-6 p-2 rounded-full text-ink-muted hover:text-white hover:bg-interactive-hover transition-colors z-20">
+                            className="absolute top-5 right-5 p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors z-20 border border-line-subtle bg-surface">
                             <X size={20} />
                         </button>
 
                         {/* LEFT COLUMN: Form & Roles */}
-                        <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-neutral-700/50 flex flex-col bg-neutral-900 rounded-l-xl">
-                            <div className="flex items-center gap-4 mb-10">
-                                <h3 className="font-bold text-2xl text-white tracking-tight">Invite Member</h3>
-                                <div className="h-4 w-px bg-neutral-700"></div>
+                        <div className="w-full lg:w-[460px] xl:w-[500px] shrink-0 p-6 md:p-8 xl:p-10 border-b lg:border-b-0 lg:border-r border-line flex flex-col bg-surface overflow-y-auto custom-scrollbar">
+                            <div className="flex items-center gap-3.5 mb-8">
+                                <h3 className="font-bold text-2xl text-ink tracking-tight">Invite Member</h3>
+                                <div className="h-4 w-px bg-line"></div>
                                 <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">SEND INVITATION</span>
                             </div>
 
-                            <form id="invite-form" onSubmit={handleSubmit} className="flex flex-col gap-10 flex-1">
+                            <form id="invite-form" onSubmit={handleSubmit} className="flex flex-col gap-8 flex-1">
 
                                 {/* Credentials */}
-                                <div className="space-y-5">
-                                    <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
-                                        <User size={14} /> CREDENTIALS
+                                <div className="space-y-4">
+                                    <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                        <User size={15} className="text-brand-500" /> Credentials
                                     </h4>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
-                                            <label className="text-2xs font-bold uppercase tracking-wider ml-1">Name</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                            <label className="text-xs font-bold uppercase tracking-wider ml-1">Name</label>
                                             <input type="text" value={data.invitee_name} onChange={e => setData('invitee_name', e.target.value)}
-                                                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
                                                 placeholder="Full Name" required />
-                                            {errors.invitee_name && <p className="text-2xs text-red-400 ml-1">{errors.invitee_name}</p>}
+                                            {errors.invitee_name && <p className="text-xs text-red-500 ml-1">{errors.invitee_name}</p>}
                                         </div>
-                                        <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
-                                            <label className="text-2xs font-bold uppercase tracking-wider ml-1">Email</label>
+                                        <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                            <label className="text-xs font-bold uppercase tracking-wider ml-1">Email</label>
                                             <input type="email" value={data.invitee_email} onChange={e => setData('invitee_email', e.target.value)}
-                                                className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
                                                 placeholder="Email Address" required />
-                                            {errors.invitee_email && <p className="text-2xs text-red-400 ml-1">{errors.invitee_email}</p>}
+                                            {errors.invitee_email && <p className="text-xs text-red-500 ml-1">{errors.invitee_email}</p>}
                                         </div>
                                     </div>
 
-                                    <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
-                                        <label className="text-2xs font-bold uppercase tracking-wider ml-1">Phone Number</label>
+                                    <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                        <label className="text-xs font-bold uppercase tracking-wider ml-1">Phone Number</label>
                                         <input type="text" value={data.invitee_phone} onChange={e => setData('invitee_phone', e.target.value)}
-                                            className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                            className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
                                             placeholder="Optional" />
                                     </div>
                                 </div>
 
                                 {/* Roles */}
-                                <div className="space-y-5">
+                                <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
-                                            <Crown size={14} /> ASSIGN ROLE
+                                        <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                            <Crown size={15} className="text-brand-500" /> Assign Role
                                         </h4>
-                                        <span className="text-2xs font-bold text-brand-400 tracking-wider">
+                                        <span className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">
                                             {data.roles.length > 0 ? tt(ROLES[data.roles[0]]?.name || '')?.toUpperCase() : 'NONE'}
                                         </span>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         {Object.entries(ROLES).map(([key, role]) => {
                                             const isSelected = data.roles.includes(key);
                                             return (
                                                 <button key={key} type="button" onClick={() => toggleRole(key)}
-                                                    className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
+                                                    className={`p-3.5 rounded-xl border flex gap-3 text-left transition-all ${
                                                         isSelected
-                                                            ? 'bg-brand-600 border-brand-500 shadow-xl '
-                                                            : 'bg-neutral-800 border-neutral-700 hover:border-brand-400/50 hover:bg-interactive-hover'
+                                                            ? 'bg-brand-600 text-white border-brand-500 shadow-md ring-2 ring-brand-500/20'
+                                                            : 'bg-app border-line hover:border-brand-400/50 hover:bg-interactive-hover text-ink dark:bg-neutral-800/60 dark:border-neutral-700'
                                                     }`}>
-                                                    <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-ink-muted'}`}>
-                                                        <role.icon size={16} />
+                                                    <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-brand-500 dark:text-brand-400'}`}>
+                                                        <role.icon size={18} />
                                                     </div>
                                                     <div>
-                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{tt(role.name)}</div>
-                                                        <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{tt(role.description)}</div>
+                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-ink dark:text-white'}`}>{tt(role.name)}</div>
+                                                        <div className={`text-2xs font-medium leading-tight mt-1 ${isSelected ? 'text-brand-100' : 'text-ink-muted'}`}>{tt(role.description)}</div>
                                                     </div>
                                                 </button>
                                             );
                                         })}
                                     </div>
-                                    {errors.roles && <p className="text-2xs text-red-400 ml-1">{errors.roles}</p>}
+                                    {errors.roles && <p className="text-xs text-red-500 ml-1">{errors.roles}</p>}
                                 </div>
 
                             </form>
                         </div>
 
                         {/* RIGHT COLUMN: Permissions Visualization */}
-                        <div className="flex-1 p-8 md:p-10 bg-neutral-900 rounded-r-xl flex flex-col relative overflow-hidden">
+                        <div className="flex-1 p-6 md:p-8 xl:p-10 bg-sunken/40 dark:bg-surface flex flex-col justify-between relative overflow-hidden">
                             {/* Ambient glow in right panel */}
                             <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-                            <div className="flex items-center justify-between mb-8 relative z-10">
+                            <div className="flex items-center justify-between mb-6 relative z-10">
                                 <div className="space-y-1">
-                                    <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-[0.2em]">
-                                        <Shield size={14} className="text-brand-400" /> System Visibility
+                                    <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                                        <Shield size={16} className="text-brand-600 dark:text-brand-400" /> System Visibility & Access
                                     </h4>
-                                    <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest pl-6">
-                                        Module Access Control
+                                    <p className="text-xs text-ink-muted font-medium pl-6">
+                                        Fine-grained module access control for this member
                                     </p>
                                 </div>
-                                <div className="px-4 py-2 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-2xs font-bold text-brand-400 flex items-center gap-2 tracking-widest uppercase">
-                                    <Sparkles size={12} /> Live Permissions Preview
+                                <div className="px-3.5 py-1.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2 tracking-wider uppercase">
+                                    <Sparkles size={13} /> Live Permissions Preview
                                 </div>
                             </div>
 
+                            <StaffPresetPicker onApplyPreset={handleApplyPreset} />
+
                             <PermissionsSelector
                                 selectedPermissions={data.permissions}
-                                onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
+                                onChange={(perms) => setData(d => ({ ...d, roles: ['custom'], permissions: perms }))}
                             />
 
                             {/* Bottom Footer Actions inside Right Panel */}
-                            <div className="mt-8 pt-8 border-t border-neutral-800/50 flex items-center justify-between relative z-10">
-                                <div className="space-y-1">
-                                    <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest">
+                            <div className="mt-6 pt-6 border-t border-line flex items-center justify-between relative z-10">
+                                <div className="space-y-0.5">
+                                    <div className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                                         Summary
                                     </div>
-                                    <div className="text-sm font-bold text-white">
-                                        <span className={data.permissions.length > 0 ? 'text-brand-400' : 'text-ink-muted'}>
-                                             {data.permissions.length} Action Items Enabled
+                                    <div className="text-sm font-bold text-ink">
+                                        <span className={data.permissions.length > 0 ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-ink-muted'}>
+                                             {data.permissions.length} Permissions Active
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
                                     <button type="button" onClick={() => { setShowAddModal(false); reset(); }}
-                                        className="px-6 py-3 text-ink-muted hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
+                                        className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors">
                                         Discard
                                     </button>
                                     <button type="submit" form="invite-form" disabled={processing || data.roles.length === 0}
-                                        className="px-10 py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
-                                        <Send size={16} />
+                                        className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5">
+                                        <Send size={15} />
                                         Send Invitation
                                     </button>
                                 </div>
@@ -1193,7 +1430,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-sticky flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-neutral-950/70 dark:bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
             <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl border border-line overflow-hidden flex flex-col h-[650px]">
                 <div className="px-8 py-6 bg-sunken/50 dark:bg-app border-b border-line flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
@@ -1341,13 +1578,30 @@ function EditMemberModal({ member, onClose }) {
         status: member.status,
         permissions: member.permissions ?? ROLE_PERMISSIONS[member.role] ?? [],
         passcode: '',
+        transaction_approval_mode: member.transaction_approval_mode ?? 'inherit',
+        permission_override_mode: member.permission_override_mode ?? 'inherit',
+        approval_overrides: member.approval_overrides ?? {},
     });
 
     const toggleRole = (roleKey) => {
         setData(d => ({
             ...d,
             role: roleKey,
-            permissions: ROLE_PERMISSIONS[roleKey] || []
+            permissions: ROLE_PERMISSIONS[roleKey] || [],
+            permission_override_mode: 'inherit',
+        }));
+    };
+
+    const handleApplyPreset = (preset, mode) => {
+        const targetPerms = mode === 'merge'
+            ? Array.from(new Set([...(data.permissions || []), ...preset.permissions]))
+            : [...preset.permissions];
+        setData(d => ({
+            ...d,
+            role: 'custom',
+            custom_role_name: mode === 'replace' ? preset.name : (d.custom_role_name || preset.name),
+            permissions: targetPerms,
+            permission_override_mode: 'custom',
         }));
     };
 
@@ -1362,72 +1616,72 @@ function EditMemberModal({ member, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-sm z-sticky flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
-            <div className="bg-neutral-900 rounded-xl shadow-2xl w-full max-w-[1200px] border border-neutral-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+        <div className="fixed inset-0 bg-neutral-950/70 dark:bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] border border-line flex flex-col lg:flex-row relative my-auto max-h-[92vh] overflow-hidden">
 
                 <button onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-full text-ink-muted hover:text-white hover:bg-interactive-hover transition-colors z-20">
+                    className="absolute top-5 right-5 p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors z-20 border border-line-subtle bg-surface">
                     <X size={20} />
                 </button>
 
                 {/* LEFT COLUMN: Form & Roles */}
-                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-neutral-700/50 flex flex-col bg-neutral-900 rounded-l-xl max-h-[85vh] overflow-y-auto">
-                    <div className="flex items-center gap-4 mb-10">
-                        <h3 className="font-bold text-2xl text-white tracking-tight">Edit Member</h3>
-                        <div className="h-4 w-px bg-neutral-700"></div>
-                        <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">{member.name}</span>
+                <div className="w-full lg:w-[460px] xl:w-[500px] shrink-0 p-6 md:p-8 xl:p-10 border-b lg:border-b-0 lg:border-r border-line flex flex-col bg-surface overflow-y-auto custom-scrollbar max-h-[90vh]">
+                    <div className="flex items-center gap-3.5 mb-8">
+                        <h3 className="font-bold text-2xl text-ink tracking-tight">Edit Member</h3>
+                        <div className="h-4 w-px bg-line"></div>
+                        <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest truncate">{member.name}</span>
                     </div>
 
-                    <form id="edit-member-form" onSubmit={submit} className="flex flex-col gap-10 flex-1">
+                    <form id="edit-member-form" onSubmit={submit} className="flex flex-col gap-8 flex-1">
 
                         {/* Member Profile */}
-                        <div className="space-y-5">
-                            <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
-                                <User size={14} /> MEMBER PROFILE
+                        <div className="space-y-4">
+                            <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                <User size={15} className="text-brand-500" /> Member Profile
                             </h4>
 
-                            <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
-                                <label className="text-2xs font-bold uppercase tracking-wider ml-1">Display Name</label>
+                            <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                <label className="text-xs font-bold uppercase tracking-wider ml-1">Display Name</label>
                                 <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
-                                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                    className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
                                     placeholder="Display Name" required />
-                                {errors.display_name && <p className="text-2xs text-red-400 ml-1">{errors.display_name}</p>}
+                                {errors.display_name && <p className="text-xs text-red-500 ml-1">{errors.display_name}</p>}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
-                                    <label className="text-2xs font-bold uppercase tracking-wider ml-1">Status</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                    <label className="text-xs font-bold uppercase tracking-wider ml-1">Status</label>
                                     <select value={data.status} onChange={e => setData('status', e.target.value)}
                                         disabled={member.role === 'owner'}
-                                        className="w-full px-4 py-3 bg-sunken border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all">
+                                        className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white">
                                         <option value="active">Active</option>
                                         <option value="suspended">Suspended</option>
                                     </select>
-                                    {errors.status && <p className="text-2xs text-red-400 ml-1">{errors.status}</p>}
+                                    {errors.status && <p className="text-xs text-red-500 ml-1">{errors.status}</p>}
                                 </div>
 
-                                <div className="space-y-1.5 focus-within:text-brand-400 transition-colors text-ink-muted">
-                                    <label className="text-2xs font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
+                                <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                    <label className="text-xs font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
                                     <input type="password" value={data.passcode} onChange={e => setData('passcode', e.target.value)}
-                                        className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted font-mono"
+                                        className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted font-mono dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
                                         placeholder="Keep original PIN" maxLength={6} />
-                                    {errors.passcode && <p className="text-2xs text-red-400 ml-1">{errors.passcode}</p>}
+                                    {errors.passcode && <p className="text-xs text-red-500 ml-1">{errors.passcode}</p>}
                                 </div>
                             </div>
                         </div>
 
                         {/* Roles */}
-                        <div className="space-y-5">
+                        <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-widest">
-                                    <Crown size={14} /> ASSIGN ROLE
+                                <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                    <Crown size={15} className="text-brand-500" /> Assign Role
                                 </h4>
-                                <span className="text-2xs font-bold text-brand-400 tracking-wider">
+                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">
                                     {data.role ? tt(ROLES[data.role]?.name || '')?.toUpperCase() : 'NONE'}
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {Object.entries(ROLES).map(([key, role]) => {
                                     const isSelected = data.role === key;
                                     const isOwner = member.role === 'owner';
@@ -1435,17 +1689,17 @@ function EditMemberModal({ member, onClose }) {
                                         <button key={key} type="button"
                                             disabled={isOwner}
                                             onClick={() => toggleRole(key)}
-                                            className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
+                                            className={`p-3.5 rounded-xl border flex gap-3 text-left transition-all ${
                                                 isSelected
-                                                    ? 'bg-brand-600 border-brand-500 shadow-xl '
-                                                    : 'bg-sunken border-neutral-700 hover:border-brand-400/50 hover:bg-interactive-hover'
+                                                    ? 'bg-brand-600 text-white border-brand-500 shadow-md ring-2 ring-brand-500/20'
+                                                    : 'bg-app border-line hover:border-brand-400/50 hover:bg-interactive-hover text-ink dark:bg-neutral-800/60 dark:border-neutral-700'
                                             } ${isOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                            <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-ink-muted'}`}>
-                                                <role.icon size={16} />
+                                            <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-brand-500 dark:text-brand-400'}`}>
+                                                <role.icon size={18} />
                                             </div>
                                             <div>
-                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-neutral-300'}`}>{tt(role.name)}</div>
-                                                <div className={`text-3xs font-medium leading-tight mt-0.5 ${isSelected ? 'text-brand-200' : 'text-ink-muted'}`}>{tt(role.description)}</div>
+                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-ink dark:text-white'}`}>{tt(role.name)}</div>
+                                                <div className={`text-2xs font-medium leading-tight mt-1 ${isSelected ? 'text-brand-100' : 'text-ink-muted'}`}>{tt(role.description)}</div>
                                             </div>
                                         </button>
                                     );
@@ -1453,7 +1707,7 @@ function EditMemberModal({ member, onClose }) {
                             </div>
                             {data.role === 'custom' && (
                                 <div className="mt-3">
-                                    <label className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-1 block">
+                                    <label className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1 block">
                                         Custom Role Name <span className="text-ink-muted font-normal normal-case">(optional — shown as badge)</span>
                                     </label>
                                     <input
@@ -1462,34 +1716,135 @@ function EditMemberModal({ member, onClose }) {
                                         placeholder="e.g. Senior Accountant, Floor Supervisor..."
                                         value={data.custom_role_name}
                                         onChange={e => setData('custom_role_name', e.target.value)}
-                                        className="w-full bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition"
+                                        className="w-full bg-app border border-line rounded-xl px-4 py-2.5 text-sm text-ink placeholder:text-ink-muted focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500 transition dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
                                     />
                                 </div>
                             )}
-                            {errors.role && <p className="text-2xs text-red-400 ml-1">{errors.role}</p>}
+                            {errors.role && <p className="text-xs text-red-500 ml-1">{errors.role}</p>}
                         </div>
+
+                        {/* Approval Mode — owners/admins only */}
+                        {(member.role !== 'owner') && (
+                            <div className="space-y-4">
+                                <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                    <Shield size={15} className="text-brand-500" /> Transaction Approval
+                                </h4>
+                                <p className="text-xs text-ink-muted leading-relaxed">
+                                    Controls whether this employee's transactions require a supervisor to approve before they post.
+                                </p>
+                                <div className="space-y-2.5">
+                                    {[
+                                        {
+                                            value: 'inherit',
+                                            label: 'Follow store policy',
+                                            description: 'Uses the store-wide approval setting',
+                                        },
+                                        {
+                                            value: 'required',
+                                            label: 'Always require approval',
+                                            description: 'Every transaction this employee creates goes to the approval queue',
+                                        },
+                                        {
+                                            value: 'direct',
+                                            label: 'Always post directly',
+                                            description: 'Bypasses the approval queue regardless of store policy',
+                                        },
+                                    ].map(opt => (
+                                        <label key={opt.value}
+                                            className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                                                data.transaction_approval_mode === opt.value
+                                                    ? 'bg-brand-50/80 border-brand-300 dark:bg-brand-950/40 dark:border-brand-500 shadow-sm ring-1 ring-brand-500/20'
+                                                    : 'bg-app border-line hover:border-line-strong text-ink dark:bg-neutral-800/40 dark:border-neutral-700'
+                                            }`}>
+                                            <input
+                                                type="radio"
+                                                name="transaction_approval_mode"
+                                                value={opt.value}
+                                                checked={data.transaction_approval_mode === opt.value}
+                                                onChange={() => setData('transaction_approval_mode', opt.value)}
+                                                className="mt-0.5 accent-brand-500 shrink-0"
+                                            />
+                                            <div>
+                                                <div className="text-xs font-bold text-ink">{opt.label}</div>
+                                                <div className="text-2xs text-ink-muted mt-0.5">{opt.description}</div>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                                {errors.transaction_approval_mode && (
+                                    <p className="text-xs text-red-500 ml-1">{errors.transaction_approval_mode}</p>
+                                )}
+
+                                {/* Action-Specific Approval Overrides */}
+                                <div className="pt-4 border-t border-line space-y-2.5">
+                                    <div className="text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                        Action-Specific Approval Overrides
+                                    </div>
+                                    <p className="text-xs text-ink-muted">
+                                        Override default store and role policy for specific operations:
+                                    </p>
+                                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                                        {[
+                                            { key: 'customer_receipt', label: 'Customer Receipts' },
+                                            { key: 'supplier_payment', label: 'Supplier Payments' },
+                                            { key: 'sales_invoice', label: 'Admin Sales Invoices' },
+                                            { key: 'operating_expense', label: 'Operating Expenses' },
+                                            { key: 'supplier_refund', label: 'Supplier Refunds' },
+                                            { key: 'purchase_posting', label: 'Purchase & Bills' },
+                                            { key: 'sales_return', label: 'Sales Returns & Refunds' },
+                                            { key: 'purchase_return', label: 'Purchase Returns (Debit Notes)' },
+                                            { key: 'capital_injection', label: 'Owner Capital Injection' },
+                                            { key: 'owner_drawings', label: 'Owner Drawings' },
+                                            { key: 'fund_transfer', label: 'Internal Fund Transfers' },
+                                            { key: 'balance_adjustment', label: 'Balance Adjustments' },
+                                        ].map(action => {
+                                            const currentVal = data.approval_overrides?.[action.key] || 'inherit';
+                                            return (
+                                                <div key={action.key} className="flex items-center justify-between p-2.5 rounded-xl bg-app border border-line dark:bg-neutral-800/50 dark:border-neutral-700">
+                                                    <span className="text-xs font-medium text-ink">{action.label}</span>
+                                                    <select
+                                                        value={currentVal}
+                                                        onChange={e => setData('approval_overrides', {
+                                                            ...data.approval_overrides,
+                                                            [action.key]: e.target.value,
+                                                        })}
+                                                        className="bg-surface border border-line rounded-lg px-2.5 py-1 text-xs text-ink focus:outline-none focus:border-brand-500 dark:bg-neutral-900 dark:border-neutral-600 dark:text-white"
+                                                    >
+                                                        <option value="inherit">Inherit</option>
+                                                        <option value="direct">Direct</option>
+                                                        <option value="required">Required</option>
+                                                    </select>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                     </form>
                 </div>
 
                 {/* RIGHT COLUMN: Permissions Visualization */}
-                <div className="flex-1 p-8 md:p-10 bg-neutral-900 rounded-r-xl flex flex-col relative overflow-hidden">
+                <div className="flex-1 p-6 md:p-8 xl:p-10 bg-sunken/40 dark:bg-surface flex flex-col justify-between relative overflow-hidden">
                     {/* Ambient glow in right panel */}
                     <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-                    <div className="flex items-center justify-between mb-8 relative z-10">
+                    <div className="flex items-center justify-between mb-6 relative z-10">
                         <div className="space-y-1">
-                            <h4 className="flex items-center gap-2 text-2xs font-bold text-ink-muted uppercase tracking-[0.2em]">
-                                <Shield size={14} className="text-brand-400" /> System Visibility
+                            <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                                <Shield size={16} className="text-brand-600 dark:text-brand-400" /> System Visibility & Access
                             </h4>
-                            <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest pl-6">
+                            <p className="text-xs text-ink-muted font-medium pl-6">
                                 Module Access Control
                             </p>
                         </div>
-                        <div className="px-4 py-2 rounded-2xl bg-brand-500/10 border border-brand-500/20 text-2xs font-bold text-brand-400 flex items-center gap-2 tracking-widest uppercase">
-                            <Sparkles size={12} /> Live Permissions Preview
+                        <div className="px-3.5 py-1.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2 tracking-wider uppercase">
+                            <Sparkles size={13} /> Live Permissions Preview
                         </div>
                     </div>
+
+                    <StaffPresetPicker onApplyPreset={handleApplyPreset} disabled={member.role === 'owner'} />
 
                     <PermissionsSelector
                         selectedPermissions={data.permissions}
@@ -1498,24 +1853,24 @@ function EditMemberModal({ member, onClose }) {
                     />
 
                     {/* Bottom Footer Actions inside Right Panel */}
-                    <div className="mt-8 pt-8 border-t border-neutral-800/50 flex items-center justify-between relative z-10">
-                        <div className="space-y-1">
-                            <div className="text-2xs font-bold text-ink-muted uppercase tracking-widest">
+                    <div className="mt-6 pt-6 border-t border-line flex items-center justify-between relative z-10">
+                        <div className="space-y-0.5">
+                            <div className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                                 Summary
                             </div>
-                            <div className="text-sm font-bold text-white">
-                                <span className={data.permissions.length > 0 ? 'text-brand-400' : 'text-ink-muted'}>
-                                     {data.permissions.length} Action Items Enabled
+                            <div className="text-sm font-bold text-ink">
+                                <span className={data.permissions.length > 0 ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-ink-muted'}>
+                                     {data.permissions.length} Permissions Active
                                 </span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <button type="button" onClick={onClose}
-                                className="px-6 py-3 text-ink-muted hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">
+                                className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors">
                                 Discard
                             </button>
                             <button type="submit" form="edit-member-form" disabled={processing}
-                                className="px-10 py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-2xl text-xs font-bold uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
+                                className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5">
                                 <Check size={16} />
                                 Save Changes
                             </button>

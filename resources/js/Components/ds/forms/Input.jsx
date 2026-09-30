@@ -1,4 +1,5 @@
 import React from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 /**
  * Labelled text field. Label above, always. 16px minimum font-size.
@@ -18,9 +19,40 @@ export const Input = React.forwardRef(function Input({
   prefix, suffix, size = "md", disabled = false, id, style, className, ...rest
 }, ref) {
   const [focus, setFocus] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
   const fid = id || React.useId();
   const h = size === "lg" ? "var(--vq-control-xl)" : "var(--vq-control-lg)";
   const border = error ? "var(--vq-danger)" : focus ? "var(--vq-focus)" : "var(--vq-line)";
+
+  const isPassword = type === "password";
+  const effectiveType = isPassword ? (showPassword ? "text" : "password") : type;
+
+  let effectiveSuffix = suffix;
+  if (suffix === undefined && isPassword) {
+    effectiveSuffix = (
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => setShowPassword((prev) => !prev)}
+        aria-label={showPassword ? "Hide password" : "Show password"}
+        title={showPassword ? "Hide password" : "Show password"}
+        className="flex items-center text-ink-muted transition-colors duration-fast hover:text-ink-secondary focus:outline-none"
+        style={{
+          background: "transparent",
+          border: 0,
+          padding: 0,
+          margin: 0,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          color: "var(--vq-text-3)",
+        }}
+      >
+        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+      </button>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, ...style }}>
       {label ? <label htmlFor={fid} style={{ font: "600 13px/1.3 var(--vq-font-sans)", color: "var(--vq-text-2)" }}>{label}</label> : null}
@@ -34,7 +66,7 @@ export const Input = React.forwardRef(function Input({
         {prefix ? <span style={{ color: "var(--vq-text-3)", display: "flex" }}>{prefix}</span> : null}
         <input
           ref={ref}
-          id={fid} type={type} value={value} placeholder={placeholder} disabled={disabled}
+          id={fid} type={effectiveType} value={value} placeholder={placeholder} disabled={disabled}
           onChange={onChange}
           onFocus={(e) => { setFocus(true); rest.onFocus?.(e); }}
           onBlur={(e) => { setFocus(false); rest.onBlur?.(e); }}
@@ -45,7 +77,7 @@ export const Input = React.forwardRef(function Input({
           }}
           {...rest}
         />
-        {suffix ? <span style={{ color: "var(--vq-text-3)", display: "flex" }}>{suffix}</span> : null}
+        {effectiveSuffix ? <span style={{ color: "var(--vq-text-3)", display: "flex" }}>{effectiveSuffix}</span> : null}
       </div>
       {(error || hint) ? (
         <span style={{ font: "500 12px/1.4 var(--vq-font-sans)", color: error ? "var(--vq-danger)" : "var(--vq-text-3)" }}>{error || hint}</span>
@@ -53,3 +85,4 @@ export const Input = React.forwardRef(function Input({
     </div>
   );
 });
+

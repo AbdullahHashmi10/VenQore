@@ -35,7 +35,7 @@ export const useOfflineSync = () => {
         for (const sale of pendingSales) {
             try {
                 // Attempt to send to server
-                await axios.post(route("store.sales.store", {
+                await axios.post(route("store.pos.sales.store", {
                     store_slug: store.slug
                 }), sale.data);
 

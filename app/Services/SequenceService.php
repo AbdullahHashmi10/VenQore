@@ -45,6 +45,20 @@ class SequenceService
 
         $dateStr = Carbon::now()->format('dmy'); // DDMMYY
 
+        // Resolve configured prefixes if available
+        $cleanPrefix = strtoupper(rtrim($prefix, '-'));
+        $customPrefix = match ($cleanPrefix) {
+            'SAL', 'INV' => \App\Helpers\SettingsHelper::get('sale_prefix'),
+            'PUR' => \App\Helpers\SettingsHelper::get('purchase_prefix'),
+            'QUO', 'QTN', 'PROP' => \App\Helpers\SettingsHelper::get('quotation_prefix'),
+            'RET', 'SRET', 'PRET' => \App\Helpers\SettingsHelper::get('return_prefix'),
+            default => null,
+        };
+
+        if (!empty($customPrefix)) {
+            $prefix = rtrim($customPrefix, '-');
+        }
+
         // Perform the sequence increment within a locked transaction to prevent collisions
         $sequence = DB::transaction(function () use ($tenantId, $prefix, $registerId, $dateStr) {
             $record = DB::table('transaction_sequences')

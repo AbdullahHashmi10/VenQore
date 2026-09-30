@@ -30,14 +30,9 @@ class Slice4bSellingGateTest extends TestCase
     {
         parent::setUp();
 
-        $this->tenant = Tenant::where('slug', 'golden-store')->first();
-        if (!$this->tenant) {
-            $built = ReckonerGoldenStoreFixture::build(http: $this);
-            $this->tenant = $built['tenant'];
-            $this->user   = $built['user'];
-        } else {
-            $this->user = User::where('email', 'golden-owner@venqore.com')->first();
-        }
+        $built = ReckonerGoldenStoreFixture::build(tenant: null, http: $this);
+        $this->tenant = $built['tenant'];
+        $this->user   = $built['user'];
     }
 
     /**
@@ -142,7 +137,7 @@ class Slice4bSellingGateTest extends TestCase
         }
 
         // Ensure a different tenant gets different (isolated) data
-        $otherTenant = Tenant::where('slug', '!=', 'golden-store')->first();
+        $otherTenant = Tenant::factory()->create(['status' => 'active', 'plan' => 'scale', 'slug' => 'empty-isolation-store-' . \Illuminate\Support\Str::random(6)]);
         if ($otherTenant) {
             $otherUser = User::whereIn('id', DB::table('tenant_users')->where('tenant_id', $otherTenant->id)->pluck('user_id'))->first() ?? User::first();
             if ($otherUser) {

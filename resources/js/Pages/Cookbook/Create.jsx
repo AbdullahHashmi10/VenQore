@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import axios from 'axios';
+import { getCurrencySymbol, formatNumber, formatCurrency } from '@/Utils/format';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -695,11 +696,11 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  <div className="flex justify-between">
  <span className="font-bold">Total COGM:</span>
  <span className="text-xl font-bold">
- {getCurrencySymbol()} {calculations.totalCOGM.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+ {formatCurrency(calculations.totalCOGM)}
  </span>
  </div>
  <p className="text-xs text-brand-200 mt-1">
- Cost per unit: {getCurrencySymbol()} {calculations.costPerUnit.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+ Cost per unit: {formatCurrency(calculations.costPerUnit)}
  </p>
  </div>
  </div>
@@ -727,10 +728,10 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  Suggested Selling Price
  </p>
  <p className="text-2xl font-bold">
- {getCurrencySymbol()} {calculations.suggestedPrice.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+ {formatCurrency(calculations.suggestedPrice)}
  </p>
  <p className="text-xs text-brand-200 mt-1">
- Profit: {getCurrencySymbol()} {(calculations.suggestedPrice - calculations.totalCOGM).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+ Profit: {formatCurrency(calculations.suggestedPrice - calculations.totalCOGM)}
  </p>
  </div>
 

@@ -301,6 +301,11 @@ export default function RegisterSettings({
     /* geometry */
     presets = [],
     presetId,
+    /* Whether the business ALREADY runs table service. The Table preset is
+       shown either way — picking it is what turns it on — so this only
+       decides the wording under the grid. */
+    tablesAvailable = false,
+    canManageStore = false,
     composition,
     layout,
     onApplyPreset,
@@ -309,6 +314,7 @@ export default function RegisterSettings({
 
     /* store-wide */
     serviceMode = 'counter', setServiceMode,
+    preparesOrders = false, setPreparesOrders,
     serviceCharge = 0, setServiceCharge,
     onOpenFloorPlan,
 
@@ -321,10 +327,14 @@ export default function RegisterSettings({
     surface = DEFAULT_SURFACE,
     setSurface,
 
-    /* display */
+    /* display & catalog */
     seniorMode, setSeniorMode,
     showRail, setShowRail,
     uiScale, setUiScale,
+    catalogSort, setCatalogSort,
+    showCatalogImages, setShowCatalogImages,
+    showCatalogStock, setShowCatalogStock,
+    hideOutOfStock, setHideOutOfStock,
 
     /* selling */
     enableTax, setEnableTax,
@@ -510,11 +520,22 @@ export default function RegisterSettings({
                             <section className="space-y-2.5">
                                 <Eyebrow>Start from</Eyebrow>
                                 <p className="text-2xs text-ink-muted leading-relaxed">
-                                    Six starting points, not six fixed layouts. Pick the closest one,
+                                    Starting points, not fixed layouts. Pick the closest one,
                                     then change anything below — you are still inside the law.
                                 </p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {presets.filter(p => (p.terminal || 'counter') === terminal).map(p => {
+                                    {presets
+                                        /* EVERY PRESET, ALWAYS — INCLUDING TABLE.
+                                           It used to be filtered by the terminal you happened
+                                           to be on, so the Table card was reachable only from
+                                           the page that had already applied it. Then it was
+                                           filtered by `service_mode`, which hid it from every
+                                           shop that had not already found and flipped a store
+                                           setting somewhere else. Both are the same mistake:
+                                           the register had a floor and no way to ask for one.
+                                           It is a shape like the other seven, and choosing it
+                                           is what turns table service on. */
+                                        .map(p => {
                                         const active = presetId === p.id;
                                         return (
                                             <button
@@ -530,6 +551,13 @@ export default function RegisterSettings({
                                             >
                                                 <span className="flex items-center gap-1.5">
                                                     <span className="text-xs font-bold text-ink">{p.name}</span>
+                                                    {p.terminal === 'table' && (
+                                                        <span className="text-4xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded
+                                                                         bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300
+                                                                         border border-brand-200/70 dark:border-brand-900/60 shrink-0">
+                                                            Floor
+                                                        </span>
+                                                    )}
                                                     {active && <Check size={13} className="text-brand-600 dark:text-brand-400 shrink-0" />}
                                                 </span>
                                                 <span className="mt-1 block text-3xs text-ink-muted leading-snug line-clamp-2">
@@ -539,6 +567,15 @@ export default function RegisterSettings({
                                         );
                                     })}
                                 </div>
+                                <p className="text-2xs text-ink-muted leading-relaxed">
+                                    <b className="text-ink-secondary">Table</b> turns this register into the floor —
+                                    tables, tickets, splitting and transfers — without leaving the page or
+                                    losing what is in the cart. Switch back any time; each shape remembers
+                                    its own widths.
+                                    {!tablesAvailable && (canManageStore
+                                        ? ' Picking it also turns table service on for the store, alongside counter service.'
+                                        : ' Table service is a store-wide setting — an owner or manager has to turn it on.')}
+                                </p>
                             </section>
 
                             <section className="space-y-2.5">
@@ -663,15 +700,11 @@ export default function RegisterSettings({
                                     />
                                 </Field>
 
-                                {/* CARDS OR ROWS. The engine picks a shape from the fit it
-                                    can afford, which is right for a shop that has not
-                                    thought about it and wrong for one that has: a grocer
-                                    reading 40-character names wants rows at every width,
-                                    a cafe pointing at pictures wants cards even in a
-                                    narrow column. Auto keeps the derivation. */}
+                                {/* CARDS, BIG CARDS, ROWS, PILLS. The engine picks a shape from the fit it
+                                    can afford, or follows the shop's explicit preference. */}
                                 <Field
-                                    title="Catalog items"
-                                    hint="Auto lets the width decide. Cards show the picture, price and stock. Rows fit about twice as many and give the name its full length. Pills fit the most by far — name and price only — which is the right shape for a menu you point at rather than search."
+                                    title="Catalog item shape"
+                                    hint="Auto lets width decide. Big Cards feature a large top product photo with info below. Compact Cards show small thumbnail + info. Rows fit twice as many. Pills fit the most by far."
                                     stacked
                                 >
                                     <Segmented
@@ -679,13 +712,71 @@ export default function RegisterSettings({
                                         value={comp.catalogShape || 'auto'}
                                         onChange={v => onUpdateComposition?.(prev => ({ ...prev, catalogShape: v }))}
                                         options={[
-                                            { value: 'auto',  label: 'Auto' },
-                                            { value: 'cards', label: 'Cards' },
-                                            { value: 'rows',  label: 'Rows' },
-                                            { value: 'pills', label: 'Pills' },
+                                            { value: 'auto',        label: 'Auto' },
+                                            { value: 'large_cards', label: 'Big Cards' },
+                                            { value: 'cards',       label: 'Compact' },
+                                            { value: 'rows',        label: 'Rows' },
+                                            { value: 'pills',       label: 'Pills' },
                                         ]}
                                     />
                                 </Field>
+
+                                {catResident && (
+                                    <>
+                                        <Field
+                                            title="Default catalog sort"
+                                            hint="How items in 'All Items' and categories are ordered by default."
+                                            stacked
+                                        >
+                                            <Segmented
+                                                label="Catalog sorting"
+                                                value={catalogSort || 'top_selling'}
+                                                onChange={v => setCatalogSort?.(v)}
+                                                options={[
+                                                    { value: 'top_selling', label: 'Top Selling' },
+                                                    { value: 'name_asc',    label: 'A → Z' },
+                                                    { value: 'price_asc',   label: 'Price ↑' },
+                                                    { value: 'price_desc',  label: 'Price ↓' },
+                                                    { value: 'stock_desc',  label: 'Stock' },
+                                                    { value: 'newest',      label: 'Newest' },
+                                                ]}
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            title="Show product pictures"
+                                            hint="Displays product images on cards and rows. Turn off for text-only fast scanning."
+                                        >
+                                            <Toggle
+                                                checked={showCatalogImages !== false}
+                                                onChange={v => setShowCatalogImages?.(v)}
+                                                label="Show product pictures"
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            title="Show remaining stock badge"
+                                            hint="Shows remaining stock count (e.g. '12 left') on product tiles."
+                                        >
+                                            <Toggle
+                                                checked={showCatalogStock !== false}
+                                                onChange={v => setShowCatalogStock?.(v)}
+                                                label="Show remaining stock badge"
+                                            />
+                                        </Field>
+
+                                        <Field
+                                            title="Hide out-of-stock products"
+                                            hint="Hides items with zero available stock from the catalog view."
+                                        >
+                                            <Toggle
+                                                checked={!!hideOutOfStock}
+                                                onChange={v => setHideOutOfStock?.(v)}
+                                                label="Hide out-of-stock products"
+                                            />
+                                        </Field>
+                                    </>
+                                )}
                             </section>
 
                             {/* ── COLUMN WIDTHS ──
@@ -938,7 +1029,20 @@ export default function RegisterSettings({
                     {tab === 'service' && (
                         <section className="space-y-2.5">
                             <Eyebrow>How this business serves</Eyebrow>
-                            <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch]">
+
+                            <Field
+                                title={tt('This shop prepares orders before handing them over')}
+                                hint={tt('Turns on kitchen tickets. A restaurant, café or bakery wants this; a shop that sells what is already on the shelf does not.')}
+                            >
+                                <Toggle
+                                    checked={Boolean(preparesOrders)}
+                                    onChange={setPreparesOrders}
+                                    label={tt('Kitchen preparation')}
+                                    tone="brand"
+                                />
+                            </Field>
+
+                            <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch] pt-1">
                                 {tt('This is the one switch that changes what the register IS, rather than how it looks. A counter till sells to whoever is standing there. A table service register makes the TABLE the unit of work — the floor becomes the pane the shift starts from, an order belongs to a table rather than to a queue, and Hold disappears, because a table already is a held sale.')}
                             </p>
 

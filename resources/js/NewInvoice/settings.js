@@ -128,9 +128,29 @@ export function autoComposition(profileId, typeId, vw, vh) {
     return { preset: id, comp };
 }
 
-/* ── Persistence — per user AND per device ───────────────────────────────── */
+/* ── Persistence — per tenant, per user AND per device ─────────────────── */
 const KEY = 'venqore.newinvoice.prefs.v1';
-const scoped = (userId, dev) => `${KEY}.${userId ?? 'anon'}.${dev ?? 'this'}`;
+
+export function currentTenantScope() {
+    try {
+        if (typeof window !== 'undefined') {
+            const appEl = document.getElementById('app');
+            if (appEl?.dataset?.page) {
+                const pd = JSON.parse(appEl.dataset.page);
+                const slug = pd?.props?.store?.slug || pd?.props?.currentTenant?.slug;
+                if (slug) return slug;
+            }
+            const parts = window.location.pathname.split('/');
+            const sIdx = parts.indexOf('s');
+            if (sIdx !== -1 && parts[sIdx + 1]) {
+                return parts[sIdx + 1];
+            }
+        }
+    } catch (_) {}
+    return 'default';
+}
+
+const scoped = (userId, dev, tenantScope = currentTenantScope()) => `${KEY}.${tenantScope}.${userId ?? 'anon'}.${dev ?? 'this'}`;
 
 export function deviceId() {
     try {
@@ -143,44 +163,74 @@ export function deviceId() {
     } catch { return 'this'; }
 }
 
-export function loadPrefs(userId) {
+export function loadPrefs(userId, tenantScope = currentTenantScope(), serverSettings = {}) {
+    const serverOps = {};
+    if (serverSettings.currency) {
+        serverOps.defaultCurrency = serverSettings.currency;
+    }
+    if (serverSettings.default_tax_basis !== undefined) {
+        serverOps.taxInclusive = serverSettings.default_tax_basis === 'inclusive';
+    }
+    if (serverSettings.round_off_total !== undefined) {
+        serverOps.roundOff = serverSettings.round_off_total !== 'none';
+    }
+    if (serverSettings.show_margin_percentage !== undefined) {
+        serverOps.showMargin = serverSettings.show_margin_percentage === '1' || serverSettings.show_margin_percentage === true;
+    }
+    if (serverSettings.senior_mode !== undefined) {
+        serverOps.senior = serverSettings.senior_mode === '1' || serverSettings.senior_mode === true;
+    }
+
     const base = {
         ...DEFAULTS,
         comp: presetDocument('panel'),
-        ops: { ...DEFAULT_OPS },
+        ops: { ...DEFAULT_OPS, ...serverOps },
         perms: { ...DEFAULT_PERMS },
     };
     try {
-        const raw = localStorage.getItem(scoped(userId, deviceId()));
-        if (!raw) return base;
+        const key = scoped(userId, deviceId(), tenantScope);
+        let raw = localStorage.getItem(key);
+        if (!raw) {
+            // Check legacy unscoped key: only migrate visual comp, never business ops/policies across tenants (S15)
+            const legacyRaw = localStorage.getItem(`${KEY}.${userId ?? 'anon'}.${deviceId() ?? 'this'}`);
+            if (legacyRaw) {
+                try {
+                    const legacy = JSON.parse(legacyRaw);
+                    if (legacy?.comp) {
+                        return { ...base, comp: { ...base.comp, ...legacy.comp } };
+                    }
+                } catch (_) {}
+            }
+            return base;
+        }
         const saved = JSON.parse(raw);
         return {
             ...base,
             ...saved,
             comp: saved.comp ? { ...base.comp, ...saved.comp } : base.comp,
-            ops: { ...base.ops, ...(saved.ops || {}) },
+            ops: { ...base.ops, ...(saved.ops || {}), ...serverOps },
             perms: { ...base.perms, ...(saved.perms || {}) },
         };
     } catch { return base; }
 }
 
-export function savePrefs(userId, prefs) {
-    try { localStorage.setItem(scoped(userId, deviceId()), JSON.stringify(prefs)); } catch { /* private mode */ }
+export function savePrefs(userId, prefs, tenantScope = currentTenantScope()) {
+    try { localStorage.setItem(scoped(userId, deviceId(), tenantScope), JSON.stringify(prefs)); } catch { /* private mode */ }
 }
 
 /* ── Draft rescue ────────────────────────────────────────────────────────────
    A half-typed invoice survives a reload. Same rule as the register's cart:
-   automatic, scoped per user and device, and no UI beyond the toast. */
+   automatic, scoped per tenant, user and device, and no UI beyond the toast. */
 const DRAFT_KEY = 'venqore.newinvoice.draft.v1';
-const draftKey = (userId) => `${DRAFT_KEY}.${userId ?? 'anon'}.${deviceId()}`;
+const draftKey = (userId, tenantScope = currentTenantScope()) => `${DRAFT_KEY}.${tenantScope}.${userId ?? 'anon'}.${deviceId()}`;
 
-export function saveDraft(userId, doc) {
-    try { localStorage.setItem(draftKey(userId), JSON.stringify({ at: Date.now(), doc })); } catch { /* ignore */ }
+export function saveDraft(userId, doc, tenantScope = currentTenantScope()) {
+    try { localStorage.setItem(draftKey(userId, tenantScope), JSON.stringify({ at: Date.now(), doc })); } catch { /* ignore */ }
 }
 
-export function loadDraft(userId) {
+export function loadDraft(userId, tenantScope = currentTenantScope()) {
     try {
-        const raw = localStorage.getItem(draftKey(userId));
+        const raw = localStorage.getItem(draftKey(userId, tenantScope));
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         if (!parsed || Date.now() - parsed.at > 24 * 3600 * 1000) return null;
@@ -188,6 +238,6 @@ export function loadDraft(userId) {
     } catch { return null; }
 }
 
-export function clearDraft(userId) {
-    try { localStorage.removeItem(draftKey(userId)); } catch { /* ignore */ }
+export function clearDraft(userId, tenantScope = currentTenantScope()) {
+    try { localStorage.removeItem(draftKey(userId, tenantScope)); } catch { /* ignore */ }
 }

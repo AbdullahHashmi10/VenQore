@@ -11,7 +11,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class DebitNoteTest extends VenQoreTestCase
 {
-    use RefreshDatabase;
 
     public function test_can_create_approved_debit_note_and_record_stock_movement(): void
     {
@@ -19,7 +18,8 @@ class DebitNoteTest extends VenQoreTestCase
         $this->actingAsTenantUser($tenant, 'owner');
 
         // Create warehouse
-        $warehouse = Warehouse::create([
+        $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create([
+            'tenant_id' => $tenant->id,
             'name' => 'Main Warehouse',
             'is_default' => true,
         ]);

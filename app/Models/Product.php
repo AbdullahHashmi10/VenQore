@@ -26,7 +26,22 @@ class Product extends Model
         'is_manufactured', 'is_expiry_tracked', 'has_variants', 'track_serial',
         'description', 'short_description', 'image_path', 'woocommerce_id', 'created_via', 'supplier_sku',
         'service_pricing', 'default_duration', 'default_rate', 'requires_visit', 'skill_tag',
+        'kitchen_station',
     ];
+
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        $imagePath = $this->attributes['image_path'] ?? null;
+        if (!$imagePath) {
+            return null;
+        }
+        if (str_starts_with($imagePath, 'http://') || str_starts_with($imagePath, 'https://')) {
+            return $imagePath;
+        }
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($imagePath);
+    }
 
     protected static function booted(): void
     {

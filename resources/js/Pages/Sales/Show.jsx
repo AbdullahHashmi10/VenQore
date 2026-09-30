@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
-import { ArrowLeft, Mail, Phone, MapPin, RotateCcw, X, Check, Wallet, CreditCard, Banknote } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, RotateCcw, X, Check, Wallet, CreditCard, Banknote, MessageSquare } from 'lucide-react';
 import axios from 'axios';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import { useAlert } from '@/Contexts/AlertContext';
 import PrintButton from '@/Components/PrintButton';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 import { useTermText } from '@/lib/terms';
 
 export default function SalesShow({ sale, bankAccounts = [] }) {
     const tt = useTermText();
     const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+    const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
     const [refundMethod, setRefundMethod] = useState('cash'); // 'cash' or 'ledger'
     const [refundSource, setRefundSource] = useState('cash_drawer'); // 'cash_drawer', 'bank_account', 'online'
     const [selectedBankAccount, setSelectedBankAccount] = useState('');
@@ -107,8 +109,13 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
         try {
             const response = await axios.post(route('store.sales.send-whatsapp', { store_slug: store?.slug, id: sale.id }), { phone });
             if (response.data.success) {
-                showAlert({ title: 'Success', message: 'WhatsApp message queued!', type: 'success' });
-                if (response.data.mock_url) window.open(response.data.mock_url, '_blank');
+                const waUrl = response.data.url || response.data.mock_url;
+                if (response.data.action === 'open_whatsapp' || waUrl) {
+                    window.open(waUrl, '_blank');
+                    showAlert({ title: 'WhatsApp Draft Opened', message: response.data.message || 'Opening WhatsApp with receipt draft...', type: 'info' });
+                } else {
+                    showAlert({ title: 'Success', message: response.data.message || 'WhatsApp message sent successfully via API!', type: 'success' });
+                }
             }
         } catch (error) {
             showAlert({ title: 'Failed', message: 'Failed to send WhatsApp: ' + (error.response?.data?.message || error.message), type: 'error' });
@@ -164,6 +171,16 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                 <ArrowLeft size={20} /> Back to Sales
                             </Link>
                             <div className="flex gap-3">
+                                {sale.status !== 'draft' && sale.status !== 'void' && (
+                                    <button
+                                        onClick={() => setIsWhatsAppModalOpen(true)}
+                                        className="flex items-center gap-2 bg-surface text-emerald-600 dark:text-emerald-400 border border-line px-4 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all active:scale-95 font-medium"
+                                        title="Share on WhatsApp"
+                                    >
+                                        <MessageSquare size={18} />
+                                        <span>WhatsApp</span>
+                                    </button>
+                                )}
                                 {sale.status === 'completed' && (
                                     <>
                                         <button
@@ -171,20 +188,13 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                             className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
                                             title="Send via Email"
                                         >
-                                            <Mail size={20} />
-                                        </button>
-                                        <button
-                                            onClick={handleSendWhatsApp}
-                                            className="flex items-center gap-2 bg-surface text-emerald-600 dark:text-emerald-400 border border-line px-4 py-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all active:scale-95 font-medium"
-                                            title="Send via WhatsApp"
-                                        >
-                                            <Phone size={20} />
+                                            <Mail size={18} />
                                         </button>
                                         <button
                                             onClick={() => setIsReturnModalOpen(true)}
                                             className="flex items-center gap-2 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-4 py-2 rounded-xl transition-all active:scale-95 font-medium"
                                         >
-                                            <RotateCcw size={20} /> Return Items
+                                            <RotateCcw size={18} /> Return Items
                                         </button>
                                     </>
                                 )}
@@ -520,6 +530,17 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                     </div>
                 </div>
             )}
+
+            <WhatsAppShareModal
+                isOpen={isWhatsAppModalOpen}
+                onClose={() => setIsWhatsAppModalOpen(false)}
+                documentType={sale.status === 'returned' ? 'sale_return' : 'sale'}
+                documentId={sale.id}
+                initialPartyName={sale.customer?.name}
+                initialPhone={sale.customer?.phone}
+                initialDocNumber={sale.reference_number}
+                initialAmount={sale.total}
+            />
         </OneGlanceLayout>
     );
 }

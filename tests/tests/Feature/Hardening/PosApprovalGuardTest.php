@@ -4,6 +4,8 @@ namespace Tests\Feature\Hardening;
 
 use App\Models\Party;
 use App\Models\Product;
+use App\Models\Register;
+use App\Models\RegisterShift;
 use App\Models\Stock;
 use App\Models\Tenant;
 use App\Models\TenantUser;
@@ -63,6 +65,20 @@ class PosApprovalGuardTest extends VenQoreTestCase
         $this->customerId = (string) Party::factory()->customer()->create(['tenant_id' => $this->tenant->id])->id;
 
         $this->actingAsTenantUserModel($this->cashier, $this->tenant);
+
+        $register = Register::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Approval Test Till',
+            'status' => 'active',
+        ]);
+        RegisterShift::create([
+            'tenant_id' => $this->tenant->id,
+            'register_id' => $register->id,
+            'opened_by' => $this->cashier->id,
+            'opening_balance' => 0,
+            'status' => 'open',
+            'opened_at' => now(),
+        ]);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────
@@ -93,7 +109,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
 
     private function checkout(array $payload)
     {
-        return $this->postJson("/s/{$this->tenant->slug}/sales", $payload);
+        return $this->postJson("/s/{$this->tenant->slug}/pos/sales", $payload);
     }
 
     /** @return array<string, int|float> */
@@ -150,6 +166,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
         $cashier2 = $this->member($this->tenant, 'cashier', self::CASHIER2_PIN);
         $otherStore = $this->createTenant('pos-approval-other', 'ltd_3', 'active');
         $otherManager = $this->member($otherStore, 'manager', self::MANAGER_PIN);
+        $this->actingAsTenantUserModel($this->cashier, $this->tenant);
         $before = $this->footprint();
 
         $attempts = [
@@ -176,7 +193,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
             'approved_by' => (string) $this->manager->id, 'approval_pin' => self::MANAGER_PIN,
         ]));
 
-        $res->assertOk()->assertJsonPath('success', true);
+        $res->assertCreated()->assertJsonPath('success', true);
         $saleId = $res->json('sale_id');
 
         $this->assertSame((string) $this->manager->id, (string) $this->saleEntry($saleId)->approved_by, 'approved_by must be stamped on the journal entry.');
@@ -191,7 +208,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
         DB::table('discount_limits')->where('tenant_id', $this->tenant->id)->where('role', 'cashier')->update(['max_discount_percent' => 100]);
 
         $this->assertApprovalRequired($this->checkout($this->sale(70.00, 2, 0, 30.00)), 'below_cost');
-        $this->checkout($this->sale(70.00, 2, 0, 10.00))->assertOk();   // 130 ≥ 120
+        $this->checkout($this->sale(70.00, 2, 0, 10.00))->assertCreated();   // 130 ≥ 120
     }
 
     // ── S-044 discount limit ─────────────────────────────────────────────
@@ -222,7 +239,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
 
         // Manager + PIN → 8% goes through: 200 − 16 = 184.
         $res = $this->checkout($this->sale(100.00, 2, 16.00, 0, ['approved_by' => (string) $this->manager->id, 'approval_pin' => self::MANAGER_PIN]));
-        $res->assertOk();
+        $res->assertCreated();
         $sale = DB::table('sales')->where('id', $res->json('sale_id'))->first();
         $this->assertEqualsWithDelta(184.00, (float) $sale->net_sales, 0.001);
         $this->assertSame((string) $this->manager->id, (string) $this->saleEntry($sale->id)->approved_by);
@@ -232,21 +249,29 @@ class PosApprovalGuardTest extends VenQoreTestCase
     public function test_manager_own_sale_within_own_limit_needs_no_pin(): void
     {
         $this->actingAsTenantUserModel($this->manager, $this->tenant);
+        RegisterShift::create([
+            'tenant_id' => $this->tenant->id,
+            'register_id' => Register::where('tenant_id', $this->tenant->id)->value('id'),
+            'opened_by' => $this->manager->id,
+            'opening_balance' => 0,
+            'status' => 'open',
+            'opened_at' => now(),
+        ]);
 
         // 8% is over the cashier's 5% but inside the manager's own 50%: no approval at all.
         $res = $this->checkout($this->sale(100.00, 2, 16.00));
-        $res->assertOk();
+        $res->assertCreated();
         $this->assertNull($this->saleEntry($res->json('sale_id'))->approved_by);
 
         // Below cost: as on V3 the manager approves it themselves with no PIN — at the till
         // their session is the approval, and they are recorded as the approver.
         $res = $this->checkout($this->sale(50.00));
-        $res->assertOk();
+        $res->assertCreated();
         $this->assertSame((string) $this->manager->id, (string) $this->saleEntry($res->json('sale_id'))->approved_by);
 
         // Sending their own id explicitly (the V3 form) works the same.
         $res = $this->checkout($this->sale(50.00, 2, 0, 0, ['approved_by' => (string) $this->manager->id]));
-        $res->assertOk();
+        $res->assertCreated();
         $this->assertSame((string) $this->manager->id, (string) $this->saleEntry($res->json('sale_id'))->approved_by);
 
         // But a discount beyond the manager's OWN limit (50%) still needs a higher approver.
@@ -258,7 +283,7 @@ class PosApprovalGuardTest extends VenQoreTestCase
     {
         // Role cashier, permission pos.checkout, discount inside the 5% limit, price above cost.
         $res = $this->checkout($this->sale(100.00, 2, 8.00));   // 4%
-        $res->assertOk()->assertJsonPath('success', true);
+        $res->assertCreated()->assertJsonPath('success', true);
         $this->assertNull($this->saleEntry($res->json('sale_id'))->approved_by);
         $this->assertTrialBalanceZero($this->tenant);
     }

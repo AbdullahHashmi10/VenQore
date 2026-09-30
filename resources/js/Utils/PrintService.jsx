@@ -51,7 +51,11 @@ class PrintService {
         // VenQore Station (hardware silent-print) takes priority for thermal
         if (type === 'thermal' && isAMDStationAvailable()) {
             try {
-                return await this.printWithAMDStation(sale, data, options);
+                const stationRes = await this.printWithAMDStation(sale, data, options);
+                if (stationRes && stationRes.success !== false) {
+                    return stationRes;
+                }
+                console.warn('[PrintService] AMD Station returned failure, falling back to browser dialog:', stationRes);
             } catch (e) {
                 console.error('[PrintService] AMD Station failed, falling back to browser:', e);
             }
@@ -68,15 +72,25 @@ class PrintService {
 
         let pageDeclaration;
         if (isThermal) {
-            pageDeclaration = `size: ${widthMm}mm 297mm;`;
-            console.log(`[PrintService] Thermal @page → ${widthMm}mm x 297mm`);
+            let heightMm = 297;
+            try {
+                heightMm = await this._measureThermalHeight(previewHtml, widthMm);
+            } catch (_) {}
+            pageDeclaration = `size: ${widthMm}mm ${heightMm}mm;`;
+            console.log(`[PrintService] Thermal @page → ${widthMm}mm x ${heightMm}mm`);
         } else {
             const orient = data.paper_orientation === 'Landscape' ? 'landscape' : 'portrait';
-            pageDeclaration = `size: ${data.paper_size || 'A4'} ${orient};`;
+            if (data.paper_size === 'Custom') {
+                const w = parseFloat(data.custom_paper_width) || 210;
+                const h = parseFloat(data.custom_paper_height) || 297;
+                pageDeclaration = orient === 'landscape' ? `size: ${h}mm ${w}mm;` : `size: ${w}mm ${h}mm;`;
+            } else {
+                pageDeclaration = `size: ${data.paper_size || 'A4'} ${orient};`;
+            }
         }
 
         const html = this._buildHtml(previewHtml, allStyles, pageDeclaration, sale, isThermal, data);
-        this._openPrintWindow(html, type, widthMm);
+        return this._openPrintWindow(html, type, widthMm);
     }
 
     /**
@@ -114,8 +128,7 @@ class PrintService {
                     
                     const fullSale = response.data?.sale || response.data?.purchase || response.data?.return || response.data;
                     if (fullSale) {
-                        this.printInvoice(fullSale, settings, effectiveType);
-                        return;
+                        return await this.printInvoice(fullSale, settings, effectiveType);
                     }
                 }
             } catch (err) {
@@ -123,7 +136,7 @@ class PrintService {
             }
         }
 
-        this.printInvoice(sale, settings, effectiveType);
+        return await this.printInvoice(sale, settings, effectiveType);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -135,7 +148,8 @@ class PrintService {
         return await AMDStation.printAndOpenDrawer(receiptData, {
             openDrawer: options.openDrawer !== false && settings.thermal_open_drawer,
             copies:     options.copies || settings.thermal_copies || 1,
-            paperWidth: settings.thermal_page_size === '2inch' ? '58mm' : '80mm',
+            paperWidth: settings.thermal_page_size === '2inch' ? '58mm' : (settings.thermal_page_size === '4inch' ? '100mm' : '80mm'),
+            autoCut:    options.autoCut !== undefined ? options.autoCut : (settings.thermal_auto_cut !== false),
         });
     }
 
@@ -217,6 +231,7 @@ class PrintService {
             print_show_hsn:         b(raw.print_show_hsn, false),
             print_show_discount:    b(raw.print_show_discount, false),
             print_show_free_qty:    b(raw.print_show_free_qty, false),
+            print_qr_code:             b(raw.print_qr_code, true),
             print_show_delivery_charge: b(raw.print_show_delivery_charge, true),
             print_show_extra_charge:    b(raw.print_show_extra_charge, true),
 
@@ -361,9 +376,14 @@ class PrintService {
             }
         });
     }
-
     static _buildHtml(previewHtml, allStyles, pageDeclaration, sale, isThermal, data) {
         const title = sale?.reference_number || sale?.invoice_no || sale?.id || '';
+        const copies = parseInt(isThermal ? (data?.thermal_copies || 1) : (data?.print_copies || 1)) || 1;
+        let contentHtml = '';
+        for (let c = 0; c < copies; c++) {
+            contentHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
+        }
+
         return `<!DOCTYPE html>
 <html>
 <head>
@@ -397,7 +417,7 @@ class PrintService {
     }
   </style>
 </head>
-<body>${previewHtml}</body>
+<body>${contentHtml}</body>
 </html>`;
     }
 
@@ -406,36 +426,39 @@ class PrintService {
      * The @page size is already correct in the HTML — no post-hoc measurement.
      */
     static _openPrintWindow(html, type, widthMm) {
-        const isThermal = type === 'thermal';
+        return new Promise((resolve) => {
+            const isThermal = type === 'thermal';
 
-        const iframe = document.createElement('iframe');
-        iframe.style.cssText = [
-            'position:fixed',
-            'border:none',
-            'visibility:hidden',
-            'pointer-events:none',
-            isThermal ? `left:-9999px;top:0;width:${widthMm}mm;height:1px` : 'left:0;top:0;width:0;height:0',
-        ].join(';');
-        iframe.name = 'printFrame';
-        document.body.appendChild(iframe);
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = [
+                'position:fixed',
+                'border:none',
+                'visibility:hidden',
+                'pointer-events:none',
+                isThermal ? `left:-9999px;top:0;width:${widthMm}mm;height:1px` : 'left:0;top:0;width:0;height:0',
+            ].join(';');
+            iframe.name = 'printFrame';
+            document.body.appendChild(iframe);
 
-        const doc = iframe.contentWindow.document;
-        doc.open();
-        doc.write(html);
-        doc.close();
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
 
-        let printed = false;
-        const triggerPrint = () => {
-            if (printed || !iframe.contentWindow) return;
-            printed = true;
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 2500);
-        };
+            let printed = false;
+            const triggerPrint = () => {
+                if (printed || !iframe.contentWindow) return;
+                printed = true;
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+                resolve({ success: true, transport: 'browser' });
+                setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 2500);
+            };
 
-        // For thermal: images are already measured in the main doc, so a short delay suffices
-        const delay = isThermal ? 350 : 500;
-        setTimeout(triggerPrint, delay);
+            // For thermal: images are already measured in the main doc, so a short delay suffices
+            const delay = isThermal ? 350 : 500;
+            setTimeout(triggerPrint, delay);
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -461,7 +484,7 @@ class PrintService {
             tax:           formatNumber(sale.tax || sale.tax_amount || 0),
             discount:      formatNumber(sale.discount || 0),
             total:         formatNumber(sale.total || sale.total_amount),
-            paidAmount:    formatNumber(sale.paid || sale.amount_paid || sale.total),
+            paidAmount:    formatNumber(sale.paid ?? sale.amount_paid ?? 0),
             changeAmount:  formatNumber(sale.change || 0),
             balanceAmount: formatNumber(sale.balance || 0),
             footerMessage: settings.print_terms || settings.thermal_custom_footer || 'Thank you!',

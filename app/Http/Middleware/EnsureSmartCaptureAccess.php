@@ -27,7 +27,7 @@ class EnsureSmartCaptureAccess
             // Database not ready or migration running
         }
 
-        $enabled = $dbValue !== null ? (bool) $dbValue : (bool) config('smartcapture.enabled', true);
+        $enabled = $dbValue !== null ? ((int)$dbValue === 1 || $dbValue === 'true' || $dbValue === true || $dbValue === '1') : (bool) config('smartcapture.enabled', true);
 
         if (!$enabled) {
             abort(404);

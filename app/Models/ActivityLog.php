@@ -38,7 +38,7 @@ class ActivityLog extends Model
             'description' => $description,
             'subject_type' => $subject ? get_class($subject) : null,
             'subject_id' => $subject ? $subject->id : null,
-            'user_id' => auth()->id() ?? 1,
+            'user_id' => auth()->id(),
             'properties' => $properties,
         ]);
     }

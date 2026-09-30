@@ -247,7 +247,7 @@ export default function Home({ recentActivity = [], systemLogs = [] }) {
     const hasAdminShortcuts = authorizedShortcuts.some(s => s.category === 'admin');
 
     return (
-        <OneGlanceLayout activeMenu="Home">
+        <>
             <Head title="Home" />
 
             <div className="min-h-full flex flex-col relative p-6 md:p-8">
@@ -491,6 +491,8 @@ export default function Home({ recentActivity = [], systemLogs = [] }) {
                     </div>
                 )}
             </div>
-        </OneGlanceLayout>
+        </>
     );
 }
+
+Home.layout = (page) => <OneGlanceLayout activeMenu="Home">{page}</OneGlanceLayout>;

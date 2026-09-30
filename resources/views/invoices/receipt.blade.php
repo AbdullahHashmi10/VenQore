@@ -1,10 +1,15 @@
+@php
+    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
+    $currencySymbol = \App\Helpers\SettingsHelper::get('currency_symbol') ?? '$';
+    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <title>{{ $showInvoiceNumber ? 'Invoice ' . $invoice->invoice_number : 'Invoice' }}</title>
     <style>
         * {
             margin: 0;
@@ -139,10 +144,12 @@
     </div>
 
     <div class="invoice-info">
+        @if($showInvoiceNumber)
         <div>
             <span>Invoice #:</span>
             <span><strong>{{ $invoice->invoice_number }}</strong></span>
         </div>
+        @endif
         <div>
             <span>Date:</span>
             <span>{{ $invoice->date->format('d/m/Y H:i') }}</span>
@@ -172,9 +179,9 @@
         @foreach($invoice->items as $item)
             <div class="item-row">
                 <span class="item-name">{{ $item->product->name }}</span>
-                <span class="item-qty">{{ $item->quantity }}</span>
-                <span class="item-price">${{ number_format($item->unit_price, 2) }}</span>
-                <span class="item-total">${{ number_format($item->total, 2) }}</span>
+                <span class="item-qty">{{ \App\Helpers\SettingsHelper::formatQuantity($item->quantity, $decimals) }}</span>
+                <span class="item-price">{{ $currencySymbol }}{{ number_format($item->unit_price, $decimals) }}</span>
+                <span class="item-total">{{ $currencySymbol }}{{ number_format($item->total, $decimals) }}</span>
             </div>
         @endforeach
     </div>
@@ -182,26 +189,26 @@
     <div class="totals">
         <div class="total-row">
             <span>Subtotal:</span>
-            <span>${{ number_format($invoice->subtotal, 2) }}</span>
+            <span>{{ $currencySymbol }}{{ number_format($invoice->subtotal, $decimals) }}</span>
         </div>
 
         @if($invoice->discount_amount > 0)
             <div class="total-row">
                 <span>Discount:</span>
-                <span>-${{ number_format($invoice->discount_amount, 2) }}</span>
+                <span>-{{ $currencySymbol }}{{ number_format($invoice->discount_amount, $decimals) }}</span>
             </div>
         @endif
 
         @if($invoice->tax_amount > 0)
             <div class="total-row">
                 <span>Tax:</span>
-                <span>${{ number_format($invoice->tax_amount, 2) }}</span>
+                <span>{{ $currencySymbol }}{{ number_format($invoice->tax_amount, $decimals) }}</span>
             </div>
         @endif
 
         <div class="total-row grand-total">
             <span>GRAND TOTAL:</span>
-            <span>${{ number_format($invoice->total_amount, 2) }}</span>
+            <span>{{ $currencySymbol }}{{ number_format($invoice->total_amount, $decimals) }}</span>
         </div>
     </div>
 

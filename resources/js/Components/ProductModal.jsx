@@ -52,7 +52,13 @@ export default function ProductModal({
 }) {
     const [activeTab, setActiveTab] = useState('details');
     const [isNewCategory, setIsNewCategory] = useState(false);
-    const isEditable = mode === 'create' || mode === 'edit';
+    const [currentMode, setCurrentMode] = useState(mode || 'view');
+
+    useEffect(() => {
+        setCurrentMode(mode || 'view');
+    }, [mode, isOpen]);
+
+    const isEditable = currentMode === 'create' || currentMode === 'edit';
     const { settings, store, modules } = usePage().props;
     const tt = useTermText();
 
@@ -231,26 +237,29 @@ export default function ProductModal({
         setData('sku', `${prefix}-${random}`);
     };
 
- const handleMainImageUpload = (e) => {
- const file = e.target.files[0];
- if (file) {
- setData(data => ({
- ...data,
- main_image: file,
- main_image_preview: URL.createObjectURL(file)
- }));
- }
- };
+    const handleMainImageUpload = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+            if (currentMode === 'view') setCurrentMode('edit');
+            setData(data => ({
+                ...data,
+                main_image: file,
+                main_image_preview: URL.createObjectURL(file)
+            }));
+        }
+    };
 
- const handleGalleryUpload = (e) => {
- const files = Array.from(e.target.files);
- const total = files.length + data.gallery_images.length + data.existing_images.length;
- if (total > 9) {
- alert('You can upload up to 9 gallery items.');
- return;
- }
- setData('gallery_images', [...data.gallery_images, ...files]);
- };
+    const handleGalleryUpload = (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        const total = files.length + data.gallery_images.length + data.existing_images.length;
+        if (total > 9) {
+            alert('You can upload up to 9 gallery items.');
+            return;
+        }
+        if (currentMode === 'view') setCurrentMode('edit');
+        setData('gallery_images', [...data.gallery_images, ...files]);
+    };
 
  const removeGalleryImage = (index) => {
  const newImages = [...data.gallery_images];
@@ -798,7 +807,17 @@ export default function ProductModal({
  </div>
 
  <div className="flex items-center gap-3">
- {mode === 'create' && (
+ {currentMode === 'view' && (
+ <button
+ type="button"
+ onClick={() => setCurrentMode('edit')}
+ className="px-3 py-1.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-bold text-xs flex items-center gap-1.5 transition-all border border-brand-200 dark:border-brand-800 cursor-pointer shadow-xs"
+ >
+ <Edit size={14} />
+ <span>{tt('Edit Product')}</span>
+ </button>
+ )}
+ {currentMode === 'create' && (
  <div className="hidden sm:flex items-center gap-1 bg-sunken p-1 rounded-xl border border-line">
  <button
  type="button"
@@ -1461,21 +1480,34 @@ export default function ProductModal({
  Main Image <span className="text-brand-500">(Required, Image Only)</span>
  </label>
  <div className="flex gap-4 items-start">
- <div className="relative w-40 h-40 rounded-2xl overflow-hidden border-2 border-dashed border-line hover:border-brand-500 dark:hover:border-brand-500 transition-colors group bg-app">
+ <div className="relative w-40 h-40 rounded-2xl overflow-hidden border-2 border-dashed border-line hover:border-brand-500 dark:hover:border-brand-500 transition-colors group bg-app cursor-pointer">
  {data.main_image_preview ? (
  <>
  <img src={data.main_image_preview} alt="Main" className="w-full h-full object-cover" />
+ <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-xs font-bold transition-opacity cursor-pointer">
+ <input
+ type="file"
+ accept="image/*"
+ onChange={handleMainImageUpload}
+ className="hidden"
+ />
+ <Upload size={20} className="mb-1" />
+ <span>Change Image</span>
+ </label>
  {isEditable && (
  <button
- onClick={() => setData(d => ({ ...d, main_image: null, main_image_preview: null }))}
- className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+ type="button"
+ onClick={(e) => {
+ e.stopPropagation();
+ setData(d => ({ ...d, main_image: null, main_image_preview: null }));
+ }}
+ className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg z-10"
  >
  <Trash2 size={14} />
  </button>
  )}
  </>
  ) : (
- isEditable && (
  <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer">
  <input
  type="file"
@@ -1483,12 +1515,11 @@ export default function ProductModal({
  onChange={handleMainImageUpload}
  className="hidden"
  />
- <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-500 flex items-center justify-center mb-2 transition-transform">
+ <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-brand-900/20 text-brand-500 flex items-center justify-center mb-2 transition-transform group-hover:scale-110">
  <Upload size={18} />
  </div>
- <span className="text-xs font-bold text-ink-muted">Upload Main</span>
+ <span className="text-xs font-bold text-ink-secondary">Upload Main</span>
  </label>
- )
  )}
  </div>
  <div className="flex-1 text-xs text-ink-muted leading-relaxed pt-2">

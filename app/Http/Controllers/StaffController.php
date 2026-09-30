@@ -52,10 +52,11 @@ class StaffController extends Controller
                 'name'         => $m->user?->name,
                 'display_name' => $m->display_name,
                 'email'        => $m->user?->email,
-                'role'         => $m->role,
-                'status'       => $m->status,
-                'pos_pin_set'  => !is_null($m->pos_pin),
-                'joined_at'    => $m->joined_at,
+                'role'                      => $m->role,
+                'transaction_approval_mode' => $m->transaction_approval_mode ?? 'inherit',
+                'status'                    => $m->status,
+                'pos_pin_set'               => !is_null($m->pos_pin),
+                'joined_at'                 => $m->joined_at,
             ])
             ->toArray();
 
@@ -65,13 +66,14 @@ class StaffController extends Controller
             ->where('expires_at', '>', now())
             ->get()
             ->map(fn($i) => [
-                'id'           => 'invite_' . $i->id,
-                'name'         => 'Pending Invite',
-                'email'        => $i->email,
-                'role'         => $i->role,
-                'status'       => 'invited',
-                'invited_at'   => $i->created_at,
-                'invite_expires_at' => $i->expires_at,
+                'id'                        => 'invite_' . $i->id,
+                'name'                      => 'Pending Invite',
+                'email'                     => $i->email,
+                'role'                      => $i->role,
+                'transaction_approval_mode' => $i->transaction_approval_mode ?? 'inherit',
+                'status'                    => 'invited',
+                'invited_at'                => $i->created_at,
+                'invite_expires_at'         => $i->expires_at,
             ])
             ->toArray();
 
@@ -99,9 +101,10 @@ class StaffController extends Controller
     public function invite(Request $request): RedirectResponse
     {
         $request->validate([
-            'email'        => 'required|email|max:255',
-            'role'         => 'required|in:franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer',
-            'display_name' => 'nullable|string|max:50',
+            'email'                     => 'required|email|max:255',
+            'role'                      => 'required|in:franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer',
+            'display_name'              => 'nullable|string|max:50',
+            'transaction_approval_mode' => 'nullable|in:inherit,required,direct',
         ]);
 
         $tenant    = app('current.tenant');
@@ -141,10 +144,11 @@ class StaffController extends Controller
         StaffInvitation::updateOrCreate(
             ['tenant_id' => $tenant->id, 'email' => $inviteEmail],
             [
-                'invited_by' => auth()->id(),
-                'role'       => $request->role,
-                'token'      => $token,
-                'expires_at' => now()->addDays(7),
+                'invited_by'                => auth()->id(),
+                'role'                      => $request->role,
+                'transaction_approval_mode' => $request->input('transaction_approval_mode', 'inherit'),
+                'token'                     => $token,
+                'expires_at'                => now()->addDays(7),
             ]
         );
 
@@ -209,11 +213,12 @@ class StaffController extends Controller
 
             // Create the membership
             TenantUser::create([
-                'tenant_id' => $invitation->tenant_id,
-                'user_id'   => $user->id,
-                'role'      => $invitation->role,
-                'status'    => 'active',
-                'joined_at' => now(),
+                'tenant_id'                 => $invitation->tenant_id,
+                'user_id'                   => $user->id,
+                'role'                      => $invitation->role,
+                'transaction_approval_mode' => $invitation->transaction_approval_mode ?? 'inherit',
+                'status'                    => 'active',
+                'joined_at'                 => now(),
             ]);
 
             // Mark invitation as accepted

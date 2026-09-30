@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
-import { ArrowLeft, Printer, Banknote, CreditCard, Landmark, Wallet, Receipt } from 'lucide-react';
+import { ArrowLeft, Printer, Banknote, CreditCard, Landmark, Wallet, Receipt, MessageCircle } from 'lucide-react';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 
 const methodIcon = (method) => {
     switch (method) {
@@ -15,6 +16,7 @@ const methodIcon = (method) => {
 
 export default function PaymentShow({ payment, allocations = [] }) {
     const { store } = usePage().props;
+    const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
     const isIn = payment?.type === 'in' || payment?.type === 'received';
     const MethodIcon = methodIcon(payment?.method);
 
@@ -42,12 +44,23 @@ export default function PaymentShow({ payment, allocations = [] }) {
                         </Link>
                         <h1 className="text-2xl font-bold text-ink">Payment #{payment?.reference || payment?.id}</h1>
                     </div>
-                    <button
-                        onClick={() => window.print()}
-                        className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
-                    >
-                        <Printer size={18} /> Print Receipt
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {payment?.party && (
+                            <button
+                                type="button"
+                                onClick={() => setShowWhatsAppModal(true)}
+                                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl transition-all active:scale-95 font-medium shadow-sm"
+                            >
+                                <MessageCircle size={18} /> Share on WhatsApp
+                            </button>
+                        )}
+                        <button
+                            onClick={() => window.print()}
+                            className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
+                        >
+                            <Printer size={18} /> Print Receipt
+                        </button>
+                    </div>
                 </div>
 
                 {/* Summary Card */}
@@ -169,6 +182,17 @@ export default function PaymentShow({ payment, allocations = [] }) {
                     )}
                 </div>
             </div>
+
+            <WhatsAppShareModal
+                isOpen={showWhatsAppModal}
+                onClose={() => setShowWhatsAppModal(false)}
+                documentType="payment_receipt"
+                documentId={payment?.id}
+                partyName={payment?.party?.name}
+                initialPhone={payment?.party?.phone}
+                documentNumber={payment?.reference || ('REC-' + payment?.id)}
+                amount={payment?.amount}
+            />
         </OneGlanceLayout>
     );
 }

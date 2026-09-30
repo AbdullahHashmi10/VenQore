@@ -260,7 +260,8 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
     const CART_MIN = F.cart_line_min;
     const TENDER_MIN = F.tender_min;
     const CAT_LIST = F.catalog_list;
-    const RESIDENT_MIN = LAW.pos.catalogResidentMinAvail;
+    const needForCatCol = CAT_LIST + G + CART_MIN + (tenderMode === 'column' ? TENDER_MIN + G : 0);
+    const RESIDENT_MIN = Math.min(LAW.pos.catalogResidentMinAvail || 1062, needForCatCol);
 
     /* ---- REGIME ---- */
     const twoColMin = CART_MIN + TENDER_MIN + G;
@@ -299,9 +300,10 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
 
     const allocateColumns = (wantCat, wantFloor, wantTender) => {
         const f = {};
-        if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.55);
-        f.cart = Math.max(0.2, C_.split.cart);
+        if (wantCat) f.catalog = clampN(C_.catalog.size, 0.12, 0.75);
         if (wantTender) f.tender = clampN(C_.split.tender, 0, 0.45);
+        const assigned = (f.catalog || 0) + (f.tender || 0);
+        f.cart = Math.max(0.15, 1 - assigned);
 
         const tracks = Object.keys(f).length + (wantFloor ? 1 : 0);
         const pool = avail - G * Math.max(0, tracks - 1);
@@ -393,12 +395,8 @@ export function composeTerminal(comp, vw, vh, opts = {}) {
     if (catMode !== 'off' && !catRes) dock.push({ id: 'catalog', label: 'Catalog', rank: 2, shows: 'count' });
     if (floorMode !== 'off' && !floorRes) dock.push({ id: 'floor', label: 'Floor', rank: 2 });
 
-    /* AMENDED, and mirrored in Layout/venqoreLayoutEngine.js: only a TENDER
-       dock is a real layout row. A single narrow Catalog or Floor trigger was
-       costing every pane 72px of height -- including the payment column, which
-       has nothing below it. Secondary triggers live in the Current Order pane's
-       header instead: still in flow, still unable to overlap anything. */
-    const dockNeedsRow = dock.some((d) => d.id === 'tender');
+    const tenderBarInCart = tenderBar && catRes && (catMode === 'left' || catMode === 'right') && regime === 'columns';
+    const dockNeedsRow = dock.some((d) => d.id === 'tender') && !tenderBarInCart;
     let dockH = !dockNeedsRow ? 0 : (dock.some((d) => d.inline) ? T.tender_bar_h : 72);
     let usableH = H - (dockH ? dockH + G : 0);
     const { frac, px } = allocateColumns(

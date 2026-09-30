@@ -274,7 +274,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 className="bg-white text-black print-container box-border mx-auto"
                 style={{
                     width: printWidth,
-                    paddingTop: `${data.margin_top || 0}mm`,
+                    paddingTop: `${(parseFloat(data.margin_top) || 0) + extraSpaceTop}mm`,
                     paddingBottom: `${data.margin_bottom || 0}mm`,
                     paddingLeft: `${data.margin_left || 0}mm`,
                     paddingRight: `${data.margin_right || 0}mm`,
@@ -365,7 +365,9 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
             </div>
             <div className="text-right">
                 <div className="font-bold text-neutral-100 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Invoice</div>
-                <div className="text-sm font-bold text-ink-secondary mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
+                {(data.invoice_number_enabled !== false && data.invoice_number_enabled !== '0' && data.invoice_number_enabled !== 0) && (
+                    <div className="text-sm font-bold text-ink-secondary mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
+                )}
                 {data.print_original_copy && <div className="text-2xs font-bold uppercase tracking-widest text-ink-muted mt-1">Original Copy</div>}
                 <div className="text-xs text-ink-muted mt-1">Date: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
             </div>
@@ -539,8 +541,18 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
 
                 {data.print_qr_code && (
                     <div className="flex flex-col items-center justify-center my-4">
-                        <QRCodeSVG value={`https://verify.venqore.com/receipt/${data.id || 'sample'}`} size={64} />
-                        <div className="text-3xs text-ink-muted mt-1">Scan to Verify</div>
+                        <QRCodeSVG
+                            value={
+                                sale?.fbr_qr_data ||
+                                sale?.qr_payload ||
+                                sale?.public_receipt_url ||
+                                'https://venqore.com/receipt/sample'
+                            }
+                            size={64}
+                        />
+                        <div className="text-3xs text-ink-muted mt-1">
+                            {sale?.fbr_invoice_number ? 'FBR Verified Invoice' : 'Scan for Digital Receipt'}
+                        </div>
                     </div>
                 )}
 
@@ -663,7 +675,9 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                 {sale?.contact?.address && <p>{sale.contact.address}</p>}
             </div>
             <div className="text-right">
-                <p><strong>INVOICE #:</strong> {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}005`}</p>
+                {(data.invoice_number_enabled !== false && data.invoice_number_enabled !== '0' && data.invoice_number_enabled !== 0) && (
+                    <p><strong>INVOICE #:</strong> {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}005`}</p>
+                )}
                 <p><strong>DATE:</strong> {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</p>
             </div>
         </div>
@@ -874,7 +888,9 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
             </div>
             <div className="text-right">
                 <h3 className="font-bold text-ink-muted uppercase text-xs mb-2">Invoice Info</h3>
-                <p className="font-mono">{sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}-1001`}</p>
+                {(data.invoice_number_enabled !== false && data.invoice_number_enabled !== '0' && data.invoice_number_enabled !== 0) && (
+                    <p className="font-mono">{sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}-1001`}</p>
+                )}
                 <p className="font-mono text-ink-muted">{sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</p>
             </div>
         </div>
@@ -1125,7 +1141,9 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                         <span>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <div className="flex flex-col text-right">
-                        <span># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</span>
+                        {(data.invoice_number_enabled !== false && data.invoice_number_enabled !== '0' && data.invoice_number_enabled !== 0) && (
+                            <span># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</span>
+                        )}
                         <span>Cashier: {sale?.user?.name || 'Admin'}</span>
                     </div>
                 </div>
@@ -1434,7 +1452,9 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     <span>TM: {sale ? (new Date(sale.created_at || sale.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</span>
+                    {(data.invoice_number_enabled !== false && data.invoice_number_enabled !== '0' && data.invoice_number_enabled !== 0) ? (
+                        <span># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</span>
+                    ) : <span></span>}
                     <span>OP: {sale?.user?.name || 'Admin'}</span>
                 </div>
                 {/* Entity */}
@@ -1714,7 +1734,9 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
             <div className="flex justify-between text-xs mb-4 px-1 border-b-4 border-black pb-2">
                 <div>
                     <div>DATE: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
-                    <div>BILL #: {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
+                    {(data.invoice_number_enabled !== false && data.invoice_number_enabled !== '0' && data.invoice_number_enabled !== 0) && (
+                        <div>BILL #: {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
+                    )}
                 </div>
                 <div className="text-right">
                     <div>TIME: {sale ? (new Date(sale.created_at || sale.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>

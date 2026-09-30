@@ -44,7 +44,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "Tests\\": "tests/tests/"
+            "Tests\\": "tests/"
         }
     },
     "autoload-dev": {

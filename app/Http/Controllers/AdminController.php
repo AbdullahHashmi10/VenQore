@@ -383,6 +383,28 @@ class AdminController extends Controller
     {
         $settings = \App\Models\Setting::all()->pluck('value', 'key')->toArray();
 
+        // S02: Security Sanitization — Do not leak raw password/passcode hashes or API secrets in props
+        $secretKeys = [
+            'admin_passcode',
+            'openai_api_key',
+            'anthropic_api_key',
+            'gemini_api_key',
+            'stripe_secret_key',
+            'stripe_webhook_secret',
+            'woocommerce_consumer_secret',
+            'whatsapp_access_token',
+            'fbr_auth_token',
+        ];
+
+        foreach ($secretKeys as $secretKey) {
+            if (isset($settings[$secretKey])) {
+                $settings["has_{$secretKey}"] = !empty($settings[$secretKey]);
+                if (!empty($settings[$secretKey])) {
+                    $settings[$secretKey] = $secretKey === 'admin_passcode' ? '' : '••••••••';
+                }
+            }
+        }
+
         // Fetch Backups
         $files = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
         $backups = [];
@@ -407,6 +429,11 @@ class AdminController extends Controller
 
     public function updateSettings(\Illuminate\Http\Request $request)
     {
+        $request->validate([
+            'header_calculator_enabled' => ['nullable', 'string', 'in:0,1'],
+            'settings.header_calculator_enabled' => ['nullable', 'string', 'in:0,1'],
+        ]);
+
         $settingsData = $request->except(['_token', 'print_logo_file']);
 
         // Support both flat key-value pairs and nested ['settings' => [...]] payloads
@@ -416,90 +443,467 @@ class AdminController extends Controller
             $settingsData = array_merge($settingsData, $nested);
         }
 
-        // Handle Logo Upload
-        if ($request->hasFile('print_logo_file')) {
-            // Validate: images only, max 4MB — prevents arbitrary/oversized file
-            // uploads into a public storage path.
-            $request->validate([
-                'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
-            ]);
+        // S10 FIX: Isolated Section Saves
+        // When _save_section is provided, restrict updates strictly to the keys belonging to that active section,
+        // preventing stale defaults or accidental overwrites of unrelated sections.
+        $saveSection = $request->input('_save_section');
+        $sectionKeyMap = [
+            'profile' => [
+                'business_name', 'business_address', 'business_phone', 'business_email',
+                'tax_number', 'custom_domain', 'store_name', 'store_address', 'store_phone',
+                'product_cost_update_policy'
+            ],
+            'region_numbers' => [
+                'currency', 'currency_symbol', 'timezone', 'language', 'date_format', 'decimal_places'
+            ],
+            'display' => [
+                'ui_scale', 'dark_mode_default', 'header_calculator_enabled', 'senior_mode'
+            ],
+            'checkout_returns' => [
+                'stop_sale_negative_stock', 'cash_sale_default', 'round_off_total',
+                'pos_auto_fill_cash', 'show_margin_percentage', 'pos_return_mode',
+                'pos_return_window', 'pos_return_window_behavior', 'charity_enabled'
+            ],
+            'documents_numbering' => [
+                'invoice_number_enabled', 'billing_type', 'sale_prefix', 'purchase_prefix',
+                'quotation_prefix', 'return_prefix'
+            ],
+            'taxes' => [
+                'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
+            ],
+            'customers_suppliers' => [
+                'loyalty_enabled', 'enable_credit_limit', 'party_grouping'
+            ],
+            'stock_items' => [
+                'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
+                'wholesale_price_enabled', 'low_stock_alerts', 'low_stock_threshold'
+            ],
+            'document_layouts' => [
+                'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
+                'print_logo', 'print_logo_path', 'print_logo_file', 'print_signature_text',
+                'print_original_copy', 'print_company_text_size', 'print_invoice_text_size',
+                'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
+                'custom_paper_width', 'custom_paper_height', 'print_show_sno',
+                'print_show_units', 'print_show_mrp', 'print_show_description',
+                'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
+                'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
+                'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
+                'print_balance_amount', 'print_party_balance', 'print_tax_details',
+                'print_you_saved', 'print_show_previous_balance', 'print_amount_grouping',
+                'print_amount_words', 'print_description', 'print_terms',
+                'print_received_by', 'print_delivered_by', 'print_payment_mode',
+                'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
+                'print_min_item_rows', 'invoice_theme', 'invoice_primary_color', 'show_margin_on_invoice'
+            ],
+            'printer_device' => [
+                'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
+                'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
+                'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
+                'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
+                'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
+                'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
+                'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
+                'thermal_custom_footer'
+            ],
+            'manual_sharing' => [
+                'message_template_sales', 'message_template_returns', 'message_template_reminders', 'whatsapp_offer_pdf'
+            ],
+            'reminders_alerts' => [
+                'payment_reminders', 'payment_reminder_days', 'service_reminders',
+                'email_notifications', 'daily_sales_summary'
+            ],
+            'accounting' => [
+                'multi_firm_enabled', 'fiscal_year_start',
+                'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days', 'reckoner.carrying_cost_pct'
+            ],
+            'features_connections' => [
+                'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+                'shared_catalog_opt_out', 'ai_accuracy_opt_in', 'fbr_integration', 'fbr_pos_id',
+                'fbr_usin', 'stripe_enabled', 'woocommerce_enabled'
+            ],
+            'security' => [
+                'enable_passcode', 'admin_passcode', 'auto_logout', 'sso_enabled', 'sso_idp_entity_id',
+                'sso_url', 'sso_certificate'
+            ],
+            'approvals' => [
+                'approval_admin_enabled', 'approval_strict_owner_separation',
+                'approval_amount_threshold', 'approval_default_employee_mode',
+                'approval_policy_customer_receipt', 'approval_threshold_customer_receipt',
+                'approval_policy_supplier_payment', 'approval_threshold_supplier_payment',
+                'approval_policy_operating_expense', 'approval_threshold_operating_expense',
+                'approval_policy_sales_invoice', 'approval_threshold_sales_invoice',
+                'approval_policy_supplier_refund', 'approval_threshold_supplier_refund',
+                'approval_policy_purchase_posting', 'approval_threshold_purchase_posting',
+                'approval_policy_sales_return', 'approval_threshold_sales_return',
+                'approval_policy_purchase_return', 'approval_threshold_purchase_return',
+                'approval_policy_capital_injection', 'approval_threshold_capital_injection',
+                'approval_policy_owner_drawings', 'approval_threshold_owner_drawings',
+                'approval_policy_fund_transfer', 'approval_threshold_fund_transfer'
+    ]
+        ];
 
-            $file = $request->file('print_logo_file');
-            $path = $file->store('system', 'public');
-            
-            // Update or Create the logo path setting
-            \App\Models\Setting::updateOrCreate(
-                ['key' => 'print_logo_path'],
-                ['value' => '/storage/' . $path]
-            );
-            
-            // IMPORTANT: Remove from loop data so we don't overwrite with local blob URL
-            unset($settingsData['print_logo_path']); 
+        if (!empty($saveSection) && !isset($sectionKeyMap[$saveSection])) {
+            return back()->withErrors(['settings' => 'This settings section is no longer available. Reload the page and try again.']);
         }
 
-        foreach ($settingsData as $key => $value) {
-            if ($key === 'admin_passcode') {
-                if ($value === null || $value === '') {
-                    continue;
+        if (!empty($saveSection)) {
+            $allowedSectionKeys = $sectionKeyMap[$saveSection];
+            $filteredSectionData = [];
+            foreach ($settingsData as $k => $v) {
+                if (in_array($k, $allowedSectionKeys, true)) {
+                    $filteredSectionData[$k] = $v;
+                } elseif ($saveSection === 'approvals') {
+                    if (str_starts_with($k, 'approval_policy_') || str_starts_with($k, 'approval_threshold_') || str_starts_with($k, 'approval_user_')) {
+                        $filteredSectionData[$k] = $v;
+                    }
                 }
-                // Only hash if not already bcrypt-hashed
-                if (!str_starts_with((string)$value, '$2y$')) {
-                    $value = \Illuminate\Support\Facades\Hash::make($value);
+            }
+            $settingsData = $filteredSectionData;
+        }
+
+        // R03 FIX: Gate approval-related settings behind approvals.configure.
+        // Previously any user who could reach updateSettings() (admin or owner)
+        // could silently overwrite approval policies, thresholds, and enabled flags.
+        // A dedicated permission prevents even admins from changing approval rules
+        // unless they've been explicitly granted that authority.
+        $approvalKeys = [
+            'approval_admin_enabled',
+            'approval_strict_owner_separation',
+            'approval_amount_threshold',
+            'approval_default_employee_mode',
+        ];
+        $containsApprovalKey = false;
+        foreach (array_keys($settingsData) as $k) {
+            if (
+                in_array($k, $approvalKeys, true) ||
+                str_starts_with($k, 'approval_policy_') ||
+                str_starts_with($k, 'approval_threshold_') ||
+                str_starts_with($k, 'approval_user_')
+            ) {
+                $containsApprovalKey = true;
+                break;
+            }
+        }
+
+        if ($containsApprovalKey) {
+            $user = auth()->user();
+            if (!$user || (!$user->hasPermission('approvals.configure') && !$user->isPlatformAdmin())) {
+                // Allow tenant owners as they have full store authority;
+                // staff without approvals.configure are blocked.
+                $tenantMembership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')?->id)
+                    ->where('user_id', $user?->id)
+                    ->first();
+                if (($tenantMembership?->role ?? '') !== 'owner') {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You do not have permission to modify approval settings. The approvals.configure permission is required.',
+                    ], 403);
+                }
+            }
+        }
+
+        // S04: Server-side passcode verification if passcode protection is enabled
+        $passcodeEnabled = \App\Models\Setting::where('key', 'enable_passcode')->value('value');
+        if ($passcodeEnabled === '1' || $passcodeEnabled === 'true' || $passcodeEnabled === true) {
+            $hashedPasscode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+            if (!empty($hashedPasscode)) {
+                $challenge = $request->input('passcode_challenge') ?? $request->header('X-Passcode-Challenge');
+                $isValid = false;
+                if (!empty($challenge)) {
+                    if (str_starts_with($hashedPasscode, '$2y$')) {
+                        $isValid = \Illuminate\Support\Facades\Hash::check((string)$challenge, $hashedPasscode);
+                    } else {
+                        $isValid = hash_equals((string)$hashedPasscode, (string)$challenge);
+                    }
+                }
+
+                if (!empty($challenge) && !$isValid) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid administrator passcode provided.',
+                    ], 403);
+                }
+
+                $user = auth()->user();
+                $tenant = app('current.tenant');
+                $tenantMembership = $tenant && $user ? \App\Models\TenantUser::where('tenant_id', $tenant->id)->where('user_id', $user->id)->first() : null;
+                $isOwner = ($tenantMembership?->role ?? '') === 'owner' || ($user?->isPlatformAdmin() ?? false);
+
+                if (!$isValid && !$isOwner) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Administrator passcode required to update settings.',
+                    ], 403);
+                }
+            }
+        }
+
+        // S03: Comprehensive Typed Allowlist Filter
+        $allowlist = [
+            // Business identity
+            'business_name', 'store_name', 'business_address', 'store_address',
+            'business_phone', 'store_phone', 'business_email', 'tax_number',
+            'currency', 'currency_code', 'currency_symbol', 'timezone',
+            'decimal_places', 'custom_domain', 'product_cost_update_policy',
+            'shared_catalog_opt_out', 'ai_accuracy_opt_in',
+            // General preferences
+            'enable_passcode', 'admin_passcode', 'ui_scale', 'language',
+            'date_format', 'auto_logout', 'dark_mode_default', 'senior_mode',
+            'header_calculator_enabled', 'multi_firm_enabled',
+            // Sales / transaction
+            'invoice_number_enabled', 'stop_sale_negative_stock', 'cash_sale_default',
+            'round_off_total', 'billing_type', 'sale_prefix', 'purchase_prefix',
+            'quotation_prefix', 'return_prefix', 'pos_auto_fill_cash',
+            'show_margin_percentage', 'show_margin_on_invoice',
+            'charity_enabled', 'pos_return_mode', 'pos_return_window', 'pos_return_window_behavior',
+            'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id',
+            // Print: regular
+            'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
+            'print_logo', 'print_logo_path', 'print_signature_text', 'print_original_copy',
+            'print_company_text_size', 'print_invoice_text_size',
+            'margin_top', 'margin_bottom', 'margin_left', 'margin_right',
+            'custom_paper_width', 'custom_paper_height',
+            'print_show_sno', 'print_show_units', 'print_show_mrp', 'print_show_description',
+            'print_show_hsn', 'print_show_discount', 'print_show_free_qty',
+            'print_qr_code', 'print_show_delivery_charge', 'print_show_extra_charge',
+            'print_total_quantity', 'print_amount_decimal', 'print_received_amount',
+            'print_balance_amount', 'print_party_balance', 'print_tax_details',
+            'print_you_saved', 'print_show_previous_balance', 'print_amount_grouping',
+            'print_amount_words', 'print_description', 'print_terms',
+            'print_received_by', 'print_delivered_by', 'print_payment_mode',
+            'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
+            'print_min_item_rows',
+            // Print: invoice styling
+            'invoice_theme', 'invoice_primary_color',
+            // Print: thermal
+            'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
+            'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
+            'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
+            'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
+            'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
+            'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
+            'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
+            'thermal_custom_footer',
+            // Messaging / WhatsApp
+            'whatsapp_enabled', 'sms_to_party', 'auto_send_sales', 'message_template_sales',
+            'message_template_returns', 'message_template_reminders', 'message_template_payments',
+            'message_template_statement', 'whatsapp_offer_pdf',
+            'whatsapp_api_url', 'whatsapp_access_token', 'whatsapp_phone_number_id',
+            // Party / loyalty / credit
+            'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
+            'payment_reminders', 'payment_reminder_days',
+            // Inventory
+            'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
+            'wholesale_price_enabled', 'low_stock_threshold', 'low_stock_alerts',
+            // Reminders / system
+            'service_reminders', 'email_notifications', 'daily_sales_summary',
+            'fiscal_year_start',
+            // Security & personal
+            'two_factor_auth', 'auto_backup',
+            // SSO (saved but labeled disabled until SAML is implemented)
+            'sso_enabled', 'sso_idp_entity_id', 'sso_url', 'sso_certificate',
+            // Reckoner
+            'reckoner.heavy_discount_pct', 'reckoner.expiry_warning_days',
+            'reckoner.carrying_cost_pct', 'reckoner.stock_aging_buckets',
+            // AI
+            'ai_provider', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key', 'ai_model',
+            // FBR
+            'fbr_integration', 'fbr_pos_id', 'fbr_usin', 'fbr_mode', 'fbr_environment', 'fbr_api_url', 'fbr_auth_token',
+            // Payments / integrations
+            'stripe_enabled', 'stripe_publishable_key', 'stripe_secret_key', 'stripe_webhook_secret',
+            'woocommerce_enabled', 'woocommerce_url', 'woocommerce_consumer_key', 'woocommerce_consumer_secret',
+            // Approvals
+            'approval_admin_enabled', 'approval_strict_owner_separation',
+            'approval_amount_threshold', 'approval_default_employee_mode',
+        ];
+
+        $validApprovalDocTypes = [
+            'customer_receipt', 'customer_refund', 'supplier_payment', 'sales_invoice',
+            'operating_expense', 'supplier_refund', 'purchase_posting', 'sales_return',
+            'purchase_return', 'capital_injection', 'owner_drawings', 'fund_transfer',
+            'balance_adjustment', 'sale', 'purchase', 'quotation', 'credit_note',
+            'debit_note', 'expense', 'transfer', 'adjustment', 'refund',
+            'production_run', 'cheque',
+        ];
+
+        // Filter and strictly validate submitted data
+        $filteredData = [];
+        foreach ($settingsData as $k => $v) {
+            $isAllowed = in_array($k, $allowlist, true);
+            if (!$isAllowed) {
+                foreach (['approval_policy_', 'approval_threshold_', 'approval_user_'] as $prefix) {
+                    if (str_starts_with($k, $prefix)) {
+                        $suffix = substr($k, strlen($prefix));
+                        if (in_array($suffix, $validApprovalDocTypes, true)) {
+                            $isAllowed = true;
+                        }
+                        break;
+                    }
                 }
             }
 
-            if (is_bool($value)) {
-                $value = $value ? '1' : '0';
+            if (!$isAllowed) {
+                continue;
             }
-            \App\Models\Setting::updateOrCreate(
-                ['key' => $key],
-                ['value' => is_array($value) ? json_encode($value) : (string) $value]
-            );
+
+            // Value normalization & bounds enforcement
+            if ($k === 'decimal_places') {
+                $v = is_numeric($v) ? max(0, min(4, (int)$v)) : 2;
+            } elseif ($k === 'ui_scale') {
+                $v = is_numeric($v) ? max(50, min(200, (int)$v)) : 100;
+            } elseif ($k === 'auto_logout') {
+                $v = is_numeric($v) ? max(0, min(1440, (int)$v)) : 0;
+            } elseif ($k === 'low_stock_threshold') {
+                $v = is_numeric($v) ? max(0, (float)$v) : 0;
+            } elseif ($k === 'pos_return_window') {
+                $v = is_numeric($v) ? max(0, min(365, (int)$v)) : 30;
+            } elseif ($k === 'product_cost_update_policy') {
+                $v = in_array($v, ['never', 'always', 'increase_only', 'decrease_only'], true) ? $v : 'never';
+            } elseif ($k === 'pos_return_mode') {
+                $v = in_array($v, ['reference', 'customer_or_reference', 'open'], true) ? $v : 'reference';
+            } elseif ($k === 'default_print_type') {
+                $v = in_array($v, ['regular', 'thermal', 'standard', 'pdf', 'a4', 'a5'], true) ? $v : 'regular';
+            } elseif ($k === 'paper_size') {
+                $v = in_array($v, ['A4', 'A5', 'Letter', 'Legal', 'Thermal', 'custom'], true) ? $v : 'A4';
+            } elseif ($k === 'paper_orientation') {
+                $v = in_array(strtolower((string)$v), ['portrait', 'landscape'], true) ? ucfirst(strtolower((string)$v)) : 'Portrait';
+            } elseif ($k === 'fbr_mode' || $k === 'fbr_environment') {
+                $v = in_array($v, ['production', 'live', 'sandbox', 'disabled'], true) ? $v : 'sandbox';
+            } elseif ($k === 'ai_provider') {
+                $v = in_array($v, ['openai', 'anthropic', 'gemini', 'local', 'ollama', ''], true) ? $v : 'gemini';
+            } elseif ($k === 'reckoner.heavy_discount_pct') {
+                $v = is_numeric($v) ? max(0, min(100, (float)$v)) : 25;
+            } elseif ($k === 'reckoner.expiry_warning_days') {
+                $v = is_numeric($v) ? max(1, min(365, (int)$v)) : 30;
+            } elseif ($k === 'reckoner.carrying_cost_pct') {
+                $v = is_numeric($v) ? max(0, min(100, (float)$v)) : 15;
+            } elseif (str_starts_with($k, 'approval_policy_')) {
+                $v = in_array($v, ['inherit', 'maker_checker', 'owner_only', 'auto_approve', 'disabled'], true) ? $v : 'inherit';
+            } elseif (str_starts_with($k, 'approval_threshold_')) {
+                $v = (is_numeric($v) && (float)$v >= 0) ? (float)$v : null;
+            } elseif ($k === 'billing_type') {
+                $v = in_array($v, ['full', 'quick', 'tax_invoice'], true) ? $v : 'full';
+            } elseif ($k === 'invoice_theme') {
+                $v = in_array($v, ['classic', 'modern', 'elegant'], true) ? $v : 'classic';
+            } elseif ($k === 'default_tax_basis') {
+                $v = in_array($v, ['inclusive', 'exclusive'], true) ? $v : 'exclusive';
+            }
+
+            $filteredData[$k] = $v;
+        }
+        $settingsData = $filteredData;
+
+        if (empty($settingsData) && !$request->hasFile('print_logo_file')) {
+            return back()->withErrors(['settings' => 'No valid settings were provided for saving.']);
         }
 
-        // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
-        // Some settings (like currency) are mirrored on the 'tenants' table for 
-        // high-performance routing and metadata access.
         $tenant = app('current.tenant');
-        if ($tenant) {
-            $syncNeeded = false;
-            
-            if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
-                $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
-                $syncNeeded = true;
-            }
-            
-            if (isset($settingsData['currency_symbol'])) {
-                $tenant->currency_symbol = $settingsData['currency_symbol'];
-                $syncNeeded = true;
+
+        \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant) {
+            $secretKeys = [
+                'admin_passcode',
+                'openai_api_key',
+                'anthropic_api_key',
+                'gemini_api_key',
+                'stripe_secret_key',
+                'stripe_webhook_secret',
+                'woocommerce_consumer_secret',
+                'whatsapp_access_token',
+            ];
+
+            foreach ($settingsData as $key => $value) {
+                // If it's a secret key and value is empty or masked, skip overwriting
+                if (in_array($key, $secretKeys, true)) {
+                    if ($value === null || $value === '' || str_starts_with((string)$value, '••••')) {
+                        continue;
+                    }
+                    if ($key === 'admin_passcode') {
+                        // Only hash if not already bcrypt-hashed
+                        if (!str_starts_with((string)$value, '$2y$')) {
+                            $value = \Illuminate\Support\Facades\Hash::make($value);
+                        }
+                    }
+                }
+
+                if (is_bool($value)) {
+                    $value = $value ? '1' : '0';
+                }
+                \App\Models\Setting::updateOrCreate(
+                    ['key' => $key],
+                    ['value' => is_array($value) ? json_encode($value) : (string) $value]
+                );
             }
 
-            if (isset($settingsData['store_name']) || isset($settingsData['business_name'])) {
-                $tenant->name = $settingsData['store_name'] ?? $settingsData['business_name'];
-                $syncNeeded = true;
+            // Secure Logo Upload: processed only after all section, permission, and passcode checks pass
+            if (request()->hasFile('print_logo_file') && (empty($saveSection) || $saveSection === 'document_layouts')) {
+                request()->validate([
+                    'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
+                ]);
+
+                $file = request()->file('print_logo_file');
+                $path = $file->store('system', 'public');
+                
+                \App\Models\Setting::updateOrCreate(
+                    ['key' => 'print_logo_path'],
+                    ['value' => '/storage/' . $path]
+                );
             }
 
-            if (isset($settingsData['timezone'])) {
-                $tenant->timezone = $settingsData['timezone'];
-                $syncNeeded = true;
-            }
+            // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
+            if ($tenant) {
+                $syncNeeded = false;
+                
+                if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
+                    $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
+                    $syncNeeded = true;
+                }
+                
+                if (isset($settingsData['currency_symbol'])) {
+                    $tenant->currency_symbol = $settingsData['currency_symbol'];
+                    $syncNeeded = true;
+                }
 
-            if (isset($settingsData['custom_domain'])) {
-                $tenant->custom_domain = $settingsData['custom_domain'];
-                $syncNeeded = true;
-            }
+                if (isset($settingsData['store_name']) || isset($settingsData['business_name'])) {
+                    $tenant->name = $settingsData['store_name'] ?? $settingsData['business_name'];
+                    $syncNeeded = true;
+                }
 
-            if ($syncNeeded) {
-                $tenant->save();
-            }
-        }
+                if (isset($settingsData['timezone'])) {
+                    $tenant->timezone = $settingsData['timezone'];
+                    $syncNeeded = true;
+                }
 
-        // Clear settings cache
+                if (isset($settingsData['custom_domain'])) {
+                    $tenant->custom_domain = $settingsData['custom_domain'];
+                    $syncNeeded = true;
+                }
+
+                if (isset($settingsData['shared_catalog_opt_out'])) {
+                    $tenant->shared_catalog_opt_out = (bool)$settingsData['shared_catalog_opt_out'];
+                    $syncNeeded = true;
+                }
+
+                if (isset($settingsData['ai_accuracy_opt_in'])) {
+                    $tenant->ai_accuracy_opt_in = (bool)$settingsData['ai_accuracy_opt_in'];
+                    $syncNeeded = true;
+                }
+
+                if ($syncNeeded) {
+                    $tenant->save();
+                }
+            }
+        });
+
+        // Clear settings and reckoner cache
         if ($tenant) {
             \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.heavy_discount_pct");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.expiry_warning_days");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.carrying_cost_pct");
+            \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.stock_aging_buckets");
         }
         \Illuminate\Support\Facades\Cache::forget('settings:global');
-        SettingsHelper::clearCache();
+        \App\Helpers\SettingsHelper::clearCache();
 
         return redirect()->back()->with('success', 'Settings updated successfully');
     }
@@ -573,7 +977,7 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'role' => 'nullable|string|in:admin,manager,cashier,inventory_staff,accountant,custom',
+            'role' => 'nullable|string|in:owner,admin,franchise_admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,production_supervisor,kitchen_manager,dispenser,sales_executive,fulfillment_lead,delivery_driver,cashier,viewer,custom,inventory_staff,support',
             'permissions' => 'nullable|array',
             'passcode' => [
                 'nullable',
@@ -787,6 +1191,8 @@ class AdminController extends Controller
             $request->validate([
                 'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
                 'display_name'     => 'nullable|string|max:50',
+                'transaction_approval_mode' => 'nullable|in:inherit,required,direct',
+                'permission_override_mode'  => 'nullable|in:inherit,custom',
                 'custom_role_name' => 'nullable|string|max:30',
                 'status'           => 'nullable|in:active,suspended',
                 'permissions'  => 'nullable|array',
@@ -818,6 +1224,7 @@ class AdminController extends Controller
                 ->firstOrFail();
 
             $isOwner = $myMembership->role === 'owner';
+            $isAdmin = in_array($myMembership->role, ['owner', 'admin'], true);
 
             // Non-owners (admins) cannot promote users to owner, franchise_admin, or admin
             if (!$isOwner && $request->has('role')) {
@@ -829,6 +1236,43 @@ class AdminController extends Controller
 
             $updateData = $request->only(['role', 'custom_role_name', 'display_name', 'status']);
             \Log::info('updateMember data: ' . json_encode($updateData));
+
+            if ($request->has('transaction_approval_mode')) {
+                abort_unless($isAdmin, 403, 'Only store owners and admins can modify employee transaction approval modes.');
+                // Employees cannot change their own approval mode
+                if ($member->user_id === Auth::id() && !$isOwner) {
+                    abort(403, 'Employees cannot change their own approval mode.');
+                }
+                $updateData['transaction_approval_mode'] = $request->input('transaction_approval_mode');
+                $updateData['approval_mode_changed_by'] = Auth::id();
+                $updateData['approval_mode_changed_at'] = now();
+            }
+
+            if ($request->has('approval_overrides')) {
+                abort_unless($isAdmin, 403, 'Only store owners and admins can modify employee transaction approval overrides.');
+                if ($member->user_id === Auth::id() && !$isOwner) {
+                    abort(403, 'Employees cannot change their own approval overrides.');
+                }
+                $overrides = $request->input('approval_overrides', []);
+                if (is_array($overrides)) {
+                    foreach ($overrides as $docType => $mode) {
+                        if (in_array($docType, \App\Models\ApprovalDocument::SUPPORTED_TYPES, true)) {
+                            $settingKey = "approval_user_{$member->user_id}_{$docType}";
+                            if ($mode === 'inherit' || empty($mode)) {
+                                \App\Models\Setting::withoutGlobalScopes()
+                                    ->where('tenant_id', $member->tenant_id)
+                                    ->where('key', $settingKey)
+                                    ->delete();
+                            } elseif (in_array($mode, ['required', 'direct'], true)) {
+                                \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                                    ['tenant_id' => $member->tenant_id, 'key' => $settingKey],
+                                    ['value' => $mode]
+                                );
+                            }
+                        }
+                    }
+                }
+            }
             
             if ($request->has('permissions')) {
                 $permissions = $request->input('permissions') ?? [];
@@ -840,6 +1284,10 @@ class AdminController extends Controller
                     $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
                 }
                 $updateData['permissions'] = array_values($permissions);
+            }
+
+            if ($request->has('permission_override_mode')) {
+                $updateData['permission_override_mode'] = $request->input('permission_override_mode');
             }
             $wasActive = $member->status === 'active';
             $member->update($updateData);

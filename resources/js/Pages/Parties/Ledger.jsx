@@ -16,13 +16,16 @@ import {
     Search,
     ChevronUp,
     ChevronDown,
-    Filter
+    Filter,
+    MessageCircle
 } from 'lucide-react';
+import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 
 export default function PartyLedger({ party = {}, transactions = [], stats = {} }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [transactionType, setTransactionType] = useState('all');
+    const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
 
     // Mobile responsiveness toggle states
     const [isStatsExpanded, setIsStatsExpanded] = useState(false);
@@ -175,6 +178,14 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                 <Filter size={14} />
                             </button>
                             <div className="flex items-center border-l border-line pl-1.5 ml-0.5 gap-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowWhatsAppModal(true)}
+                                    className="p-1 text-emerald-600 hover:text-emerald-700"
+                                    title="Share on WhatsApp"
+                                >
+                                    <MessageCircle size={14} />
+                                </button>
                                 <button className="p-1 text-emerald-600" title="Export">
                                     <Download size={14} />
                                 </button>
@@ -270,7 +281,15 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             />
                         </div>
 
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
+                        <div className="flex items-center gap-1 border-l border-line pl-2">
+                            <button
+                                type="button"
+                                onClick={() => setShowWhatsAppModal(true)}
+                                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all active:scale-95 shadow-sm"
+                                title="Share Statement on WhatsApp"
+                            >
+                                <MessageCircle size={14} /> Share Statement
+                            </button>
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <Download size={16} />
                             </button>
@@ -410,6 +429,17 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
 
                 </div>
             </div>
+
+            <WhatsAppShareModal
+                isOpen={showWhatsAppModal}
+                onClose={() => setShowWhatsAppModal(false)}
+                documentType="party_statement"
+                documentId={party?.id}
+                partyName={party?.name}
+                initialPhone={party?.phone}
+                documentNumber={`Statement: ${party?.name || ''}`}
+                amount={Math.abs(stats?.final_balance ?? party?.current_balance ?? 0)}
+            />
         </OneGlanceLayout>
     );
 }

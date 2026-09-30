@@ -112,7 +112,7 @@ export function normaliseComposition(raw) {
     return {
         catalog: {
             mode,
-            size: isBand ? 0 : (isNum(c.size) ? Math.max(0, Math.min(0.55, c.size)) : base.catalog.size),
+            size: isBand ? 0 : (isNum(c.size) ? Math.max(0, Math.min(0.75, c.size)) : base.catalog.size),
             rows: isNum(c.rows) ? Math.max(1, Math.min(3, Math.round(c.rows))) : 1,
             tiles: isNum(c.tiles) ? Math.max(1, Math.min(12, Math.round(c.tiles))) : null,
         },
@@ -143,7 +143,7 @@ export function normaliseComposition(raw) {
            that has an opinion: a grocer reading long names wants rows at every
            width, a cafe pointing at pictures wants cards even in a narrow
            column. 'auto' keeps the derivation. */
-        catalogShape: ['auto', 'cards', 'rows', 'pills'].includes(raw.catalogShape) ? raw.catalogShape : 'auto',
+        catalogShape: ['auto', 'large_cards', 'cards', 'rows', 'pills'].includes(raw.catalogShape) ? raw.catalogShape : 'auto',
         floor: floorModes.includes(raw.floor) ? raw.floor : base.floor,
     };
 }
@@ -201,6 +201,24 @@ export function usePosLayout({ settings, senior = false, scale = 1, terminal = '
         h: typeof window !== 'undefined' ? window.innerHeight : 900,
     }));
     const [comp, setComp] = useState(() => loadComposition(settings, terminal));
+
+    /* THE TERMINAL CAN CHANGE WHILE THE REGISTER IS OPEN.
+       It used to be fixed for the life of the page — /pos was a counter and
+       /tables was a floor — so reading the stored composition once, in the
+       initialiser above, was enough. Now the Table preset switches it in
+       place, and each terminal keeps its OWN remembered widths under its own
+       storage key. Without this the counter's composition would follow the
+       operator onto the floor and then be saved back over the floor's.
+
+       Skips the first run: the initialiser has already loaded the right one,
+       and re-loading here would throw away a composition restored from the
+       server on the very first frame. */
+    const lastTerminal = useRef(terminal);
+    useEffect(() => {
+        if (lastTerminal.current === terminal) return;
+        lastTerminal.current = terminal;
+        setComp(loadComposition(settings, terminal));
+    }, [terminal, settings]);
 
     useEffect(() => {
         const el = ref.current;
@@ -322,7 +340,7 @@ export function usePosLayout({ settings, senior = false, scale = 1, terminal = '
     const dragSplit = useCallback((key, px) => {
         const total = Math.max(1, box.w);
         update(prev => {
-            const share = Math.max(0, Math.min(0.55, px / total));
+            const share = Math.max(0.12, Math.min(0.75, px / total));
             if (key === 'tender') return { ...prev, split: { ...prev.split, tender: share } };
             if (key === 'catalog') return { ...prev, catalog: { ...prev.catalog, size: share } };
             return prev;

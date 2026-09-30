@@ -32,6 +32,7 @@ class StaffInvitation extends Model
         'accepted_at',
         'approved_at',
         'permissions',
+        'transaction_approval_mode',
         // Legacy compat
         'email',
         'role',

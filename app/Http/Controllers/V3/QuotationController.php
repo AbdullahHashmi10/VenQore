@@ -35,7 +35,7 @@ class QuotationController extends Controller
         DB::transaction(function () use ($validated) {
 
             $quotationId     = Str::uuid()->toString();
-            $quotationNumber = 'QUO-' . strtoupper(Str::random(8));
+            $quotationNumber = \App\Services\SequenceService::generateTransactionNumber('QUO');
             $total           = 0.00;
 
             foreach ($validated['items'] as $item) {

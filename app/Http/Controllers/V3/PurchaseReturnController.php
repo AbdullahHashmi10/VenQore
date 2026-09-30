@@ -10,6 +10,10 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Models\ApprovalDocument;
+use App\Services\Approval\ApprovalPolicyResolver;
+use App\Services\Approval\ApprovalExecutionEngine;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseReturnController extends Controller
 {
@@ -72,10 +76,41 @@ class PurchaseReturnController extends Controller
             'items.*.return_qty'         => ['required', 'numeric', 'min:0.0001'],
         ]);
 
+        // ── Approval interception ───────────────────────────────────────────────
+        $tenant = app('current.tenant');
+        $user   = Auth::user();
+        $amount = (float) collect($validated['items'])->sum(fn ($i) =>
+            (float) ($i['return_qty'] ?? 0) * (float) DB::table('purchase_items')
+                ->where('id', $i['purchase_item_id'])->value('unit_cost')
+        );
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_PURCHASE_RETURN,
+            amount:       $amount,
+        );
+
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_PURCHASE_RETURN,
+                payload:        array_merge($validated, ['purchase_id' => $purchaseId]),
+                amount:         $amount,
+                description:    'Purchase return — purchase #' . $purchaseId,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+            return redirect()
+                ->route('store.v3.purchases.show', ['store_slug' => $tenant->slug, 'purchase' => $purchaseId])
+                ->with('info', 'Return submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+
+        // Direct path
         $this->purchaseService->createReturn($purchaseId, $validated);
 
         return redirect()
-            ->route('store.v3.purchases.show', ['store_slug' => app('current.tenant')->slug, 'purchase' => $purchaseId])
+            ->route('store.v3.purchases.show', ['store_slug' => $tenant->slug, 'purchase' => $purchaseId])
             ->with('success', 'Purchase return posted successfully.');
     }
 }

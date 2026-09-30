@@ -19,7 +19,9 @@ import {
  ShieldCheck,
  Sparkles,
  Package,
- AlertTriangle
+ AlertTriangle,
+ ShoppingCart,
+ Zap
 } from 'lucide-react';
 import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
@@ -40,7 +42,8 @@ export default function Dashboard({
  bankAccounts = [],
  cashAccounts = [],
  cashData = {},
- inventoryValue
+ inventoryValue,
+ session = null
 }) {
  const { auth, store } = usePage().props;
  const { hasPerm, isAdmin } = usePermission();
@@ -50,8 +53,9 @@ export default function Dashboard({
  const canInventory = hasPerm('inventory');
  const canReports = hasPerm('reports');
  const canPurchases = hasPerm('purchases');
-
- const showRightPanel = isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant';
+ const canSeeBalances = hasPerm('finance.balances') || isAdmin || auth?.user?.role === 'owner';
+ const canSeeTransactions = hasPerm('finance.transactions') || isAdmin || auth?.user?.role === 'owner';
+ const showRightPanel = canSeeBalances || canSeeTransactions;
 
  const [performancePeriod, setPerformancePeriod] = useState('Today');
  const [grossProfitPeriod, setGrossProfitPeriod] = useState('Today');
@@ -98,7 +102,7 @@ export default function Dashboard({
  const healthStatus = netProfitData.status || (netProfitVal >= 0 ? 'Good' : 'Needs Attention');
 
  return (
-        <OneGlanceLayout activeMenu="Dashboard">
+        <>
             <Head title="Dashboard" />
 
             <style>{`
@@ -169,6 +173,40 @@ export default function Dashboard({
 
                     {/* --- Left Side Content --- */}
                     <div className={`col-span-12 ${showRightPanel && desktopSidePanelVisible ? 'xl:col-span-9' : 'col-span-12'} flex flex-col gap-6 min-w-0`}>
+
+                        {/* Register Shift / Personal Session Banner */}
+                        {session && (
+                            <div className="bg-surface rounded-xl p-4 sm:p-5 border border-line shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3.5">
+                                    <div className={`p-2.5 rounded-xl border shrink-0 ${session.is_shift_open ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' : 'bg-slate-50 dark:bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'}`}>
+                                        <ShoppingCart size={22} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-bold text-ink text-sm sm:text-base">
+                                                {session.is_shift_open ? 'Current Shift / My Register' : 'Today’s Counter Activity'}
+                                            </h3>
+                                            {session.is_shift_open ? (
+                                                <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Active Shift</span>
+                                            ) : (
+                                                <span className="px-2 py-0.5 rounded-full text-4xs font-bold uppercase tracking-wider bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">Shift Closed</span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-ink-muted mt-0.5">
+                                            <span className="font-semibold text-ink">{session.transaction_count ?? 0}</span> transactions &middot; Collected: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(session.session_total || 0, store)}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => router.visit(route('store.pos', { store_slug: store?.slug }))}
+                                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white text-xs font-semibold rounded-lg shadow-sm transition-all shrink-0 cursor-pointer"
+                                >
+                                    <Zap size={15} />
+                                    {session.is_shift_open ? 'Resume POS Shift' : 'Open POS Terminal'}
+                                </button>
+                            </div>
+                        )}
                         
                         {/* ═══ 6 INDEPENDENT TOP METRIC CARDS ═══ */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-6 gap-4 sm:gap-4.5 w-full">
@@ -598,6 +636,8 @@ export default function Dashboard({
             {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
                 <DashboardTourGuide store={store} />
             )}
-        </OneGlanceLayout>
+        </>
     );
 }
+
+Dashboard.layout = (page) => <OneGlanceLayout activeMenu="Dashboard">{page}</OneGlanceLayout>;

@@ -22,8 +22,11 @@ import {
     LOCATIONS, METHODS, PROJECTS, TAX_RATES, TERMS, fromISO, toISO,
 } from './mock';
 
-export const n2 = (v) => (Number.isFinite(v) ? v : 0)
-    .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const n2 = (v, decimals = null) => {
+    const d = decimals !== null ? decimals : parseInt(typeof window !== 'undefined' ? window.amdSettings?.decimal_places ?? 2 : 2, 10);
+    const validD = isNaN(d) ? 2 : d;
+    return (Number.isFinite(v) ? v : 0).toLocaleString('en-US', { minimumFractionDigits: validD, maximumFractionDigits: validD });
+};
 export const n0 = (v) => Math.round(Number.isFinite(v) ? v : 0).toLocaleString('en-US');
 export const r2 = (v) => Math.round(v * 100) / 100;
 

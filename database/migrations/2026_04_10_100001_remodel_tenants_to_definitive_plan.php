@@ -88,7 +88,7 @@ return new class extends Migration
             // MySQL doesn't support modifying ENUMs inline cleanly, use raw
         });
 
-        if (DB::connection()->getDriverName() === 'mysql') {
+        if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'])) {
             DB::statement("ALTER TABLE tenants MODIFY COLUMN `plan` VARCHAR(100) NOT NULL DEFAULT 'trial'");
             DB::statement("ALTER TABLE tenants MODIFY COLUMN `status` VARCHAR(50) NOT NULL DEFAULT 'trial'");
         }
@@ -120,7 +120,7 @@ return new class extends Migration
             if (!Schema::hasTable($table)) continue;
             if (!Schema::hasColumn($table, 'tenant_id')) continue;
 
-            if (DB::connection()->getDriverName() === 'mysql') {
+            if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'])) {
                 DB::statement("ALTER TABLE `{$table}` MODIFY COLUMN `tenant_id` BIGINT UNSIGNED NULL");
             }
         }
@@ -129,7 +129,7 @@ return new class extends Migration
         // Per new plan, users gets last_store_id instead of tenant_id.
         // We keep tenant_id on users for now — STEP 2 migration removes it.
         if (Schema::hasTable('users') && Schema::hasColumn('users', 'tenant_id')) {
-            if (DB::connection()->getDriverName() === 'mysql') {
+            if (in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'])) {
                 DB::statement("ALTER TABLE `users` MODIFY COLUMN `tenant_id` BIGINT UNSIGNED NULL");
             }
         }

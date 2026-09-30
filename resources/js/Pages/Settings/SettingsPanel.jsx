@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import {
- Settings, Building2, Shield, Lock, Save, Check, RefreshCw,
+ Settings, Building2, Shield, ShieldCheck, Lock, Save, Check, RefreshCw,
  ChevronRight, ShoppingCart, Percent, FileText, Smartphone,
  AlertTriangle, Layout
 } from 'lucide-react';
@@ -28,7 +28,7 @@ const SETTINGS_CATEGORIES = [
  id: 'adv',
  name: 'Advanced',
  icon: Shield,
- sections: ['security', 'terminals']
+ sections: ['security', 'approvals', 'terminals']
  }
 ];
 
@@ -36,6 +36,7 @@ const SETTINGS_SECTIONS = [
  { id: 'general', name: 'Store Info', icon: Building2, description: 'Store details and address' },
  { id: 'pos', name: 'POS & Sales', icon: ShoppingCart, description: 'Sales and interface configuration' },
  { id: 'security', name: 'Security', icon: Shield, description: 'Access control & passcodes' },
+ { id: 'approvals', name: 'Approvals & Governance', icon: ShieldCheck, description: 'Maker-checker approval policies and thresholds' },
  { id: 'taxes', name: 'Tax Rates', icon: Percent, description: 'Configure custom tax brackets' },
  { id: 'terminals', name: 'Terminals', icon: Smartphone, description: 'Pair VenQore Station devices' },
 ];
@@ -90,7 +91,7 @@ export default function SettingsPanel({ settings }) {
 
  // Invoice styling & Custom domain
  invoice_theme: settings.invoice_theme || 'classic',
- invoice_primary_color: settings.invoice_primary_color || 'rgb(var(--vq-indigo-600))',
+ invoice_primary_color: settings.invoice_primary_color && !settings.invoice_primary_color.includes('var(') ? settings.invoice_primary_color : '#4f46e5',
  show_margin_on_invoice: settings.show_margin_on_invoice === '1',
  custom_domain: store.custom_domain || '',
  tax_rates: typeof settings.tax_rates === 'string' ? settings.tax_rates : JSON.stringify(settings.tax_rates || [{ id: 1, name: 'GST 18%', rate: 18, type: 'percentage' }, { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }], null, 2),
@@ -98,6 +99,35 @@ export default function SettingsPanel({ settings }) {
  sso_idp_entity_id: settings.sso_idp_entity_id || '',
  sso_url: settings.sso_url || '',
  sso_certificate: settings.sso_certificate || '',
+
+ // Approvals & Dual Control
+ approval_admin_enabled: settings.approval_admin_enabled === '1',
+ approval_strict_owner_separation: settings.approval_strict_owner_separation === '1',
+ approval_default_employee_mode: settings.approval_default_employee_mode || 'inherit',
+ approval_amount_threshold: settings.approval_amount_threshold || '0',
+ approval_policy_customer_receipt: settings.approval_policy_customer_receipt || 'inherit',
+ approval_threshold_customer_receipt: settings.approval_threshold_customer_receipt || '',
+ approval_policy_supplier_payment: settings.approval_policy_supplier_payment || 'inherit',
+ approval_threshold_supplier_payment: settings.approval_threshold_supplier_payment || '',
+ approval_policy_operating_expense: settings.approval_policy_operating_expense || 'inherit',
+ approval_threshold_operating_expense: settings.approval_threshold_operating_expense || '',
+ approval_policy_sales_invoice: settings.approval_policy_sales_invoice || 'inherit',
+ approval_threshold_sales_invoice: settings.approval_threshold_sales_invoice || '',
+ // Phase 1 new document types
+ approval_policy_supplier_refund: settings.approval_policy_supplier_refund || 'inherit',
+ approval_threshold_supplier_refund: settings.approval_threshold_supplier_refund || '',
+ approval_policy_purchase_posting: settings.approval_policy_purchase_posting || 'inherit',
+ approval_threshold_purchase_posting: settings.approval_threshold_purchase_posting || '',
+ approval_policy_sales_return: settings.approval_policy_sales_return || 'inherit',
+ approval_threshold_sales_return: settings.approval_threshold_sales_return || '',
+ approval_policy_purchase_return: settings.approval_policy_purchase_return || 'inherit',
+ approval_threshold_purchase_return: settings.approval_threshold_purchase_return || '',
+ approval_policy_capital_injection: settings.approval_policy_capital_injection || 'inherit',
+ approval_threshold_capital_injection: settings.approval_threshold_capital_injection || '',
+ approval_policy_owner_drawings: settings.approval_policy_owner_drawings || 'inherit',
+ approval_threshold_owner_drawings: settings.approval_threshold_owner_drawings || '',
+ approval_policy_fund_transfer: settings.approval_policy_fund_transfer || 'inherit',
+ approval_threshold_fund_transfer: settings.approval_threshold_fund_transfer || '',
  });
 
  const handleSubmit = (e) => {
@@ -134,6 +164,33 @@ export default function SettingsPanel({ settings }) {
  sso_idp_entity_id: data.sso_idp_entity_id,
  sso_url: data.sso_url,
  sso_certificate: data.sso_certificate,
+ approval_admin_enabled: data.approval_admin_enabled ? '1' : '0',
+ approval_strict_owner_separation: data.approval_strict_owner_separation ? '1' : '0',
+ approval_default_employee_mode: data.approval_default_employee_mode,
+ approval_amount_threshold: data.approval_amount_threshold,
+ approval_policy_customer_receipt: data.approval_policy_customer_receipt,
+ approval_threshold_customer_receipt: data.approval_threshold_customer_receipt,
+ approval_policy_supplier_payment: data.approval_policy_supplier_payment,
+ approval_threshold_supplier_payment: data.approval_threshold_supplier_payment,
+ approval_policy_operating_expense: data.approval_policy_operating_expense,
+ approval_threshold_operating_expense: data.approval_threshold_operating_expense,
+ approval_policy_sales_invoice: data.approval_policy_sales_invoice,
+ approval_threshold_sales_invoice: data.approval_threshold_sales_invoice,
+ // Phase 1 new document types
+ approval_policy_supplier_refund: data.approval_policy_supplier_refund,
+ approval_threshold_supplier_refund: data.approval_threshold_supplier_refund,
+ approval_policy_purchase_posting: data.approval_policy_purchase_posting,
+ approval_threshold_purchase_posting: data.approval_threshold_purchase_posting,
+ approval_policy_sales_return: data.approval_policy_sales_return,
+ approval_threshold_sales_return: data.approval_threshold_sales_return,
+ approval_policy_purchase_return: data.approval_policy_purchase_return,
+ approval_threshold_purchase_return: data.approval_threshold_purchase_return,
+ approval_policy_capital_injection: data.approval_policy_capital_injection,
+ approval_threshold_capital_injection: data.approval_threshold_capital_injection,
+ approval_policy_owner_drawings: data.approval_policy_owner_drawings,
+ approval_threshold_owner_drawings: data.approval_threshold_owner_drawings,
+ approval_policy_fund_transfer: data.approval_policy_fund_transfer,
+ approval_threshold_fund_transfer: data.approval_threshold_fund_transfer,
  };
 
  router.post(route("store.settings.update", {
@@ -570,6 +627,216 @@ export default function SettingsPanel({ settings }) {
  </div>
  </div>
  )}
+ </div>
+ </div>
+ );
+
+ case 'approvals':
+ return (
+ <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="bg-surface rounded-2xl border border-line p-6 space-y-6">
+ <SectionHeader title="Approvals & Governance" description="Configure store-wide transaction maker-checker approval controls and dual authorization" />
+
+ <div className="space-y-4">
+ <Toggle
+ enabled={data.approval_admin_enabled}
+ onChange={v => setData('approval_admin_enabled', v)}
+ label="Enable Store Approval Workflow"
+ description="When enabled, transactions requiring approval are routed to the manager review queue before posting to the ledger."
+ />
+
+ <Toggle
+ enabled={data.approval_strict_owner_separation}
+ onChange={v => setData('approval_strict_owner_separation', v)}
+ label="Strict Owner Separation"
+ description="Enforce dual control so store owners cannot self-approve transactions they personally submitted as maker."
+ />
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-line">
+ <div className="space-y-2">
+ <label className="block text-sm font-bold text-ink-secondary mb-1">Default Employee Approval Mode</label>
+ <select
+ value={data.approval_default_employee_mode}
+ onChange={e => setData('approval_default_employee_mode', e.target.value)}
+ className="w-full px-4 py-3 bg-sunken border border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ >
+ <option value="inherit">Inherit Store Policy (Default)</option>
+ <option value="required">Always Require Approval</option>
+ <option value="direct">Direct Posting (Bypass Approval)</option>
+ </select>
+ <p className="text-2xs text-ink-muted">Default policy applied to invited staff members unless customized per-user.</p>
+ </div>
+
+ <div className="space-y-2">
+ <label className="block text-sm font-bold text-ink-secondary mb-1">Approval Amount Threshold ({store?.currency_symbol || '$'})</label>
+ <input
+ type="number"
+ min="0"
+ step="0.01"
+ value={data.approval_amount_threshold}
+ onChange={e => setData('approval_amount_threshold', e.target.value)}
+ className="w-full px-4 py-3 bg-sunken border border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ placeholder="0.00"
+ />
+ <p className="text-2xs text-ink-muted">Transactions equal to or above this amount automatically trigger approval review.</p>
+ </div>
+ </div>
+
+ {/* Per-Document Type Controls */}
+ <div className="pt-6 border-t border-line space-y-4">
+ <h4 className="text-sm font-bold text-ink-primary uppercase tracking-wider">Per-Document Approval Policies & Overrides</h4>
+
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {/* Customer Receipts */}
+ <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm text-ink-primary">Customer Receipts</span>
+ <select
+ value={data.approval_policy_customer_receipt}
+ onChange={e => setData('approval_policy_customer_receipt', e.target.value)}
+ className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ >
+ <option value="inherit">Inherit Store Policy</option>
+ <option value="required">Always Required</option>
+ <option value="disabled">Disabled (Direct)</option>
+ </select>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
+ <input
+ type="number"
+ min="0"
+ step="0.01"
+ value={data.approval_threshold_customer_receipt}
+ onChange={e => setData('approval_threshold_customer_receipt', e.target.value)}
+ placeholder="Inherit store threshold"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ />
+ </div>
+ </div>
+
+ {/* Supplier Payments */}
+ <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm text-ink-primary">Supplier Payments</span>
+ <select
+ value={data.approval_policy_supplier_payment}
+ onChange={e => setData('approval_policy_supplier_payment', e.target.value)}
+ className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ >
+ <option value="inherit">Inherit Store Policy</option>
+ <option value="required">Always Required</option>
+ <option value="disabled">Disabled (Direct)</option>
+ </select>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
+ <input
+ type="number"
+ min="0"
+ step="0.01"
+ value={data.approval_threshold_supplier_payment}
+ onChange={e => setData('approval_threshold_supplier_payment', e.target.value)}
+ placeholder="Inherit store threshold"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ />
+ </div>
+ </div>
+
+ {/* Operating Expenses */}
+ <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm text-ink-primary">Operating Expenses</span>
+ <select
+ value={data.approval_policy_operating_expense}
+ onChange={e => setData('approval_policy_operating_expense', e.target.value)}
+ className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ >
+ <option value="inherit">Inherit Store Policy</option>
+ <option value="required">Always Required</option>
+ <option value="disabled">Disabled (Direct)</option>
+ </select>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
+ <input
+ type="number"
+ min="0"
+ step="0.01"
+ value={data.approval_threshold_operating_expense}
+ onChange={e => setData('approval_threshold_operating_expense', e.target.value)}
+ placeholder="Inherit store threshold"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ />
+ </div>
+ </div>
+
+ {/* Sales Invoices */}
+ <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm text-ink-primary">Sales Invoices (Admin)</span>
+ <select
+ value={data.approval_policy_sales_invoice}
+ onChange={e => setData('approval_policy_sales_invoice', e.target.value)}
+ className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ >
+ <option value="inherit">Inherit Store Policy</option>
+ <option value="required">Always Required</option>
+ <option value="disabled">Disabled (Direct)</option>
+ </select>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
+ <input
+ type="number"
+ min="0"
+ step="0.01"
+ value={data.approval_threshold_sales_invoice}
+ onChange={e => setData('approval_threshold_sales_invoice', e.target.value)}
+ placeholder="Inherit store threshold"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ />
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ {/* Phase 1 — Additional Document Types */}
+ <div className="pt-4 border-t border-line space-y-4">
+ <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider">Phase 1 Additional Operations</h4>
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ {[
+ { key: 'supplier_refund', label: 'Supplier Refunds' },
+ { key: 'purchase_posting', label: 'Purchase/Bill Posting' },
+ { key: 'sales_return', label: 'Sales Returns' },
+ { key: 'purchase_return', label: 'Purchase Returns' },
+ { key: 'capital_injection', label: 'Capital Injection', sensitive: true },
+ { key: 'owner_drawings', label: 'Owner Drawings', sensitive: true },
+ { key: 'fund_transfer', label: 'Internal Fund Transfer', sensitive: true },
+ ].map(({ key, label, sensitive }) => (
+ <div key={key} className={`p-4 bg-sunken/50 rounded-xl border space-y-3 ${sensitive ? 'border-orange-200' : 'border-line'}`}>
+ <div className="flex items-center justify-between">
+ <span className="font-semibold text-sm text-ink-primary">{label}</span>
+ <select
+ value={data[`approval_policy_${key}`]}
+ onChange={e => setData(`approval_policy_${key}`, e.target.value)}
+ className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ >
+ <option value="inherit">Inherit Store Policy</option>
+ <option value="required">Always Required</option>
+ <option value="disabled">Disabled (Direct)</option>
+ </select>
+ </div>
+ <div className="flex items-center gap-2">
+ <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
+ <input type="number" min="0" step="0.01" value={data[`approval_threshold_${key}`]} onChange={e => setData(`approval_threshold_${key}`, e.target.value)} placeholder="Inherit store threshold" className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs" />
+ </div>
+ {sensitive && <p className="text-2xs text-amber-600">Owner / Admin access only by default</p>}
+ </div>
+ ))}
+ </div>
+ </div>
  </div>
  </div>
  );

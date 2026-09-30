@@ -34,7 +34,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useTermText } from '@/lib/terms';
 
 import '@/NewInvoice/newinvoice.css';
@@ -140,12 +140,14 @@ function newDoc(type, ops, seq = 148) {
    THE PAGE
    ════════════════════════════════════════════════════════════════════════════ */
 
-export default function NewInvoice({ auth }) {
+export default function NewInvoice({ auth, settings = {}, store = null }) {
+    const pageProps = usePage()?.props || {};
+    const effectiveSettings = settings && Object.keys(settings).length ? settings : (pageProps.settings || {});
     const userId = auth?.user?.id ?? 'demo';
     const vp = useViewport();
     const tt = useTermText();
 
-    const [prefs, setPrefs] = useState(() => loadPrefs(userId));
+    const [prefs, setPrefs] = useState(() => loadPrefs(userId, undefined, effectiveSettings));
     const [rankMode, setRankMode] = useState(false);
     const [setTab, setSetTab] = useState('arrange');
     useEffect(() => {
@@ -1040,7 +1042,34 @@ export default function NewInvoice({ auth }) {
                 <KeysSheet open={sheet === 'keys'} onClose={() => setSheet(null)} narrow={narrow} />
                 <ActionsSheet
                     open={sheet === 'actions'} onClose={() => setSheet(null)} type={type} narrow={narrow}
-                    onRun={(a) => { if (a === 'Download PDF' || a === 'Duplicate' || a === 'Email' || a === 'WhatsApp') toast(`${a} — a document action, on the document.`); else onAction(a); }}
+                    onRun={(a) => {
+                        if (a === 'WhatsApp') {
+                            const phone = doc.party?.phone ? doc.party.phone.replace(/[^0-9]/g, '') : '';
+                            const msg = `Greetings from ${doc.store?.name || 'our store'}. Your ${type?.name || 'Invoice'} for total ${computed?.total || 0} is ready.`;
+                            if (phone) {
+                                window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                            } else {
+                                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+                            }
+                        } else if (a === 'Download PDF') {
+                            if (doc.id) {
+                                window.open(`/v3/invoices/${doc.id}/pdf`, '_blank');
+                            } else {
+                                toast('Save the document first to download its PDF.', { tone: 'warn' });
+                            }
+                        } else if (a === 'Duplicate') {
+                            set(prev => ({ ...prev, id: null, number: `${prev.number || 'DOC'}-COPY` }));
+                            toast('Document duplicated as new draft.', { tone: 'good' });
+                        } else if (a === 'Email') {
+                            if (doc.party?.email) {
+                                window.location.href = `mailto:${doc.party.email}?subject=${encodeURIComponent(`${type?.name || 'Document'} #${doc.number || 'Draft'}`)}&body=${encodeURIComponent(`Your document total is ${computed?.total || 0}.`)}`;
+                            } else {
+                                toast('Please specify a customer email address to send.', { tone: 'bad' });
+                            }
+                        } else {
+                            onAction(a);
+                        }
+                    }}
                 />
                 <RecentSheet open={sheet === 'recent'} onClose={() => setSheet(null)} narrow={narrow} onOpenDoc={(d) => toast(`${d.id} would open here.`)} />
 

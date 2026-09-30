@@ -199,9 +199,28 @@ export function autoComposition(profileId, vw, vh) {
 /* ── Persistence ─────────────────────────────────────────────────────────── */
 const KEY = 'venqore.newpos.prefs.v1';
 
-/** Per user AND per device — the same cashier wants a different register on a
- *  phone than on the counter terminal. */
-const scopedKey = (userId, deviceId) => `${KEY}.${userId ?? 'anon'}.${deviceId ?? 'this'}`;
+export function currentTenantScope() {
+    try {
+        if (typeof window !== 'undefined') {
+            const appEl = document.getElementById('app');
+            if (appEl?.dataset?.page) {
+                const pd = JSON.parse(appEl.dataset.page);
+                const slug = pd?.props?.store?.slug || pd?.props?.currentTenant?.slug;
+                if (slug) return slug;
+            }
+            const parts = window.location.pathname.split('/');
+            const sIdx = parts.indexOf('s');
+            if (sIdx !== -1 && parts[sIdx + 1]) {
+                return parts[sIdx + 1];
+            }
+        }
+    } catch (_) {}
+    return 'default';
+}
+
+/** Per tenant, per user AND per device — prevents operational/return policies
+ *  from leaking across store boundaries on shared devices (S15). */
+const scopedKey = (userId, deviceId, tenantScope = currentTenantScope()) => `${KEY}.${tenantScope}.${userId ?? 'anon'}.${deviceId ?? 'this'}`;
 
 export function deviceId() {
     try {
@@ -214,24 +233,61 @@ export function deviceId() {
     } catch { return 'this'; }
 }
 
-export function loadPrefs(userId) {
-    const base = { ...DEFAULTS, comp: presetComposition('column'), ops: { ...DEFAULT_OPS }, perms: { ...DEFAULT_PERMS } };
+export function loadPrefs(userId, tenantScope = currentTenantScope(), serverSettings = {}) {
+    const serverOps = {};
+    if (serverSettings.pos_return_mode) {
+        serverOps.returnPolicy = serverSettings.pos_return_mode;
+    }
+    if (serverSettings.pos_return_window !== undefined && serverSettings.pos_return_window !== '') {
+        const win = parseInt(serverSettings.pos_return_window, 10);
+        if (!isNaN(win)) serverOps.returnWindowDays = win;
+    }
+    if (serverSettings.round_off_total !== undefined) {
+        serverOps.roundOff = serverSettings.round_off_total !== 'none';
+    }
+    if (serverSettings.stop_sale_negative_stock !== undefined) {
+        serverOps.allowOversell = serverSettings.stop_sale_negative_stock === '0' || serverSettings.stop_sale_negative_stock === false;
+    }
+    if (serverSettings.senior_mode !== undefined) {
+        serverOps.senior = serverSettings.senior_mode === '1' || serverSettings.senior_mode === true;
+    }
+    if (serverSettings.show_margin_percentage !== undefined) {
+        serverOps.showMargin = serverSettings.show_margin_percentage === '1' || serverSettings.show_margin_percentage === true;
+    }
+    if (serverSettings.pos_auto_fill_cash !== undefined) {
+        serverOps.autoFillCash = serverSettings.pos_auto_fill_cash === '1' || serverSettings.pos_auto_fill_cash === true;
+    }
+
+    const base = { ...DEFAULTS, comp: presetComposition('column'), ops: { ...DEFAULT_OPS, ...serverOps }, perms: { ...DEFAULT_PERMS } };
     try {
-        const raw = localStorage.getItem(scopedKey(userId, deviceId()));
-        if (!raw) return base;
+        const key = scopedKey(userId, deviceId(), tenantScope);
+        let raw = localStorage.getItem(key);
+        if (!raw) {
+            // Check legacy unscoped key: only migrate visual comp, never business ops/policies across tenants (S15)
+            const legacyRaw = localStorage.getItem(`${KEY}.${userId ?? 'anon'}.${deviceId() ?? 'this'}`);
+            if (legacyRaw) {
+                try {
+                    const legacy = JSON.parse(legacyRaw);
+                    if (legacy?.comp) {
+                        return { ...base, comp: { ...base.comp, ...legacy.comp } };
+                    }
+                } catch (_) {}
+            }
+            return base;
+        }
         const saved = JSON.parse(raw);
         return {
             ...base,
             ...saved,
             comp: saved.comp ? { ...base.comp, ...saved.comp } : base.comp,
-            ops: { ...base.ops, ...(saved.ops || {}) },
+            ops: { ...base.ops, ...(saved.ops || {}), ...serverOps },
             perms: { ...base.perms, ...(saved.perms || {}) },
         };
     } catch { return base; }
 }
 
-export function savePrefs(userId, prefs) {
-    try { localStorage.setItem(scopedKey(userId, deviceId()), JSON.stringify(prefs)); } catch { /* private mode */ }
+export function savePrefs(userId, prefs, tenantScope = currentTenantScope()) {
+    try { localStorage.setItem(scopedKey(userId, deviceId(), tenantScope), JSON.stringify(prefs)); } catch { /* private mode */ }
 }
 
 /* ── Cart rescue ─────────────────────────────────────────────────────────────
@@ -241,17 +297,16 @@ export function savePrefs(userId, prefs) {
    happened. */
 const CART_KEY = 'venqore.newpos.rescue.v1';
 
-/* Scoped like the preferences are. An unscoped rescue key hands the next
-   cashier on a shared till the previous one's open cart. */
-const rescueKey = (userId) => `${CART_KEY}.${userId ?? 'anon'}.${deviceId()}`;
+/* Scoped per tenant, user, and device to avoid open cart cross-contamination. */
+const rescueKey = (userId, tenantScope = currentTenantScope()) => `${CART_KEY}.${tenantScope}.${userId ?? 'anon'}.${deviceId()}`;
 
-export function saveRescue(userId, tabs) {
-    try { localStorage.setItem(rescueKey(userId), JSON.stringify({ at: Date.now(), tabs })); } catch { /* ignore */ }
+export function saveRescue(userId, tabs, tenantScope = currentTenantScope()) {
+    try { localStorage.setItem(rescueKey(userId, tenantScope), JSON.stringify({ at: Date.now(), tabs })); } catch { /* ignore */ }
 }
 
-export function loadRescue(userId) {
+export function loadRescue(userId, tenantScope = currentTenantScope()) {
     try {
-        const raw = localStorage.getItem(rescueKey(userId));
+        const raw = localStorage.getItem(rescueKey(userId, tenantScope));
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         // Older than 12 hours is yesterday's cart, not a rescue.
@@ -260,6 +315,6 @@ export function loadRescue(userId) {
     } catch { return null; }
 }
 
-export function clearRescue(userId) {
-    try { localStorage.removeItem(rescueKey(userId)); } catch { /* ignore */ }
+export function clearRescue(userId, tenantScope = currentTenantScope()) {
+    try { localStorage.removeItem(rescueKey(userId, tenantScope)); } catch { /* ignore */ }
 }

@@ -211,10 +211,14 @@ class GoogleDriveAuthController extends Controller
         if (!$membership) {
             return false;
         }
+        if ($membership->role === 'owner') {
+            return true;
+        }
+
         $perms = (!empty($membership->permissions) && is_array($membership->permissions))
             ? $membership->permissions
             : config('permissions.' . ($membership->role ?? 'viewer'), []);
 
-        return in_array('admin.data_recovery', $perms, true);
+        return in_array('*', $perms, true) || in_array('admin.data_recovery', $perms, true);
     }
 }

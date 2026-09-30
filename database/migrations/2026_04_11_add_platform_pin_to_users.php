@@ -8,10 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            // PIN for quick Platform Owner login — nullable, set by the owner
-            $table->string('platform_pin')->nullable()->after('is_platform_admin');
-        });
+        if (!Schema::hasColumn('users', 'platform_pin')) {
+            Schema::table('users', function (Blueprint $table) {
+                // PIN for quick Platform Owner login — nullable, set by the owner
+                $table->string('platform_pin')->nullable()->after('is_platform_admin');
+            });
+        }
     }
 
     public function down(): void

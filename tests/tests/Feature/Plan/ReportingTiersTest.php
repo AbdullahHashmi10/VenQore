@@ -132,7 +132,7 @@ class ReportingTiersTest extends VenQoreTestCase
         $this->actingAs($user);
 
         // Invoice 6 months ago (180 days ago): $50,000
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'INV-OLD-' . uniqid(),
@@ -140,10 +140,10 @@ class ReportingTiersTest extends VenQoreTestCase
             'total'            => 50000.00,
             'created_at'       => now()->subDays(180),
             'updated_at'       => now()->subDays(180),
-        ]);
+        ]));
 
         // Invoice 10 days ago: $1,500
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'INV-RECENT-' . uniqid(),
@@ -151,7 +151,7 @@ class ReportingTiersTest extends VenQoreTestCase
             'total'            => 1500.00,
             'created_at'       => now()->subDays(10),
             'updated_at'       => now()->subDays(10),
-        ]);
+        ]));
 
         // Detail list query windowed to visible history (30 days on Solo)
         $detailList = Sale::where('tenant_id', $tenant->id)->visibleHistory($tenant)->get();
@@ -181,14 +181,14 @@ class ReportingTiersTest extends VenQoreTestCase
         app()->instance('current.tenant', $tenant);
         $this->actingAs($user);
 
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'INV-PAST-' . uniqid(),
             'status'           => 'posted',
             'total'            => 2000.00,
             'created_at'       => now()->subDays(120),
-        ]);
+        ]));
 
         // Underlying database records must never be purged or deleted
         $dbCount = Sale::where('tenant_id', $tenant->id)->count();
@@ -207,22 +207,22 @@ class ReportingTiersTest extends VenQoreTestCase
         $this->actingAs($user);
 
         // 1 old (90 days), 1 recent (5 days)
-        Sale::create([
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'INV-90D-' . uniqid(),
             'status'           => 'posted',
             'total'            => 300.00,
             'created_at'       => now()->subDays(90),
-        ]);
-        Sale::create([
+        ]));
+        \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'INV-5D-' . uniqid(),
             'status'           => 'posted',
             'total'            => 100.00,
             'created_at'       => now()->subDays(5),
-        ]);
+        ]));
 
         // On Solo: only 1 visible
         $this->assertEquals(1, Sale::where('tenant_id', $tenant->id)->visibleHistory($tenant)->count());
@@ -311,14 +311,14 @@ class ReportingTiersTest extends VenQoreTestCase
         $tenant = $this->createTenant(plan: 'solo', status: 'active');
         $user = $this->createTenantUser($tenant);
 
-        $oldSale = Sale::create([
+        $oldSale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'reference_number' => 'INV-ARCHIVE-' . uniqid(),
             'status'           => 'posted',
             'total'            => 450.00,
             'created_at'       => now()->subDays(120),
-        ]);
+        ]));
 
         $this->actingAs($user);
         app()->instance('current.tenant', $tenant);

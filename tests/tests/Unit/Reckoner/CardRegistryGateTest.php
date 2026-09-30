@@ -27,8 +27,8 @@ class CardRegistryGateTest extends TestCase
      */
     public function test_gate_registry_complete(): void
     {
-        $this->assertSame(349, CardRegistry::count(), 'CardRegistry count must be exactly 349.');
-        $this->assertSame(349, ResolverRegistry::count(), 'ResolverRegistry count must be exactly 349.');
+        $this->assertSame(364, CardRegistry::count(), 'CardRegistry count must be exactly 364.');
+        $this->assertSame(364, ResolverRegistry::count(), 'ResolverRegistry count must be exactly 364.');
 
         foreach (CardRegistry::all() as $key => $card) {
             $this->assertTrue(ResolverRegistry::has($key), "Card {$key} must have a registered resolver.");
@@ -60,7 +60,7 @@ class CardRegistryGateTest extends TestCase
         $this->assertCount(46, $modules, 'Must have exactly 46 modules.');
 
         $qore = CardRegistry::qoreCards();
-        $this->assertCount(32, $qore, 'Must have exactly 32 Qore cards.');
+        $this->assertCount(40, $qore, 'Must have exactly 40 Qore cards.');
 
         $moduleCardTotal = 0;
         foreach (array_keys($modules) as $moduleKey) {
@@ -74,8 +74,8 @@ class CardRegistryGateTest extends TestCase
             $moduleCardTotal += $count;
         }
 
-        $this->assertSame(317, $moduleCardTotal, 'Sum of module cards must be exactly 317.');
-        $this->assertSame(349, 32 + 317, 'Total cards must equal 32 Qore + 317 module cards.');
+        $this->assertSame(324, $moduleCardTotal, 'Sum of module cards must be exactly 324 (317 baseline + 7 cheque cards).');
+        $this->assertSame(364, 40 + 324, 'Total cards must equal 40 Qore + 324 module cards.');
     }
 
     /**

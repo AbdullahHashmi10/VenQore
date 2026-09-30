@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
 export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQueueCount = 0 }) {
@@ -113,7 +114,7 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
                 <div className="flex items-center justify-between">
                   <span>Current Bill:</span>
                   <span className="text-emerald-400 font-bold">
-                    ${Number(table.order_total || 0).toFixed(2)}
+                    {formatCurrency(table.order_total || 0)}
                   </span>
                 </div>
               </div>

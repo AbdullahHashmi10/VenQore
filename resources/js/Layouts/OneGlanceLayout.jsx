@@ -6,6 +6,8 @@ import OmniSearch from '@/Components/OmniSearch';
 import AiIsland from '@/Components/AiIsland';
 import OnboardingDriver from '@/Components/OnboardingDriver';
 import DemoBanner from '@/Components/DemoBanner';
+import HeaderCalculatorButton from '@/Components/Calculator/HeaderCalculatorButton';
+import CalculatorPopover from '@/Components/Calculator/CalculatorPopover';
 import {
  Activity,
  Monitor,
@@ -37,6 +39,7 @@ import {
  ShoppingCart,
  Users,
  Clock,
+ Calculator,
  Sparkles,
  MessageSquare,
  Check,
@@ -83,6 +86,7 @@ import ActivityHubModal from '@/Components/ActivityHubModal';
 import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 import { useTermText } from '@/lib/terms';
 import BottomNavBar from '@/Components/BottomNavBar';
+import KitchenPrinterAlertModal from '@/Components/Pos/KitchenPrinterAlertModal';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
@@ -125,6 +129,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Store Switcher Modal State
  const [isStoreSwitcherModalOpen, setIsStoreSwitcherModalOpen] = useState(false);
+
+ // Header Calculator State
+ const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+ const calculatorButtonRef = useRef(null);
 
  // Live Header Clock State (Default off per Launch Readiness Mandate)
  const [showClock, setShowClock] = useState(() => {
@@ -205,7 +213,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  currency_code: store?.currency_code || settings?.currency_code,
  currency_symbol: store?.currency_symbol || settings?.currency_symbol,
  store_name: store?.name || settings?.store_name || settings?.business_name,
- decimal_places: parseInt(settings?.decimal_places || 2)
+ decimal_places: parseInt(settings?.decimal_places ?? 2, 10)
  };
  }
 
@@ -351,6 +359,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const [isLargeText, setIsLargeText] = useState(false);
  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+ const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  const [expandedMenu, setExpandedMenu] = useState(null);
  const userMenuRef = useRef(null);
@@ -460,12 +469,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  return [
  { label: 'Business Dashboard', href: 'store.dashboard', icon: <LayoutDashboard size={14} /> },
  { label: 'Point of Sale (POS)', href: 'store.pos', icon: <Monitor size={14} /> },
- /* Table service is a separate screen, and it only appears for a
+ /* Table service is NOT a separate screen any more -- it is the
+				   register wearing its Table preset. This entry survives as a
+				   shortcut that opens the POS straight onto the floor (the route
+				   redirects to /pos?view=floor). It still only appears for a
+				   business that runs tables: a counter-only shop seeing a Tables
  business that runs one. A counter-only shop seeing a Tables
  entry it can never use is the kind of noise that makes people
  stop reading a menu. */
  ...(['tables', 'both'].includes(serviceMode)
- ? [{ label: tt('Tables'), href: 'store.tables.index', icon: <Armchair size={14} /> }]
+ ? [{ label: 'Floor', href: 'store.tables.index', icon: <Armchair size={14} /> }]
  : []),
  { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
  { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
@@ -596,8 +609,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  if (isIdle) setIsIdle(false);
  if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
 
- // Get auto_logout from settings (in minutes), default to 60
- const autoLogoutMinutes = parseInt(settings?.auto_logout) || 60;
+ // Get auto_logout from settings (in minutes), default to 60. 0 means disabled/never.
+ const rawAutoLogout = settings?.auto_logout;
+ const autoLogoutMinutes = (rawAutoLogout !== undefined && rawAutoLogout !== null && rawAutoLogout !== '')
+     ? parseInt(rawAutoLogout, 10)
+     : 60;
+
+ if (autoLogoutMinutes <= 0) {
+     return;
+ }
+
  const timeoutMs = autoLogoutMinutes * 60 * 1000;
 
  idleTimerRef.current = setTimeout(() => {
@@ -631,6 +652,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
 	const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
 
+	const onboardingMetrics = props.onboarding_metrics || {
+		has_products: false,
+		has_purchases: false,
+		has_sales: false,
+		has_expenses: false,
+		has_drive_sync: false
+	};
+	const setupChecklist = useMemo(() => [
+		{ key: 'inventory', label: tt('Catalog First Product'), isDone: !!onboardingMetrics.has_products },
+		{ key: 'purchase', label: 'Record First Purchase', isDone: !!onboardingMetrics.has_purchases },
+		{ key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: !!onboardingMetrics.has_sales },
+		{ key: 'expense', label: 'Record Store Expense', isDone: !!onboardingMetrics.has_expenses },
+		{ key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: !!onboardingMetrics.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected }
+	], [onboardingMetrics, store?.google_backup_enabled, store?.google_connected, tt]);
+	const setupRemainingCount = useMemo(() => setupChecklist.filter(item => !item.isDone).length, [setupChecklist]);
+	const showSetupBadge = !!(store && !store?.onboarding_completed && store?.onboarding_step && store?.onboarding_step !== 'completed' && setupRemainingCount > 0 && !store?.is_demo);
+
  const appMenuItemsRaw = [
  {
  name: 'Dashboard',
@@ -646,7 +684,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		icon: ShoppingCart,
 		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
 		subs: userRole === 'cashier' ? [] : [
-			{ group: 'Transactions', items: ['Orders', 'Tables', 'Floor Plan', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Transactions', items: ['Orders', 'Floor', 'Floor Plan', 'Kitchen', 'Dispatch', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
 			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
 			{ group: 'Config', items: ['E-Invoicing'] }
 		],
@@ -721,16 +759,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  routeParams: store ? { store_slug: store.slug } : {}
  },
  store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage', 'users.manage', 'audit')) ? {
- name: 'Administration',
- icon: ShieldCheck,
- subs: [
- { group: 'Executive', items: ['Executive Dashboard'] },
- { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
- { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] },
- { group: 'AI Support', items: ['Agent Inbox'] }
- ],
- route: store ? 'store.admin.dashboard' : null,
- routeParams: store ? { store_slug: store.slug } : {}
+  name: 'Administration',
+  icon: ShieldCheck,
+  subs: [
+  { group: 'Executive', items: ['Executive Dashboard'] },
+  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance', 'Approvals'] },
+  { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] }
+  ],
+  route: store ? 'store.admin.dashboard' : null,
+  routeParams: store ? { store_slug: store.slug } : {}
  } : null,
  store && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('admin.settings_manage')) ? {
  name: 'Settings',
@@ -753,8 +790,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
-		'Tables': 'pos',
+		'Floor': 'pos',
 		'Floor Plan': 'pos',
+		'Kitchen': 'pos',
+		'Dispatch': 'pos',
 		'Service Jobs': 'services',
 		'Dispatch Calendar': 'services',
 		'Tools & Equipment': 'services',
@@ -851,8 +890,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 	const SUBITEM_ROUTES = {
 		'Orders': ['store.sales-orders.index', 'store.sales.index'],
-		'Tables': ['store.tables.index', 'store.tables.plan'],
+		/* `store.tables.index` redirects into the register now, so it is
+		   never the current route and matching on it left this entry
+		   permanently unhighlighted. The floor IS the POS, so it matches
+		   the POS. */
+		'Floor': ['store.pos', 'store.tables.index', 'store.tables.plan'],
 		'Floor Plan': ['store.tables.plan', 'store.tables.index'],
+		'Kitchen': ['store.restaurant.kitchen', 'restaurant.kitchen'],
+		'Dispatch': ['store.restaurant.dispatch', 'restaurant.dispatch'],
 		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
 		'Dispatch Calendar': ['store.service-jobs.calendar'],
 		'Tools & Equipment': ['store.tools.index'],
@@ -889,6 +934,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Bank Reconciliation': ['store.bank-reconciliation.index'],
 		'VenSynQ': ['store.vensynq.index'],
 		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
+		'Approvals': ['store.approvals.inbox', 'store.approvals.my-submissions'],
 	};
 
 	const enabledModuleSet = Array.isArray(props?.modules)
@@ -907,6 +953,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const subitemModuleVisible = (item) => {
 		const label = typeof item === 'string' ? item : item?.label;
 		if (!label) return true;
+
+		// Kitchen and Dispatch are visible ONLY when prepares_orders is active ('1')
+		if (label === 'Kitchen' || label === 'Dispatch') {
+			if (String(settings?.prepares_orders) !== '1') {
+				return false;
+			}
+		}
 
 		// 1. Module key check against enabledModuleSet
 		const owner = SUBITEM_MODULE[label];
@@ -1035,12 +1088,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  route: store ? 'store.billing' : null,
  routeParams: store ? { store_slug: store.slug } : {} }] : []),
 
- { name: 'Agent Inbox', icon: MessageSquare, subs: [],
- route: store ? 'store.admin.chatbot.inbox' : null,
- routeParams: store ? { store_slug: store.slug } : {} },
-
- { name: 'Chatbot Settings', icon: Sparkles, subs: [],
- route: store ? 'store.admin.chatbot.settings' : null,
+ { name: 'Apps', icon: Monitor, subs: [],
+ route: store ? 'store.apps' : null,
  routeParams: store ? { store_slug: store.slug } : {} },
  ];
 
@@ -1048,6 +1097,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const MENU_PERMISSIONS = {
  'Home': [],
  'Dashboard': [],
+ 'Apps': [],
  'Administration': ['admin.settings_manage', 'users.manage'],
  'Settings': ['admin.settings_manage'],
  'AI Scan': ['pos', 'sales', 'purchases'],
@@ -1064,9 +1114,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'VenSynQ': ['sales.create', 'inventory.adjust'],
  'Insights': ['reports'],
  'Activity Log': ['audit'],
+ 'Approvals': ['approvals.inbox', 'approvals.review'],
  'Recycle Bin': ['settings'],
- 'Agent Inbox': ['settings'],
- 'Chatbot Settings': ['settings'],
  // 'Settings': ['settings'], // Removed
  // 'System': ['settings', 'audit'], // Removed
  'Overview': [],
@@ -1492,7 +1541,32 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {/* USER MENU POPUP */}
  {isUserMenuOpen && (
- <div className="absolute bottom-20 left-4 w-56 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+ <div className="absolute bottom-20 left-4 w-60 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
+  {/* Setup Checklist in Profile Menu */}
+  {showSetupBadge && (
+   <button
+    onClick={() => {
+     setIsUserMenuOpen(false);
+     setIsChecklistModalOpen(true);
+    }}
+    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex items-center justify-between group shadow-xs cursor-pointer"
+   >
+    <div className="flex items-center gap-2.5">
+     <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
+      <Sparkles size={14} className="animate-pulse" />
+     </div>
+     <div>
+      <div className="text-xs font-bold text-ink">Setup Checklist</div>
+      <div className="text-3xs font-semibold text-brand-600 dark:text-brand-400">
+       {setupRemainingCount} step{setupRemainingCount > 1 ? 's' : ''} remaining
+      </div>
+     </div>
+    </div>
+    <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
+     {setupRemainingCount}
+    </span>
+   </button>
+  )}
  						{props.auth?.my_stores_count > 1 && (
 							<button
 								onClick={() => {
@@ -1551,9 +1625,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )}
 
  <button
- className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent hover:border-line dark:hover:border-line-strong`}
+ className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent hover:border-line dark:hover:border-line-strong relative group`}
  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+ title={showSetupBadge ? `Profile (${setupRemainingCount} setup steps remaining)` : 'Profile'}
  >
+ <div className="relative shrink-0">
  <div className="w-10 h-10 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md ring-2 ring-white dark:ring-line">
  {(() => {
  const name = props.auth?.user?.name || '';
@@ -1565,6 +1641,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  return email.substring(0, 2).toUpperCase();
  })()}
+ </div>
+ {showSetupBadge && (
+ <span
+ title={`${setupRemainingCount} setup steps remaining`}
+ className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-amber-500 text-white text-3xs font-extrabold rounded-full flex items-center justify-center shadow-md ring-2 ring-surface animate-pulse pointer-events-none"
+ >
+ {setupRemainingCount}
+ </span>
+ )}
  </div>
  <div className={`text-left transition-all duration-slow overflow-hidden ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
  <p className="text-sm font-bold text-ink truncate max-w-[120px]">
@@ -1675,19 +1760,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   <Menu size={20} />
   </button>
 
-  {/* Header Link: When on store admin subpages, quick link Back to Home */}
-  {store && !(isPlatformAdmin && !store) && mode === 'admin' && (
-  <Link
-  id="tour-sidebar-admin"
-  href={store ? route('store.home', {store_slug: store.slug}) : '#'}
-  className="hidden sm:flex group relative items-center gap-2 h-11 px-3.5 rounded-xl border bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all duration-slow"
-  >
-  <Home size={16} className="text-brand-500" />
-  <span className="text-sm font-bold text-ink">
-  Home
-  </span>
-  </Link>
-  )}
+
   </div>
 
   {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}
@@ -1723,6 +1796,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   <div className="hidden lg:block">
   <CharityButton charityEnabled={charityEnabled} />
   </div>
+  )}
+
+  {/* Header Calculator */}
+  {(settings?.header_calculator_enabled === '1' || settings?.header_calculator_enabled === true) && (
+      <div className="relative">
+          <HeaderCalculatorButton
+              ref={calculatorButtonRef}
+              isOpen={isCalculatorOpen}
+              onClick={() => setIsCalculatorOpen(!isCalculatorOpen)}
+          />
+          <CalculatorPopover
+              isOpen={isCalculatorOpen}
+              onClose={() => setIsCalculatorOpen(false)}
+              buttonRef={calculatorButtonRef}
+          />
+      </div>
   )}
 
   {/* Display & Dashboard Customization Settings Dropdown */}
@@ -1784,6 +1873,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                       <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${showClock ? 'left-4.5' : 'left-0.5'}`} />
                   </div>
               </button>
+
+              <div className="w-full flex items-center justify-between p-2 rounded-xl text-ink-secondary transition-all">
+                  <div className="flex items-center gap-2.5">
+                      <Calculator size={16} className="text-brand-500 shrink-0" />
+                      <span className="text-sm font-semibold">Header Calculator</span>
+                  </div>
+                  <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-sunken text-ink-muted">
+                      {(settings?.header_calculator_enabled === '1' || settings?.header_calculator_enabled === true) ? 'Enabled' : 'Managed in Store Settings'}
+                  </span>
+              </div>
 
               <button
                   onClick={() => {
@@ -2030,6 +2129,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
               {/* User Settings */}
               <div className="border-t border-line pt-2 space-y-1">
+                  {showSetupBadge && (
+                      <button
+                          onClick={() => {
+                              setIsMobileMenuOpen(false);
+                              setIsChecklistModalOpen(true);
+                          }}
+                          className="w-full flex items-center justify-between p-2.5 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left group"
+                      >
+                          <div className="flex items-center gap-2.5">
+                              <Sparkles size={16} className="text-brand-500 shrink-0 animate-pulse" />
+                              <span className="text-sm font-semibold">Setup Checklist</span>
+                          </div>
+                          <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
+                              {setupRemainingCount}
+                          </span>
+                      </button>
+                  )}
                   {store && (
                       <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
                           <User size={16} /> Profile Settings
@@ -2102,7 +2218,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  <PwaInstallPrompt />
  <VersionChecker />
  <OnboardingDriver />
- <GlobalOnboardingWidget store={store} />
+ <GlobalOnboardingWidget
+     store={store}
+     isOpen={isChecklistModalOpen}
+     onClose={() => setIsChecklistModalOpen(false)}
+ />
  <ActivityHubModal
      isOpen={isActivityHubModalOpen}
      onClose={() => setIsActivityHubModalOpen(false)}
@@ -2156,6 +2276,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 				{/* Global Toast Notifications */}
  <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
+
+ 				{/* Loud Kitchen Printer Alerts */}
+ 				<KitchenPrinterAlertModal />
 
  {/* Global Style Injections for Mobile FABs Drawer */}
  <style>{`

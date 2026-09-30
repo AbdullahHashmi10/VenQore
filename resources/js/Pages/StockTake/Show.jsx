@@ -10,6 +10,7 @@ import {
     FileText
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import { formatNumber } from '@/Utils/format';
 
 export default function Show({ audit }) {
     const { store } = usePage().props;
@@ -159,7 +160,7 @@ export default function Show({ audit }) {
                                                 {diff > 0 ? `+${diff}` : diff}
                                             </td>
                                             <td className={`px-6 py-4 text-right font-mono ${diff === 0 ? 'text-ink-muted' : 'text-ink-secondary'}`}>
-                                                {impact === 0 ? '-' : (impact > 0 ? `+${impact.toFixed(2)}` : impact.toFixed(2))}
+                                                {impact === 0 ? '-' : (impact > 0 ? `+${formatNumber(impact)}` : formatNumber(impact))}
                                             </td>
                                         </tr>
                                     );

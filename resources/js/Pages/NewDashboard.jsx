@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Head, router, Link } from '@inertiajs/react';
+import { Head, router, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -167,7 +167,8 @@ function modulesOf(key){
 }
 
 function prepareReadings(source) {
-  const list = (Array.isArray(source) && source.length > 0) ? [...source] : [...RECKONER_CATALOG];
+  // An empty server catalogue means this user has no permitted readings.
+  const list = Array.isArray(source) ? [...source] : [...RECKONER_CATALOG];
   if (typeof window !== "undefined" && window.__VENQORE_DEMO_MODE__) {
     list.push(
       { key:"finance.expenses_trend", label:"Expense trend", shape:"SERIES", unit:"currency",
@@ -2274,6 +2275,12 @@ function addCard(key, opts = {}){
   /* the card decides its own smallest honest size — never the caller */
   c.cat = opts.cat && fitsFor(c, opts.cat).length ? opts.cat : fitCat(c);
   clampFit(c, opts.fit);
+  const cols = boardCols();
+  const [w, h] = sizeOf(c, cols);
+  const spot = freeSpot(c, 0, 0, w, h, cols);
+  c.gx = spot.x;
+  c.gy = spot.y;
+  markFrameDirty();
   CARDS.push(c);
   draw();
   return c;
@@ -2614,12 +2621,11 @@ function cardFrame(c, opts){
      container query, so an interior can thin out at 2 rows and fill out at 6. */
   const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
   const is12 = (opts.cols || 12) >= 12;
-  const pinned = ((frameSlot && is12)
-    || (Number.isInteger(c.gx) && Number.isInteger(c.gy) && is12));
+  const pinned = is12 && ((frameSlot != null) || (Number.isInteger(c.gx) && Number.isInteger(c.gy)));
   const colSpan = (frameSlot && is12) ? Number(frameSlot.w) : w;
   const rowSpan = (frameSlot && is12) ? Number(frameSlot.h) : h;
-  const colStart = (frameSlot ? Number(frameSlot.x) : c.gx) + 1;
-  const rowStart = (frameSlot ? Number(frameSlot.y) : c.gy) + 1;
+  const colStart = ((frameSlot && is12) ? Number(frameSlot.x) : (Number.isInteger(c.gx) ? c.gx : 0)) + 1;
+  const rowStart = ((frameSlot && is12) ? Number(frameSlot.y) : (Number.isInteger(c.gy) ? c.gy : 0)) + 1;
   const place = pinned
     ? `grid-column:${colStart} / span ${colSpan};grid-row:${rowStart} / span ${rowSpan};`
     : "";
@@ -2936,39 +2942,68 @@ const HOST_RO = typeof ResizeObserver === "undefined" ? null : new ResizeObserve
   }
 });
 
-function ensureAllSlotsFilled(){
-  if (!FRAME_SLOTS || !FRAME_SLOTS.length) return;
-  const occupiedSlots = new Set(CARDS.map(c => Number(c.frameSlot)).filter(Number.isFinite));
-  const usedKeys = new Set(CARDS.map(c => c.key).filter(Boolean));
+function resolveCollisions(cards, cols){
+  if (!Array.isArray(cards) || !cards.length) return;
+  if (cols >= 12){
+    const occupied = [];
+    const usedSlots = new Set();
+    cards.forEach(c => {
+      const slotNum = Number(c.frameSlot);
+      const slot = (Number.isFinite(slotNum) && !usedSlots.has(slotNum))
+        ? FRAME_SLOTS.find(s => Number(s.slot) === slotNum)
+        : null;
 
-  FRAME_SLOTS.forEach(slot => {
-    const slotNum = Number(slot.slot);
-    if (!occupiedSlots.has(slotNum)) {
-      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
-        || READINGS.find(r => readingAvailable(r))
-        || READINGS[0];
-      if (availReading) {
-        usedKeys.add(availReading.key);
-        const fitIndex = (FITS[slot.category] || []).findIndex(fit => fit[2] === slot.fit);
-        CARDS.push(normaliseCard({
-          id: newId(),
-          key: availReading.key,
-          chart: legalFor(availReading.key)[0] || "stat",
-          period: "Month",
-          frameSlot: slotNum,
-          gx: Number(slot.x),
-          gy: Number(slot.y),
-          w: Number(slot.w),
-          h: Number(slot.h),
-          cat: slot.category,
-          fit: fitIndex < 0 ? (DEFAULT_FIT[slot.category] || 0) : fitIndex,
-          variant: "spark",
-          accent: slotNum === 1,
-        }));
-        occupiedSlots.add(slotNum);
+      if (slot) {
+        usedSlots.add(slotNum);
       }
-    }
-  });
+
+      let [w, h] = slot ? [Number(slot.w), Number(slot.h)] : sizeOf(c, cols);
+      let x = slot ? Number(slot.x) : (Number.isInteger(c.gx) ? c.gx : null);
+      let y = slot ? Number(slot.y) : (Number.isInteger(c.gy) ? c.gy : null);
+
+      const collides = (xx, yy) => occupied.some(o =>
+        xx < o.x + o.w && o.x < xx + w && yy < o.y + o.h && o.y < yy + h
+      );
+
+      if (x === null || y === null || collides(x, y)) {
+        let testY = y != null ? y : 0;
+        let testX = x != null ? Math.max(0, Math.min(cols - w, x)) : 0;
+        while (collides(testX, testY)) {
+          testX++;
+          if (testX + w > cols) {
+            testX = 0;
+            testY++;
+          }
+        }
+        x = testX;
+        y = testY;
+        c.gx = x;
+        c.gy = y;
+        if (slot && (x !== Number(slot.x) || y !== Number(slot.y))) {
+          delete c.frameSlot;
+        }
+      } else {
+        c.gx = x;
+        c.gy = y;
+      }
+      occupied.push({ x, y, w, h });
+    });
+  }
+}
+
+function renderEmptySlot(slot){
+  const x = Number(slot.x) + 1;
+  const y = Number(slot.y) + 1;
+  const w = Number(slot.w);
+  const h = Number(slot.h);
+  return `<div class="vqc vqc--empty-slot" data-slot="${slot.slot}"
+    style="grid-column:${x} / span ${w}; grid-row:${y} / span ${h}; --vqw:${w}; --vqh:${h}; min-height:calc(${h} * (var(--vq-unit, 64px) + var(--vq-gap, 16px)) - var(--vq-gap, 16px)); display:flex; align-items:center; justify-content:center; border-radius:var(--vq-radius-card, 16px); border:1.5px dashed var(--vq-line, rgba(255,255,255,0.14)); background:var(--vq-surface-subtle, rgba(255,255,255,0.02)); transition:all 0.2s ease;">
+    <button type="button" class="vqc-empty-btn" data-slot="${slot.slot}"
+      style="background:none; border:none; font-size:13px; font-weight:600; color:var(--vq-muted, #8b949e); cursor:pointer; display:flex; align-items:center; gap:6px; padding:8px 14px; border-radius:8px; transition:all 0.15s ease;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      Add a card
+    </button>
+  </div>`;
 }
 
 function draw(){
@@ -2977,17 +3012,48 @@ function draw(){
   const cols = boardCols(board);
   COL_W = boardColW(board);
   LAST_COLS = cols;
-  if (cols >= 12 && FRAME_SLOTS && FRAME_SLOTS.length) {
-    ensureAllSlotsFilled();
+
+  const seenIds = new Set();
+  CARDS = CARDS.filter(c => {
+    if (!c || !c.id) return false;
+    if (seenIds.has(c.id)) return false;
+    seenIds.add(c.id);
+    return true;
+  });
+  resolveCollisions(CARDS, cols);
+
+  let emptySlotsHtml = "";
+  if (cols >= 12 && Array.isArray(FRAME_SLOTS) && FRAME_SLOTS.length > 0 && !FRAME_DIRTY) {
+    const occupiedSlots = new Set();
+    CARDS.forEach(c => {
+      const s = Number(c.frameSlot);
+      if (Number.isFinite(s)) occupiedSlots.add(s);
+    });
+    const emptySlots = FRAME_SLOTS.filter(s => !occupiedSlots.has(Number(s.slot)));
+    emptySlotsHtml = emptySlots.map(renderEmptySlot).join("");
   }
+
   HOST_RO?.disconnect();
-  const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("");
+  const cardsHtml = CARDS.map(c => renderCard(c, cols)).join("") + emptySlotsHtml;
   board.innerHTML = cardsHtml
     || `<p class="board-empty">No cards yet — open <strong>Add card</strong> and pick what you want to see.</p>`;
   const count = document.getElementById("count");
   if (count) count.textContent = CARDS.length;
 
-  board.querySelectorAll(".vqc").forEach(el => {
+  board.querySelectorAll(".vqc--empty-slot").forEach(el => {
+    const slotNum = Number(el.dataset.slot);
+    const slot = FRAME_SLOTS.find(s => Number(s.slot) === slotNum);
+    el.addEventListener("click", e => {
+      e.stopPropagation();
+      if (typeof window !== "undefined" && window._vqOpenAddCardForSlot) {
+        window._vqOpenAddCardForSlot(slot);
+      } else if (typeof window !== "undefined" && window._vqAddCard) {
+        window._vqAddCard(0);
+      }
+    });
+  });
+
+  board.querySelectorAll(".vqc:not(.vqc--empty-slot)").forEach(el => {
     const c = cardOf(el.dataset.id); if (!c) return;
     const host = el.querySelector(".vqc-host");
     if (host){ mountChart(host, c); HOST_RO?.observe(host); }
@@ -3109,6 +3175,12 @@ function wireResize(el, c){
     hint.className = "vqc-size-hint"; el.appendChild(hint);
     let lastW = 0, lastH = 0;
 
+    const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
+    const is12 = cols >= 12;
+    const pinned = is12 && ((frameSlot != null) || (Number.isInteger(c.gx) && Number.isInteger(c.gy)));
+    const colStart = ((frameSlot && is12) ? Number(frameSlot.x) : (Number.isInteger(c.gx) ? c.gx : 0)) + 1;
+    const rowStart = ((frameSlot && is12) ? Number(frameSlot.y) : (Number.isInteger(c.gy) ? c.gy : 0)) + 1;
+
     const move = ev => {
       let w = Math.round((ev.clientX - start.left + GRID.gutter) / pitchX);
       let h = Math.round((ev.clientY - start.top + GRID.gutter) / pitchY);
@@ -3131,6 +3203,13 @@ function wireResize(el, c){
         .replace(/vqc--fit-\d+/, "vqc--fit-" + c.fit);
       el.style.setProperty("--vqw", w); el.style.setProperty("--vqh", h);
       el.dataset.w = w; el.dataset.h = h;
+      if (pinned) {
+        el.style.gridColumn = `${colStart} / span ${w}`;
+        el.style.gridRow = `${rowStart} / span ${h}`;
+      } else {
+        el.style.gridColumn = `span ${w}`;
+        el.style.gridRow = `span ${h}`;
+      }
       const fitName = (T[cat][c.fit] || [])[2];
       hint.textContent = `${w} × ${h}${fitName ? " · " + fitName : ""}`;
       const host = el.querySelector(".vqc-host"); if (host) mountChart(host, c);
@@ -3160,15 +3239,27 @@ function wireResize(el, c){
    the board stacks in card order instead, so a phone never inherits a
    desktop arrangement it has no room for. */
 function pinnedOthers(self, cols){
-  return CARDS.filter(o => o !== self && Number.isInteger(o.gx) && Number.isInteger(o.gy))
-    .map(o => { const [w, h] = sizeOf(o, cols); return { x: o.gx, y: o.gy, w, h }; });
+  return CARDS.filter(o => o !== self).map(o => {
+    const slot = FRAME_SLOTS.find(s => Number(s.slot) === Number(o.frameSlot));
+    const ox = (slot && (cols || 12) >= 12) ? Number(slot.x) : (Number.isInteger(o.gx) ? o.gx : null);
+    const oy = (slot && (cols || 12) >= 12) ? Number(slot.y) : (Number.isInteger(o.gy) ? o.gy : null);
+    const [ow, oh] = (slot && (cols || 12) >= 12) ? [Number(slot.w), Number(slot.h)] : sizeOf(o, cols);
+    if (ox === null || oy === null) return null;
+    return { x: ox, y: oy, w: ow, h: oh };
+  }).filter(Boolean);
 }
 function freeSpot(self, gx, gy, w, h, cols){
   const others = pinnedOthers(self, cols);
-  const x = Math.max(0, Math.min(cols - w, gx));
-  let y = Math.max(0, gy);
-  const hits = (yy) => others.some(o => x < o.x + o.w && o.x < x + w && yy < o.y + o.h && o.y < yy + h);
-  while (hits(y)) y++;
+  let x = Math.max(0, Math.min((cols || 12) - w, Number.isInteger(gx) ? gx : 0));
+  let y = Math.max(0, Number.isInteger(gy) ? gy : 0);
+  const hits = (yy, xx) => others.some(o => xx < o.x + o.w && o.x < xx + w && yy < o.y + o.h && o.y < yy + h);
+  while (hits(y, x)) {
+    x++;
+    if (x + w > (cols || 12)) {
+      x = 0;
+      y++;
+    }
+  }
   return { x, y };
 }
 function beginMove(e0, el, c){
@@ -3414,8 +3505,8 @@ function serverCard(c){
     fit,
     w,
     h,
-    x: Number.isInteger(c.gx) ? c.gx : 0,
-    y: Number.isInteger(c.gy) ? c.gy : 0,
+    x: Number.isInteger(c.gx) ? c.gx : null,
+    y: Number.isInteger(c.gy) ? c.gy : null,
     frame_slot: Number.isFinite(Number(c.frameSlot)) ? Number(c.frameSlot) : null,
     style: { variant: c.variant, accent: !!c.accent },
   };
@@ -3447,9 +3538,7 @@ function setFrame(frameKey, slots){
     let matched = oldCards.find(c => !usedKeys.has(c.key) && c.cat === slot.category);
     if (!matched) matched = oldCards.find(c => !usedKeys.has(c.key));
     if (!matched) {
-      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r))
-        || READINGS.find(r => readingAvailable(r))
-        || READINGS[0];
+      const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r));
       if (availReading) {
         matched = {
           id: newId(),
@@ -3597,7 +3686,7 @@ window.VenQoreCards = {
   getReadings: () => READINGS,
   getAvailableReadings: () => availableReadings(),
   setReadings: (newReadings) => {
-    if (Array.isArray(newReadings) && newReadings.length > 0) {
+    if (Array.isArray(newReadings)) {
       READINGS = prepareReadings(newReadings);
       if (typeof window !== 'undefined') window.__VENQORE_READINGS__ = newReadings;
       draw();
@@ -3884,10 +3973,12 @@ function DashRail({
   cashData = null, bankAccounts = [], cashAccounts = [],
   recentTransactions = [], topSellingItems = [], lowStockItems = [],
   performance = {}, currencySymbol = 'Rs', isDemo = false, debtors = [],
+  hasPermission = () => false, auth = {},
 }) {
   const modOk = mods => !enabledModules.length || !mods || !mods.length || mods.some(m => enabledModules.includes(m));
 
   if (id === 'v6_cockpit') {
+    if (!hasPermission('finance.balances')) return null;
     return (
       <V6FinancialSidebar
         recentTransactions={recentTransactions}
@@ -3903,6 +3994,7 @@ function DashRail({
   }
 
   if (id === 'classic_panel') {
+    if (!hasPermission('finance.balances')) return null;
     return (
       <RightPanel
         recentTransactions={recentTransactions}
@@ -3915,26 +4007,37 @@ function DashRail({
     );
   }
 
-  if (id === 'action_trio') return (
-    <section className="vq-rail-card vq-rail-card--trio">
-      <div className="vq-rail-trio">
-        <a href="/pos" className="vq-trio-btn is-sale">
-          <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="m5 12 7 7 7-7"/></svg></span>
-          <span>Sale</span>
-        </a>
-        <a href={storePath('/purchase-orders')} className="vq-trio-btn is-purchase">
-          <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7-7-7 7"/></svg></span>
-          <span>Purchase</span>
-        </a>
-        <button type="button" className="vq-trio-btn is-actions" onClick={onQuickActions}>
-          <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
-          <span>Actions</span>
-        </button>
-      </div>
-    </section>
-  );
+  if (id === 'action_trio') {
+    const canPos = hasPermission('pos.checkout') || hasPermission('pos.open_session');
+    const canSale = canPos || hasPermission('sales.create') || hasPermission('invoices.create');
+    const canPurchase = hasPermission('purchases.create') || hasPermission('purchases.view');
+
+    return (
+      <section className="vq-rail-card vq-rail-card--trio">
+        <div className="vq-rail-trio">
+          {canSale && (
+            <a href={canPos ? storePath('/pos') : storePath('/sales')} className="vq-trio-btn is-sale">
+              <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19V5"/><path d="m5 12 7 7 7-7"/></svg></span>
+              <span>{canPos ? 'POS' : 'Sale'}</span>
+            </a>
+          )}
+          {canPurchase && (
+            <a href={storePath('/purchase-orders')} className="vq-trio-btn is-purchase">
+              <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="m19 12-7-7-7 7"/></svg></span>
+              <span>Purchase</span>
+            </a>
+          )}
+          <button type="button" className="vq-trio-btn is-actions" onClick={onQuickActions}>
+            <span className="vq-trio-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span>
+            <span>Actions</span>
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   if (id === 'balances') {
+    if (!hasPermission('finance.balances')) return null;
     // Build account rows from real server data
     const allAccounts = [
       ...cashAccounts.map(a => ({ n: a.name || 'Cash', v: `${currencySymbol} ${(a.current_balance ?? 0).toLocaleString()}` })),
@@ -3976,6 +4079,12 @@ function DashRail({
   }
 
   if (id === 'today') {
+    const canSeeFinance = hasPermission('finance.balances') || hasPermission('reports.summary') || hasPermission('reports.financial');
+    const canSeeSales = canSeeFinance || hasPermission('sales.view') || hasPermission('reports.sales');
+    const canSeeExpenses = canSeeFinance || hasPermission('finance.expenses') || hasPermission('expenses.view');
+
+    if (!canSeeFinance && !canSeeSales && !canSeeExpenses) return null;
+
     const today = performance?.Today || {};
     const sales    = today?.sales    ?? 0;
     const expenses = today?.expenses ?? 0;
@@ -3986,16 +4095,17 @@ function DashRail({
       <section className="vq-rail-card">
         <header className="vq-rail-h"><span>Today at a glance</span></header>
         <div className="vq-rail-minigrid">
-          <div className="vq-rail-mini"><span>Sales</span><strong>{fmt(sales)}</strong></div>
-          <div className="vq-rail-mini"><span>Expenses</span><strong>{fmt(expenses)}</strong></div>
-          <div className="vq-rail-mini"><span>Money in</span><strong>{fmt(moneyIn)}</strong></div>
-          <div className="vq-rail-mini"><span>Money out</span><strong>{fmt(moneyOut)}</strong></div>
+          {canSeeSales && <div className="vq-rail-mini"><span>Sales</span><strong>{fmt(sales)}</strong></div>}
+          {canSeeExpenses && <div className="vq-rail-mini"><span>Expenses</span><strong>{fmt(expenses)}</strong></div>}
+          {canSeeFinance && <div className="vq-rail-mini"><span>Money in</span><strong>{fmt(moneyIn)}</strong></div>}
+          {canSeeFinance && <div className="vq-rail-mini"><span>Money out</span><strong>{fmt(moneyOut)}</strong></div>}
         </div>
       </section>
     );
   }
 
   if (id === 'activity') {
+    if (!hasPermission('finance.transactions')) return null;
     // recentTransactions from GL: { type, amount, time, description, activityType, reference_id }
     const txList = recentTransactions.slice(0, 5);
     const kindClass = t => ({ sale: 'in', payment_in: 'in', purchase: 'out', expense: 'out', payment_out: 'out', return: 'warn' }[t] || 'info');
@@ -4036,6 +4146,7 @@ function DashRail({
   }
 
   if (id === 'alerts') {
+    if (!hasPermission('inventory.view')) return null;
     // Drive from lowStockItems — real server data
     const alerts = [];
     if (lowStockItems.length > 0) {
@@ -4062,27 +4173,51 @@ function DashRail({
     );
   }
 
-  if (id === 'quick_actions') return (
-    <section className="vq-rail-card">
-      <header className="vq-rail-h"><span>Quick actions</span></header>
-      <div className="vq-rail-actions">
-        <a href={storePath('/sales')} className="vq-rail-act is-primary">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
-          <span>New Invoice</span>
-        </a>
-        <a href={storePath('/purchase-orders')} className="vq-rail-act">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          <span>New Purchase</span>
-        </a>
-        <button type="button" className="vq-rail-act" onClick={onQuickActions}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-          <span>More actions</span>
-        </button>
-      </div>
-    </section>
-  );
+  if (id === 'quick_actions') {
+    const canPos = hasPermission('pos.checkout') || hasPermission('pos.open_session');
+    const canInvoice = hasPermission('sales.create') || hasPermission('invoices.create');
+    const canPurchase = hasPermission('purchases.create') || hasPermission('purchases.view');
+    const canApprovals = hasPermission('approvals.submit') || hasPermission('approvals.view_own');
+
+    return (
+      <section className="vq-rail-card">
+        <header className="vq-rail-h"><span>Quick actions</span></header>
+        <div className="vq-rail-actions">
+          {canPos && (
+            <a href={storePath('/pos')} className="vq-rail-act is-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="14" x="3" y="3" rx="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9.01" y1="13" y2="13"/><line x1="15" x2="15.01" y1="13" y2="13"/></svg>
+              <span>POS Register</span>
+            </a>
+          )}
+          {canInvoice && !canPos && (
+            <a href={storePath('/sales')} className="vq-rail-act is-primary">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+              <span>New Invoice</span>
+            </a>
+          )}
+          {canPurchase && (
+            <a href={storePath('/purchase-orders')} className="vq-rail-act">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span>New Purchase</span>
+            </a>
+          )}
+          {canApprovals && !canPurchase && (
+            <a href={storePath('/approvals')} className="vq-rail-act">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              <span>My Approvals</span>
+            </a>
+          )}
+          <button type="button" className="vq-rail-act" onClick={onQuickActions}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            <span>More actions</span>
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   if (id === 'targets') {
+    if (!hasPermission('reports.performance') && !hasPermission('reports.summary') && !hasPermission('finance.balances')) return null;
     const monthlyRev = performance?.Month?.sales || 0;
     const targetRev = 300000;
     const pacePct = Math.min(100, Math.round((monthlyRev / targetRev) * 100));
@@ -4104,6 +4239,7 @@ function DashRail({
   }
 
   if (id === 'top_lists') {
+    if (!hasPermission('reports.performance') && !hasPermission('reports.summary') && !hasPermission('sales.view')) return null;
     // Use real topSellingItems from controller
     const topMax = topSellingItems[0]?.net_revenue ?? 0;
     return (
@@ -4128,6 +4264,7 @@ function DashRail({
   }
 
   if (id === 'reminders') {
+    if (!hasPermission('finance.balances')) return null;
     const debtorsList = (debtors && debtors.length > 0) ? debtors : (DASHBOARD_RUNTIME_DATA?.debtors || []);
     return (
       <section className="vq-rail-card">
@@ -4158,8 +4295,9 @@ export default function NewDashboard(props) {
   const previewFrameRef = useRef(null);
   const previewHandleRef = useRef(null);
 
-  const store = props?.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
-  const auth = props?.auth || {};
+  const pageProps = usePage()?.props || {};
+  const store = props?.store || pageProps.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
+  const auth = props?.auth || pageProps.auth || {};
   const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
   const settings = props?.settings || {};
   const isDemo = props?.is_demo === true;
@@ -4189,7 +4327,7 @@ export default function NewDashboard(props) {
   const frames = Array.isArray(props?.frames) ? props.frames : [];
   const [activeFrameKey, setActiveFrameKey] = useState(props?.activeFrame || 'classic');
   const [frameDirty, setFrameDirty] = useState(!!props?.frameDirty);
-  if (typeof window !== 'undefined' && Array.isArray(readingsProp) && readingsProp.length > 0) {
+  if (typeof window !== 'undefined' && Array.isArray(readingsProp)) {
     window.__VENQORE_READINGS__ = readingsProp;
   }
   if (typeof window !== 'undefined' && layoutLawProp) {
@@ -4278,6 +4416,7 @@ export default function NewDashboard(props) {
   /* ── the add-card wizard ─────────────────────────────────────────────── */
   const [framePickerModalOpen, setFramePickerModalOpen] = useState(false);
   const [stepperModalOpen, setStepperModalOpen] = useState(false);
+  const [targetSlot, setTargetSlot] = useState(null);
   const [categoryFolderIndex, setCategoryFolderIndex] = useState(0); // 0 readings · 1 hubs · 2 shortcuts
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -4366,7 +4505,17 @@ export default function NewDashboard(props) {
   const panelDesign = PANEL_DESIGNS.find(d => d.id === railPrefs.design) || null;
   const [railsModalOpen, setRailsModalOpen] = useState(false);
 
+  const permissions = auth?.user?.permissions || [];
+  const isOwnerOrAdmin = auth?.user?.is_platform_admin || auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || permissions.includes('*');
+  const hasPermission = key => isOwnerOrAdmin || permissions.includes(key);
+
   const railAvailable = (def) => {
+    if (['v6_cockpit', 'classic_panel', 'balances', 'reminders'].includes(def.id) && !hasPermission('finance.balances')) return false;
+    if (def.id === 'activity' && !hasPermission('finance.transactions')) return false;
+    if (def.id === 'today' && !hasPermission('finance.balances') && !hasPermission('reports.summary') && !hasPermission('reports.financial') && !hasPermission('sales.view')) return false;
+    if (def.id === 'targets' && !hasPermission('reports.performance') && !hasPermission('reports.summary') && !hasPermission('finance.balances')) return false;
+    if (def.id === 'top_lists' && !hasPermission('reports.performance') && !hasPermission('reports.summary') && !hasPermission('sales.view')) return false;
+    if (def.id === 'alerts' && !hasPermission('inventory.view')) return false;
     const mods = Array.isArray(props?.modules) ? props.modules : [];
     if (!mods.length || !def.modules.length) return true;
     return def.modules.some(m => mods.includes(m));
@@ -4796,8 +4945,26 @@ export default function NewDashboard(props) {
   };
   const openPicker = (catIndex = 0) => {
     setFamily(catIndex);
+    setTargetSlot(null);
     setStepperModalOpen(true);
   };
+  const openPickerForSlot = useCallback((slot) => {
+    setTargetSlot(slot || null);
+    if (slot) {
+      setFamily(0);
+      setDraftCat(slot.category || 'C3');
+      setDraftW(slot.w || 4);
+      setDraftH(slot.h || 3);
+      setStepperModalOpen(true);
+    } else {
+      openPicker(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    window._vqOpenAddCardForSlot = openPickerForSlot;
+    return () => { window._vqOpenAddCardForSlot = null; };
+  }, [openPickerForSlot]);
   const launchCategoryModal = openPicker;
 
   const seatDraftOn = (card) => {
@@ -4923,6 +5090,14 @@ export default function NewDashboard(props) {
   const handleAddCardConfirm = () => {
     const e = engine(); if (!e || !draftCard) return;
     const card = { ...draftCard };
+    if (targetSlot) {
+      card.frameSlot = Number(targetSlot.slot);
+      card.gx = Number(targetSlot.x);
+      card.gy = Number(targetSlot.y);
+      card.w = Number(targetSlot.w);
+      card.h = Number(targetSlot.h);
+      card.cat = targetSlot.category || card.cat;
+    }
     if (editingCardId) {
       delete card.id;
       e.updateCard(editingCardId, card);
@@ -4932,6 +5107,7 @@ export default function NewDashboard(props) {
     }
     setStepperModalOpen(false);
     setEditingCardId(null);
+    setTargetSlot(null);
     setStep(1);
   };
 
@@ -4940,7 +5116,7 @@ export default function NewDashboard(props) {
   /* ── catalogue ───────────────────────────────────────────────────────── */
   const readings = engineReady
     ? ((engine()?.getAvailableReadings?.() ?? engine()?.getReadings?.()) || [])
-    : (Array.isArray(readingsProp) && readingsProp.length > 0 ? readingsProp : ((typeof window !== 'undefined' && window.__VENQORE_READINGS__) || []));
+    : (Array.isArray(readingsProp) ? readingsProp : ((typeof window !== 'undefined' && window.__VENQORE_READINGS__) || []));
   const visibleTemplates = engineReady
     ? OPERATIONAL_TEMPLATES.filter(t => engine()?.specialAvailable?.(t.type) !== false)
     : OPERATIONAL_TEMPLATES;
@@ -5131,12 +5307,26 @@ export default function NewDashboard(props) {
     window.addEventListener('pointerup', up);
   };
 
-  // The Quick Actions launcher — 9 high-frequency operational fast-lane actions
+  // The Quick Actions launcher — filtered strictly by user permissions
   const glassActionItems = [
+    {
+      label: 'Open POS',
+      color: 'teal',
+      href: storePath('/pos'),
+      permission: 'pos.checkout',
+      altPermission: 'pos.open_session',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect width="18" height="14" x="3" y="3" rx="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="9" x2="9.01" y1="13" y2="13"/><line x1="15" x2="15.01" y1="13" y2="13"/>
+        </svg>
+      ),
+    },
     {
       label: 'Money In',
       color: 'teal',
       action: 'payment-in',
+      permission: 'finance.receive_payment',
+      altPermission: 'finance.balances',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="7" y1="17" x2="17" y2="7"/>
@@ -5148,6 +5338,8 @@ export default function NewDashboard(props) {
       label: 'Money Out',
       color: 'coral',
       action: 'payment-out',
+      permission: 'finance.send_payment',
+      altPermission: 'finance.balances',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="17" y1="17" x2="7" y2="7"/>
@@ -5159,6 +5351,8 @@ export default function NewDashboard(props) {
       label: 'Transfer Money',
       color: 'blue',
       href: storePath('/funds?action=transfer'),
+      permission: 'finance.internal_transfer',
+      altPermission: 'finance.transactions',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m16 3 4 4-4 4"/>
@@ -5172,8 +5366,9 @@ export default function NewDashboard(props) {
       label: 'Add Product',
       color: 'orange',
       href: storePath('/inventory?action=add'),
+      permission: 'inventory.create',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m7.5 4.27 9 5.15"/>
           <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
           <path d="m3.3 7 8.7 5 8.7-5"/>
@@ -5185,6 +5380,8 @@ export default function NewDashboard(props) {
       label: 'Add Expense',
       color: 'red',
       href: storePath('/expenses?action=add'),
+      permission: 'finance.expenses',
+      altPermission: 'expenses.create',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="2" x2="12" y2="22"/>
@@ -5196,8 +5393,10 @@ export default function NewDashboard(props) {
       label: 'Add User',
       color: 'purple',
       href: storePath('/admin/users'),
+      permission: 'admin.staff_manage',
+      altPermission: 'users.manage',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
           <line x1="19" y1="8" x2="19" y2="14"/>
@@ -5209,6 +5408,8 @@ export default function NewDashboard(props) {
       label: 'Refund',
       color: 'indigo',
       href: storePath('/returns/create'),
+      permission: 'pos.refund',
+      altPermission: 'sales.returns',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -5220,8 +5421,10 @@ export default function NewDashboard(props) {
       label: 'New Quote',
       color: 'sky',
       href: storePath('/sales/pre-sales/create'),
+      permission: 'sales.quotations',
+      altPermission: 'sales.create',
       icon: (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
           <line x1="16" y1="13" x2="8" y2="13"/>
@@ -5233,6 +5436,7 @@ export default function NewDashboard(props) {
       label: 'New Recurring Invoice',
       color: 'lime',
       href: storePath('/recurring-invoices/create'),
+      permission: 'sales.create',
       icon: (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m17 2 4 4-4 4"/>
@@ -5242,7 +5446,22 @@ export default function NewDashboard(props) {
         </svg>
       ),
     },
-  ];
+    {
+      label: 'Approvals',
+      color: 'teal',
+      href: storePath('/approvals'),
+      permission: 'approvals.view_own',
+      altPermission: 'approvals.submit',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+      ),
+    },
+  ].filter(item => {
+    if (!item.permission && !item.altPermission) return true;
+    return hasPermission(item.permission) || (item.altPermission && hasPermission(item.altPermission));
+  });
 
   /* The REAL sidebar: derived from the shared `nav` prop the same way
      QoreShell derives it, so this shell and the module switches can never
@@ -5627,7 +5846,9 @@ export default function NewDashboard(props) {
                                                        performance={performance}
                                                        debtors={debtors}
                                                        currencySymbol={store?.currency_symbol || 'Rs'}
-                                                       isDemo={isDemo} />)}
+                                                       isDemo={isDemo}
+                                                       hasPermission={hasPermission}
+                                                       auth={auth} />)}
                     </div>
                   </div>
                 </aside>
