@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -9,7 +10,7 @@ import { useTermText } from '@/lib/terms';
 export default function PurchaseOrdersShow({ order, print = false }) {
     const { store } = usePage().props;
     const tt = useTermText();
-    useEffect(() => { if (print) { const timer = setTimeout(() => window.print(), 500); return () => clearTimeout(timer); } }, [print]);
+    useEffect(() => { if (print) { const timer = setTimeout(() => PrintService.printPage(), 500); return () => clearTimeout(timer); } }, [print]);
     const [isIntaking, setIsIntaking] = useState(false);
     const [intakeQuantities, setIntakeQuantities] = useState(
         order.items.reduce((acc, item) => {
@@ -64,7 +65,7 @@ export default function PurchaseOrdersShow({ order, print = false }) {
                             </div>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={() => window.print()} className="no-print flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-lg font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                            <button onClick={() => PrintService.printPage()} className="no-print flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-lg font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                 <Printer size={18} /> Print
                             </button>
                             {order.status !== 'received' && !isIntaking && (

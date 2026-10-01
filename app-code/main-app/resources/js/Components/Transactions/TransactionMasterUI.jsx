@@ -1,4 +1,5 @@
 import React from 'react';
+import PrintService from '@/Utils/PrintService';
 import {
     Search,
     BarChart3,
@@ -642,7 +643,7 @@ export const RowActionMenu = ({
                 <ActionMenuItem icon={Copy} label="Duplicate" onClick={onDuplicate} />
                 <ActionMenuItem icon={FileText} label="Open PDF" href={printHref} />
                 <ActionMenuItem icon={Eye} label="Preview" onClick={onPreview} />
-                <ActionMenuItem icon={Printer} label="Print" href={printHref} />
+                <ActionMenuItem icon={Printer} label="Print" onClick={() => row ? PrintService.quickPrint(row) : PrintService.printUrl(printHref)} />
                 <ActionMenuItem icon={Clock} label="View History" onClick={onViewHistory} />
             </div>
         </div>
@@ -673,14 +674,13 @@ export const RowActionsCell = ({
     return (
         <TableCell>
             <div className="flex items-center justify-end gap-2 relative">
-                <a
-                    href={printHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); row ? PrintService.quickPrint(row) : PrintService.printUrl(printHref); }}
                     className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                 >
                     <Printer size={16} />
-                </a>
+                </button>
 
                 <div className="relative">
                     <button

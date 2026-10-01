@@ -13,6 +13,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Printer, FileText, Receipt, ChevronDown, Check } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import PrintService from '@/Utils/PrintService';
+import { rememberedPrintType } from '@/Utils/printPreference';
 
 export default function PrintButton({
     sale,
@@ -29,16 +30,25 @@ export default function PrintButton({
     const [isOpen, setIsOpen] = useState(false);
     const [lastPrinted, setLastPrinted] = useState(null);
     const dropdownRef = useRef(null);
-    const { settings: sharedSettings } = usePage().props;
+    const { settings: sharedSettings, store } = usePage().props;
 
     // Get settings from props, shared inertia settings, or global legacy
-    const printSettings = settings || sharedSettings || window.amdSettings || {};
+    const rawSettings = settings || sharedSettings || window.amdSettings || {};
+    const printSettings = {
+        ...rawSettings,
+        store_name: rawSettings.store_name || store?.name,
+        business_name: rawSettings.business_name || store?.name || rawSettings.store_name,
+        business_address: rawSettings.business_address || store?.address || rawSettings.store_address,
+        business_phone: rawSettings.business_phone || store?.phone || rawSettings.store_phone,
+        business_email: rawSettings.business_email || store?.email || rawSettings.store_email,
+        print_logo_path: rawSettings.print_logo_path || rawSettings.logo_path || store?.logo_path || store?.logo_url,
+    };
 
     // Determine the effective default print type:
     // 1. Use explicit prop if provided
     // 2. Otherwise read from settings (respects "Set as Default Printer" toggle)
-    // 3. Fall back to 'regular'
-    const effectiveDefaultType = defaultType || printSettings.default_print_type || 'regular';
+    // 3. Fall back to remembered preference or 'regular'
+    const effectiveDefaultType = defaultType || rememberedPrintType() || printSettings.default_print_type || 'regular';
     const isThermalDefault = effectiveDefaultType === 'thermal';
 
 

@@ -4,6 +4,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import FormModal from '@/Components/FormModal';
+import PrintService from '@/Utils/PrintService';
 import {
  Plus,
  Trash2,
@@ -767,7 +768,7 @@ const CreatePreSale = ({ sale }) => {
  showAlert({ title: 'Success', message: 'Sale updated successfully.', type: 'success' });
  // If print requested
  if (shouldPrint) {
- window.open(route('store.pre-sales.print', { store_slug: store?.slug, order: currentInvoice.id }), '_blank');
+ PrintService.quickPrint({ id: currentInvoice.id, type: 'pre_sale' });
  }
  // Redirect back to index after short delay or immediately?
  // User said "give option to save or two print".
@@ -776,10 +777,9 @@ const CreatePreSale = ({ sale }) => {
  if (!shouldPrint) router.visit(route('store.pre-sales.index', { store_slug: store?.slug }));
  } else {
  if (shouldPrint) {
- setPrintPreviewOpen(true);
- } else {
- setShowSuccessModal(true);
+ PrintService.quickPrint({ id: response.data.sale_id });
  }
+ setShowSuccessModal(true);
  }
  } else {
  showAlert({
@@ -1831,7 +1831,7 @@ const CreatePreSale = ({ sale }) => {
  <div className="grid grid-cols-1 gap-3 w-full">
  <button
  onClick={() => {
- window.open(route('store.sales.print', { store_slug: store?.slug, sale: lastSaleId }), '_blank');
+ PrintService.quickPrint({ id: lastSaleId });
  }}
  className="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-xl "
  >

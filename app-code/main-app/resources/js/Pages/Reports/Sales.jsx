@@ -11,6 +11,7 @@ import {
  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
+import PrintService from '@/Utils/PrintService';
 
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
@@ -322,13 +323,12 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  </span>
  </div>
  <div className="flex items-center gap-2 justify-end">
- <a
- href={route("store.sales.print", [store.slug, quickViewSale.id])}
- target="_blank"
+ <button
+ onClick={() => PrintService.quickPrint(quickViewSale)}
  className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1"
  >
  <Printer size={14} /> Print
- </a>
+ </button>
  <Link
  href={route("store.sales.edit", [store.slug, quickViewSale.id])}
  className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors flex items-center gap-1"

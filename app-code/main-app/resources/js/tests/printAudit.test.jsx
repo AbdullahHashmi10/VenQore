@@ -82,4 +82,25 @@ describe('production printing audit regressions', () => {
         expect(rows.map(row => row.value)).toContain('Tax: USD 1,000.00');
         expect(rows.map(row => row.value)).toContain('Balance due: USD 2,000.00');
     });
+
+    it('falls back to store branding in normalizeSettings when business_name is not configured', () => {
+        window.amdSettings = { store_name: 'Apex Tech Store', store_phone: '123-456' };
+        const normalized = PrintService.normalizeSettings({});
+        expect(normalized.business_name).toBe('Apex Tech Store');
+        expect(normalized.business_phone).toBe('123-456');
+    });
+
+    it('prints thermal receipt when default_print_type is thermal and no type is explicitly passed', async () => {
+        const render = vi.spyOn(PrintService, '_renderToHtml').mockReturnValue('thermal-receipt');
+        vi.spyOn(PrintService, '_measureThermalHeight').mockResolvedValue(150);
+
+        await PrintService.printInvoice({ id: 101 }, { default_print_type: 'thermal' }, null);
+
+        expect(render).toHaveBeenCalledWith(
+            expect.objectContaining({ id: 101 }),
+            expect.objectContaining({ default_print_type: 'thermal' }),
+            'thermal'
+        );
+        expect(printBrowserHtml.mock.calls.at(-1)[0]).toContain('size: 80mm 150mm;');
+    });
 });

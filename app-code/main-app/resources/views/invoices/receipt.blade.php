@@ -2,6 +2,22 @@
     $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals(2);
     $currencySymbol = \App\Helpers\SettingsHelper::get('currency_symbol') ?? '$';
     $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+    $businessName = \App\Helpers\SettingsHelper::get('business_name') 
+        ?? \App\Helpers\SettingsHelper::get('store_name') 
+        ?? (app()->bound('current.tenant') ? app('current.tenant')->name : null)
+        ?? 'Store';
+    $businessAddress = \App\Helpers\SettingsHelper::get('business_address') 
+        ?? \App\Helpers\SettingsHelper::get('address')
+        ?? (app()->bound('current.tenant') ? app('current.tenant')->address : null)
+        ?? '';
+    $businessPhone = \App\Helpers\SettingsHelper::get('business_phone') 
+        ?? \App\Helpers\SettingsHelper::get('phone')
+        ?? (app()->bound('current.tenant') ? app('current.tenant')->phone : null)
+        ?? '';
+    $businessEmail = \App\Helpers\SettingsHelper::get('business_email') 
+        ?? \App\Helpers\SettingsHelper::get('email')
+        ?? (app()->bound('current.tenant') ? app('current.tenant')->email : null)
+        ?? '';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -135,11 +151,11 @@
 
 <body>
     <div class="header">
-        <div class="logo">VENQORE</div>
+        <div class="logo">{{ $businessName }}</div>
         <div class="company-info">
-            The Retail Operating System<br>
-            Phone: +92 XXX XXXXXXX<br>
-            www.venqore.com
+            @if($businessAddress){{ $businessAddress }}<br>@endif
+            @if($businessPhone)Phone: {{ $businessPhone }}<br>@endif
+            @if($businessEmail){{ $businessEmail }}@endif
         </div>
     </div>
 

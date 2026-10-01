@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -43,7 +44,7 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                             <MessageSquare size={18} /> Share on WhatsApp
                         </button>
                         <button
-                            onClick={() => window.print()}
+                            onClick={() => PrintService.printPage()}
                             className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
                         >
                             <Printer size={18} /> Print

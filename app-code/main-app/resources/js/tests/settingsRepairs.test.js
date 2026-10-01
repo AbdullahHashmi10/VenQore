@@ -330,6 +330,34 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         expect(resolveInvoiceNumberEnabled(false)).toBe(false);
         expect(resolveInvoiceNumberEnabled('0')).toBe(false);
     });
+
+    it('correctly handles isTruthy for Document Layout toggle persistence', () => {
+        const isTruthy = (val, defaultValue = false) => {
+            if (val === undefined || val === null || val === '') return defaultValue;
+            if (typeof val === 'boolean') return val;
+            if (val === '1' || val === 1 || val === 'true') return true;
+            if (val === '0' || val === 0 || val === 'false') return false;
+            return Boolean(val);
+        };
+
+        // When saved to DB as '0', toggle MUST evaluate to false (can be turned off)
+        expect(isTruthy('0', true)).toBe(false);
+        expect(isTruthy(0, true)).toBe(false);
+        expect(isTruthy(false, true)).toBe(false);
+        expect(isTruthy('false', true)).toBe(false);
+
+        // When enabled in DB as '1' or true
+        expect(isTruthy('1', false)).toBe(true);
+        expect(isTruthy(1, false)).toBe(true);
+        expect(isTruthy(true, false)).toBe(true);
+
+        // Defaults when unset
+        expect(isTruthy(undefined, true)).toBe(true);
+        expect(isTruthy(null, true)).toBe(true);
+        expect(isTruthy(undefined, false)).toBe(false);
+        expect(isTruthy(null, false)).toBe(false);
+    });
 });
+
 
 

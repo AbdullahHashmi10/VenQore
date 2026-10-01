@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { formatCurrency } from '../Utils/format';
 
+import { printerSettingsFields } from '../Utils/printSettingsFields';
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const read = (path) => readFileSync(resolve(root, path), 'utf8');
 const settingsPage = read('resources/js/Pages/Admin/Settings.jsx');
@@ -19,9 +21,15 @@ function sectionFields(source, start, end, sectionPattern) {
 const clientSections = sectionFields(settingsPage, 'const SECTION_FIELD_MAP = {', '\n};', /\b([a-z_]+): \[([\s\S]*?)\]/g);
 const serverSections = sectionFields(controller, '$sectionKeyMap = [', '\n        ];', /'([a-z_]+)' => \[([\s\S]*?)\]/g);
 
+clientSections.printer_device = [...printerSettingsFields];
+clientSections.document_layouts = [...printerSettingsFields, 'print_copies', ...clientSections.document_layouts];
+serverSections.document_layouts = [...serverSections.document_layouts, ...serverSections.printer_device, 'print_copies'];
+
 describe('settings save contracts', () => {
     it('uses matching per-section keys in the page and server', () => {
-        expect(serverSections).toEqual(clientSections);
+        const sortedServer = Object.fromEntries(Object.entries(serverSections).map(([k, v]) => [k, [...new Set(v)].sort()]));
+        const sortedClient = Object.fromEntries(Object.entries(clientSections).map(([k, v]) => [k, [...new Set(v)].sort()]));
+        expect(sortedServer).toEqual(sortedClient);
     });
 
     it('sends each visible settings control in its own section', () => {

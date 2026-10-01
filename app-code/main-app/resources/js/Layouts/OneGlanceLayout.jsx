@@ -232,17 +232,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Make settings available globally for legacy/utility functions (Synchronous population)
  // Definitive Plan: merge store-level currency so formatCurrency() auto-uses per-store currency
- if (typeof window !== 'undefined') {
- window.amdSettings = {
- ...(settings || {}),
- // Unified metadata: prioritize store-level (synced) values, then settings
- currency: settings?.currency || store?.currency_code,
- currency_code: store?.currency_code || settings?.currency_code,
- currency_symbol: store?.currency_symbol || settings?.currency_symbol,
- store_name: store?.name || settings?.store_name || settings?.business_name,
- decimal_places: parseInt(settings?.decimal_places ?? 2, 10)
- };
- }
+    if (typeof window !== 'undefined') {
+        window.amdSettings = {
+            ...(settings || {}),
+            // Unified metadata: prioritize store-level (synced) values, then settings
+            currency: settings?.currency || store?.currency_code,
+            currency_code: store?.currency_code || settings?.currency_code,
+            currency_symbol: store?.currency_symbol || settings?.currency_symbol,
+            store_name: store?.name || settings?.store_name || settings?.business_name,
+            business_name: settings?.business_name || store?.name || settings?.store_name,
+            business_address: settings?.business_address || store?.address || settings?.address || '',
+            business_phone: settings?.business_phone || store?.phone || settings?.phone || '',
+            business_email: settings?.business_email || store?.email || settings?.email || '',
+            print_logo_path: settings?.print_logo_path || store?.logo_path || settings?.logo_path || '',
+            default_print_type: settings?.default_print_type || 'regular',
+            decimal_places: parseInt(settings?.decimal_places ?? 2, 10)
+        };
+    }
 
  // Trial state is decided by status ALONE — never by the date.
  //

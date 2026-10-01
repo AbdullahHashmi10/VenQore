@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -368,7 +369,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
  <FileSpreadsheet size={18} />
  </button>
- <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+ <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
  <Printer size={18} />
  </button>
  </div>

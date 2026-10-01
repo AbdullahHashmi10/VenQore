@@ -35,7 +35,7 @@ import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 
 export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} }) {
  const {
- store
+ store, settings
  } = usePage().props;
  const tt = useTermText();
 
@@ -321,7 +321,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <Plus size={18} />
  <span className="text-sm font-bold hidden sm:inline">New Return</span>
  </Link>
- <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+ <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
  <Printer size={18} />
  </button>
  </div>
@@ -482,7 +482,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <button onClick={(e) => { e.stopPropagation(); setShareReturnTarget(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
  <MessageCircle size={14} /> Share on WhatsApp
  </button>
- <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
+ <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
  <Printer size={14} /> Print
  </button>
  </div>
@@ -543,7 +543,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  </div>
  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
  <button
- onClick={() => PrintService.quickPrint(row)}
+ onClick={() => PrintService.quickPrint(row, null, settings)}
  className="p-1.5 bg-app rounded-lg text-ink-muted hover:text-brand-600 transition-colors border border-line"
  >
  <Printer size={14} />
@@ -632,7 +632,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <MessageCircle size={16} /> Share on WhatsApp
  </button>
  <button
- onClick={() => PrintService.quickPrint(quickViewReturn)}
+ onClick={() => PrintService.quickPrint(quickViewReturn, null, settings)}
  className="px-4 py-2 bg-sunken text-ink-secondary font-bold rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-2"
  >
  <Printer size={16} /> Print Receipt

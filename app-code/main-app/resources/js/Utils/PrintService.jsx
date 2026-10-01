@@ -1,4 +1,6 @@
-import { printBrowserHtml } from './BrowserPrint';
+import { printBrowserHtml, escapePrintText } from './BrowserPrint';
+import { thermalPageText } from './thermalPageText';
+import { rememberedPrintType } from './printPreference';
 /**
  * VENQORE Print Service
  *
@@ -46,8 +48,12 @@ class PrintService {
     /**
      * Main entry point for printing invoices/receipts.
      */
-    static async printInvoice(sale, settings = {}, type = 'regular', options = {}) {
-        const data = this.normalizeSettings(settings);
+    static async printInvoice(sale, settings = null, type = null, options = {}) {
+        const resolvedSettings = settings || this.getSettings();
+        const data = this.normalizeSettings(resolvedSettings);
+        const target = await this.resolvePrintTarget(data, type, options);
+        type = target.type;
+        options = { ...options, printerName: target.printerName };
 
         // VenQore Station (hardware silent-print) takes priority for thermal
         if (type === 'thermal' && isAMDStationAvailable()) {
@@ -109,18 +115,29 @@ class PrintService {
      * Pass liveSettings from React props to bypass stale window.amdSettings.
      */
     static async quickPrint(sale, type = null, liveSettings = null) {
-        const settings     = liveSettings ? this.normalizeSettings(liveSettings) : this.getSettings();
-        const effectiveType = type || settings.default_print_type || 'regular';
+        const settings = liveSettings ? this.normalizeSettings(liveSettings) : this.getSettings();
 
         if (sale && sale.id && !sale.id.toString().includes('temp') && sale.customer_prev_balance === undefined) {
             try {
-                // URLs on this site look like: http://127.0.0.1:8000/s/test-store/sales/list
-                // pathParts[0] = "", pathParts[1] = "s", pathParts[2] = store_slug
+                // URLs on this site look like: http://127.0.0.1:8000/s/test-store/sales/list or /transactions
                 const pathParts = window.location.pathname.split('/');
-                const storeSlug = pathParts[2];
+                let storeSlug = pathParts[1] === 's' && pathParts[2] ? pathParts[2] : null;
+                if (!storeSlug) {
+                    storeSlug = window.amdSettings?.store_slug || window.amdSettings?.slug;
+                }
+                if (!storeSlug) {
+                    try {
+                        const appEl = document.getElementById('app');
+                        if (appEl?.dataset?.page) {
+                            const pd = JSON.parse(appEl.dataset.page);
+                            storeSlug = pd?.props?.store?.slug;
+                        }
+                    } catch (_) {}
+                }
+
                 if (storeSlug) {
-                    const isPurchase = sale.supplier_id !== undefined || (sale.invoice_type && sale.invoice_type === 'purchase') || sale.purchase_number !== undefined;
-                    const isReturn = sale.status === 'returned' || sale.return_number !== undefined;
+                    const isPurchase = sale.supplier_id !== undefined || (sale.invoice_type && sale.invoice_type === 'purchase') || sale.purchase_number !== undefined || sale.type === 'purchase';
+                    const isReturn = sale.status === 'returned' || sale.return_number !== undefined || sale.type === 'return';
                     
                     let routeName = 'store.sales.show';
                     let routeParam = { store_slug: storeSlug, sale: sale.id };
@@ -147,7 +164,95 @@ class PrintService {
             }
         }
 
-        return await this.printInvoice(sale, settings, effectiveType);
+        return await this.printInvoice(sale, settings, type);
+    }
+
+    static async resolvePrintTarget(settings, requestedType = null, options = {}) {
+        let printerName = options.printerName;
+        let receiptPrinter = Boolean(printerName);
+        if (isAMDStationAvailable()) {
+            const prefs = await AMDStation.getPrefs();
+            // Station's saved device is explicitly configured as its receipt printer.
+            printerName ||= prefs.defaultPrinter;
+            receiptPrinter ||= Boolean(printerName);
+            if (!printerName) {
+                const printers = await AMDStation.getPrinters();
+                const systemDefault = printers.find(printer => printer.isDefault);
+                if (systemDefault && (settings?.default_print_type === 'thermal' ||
+                    /thermal|receipt|pos[- _]?\d|tm[- _]|rp[- _]|58mm|80mm/i.test(systemDefault.name))) {
+                    printerName = systemDefault.name;
+                    receiptPrinter = true;
+                }
+            }
+        }
+        const remembered = rememberedPrintType();
+        if (remembered && typeof window !== 'undefined') {
+            window.amdSettings = { ...(window.amdSettings || {}), default_print_type: remembered };
+        }
+        return {
+            // Explicit format, configured device, register preference, saved default.
+            type: requestedType || (receiptPrinter ? 'thermal' : null) || remembered || settings?.default_print_type || 'regular',
+            printerName,
+        };
+    }
+
+    // Print buttons on payment, return, order and report pages must obey the
+    // same default as invoices instead of printing the desktop page onto A4.
+    static async printPage(element = null, settings = this.getSettings()) {
+        try {
+            const data = this.normalizeSettings(settings);
+            const target = await this.resolvePrintTarget(data);
+            if (target.type !== 'thermal') {
+                window.print();
+                return { success: true, transport: 'browser', dialogOpened: true };
+            }
+            const source = element || document.querySelector('main') || document.getElementById('app');
+            if (!source) throw new Error('No printable document was found.');
+            const text = [data.business_name, document.title, thermalPageText(source)].filter(Boolean).join('\n\n');
+            const width = `${this._thermalWidthMm(data)}mm`;
+            if (isAMDStationAvailable()) {
+                const result = await AMDStation.print([
+                    { type: 'text', value: text, style: { whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontSize: '12px' } },
+                ], { printerName: target.printerName, paperWidth: width, copies: data.thermal_copies });
+                if (!result?.success) throw new Error(result?.error || 'The selected receipt printer could not print.');
+                return result;
+            }
+            return await printBrowserHtml(`<!doctype html><html><head><meta charset="utf-8"><title>${escapePrintText(document.title)}</title>
+                <style>body { margin: 0; width: ${width}; padding: 2mm; box-sizing: border-box; }
+                pre { margin: 0; font: 12px monospace; white-space: pre-wrap; overflow-wrap: anywhere; }</style>
+                </head><body><pre>${escapePrintText(text)}</pre></body></html>`, width);
+        } catch (error) {
+            window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message: error.message, type: 'error' } }));
+            return { success: false, error: error.message };
+        }
+    }
+
+    static async printUrl(url, settings = this.getSettings()) {
+        const data = this.normalizeSettings(settings);
+        const target = await this.resolvePrintTarget(data);
+        if (target.type !== 'thermal') {
+            window.open(url, '_blank', 'noopener,noreferrer');
+            return { success: true, transport: 'browser', windowOpened: true };
+        }
+
+        return new Promise(resolve => {
+            const frame = document.createElement('iframe');
+            frame.title = 'Printable document';
+            frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:800px;height:1000px;border:0';
+            const cleanup = () => frame.remove();
+            const timeout = setTimeout(() => {
+                cleanup();
+                resolve({ success: false, error: 'The printable document did not load.' });
+            }, 15000);
+            frame.onload = async () => {
+                clearTimeout(timeout);
+                const result = await this.printPage(frame.contentDocument?.body, data);
+                cleanup();
+                resolve(result);
+            };
+            frame.src = url;
+            document.body.appendChild(frame);
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -171,19 +276,40 @@ class PrintService {
 
     /**
      * Read settings — freshest source first.
-     *  1. Inertia data-page attribute (updated on every navigation)
-     *  2. window.amdSettings  (page-load snapshot, may be stale)
+     *  1. window.amdSettings (updated on Inertia navigation and successful saves)
+     *  2. Inertia data-page attribute (initial boot fallback)
      */
     static getSettings() {
-        if (window.amdSettings) return this.normalizeSettings(window.amdSettings);
+        let raw = {};
         try {
             const appEl = document.getElementById('app');
             if (appEl?.dataset?.page) {
                 const pd = JSON.parse(appEl.dataset.page);
-                if (pd?.props?.settings) return this.normalizeSettings(pd.props.settings);
+                if (pd?.props?.settings) {
+                    raw = { ...pd.props.settings };
+                }
+                if (pd?.props?.store) {
+                    raw.store_name = raw.store_name || pd.props.store.name;
+                    raw.business_name = raw.business_name || pd.props.store.name;
+                    raw.business_address = raw.business_address || pd.props.store.address;
+                    raw.business_phone = raw.business_phone || pd.props.store.phone;
+                    raw.business_email = raw.business_email || pd.props.store.email;
+                    raw.print_logo_path = raw.print_logo_path || pd.props.store.logo_path || pd.props.store.logo_url;
+                    raw.store_slug = pd.props.store.slug;
+                }
             }
         } catch (_) { /* fall through */ }
-        return this.normalizeSettings(window.amdSettings || {});
+
+        if (typeof window !== 'undefined' && window.amdSettings) {
+            // Inertia's navigate event updates this snapshot. The root data-page
+            // attribute only contains the initial boot payload, not later visits.
+            raw = { ...raw, ...window.amdSettings };
+        }
+        const remembered = rememberedPrintType();
+        if (remembered && !raw.default_print_type) {
+            raw.default_print_type = remembered;
+        }
+        return this.normalizeSettings(raw);
     }
 
     /**
@@ -200,18 +326,24 @@ class PrintService {
         const n = (v, def = 0)  => { const p = parseInt(v); return isNaN(p) ? def : p; };
         const s = (v, def = '') => (v == null ? def : String(v));
 
+        const businessName = raw.business_name || raw.store_name || (typeof window !== 'undefined' ? (window.amdSettings?.business_name || window.amdSettings?.store_name) : '') || '';
+        const businessAddress = raw.business_address || raw.store_address || (typeof window !== 'undefined' ? (window.amdSettings?.business_address || window.amdSettings?.store_address) : '') || '';
+        const businessPhone = raw.business_phone || raw.store_phone || (typeof window !== 'undefined' ? (window.amdSettings?.business_phone || window.amdSettings?.store_phone) : '') || '';
+        const businessEmail = raw.business_email || raw.store_email || (typeof window !== 'undefined' ? (window.amdSettings?.business_email || window.amdSettings?.store_email) : '') || '';
+        const logoCandidate = raw.print_logo_path || raw.logo_path || raw.logo_url || (typeof window !== 'undefined' ? (window.amdSettings?.print_logo_path || window.amdSettings?.logo_path || window.amdSettings?.logo_url) : '') || null;
+
         return {
             ...raw,
             // Business
-            business_name:    s(raw.business_name || raw.store_name),
-            business_address: s(raw.business_address || raw.store_address),
-            business_phone:   s(raw.business_phone  || raw.store_phone),
-            business_email:   s(raw.business_email),
-            tax_number:       s(raw.tax_number),
+            business_name:    s(businessName),
+            business_address: s(businessAddress),
+            business_phone:   s(businessPhone),
+            business_email:   s(businessEmail),
+            tax_number:       s(raw.tax_number || (typeof window !== 'undefined' ? window.amdSettings?.tax_number : '')),
             sale_prefix:      s(raw.sale_prefix, 'INV-'),
-            currency:         s(raw.currency, 'PKR'),
-            currency_symbol:  s(raw.currency_symbol, 'Rs'),
-            decimal_places:   n(raw.decimal_places, 2),
+            currency:         s(raw.currency || (typeof window !== 'undefined' ? window.amdSettings?.currency : 'PKR'), 'PKR'),
+            currency_symbol:  s(raw.currency_symbol || (typeof window !== 'undefined' ? window.amdSettings?.currency_symbol : 'Rs'), 'Rs'),
+            decimal_places:   n(raw.decimal_places !== undefined ? raw.decimal_places : (typeof window !== 'undefined' ? window.amdSettings?.decimal_places : 2), 2),
 
             // Regular print
             paper_size:             s(raw.paper_size, 'A4'),
@@ -220,10 +352,13 @@ class PrintService {
             print_theme_color:      s(raw.print_theme_color, vq.indigo[600]),
             print_logo:             b(raw.print_logo, true),
             print_logo_path: (() => {
-                const p = raw.print_logo_path || null;
+                const p = logoCandidate;
                 if (!p) return null;
                 if (/^(https?|blob|data):/.test(p)) return p;
-                return `${window.location.origin}${p.startsWith('/') ? p : '/' + p}`;
+                if (typeof window !== 'undefined' && window.location) {
+                    return `${window.location.origin}${p.startsWith('/') ? p : '/' + p}`;
+                }
+                return p;
             })(),
             print_signature_text:      s(raw.print_signature_text, 'Authorized Signatory'),
             print_original_copy:       b(raw.print_original_copy, false),

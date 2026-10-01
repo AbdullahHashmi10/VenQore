@@ -2557,7 +2557,7 @@ const POSInterface = ({
                 tax: taxAmount
             };
             // Use configured default print type (thermal or regular)
-            const printType = settings?.default_print_type || 'thermal';
+            const printType = null;
             setTimeout(() => PrintService.quickPrint(saleForPrint, printType, settings), 500);
         }
 
@@ -2729,7 +2729,7 @@ const POSInterface = ({
 
     // Print receipt function
     const printReceipt = (type = null) => {
-        const printType = type || settings?.default_print_type || 'thermal';
+        const printType = type || null;
         if (lastSale) {
             PrintService.quickPrint(lastSale, printType, settings);
         } else {

@@ -40,8 +40,20 @@
             '4' => '16px',
             default => '12px',
         };
+        $isThermal = ($settings['default_print_type'] ?? '') === 'thermal';
+        $thermalWidth = ($settings['thermal_paper_width'] ?? '80') === '58' ? '58mm' : '80mm';
     @endphp
     <style>
+        @if($isThermal)
+        @page { size: {{ $thermalWidth }} auto; margin: 2mm; }
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            font-size: 11px;
+            width: {{ $thermalWidth }};
+            margin: 0;
+            padding: 2mm;
+        }
+        @else
         @page { margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }}; }
         body {
             font-family: 'DejaVu Sans', sans-serif;
@@ -52,6 +64,7 @@
             margin: 0;
             padding: 0;
         }
+        @endif
 
         .receipt-header {
             text-align: center;
@@ -160,7 +173,7 @@
 
 <body>
     <div class="receipt-header">
-        <h1>{{ $settings['business_name'] ?? 'VENQORE System' }}</h1>
+        <h1>{{ $settings['business_name'] ?? $settings['store_name'] ?? 'Store' }}</h1>
         <p>
             {{ $settings['business_address'] ?? '' }}<br>
             @if(!empty($settings['business_phone']))Phone: {{ $settings['business_phone'] }}@endif

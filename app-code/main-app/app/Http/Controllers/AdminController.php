@@ -579,6 +579,11 @@ class AdminController extends Controller
     ]
         ];
 
+        // The document designer also edits the receipt default, roll width and options.
+        $sectionKeyMap['document_layouts'] = array_merge(
+            $sectionKeyMap['document_layouts'], $sectionKeyMap['printer_device'], ['print_copies']
+        );
+
         if (!empty($saveSection) && !isset($sectionKeyMap[$saveSection])) {
             return back()->withErrors(['settings' => 'This settings section is no longer available. Reload the page and try again.']);
         }
@@ -752,7 +757,7 @@ class AdminController extends Controller
             'print_amount_words', 'print_description', 'print_terms',
             'print_received_by', 'print_delivered_by', 'print_payment_mode',
             'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
-            'print_min_item_rows',
+            'print_min_item_rows', 'print_copies',
             // Print: invoice styling
             'invoice_theme', 'invoice_primary_color',
             // Print: thermal
@@ -842,9 +847,17 @@ class AdminController extends Controller
             } elseif ($k === 'pos_return_mode') {
                 $v = in_array($v, ['reference', 'customer_or_reference', 'open'], true) ? $v : 'reference';
             } elseif ($k === 'default_print_type') {
-                $v = in_array($v, ['regular', 'thermal', 'standard', 'pdf', 'a4', 'a5'], true) ? $v : 'regular';
+                $v = in_array($v, ['regular', 'thermal', 'standard', 'pdf', 'a4', 'a5', 'b2b'], true) ? $v : 'regular';
             } elseif ($k === 'paper_size') {
-                $v = in_array($v, ['A4', 'A5', 'Letter', 'Legal', 'Thermal', 'custom'], true) ? $v : 'A4';
+                $allowedPaperSizes = [
+                    'a4' => 'A4',
+                    'a5' => 'A5',
+                    'letter' => 'Letter',
+                    'legal' => 'Legal',
+                    'thermal' => 'Thermal',
+                    'custom' => 'Custom'
+                ];
+                $v = $allowedPaperSizes[strtolower(trim((string)$v))] ?? 'A4';
             } elseif ($k === 'paper_orientation') {
                 $v = in_array(strtolower((string)$v), ['portrait', 'landscape'], true) ? ucfirst(strtolower((string)$v)) : 'Portrait';
             } elseif ($k === 'fbr_mode' || $k === 'fbr_environment') {
@@ -879,7 +892,7 @@ class AdminController extends Controller
 
         $tenant = app('current.tenant');
 
-        \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant) {
+        \Illuminate\Support\Facades\DB::transaction(function() use ($settingsData, $tenant, $saveSection, $request) {
             $secretKeys = [
                 'admin_passcode',
                 'openai_api_key',
@@ -905,8 +918,10 @@ class AdminController extends Controller
                     }
                 }
 
-                if (is_bool($value)) {
-                    $value = $value ? '1' : '0';
+                if ($value === false || $value === 'false') {
+                    $value = '0';
+                } elseif ($value === true || $value === 'true') {
+                    $value = '1';
                 }
                 \App\Models\Setting::updateOrCreate(
                     ['key' => $key],
@@ -915,12 +930,12 @@ class AdminController extends Controller
             }
 
             // Secure Logo Upload: processed only after all section, permission, and passcode checks pass
-            if (request()->hasFile('print_logo_file') && (empty($saveSection) || $saveSection === 'document_layouts')) {
-                request()->validate([
+            if ($request->hasFile('print_logo_file') && (empty($saveSection) || $saveSection === 'document_layouts')) {
+                $request->validate([
                     'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:4096'],
                 ]);
 
-                $file = request()->file('print_logo_file');
+                $file = $request->file('print_logo_file');
                 $path = $file->store('system', 'public');
                 
                 \App\Models\Setting::updateOrCreate(

@@ -13,7 +13,8 @@ export function printBrowserHtml(html, paperWidth = '80mm') {
     return new Promise((resolve, reject) => {
         const frame = document.createElement('iframe');
         frame.title = 'Print document';
-        frame.style.cssText = 'position:fixed;left:-10000px;top:0;border:0;width:400px;height:1px';
+        const thermalWidth = ['58mm', '80mm', '100mm'].includes(paperWidth) ? paperWidth : null;
+        frame.style.cssText = `position:fixed;left:-10000px;top:0;border:0;width:${thermalWidth || '800px'};height:1px`;
         let started = false;
         const cleanup = () => frame.remove();
         const timeout = setTimeout(() => { cleanup(); reject(new Error('Print document did not load.')); }, 15000);
@@ -27,7 +28,8 @@ export function printBrowserHtml(html, paperWidth = '80mm') {
                 const width = ['58mm', '80mm', '100mm'].includes(paperWidth) ? paperWidth : '80mm';
                 const page = doc.createElement('style');
                 page.textContent = `@page { size: ${width} ${Math.ceil(doc.body.scrollHeight * 25.4 / 96 + 5)}mm; margin: 0; }`;
-                if (paperWidth) doc.head.appendChild(page);
+                // Preserve the receipt renderer's measured page geometry.
+                if (thermalWidth && !/@page\s*\{[^}]*\bsize\s*:/i.test(html)) doc.head.appendChild(page);
                 clearTimeout(timeout);
                 frame.contentWindow.addEventListener('afterprint', cleanup, { once: true });
                 frame.contentWindow.focus();

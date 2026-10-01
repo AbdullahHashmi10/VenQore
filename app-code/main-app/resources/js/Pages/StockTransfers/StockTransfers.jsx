@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
+import PrintService from '@/Utils/PrintService';
 import Pagination from '@/Components/Pagination';
 import { useDebounce } from 'use-debounce';
 import {
@@ -206,7 +207,7 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
  <Download size={16} />
  </button>
- <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
+ <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
  <Printer size={16} />
  </button>
  </div>

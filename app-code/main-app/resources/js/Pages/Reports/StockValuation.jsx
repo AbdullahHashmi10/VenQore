@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Package, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
@@ -122,7 +123,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
         console.log('Current products count:', products?.length);
 
         if (type === 'print') {
-            window.print();
+            PrintService.printPage();
             return;
         }
 

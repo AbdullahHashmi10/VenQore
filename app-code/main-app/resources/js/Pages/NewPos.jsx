@@ -716,7 +716,7 @@ export default function NewPos({
 
                 // Quick print receipt if auto-print enabled
                 if (prefs?.ops?.autoPrint || settings?.auto_print_receipt === '1') {
-                    const printType = settings?.default_print_type || 'thermal';
+                    const printType = null;
                     setTimeout(() => PrintService.quickPrint(recordedSale, printType, settings), 300);
                 }
 
@@ -1616,7 +1616,7 @@ export default function NewPos({
                 <RecentSheet
                     open={sheet === 'recent'}
                     onClose={() => setSheet(null)}
-                    onReprint={(sale) => PrintService.quickPrint(sale, settings?.default_print_type, settings)}
+                    onReprint={(sale) => PrintService.quickPrint(sale, null, settings)}
                     onReturn={(sale) => {
                         patchTab({
                             isReturn: true,

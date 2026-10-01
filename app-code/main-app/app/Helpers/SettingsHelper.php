@@ -405,6 +405,11 @@ class SettingsHelper
             'print_show_description' => self::get('print_show_description', '1') !== '0',
             'print_show_hsn' => self::isEnabled('print_show_hsn'),
             'print_show_discount' => self::isEnabled('print_show_discount'),
+            'print_show_free_qty' => self::isEnabled('print_show_free_qty'),
+            'print_qr_code' => self::get('print_qr_code', '1') !== '0',
+            'print_show_delivery_charge' => self::get('print_show_delivery_charge', '1') !== '0',
+            'print_show_extra_charge' => self::get('print_show_extra_charge', '1') !== '0',
+            'print_show_previous_balance' => self::isEnabled('print_show_previous_balance'),
             
             // Totals & Amounts
             'print_total_quantity' => self::get('print_total_quantity', '1') !== '0',

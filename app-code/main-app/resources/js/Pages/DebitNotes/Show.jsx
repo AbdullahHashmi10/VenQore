@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
@@ -8,7 +9,7 @@ import { useTermText } from '@/lib/terms';
 export default function DebitNoteShow({ note, stockMovements = [], bankAccounts = [], print = false }) {
     const { store } = usePage().props;
     const tt = useTermText();
-    useEffect(() => { if (print) { const timer = setTimeout(() => window.print(), 500); return () => clearTimeout(timer); } }, [print]);
+    useEffect(() => { if (print) { const timer = setTimeout(() => PrintService.printPage(), 500); return () => clearTimeout(timer); } }, [print]);
 
     const [showRefundForm, setShowRefundForm] = useState(false);
     const [refundData, setRefundData] = useState({
@@ -73,7 +74,7 @@ export default function DebitNoteShow({ note, stockMovements = [], bankAccounts 
                             </button>
                         )}
                         <button
-                            onClick={() => window.print()}
+                            onClick={() => PrintService.printPage()}
                             className="flex items-center gap-2 bg-surface text-ink-secondary dark:text-ink border border-line px-4 py-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all active:scale-95 font-medium"
                         >
                             <Printer size={18} /> Print

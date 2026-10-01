@@ -37,7 +37,7 @@ import PrintButton from '@/Components/PrintButton';
 export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {} }) {
     const { t, tp } = useTerms();
     const tt = useTermText();
-    const { store, vensynq_enabled } = usePage().props;
+    const { store, settings, vensynq_enabled } = usePage().props;
     // Infinite Scroll State
     const [allPurchases, setAllPurchases] = useState(purchases.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(purchases.next_page_url);
@@ -396,7 +396,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600 transition-colors" title="Export">
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors" title="Print" onClick={() => window.print()}>
+                            <button className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
                         </div>
@@ -616,7 +616,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                                             <CheckSquare size={12} /> Approve
                                                                         </button>
                                                                     )}
-                                                                    <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); }} className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors">
+                                                                    <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); }} className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors">
                                                                         <Printer size={16} />
                                                                     </button>
                                                                     <div className="relative">
@@ -757,7 +757,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => PrintService.quickPrint(row)}
+                                                    onClick={() => PrintService.quickPrint(row, null, settings)}
                                                     className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
                                                     title="Print"
                                                 >
@@ -845,6 +845,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             <div className="flex items-center gap-2">
                                 <PrintButton
                                     sale={quickViewItem}
+                                    settings={settings}
                                     label="Print"
                                     variant="secondary"
                                     size="sm"

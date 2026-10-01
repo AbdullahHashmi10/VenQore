@@ -183,7 +183,11 @@ class HandleInertiaRequests extends Middleware
                     return \App\Models\Terminal::select('id', 'name', 'status', 'last_heartbeat_at', 'last_status_reason')->get();
                 });
             })(),
-            'settings' => (function() use ($dbReady) {
+            // Resolve only when Inertia builds the response. This web middleware
+            // runs before TenantMiddleware binds the store on /s/{store_slug}.
+            // Eager resolution sends global defaults to transaction pages while
+            // Admin/Settings overrides them with the actual store preferences.
+            'settings' => function() use ($dbReady) {
                 if (!$dbReady || !$this->hasTable('settings')) return [];
                 
                 if (app()->bound('current.tenant')) {
@@ -203,7 +207,7 @@ class HandleInertiaRequests extends Middleware
                         return \App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
                     })
                 );
-            })(),
+            },
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error'   => fn() => $request->session()->get('error'),

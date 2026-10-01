@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import axios from 'axios';
@@ -220,7 +221,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
         setDraggedColumn(null);
     };
 
-    const { store } = usePage().props;
+    const { store, settings } = usePage().props;
 
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -349,7 +350,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
                         </div>
@@ -514,7 +515,10 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                                                                     <Link href={route('store.debit-notes.show', row.id)} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
                                                                                         <Eye size={14} /> View Details
                                                                                     </Link>
-                                                                                    <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
+                                                                                    <button 
+                                                                                        onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); setActiveActionMenu(null); }}
+                                                                                        className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"
+                                                                                    >
                                                                                         <Printer size={14} /> Print
                                                                                     </button>
                                                                                 </div>
@@ -679,7 +683,10 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                             </div>
 
                             <div className="mt-6 flex justify-end gap-3">
-                                <button className="px-4 py-2 bg-sunken text-ink-secondary font-bold rounded-xl hover:bg-interactive-hover transition-colors flex items-center gap-2">
+                                <button 
+                                    onClick={() => PrintService.quickPrint(quickViewItem, null, settings)}
+                                    className="px-4 py-2 bg-sunken text-ink-secondary font-bold rounded-xl hover:bg-interactive-hover transition-colors flex items-center gap-2"
+                                >
                                     <Printer size={16} /> Print Receipt
                                 </button>
                                 <Link

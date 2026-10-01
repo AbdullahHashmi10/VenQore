@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useCallback, useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -291,7 +292,7 @@ export default function MySubmissions({ documents = { data: [] }, filters = {}, 
                             <button onClick={exportToCsv} className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export Excel / CSV">
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button onClick={() => window.print()} className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
+                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
                                 <Printer size={18} />
                             </button>
                         </div>
@@ -322,7 +323,7 @@ export default function MySubmissions({ documents = { data: [] }, filters = {}, 
                             <button onClick={exportToCsv} className="p-2 rounded-lg bg-sunken text-emerald-600" title="Export">
                                 <FileSpreadsheet size={16} />
                             </button>
-                            <button onClick={() => window.print()} className="p-2 rounded-lg bg-sunken text-ink-muted" title="Print">
+                            <button onClick={() => PrintService.printPage()} className="p-2 rounded-lg bg-sunken text-ink-muted" title="Print">
                                 <Printer size={16} />
                             </button>
                         </div>

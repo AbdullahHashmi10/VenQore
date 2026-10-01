@@ -8,6 +8,7 @@ import MoneyDocument, { uid, blankLine, today } from '@/Documents/MoneyDocument'
 import { documentType } from '@/Documents/documentTypes';
 import { useAlert } from '@/Contexts/AlertContext';
 import { useTermText } from '@/lib/terms';
+import PrintService from '@/Utils/PrintService';
 
 const DOC = documentType('sales-order');
 /* Money already received is not re-decided by editing the paperwork, and the
@@ -101,7 +102,7 @@ export default function CreatePreSale({ sale, customers = [], products = [] }) {
             /* Print the SALE, with the sale's own id. The old screen printed
                the sales-invoice route with an order id on it. */
             const madeId = res?.data?.sale_id;
-            if (madeId) window.open(route('store.sales.print', { store_slug: store?.slug, sale: madeId }), '_blank');
+            if (madeId) PrintService.quickPrint({ id: madeId });
             router.visit(route('store.sales.index', { store_slug: store?.slug }));
         } catch (err) {
             showAlert({ title: 'Could not convert', message: err?.response?.data?.message || 'Something went wrong.', type: 'error' });

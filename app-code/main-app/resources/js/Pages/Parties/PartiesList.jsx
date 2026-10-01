@@ -3,6 +3,7 @@ import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import PrintService from '@/Utils/PrintService';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import {
  Users, Plus, UserCheck, Building2, TrendingUp, TrendingDown, FileText,
@@ -436,7 +437,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <button className="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 rounded" title="Export">
  <Download size={14} />
  </button>
- <button className="p-1 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded" title="Print">
+ <button onClick={() => PrintService.printPage()} className="p-1 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded" title="Print">
  <Printer size={14} />
  </button>
  </div>
@@ -544,7 +545,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <button className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
  <Download size={14} />
  </button>
- <button className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
+ <button onClick={() => PrintService.printPage()} className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
  <Printer size={14} />
  </button>
  </div>

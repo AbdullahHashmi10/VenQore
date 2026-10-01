@@ -3,6 +3,7 @@ import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import PrintService from '@/Utils/PrintService';
 import {
     FileText,
     ArrowDownCircle,
@@ -189,7 +190,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                 <button className="p-1 text-emerald-600" title="Export">
                                     <Download size={14} />
                                 </button>
-                                <button className="p-1 text-ink-muted" title="Print">
+                                <button onClick={() => PrintService.printPage()} className="p-1 text-ink-muted hover:text-ink transition-colors" title="Print">
                                     <Printer size={14} />
                                 </button>
                             </div>
@@ -293,7 +294,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <Download size={16} />
                             </button>
-                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
+                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
                                 <Printer size={16} />
                             </button>
                         </div>

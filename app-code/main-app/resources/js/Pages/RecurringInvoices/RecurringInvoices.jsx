@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useMemo } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
@@ -215,7 +216,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                 <Plus size={18} />
                                 <span className="text-sm font-bold hidden sm:inline">New Recurring</span>
                             </Link>
-                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
                         </div>

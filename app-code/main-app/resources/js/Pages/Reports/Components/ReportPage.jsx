@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
@@ -22,7 +23,7 @@ export default function ReportPage({
     } = usePage().props;
 
     const handlePrint = () => {
-        window.print();
+        PrintService.printPage();
     };
 
     const handleExport = () => {

@@ -653,8 +653,8 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
 
     const headerContent = (
         <div className="text-center mb-8 border-b-4 double border-neutral-800 pb-4">
-            <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.business_name}</h1>
-            <p className="text-sm italic">{data.business_address}</p>
+            <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.business_name || data.store_name || 'Store'}</h1>
+            {data.business_address && <p className="text-sm italic">{data.business_address}</p>}
             <p className="text-xs">{data.business_phone}{data.business_email && ` | Email: ${data.business_email}`}{data.tax_number && ` | Tax/NTN: ${data.tax_number}`}</p>
         </div>
     );
@@ -860,7 +860,7 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
     const headerContent = (
         <div className="bg-neutral-900 text-white p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center text-left" style={{ backgroundColor: themeColor }}>
             <div>
-                <h1 className="text-4xl font-bold">{data.business_name}</h1>
+                <h1 className="text-4xl font-bold">{data.business_name || data.store_name || 'Store'}</h1>
                 <p className="opacity-80 mt-1">INVOICE</p>
             </div>
             <div className="text-right opacity-80 text-sm">
@@ -1103,11 +1103,13 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
 
                 <div className="font-bold text-lg mb-1 leading-tight">
-                    {data.business_name}
+                    {data.business_name || data.store_name || 'Store'}
                 </div>
-                <div className="text-[0.85em]">
-                    {data.business_address}
-                </div>
+                {data.business_address && (
+                    <div className="text-[0.85em]">
+                        {data.business_address}
+                    </div>
+                )}
                 {data.business_phone && (
                     <div className="text-[0.85em]">
                         Tel: {data.business_phone}
@@ -1430,8 +1432,8 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                         className="w-12 h-12 object-contain mx-auto mb-2 grayscale"
                     />
                 )}
-                <div className="font-bold text-lg uppercase">{data.business_name}</div>
-                <div className="whitespace-pre-wrap">{data.business_address}</div>
+                <div className="font-bold text-lg uppercase">{data.business_name || data.store_name || 'Store'}</div>
+                {data.business_address && <div className="whitespace-pre-wrap">{data.business_address}</div>}
                 {data.business_phone && <div>Tel: {data.business_phone}</div>}
                 {data.business_email && <div>Email: {data.business_email}</div>}
                 {data.tax_number && <div>Tax/NTN: {data.tax_number}</div>}
@@ -1715,8 +1717,8 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                         className="w-12 h-12 object-contain mx-auto mb-2 invert brightness-200"
                     />
                 )}
-                <div className="text-xl uppercase tracking-wider">{data.business_name}</div>
-                <div className="text-xs font-normal opacity-90">{data.business_address}</div>
+                <div className="text-xl uppercase tracking-wider">{data.business_name || data.store_name || 'Store'}</div>
+                {data.business_address && <div className="text-xs font-normal opacity-90">{data.business_address}</div>}
                 {data.business_phone && <div className="text-xs font-normal opacity-90">{data.business_phone}</div>}
                 {data.business_email && <div className="text-xs font-normal opacity-90">{data.business_email}</div>}
                 {data.tax_number && <div className="text-xs font-normal opacity-90">Tax/NTN: {data.tax_number}</div>}

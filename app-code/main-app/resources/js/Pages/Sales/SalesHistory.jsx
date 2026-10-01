@@ -70,7 +70,7 @@ const EbayLogo = ({ size = 12 }) => {
 export default function SalesIndex({ sales, filters, stats }) {
  const { t, tp } = useTerms();
  const tt = useTermText();
- const { auth, flash, store, vensynq_enabled } = usePage().props;
+ const { auth, flash, store, settings, vensynq_enabled } = usePage().props;
  const isSuperAdmin = auth.user?.role === 'platform_admin' || auth.user?.role === 'admin' || auth.user?.role === 'owner';
 
  // Infinite Scroll State
@@ -446,7 +446,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <Link href={route('store.reports.analytics', { store_slug: store?.slug })} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Analytics">
  <BarChart3 size={18} />
  </Link>
- <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+ <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
  <Printer size={18} />
  </button>
  </div>
@@ -713,7 +713,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  return (
  <div className="flex items-center justify-end gap-2 relative">
  {/* Print */}
- <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); }} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors">
+ <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); }} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors">
  <Printer size={16} />
  </button>
  {/* Share */}
@@ -788,7 +788,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Eye size={14} /> Preview</button>
 
  {/* 10. Print */}
- <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Printer size={14} /> Print</button>
+ <button onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); setActiveActionMenu(null); }} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Printer size={14} /> Print</button>
 
  {/* 11. View History */}
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Clock size={14} /> View History</button>
@@ -919,7 +919,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  {/* Action Buttons */}
  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
  <button
- onClick={() => PrintService.quickPrint(row)}
+ onClick={() => PrintService.quickPrint(row, null, settings)}
  className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600 transition-colors"
  title="Print"
  >
@@ -1046,6 +1046,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <div className="flex items-center gap-2 justify-end">
  <PrintButton
  sale={quickViewSale}
+ settings={settings}
  label="Print"
  variant="secondary"
  size="sm"

@@ -2,6 +2,7 @@ import React from 'react';
 import { Printer, Smartphone, Cpu, Play, Check } from 'lucide-react';
 import Toggle from '@/Components/Toggle';
 import PremiumSelect from '@/Components/PremiumSelect';
+import { rememberPrintType } from '@/Utils/printPreference';
 
 const PRINT_TYPE_OPTIONS = [
     { value: 'regular', label: 'Regular A4 / Letter Document Printer' },
@@ -27,7 +28,7 @@ export default function PrinterDeviceSection({ data, setData }) {
                         <PremiumSelect
                             options={PRINT_TYPE_OPTIONS}
                             value={data.default_print_type || 'regular'}
-                            onChange={(val) => setData('default_print_type', val)}
+                            onChange={(val) => { setData('default_print_type', val); rememberPrintType(val); }}
                             searchable={false}
                             placeholder="Select Printer Type"
                         />

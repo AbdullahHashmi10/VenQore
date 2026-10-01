@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import PrintService from '@/Utils/PrintService';
 import {
     Search,
     BarChart3,
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react';
 
 export default function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {}, store }) {
+    const { settings } = usePage().props;
     // Infinite Scroll State
     const [allTransactions, setAllTransactions] = useState(transactions.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(transactions.next_page_url);
@@ -256,7 +258,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                 <button className="p-1 text-emerald-600" title="Export">
                                     <Download size={14} />
                                 </button>
-                                <button className="p-1 text-ink-muted" title="Print">
+                                <button className="p-1 text-ink-muted hover:text-ink transition-colors" title="Print" onClick={() => PrintService.printPage()}>
                                     <Printer size={14} />
                                 </button>
                             </div>
@@ -342,7 +344,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
                                 <Download size={14} />
                             </button>
-                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
+                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={14} />
                             </button>
                         </div>
@@ -432,7 +434,11 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                 </td>
                                                 <td className="p-3 text-right text-ink-muted">
                                                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                                                        <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600" title="Print">
+                                                        <button 
+                                                            className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600" 
+                                                            title="Print"
+                                                            onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); }}
+                                                        >
                                                             <Printer size={14} />
                                                         </button>
                                                         <div className="relative">
@@ -447,8 +453,11 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                                     <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-xs font-medium flex items-center gap-2 text-ink-secondary">
                                                                         <Eye size={12} /> View Details
                                                                     </button>
-                                                                    <button className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-xs font-medium flex items-center gap-2 text-ink-secondary">
-                                                                        <FileText size={12} /> PDF Invoice
+                                                                    <button 
+                                                                        onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row, null, settings); setActiveActionMenu(null); }}
+                                                                        className="w-full text-left px-2 py-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-xs font-medium flex items-center gap-2 text-ink-secondary"
+                                                                    >
+                                                                        <FileText size={12} /> Print / Invoice
                                                                     </button>
                                                                     <div className="h-px bg-sunken my-1"></div>
                                                                     <button className="w-full text-left px-2 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-xs font-medium flex items-center gap-2 text-red-600">
@@ -525,8 +534,11 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                             <button className="w-full text-left px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-2xs font-medium flex items-center gap-1.5 text-ink-secondary">
                                                                 <Eye size={10} /> View Details
                                                             </button>
-                                                            <button className="w-full text-left px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-2xs font-medium flex items-center gap-1.5 text-ink-secondary">
-                                                                <FileText size={10} /> PDF Invoice
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); PrintService.quickPrint(row); setActiveActionMenu(null); }}
+                                                                className="w-full text-left px-2 py-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded text-2xs font-medium flex items-center gap-1.5 text-ink-secondary"
+                                                            >
+                                                                <FileText size={10} /> Print / Invoice
                                                             </button>
                                                             <div className="h-px bg-sunken my-0.5"></div>
                                                             <button className="w-full text-left px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-2xs font-medium flex items-center gap-1.5 text-red-600">

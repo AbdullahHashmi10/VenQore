@@ -51,6 +51,12 @@ class UpdaterChunkTokenTest extends TestCase
         $this->assertTrue($secondData['complete']);
         $this->assertSame($firstData['update_token'], $secondData['update_token']);
         $this->assertSame('first-halfsecond-half', File::get(storage_path('app/update_package/update.zip')));
+
+        $lock = json_decode(File::get(storage_path('update.lock')), true);
+        $this->assertSame('uploaded', $lock['phase']);
+        $this->assertSame('upload_complete', $lock['step']);
+        $this->assertSame(strlen('first-halfsecond-half'), $lock['uploaded_bytes']);
+        $this->assertSame(hash('sha256', 'first-halfsecond-half'), $lock['package_sha256']);
     }
 
     private function chunkRequest(

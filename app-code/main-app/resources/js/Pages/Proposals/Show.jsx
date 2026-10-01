@@ -6,6 +6,7 @@ import { Printer, ArrowLeft, Mail, Phone, MapPin, ArrowLeftRight, ShoppingCart, 
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import { useAlert } from '@/Contexts/AlertContext';
 import { useTermText } from '@/lib/terms';
+import PrintService from '@/Utils/PrintService';
 
 export default function ProposalShow({ proposal }) {
     const {
@@ -16,7 +17,7 @@ export default function ProposalShow({ proposal }) {
     const tt = useTermText();
 
     const handlePrint = () => {
-        window.open(route("store.proposals.print", [store.slug, proposal.id]), '_blank');
+        PrintService.printUrl(route("store.proposals.print", [store.slug, proposal.id]));
     };
 
     const handleConvertToSale = () => {

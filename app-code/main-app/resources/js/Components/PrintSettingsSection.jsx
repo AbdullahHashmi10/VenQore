@@ -1,6 +1,6 @@
+import PrintService from '@/Utils/PrintService';
+import { rememberPrintType } from '@/Utils/printPreference';
 import React, { useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
-import { createRoot } from 'react-dom/client';
 import {
  ChevronLeft, ChevronRight, Maximize2, Minimize2, Printer,
  Layout, Type, FileText, Image as ImageIcon, Settings,
@@ -19,21 +19,54 @@ import { createPortal } from 'react-dom';
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
 import { useAMDStation, AMDStation, isAMDStationAvailable } from '@/Utils/AMDStation';
-// ... (imports remain the same, ensuring createPortal is added)
+const isTruthy = (val, defaultValue = false) => {
+    if (val === undefined || val === null || val === '') return defaultValue;
+    if (typeof val === 'boolean') return val;
+    if (val === '1' || val === 1 || val === 'true') return true;
+    if (val === '0' || val === 0 || val === 'false') return false;
+    return Boolean(val);
+};
 
 export default function PrintSettingsSection({ data, setData, saveSettings }) {
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
  const [isFullScreen, setIsFullScreen] = useState(false);
  const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
  const [activePrintTab, setActivePrintTab] = useState(() => {
+   // Prefer the saved DB value (comes from Inertia props) over localStorage.
+   // localStorage may be stale if settings were changed from another session/tab.
+   const dbType = data?.default_print_type;
+   if (['thermal', 'regular', 'b2b'].includes(dbType)) {
+     return dbType;
+   }
    const saved = typeof window !== 'undefined' ? window.localStorage.getItem('active_printer_subtab') : null;
-   return ['thermal', 'regular', 'b2b', 'hardware'].includes(saved) ? saved : 'regular';
+   if (['thermal', 'regular', 'b2b', 'hardware'].includes(saved)) {
+     return saved;
+   }
+   return 'regular';
  });
 
- // Persist printer sub-tab selection (thermal vs regular) across refreshes
+ // Keep activePrintTab in sync when data.default_print_type changes
+ // (e.g., after user saves settings and Inertia reloads props, or toggle is clicked)
+ useEffect(() => {
+   const dbType = data?.default_print_type;
+   if (['thermal', 'regular', 'b2b'].includes(dbType) && dbType !== activePrintTab && activePrintTab !== 'hardware') {
+     setActivePrintTab(dbType);
+   }
+ }, [data?.default_print_type]);
+
+ // Persist printer sub-tab selection (thermal vs regular) across refreshes and sync with default format
  const handleSubtabChange = (tabName) => {
- setActivePrintTab(tabName);
- localStorage.setItem('active_printer_subtab', tabName);
+   setActivePrintTab(tabName);
+   if (typeof window !== 'undefined') {
+     window.localStorage.setItem('active_printer_subtab', tabName);
+   }
+   if (['thermal', 'regular', 'b2b'].includes(tabName)) {
+     setData('default_print_type', tabName);
+     rememberPrintType(tabName);
+     if (typeof window !== 'undefined' && window.amdSettings) {
+       window.amdSettings.default_print_type = tabName;
+     }
+   }
  };
 
  // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background & listens for Escape (U05)
@@ -55,134 +88,19 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  }
  }, [isFullScreen]);
 
- /**
- * Test Print Handler
- * Renders the EXACT same PrintPreview React component (used in the settings preview panel)
- * to a static HTML string and opens it in a print window.
- * This guarantees 100% identical output between what you see in the preview and what prints.
- */
- const handleTestPrint = (currentData) => {
- const type = activePrintTab === 'thermal' ? 'thermal' : 'regular';
- const isThermal = type === 'thermal';
-
- // Determine paper/window dimensions (mirrors PrintPreview logic)
- const MM_TO_PX = 3;
- let width;
- if (isThermal) {
- if (currentData.thermal_page_size === '2inch') width = 58 * MM_TO_PX;
- else if (currentData.thermal_page_size === '4inch') width = 100 * MM_TO_PX;
- else width = 80 * MM_TO_PX;
- } else {
- const paperSizes = { 'A4': 210, 'A5': 148, 'Letter': 216, 'Legal': 216 };
- const pW = currentData.paper_size === 'Custom'
- ? (parseFloat(currentData.custom_paper_width) || 210)
- : (paperSizes[currentData.paper_size] || 210);
- width = currentData.paper_orientation === 'Landscape'
- ? (currentData.paper_size === 'A4' ? 297 : pW) * MM_TO_PX
- : pW * MM_TO_PX;
- }
- const windowWidth = Math.max(width + 80, isThermal ? 340 : 820);
-
- // Render the exact same PrintPreview component to static HTML
- const rootNode = document.createElement('div');
- const root = createRoot(rootNode);
- flushSync(() => {
- root.render(
- <PrintPreview data={currentData} type={type} mode="light" forPrint={true} />
- );
- });
- const previewHtml = rootNode.innerHTML;
- root.unmount();
-
- // Grab all Tailwind/app CSS from the current page's stylesheets
- // so the printed output looks exactly like the on-screen preview
- const allStyles = Array.from(document.styleSheets)
- .map(sheet => {
- try {
- return Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
- } catch { return ''; }
- })
- .join('\n');
-
- const copies = parseInt(isThermal ? currentData.thermal_copies : currentData.print_copies) || 1;
- let repeatedHtml = '';
- for (let c = 0; c < copies; c++) {
- repeatedHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
- }
-
- const printDoc = `<!DOCTYPE html>
-<html>
-<head>
- <meta charset="utf-8" />
- <title>Test Print — ${type === 'thermal' ? 'Thermal Receipt' : 'A4 Invoice'}</title>
- <style>
- ${allStyles}
- * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
- body { margin: 0; padding: 0; background: white; }
- @page {
- margin: 0;
- ${isThermal
-      ? `size: ${width / MM_TO_PX}mm 297mm;`
-      : currentData.paper_size === 'Custom'
-        ? `size: ${parseFloat(currentData.custom_paper_width) || 210}mm ${parseFloat(currentData.custom_paper_height) || 297}mm;`
-        : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`
-    }
- }
- @media print {
- html, body {
- height: auto !important;
- overflow: visible !important;
- padding: 0 !important;
- }
- .print-container {
- page-break-inside: auto !important;
- break-inside: auto !important;
- height: auto !important;
- overflow: visible !important;
- }
- .print-container tr,
- .print-container .space-y-3 > div {
- page-break-inside: avoid !important;
- break-inside: avoid !important;
- }
- }
- </style>
-</head>
-<body>
- ${repeatedHtml}
-</body>
-</html>`;
-
- const iframe = document.createElement('iframe');
- iframe.style.position = 'fixed';
- iframe.style.right = '0';
- iframe.style.bottom = '0';
- iframe.style.width = '0';
- iframe.style.height = '0';
- iframe.style.border = '0';
- document.body.appendChild(iframe);
-
- const printDocument = iframe.contentWindow.document;
- printDocument.open();
- printDocument.write(printDoc);
- printDocument.close();
-
- // Delay slightly to let styles apply, then trigger print dialog
- setTimeout(() => {
- if (iframe.contentWindow) {
-
-
- iframe.contentWindow.focus();
- iframe.contentWindow.print();
-
- // Cleanup after printing to avoid memory leaks
- setTimeout(() => {
- if (document.body.contains(iframe)) {
- document.body.removeChild(iframe);
- }
- }, 1000);
- }
- }, isThermal ? 500 : 300);
+ // Test through the same pipeline as actual transactions.
+ const handleTestPrint = async (currentData) => {
+   const type = ['thermal', 'regular', 'b2b'].includes(activePrintTab) ? activePrintTab : currentData.default_print_type;
+   try {
+     const result = await PrintService.printInvoice({
+       reference_number: 'TEST-RECEIPT', customer: { name: 'Test Customer' },
+       items: [{ name: 'Test Item', quantity: 2, unit_price: 50, net_amount: 100 }],
+       subtotal: 100, total: 100, paid_amount: 100,
+     }, currentData, type, { openDrawer: false });
+     if (result?.success === false) Swal.fire('Test print failed', result.error, 'error');
+   } catch (error) {
+     Swal.fire('Test print failed', error.message, 'error');
+   }
  };
 
  const content = (
@@ -266,7 +184,15 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  target: isFullScreen ? document.getElementById('fullscreen-portal-root') || 'body' : 'body'
  }).then((result) => {
  if (result.isConfirmed) {
- saveSettings();
+ const chosenType = ['thermal', 'regular', 'b2b'].includes(activePrintTab)
+   ? activePrintTab
+   : (data?.default_print_type || 'regular');
+ setData('default_print_type', chosenType);
+ rememberPrintType(chosenType);
+ if (typeof window !== 'undefined' && window.amdSettings) {
+   window.amdSettings.default_print_type = chosenType;
+ }
+ saveSettings(null, 'document_layouts', { default_print_type: chosenType });
  }
  });
  }
@@ -324,12 +250,12 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
  <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
  {activePrintTab === 'thermal'
- ? <ThermalSettings data={data} setData={setData} />
+ ? <ThermalSettings data={data} setData={setData} activePrintTab={activePrintTab} onSetDefaultType={handleSubtabChange} />
  : activePrintTab === 'b2b'
- ? <B2BSettings data={data} setData={setData} />
+ ? <B2BSettings data={data} setData={setData} activePrintTab={activePrintTab} onSetDefaultType={handleSubtabChange} />
  : activePrintTab === 'hardware'
  ? <HardwareSettings data={data} setData={setData} />
- : <RegularSettings data={data} setData={setData} />
+ : <RegularSettings data={data} setData={setData} activePrintTab={activePrintTab} onSetDefaultType={handleSubtabChange} />
  }
  </div>
  </div>
@@ -359,15 +285,15 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
 // SUB-COMPONENTS
 // ----------------------------------------------------------------------
 
-const RegularSettings = ({ data, setData }) => {
+const RegularSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => {
  const tt = useTermText();
  return (
  <>
  <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
  <Toggle
  label="Set as Default Receipt Format"
- checked={data.default_print_type === 'regular' || !data.default_print_type}
- onChange={v => setData('default_print_type', v ? 'regular' : 'thermal')}
+ checked={data.default_print_type === 'regular' || (!data.default_print_type && activePrintTab === 'regular')}
+ onChange={v => { const type = v ? 'regular' : 'thermal'; onSetDefaultType ? onSetDefaultType(type) : (setData('default_print_type', type), rememberPrintType(type)); }}
  color="indigo"
  />
  </div>
@@ -453,47 +379,47 @@ const RegularSettings = ({ data, setData }) => {
 
  <Section title="Header Content" icon={FileText}>
  <div className="text-xs text-ink-muted">Business name: <strong className="text-ink">{data.business_name}</strong>. Change it in Business Profile.</div>
- <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} />
- <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} />
+ <Toggle label="Show Logo" checked={isTruthy(data.print_logo, true)} onChange={v => setData('print_logo', v)} />
+ <Toggle label="Show Verification QR Code" checked={isTruthy(data.print_qr_code, true)} onChange={v => setData('print_qr_code', v)} />
 
  {data.print_logo && <LogoUploader data={data} setData={setData} />}
 
- <Toggle label="Repeat Header on All Pages" checked={data.print_header_all_pages} onChange={v => setData('print_header_all_pages', v)} />
- <Toggle label="Show Original/Duplicate Copy" checked={data.print_original_copy} onChange={v => setData('print_original_copy', v)} />
+ <Toggle label="Repeat Header on All Pages" checked={isTruthy(data.print_header_all_pages, true)} onChange={v => setData('print_header_all_pages', v)} />
+ <Toggle label="Show Original/Duplicate Copy" checked={isTruthy(data.print_original_copy, false)} onChange={v => setData('print_original_copy', v)} />
  </Section>
 
  <Section title={tt('Table Columns')} icon={Layout}>
  <div className="space-y-2">
- <ToggleBtn label="Serial No." checked={data.print_show_sno} onChange={v => setData('print_show_sno', v)} />
- <ToggleBtn label="HSN/SAC Code" checked={data.print_show_hsn} onChange={v => setData('print_show_hsn', v)} />
- <ToggleBtn label={tt('Product Description')} checked={data.print_show_description} onChange={v => setData('print_show_description', v)} />
- <ToggleBtn label="Units/Qty" checked={data.print_show_units} onChange={v => setData('print_show_units', v)} />
- <ToggleBtn label="MRP Column" checked={data.print_show_mrp} onChange={v => setData('print_show_mrp', v)} />
- <ToggleBtn label="Discount Column" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} />
- <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} />
- <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} />
- <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} />
- <ToggleBtn label="Tax Breakdown" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} />
- <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} />
+ <ToggleBtn label="Serial No." checked={isTruthy(data.print_show_sno, true)} onChange={v => setData('print_show_sno', v)} />
+ <ToggleBtn label="HSN/SAC Code" checked={isTruthy(data.print_show_hsn, false)} onChange={v => setData('print_show_hsn', v)} />
+ <ToggleBtn label={tt('Product Description')} checked={isTruthy(data.print_show_description, true)} onChange={v => setData('print_show_description', v)} />
+ <ToggleBtn label="Units/Qty" checked={isTruthy(data.print_show_units, true)} onChange={v => setData('print_show_units', v)} />
+ <ToggleBtn label="MRP Column" checked={isTruthy(data.print_show_mrp, false)} onChange={v => setData('print_show_mrp', v)} />
+ <ToggleBtn label="Discount Column" checked={isTruthy(data.print_show_discount, false)} onChange={v => setData('print_show_discount', v)} />
+ <ToggleBtn label="Free Qty (1+1)" checked={isTruthy(data.print_show_free_qty, false)} onChange={v => setData('print_show_free_qty', v)} />
+ <ToggleBtn label="Show Batch Codes" checked={isTruthy(data.thermal_show_batch, false)} onChange={v => setData('thermal_show_batch', v)} />
+ <ToggleBtn label="Show Expiry Dates" checked={isTruthy(data.thermal_show_expiry, false)} onChange={v => setData('thermal_show_expiry', v)} />
+ <ToggleBtn label="Tax Breakdown" checked={isTruthy(data.print_tax_details, true)} onChange={v => setData('print_tax_details', v)} />
+ <ToggleBtn label="Show Barcode" checked={isTruthy(data.thermal_show_barcode, true)} onChange={v => setData('thermal_show_barcode', v)} />
  </div>
  </Section>
 
  <Section title="Totals & Footer" icon={AlignLeft}>
  <div className="grid grid-cols-2 gap-2 mb-4">
- <ToggleBtn label="Total Qty" checked={data.print_total_quantity} onChange={v => setData('print_total_quantity', v)} />
- <ToggleBtn label="Decimal Amounts" checked={data.print_amount_decimal} onChange={v => setData('print_amount_decimal', v)} />
- <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} />
- <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} />
- <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} />
- <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} />
- <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} />
- <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} />
- <ToggleBtn label="Party Balance" checked={data.print_party_balance} onChange={v => setData('print_party_balance', v)} />
- <ToggleBtn label="Amount Grouping" checked={data.print_amount_grouping} onChange={v => setData('print_amount_grouping', v)} />
- <ToggleBtn label="Received By" checked={data.print_received_by} onChange={v => setData('print_received_by', v)} />
- <ToggleBtn label="Delivered By" checked={data.print_delivered_by} onChange={v => setData('print_delivered_by', v)} />
- <ToggleBtn label="Acknowledgement" checked={data.print_acknowledgement} onChange={v => setData('print_acknowledgement', v)} />
- <ToggleBtn label="Print Description" checked={data.print_description} onChange={v => setData('print_description', v)} />
+ <ToggleBtn label="Total Qty" checked={isTruthy(data.print_total_quantity, true)} onChange={v => setData('print_total_quantity', v)} />
+ <ToggleBtn label="Decimal Amounts" checked={isTruthy(data.print_amount_decimal, true)} onChange={v => setData('print_amount_decimal', v)} />
+ <ToggleBtn label="Received Amt" checked={isTruthy(data.print_received_amount, true)} onChange={v => setData('print_received_amount', v)} />
+ <ToggleBtn label="Balance Due" checked={isTruthy(data.print_balance_amount, true)} onChange={v => setData('print_balance_amount', v)} />
+ <ToggleBtn label="Savings" checked={isTruthy(data.print_you_saved, false)} onChange={v => setData('print_you_saved', v)} />
+ <ToggleBtn label="Prev Balance" checked={isTruthy(data.print_show_previous_balance, false)} onChange={v => setData('print_show_previous_balance', v)} />
+ <ToggleBtn label="Delivery Charges" checked={isTruthy(data.print_show_delivery_charge, true)} onChange={v => setData('print_show_delivery_charge', v)} />
+ <ToggleBtn label="Extra Charges" checked={isTruthy(data.print_show_extra_charge, true)} onChange={v => setData('print_show_extra_charge', v)} />
+ <ToggleBtn label="Party Balance" checked={isTruthy(data.print_party_balance, false)} onChange={v => setData('print_party_balance', v)} />
+ <ToggleBtn label="Amount Grouping" checked={isTruthy(data.print_amount_grouping, true)} onChange={v => setData('print_amount_grouping', v)} />
+ <ToggleBtn label="Received By" checked={isTruthy(data.print_received_by, false)} onChange={v => setData('print_received_by', v)} />
+ <ToggleBtn label="Delivered By" checked={isTruthy(data.print_delivered_by, false)} onChange={v => setData('print_delivered_by', v)} />
+ <ToggleBtn label="Acknowledgement" checked={isTruthy(data.print_acknowledgement, false)} onChange={v => setData('print_acknowledgement', v)} />
+ <ToggleBtn label="Print Description" checked={isTruthy(data.print_description, true)} onChange={v => setData('print_description', v)} />
  </div>
 
  <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
@@ -509,13 +435,13 @@ const RegularSettings = ({ data, setData }) => {
  );
 };
 
-const ThermalSettings = ({ data, setData }) => (
+const ThermalSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => (
  <>
  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 mb-6">
  <Toggle
  label="Set as Default Receipt Format"
  checked={data.default_print_type === 'thermal'}
- onChange={v => setData('default_print_type', v ? 'thermal' : 'regular')}
+ onChange={v => { const type = v ? 'thermal' : 'regular'; onSetDefaultType ? onSetDefaultType(type) : (setData('default_print_type', type), rememberPrintType(type)); }}
  color="emerald"
  />
  </div>
@@ -575,46 +501,46 @@ const ThermalSettings = ({ data, setData }) => (
  </select>
 
  <div className="mt-4">
- <Toggle label="Show Logo" checked={data.print_logo} onChange={v => setData('print_logo', v)} color="emerald" />
- <Toggle label="Show Verification QR Code" checked={data.print_qr_code} onChange={v => setData('print_qr_code', v)} color="emerald" />
+ <Toggle label="Show Logo" checked={isTruthy(data.print_logo, true)} onChange={v => setData('print_logo', v)} color="emerald" />
+ <Toggle label="Show Verification QR Code" checked={isTruthy(data.print_qr_code, true)} onChange={v => setData('print_qr_code', v)} color="emerald" />
  {data.print_logo && <LogoUploader data={data} setData={setData} />}
  </div>
 
  <div className="mt-4 space-y-2">
- <ToggleBtn label="Bold Text Mode" checked={data.thermal_use_bold} onChange={v => setData('thermal_use_bold', v)} color="emerald" />
- <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} color="emerald" />
- <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} color="emerald" />
+ <ToggleBtn label="Bold Text Mode" checked={isTruthy(data.thermal_use_bold, true)} onChange={v => setData('thermal_use_bold', v)} color="emerald" />
+ <ToggleBtn label="Show Batch Codes" checked={isTruthy(data.thermal_show_batch, false)} onChange={v => setData('thermal_show_batch', v)} color="emerald" />
+ <ToggleBtn label="Show Expiry Dates" checked={isTruthy(data.thermal_show_expiry, false)} onChange={v => setData('thermal_show_expiry', v)} color="emerald" />
  </div>
  </Section>
 
  <Section title="Columns & Content" icon={Layout}>
  <div className="space-y-2">
- <ToggleBtn label="Label Headers" checked={data.thermal_show_headers} onChange={v => setData('thermal_show_headers', v)} color="emerald" />
- <ToggleBtn label="Show Serial No." checked={data.thermal_show_sno} onChange={v => setData('thermal_show_sno', v)} color="emerald" />
- <ToggleBtn label="Show Units" checked={data.thermal_show_units} onChange={v => setData('thermal_show_units', v)} color="emerald" />
- <ToggleBtn label="Item Description" checked={data.thermal_show_description} onChange={v => setData('thermal_show_description', v)} color="emerald" />
- <ToggleBtn label="MRP Prices" checked={data.thermal_show_mrp} onChange={v => setData('thermal_show_mrp', v)} color="emerald" />
- <ToggleBtn label="Discounts (%)" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} color="emerald" />
- <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} color="emerald" />
- <ToggleBtn label="Tax Details" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} color="emerald" />
- <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} color="emerald" />
- <ToggleBtn label="Show MFG Date" checked={data.thermal_show_mfg_date} onChange={v => setData('thermal_show_mfg_date', v)} color="emerald" />
- <ToggleBtn label="Show Size" checked={data.thermal_show_size} onChange={v => setData('thermal_show_size', v)} color="emerald" />
- <ToggleBtn label="Show Model" checked={data.thermal_show_model} onChange={v => setData('thermal_show_model', v)} color="emerald" />
- <ToggleBtn label="Show Serial (product)" checked={data.thermal_show_serial} onChange={v => setData('thermal_show_serial', v)} color="emerald" />
+ <ToggleBtn label="Label Headers" checked={isTruthy(data.thermal_show_headers, false)} onChange={v => setData('thermal_show_headers', v)} color="emerald" />
+ <ToggleBtn label="Show Serial No." checked={isTruthy(data.thermal_show_sno, false)} onChange={v => setData('thermal_show_sno', v)} color="emerald" />
+ <ToggleBtn label="Show Units" checked={isTruthy(data.thermal_show_units, false)} onChange={v => setData('thermal_show_units', v)} color="emerald" />
+ <ToggleBtn label="Item Description" checked={isTruthy(data.thermal_show_description, false)} onChange={v => setData('thermal_show_description', v)} color="emerald" />
+ <ToggleBtn label="MRP Prices" checked={isTruthy(data.thermal_show_mrp, false)} onChange={v => setData('thermal_show_mrp', v)} color="emerald" />
+ <ToggleBtn label="Discounts (%)" checked={isTruthy(data.print_show_discount, false)} onChange={v => setData('print_show_discount', v)} color="emerald" />
+ <ToggleBtn label="Free Qty (1+1)" checked={isTruthy(data.print_show_free_qty, false)} onChange={v => setData('print_show_free_qty', v)} color="emerald" />
+ <ToggleBtn label="Tax Details" checked={isTruthy(data.print_tax_details, true)} onChange={v => setData('print_tax_details', v)} color="emerald" />
+ <ToggleBtn label="Show Barcode" checked={isTruthy(data.thermal_show_barcode, true)} onChange={v => setData('thermal_show_barcode', v)} color="emerald" />
+ <ToggleBtn label="Show MFG Date" checked={isTruthy(data.thermal_show_mfg_date, false)} onChange={v => setData('thermal_show_mfg_date', v)} color="emerald" />
+ <ToggleBtn label="Show Size" checked={isTruthy(data.thermal_show_size, false)} onChange={v => setData('thermal_show_size', v)} color="emerald" />
+ <ToggleBtn label="Show Model" checked={isTruthy(data.thermal_show_model, false)} onChange={v => setData('thermal_show_model', v)} color="emerald" />
+ <ToggleBtn label="Show Serial (product)" checked={isTruthy(data.thermal_show_serial, false)} onChange={v => setData('thermal_show_serial', v)} color="emerald" />
  </div>
  </Section>
 
  <Section title="Totals & Footer" icon={AlignLeft}>
  <div className="grid grid-cols-2 gap-2 mb-4">
- <ToggleBtn label="Total Qty" checked={data.print_total_quantity} onChange={v => setData('print_total_quantity', v)} color="emerald" />
- <ToggleBtn label="Decimal Amounts" checked={data.print_amount_decimal} onChange={v => setData('print_amount_decimal', v)} color="emerald" />
- <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} color="emerald" />
- <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} color="emerald" />
- <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} color="emerald" />
- <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} color="emerald" />
- <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} color="emerald" />
- <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} color="emerald" />
+ <ToggleBtn label="Total Qty" checked={isTruthy(data.print_total_quantity, true)} onChange={v => setData('print_total_quantity', v)} color="emerald" />
+ <ToggleBtn label="Decimal Amounts" checked={isTruthy(data.print_amount_decimal, true)} onChange={v => setData('print_amount_decimal', v)} color="emerald" />
+ <ToggleBtn label="Received Amt" checked={isTruthy(data.print_received_amount, true)} onChange={v => setData('print_received_amount', v)} color="emerald" />
+ <ToggleBtn label="Balance Due" checked={isTruthy(data.print_balance_amount, true)} onChange={v => setData('print_balance_amount', v)} color="emerald" />
+ <ToggleBtn label="Savings" checked={isTruthy(data.print_you_saved, false)} onChange={v => setData('print_you_saved', v)} color="emerald" />
+ <ToggleBtn label="Prev Balance" checked={isTruthy(data.print_show_previous_balance, false)} onChange={v => setData('print_show_previous_balance', v)} color="emerald" />
+ <ToggleBtn label="Delivery Charges" checked={isTruthy(data.print_show_delivery_charge, true)} onChange={v => setData('print_show_delivery_charge', v)} color="emerald" />
+ <ToggleBtn label="Extra Charges" checked={isTruthy(data.print_show_extra_charge, true)} onChange={v => setData('print_show_extra_charge', v)} color="emerald" />
  </div>
 
  <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
@@ -630,8 +556,8 @@ const ThermalSettings = ({ data, setData }) => (
  </Section>
 
  <Section title="Hardware Actions" icon={Settings}>
- <Toggle label="Auto Cut Paper" checked={data.thermal_auto_cut} onChange={v => setData('thermal_auto_cut', v)} color="emerald" />
- <Toggle label="Open Cash Drawer" checked={data.thermal_open_drawer} onChange={v => setData('thermal_open_drawer', v)} color="emerald" />
+ <Toggle label="Auto Cut Paper" checked={isTruthy(data.thermal_auto_cut, true)} onChange={v => setData('thermal_auto_cut', v)} color="emerald" />
+ <Toggle label="Open Cash Drawer" checked={isTruthy(data.thermal_open_drawer, false)} onChange={v => setData('thermal_open_drawer', v)} color="emerald" />
 
  <div className="grid grid-cols-2 gap-3 mt-4">
  <NumberInput label="Extra Feed (Lines)" value={data.thermal_extra_lines} onChange={v => setData('thermal_extra_lines', v)} />
@@ -854,9 +780,17 @@ const LogoUploader = ({ data, setData }) => (
  </div>
 );
 
-const B2BSettings = ({ data, setData }) => {
+const B2BSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-fast">
+      <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-800/30 mb-6">
+        <Toggle
+          label="Set as Default Receipt Format"
+          checked={data.default_print_type === 'b2b'}
+          onChange={v => { const type = v ? 'b2b' : 'regular'; onSetDefaultType ? onSetDefaultType(type) : (setData('default_print_type', type), rememberPrintType(type)); }}
+          color="indigo"
+        />
+      </div>
       <div>
         <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Invoice &amp; PDF Styling (B2B)</h4>
         <div className="space-y-4">
@@ -976,7 +910,7 @@ const HardwareSettings = ({ data, setData }) => {
 						{printers && printers.length > 0 ? (
 							<select
 								value={defaultPrinter || ''}
-								onChange={async (e) => { const result = await setDefaultPrinter(e.target.value); if (!result?.success) Swal.fire('Printer selection failed', result?.error || 'Could not save printer', 'error'); }}
+								onChange={async (e) => { const result = await setDefaultPrinter(e.target.value); if (result?.success) setData('default_print_type', 'thermal'); else Swal.fire('Printer selection failed', result?.error || 'Could not save printer', 'error'); }}
 								className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
 							>
 								<option value="" disabled>Select a receipt printer</option>

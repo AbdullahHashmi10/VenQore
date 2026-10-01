@@ -497,6 +497,21 @@ class UpdaterController extends Controller
 
         Log::info("Updater: Package assembled from {$totalChunks} chunks ({$fileSizeMB} MB). By: " . (Auth::user()?->email ?? 'unknown'));
 
+        // Commit the upload state before the browser requests extraction.
+        // Without this transition the phase guard correctly rejects extract
+        // because the lock still says `uploading`.
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'uploaded';
+            $lockData['step'] = 'upload_complete';
+            $lockData['status'] = 'in_progress';
+            $lockData['uploaded_bytes'] = filesize($targetPath);
+            $lockData['package_sha256'] = hash_file('sha256', $targetPath);
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+            $storedToken = $lockData['update_token'] ?? $storedToken;
+        }
+
         return response()->json([
             'message'      => "Package received & saved. ({$fileSizeMB} MB, {$totalChunks} chunks)",
             'complete'     => true,

@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -243,7 +244,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                                 <Plus size={18} />
                                 <span className="text-sm font-bold hidden sm:inline">New Reminder</span>
                             </Link>
-                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
                         </div>

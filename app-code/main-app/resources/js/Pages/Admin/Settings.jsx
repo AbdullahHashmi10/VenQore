@@ -1,3 +1,4 @@
+import { printerSettingsFields } from '@/Utils/printSettingsFields';
 import React, { useState, useEffect, useMemo } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
@@ -32,6 +33,7 @@ import DangerSettingsSection from '@/Components/DangerSettingsSection';
 
 import { vq } from '@/theme/runtime';
 import { useTermText } from '@/lib/terms';
+import { rememberPrintType } from '@/Utils/printPreference';
 
 // ── Settings IA (5 Plain-Language Task Groups) ──────────────────────────
 const SETTINGS_CATEGORIES = [
@@ -316,13 +318,14 @@ const SECTION_FIELD_MAP = {
         'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
     ],
     customers_suppliers: [
-        'loyalty_enabled', 'enable_credit_limit', 'party_grouping'
+        'loyalty_enabled', 'enable_credit_limit', 'party_grouping', 'strict_party_roles'
     ],
     stock_items: [
         'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
         'wholesale_price_enabled', 'low_stock_alerts', 'low_stock_threshold'
     ],
     document_layouts: [
+        ...printerSettingsFields, 'print_copies',
         'paper_size', 'paper_orientation', 'print_theme', 'print_theme_color',
         'print_logo', 'print_logo_path', 'print_logo_file', 'print_signature_text',
         'print_original_copy', 'print_company_text_size', 'print_invoice_text_size',
@@ -339,16 +342,7 @@ const SECTION_FIELD_MAP = {
         'print_acknowledgement', 'print_header_all_pages', 'print_extra_space_top',
         'print_min_item_rows', 'invoice_theme', 'invoice_primary_color', 'show_margin_on_invoice'
     ],
-    printer_device: [
-        'default_print_type', 'thermal_page_size', 'thermal_custom_chars',
-        'thermal_use_bold', 'thermal_auto_cut', 'thermal_open_drawer',
-        'thermal_extra_lines', 'thermal_copies', 'thermal_font_size',
-        'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units',
-        'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch',
-        'thermal_show_expiry', 'thermal_show_mfg_date', 'thermal_show_size',
-        'thermal_show_model', 'thermal_show_serial', 'thermal_show_barcode',
-        'thermal_custom_footer'
-    ],
+    printer_device: printerSettingsFields,
     manual_sharing: [
         'message_template_sales', 'message_template_returns', 'message_template_reminders', 'whatsapp_offer_pdf'
     ],
@@ -437,6 +431,14 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         return !isNaN(parsed) ? parsed : fallback;
     };
 
+    const isTruthy = (val, defaultValue = false) => {
+        if (val === undefined || val === null || val === '') return defaultValue;
+        if (typeof val === 'boolean') return val;
+        if (val === '1' || val === 1 || val === 'true') return true;
+        if (val === '0' || val === 0 || val === 'false') return false;
+        return Boolean(val);
+    };
+
     const safeParseJson = (value, fallback) => {
         if (!value) return fallback;
         if (typeof value !== 'string') return Array.isArray(value) ? value : fallback;
@@ -479,10 +481,10 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
 
     const { data, setData, post, processing, errors, isDirty, reset, transform } = useForm({
         // Profile
-        business_name: settings.business_name || 'VENQORE',
-        business_email: settings.business_email || '',
-        business_phone: settings.business_phone || '',
-        business_address: settings.business_address || '',
+        business_name: settings.business_name || store?.name || settings.store_name || 'VenQore',
+        business_email: settings.business_email || store?.email || '',
+        business_phone: settings.business_phone || store?.phone || '',
+        business_address: settings.business_address || store?.address || '',
         tax_number: settings.tax_number || '',
         custom_domain: settings.custom_domain || store?.custom_domain || '',
 
@@ -545,11 +547,11 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         paper_orientation: settings.paper_orientation || 'Portrait',
         print_theme: settings.print_theme || 'modern',
         print_theme_color: settings.print_theme_color || vq.indigo[600],
-        print_logo: settings.print_logo !== '0',
-        print_logo_path: settings.print_logo_path || null,
+        print_logo: isTruthy(settings.print_logo, true),
+        print_logo_path: settings.print_logo_path || store?.logo_url || store?.logo_path || null,
         print_logo_file: null,
         print_signature_text: settings.print_signature_text || 'Authorized Signatory',
-        print_original_copy: settings.print_original_copy === '1',
+        print_original_copy: isTruthy(settings.print_original_copy, false),
         print_company_text_size: settings.print_company_text_size || '4',
         print_invoice_text_size: settings.print_invoice_text_size || '3',
         margin_top: safeInt(settings.margin_top, 20),
@@ -558,61 +560,61 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         margin_right: safeInt(settings.margin_right, 20),
         custom_paper_width: safeInt(settings.custom_paper_width, 210),
         custom_paper_height: safeInt(settings.custom_paper_height, 297),
-        print_show_sno: settings.print_show_sno !== '0',
-        print_show_units: settings.print_show_units !== '0',
-        print_show_mrp: settings.print_show_mrp === '1',
-        print_show_description: settings.print_show_description !== '0',
-        print_show_hsn: settings.print_show_hsn === '1',
-        print_show_discount: settings.print_show_discount === '1' || settings.print_show_discount === true,
-        print_show_free_qty: settings.print_show_free_qty === '1' || settings.print_show_free_qty === true,
-        print_show_delivery_charge: settings.print_show_delivery_charge !== '0' && settings.print_show_delivery_charge !== false,
-        print_show_extra_charge: settings.print_show_extra_charge !== '0' && settings.print_show_extra_charge !== false,
-        print_qr_code: settings.print_qr_code !== '0' && settings.print_qr_code !== false,
-        print_total_quantity: settings.print_total_quantity !== '0',
-        print_amount_decimal: settings.print_amount_decimal !== '0',
-        print_received_amount: settings.print_received_amount !== '0',
-        print_balance_amount: settings.print_balance_amount !== '0',
-        print_party_balance: settings.print_party_balance === '1' || settings.print_party_balance === true,
-        print_tax_details: settings.print_tax_details !== '0',
-        print_you_saved: settings.print_you_saved === '1' || settings.print_you_saved === true,
-        print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
-        print_amount_grouping: settings.print_amount_grouping !== '0',
+        print_show_sno: isTruthy(settings.print_show_sno, true),
+        print_show_units: isTruthy(settings.print_show_units, true),
+        print_show_mrp: isTruthy(settings.print_show_mrp, false),
+        print_show_description: isTruthy(settings.print_show_description, true),
+        print_show_hsn: isTruthy(settings.print_show_hsn, false),
+        print_show_discount: isTruthy(settings.print_show_discount, false),
+        print_show_free_qty: isTruthy(settings.print_show_free_qty, false),
+        print_show_delivery_charge: isTruthy(settings.print_show_delivery_charge, true),
+        print_show_extra_charge: isTruthy(settings.print_show_extra_charge, true),
+        print_qr_code: isTruthy(settings.print_qr_code, true),
+        print_total_quantity: isTruthy(settings.print_total_quantity, true),
+        print_amount_decimal: isTruthy(settings.print_amount_decimal, true),
+        print_received_amount: isTruthy(settings.print_received_amount, true),
+        print_balance_amount: isTruthy(settings.print_balance_amount, true),
+        print_party_balance: isTruthy(settings.print_party_balance, false),
+        print_tax_details: isTruthy(settings.print_tax_details, true),
+        print_you_saved: isTruthy(settings.print_you_saved, false),
+        print_show_previous_balance: isTruthy(settings.print_show_previous_balance, false),
+        print_amount_grouping: isTruthy(settings.print_amount_grouping, true),
         print_amount_words: settings.print_amount_words || '0',
-        print_description: settings.print_description !== '0',
+        print_description: isTruthy(settings.print_description, true),
         print_terms: settings.print_terms || '',
-        print_received_by: settings.print_received_by === '1' || settings.print_received_by === true,
-        print_delivered_by: settings.print_delivered_by === '1' || settings.print_delivered_by === true,
-        print_payment_mode: settings.print_payment_mode !== '0',
-        print_acknowledgement: settings.print_acknowledgement === '1' || settings.print_acknowledgement === true,
-        print_header_all_pages: settings.print_header_all_pages !== '0',
+        print_received_by: isTruthy(settings.print_received_by, false),
+        print_delivered_by: isTruthy(settings.print_delivered_by, false),
+        print_payment_mode: isTruthy(settings.print_payment_mode, true),
+        print_acknowledgement: isTruthy(settings.print_acknowledgement, false),
+        print_header_all_pages: isTruthy(settings.print_header_all_pages, true),
         print_extra_space_top: safeInt(settings.print_extra_space_top, 0),
         print_min_item_rows: safeInt(settings.print_min_item_rows, 5),
         invoice_theme: settings.invoice_theme || 'classic',
         invoice_primary_color: settings.invoice_primary_color && !settings.invoice_primary_color.includes('var(') ? settings.invoice_primary_color : '#4f46e5',
-        show_margin_on_invoice: settings.show_margin_on_invoice === '1' || settings.show_margin_on_invoice === true,
+        show_margin_on_invoice: isTruthy(settings.show_margin_on_invoice, false),
 
         // Printing - Printer Device (Thermal Hardware)
         default_print_type: settings.default_print_type || 'regular',
         thermal_page_size: settings.thermal_page_size || '3inch',
         thermal_custom_chars: safeInt(settings.thermal_custom_chars, 48),
-        thermal_use_bold: settings.thermal_use_bold !== '0',
-        thermal_auto_cut: settings.thermal_auto_cut !== '0',
-        thermal_open_drawer: settings.thermal_open_drawer === '1' || settings.thermal_open_drawer === true,
+        thermal_use_bold: isTruthy(settings.thermal_use_bold, true),
+        thermal_auto_cut: isTruthy(settings.thermal_auto_cut, true),
+        thermal_open_drawer: isTruthy(settings.thermal_open_drawer, false),
         thermal_extra_lines: safeInt(settings.thermal_extra_lines, 3),
         thermal_copies: safeInt(settings.thermal_copies, 1),
         thermal_font_size: safeInt(settings.thermal_font_size, 12),
-        thermal_show_headers: settings.thermal_show_headers === '1' || settings.thermal_show_headers === true,
-        thermal_show_sno: settings.thermal_show_sno === '1' || settings.thermal_show_sno === true,
-        thermal_show_units: settings.thermal_show_units === '1' || settings.thermal_show_units === true,
-        thermal_show_mrp: settings.thermal_show_mrp === '1' || settings.thermal_show_mrp === true,
-        thermal_show_description: settings.thermal_show_description === '1' || settings.thermal_show_description === true,
-        thermal_show_batch: settings.thermal_show_batch === '1' || settings.thermal_show_batch === true,
-        thermal_show_expiry: settings.thermal_show_expiry === '1' || settings.thermal_show_expiry === true,
-        thermal_show_mfg_date: settings.thermal_show_mfg_date === '1' || settings.thermal_show_mfg_date === true,
-        thermal_show_size: settings.thermal_show_size === '1' || settings.thermal_show_size === true,
-        thermal_show_model: settings.thermal_show_model === '1' || settings.thermal_show_model === true,
-        thermal_show_serial: settings.thermal_show_serial === '1' || settings.thermal_show_serial === true,
-        thermal_show_barcode: settings.thermal_show_barcode !== '0',
+        thermal_show_headers: isTruthy(settings.thermal_show_headers, false),
+        thermal_show_sno: isTruthy(settings.thermal_show_sno, false),
+        thermal_show_units: isTruthy(settings.thermal_show_units, false),
+        thermal_show_mrp: isTruthy(settings.thermal_show_mrp, false),
+        thermal_show_description: isTruthy(settings.thermal_show_description, false),
+        thermal_show_batch: isTruthy(settings.thermal_show_batch, false),
+        thermal_show_expiry: isTruthy(settings.thermal_show_expiry, false),
+        thermal_show_mfg_date: isTruthy(settings.thermal_show_mfg_date, false),
+        thermal_show_size: isTruthy(settings.thermal_show_size, false),
+        thermal_show_model: isTruthy(settings.thermal_show_model, false),
+        thermal_show_serial: isTruthy(settings.thermal_show_serial, false),
+        thermal_show_barcode: isTruthy(settings.thermal_show_barcode, true),
         thermal_custom_footer: settings.thermal_custom_footer || '',
 
         // Printing - Manual Sharing (WhatsApp Drafts)
@@ -687,32 +689,64 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         approval_threshold_fund_transfer: settings.approval_threshold_fund_transfer || '',
     });
 
-    const saveSettings = (code, sectionToSave = activeSection) => {
+    const saveSettings = (code, sectionToSave = activeSection, extraData = {}) => {
         transform((currentData) => {
             const allowedKeys = SECTION_FIELD_MAP[sectionToSave];
             const payload = {
                 _save_section: sectionToSave,
+                ...extraData,
             };
             if (code) {
                 payload.passcode_challenge = code;
             }
             if (allowedKeys) {
                 allowedKeys.forEach(k => {
-                    if (currentData[k] !== undefined) {
+                    if (extraData[k] !== undefined) {
+                        payload[k] = extraData[k];
+                    } else if (currentData[k] !== undefined) {
                         payload[k] = currentData[k];
                     }
                 });
             } else {
-                Object.assign(payload, currentData);
+                Object.assign(payload, currentData, extraData);
             }
             return payload;
         });
 
         post(route('store.settings.update', { store_slug: store?.slug }), {
             preserveScroll: true,
-            onSuccess: () => {
+            onSuccess: (page) => {
+                const newSettings = page?.props?.settings || {};
+                if (page?.props?.settings && typeof window !== 'undefined') {
+                    window.amdSettings = { ...(window.amdSettings || {}), ...newSettings, store_slug: store?.slug };
+                }
+                const updatedType = extraData.default_print_type || data.default_print_type || newSettings.default_print_type;
+                if (updatedType) {
+                    rememberPrintType(updatedType);
+                    if (typeof window !== 'undefined' && window.amdSettings) {
+                        window.amdSettings.default_print_type = updatedType;
+                    }
+                }
+                if (page?.props?.settings) {
+                    setData(prev => {
+                        const next = { ...prev, ...extraData };
+                        Object.keys(newSettings).forEach(k => {
+                            if (next[k] !== undefined && extraData[k] === undefined) {
+                                if (typeof prev[k] === 'boolean') {
+                                    next[k] = newSettings[k] === '1' || newSettings[k] === true || newSettings[k] === 'true';
+                                } else {
+                                    next[k] = newSettings[k];
+                                }
+                            }
+                        });
+                        return next;
+                    });
+                }
                 setSaved(true);
                 setTimeout(() => setSaved(false), 3000);
+            },
+            onError: (errs) => {
+                console.error('[Settings] Save failed:', errs);
             }
         });
     };
@@ -728,6 +762,9 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
             setShowUnsavedModal(true);
         } else {
             setActiveSection(sectionId);
+            if (typeof window !== 'undefined') {
+                window.history.replaceState(null, '', `#${sectionId}`);
+            }
         }
     };
 
@@ -765,6 +802,9 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                 setTimeout(() => setSaved(false), 3000);
                 if (targetSection) {
                     setActiveSection(targetSection);
+                    if (typeof window !== 'undefined') {
+                        window.history.replaceState(null, '', `#${targetSection}`);
+                    }
                     setPendingSectionId(null);
                 }
             }
@@ -777,6 +817,9 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         reset();
         if (targetSection) {
             setActiveSection(targetSection);
+            if (typeof window !== 'undefined') {
+                window.history.replaceState(null, '', `#${targetSection}`);
+            }
             setPendingSectionId(null);
         }
     };

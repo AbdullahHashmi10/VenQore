@@ -21,6 +21,32 @@ router.on('invalid', (event) => {
     window.location.href = `/error/${status}`;
 });
 
+// Synchronize window.amdSettings whenever Inertia navigates
+router.on('navigate', (event) => {
+    const pageProps = event.detail?.page?.props;
+    if (pageProps?.settings) {
+        const store = pageProps.store || {};
+        const settings = pageProps.settings || {};
+        window.amdSettings = {
+            ...(window.amdSettings || {}),
+            ...settings,
+            store_slug: store.slug,
+            currency: settings.currency || store.currency_code,
+            currency_code: store.currency_code || settings.currency_code,
+            currency_symbol: store.currency_symbol || settings.currency_symbol,
+            timezone: settings.timezone || store.timezone || 'UTC',
+            store_name: store.name || settings.store_name || settings.business_name,
+            business_name: settings.business_name || store.name || settings.store_name,
+            business_address: settings.business_address || store.address || settings.address || '',
+            business_phone: settings.business_phone || store.phone || settings.phone || '',
+            business_email: settings.business_email || store.email || settings.email || '',
+            print_logo_path: settings.print_logo_path || store.logo_path || settings.logo_path || '',
+            default_print_type: settings.default_print_type || window.amdSettings?.default_print_type || 'regular',
+            decimal_places: parseInt(settings.decimal_places !== undefined ? settings.decimal_places : 2)
+        };
+    }
+});
+
 createInertiaApp({
     title: (title) => {
         const businessName = window.amdSettings?.business_name || appName;
@@ -85,11 +111,18 @@ createInertiaApp({
 
         window.amdSettings = {
             ...settings,
+            store_slug: store.slug,
             currency:        settings.currency        || store.currency_code,
             currency_code:   store.currency_code      || settings.currency_code,
             currency_symbol: store.currency_symbol    || settings.currency_symbol,
             timezone:        settings.timezone        || store.timezone || 'UTC',
             store_name:      store.name               || settings.store_name || settings.business_name,
+            business_name:   settings.business_name   || store.name || settings.store_name,
+            business_address: settings.business_address || store.address || settings.address || '',
+            business_phone:  settings.business_phone  || store.phone || settings.phone || '',
+            business_email:  settings.business_email  || store.email || settings.email || '',
+            print_logo_path: settings.print_logo_path || store.logo_path || settings.logo_path || '',
+            default_print_type: settings.default_print_type || 'regular',
             decimal_places:  parseInt(settings.decimal_places !== undefined ? settings.decimal_places : 2)
         };
 

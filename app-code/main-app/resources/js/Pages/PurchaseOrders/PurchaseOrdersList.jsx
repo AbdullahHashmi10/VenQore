@@ -1,3 +1,4 @@
+import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
@@ -27,7 +28,7 @@ import axios from 'axios';
 import { useTermText } from '@/lib/terms';
 
 export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
- const { store } = usePage().props;
+ const { store, settings } = usePage().props;
  const tt = useTermText();
  // Infinite Scroll State
  const [allOrders, setAllOrders] = useState(orders.data || []);
@@ -304,7 +305,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
  <FileSpreadsheet size={18} />
  </button>
- <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => window.print()}>
+ <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
  <Printer size={18} />
  </button>
  </div>
@@ -614,7 +615,10 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
  })()}
  </div>
  <div className="flex items-center gap-2">
- <button className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1">
+ <button 
+ onClick={() => PrintService.quickPrint(quickViewItem, null, settings)}
+ className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1"
+ >
  <Printer size={14} /> Print
  </button>
  <Link
