@@ -53,7 +53,7 @@ class ChequeBook extends Model
 
     public function getSeriesPrefixAttribute(): ?string
     {
-        return $this->prefix;
+        return $this->attributes['prefix'] ?? null;
     }
 
     public function setSeriesPrefixAttribute(?string $value): void
@@ -63,7 +63,7 @@ class ChequeBook extends Model
 
     public function getStartNumberAttribute(): ?int
     {
-        return $this->serial_start;
+        return isset($this->attributes['serial_start']) ? (int) $this->attributes['serial_start'] : null;
     }
 
     public function setStartNumberAttribute(?int $value): void
@@ -73,7 +73,7 @@ class ChequeBook extends Model
 
     public function getEndNumberAttribute(): ?int
     {
-        return $this->serial_end;
+        return isset($this->attributes['serial_end']) ? (int) $this->attributes['serial_end'] : null;
     }
 
     public function setEndNumberAttribute(?int $value): void
@@ -83,7 +83,7 @@ class ChequeBook extends Model
 
     public function getPaddingZerosAttribute(): ?int
     {
-        return $this->serial_padding;
+        return isset($this->attributes['serial_padding']) ? (int) $this->attributes['serial_padding'] : null;
     }
 
     public function setPaddingZerosAttribute(?int $value): void
@@ -93,7 +93,7 @@ class ChequeBook extends Model
 
     public function getDescriptionAttribute(): ?string
     {
-        return $this->notes;
+        return $this->attributes['notes'] ?? null;
     }
 
     public function setDescriptionAttribute(?string $value): void

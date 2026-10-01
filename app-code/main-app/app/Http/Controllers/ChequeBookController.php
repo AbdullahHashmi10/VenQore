@@ -253,7 +253,7 @@ class ChequeBookController extends Controller
 
         $query = ChequeLeaf::where('tenant_id', $tenant->id)
             ->where('status', ChequeLeaf::STATUS_AVAILABLE)
-            ->with(['bankAccount:id,name,bank_name', 'chequeBook:id,series_prefix']);
+            ->with(['bankAccount:id,name,bank_name', 'chequeBook:id,prefix']);
 
         if ($request->filled('bank_account_id')) {
             $query->where('bank_account_id', $request->bank_account_id);
