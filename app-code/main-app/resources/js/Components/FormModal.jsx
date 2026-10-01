@@ -365,61 +365,58 @@ export function FormSelect({
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
-                    w-full px-5 py-4 rounded-2xl text-left flex items-center justify-between
+                    w-full px-3.5 py-2.5 rounded-xl text-left flex items-center justify-between
                     bg-app 
-                    border-2 ${error ? 'border-rose-500/50' : 'border-line'}
-                    text-ink text-lg font-bold
-                    outline-none focus:ring-4 ${error ? 'ring-rose-500/10 focus:border-rose-500' : 'ring-brand-500/10 focus:border-brand-500'}
+                    border ${error ? 'border-rose-500' : 'border-line'}
+                    text-ink text-xs sm:text-sm font-semibold
+                    outline-none focus:ring-2 ${error ? 'ring-rose-500/20 focus:border-rose-500' : 'ring-brand-500/20 focus:border-brand-500'}
                     transition-all hover:bg-white dark:hover:bg-interactive-hover
-                    ${isOpen ? 'ring-4 ring-brand-500/10 border-brand-500' : ''}
+                    ${isOpen ? 'ring-2 ring-brand-500/20 border-brand-500' : ''}
                     ${className}
 `}
             >
-                <span className={!selectedOption ? 'text-ink-muted' : ''}>{displayLabel}</span>
-                <span className={`text-ink-muted transition-transform duration-slow ${isOpen ? 'rotate-180' : ''}`}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <span className={!selectedOption ? 'text-ink-muted/60' : ''}>{displayLabel}</span>
+                <span className={`text-ink-muted transition-transform duration-normal ${isOpen ? 'rotate-180' : ''}`}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m6 9 6 6 6-6" />
                     </svg>
                 </span>
             </button>
 
-            {/* Dropdown Menu */}
+            {/* Dropdown Menu - Universal V6 Popover */}
             {isOpen && (
-                <div className="absolute z-drawer w-full mt-3 bg-surface border-2 border-line rounded-[14px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] max-h-[400px] overflow-hidden animate-in fade-in slide-in-from-top-4 flex flex-col">
+                <div className="absolute z-[10000050] w-full mt-1.5 bg-surface border border-line rounded-xl shadow-xl max-h-[280px] overflow-hidden animate-in fade-in slide-in-from-top-2 flex flex-col">
 
                     {/* Search Bar */}
                     {searchable && (
-                        <div className="p-3 border-b-2 border-line bg-sunken/50 dark:bg-app">
+                        <div className="p-2 border-b border-line bg-sunken/50 dark:bg-app">
                             <div className="relative">
-                                <svg className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                                <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
                                 <input
                                     ref={searchInputRef}
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Type to search or create..."
-                                    className="w-full pl-11 pr-4 py-3 rounded-[10px] bg-surface border-2 border-line text-base font-bold outline-none focus:border-brand-500 transition-all"
+                                    placeholder="Search..."
+                                    className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-surface border border-line text-xs font-semibold outline-none focus:border-brand-500 transition-all"
                                     onClick={(e) => e.stopPropagation()}
                                 />
                             </div>
                         </div>
                     )}
 
-                    <div className="flex-1 overflow-y-auto custom-scrollbar-premium p-2 space-y-1">
-                        {/* PROMINENT Create Option */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar-premium p-1.5 space-y-0.5">
+                        {/* Create Option */}
                         {creatable && searchTerm && !allOptions.some(o => o.label.toLowerCase() === searchTerm.trim().toLowerCase()) && (
                             <button
                                 type="button"
                                 onClick={handleCreate}
-                                className="w-full px-4 py-6 rounded-2xl text-left text-lg font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all flex items-center gap-4 shadow-xl border-4 border-white/20 mb-4 animate-bounce"
+                                className="w-full px-3 py-2 rounded-lg text-left text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 transition-all flex items-center gap-2 shadow-sm mb-1"
                             >
-                                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+                                <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xs uppercase opacity-70">Add New Category</span>
-                                    <span>Create "{searchTerm}"</span>
-                                </div>
+                                <span className="truncate">Create "{searchTerm}"</span>
                             </button>
                         )}
 
@@ -430,16 +427,16 @@ export function FormSelect({
                                     type="button"
                                     onClick={() => handleSelect(opt.value)}
                                     className={`
-                                        w-full px-4 py-3.5 rounded-2xl text-left text-base font-bold transition-all flex items-center justify-between
+                                        w-full px-3 py-2 rounded-lg text-left text-xs sm:text-sm font-semibold transition-all flex items-center justify-between
                                         ${value == opt.value
-                                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-2 border-emerald-100 dark:border-emerald-500/20'
-                                            : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover hover:pl-6'}
+                                            ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-bold border border-brand-500/20'
+                                            : 'text-ink hover:bg-interactive-hover dark:hover:bg-interactive-hover'}
 `}
                                 >
-                                    {opt.label}
+                                    <span className="truncate">{opt.label}</span>
                                     {value == opt.value && (
-                                        <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center animate-in zoom-in">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                        <div className="w-4 h-4 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0 animate-in zoom-in">
+                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                                                 <polyline points="20 6 9 17 4 12" />
                                             </svg>
                                         </div>
@@ -447,14 +444,14 @@ export function FormSelect({
                                 </button>
                             ))
                         ) : !searchTerm ? (
-                            <div className="px-4 py-12 text-center">
-                                <p className="text-ink-muted font-bold uppercase tracking-widest text-xs">No options available</p>
+                            <div className="px-3 py-6 text-center">
+                                <p className="text-ink-muted font-semibold uppercase tracking-wider text-2xs">No options</p>
                             </div>
                         ) : null}
 
                         {filteredOptions.length === 0 && searchTerm && !creatable && (
-                            <div className="px-4 py-12 text-center">
-                                <p className="text-ink-muted font-bold uppercase tracking-widest text-xs">No Results Found</p>
+                            <div className="px-3 py-6 text-center">
+                                <p className="text-ink-muted font-semibold uppercase tracking-wider text-2xs">No Results Found</p>
                             </div>
                         )}
                     </div>

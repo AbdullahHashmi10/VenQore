@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import FormModal, { FormField, FormInput, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
+import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import {
     Landmark,
     Wallet,
@@ -339,15 +339,15 @@ export default function BankAccountModal({
                                     </FormField>
 
                                     <FormField label="Zero Padding">
-                                        <select
+                                        <FormSelect
                                             value={formData.cheque_book_padding_zeros}
                                             onChange={(e) => setFormData({ ...formData, cheque_book_padding_zeros: parseInt(e.target.value) })}
-                                            className="w-full px-3 py-2 rounded-xl bg-app border border-line text-ink font-semibold text-xs outline-none focus:border-brand-500"
+                                            searchable={false}
                                         >
                                             <option value={4}>4 Digits (0101)</option>
                                             <option value={6}>6 Digits (000101)</option>
                                             <option value={8}>8 Digits (00000101)</option>
-                                        </select>
+                                        </FormSelect>
                                     </FormField>
                                 </div>
 
