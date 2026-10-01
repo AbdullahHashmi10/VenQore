@@ -138,7 +138,7 @@ export default function BankAccountModal({
             onClose={onClose}
             title={editingAccount ? 'Edit Bank Account' : 'Add Bank Account'}
             subtitle={editingAccount ? 'Update account settings' : 'Register a new bank account or cash drawer with optional instant cheque book allocation'}
-            size="xl"
+            size="wide"
             errors={errors}
             footer={
                 <div className="flex items-center justify-between gap-4">
@@ -168,7 +168,7 @@ export default function BankAccountModal({
                     <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-2">
                         Select Account Type <span className="text-rose-500">*</span>
                     </label>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {accountTypes.map((type) => {
                             const Icon = type.icon;
                             const isSelected = formData.account_type === type.id;
@@ -184,15 +184,15 @@ export default function BankAccountModal({
                                         }));
                                     }}
                                     className={`
-                                        p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 relative
+                                        p-3 rounded-xl border text-left transition-all flex items-center gap-3 relative
                                         ${isSelected
                                             ? `bg-gradient-to-br ${type.color} border-brand-500 ring-1 ring-brand-500/30 shadow-sm`
                                             : 'bg-app border-line hover:border-brand-500/40 hover:bg-surface'
                                         }
                                     `}
                                 >
-                                    <div className={`p-2 rounded-lg shrink-0 ${isSelected ? 'bg-surface shadow-xs' : 'bg-sunken text-ink-muted'}`}>
-                                        <Icon size={16} />
+                                    <div className={`p-2.5 rounded-lg shrink-0 ${isSelected ? 'bg-surface shadow-xs' : 'bg-sunken text-ink-muted'}`}>
+                                        <Icon size={18} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between gap-1">
@@ -209,13 +209,13 @@ export default function BankAccountModal({
                     </div>
                 </div>
 
-                {/* 2. Core Bank Account Details - 2-Column Balanced Grid */}
+                {/* 2. Core Bank Account Details - 4-Column Horizontal Desktop Layout */}
                 <div className="bg-surface p-4 rounded-xl border border-line shadow-2xs space-y-3">
                     <h4 className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
-                        <FileText size={13} className="text-brand-500" /> Account Identity & Details
+                        <FileText size={13} className="text-brand-500" /> Account Identity & Financial Details
                     </h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                         <FormField label="Account Display Name" required error={errors.name?.[0]}>
                             <FormInput
                                 value={formData.name}
@@ -225,6 +225,26 @@ export default function BankAccountModal({
                                 required
                             />
                         </FormField>
+
+                        {formData.account_type !== 'cash' ? (
+                            <>
+                                <FormField label="Bank Name" hint="e.g., Habib Bank, Meezan, UBL">
+                                    <FormInput
+                                        value={formData.bank_name}
+                                        onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
+                                        placeholder="e.g., Habib Bank Limited"
+                                    />
+                                </FormField>
+
+                                <FormField label="Account / IBAN Number" hint="Official IBAN / Account #">
+                                    <FormInput
+                                        value={formData.account_number}
+                                        onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
+                                        placeholder="e.g., PK36HABB00001234567890"
+                                    />
+                                </FormField>
+                            </>
+                        ) : null}
 
                         <FormField label="Opening Balance" hint="Initial starting balance">
                             <div className="relative">
@@ -242,26 +262,6 @@ export default function BankAccountModal({
                             </div>
                         </FormField>
                     </div>
-
-                    {formData.account_type !== 'cash' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2 border-t border-line/60">
-                            <FormField label="Bank Name" hint="e.g., Habib Bank Limited, Meezan, UBL">
-                                <FormInput
-                                    value={formData.bank_name}
-                                    onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                                    placeholder="e.g., Habib Bank Limited"
-                                />
-                            </FormField>
-
-                            <FormField label="Account / IBAN Number" hint="Official account or IBAN number">
-                                <FormInput
-                                    value={formData.account_number}
-                                    onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                                    placeholder="e.g., PK36HABB00001234567890"
-                                />
-                            </FormField>
-                        </div>
-                    )}
                 </div>
 
                 {/* 3. Instant Cheque Book Allocation Section */}

@@ -1,4 +1,5 @@
-import React, { Fragment, useCallback, useState } from 'react';
+import React, { Fragment, useCallback, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, AlertTriangle } from 'lucide-react';
 
 /**
@@ -10,7 +11,7 @@ import { X, AlertTriangle } from 'lucide-react';
  * @param {String} subtitle - Optional subtitle
  * @param {ReactNode} children - Form content
  * @param {ReactNode} footer - Footer with action buttons
- * @param {String} size - Modal size: 'sm', 'md', 'lg', 'xl', 'full'
+ * @param {String} size - Modal size: 'sm', 'md', 'lg', 'xl', 'wide', 'full'
  * @param {Boolean} loading - Show loading state
  */
 export default function FormModal({
@@ -26,13 +27,20 @@ export default function FormModal({
     errors = null // Support displaying validation errors
 }) {
     const [showExitConfirmation, setShowExitConfirmation] = useState(false);
-    // Base size classes
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Base size classes - Expanded for rich horizontal screen usage
     const sizeClasses = {
         sm: 'max-w-md',
-        md: 'max-w-lg',
-        lg: 'max-w-2xl',
-        xl: 'max-w-4xl',
-        full: 'max-w-[95%] h-[95vh]' // Making it much larger as requested
+        md: 'max-w-2xl',
+        lg: 'max-w-4xl',
+        xl: 'max-w-[94vw] lg:max-w-[1240px]',
+        wide: 'max-w-[96vw] lg:max-w-[1380px]',
+        full: 'max-w-[98vw] h-[96vh]'
     };
 
     // Unified closure logic with confirmation
@@ -49,8 +57,6 @@ export default function FormModal({
         if (e.target === e.currentTarget) {
             e.preventDefault();
             e.stopPropagation();
-            // User requested to disable backdrop closing to prevent accidental data loss
-            // requestClose(); 
         }
     };
 
@@ -61,20 +67,13 @@ export default function FormModal({
                 if (isOpen) {
                     event.preventDefault();
                     event.stopPropagation();
-                    // If showing confirmation, ESC should cancel confirmation, not close modal again (or maybe it should just do nothing)
-                    // Let's make ESC close the confirmation if open, or request close if not.
-                    /* 
-                    We need to access the CURRENT state of showExitConfirmation here. 
-                    Since we are inside a useEffect with dependencies, we need either a ref or robust logic.
-                    However, simplified: standard requestClose handles logic.
-                    */
                     requestClose();
                 }
             }
         };
 
         if (isOpen) {
-            window.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+            window.addEventListener('keydown', handleKeyDown, true);
         }
 
         return () => window.removeEventListener('keydown', handleKeyDown, true);
@@ -93,23 +92,22 @@ export default function FormModal({
         });
     }
 
-    // Final check for open state after hooks
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
+    const modalContent = (
         <Fragment>
-            {/* 1. SEPARATE BACKDROP: High-opacity blur behind everything - High z-index (z-[99999]) so AI island/Vena is completely covered */}
+            {/* 1. SEPARATE BACKDROP: Extreme z-index (z-[9999999]) so AI island/Vena is 100% covered */}
             <div
-                className="fixed inset-0 z-[99999] bg-neutral-950/85 backdrop-blur-xl animate-in fade-in duration-normal cursor-pointer"
+                className="fixed inset-0 z-[9999999] bg-neutral-950/85 backdrop-blur-xl animate-in fade-in duration-normal cursor-pointer"
                 onMouseDown={handleBackdropInteraction}
                 onTouchStart={handleBackdropInteraction}
             />
 
-            {/* 2. MODAL CONTAINER: Higher z-index (z-[100000]), centered, pointer-events-none so backdrop is reachable */}
-            <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 md:p-6 pointer-events-none overflow-hidden">
+            {/* 2. MODAL CONTAINER: Higher z-index (z-[10000000]), centered, pointer-events-none so backdrop is reachable */}
+            <div className="fixed inset-0 z-[10000000] flex items-center justify-center p-2 sm:p-4 md:p-6 pointer-events-none overflow-hidden">
                 <div
                     className={`
-                        ${sizeClasses[size]} w-full pointer-events-auto
+                        ${sizeClasses[size] || sizeClasses.xl} w-full pointer-events-auto
                         bg-surface rounded-2xl shadow-2xl
                         border border-line dark:border-white/10
                         animate-in zoom-in-95 fade-in duration-normal
@@ -235,6 +233,8 @@ export default function FormModal({
             </div>
         </Fragment>
     );
+
+    return createPortal(modalContent, document.body);
 }
 
 /**
