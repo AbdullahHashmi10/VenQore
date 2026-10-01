@@ -226,6 +226,7 @@ class FinanceController extends Controller
         ]);
 
         $validated['current_balance'] = $validated['opening_balance'] ?? 0;
+        $validated['type']            = $validated['account_type'] === 'cash' ? 'cash' : 'bank';
 
         $tenant = app('current.tenant');
         $bankAccount = null;
