@@ -50,6 +50,17 @@ class Phase9OptionalFeaturesTest extends TestCase
             'status'          => 'active',
         ]);
 
+        \App\Models\Setting::create([
+            'tenant_id' => $tenant->id,
+            'key'       => 'prepares_orders',
+            'value'     => '1',
+        ]);
+        \App\Models\Setting::create([
+            'tenant_id' => $tenant->id,
+            'key'       => 'pos_service_mode',
+            'value'     => 'tables',
+        ]);
+
         $user = \App\Models\User::factory()->create();
         $this->actingAs($user);
 

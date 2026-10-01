@@ -1,704 +1,755 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { formatCurrency } from '@/Utils/format';
+import React, { useState, useMemo } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { 
-    CheckCircle, 
-    XCircle, 
-    RotateCcw, 
     ArrowLeft, 
-    ShieldAlert, 
     Clock, 
-    FileText, 
-    User, 
-    Calendar,
-    Send,
-    Tag,
-    DollarSign,
-    Layers,
-    GitCommit,
-    Check,
-    AlertCircle,
-    ArrowRight,
-    Ban,
-    Edit3,
-    ExternalLink
+    CheckCircle2, 
+    RotateCcw, 
+    XCircle, 
+    History, 
+    Edit3, 
+    X, 
+    Ban 
 } from 'lucide-react';
+import { fireToast } from '@/lib/approval-response';
 
-// ─── Transaction Detail Cards ────────────────────────────────────────────────
-function CustomerReceiptCard({ payload, amount }) {
-    const allocations = payload.allocations || [];
-    return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl text-xs">
-                <div>
-                    <span className="text-gray-400 block font-medium">Customer ID</span>
-                    <span className="font-mono text-gray-800 text-sm font-semibold">{payload.customer_id || 'N/A'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Payment Method</span>
-                    <span className="capitalize text-gray-800 text-sm font-semibold">{payload.payment_method || 'Cash'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Receipt Date</span>
-                    <span className="text-gray-800 text-sm font-semibold">{payload.payment_date || 'Today'}</span>
-                </div>
-                {payload.reference && (
-                    <div className="col-span-2">
-                        <span className="text-gray-400 block font-medium">Reference Number</span>
-                        <span className="font-mono text-gray-800">{payload.reference}</span>
-                    </div>
-                )}
-            </div>
+import PurchaseForm from '@/Pages/V3/Purchases/PurchaseForm';
+import SalesInvoiceApprovalView from './Components/SalesInvoiceApprovalView';
+import SalesReturnApprovalView from './Components/SalesReturnApprovalView';
+import ProposalApprovalView from './Components/ProposalApprovalView';
+import OperatingExpenseApprovalView from './Components/OperatingExpenseApprovalView';
+import PaymentInApprovalView from './Components/PaymentInApprovalView';
+import PaymentOutApprovalView from './Components/PaymentOutApprovalView';
+import FundTransferApprovalView from './Components/FundTransferApprovalView';
+import FundMovementApprovalView from './Components/FundMovementApprovalView';
+import PartyAdjustmentApprovalView from './Components/PartyAdjustmentApprovalView';
+import AuditHistoryDrawer from './Components/AuditHistoryDrawer';
+import DecisionModal from './Components/DecisionModal';
 
-            {allocations.length > 0 && (
-                <div>
-                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Invoice Allocations</h4>
-                    <div className="border border-gray-200 rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-                                <tr>
-                                    <th className="px-4 py-2.5">Invoice / Sale ID</th>
-                                    <th className="px-4 py-2.5 text-right">Allocated Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {allocations.map((alloc, idx) => (
-                                    <tr key={idx} className="hover:bg-gray-50/50">
-                                        <td className="px-4 py-2.5 font-mono text-gray-800">{alloc.sale_id}</td>
-                                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{formatCurrency(alloc.amount)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function SupplierPaymentCard({ payload, amount }) {
-    const allocations = payload.allocations || [];
-    return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl text-xs">
-                <div>
-                    <span className="text-gray-400 block font-medium">Supplier ID</span>
-                    <span className="font-mono text-gray-800 text-sm font-semibold">{payload.supplier_id || 'N/A'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Payment Method</span>
-                    <span className="capitalize text-gray-800 text-sm font-semibold">{payload.payment_method || 'Cash'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Payment Date</span>
-                    <span className="text-gray-800 text-sm font-semibold">{payload.payment_date || 'Today'}</span>
-                </div>
-                {payload.reference && (
-                    <div className="col-span-2">
-                        <span className="text-gray-400 block font-medium">Reference</span>
-                        <span className="font-mono text-gray-800">{payload.reference}</span>
-                    </div>
-                )}
-            </div>
-
-            {allocations.length > 0 && (
-                <div>
-                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Bill Allocations</h4>
-                    <div className="border border-gray-200 rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-                                <tr>
-                                    <th className="px-4 py-2.5">Purchase Bill ID</th>
-                                    <th className="px-4 py-2.5 text-right">Allocated Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {allocations.map((alloc, idx) => (
-                                    <tr key={idx} className="hover:bg-gray-50/50">
-                                        <td className="px-4 py-2.5 font-mono text-gray-800">{alloc.purchase_id}</td>
-                                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900">{formatCurrency(alloc.amount)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function SalesInvoiceCard({ payload }) {
-    const items = payload.items || [];
-    return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl text-xs">
-                <div>
-                    <span className="text-gray-400 block font-medium">Customer</span>
-                    <span className="text-gray-800 text-sm font-semibold">{payload.customer_name || payload.party_id || 'Walk-in Customer'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Payment Method</span>
-                    <span className="capitalize text-gray-800 text-sm font-semibold">{payload.payment_method || 'Credit'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Subtotal</span>
-                    <span className="text-gray-800 text-sm font-semibold">{formatCurrency(payload.subtotal || 0)}</span>
-                </div>
-                {payload.discount_amount > 0 && (
-                    <div>
-                        <span className="text-gray-400 block font-medium">Discount</span>
-                        <span className="text-rose-600 font-semibold">-{formatCurrency(payload.discount_amount)}</span>
-                    </div>
-                )}
-                {payload.tax_amount > 0 && (
-                    <div>
-                        <span className="text-gray-400 block font-medium">Tax</span>
-                        <span className="text-gray-800 font-semibold">{formatCurrency(payload.tax_amount)}</span>
-                    </div>
-                )}
-                <div>
-                    <span className="text-gray-400 block font-medium">Total Payable</span>
-                    <span className="text-indigo-600 text-sm font-bold">{formatCurrency(payload.total || 0)}</span>
-                </div>
-            </div>
-
-            {items.length > 0 && (
-                <div>
-                    <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Line Items</h4>
-                    <div className="border border-gray-200 rounded-xl overflow-hidden">
-                        <table className="w-full text-left text-xs">
-                            <thead className="bg-gray-50 text-gray-500 font-semibold border-b">
-                                <tr>
-                                    <th className="px-4 py-2.5">Product</th>
-                                    <th className="px-4 py-2.5 text-center">Qty</th>
-                                    <th className="px-4 py-2.5 text-right">Unit Price</th>
-                                    <th className="px-4 py-2.5 text-right">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {items.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-gray-50/50">
-                                        <td className="px-4 py-2.5 font-medium text-gray-900">{item.product_name || item.name || item.product_id}</td>
-                                        <td className="px-4 py-2.5 text-center text-gray-600">{item.quantity || item.qty || 1}</td>
-                                        <td className="px-4 py-2.5 text-right text-gray-600">{formatCurrency(item.unit_price || item.price || 0)}</td>
-                                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900">
-                                            {formatCurrency((item.quantity || item.qty || 1) * (item.unit_price || item.price || 0))}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function OperatingExpenseCard({ payload }) {
-    return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl text-xs">
-                <div>
-                    <span className="text-gray-400 block font-medium">Expense Category</span>
-                    <span className="text-gray-800 text-sm font-semibold">{payload.category_name || payload.expense_category_id || 'General Expense'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Expense Date</span>
-                    <span className="text-gray-800 text-sm font-semibold">{payload.expense_date || payload.date || 'Today'}</span>
-                </div>
-                <div>
-                    <span className="text-gray-400 block font-medium">Payment Method</span>
-                    <span className="capitalize text-gray-800 text-sm font-semibold">{payload.payment_method || 'Cash'}</span>
-                </div>
-                {payload.input_tax > 0 && (
-                    <div>
-                        <span className="text-gray-400 block font-medium">Input Tax</span>
-                        <span className="text-gray-800 font-semibold">{formatCurrency(payload.input_tax)}</span>
-                    </div>
-                )}
-                <div className="col-span-2">
-                    <span className="text-gray-400 block font-medium">Description / Reason</span>
-                    <span className="text-gray-800">{payload.notes || payload.description || 'No notes provided.'}</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─── Revision Diff Viewer ────────────────────────────────────────────────────
-function RevisionDiffView({ revisions = [] }) {
-    if (revisions.length <= 1) {
-        return (
-            <div className="p-4 bg-gray-50 rounded-xl text-xs text-gray-500 text-center">
-                This document is currently on its initial submission (v1). No previous revisions to compare.
-            </div>
-        );
-    }
-
-    const currentRev = revisions[revisions.length - 1];
-    const prevRev = revisions[revisions.length - 2];
-
-    return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs font-semibold text-gray-600 bg-gray-50 p-3 rounded-xl">
-                <span className="flex items-center gap-1.5 text-amber-700">
-                    <GitCommit className="w-4 h-4" /> Previous (v{prevRev.version})
-                </span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
-                <span className="flex items-center gap-1.5 text-indigo-700">
-                    <GitCommit className="w-4 h-4" /> Current (v{currentRev.version})
-                </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 text-xs">
-                {/* Previous Revision */}
-                <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 space-y-2">
-                    <div className="font-bold text-amber-900">v{prevRev.version} by {prevRev.maker?.name || 'Maker'}</div>
-                    <div className="text-xs text-gray-500">{new Date(prevRev.created_at).toLocaleString()}</div>
-                    <div className="text-sm font-bold text-gray-900 mt-2">Amount: {formatCurrency(prevRev.amount)}</div>
-                    {prevRev.notes && <div className="text-xs text-gray-700 italic mt-1">"{prevRev.notes}"</div>}
-                </div>
-
-                {/* Current Revision */}
-                <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/40 space-y-2">
-                    <div className="font-bold text-indigo-900">v{currentRev.version} by {currentRev.maker?.name || 'Maker'}</div>
-                    <div className="text-xs text-gray-500">{new Date(currentRev.created_at).toLocaleString()}</div>
-                    <div className="text-sm font-bold text-indigo-900 mt-2">
-                        Amount: {formatCurrency(currentRev.amount)}
-                        {currentRev.amount !== prevRev.amount && (
-                            <span className="ml-2 text-xs px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 font-normal">
-                                Changed ({formatCurrency(currentRev.amount - prevRev.amount)})
-                            </span>
-                        )}
-                    </div>
-                    {currentRev.notes && <div className="text-xs text-gray-700 italic mt-1">"{currentRev.notes}"</div>}
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ─── Main Approval Detail Page ───────────────────────────────────────────────
-export default function ApprovalDetail({
+export default function ApprovalShow({
     document = {},
-    returnReasons = [],
     canApprove = false,
     isMaker = false,
     canWithdraw = false,
-    canResubmit = false
+    canResubmit = false,
+    returnReasons = [],
+    warehouses = [],
+    bankAccounts = [],
+    expenseCategories = [],
+    categories = [],
+    suppliers = [],
+    customers = [],
+    parties = [],
+    products = []
 }) {
-    const [actionModal, setActionModal] = useState(null); // 'approve' | 'reject' | 'return' | 'resubmit' | 'withdraw'
-    const [notes, setNotes] = useState('');
-    const [selectedReasonCodes, setSelectedReasonCodes] = useState([]);
-    const [submitting, setSubmitting] = useState(false);
-    const [activeTab, setActiveTab] = useState('details'); // 'details' | 'diff' | 'audit'
+    const { store } = usePage().props;
+    const storeSlug = store?.slug || window.location.pathname.split('/')[2];
 
-    // Resubmit form state
-    const currentPayload = document.current_revision?.payload || {};
-    const [resubmitAmount, setResubmitAmount] = useState(document.amount || '');
-    const [resubmitNotes, setResubmitNotes] = useState('');
-    const [editablePayload, setEditablePayload] = useState(currentPayload);
+    const currentRev = document.current_revision || (document.revisions && document.revisions[document.revisions.length - 1]) || {};
+    const initialPayload = currentRev.payload || {};
 
-    const storeSlug = window.location.pathname.split('/')[2];
+    const [isEditing, setIsEditing] = useState(false);
+    const [historyDrawerOpen, setHistoryDrawerOpen] = useState(false);
+    const [actionModal, setActionModal] = useState(null); // 'approve' | 'return' | 'reject' | 'withdraw'
+    const [actionNotes, setActionNotes] = useState('');
+    const [selectedReasonCode, setSelectedReasonCode] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const getOriginalEditorUrl = () => {
-        if (!storeSlug || !document.id) return null;
-        return `/s/${storeSlug}/approvals/${document.id}/correct`;
+    const getDocumentTitle = (type) => {
+        switch (type) {
+            case 'purchase_posting': return 'Purchase Bill';
+            case 'purchase_return': return 'Purchase Return (Debit Note)';
+            case 'sales_invoice': return 'Sales Invoice';
+            case 'sales_return': return 'Sales Return (Credit Note)';
+            case 'proposal': return 'Sales Proposal / Quotation';
+            case 'customer_receipt': return 'Customer Receipt (Money In)';
+            case 'supplier_refund': return 'Supplier Refund (Money In)';
+            case 'supplier_payment': return 'Supplier Payment (Money Out)';
+            case 'customer_refund': return 'Customer Refund (Money Out)';
+            case 'operating_expense': return 'Operating Expense Voucher';
+            case 'fund_transfer': return 'Internal Vault / Bank Transfer';
+            case 'capital_injection': return 'Owner Capital Addition';
+            case 'owner_drawings': return 'Owner Drawing / Withdrawal';
+            case 'balance_adjustment': return 'Party Balance Adjustment';
+            case 'inventory_adjust': return 'Stock / Inventory Adjustment';
+            default: return type ? type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Transaction Document';
+        }
     };
 
-    const handleAction = (action) => {
-        setSubmitting(true);
-        const url = route(`store.approvals.${action}`, { store_slug: storeSlug, id: document.id });
-        
-        let data = {
-            version: document.version,
-            expected_version: document.version,
-            notes: notes,
-            reason: notes,
-            reason_codes: selectedReasonCodes,
-        };
+    const docTitle = getDocumentTitle(document.document_type);
 
-        if (action === 'resubmit') {
-            data = {
-                version: document.version,
-                expected_version: document.version,
-                amount: parseFloat(resubmitAmount),
-                payload: { ...editablePayload, amount: parseFloat(resubmitAmount) },
-                notes: resubmitNotes || notes,
-            };
-        } else if (action === 'withdraw') {
-            data = {
-                version: document.version,
-                expected_version: document.version,
-                reason: notes || 'Withdrawn by maker.',
-            };
-        }
-
-        router.post(url, data, {
-            onFinish: () => {
-                setSubmitting(false);
-                setActionModal(null);
-                setNotes('');
-            },
+    const formatDateTime = (dateStr) => {
+        if (!dateStr) return '-';
+        return new Date(dateStr).toLocaleString('en-PK', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
-    const renderPayloadCard = () => {
-        switch (document.document_type) {
-            case 'customer_receipt':
-                return <CustomerReceiptCard payload={currentPayload} amount={document.amount} />;
-            case 'supplier_payment':
-                return <SupplierPaymentCard payload={currentPayload} amount={document.amount} />;
-            case 'sales_invoice':
-            case 'direct_sale':
-            case 'pos_sale':
-                return <SalesInvoiceCard payload={currentPayload} />;
-            case 'operating_expense':
-                return <OperatingExpenseCard payload={currentPayload} />;
+    const renderStatusBadge = () => {
+        switch (document.status) {
+            case 'pending':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                        <Clock size={11} className="animate-spin-slow" /> Pending Review
+                    </span>
+                );
+            case 'approved':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+                        <CheckCircle2 size={11} /> Approved & Posted
+                    </span>
+                );
+            case 'returned':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/30">
+                        <RotateCcw size={11} /> Needs Correction
+                    </span>
+                );
+            case 'rejected':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/30">
+                        <XCircle size={11} /> Rejected
+                    </span>
+                );
+            case 'withdrawn':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sunken text-ink-muted border border-line">
+                        <Ban size={11} /> Withdrawn
+                    </span>
+                );
             default:
                 return (
-                    <div className="space-y-2">
-                        <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Transaction Data</h4>
-                        <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl text-xs">
-                            {Object.entries(currentPayload).map(([k, v]) => (
-                                <div key={k} className="truncate">
-                                    <span className="text-gray-400 block capitalize">{k.replace(/_/g, ' ')}</span>
-                                    <span className="font-medium text-gray-800">
-                                        {typeof v === 'object' ? JSON.stringify(v) : String(v)}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sunken text-ink-muted">
+                        {document.status}
+                    </span>
+                );
+        }
+    };
+
+    // Quick Approve modal confirmation
+    const handleApproveConfirm = () => {
+        setIsSubmitting(true);
+        axios.post(route('store.approvals.approve', { store_slug: storeSlug, id: document.id }), {
+            version: document.version,
+            notes: actionNotes
+        })
+        .then(res => {
+            fireToast(res.data?.message || 'Document approved and posted successfully!', 'success');
+            setActionModal(null);
+            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+        })
+        .catch(err => {
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to approve document.';
+            fireToast(msg, 'error');
+            setIsSubmitting(false);
+        });
+    };
+
+    // Return for Correction confirmation
+    const handleReturnConfirm = () => {
+        setIsSubmitting(true);
+        axios.post(route('store.approvals.return', { store_slug: storeSlug, id: document.id }), {
+            version: document.version,
+            notes: actionNotes,
+            reason_codes: selectedReasonCode ? [selectedReasonCode] : []
+        })
+        .then(res => {
+            fireToast(res.data?.message || 'Document returned to maker for correction.', 'info');
+            setActionModal(null);
+            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+        })
+        .catch(err => {
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to return document.';
+            fireToast(msg, 'error');
+            setIsSubmitting(false);
+        });
+    };
+
+    // Reject confirmation
+    const handleRejectConfirm = () => {
+        setIsSubmitting(true);
+        axios.post(route('store.approvals.reject', { store_slug: storeSlug, id: document.id }), {
+            version: document.version,
+            reason: actionNotes,
+            reason_codes: selectedReasonCode ? [selectedReasonCode] : []
+        })
+        .then(res => {
+            fireToast(res.data?.message || 'Document has been rejected.', 'warning');
+            setActionModal(null);
+            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+        })
+        .catch(err => {
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to reject document.';
+            fireToast(msg, 'error');
+            setIsSubmitting(false);
+        });
+    };
+
+    // Maker withdraw confirmation
+    const handleWithdrawConfirm = () => {
+        setIsSubmitting(true);
+        axios.post(route('store.approvals.withdraw', { store_slug: storeSlug, id: document.id }), {
+            version: document.version,
+            reason: actionNotes
+        })
+        .then(res => {
+            fireToast(res.data?.message || 'Submission withdrawn.', 'info');
+            setActionModal(null);
+            router.visit(route('store.approvals.my-submissions', { store_slug: storeSlug }));
+        })
+        .catch(err => {
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to withdraw submission.';
+            fireToast(msg, 'error');
+            setIsSubmitting(false);
+        });
+    };
+
+    const handleConfirmDecision = () => {
+        if (actionModal === 'approve') handleApproveConfirm();
+        else if (actionModal === 'return') handleReturnConfirm();
+        else if (actionModal === 'reject') handleRejectConfirm();
+        else if (actionModal === 'withdraw') handleWithdrawConfirm();
+    };
+
+    // Prepare purchase hydrated models
+    const purchaseData = useMemo(() => {
+        const p = initialPayload;
+        return {
+            id: document.id,
+            party_id: p.supplier_id || p.party_id,
+            supplier_name: p.supplier_name || p.party_name || '',
+            supplier_balance: p.party_balance ?? 0,
+            purchase_date: p.purchase_date || p.date || (document.created_at ? document.created_at.slice(0, 10) : ''),
+            due_date: p.due_date || '',
+            invoice_number: p.supplier_invoice || p.invoice_number || '',
+            reference: p.reference || document.document_number || '',
+            warehouse_id: p.warehouse_id || (warehouses?.find(w => w.is_default)?.id || warehouses?.[0]?.id || ''),
+            notes: p.notes || '',
+            discount: parseFloat(p.discount || 0),
+            payment_method: p.payment_method || p.paymentMethod || 'credit',
+            payment_account_id: p.payment_account_id || null,
+            total: parseFloat(p.grand_total || p.total || document.amount || 0),
+            amount_paid: parseFloat(p.paid_amount || p.amount_paid || p.amountPaid || 0),
+            payment_status: parseFloat(p.paid_amount || p.amount_paid || 0) >= parseFloat(document.amount || 0) ? 'paid' : 'unpaid',
+            workflow_status: p.workflow_status || 'received',
+        };
+    }, [initialPayload, document]);
+
+    const itemsData = useMemo(() => {
+        const rawItems = initialPayload.items || [];
+        return rawItems.map(i => ({
+            id: i.id || `item-${Math.random()}`,
+            product_id: i.product_id || i.id,
+            product_name: i.product_name || i.name || i.item_name || 'Product',
+            tax_rate: parseFloat(i.tax_rate ?? 0),
+            base_unit: i.base_unit || i.unit_name || i.unit || 'pcs',
+            qty: parseFloat(i.qty ?? i.quantity ?? 1),
+            unit_cost: parseFloat(i.unit_cost ?? i.unit_price ?? i.price ?? i.rate ?? i.cost ?? 0),
+            discount_amount: parseFloat(i.discount_amount ?? i.discount ?? 0),
+            business_pct: i.business_pct !== undefined ? parseFloat(i.business_pct) : 100,
+            variant_id: i.variant_id || null,
+        }));
+    }, [initialPayload]);
+
+    const landedCostsData = useMemo(() => {
+        const rawExtras = initialPayload.extras || [];
+        return rawExtras.map(x => ({
+            id: x.id || `extra-${Math.random()}`,
+            category_id: x.category_id || '',
+            amount: parseFloat(x.amount || 0),
+            method: x.method || 'value',
+            description: x.description || '',
+        }));
+    }, [initialPayload]);
+
+    // Review Notice Strip that sits right inside the document layout
+    const renderNotice = () => (
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-surface border border-line rounded-xl shadow-xs mb-3">
+            <div className="flex items-center gap-3">
+                <Link
+                    href={isMaker ? route('store.approvals.my-submissions', { store_slug: storeSlug }) : route('store.approvals.inbox', { store_slug: storeSlug })}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center border border-line text-ink hover:bg-interactive-hover transition-colors"
+                    title={isMaker ? "Back to My Submissions" : "Back to Reviewer Inbox"}
+                >
+                    <ArrowLeft size={16} />
+                </Link>
+                <div>
+                    <div className="flex items-center gap-2">
+                        <span className="font-bold text-sm text-ink">{docTitle}</span>
+                        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-sunken text-ink-muted">
+                            #{document.document_number}
+                        </span>
+                        {renderStatusBadge()}
                     </div>
+                    <p className="text-2xs text-ink-muted mt-0.5">
+                        Submitted by <strong className="text-ink font-semibold">{document.maker?.name || 'Maker'}</strong> • {formatDateTime(document.created_at)}
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => setHistoryDrawerOpen(true)}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line text-ink hover:bg-interactive-hover flex items-center gap-1.5 transition-colors"
+                >
+                    <History size={13} />
+                    <span>Audit & History ({document.revisions?.length || 1})</span>
+                </button>
+
+                {canApprove && (
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => setActionModal('reject')}
+                            disabled={isSubmitting}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-rose-300 text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-1"
+                        >
+                            <XCircle size={13} /> Reject
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActionModal('return')}
+                            disabled={isSubmitting}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-amber-300 text-amber-800 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors flex items-center gap-1"
+                        >
+                            <RotateCcw size={13} /> Return to Maker
+                        </button>
+
+                        {isEditing ? (
+                            <button
+                                type="button"
+                                onClick={() => setIsEditing(false)}
+                                disabled={isSubmitting}
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface border border-line text-ink hover:bg-interactive-hover transition-colors flex items-center gap-1"
+                            >
+                                <X size={13} /> Cancel Edit
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setIsEditing(true)}
+                                disabled={isSubmitting}
+                                className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-indigo-300 text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors flex items-center gap-1"
+                            >
+                                <Edit3 size={13} /> Edit Document
+                            </button>
+                        )}
+
+                        {!isEditing && (
+                            <button
+                                type="button"
+                                onClick={() => setActionModal('approve')}
+                                disabled={isSubmitting}
+                                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 shadow-xs transition-colors"
+                            >
+                                <CheckCircle2 size={14} /> Approve & Post
+                            </button>
+                        )}
+                    </>
+                )}
+
+                {isMaker && canWithdraw && (
+                    <button
+                        type="button"
+                        onClick={() => setActionModal('withdraw')}
+                        disabled={isSubmitting}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-line text-ink-muted hover:text-rose-600 hover:bg-interactive-hover transition-colors flex items-center gap-1"
+                    >
+                        <Ban size={13} /> Withdraw
+                    </button>
+                )}
+
+                {isMaker && canResubmit && (
+                    <Link
+                        href={route('store.approvals.correct', { store_slug: storeSlug, id: document.id })}
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 shadow-xs transition-colors"
+                    >
+                        <Edit3 size={14} /> Edit & Resubmit
+                    </Link>
+                )}
+            </div>
+        </div>
+    );
+
+    const renderExtraActions = () => (
+        <div className="w-full flex flex-col gap-2" style={{ flex: '1 0 100%', width: '100%' }}>
+            {canApprove && !isEditing && (
+                <>
+                    {/* Row 1: Primary Full-Width Action */}
+                    <button
+                        type="button"
+                        onClick={() => setActionModal('approve')}
+                        disabled={isSubmitting}
+                        className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                    >
+                        <CheckCircle2 size={16} />
+                        <span>Approve & Post</span>
+                    </button>
+
+                    {/* Row 2: 3 Balanced Secondary Actions */}
+                    <div className="grid grid-cols-3 gap-2 w-full">
+                        <button
+                            type="button"
+                            onClick={() => setIsEditing(true)}
+                            disabled={isSubmitting}
+                            className="py-2 px-1.5 rounded-xl text-xs font-semibold bg-surface border border-line text-ink hover:bg-interactive-hover hover:border-ink-muted transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                        >
+                            <Edit3 size={13} className="text-primary shrink-0" />
+                            <span>Edit</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActionModal('return')}
+                            disabled={isSubmitting}
+                            className="py-2 px-1.5 rounded-xl text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                        >
+                            <RotateCcw size={13} className="shrink-0" />
+                            <span>Return</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setActionModal('reject')}
+                            disabled={isSubmitting}
+                            className="py-2 px-1.5 rounded-xl text-xs font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-500/20 transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                        >
+                            <XCircle size={13} className="shrink-0" />
+                            <span>Reject</span>
+                        </button>
+                    </div>
+                </>
+            )}
+
+            {canApprove && isEditing && (
+                <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    disabled={isSubmitting}
+                    className="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-surface border border-line text-ink hover:bg-interactive-hover transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                    <X size={14} />
+                    <span>Cancel Edit</span>
+                </button>
+            )}
+
+            {isMaker && canResubmit && (
+                <Link
+                    href={route('store.approvals.correct', { store_slug: storeSlug, id: document.id })}
+                    className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white flex items-center justify-center gap-2 shadow-xs transition-colors"
+                >
+                    <Edit3 size={15} />
+                    <span>Edit & Resubmit</span>
+                </Link>
+            )}
+
+            {isMaker && canWithdraw && (
+                <button
+                    type="button"
+                    onClick={() => setActionModal('withdraw')}
+                    disabled={isSubmitting}
+                    className="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-surface border border-line text-ink-muted hover:text-rose-600 hover:bg-interactive-hover transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                    <Ban size={14} />
+                    <span>Withdraw Submission</span>
+                </button>
+            )}
+        </div>
+    );
+
+    // ── Purchase Documents: Render Exact PurchaseForm / MoneyDocument ───────────────
+    if (document.document_type === 'purchase_posting' || document.document_type === 'purchase_return') {
+        return (
+            <>
+                <Head title={`Review Purchase · #${document.document_number || document.id}`} />
+
+                <PurchaseForm
+                    mode="edit"
+                    purchase={purchaseData}
+                    items={itemsData}
+                    landedCosts={landedCostsData}
+                    suppliers={suppliers}
+                    products={products}
+                    warehouses={warehouses}
+                    expenseCategories={expenseCategories}
+                    locked={!isEditing}
+                    lockNote="This purchase bill is pending review and approval."
+                    notice={renderNotice()}
+                    extraActions={renderExtraActions()}
+                    saveLabel="Save & Approve to Ledger"
+                    afterUrl={route('store.approvals.inbox', { store_slug: storeSlug })}
+                    url={() => route('store.approvals.approve', { store_slug: storeSlug, id: document.id })}
+                    onSaved={(res) => {
+                        fireToast(res.data?.message || 'Document approved and posted successfully!', 'success');
+                        router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+                    }}
+                    outerBuildPayload={({ d, items, totals, acct, opts }) => {
+                        const priced = items.filter((i) => i.product);
+                        const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+                        const updatedPayload = {
+                            supplier_id: d.party?.id,
+                            party_id: d.party?.id,
+                            supplier_name: d.party?.name,
+                            warehouse_id: d.warehouse_id || null,
+                            purchase_date: d.purchase_date,
+                            due_date: d.due_date || null,
+                            supplier_invoice: d.supplier_invoice || null,
+                            reference: d.reference || null,
+                            notes: d.notes || null,
+                            payment_method: d.paymentMethod,
+                            workflow_status: d.workflow_status,
+                            round_off: totals.grandTotal - totals.rawGrandTotal,
+                            items: priced.map((src) => ({
+                                product_id: src.product?.id,
+                                product_name: src.product?.name,
+                                variant_id: src.variant?.id || null,
+                                qty: num(src.quantity),
+                                unit_cost: num(src.price),
+                                discount_amount: num(src.discount),
+                                business_pct: num(src.business_pct ?? 100),
+                                tax_rate: num(src.tax_rate ?? 0),
+                            })),
+                            extras: (d.extras || []).filter((x) => num(x.amount) > 0).map((x) => ({
+                                amount: num(x.amount),
+                                method: x.method || 'value',
+                                category_id: x.category_id || null,
+                                description: x.description || null,
+                            })),
+                            payment_account_id: d.paymentAccountId || null,
+                            amount_paid: num(d.amountPaid),
+                        };
+
+                        return {
+                            notes: actionNotes || 'Approved with reviewer modifications',
+                            version: document.version,
+                            updated_payload: updatedPayload,
+                            updated_amount: totals.grandTotal,
+                        };
+                    }}
+                />
+
+                <AuditHistoryDrawer
+                    isOpen={historyDrawerOpen}
+                    onClose={() => setHistoryDrawerOpen(false)}
+                    document={document}
+                    store={store}
+                />
+
+                <DecisionModal
+                    modalType={actionModal}
+                    onClose={() => setActionModal(null)}
+                    onConfirm={handleConfirmDecision}
+                    notes={actionNotes}
+                    setNotes={setActionNotes}
+                    selectedReasonCode={selectedReasonCode}
+                    setSelectedReasonCode={setSelectedReasonCode}
+                    returnReasons={returnReasons}
+                    isSubmitting={isSubmitting}
+                    document={document}
+                    store={store}
+                />
+            </>
+        );
+    }
+
+    const renderDocumentBody = () => {
+        switch (document.document_type) {
+            case 'sales_invoice':
+                return (
+                    <SalesInvoiceApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        locked={!isEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        onApproveWithEdits={(res) => {
+                            fireToast(res.data?.message || 'Sales invoice approved and posted successfully!', 'success');
+                            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+                        }}
+                        storeSlug={storeSlug}
+                        customers={customers}
+                        products={products}
+                        warehouses={warehouses}
+                        bankAccounts={bankAccounts}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'sales_return':
+                return (
+                    <SalesReturnApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        locked={!isEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        onApproveWithEdits={(res) => {
+                            fireToast(res.data?.message || 'Sales return approved successfully!', 'success');
+                            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+                        }}
+                        storeSlug={storeSlug}
+                        customers={customers}
+                        products={products}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'proposal':
+                return (
+                    <ProposalApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        locked={!isEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        onApproveWithEdits={(res) => {
+                            fireToast(res.data?.message || 'Quotation approved successfully!', 'success');
+                            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+                        }}
+                        storeSlug={storeSlug}
+                        customers={customers}
+                        products={products}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'operating_expense':
+                return (
+                    <OperatingExpenseApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        locked={!isEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        onApproveWithEdits={(res) => {
+                            fireToast(res.data?.message || 'Operating expense approved and posted successfully!', 'success');
+                            router.visit(route('store.approvals.inbox', { store_slug: storeSlug }));
+                        }}
+                        storeSlug={storeSlug}
+                        suppliers={suppliers}
+                        bankAccounts={bankAccounts}
+                        categories={expenseCategories}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'customer_receipt':
+            case 'supplier_refund':
+                return (
+                    <PaymentInApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        store={store}
+                        customers={customers}
+                        suppliers={suppliers}
+                        bankAccounts={bankAccounts}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'supplier_payment':
+            case 'customer_refund':
+                return (
+                    <PaymentOutApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        store={store}
+                        customers={customers}
+                        suppliers={suppliers}
+                        bankAccounts={bankAccounts}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'fund_transfer':
+                return (
+                    <FundTransferApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        store={store}
+                        bankAccounts={bankAccounts}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'capital_injection':
+            case 'owner_drawings':
+                return (
+                    <FundMovementApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        store={store}
+                        bankAccounts={bankAccounts}
+                        actionNotes={actionNotes}
+                    />
+                );
+
+            case 'balance_adjustment':
+            default:
+                return (
+                    <PartyAdjustmentApprovalView
+                        document={document}
+                        payload={initialPayload}
+                        isEditing={isEditing}
+                        setIsEditing={setIsEditing}
+                        notice={renderNotice()}
+                        extraActions={renderExtraActions()}
+                        store={store}
+                        parties={parties}
+                        customers={customers}
+                        suppliers={suppliers}
+                        actionNotes={actionNotes}
+                    />
                 );
         }
     };
 
     return (
-        <OneGlanceLayout>
-            <Head title={`Approval #${document.document_number || document.id}`} />
-            <div className="p-6 max-w-5xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href={route('store.approvals.inbox', { store_slug: storeSlug })}
-                            className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
-                        >
-                            <ArrowLeft className="w-5 h-5 text-gray-600" />
-                        </Link>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl font-bold text-gray-900">{document.document_number}</h1>
-                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 uppercase">
-                                    {document.document_type?.replace(/_/g, ' ')}
-                                </span>
-                                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold uppercase ${
-                                    document.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
-                                    document.status === 'returned' ? 'bg-orange-100 text-orange-800' :
-                                    document.status === 'rejected' ? 'bg-rose-100 text-rose-800' :
-                                    'bg-amber-100 text-amber-800'
-                                }`}>
-                                    {document.status} (v{document.version})
-                                </span>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">Submitted on {new Date(document.created_at).toLocaleString()}</p>
-                        </div>
-                    </div>
+        <>
+            <Head title={`Review ${docTitle} · #${document.document_number || document.id}`} />
 
-                    {/* Header Actions */}
-                    <div className="flex items-center gap-2">
-                        {/* Reviewer Action Buttons */}
-                        {document.status === 'pending' && canApprove && (
-                            <>
-                                <button
-                                    onClick={() => setActionModal('return')}
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 transition"
-                                >
-                                    <RotateCcw className="w-4 h-4" /> Return for Correction
-                                </button>
-                                <button
-                                    onClick={() => setActionModal('reject')}
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition"
-                                >
-                                    <XCircle className="w-4 h-4" /> Reject
-                                </button>
-                                <button
-                                    onClick={() => setActionModal('approve')}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition"
-                                >
-                                    <CheckCircle className="w-4 h-4" /> Approve & Post
-                                </button>
-                            </>
-                        )}
+            {renderDocumentBody()}
 
-                        {/* Maker Action Buttons */}
-                        {canResubmit && (
-                            <div className="flex items-center gap-2">
-                                {getOriginalEditorUrl() && (
-                                    <a
-                                        href={getOriginalEditorUrl()}
-                                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300 transition"
-                                    >
-                                        <ExternalLink className="w-4 h-4" /> Edit in Original Form
-                                    </a>
-                                )}
-                                <button
-                                    onClick={() => setActionModal('resubmit')}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition"
-                                >
-                                    <Edit3 className="w-4 h-4" /> Quick Resubmit
-                                </button>
-                            </div>
-                        )}
+            <AuditHistoryDrawer
+                isOpen={historyDrawerOpen}
+                onClose={() => setHistoryDrawerOpen(false)}
+                document={document}
+                store={store}
+            />
 
-                        {canWithdraw && (
-                            <button
-                                onClick={() => setActionModal('withdraw')}
-                                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                            >
-                                <Ban className="w-4 h-4" /> Withdraw
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Tabs */}
-                <div className="flex items-center gap-2 border-b border-gray-200">
-                    <button
-                        onClick={() => setActiveTab('details')}
-                        className={`px-4 py-2 text-xs font-bold border-b-2 transition ${
-                            activeTab === 'details'
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
-                    >
-                        Document Details
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('diff')}
-                        className={`px-4 py-2 text-xs font-bold border-b-2 transition ${
-                            activeTab === 'diff'
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
-                    >
-                        Revision Comparison ({document.revisions?.length || 1})
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('audit')}
-                        className={`px-4 py-2 text-xs font-bold border-b-2 transition ${
-                            activeTab === 'audit'
-                                ? 'border-indigo-600 text-indigo-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
-                        }`}
-                    >
-                        Audit Trail ({document.transitions?.length || 0})
-                    </button>
-                </div>
-
-                {/* Main Content Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Left 2 Cols: Tabbed Content */}
-                    <div className="md:col-span-2 space-y-6">
-                        {activeTab === 'details' && (
-                            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                                        <FileText className="w-5 h-5 text-indigo-600" />
-                                        Structured Transaction Details
-                                    </h2>
-                                    <div className="text-right">
-                                        <span className="text-xs text-gray-400 block">Total Amount</span>
-                                        <span className="text-xl font-extrabold text-gray-900">{formatCurrency(document.amount)}</span>
-                                    </div>
-                                </div>
-
-                                {renderPayloadCard()}
-                            </div>
-                        )}
-
-                        {activeTab === 'diff' && (
-                            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
-                                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                                    <Layers className="w-5 h-5 text-indigo-600" />
-                                    Revision History & Changes
-                                </h2>
-                                <RevisionDiffView revisions={document.revisions || []} />
-                            </div>
-                        )}
-
-                        {activeTab === 'audit' && (
-                            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
-                                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                                    <Clock className="w-5 h-5 text-indigo-600" />
-                                    Audit & Transition History
-                                </h2>
-                                <div className="space-y-4">
-                                    {(document.transitions || []).map((t, idx) => (
-                                        <div key={t.id || idx} className="flex items-start gap-3 text-sm border-l-2 border-indigo-200 pl-4 py-1">
-                                            <div>
-                                                <div className="font-semibold text-gray-900">
-                                                    {t.from_status} → <span className="text-indigo-600 uppercase">{t.to_status}</span>
-                                                    <span className="text-xs font-normal text-gray-400 ml-2">by {t.actor?.name || 'System'}</span>
-                                                </div>
-                                                {t.notes && <p className="text-gray-600 text-xs mt-1">{t.notes}</p>}
-                                                {t.reason_codes?.length > 0 && (
-                                                    <div className="flex gap-1 mt-1">
-                                                        {t.reason_codes.map((rc) => (
-                                                            <span key={rc} className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">
-                                                                {rc}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                                <div className="text-[10px] text-gray-400 mt-1">{new Date(t.created_at).toLocaleString()}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right 1 Col: Summary & Metadata */}
-                    <div className="space-y-6">
-                        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm space-y-4">
-                            <h3 className="text-sm font-bold text-gray-900">Document Metadata</h3>
-                            <div className="space-y-3 text-xs">
-                                <div>
-                                    <span className="text-gray-400 block">Maker</span>
-                                    <span className="font-medium text-gray-800">{document.maker?.name || 'Staff'} ({document.maker?.email})</span>
-                                </div>
-                                <div>
-                                    <span className="text-gray-400 block">Current Version</span>
-                                    <span className="font-bold text-indigo-600">v{document.version}</span>
-                                </div>
-                                <div>
-                                    <span className="text-gray-400 block">Idempotency Key</span>
-                                    <span className="font-mono text-gray-800 text-[11px] break-all">{document.idempotency_key || 'None'}</span>
-                                </div>
-                                {document.posted_at && (
-                                    <div>
-                                        <span className="text-gray-400 block">Posted At</span>
-                                        <span className="text-emerald-700 font-medium">{new Date(document.posted_at).toLocaleString()}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Modals for Actions */}
-                {actionModal && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl">
-                            <h3 className="text-lg font-bold text-gray-900 capitalize">
-                                {actionModal === 'resubmit' ? 'Correct & Resubmit Document' :
-                                 actionModal === 'withdraw' ? 'Withdraw Submission' :
-                                 `Confirm ${actionModal}`}
-                            </h3>
-
-                            {actionModal === 'return' && (
-                                <div>
-                                    <div className="block text-xs font-semibold text-gray-700 mb-2">Preset Return Reasons</div>
-                                    <div className="space-y-1.5 max-h-40 overflow-y-auto border p-2 rounded-lg">
-                                        {(returnReasons || []).map((r) => (
-                                            <label key={r.code} className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    value={r.code}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setSelectedReasonCodes([...selectedReasonCodes, r.code]);
-                                                        } else {
-                                                            setSelectedReasonCodes(selectedReasonCodes.filter((c) => c !== r.code));
-                                                        }
-                                                    }}
-                                                    className="rounded border-gray-300 text-indigo-600"
-                                                />
-                                                <span><strong className="font-mono">{r.code}</strong>: {r.label}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {actionModal === 'resubmit' && (
-                                <div className="space-y-3">
-                                    <div>
-                                        <label htmlFor="resubmit-amount-input" className="block text-xs font-semibold text-gray-700 mb-1">Corrected Total Amount *</label>
-                                        <input
-                                            id="resubmit-amount-input"
-                                            type="number"
-                                            step="0.01"
-                                            min="0.01"
-                                            value={resubmitAmount}
-                                            onChange={(e) => setResubmitAmount(e.target.value)}
-                                            className="w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="resubmit-notes-input" className="block text-xs font-semibold text-gray-700 mb-1">Maker Correction Notes</label>
-                                        <textarea
-                                            id="resubmit-notes-input"
-                                            value={resubmitNotes}
-                                            onChange={(e) => setResubmitNotes(e.target.value)}
-                                            rows={2}
-                                            placeholder="Explain what corrections were made..."
-                                            className="w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {actionModal !== 'resubmit' && (
-                                <div>
-                                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                                        {actionModal === 'approve' ? 'Reviewer Notes (Optional)' :
-                                         actionModal === 'withdraw' ? 'Reason for Withdrawal *' :
-                                         'Reason / Instructions for Maker *'}
-                                    </label>
-                                    <textarea
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        rows={3}
-                                        placeholder={actionModal === 'approve' ? 'Optional remarks...' : 'Provide details...'}
-                                        className="w-full text-sm border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button
-                                    onClick={() => setActionModal(null)}
-                                    className="px-4 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={() => handleAction(actionModal)}
-                                    disabled={submitting || (actionModal === 'return' && selectedReasonCodes.length === 0)}
-                                    className={`px-4 py-2 text-xs font-bold text-white rounded-lg transition shadow-sm ${
-                                        actionModal === 'approve' ? 'bg-emerald-600 hover:bg-emerald-700' :
-                                        actionModal === 'reject' ? 'bg-rose-600 hover:bg-rose-700' :
-                                        actionModal === 'resubmit' ? 'bg-indigo-600 hover:bg-indigo-700' :
-                                        actionModal === 'withdraw' ? 'bg-gray-700 hover:bg-gray-800' :
-                                        'bg-orange-600 hover:bg-orange-700'
-                                    } disabled:opacity-50`}
-                                >
-                                    {submitting ? 'Processing...' : `Confirm ${actionModal}`}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </OneGlanceLayout>
+            <DecisionModal
+                modalType={actionModal}
+                onClose={() => setActionModal(null)}
+                onConfirm={handleConfirmDecision}
+                notes={actionNotes}
+                setNotes={setActionNotes}
+                selectedReasonCode={selectedReasonCode}
+                setSelectedReasonCode={setSelectedReasonCode}
+                returnReasons={returnReasons}
+                isSubmitting={isSubmitting}
+                document={document}
+                store={store}
+            />
+        </>
     );
 }

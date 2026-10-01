@@ -1222,8 +1222,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             <div
                 className={embedded
                     ? "w-full h-full bg-transparent flex flex-col overflow-hidden relative font-sans text-[#F1F5F2]"
-                    : "w-full max-w-4xl border border-white/10 rounded-3xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative font-sans text-[#F1F5F2]"}
-                style={embedded ? {} : { background: 'var(--vq-mesh-capture, #080D0C)' }}
+                    : "w-full max-w-4xl border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden h-[720px] relative font-sans text-[#F1F5F2]"}
+                style={embedded ? {} : { background: 'var(--vq-mesh-capture, #080D0C)', borderRadius: 'var(--vq-radius-2xl, 32px)' }}
             >
                 {/* glow blobs */}
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[#23C4A6]/5 rounded-full blur-[100px] pointer-events-none" />

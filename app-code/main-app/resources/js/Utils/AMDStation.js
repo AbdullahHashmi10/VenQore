@@ -84,8 +84,8 @@ export const AMDStation = {
     },
 
     /**
-     * Print receipt with hardware control
-     * Falls back to browser print if not in VenQore Station
+     * Send a raw thermal job to VenQore Station.
+     * Raw ESC/POS data must never be sent to the browser's page-print dialog.
      */
     async print(data, options = {}) {
         if (isAMDStationAvailable()) {
@@ -106,10 +106,10 @@ export const AMDStation = {
                 return { success: false, error: e.message };
             }
         } else {
-            // Fallback to browser print
-            console.log('[AMDStation] Not available, using browser print');
-            window.print();
-            return { success: true, fallback: true };
+            return {
+                success: false,
+                error: 'VenQore Station is not running. Raw thermal printing requires the desktop companion.',
+            };
         }
     },
 
@@ -136,8 +136,14 @@ export const AMDStation = {
     async printAndOpenDrawer(data, options = {}) {
         const printResult = await this.print(data, options);
 
-        if (options.openDrawer !== false) {
-            await this.openDrawer(options.printerName);
+        if (printResult?.success && options.openDrawer !== false) {
+            const drawer = await this.openDrawer(options.printerName);
+            if (!drawer?.success) {
+                window.dispatchEvent(new CustomEvent('amd:toast', { detail: {
+                    message: `Receipt printed. ${drawer?.error || 'Cash drawer request failed.'}`, type: 'warning',
+                } }));
+            }
+            return { ...printResult, drawer };
         }
 
         return printResult;
@@ -245,6 +251,11 @@ export const AMDStation = {
         const currencySymbol = data.currencySymbol || (window.amdSettings?.currency_symbol || '') + ' ';
 
         // Totals
+        for (const [key, label] of [['serviceCharge', 'Service charge'], ['tipAmount', 'Tip'], ['deliveryCharge', 'Delivery'], ['roundOff', 'Round off']]) {
+            if (Number(String(data[key] ?? 0).replaceAll(',', '')) !== 0) {
+                content.push({ type: 'text', value: `${label}: ${currencySymbol}${data[key]}`, style: { textAlign: 'right' } });
+            }
+        }
         if (data.subtotal !== undefined) {
             content.push({
                 type: 'text',
@@ -253,7 +264,7 @@ export const AMDStation = {
             });
         }
 
-        if (data.tax !== undefined && data.tax > 0) {
+        if (data.tax !== undefined && Number(String(data.tax).replaceAll(',', '')) > 0) {
             content.push({
                 type: 'text',
                 value: `Tax: ${currencySymbol}${data.tax}`,
@@ -261,7 +272,7 @@ export const AMDStation = {
             });
         }
 
-        if (data.discount !== undefined && data.discount > 0) {
+        if (data.discount !== undefined && Number(String(data.discount).replaceAll(',', '')) > 0) {
             content.push({
                 type: 'text',
                 value: `Discount: -${currencySymbol}${data.discount}`,
@@ -278,17 +289,21 @@ export const AMDStation = {
         if (data.paidAmount !== undefined) {
             content.push({
                 type: 'text',
-                value: `Paid: ${window.amdSettings?.currency_symbol || ''} ${data.paidAmount}`,
+                value: `Paid: ${currencySymbol}${data.paidAmount}`,
                 style: { textAlign: 'right' }
             });
         }
 
-        if (data.changeAmount !== undefined && data.changeAmount > 0) {
+        if (data.changeAmount !== undefined && Number(String(data.changeAmount).replaceAll(',', '')) > 0) {
             content.push({
                 type: 'text',
-                value: `Change: ${window.amdSettings?.currency_symbol || ''} ${data.changeAmount}`,
+                value: `Change: ${currencySymbol}${data.changeAmount}`,
                 style: { textAlign: 'right' }
             });
+        }
+
+        if (data.balanceAmount !== undefined) {
+            content.push({ type: 'text', value: `Balance due: ${currencySymbol}${data.balanceAmount}`, style: { textAlign: 'right' } });
         }
 
         // Footer
@@ -346,17 +361,10 @@ export function useAMDStation() {
                 const printerList = await AMDStation.getPrinters();
                 setPrinters(printerList);
 
-                // Set first thermal printer as default, or first available
-                const thermal = printerList.find(p =>
-                    p.name.toLowerCase().includes('thermal') ||
-                    p.name.toLowerCase().includes('pos') ||
-                    p.name.toLowerCase().includes('receipt')
-                );
-                const printer = thermal || printerList.find(p => p.isDefault) || printerList[0];
-                if (printer) {
-                    setDefaultPrinter(printer.name);
-                    AMDStation.setDefaultPrinter(printer.name);
-                }
+                // Preserve the saved choice even when that device is disconnected.
+                // Never silently replace it with a system PDF printer.
+                const prefs = await AMDStation.getPrefs();
+                setDefaultPrinter(prefs.defaultPrinter || null);
             }
 
             setLoading(false);
@@ -382,8 +390,9 @@ export function useAMDStation() {
         printers,
         defaultPrinter,
         setDefaultPrinter: async (name) => {
-            setDefaultPrinter(name);
-            return AMDStation.setDefaultPrinter(name);
+            const result = await AMDStation.setDefaultPrinter(name);
+            if (result?.success) setDefaultPrinter(name);
+            return result;
         },
         print: (data, options) => AMDStation.print(data, { ...options, printerName: options?.printerName || defaultPrinter }),
         openDrawer: () => AMDStation.openDrawer(defaultPrinter),

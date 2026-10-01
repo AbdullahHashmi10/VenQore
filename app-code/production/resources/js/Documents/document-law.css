@@ -963,8 +963,7 @@ select.vqdoc-in {
 .vqdoc-stock {
     position: absolute;
     left: var(--d-s2); right: var(--d-s2);
-    top: 50%;
-    margin-top: calc((var(--d-h) / 2) + (1px * var(--d-scale)));
+    bottom: calc(2px * var(--d-scale));
     text-align: center;
     font-family: var(--vq-font-numeric);
     font-size: var(--d-t-micro);

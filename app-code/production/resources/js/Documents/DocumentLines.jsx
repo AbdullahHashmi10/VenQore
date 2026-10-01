@@ -349,9 +349,9 @@ export default function DocumentLines({ doc, chrome, items = [], ctx, onQuickAdd
        never stops to hunt for an "Add" button. Wrapping it here means every
        document gets it rather than each remembering to. */
     const pick = useCallback((product, id) => {
+        if (!product) return;
         ctx.onPickProduct(product, id);
-        if (items.length && items[items.length - 1].id === id && ctx.addLine) ctx.addLine();
-    }, [ctx, items]);
+    }, [ctx]);
     const cellCtx = { ...ctx, onPickProduct: pick };
 
     /* A new row that appears below the fold may as well not have appeared. */

@@ -92,7 +92,7 @@ return [
         // Store Administration (excluding billing / store deletion)
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery',
         // Approvals & Governance
-        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit', 'approvals.configure',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.inbox', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.withdraw', 'approvals.resubmit',
         // Granular split permissions
         'data.export', 'records.force_delete', 'users.manage',
         // Marketplace / VenSynQ integrations
@@ -202,39 +202,48 @@ return [
         'inventory.view',
         'reports.summary',
         'admin.staff_view',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'inventory_controller' => [
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
         'purchases.view', 'reports.stock', 'admin.warehouses',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'hr_officer' => [
         'admin.staff_view', 'admin.staff_manage', 'reports.performance',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'production_supervisor' => [
         'inventory.view', 'inventory.edit', 'inventory.adjust', 'reports.stock',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'kitchen_manager' => [
         'pos.checkout', 'sales.view', 'sales.edit', 'inventory.view', 'reports.summary',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'dispenser' => [
         'pos.checkout', 'inventory.view',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'sales_executive' => [
         'pos.checkout', 'sales.view', 'sales.create', 'sales.quotations', 'inventory.view', 'reports.summary',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'fulfillment_lead' => [
         'sales.view', 'sales.edit', 'inventory.view', 'inventory.transfer',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'delivery_driver' => [
         'sales.view',
+        'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     // 'custom' uses only the checkboxes stored on the membership.

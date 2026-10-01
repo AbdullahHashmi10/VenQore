@@ -377,7 +377,7 @@ class Phase56ReportsInfraScenariosTest extends VenQoreTestCase
             'fiscal_year_end' => $yearEnd,
             'approved_by'     => $approver->id,
             'approval_pin'    => '424242',
-        ])->assertRedirect()->assertSessionHasNoErrors();
+        ])->assertOk()->assertSessionHasNoErrors();
 
         $close = DB::table('journal_entries')
             ->where('tenant_id', $this->tenantId)
@@ -416,7 +416,7 @@ class Phase56ReportsInfraScenariosTest extends VenQoreTestCase
 
         $cashier = $this->seedMember('cashier');
         $this->postJson($this->v3('fiscal-year/close'), [
-            'fiscal_year_end' => now()->subDay()->toDateString(), 'approved_by' => $cashier->id,
+            'fiscal_year_end' => $yearEnd, 'approved_by' => $cashier->id,
         ])->assertSessionHasErrors('approved_by');
 
         $this->assertSame(1, DB::table('journal_entries')->where('tenant_id', $this->tenantId)
@@ -538,14 +538,23 @@ class Phase56ReportsInfraScenariosTest extends VenQoreTestCase
         $this->assertNull($after['approved_by']);
         $this->assertSame('customer_payment', $after['reference_type']);
 
-        // 2) An approval-gated write: fiscal year close with an admin approver.
+        // 2) Reversal (B25 bounced cheque route) is audited too, with the actor and IP.
+        $this->withServerVariables(['REMOTE_ADDR' => $ip])
+            ->postJson($this->v3("customer-payments/{$paymentJe->id}/bounce"), ['reason' => 'Insufficient funds'])
+            ->assertRedirect()->assertSessionHasNoErrors();
+        $reversedAudit = DB::table('audit_logs')->where('model_id', $paymentJe->id)->where('event', 'journal_reversed')->first();
+        $this->assertNotNull($reversedAudit);
+        $this->assertSame((string) $this->user->id, (string) $reversedAudit->user_id);
+        $this->assertSame($ip, $reversedAudit->ip_address);
+
+        // 3) An approval-gated write: fiscal year close with an admin approver.
         $approver = $this->seedMember('admin', '424242');
         $this->withServerVariables(['REMOTE_ADDR' => $ip])
             ->postJson($this->v3('fiscal-year/close'), [
                 'fiscal_year_end' => now()->toDateString(),
                 'approved_by'     => $approver->id,
                 'approval_pin'    => '424242',
-            ])->assertRedirect()->assertSessionHasNoErrors();
+            ])->assertOk()->assertSessionHasNoErrors();
 
         $closeJe = DB::table('journal_entries')->where('tenant_id', $this->tenantId)
             ->where('reference_type', 'fiscal_year_close')->first();
@@ -557,15 +566,6 @@ class Phase56ReportsInfraScenariosTest extends VenQoreTestCase
         $this->assertSame($ip, $audit->ip_address);
         $this->assertSame((string) $approver->id, (string) json_decode($audit->after, true)['approved_by'],
             'Approver must be captured on the audit row');
-
-        // 3) Reversal (B25 bounced cheque route) is audited too, with the actor and IP.
-        $this->withServerVariables(['REMOTE_ADDR' => $ip])
-            ->postJson($this->v3("customer-payments/{$paymentJe->id}/bounce"), ['reason' => 'Insufficient funds'])
-            ->assertRedirect()->assertSessionHasNoErrors();
-        $reversedAudit = DB::table('audit_logs')->where('model_id', $paymentJe->id)->where('event', 'journal_reversed')->first();
-        $this->assertNotNull($reversedAudit);
-        $this->assertSame((string) $this->user->id, (string) $reversedAudit->user_id);
-        $this->assertSame($ip, $reversedAudit->ip_address);
 
         // 4) "Every entry": each journal entry of this tenant has exactly one journal_posted row,
         //    each with a user and an IP.

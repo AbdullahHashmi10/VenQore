@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Plus, CheckCircle2, Zap, ScanBarcode, TrendingUp } from 'lucide-react';
+import { Plus, CheckCircle2, Zap, ScanBarcode, TrendingUp, Clock, ArrowRight, List, FileText } from 'lucide-react';
 
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { roundTotal } from '@/Utils/settings';
 import { useAlert } from '@/Contexts/AlertContext';
+import { handleApprovalResponse } from '@/lib/approval-response';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
 import ProductModal from '@/Components/ProductModal';
 import QuickPartyModal from '@/Components/QuickPartyModal';
@@ -143,6 +144,7 @@ export default function MoneyDocument({
     const [draggedIndex, setDraggedIndex] = useState(null);
     const [totalModes, setTotalModes] = useState({});
     const [peek, setPeek] = useState(false);
+    const [approvalModalData, setApprovalModalData] = useState(null);
     const saveRef = useRef(null);
 
     const partyRole = doc.party.role;
@@ -235,15 +237,19 @@ export default function MoneyDocument({
 
     const onPickProduct = useCallback((product, id) => {
         if (!product) return;
-        setItems((prev) => prev.map((i) => (i.id === id ? {
-            ...i,
-            product,
-            price: num(priceOf ? priceOf(product) : (product.price ?? product.selling_price)),
-            cost: num(product.cost ?? product.cost_price),
-            available_stock: availableOf(product),
-        } : i)));
+        setItems((prev) => {
+            const isLast = prev.length > 0 && prev[prev.length - 1].id === id;
+            const updated = prev.map((i) => (i.id === id ? {
+                ...i,
+                product,
+                price: num(priceOf ? priceOf(product) : (product.price ?? product.selling_price)),
+                cost: num(product.cost ?? product.cost_price),
+                available_stock: availableOf(product),
+            } : i));
+            return (isLast && canAddLines && !lockItems) ? [...updated, blankLine()] : updated;
+        });
         setInvalid([]);
-    }, [setItems, priceOf]);
+    }, [setItems, priceOf, canAddLines, lockItems]);
 
     const onTotalChange = useCallback((item, value) => {
         const target = num(value);
@@ -320,6 +326,18 @@ export default function MoneyDocument({
             }
 
             const res = await window.axios[verb](target, payload);
+
+            // If the transaction was routed to approval, trigger the global centered approval modal
+            const isApproval = res?.status === 202 || res?.data?.status === 'pending_approval' || res?.data?.pending_approval === true;
+            if (isApproval) {
+                if (!isEdit && closeOnSave && drafts.live) drafts.close(d.id);
+                handleApprovalResponse(res, doc?.name || 'Transaction', {
+                    docPlural: doc?.name === 'Purchase' ? 'Purchases' : ((doc?.name || 'Transaction') + 's'),
+                    listUrl: afterUrl || route(doc.api.index, { store_slug: store?.slug }),
+                });
+                return;
+            }
+
             showAlert({
                 title: 'Saved',
                 message: `${doc.name} ${isEdit ? 'updated' : 'saved'}.`,

@@ -589,4 +589,18 @@ class SettingsHelper
     {
         return self::get('product_cost_update_policy', 'never');
     }
+
+    /**
+     * Check if strict party role separation is enabled.
+     * When true, customers and suppliers are strictly partitioned in search and document entry.
+     * When false, dual-role ('both') contacts can be used on both sides.
+     */
+    public static function isStrictPartyRoles(): bool
+    {
+        $value = self::get('strict_party_roles');
+        if ($value === null) {
+            return false;
+        }
+        return in_array(strtolower((string)$value), ['1', 'true', 'on', 'yes'], true);
+    }
 }

@@ -59,6 +59,9 @@ Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marke
 Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->middleware(['throttle:10,1', 'turnstile'])->name('marketing.contact.submit');
 
+// Public Customer Digital Receipt (strictly signed, time-limited, privacy-preserving)
+Route::get('/r/{token}', [\App\Http\Controllers\PublicReceiptController::class, 'show'])->name('public.receipt.show');
+
 // Product lines & V6 showcases
 Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');
 Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('marketing.smartcapture');
@@ -453,11 +456,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
-        // Dedicated Native Applications & Downloads Hub
-        Route::get('/apps',            [\App\Http\Controllers\AppsController::class, 'index'])->name('apps');
         // Live payment history from Lemon Squeezy. Lazy-loaded by the Payment
         // History tab so the billing page never blocks on an external API.
         Route::get('/billing/payment-history', [\App\Http\Controllers\BillingController::class, 'paymentHistory'])->name('billing.payment-history');
+        Route::get('/apps', function () { return \Inertia\Inertia::render('Apps/Index'); })->name('apps');
         Route::get('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
         Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->middleware(['permission:admin.data_recovery', 'throttle:5,1'])->name('backup.import');
         Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->middleware('permission:admin.billing_store')->name('billing.cancel-trial');
@@ -486,6 +488,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // Store settings (Unified store & admin settings hub)
         Route::get('/settings',                    [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
         Route::post('/settings',                   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('settings.update');
+        Route::post('/settings/data-privacy',      [\App\Http\Controllers\SettingsController::class, 'updateDataPrivacy'])->middleware('permission:admin.settings_manage')->name('settings.data-privacy.update');
 
         // SmartCapture (AI Scan) API
         // NOTE: /extract costs exactly one upstream AI request per call. The
@@ -510,10 +513,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
         // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
         Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
-        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->name('restaurant.kitchen');
+        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->middleware('permission:pos.checkout')->name('restaurant.kitchen');
         // The same queue as JSON. A pass screen is left open all service, so it
         // polls rather than reloading an Inertia page every few seconds.
-        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->name('restaurant.kitchen.state');
+        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->middleware('permission:pos.checkout')->name('restaurant.kitchen.state');
         Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.table.status');
 
         // Occupancy API endpoints
@@ -525,6 +528,32 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // forward, one back — which is the whole vocabulary of a kitchen screen.
         Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.bump');
         Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.recall');
+
+        // ── Dispatch & Rider Management (Phase 3) ─────────────────────────
+        Route::get('/restaurant/dispatch', [\App\Http\Controllers\DispatchController::class, 'index'])->middleware('permission:pos.checkout')->name('restaurant.dispatch');
+        Route::get('/restaurant/dispatch/state', [\App\Http\Controllers\DispatchController::class, 'state'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.state');
+        Route::get('/restaurant/dispatch/rider-cashup', [\App\Http\Controllers\DispatchController::class, 'riderCashUp'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.rider-cashup');
+        Route::post('/restaurant/dispatch/cash-up', [\App\Http\Controllers\DispatchController::class, 'markHandedIn'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.cash-up');
+
+        Route::get('/riders', [\App\Http\Controllers\RiderController::class, 'list'])->middleware('permission:pos.checkout')->name('riders.list');
+        Route::post('/riders/{id}/toggle-rider', [\App\Http\Controllers\RiderController::class, 'toggleRider'])->middleware('permission:admin.settings_manage')->name('riders.toggle');
+
+        // ── Phase 4: Reservations & Restaurant Analytics ───────────────────
+        Route::get('/restaurant/reports/kitchen-performance', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenPerformance'])->middleware('permission:pos.checkout')->name('restaurant.reports.kitchen-performance');
+        Route::get('/restaurant/reports/tips', [\App\Http\Controllers\RestaurantDashboardController::class, 'tipsReport'])->middleware('permission:pos.checkout')->name('restaurant.reports.tips');
+
+        Route::get('/reservations',               [\App\Http\Controllers\ReservationController::class, 'list'])->middleware('permission:pos.checkout')->name('reservations.list');
+        Route::post('/reservations',              [\App\Http\Controllers\ReservationController::class, 'store'])->middleware('permission:pos.checkout')->name('reservations.store');
+        Route::post('/reservations/{id}/seat',    [\App\Http\Controllers\ReservationController::class, 'seat'])->middleware('permission:pos.checkout')->name('reservations.seat');
+        Route::post('/reservations/{id}/cancel',  [\App\Http\Controllers\ReservationController::class, 'cancel'])->middleware('permission:pos.checkout')->name('reservations.cancel');
+
+        // ── Register Shifts, Cash Drawer & Z-Reports (R20) ─────────────────
+        Route::get('/shifts/current',             [\App\Http\Controllers\RegisterShiftController::class, 'current'])->middleware('permission:pos.checkout')->name('shifts.current');
+        Route::post('/shifts/open',               [\App\Http\Controllers\RegisterShiftController::class, 'open'])->middleware('permission:pos.checkout')->name('shifts.open');
+        Route::post('/shifts/movement',           [\App\Http\Controllers\RegisterShiftController::class, 'movement'])->middleware('permission:pos.checkout')->name('shifts.movement');
+        Route::post('/shifts/close',              [\App\Http\Controllers\RegisterShiftController::class, 'close'])->middleware('permission:pos.checkout')->name('shifts.close');
+        Route::get('/shifts/{id}/z-report',       [\App\Http\Controllers\RegisterShiftController::class, 'zReport'])->middleware('permission:pos.checkout')->name('shifts.z-report');
+        Route::get('/shifts/history',             [\App\Http\Controllers\RegisterShiftController::class, 'history'])->middleware('permission:pos.checkout')->name('shifts.history');
 
         // Trial expired landing (within store context)
         Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
@@ -592,9 +621,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
                 Route::post('/settings',       [\App\Http\Controllers\StoreChatbotSettingsController::class, 'update'])->middleware('permission:admin.settings_manage')->name('settings.update');
                 Route::post('/settings/test',  [\App\Http\Controllers\StoreChatbotSettingsController::class, 'testConnection'])->name('ai.test');
 
-                // Agent Inbox (Redirects platform staff to the primary Platform SuperAdmin Inbox)
+                // Agent Inbox (Inertia page)
                 Route::get('/inbox', function () {
-                    return redirect()->route('platform.chatbot.inbox');
+                    return \Inertia\Inertia::render('Admin/AgentInbox');
                 })->name('inbox');
 
                 // Agent API — chat session management for this store
@@ -693,6 +722,7 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
         Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
         Route::post('/stores/{tenant}/toggle-internal', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleInternal'])->name('store.toggle-internal');
+        Route::post('/stores/{tenant}/feature-flags', [\App\Http\Controllers\Admin\SuperAdminController::class, 'updateStoreFeatureFlags'])->name('store.feature-flag');
 
         // Trash Management
         Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->name('store.destroy');
@@ -1102,6 +1132,28 @@ Route::get('/dashboard', function() {
     return \redirect()->route('hub');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/fiscal-year', function () {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+    if (!$tenant) {
+        $membership = \App\Models\TenantUser::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+        $tenant = $membership?->tenant;
+    }
+
+    if ($tenant) {
+        return redirect()->route('store.v3.fiscal-year.index', ['store_slug' => $tenant->slug]);
+    }
+
+    return redirect()->route('hub');
+})->middleware(['auth', 'verified'])->name('fiscal-year.redirect');
+
 // Error Reporting API
 Route::post('/api/report-error', [\App\Http\Controllers\Api\ErrorReporterController::class, 'store'])->middleware('throttle:20,1')->name('api.report-error');
 
@@ -1164,7 +1216,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/builder/modify', [\App\Http\Controllers\BuilderController::class, 'modify'])->middleware('permission:admin.settings_manage')->name('builder.modify');
 
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
-    Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
+    Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'legacyIndex'])->name('dashboard-v1');
 
     // ── New Experience — HIDDEN 2026-08-09, not removed ─────────────────────
     // See Appearance::NEW_EXPERIENCE_ENABLED. Every controller behind these
@@ -1248,6 +1300,16 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/settled',    [\App\Http\Controllers\TableServiceController::class, 'settled'])->name('settled');
         Route::post('/service-mode', [\App\Http\Controllers\TableServiceController::class, 'setServiceMode'])
             ->middleware('permission:admin.settings_manage')->name('service-mode');
+        Route::post('/prepares-orders', [\App\Http\Controllers\TableServiceController::class, 'setPreparesOrders'])
+            ->middleware('permission:admin.settings_manage')->name('prepares-orders');
+        Route::post('/kitchen/counter-fire', [\App\Http\Controllers\TableServiceController::class, 'fireCounter'])
+            ->middleware('permission:pos.checkout')->name('kitchen.counter-fire');
+        Route::post('/kitchen/reprint', [\App\Http\Controllers\TableServiceController::class, 'reprintKOT'])
+            ->middleware('permission:pos.checkout')->name('kitchen.reprint');
+        Route::post('/kitchen/course-fire', [\App\Http\Controllers\TableServiceController::class, 'fireCourse'])
+            ->middleware('permission:pos.checkout')->name('kitchen.course-fire');
+        Route::post('/kitchen/86', [\App\Http\Controllers\TableServiceController::class, 'toggle86'])
+            ->middleware('permission:pos.checkout')->name('kitchen.86');
         // Store-wide, same as service-mode and gated the same way: what the house
         // charges is not a per-till decision.
         Route::post('/service-charge', [\App\Http\Controllers\TableServiceController::class, 'setServiceCharge'])
@@ -1258,6 +1320,18 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
            and no place, and giving it a fake table would put phantom seats on
            the floor plan and break every covers number on it. */
         Route::post('/lane/open', [\App\Http\Controllers\TableServiceController::class, 'laneOpen'])->name('lane.open');
+
+        /* A delivery is the only ticket whose state keeps moving after the
+           kitchen is done with it -- assigned, on the road, at the door. One
+           endpoint for all of it, because a dispatcher sets rider, status and
+           ETA in a single gesture and five round trips from a phone on a bad
+           connection is five chances to half-update a ticket. */
+        Route::post('/delivery',    [\App\Http\Controllers\TableServiceController::class, 'deliveryUpdate'])->name('delivery');
+
+        /* Addresses this shop has already delivered to. Read-only, capped, and
+           it only answers a query the operator has already typed two
+           characters of -- an aid at the counter, never a directory. */
+        Route::get('/address-book', [\App\Http\Controllers\TableServiceController::class, 'addressBook'])->name('address-book');
 
         /* "The bill is printed and they have not paid yet." A stamp, not a
            status: the escalation state on the floor is derived from it. */
@@ -1575,11 +1649,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/inventory/stock-levels', [InventoryController::class, 'stockLevels'])->name('inventory.stock-levels');
 
     // Bank Accounts (Phase 1 - Unification)
-    Route::get('/bank-accounts', [FinanceController::class, 'bankAccounts'])->name('bank-accounts.index');
+    Route::get('/bank-accounts', [FinanceController::class, 'bankAccounts'])->middleware('permission:finance.balances')->name('bank-accounts.index');
     Route::post('/bank-accounts', [FinanceController::class, 'storeBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.store');
     Route::put('/bank-accounts/{bankAccount}', [FinanceController::class, 'updateBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.update');
     Route::delete('/bank-accounts/{bankAccount}', [FinanceController::class, 'destroyBankAccount'])->middleware('permission:finance.journal')->name('bank-accounts.destroy');
-    Route::get('/bank-accounts/{bankAccount}/transactions', [FinanceController::class, 'bankAccountTransactions'])->name('bank-accounts.transactions');
+    Route::get('/bank-accounts/{bankAccount}/transactions', [FinanceController::class, 'bankAccountTransactions'])->middleware('permission:finance.transactions,finance.balances')->name('bank-accounts.transactions');
 
     // ============================================
     // PHASE 2 - Party & Transaction Management
@@ -1599,6 +1673,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.index');
     Route::get('/expenses/create', [\App\Http\Controllers\ExpenseController::class, 'create'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.create');
     Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.store');
+    Route::post('/expenses/quick-add', [\App\Http\Controllers\ExpenseController::class, 'quickAdd'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.quick-add');
     Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.category.store');
     Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'destroy'])->middleware(['permission:finance.expenses', 'plan.feature:expense_manager'])->name('expenses.destroy');
@@ -1670,6 +1745,80 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/payments', [\App\Http\Controllers\PaymentController::class, 'store'])->middleware('permission:finance.receive_payment,finance.send_payment')->name('payments.store');
     Route::get('/payments/{payment}', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
 
+    // ── Cheque Management & Banking ──────────────────────────────────────
+    Route::prefix('banking')->group(function () {
+        // Cheque Books
+        Route::get('cheque-books', [\App\Http\Controllers\ChequeBookController::class, 'index'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.cheque-books.index');
+        Route::get('cheque-books/create', [\App\Http\Controllers\ChequeBookController::class, 'create'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.create');
+        Route::post('cheque-books', [\App\Http\Controllers\ChequeBookController::class, 'store'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.store');
+        Route::get('cheque-books/available-leaves', [\App\Http\Controllers\ChequeBookController::class, 'availableLeaves'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.cheque-books.available-leaves');
+        Route::get('cheque-books/{id}', [\App\Http\Controllers\ChequeBookController::class, 'show'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.cheque-books.show');
+        Route::post('cheque-books/{id}/close', [\App\Http\Controllers\ChequeBookController::class, 'close'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.close');
+        Route::delete('cheque-books/{id}', [\App\Http\Controllers\ChequeBookController::class, 'destroy'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-books.destroy');
+
+        // Cheque Leaves Actions
+        Route::post('cheque-leaves/{id}/void', [\App\Http\Controllers\ChequeLeafController::class, 'voidUnused'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.cheque-leaves.void');
+        Route::post('cheque-leaves/{id}/stop', [\App\Http\Controllers\ChequeLeafController::class, 'stopIssued'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.cheque-leaves.stop');
+        Route::post('cheque-leaves/{id}/clear', [\App\Http\Controllers\ChequeLeafController::class, 'clearIssued'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.cheque-leaves.clear');
+        Route::post('cheque-leaves/{id}/bounce', [\App\Http\Controllers\ChequeLeafController::class, 'bounceIssued'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.cheque-leaves.bounce');
+
+        // Received Cheques
+        Route::get('received-cheques', [\App\Http\Controllers\ReceivedChequeController::class, 'index'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.received-cheques.index');
+        Route::post('received-cheques', [\App\Http\Controllers\ReceivedChequeController::class, 'store'])
+            ->middleware('permission:finance.cheque_books.manage')
+            ->name('banking.received-cheques.store');
+        Route::post('received-cheques/{id}/deposit', [\App\Http\Controllers\ReceivedChequeController::class, 'deposit'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.deposit');
+        Route::post('received-cheques/{id}/clear', [\App\Http\Controllers\ReceivedChequeController::class, 'clear'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.clear');
+        Route::post('received-cheques/{id}/bounce', [\App\Http\Controllers\ReceivedChequeController::class, 'bounce'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.bounce');
+        Route::post('received-cheques/{id}/return', [\App\Http\Controllers\ReceivedChequeController::class, 'returnToCustomer'])
+            ->middleware('permission:finance.cheques.clear')
+            ->name('banking.received-cheques.return');
+
+        // Cheque Reports
+        Route::get('reports/outgoing-cheques', [\App\Http\Controllers\ChequeReportController::class, 'outgoingRegister'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.outgoing-cheques');
+        Route::get('reports/incoming-cheques', [\App\Http\Controllers\ChequeReportController::class, 'incomingRegister'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.incoming-cheques');
+        Route::get('reports/cheque-utilization', [\App\Http\Controllers\ChequeReportController::class, 'utilization'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.cheque-utilization');
+        Route::get('reports/post-dated-cheques', [\App\Http\Controllers\ChequeReportController::class, 'postDated'])
+            ->middleware('permission:finance.cheque_books.view')
+            ->name('banking.reports.post-dated-cheques');
+    });
+
     // Purchases
     // V3 CONSOLIDATION Phase 5 — these point at PurchaseRouterController, which
     // forwards to legacy or V3 per tenant. Route NAMES are unchanged, so no
@@ -1716,10 +1865,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
     // Fund Management (Owner Capital, Transfers, Adjustments)
     Route::get('/funds', [FundController::class, 'index'])->middleware(['permission:finance.balances', 'plan.feature:fund_management'])->name('funds.index');
-    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.receive_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.add');
-    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.send_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.remove');
-    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.send_payment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.transfer');
-    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.journal')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.adjust');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.capital_add')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.owner_drawings')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.internal_transfer')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.balance_adjustment')->middleware('plan.feature:fund_management')->middleware('throttle:10,1')->name('funds.adjust');
 
     // Accounting Routes
     Route::get('/accounting', [\App\Http\Controllers\AccountingController::class, 'dashboard'])->middleware('plan.feature:double_entry_ledger')->name('accounting.dashboard');
@@ -1746,9 +1895,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Debit Notes
     Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.index');
     Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.create');
-    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.edit')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.returns')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.store');
     Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.show');
-    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('plan.feature:debit_credit_notes')->name('debit-notes.refund');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:finance.supplier_refund')->middleware('plan.feature:debit_credit_notes')->name('debit-notes.refund');
 
     // Bank Reconciliation
     Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->middleware('plan.feature:bank_reconciliation')->name('bank-reconciliation.index');
@@ -1813,7 +1962,41 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create,pos.checkout', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
-    // S-011 / S-044: owners/admins/managers who can approve a POS sale (POS approval modal). Before /sales/{sale}.
+    // Dedicated Trusted POS Route (Server-verified shift boundary)
+    Route::post('/pos/sales', [\App\Http\Controllers\PosSaleController::class, 'store'])->middleware(['permission:pos.checkout,sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('pos.sales.store');
+
+    // Approval Workflow Routes
+    Route::get('/approvals', [\App\Http\Controllers\ApprovalDocumentController::class, 'index'])
+        ->middleware('permission:approvals.view,approvals.view_own,approvals.submit,approvals.inbox,approvals.review')
+        ->name('approvals.index');
+    Route::get('/approvals/inbox', [\App\Http\Controllers\ApprovalDocumentController::class, 'inbox'])
+        ->middleware('permission:approvals.inbox,approvals.review')
+        ->name('approvals.inbox');
+    Route::get('/approvals/my-submissions', [\App\Http\Controllers\ApprovalDocumentController::class, 'mySubmissions'])
+        ->middleware('permission:approvals.view_own,approvals.submit')
+        ->name('approvals.my-submissions');
+    Route::get('/approvals/{id}/correct', [\App\Http\Controllers\ApprovalDocumentController::class, 'correct'])
+        ->middleware('permission:approvals.resubmit,approvals.view_own,approvals.submit')
+        ->name('approvals.correct');
+    Route::get('/approvals/{id}', [\App\Http\Controllers\ApprovalDocumentController::class, 'show'])
+        ->middleware('permission:approvals.view_own,approvals.submit,approvals.inbox,approvals.review')
+        ->name('approvals.show');
+    Route::post('/approvals/{id}/approve', [\App\Http\Controllers\ApprovalDocumentController::class, 'approve'])
+        ->middleware('permission:approvals.approve,approvals.review')
+        ->name('approvals.approve');
+    Route::post('/approvals/{id}/reject', [\App\Http\Controllers\ApprovalDocumentController::class, 'reject'])
+        ->middleware('permission:approvals.reject,approvals.review')
+        ->name('approvals.reject');
+    Route::post('/approvals/{id}/return', [\App\Http\Controllers\ApprovalDocumentController::class, 'returnDocument'])
+        ->middleware('permission:approvals.return,approvals.review')
+        ->name('approvals.return');
+    Route::post('/approvals/{id}/withdraw', [\App\Http\Controllers\ApprovalDocumentController::class, 'withdraw'])
+        ->middleware('permission:approvals.withdraw,approvals.view_own,approvals.submit')
+        ->name('approvals.withdraw');
+    Route::post('/approvals/{id}/resubmit', [\App\Http\Controllers\ApprovalDocumentController::class, 'resubmit'])
+        ->middleware('permission:approvals.resubmit,approvals.view_own,approvals.submit')
+        ->name('approvals.resubmit');
+
     Route::get('/sales/approvers', [\App\Http\Controllers\SaleController::class, 'approvers'])->middleware('permission:sales.create,pos.checkout')->name('sales.approvers');
     Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
     Route::post('/attendance/check-in', [\App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
@@ -1852,8 +2035,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // so the user always finalises it here.
     Route::get('/sales/invoice/create', function (\Illuminate\Http\Request $request) {
         return Inertia::render('Sales/CreateInvoice', [
-            'aiPrefill' => app(\App\Services\SmartCapture\PrefillService::class)
+            'aiPrefill'           => app(\App\Services\SmartCapture\PrefillService::class)
                 ->pull($request->query('ai_prefill')),
+            'approval_correction' => app(\App\Services\Approval\ApprovalCorrectionResolver::class)
+                ->resolveForEdit($request, 'sales_invoice'),
         ]);
     })->name('sales.invoice.create');
 
@@ -1898,10 +2083,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
     // Fund Management (Owner Capital, Transfers, Adjustments)
     Route::get('/funds', [FundController::class, 'index'])->middleware('permission:finance.balances')->name('funds.index');
-    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.receive_payment')->middleware('throttle:10,1')->name('funds.add');
-    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.send_payment')->middleware('throttle:10,1')->name('funds.remove');
-    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.send_payment')->middleware('throttle:10,1')->name('funds.transfer');
-    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.journal')->middleware('throttle:10,1')->name('funds.adjust');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->middleware('permission:finance.capital_add')->middleware('throttle:10,1')->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->middleware('permission:finance.owner_drawings')->middleware('throttle:10,1')->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->middleware('permission:finance.internal_transfer')->middleware('throttle:10,1')->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->middleware('permission:finance.balance_adjustment')->middleware('throttle:10,1')->name('funds.adjust');
     Route::get('/funds/cash-history', [FundController::class, 'history'])->name('funds.history.ledger');
     Route::get('/funds/api/history', [FundController::class, 'getCashHistory'])->name('funds.cash-history');
 
@@ -1910,7 +2095,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         return \response()->json(\App\Models\AdHocLine::active()->get());
     })->name('api.custom-charges');
 
-    Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
+    Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->middleware('permission:finance.balances')->name('api.bank-accounts');
 
     /* A party's position with the shop, read from the ledger rather than from
        the cached `parties.current_balance` — which several code paths write,
@@ -1941,6 +2126,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Communication Routes
     Route::post('/sales/{id}/send-email', [\App\Http\Controllers\CommunicationController::class, 'sendEmail'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-email');
     Route::post('/sales/{id}/send-whatsapp', [\App\Http\Controllers\CommunicationController::class, 'sendWhatsApp'])->middleware('permission:sales.view,pos.checkout')->name('sales.send-whatsapp');
+    Route::post('/communication/whatsapp/prepare', [\App\Http\Controllers\CommunicationController::class, 'prepareWhatsAppDraft'])->middleware('permission:sales.view,pos.checkout,payments.view,parties.view')->name('communication.whatsapp.prepare');
+    Route::post('/communication/whatsapp/opened', [\App\Http\Controllers\CommunicationController::class, 'recordDraftOpened'])->middleware('permission:sales.view,pos.checkout,payments.view,parties.view')->name('communication.whatsapp.opened');
 
 
 
@@ -2075,9 +2262,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Debit Notes
     Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->name('debit-notes.index');
     Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->name('debit-notes.create');
-    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.edit')->name('debit-notes.store');
+    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->middleware('permission:purchases.returns')->name('debit-notes.store');
     Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->name('debit-notes.show');
-    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:purchases.edit')->name('debit-notes.refund');
+    Route::post('/debit-notes/{id}/refund', [\App\Http\Controllers\DebitNoteController::class, 'refund'])->middleware('permission:finance.supplier_refund')->name('debit-notes.refund');
 
     // Bank Reconciliation
     Route::get('/bank-reconciliation', [\App\Http\Controllers\BankReconciliationController::class, 'index'])->name('bank-reconciliation.index');
@@ -2088,6 +2275,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/invoice-reminders/create', [\App\Http\Controllers\InvoiceReminderController::class, 'create'])->name('invoice-reminders.create');
     Route::post('/invoice-reminders', [\App\Http\Controllers\InvoiceReminderController::class, 'store'])->middleware('permission:sales.edit')->name('invoice-reminders.store');
     Route::post('/invoice-reminders/{id}/send', [\App\Http\Controllers\InvoiceReminderController::class, 'send'])->middleware('permission:sales.edit')->name('invoice-reminders.send');
+    Route::post('/invoice-reminders/{id}/mark-sent-manually', [\App\Http\Controllers\InvoiceReminderController::class, 'markSentManually'])->middleware('permission:sales.edit')->name('invoice-reminders.mark-sent-manually');
+    Route::post('/invoice-reminders/{id}/dismiss', [\App\Http\Controllers\InvoiceReminderController::class, 'dismiss'])->middleware('permission:sales.edit')->name('invoice-reminders.dismiss');
 
     // Staff Attendance
     Route::get('/staff/attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff.attendance.index');
@@ -2170,7 +2359,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     /* Both of these were abort(501) closures, so a debit note could be raised
        and then neither corrected nor printed. */
     Route::get('/debit-notes/{id}/print', [\App\Http\Controllers\DebitNoteController::class, 'print'])->name('debit-notes.print');
-    Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->middleware('permission:purchases.edit')->name('debit-notes.update');
+    Route::put('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'update'])->middleware('permission:purchases.returns')->name('debit-notes.update');
     Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
     Route::get('/sales/create', fn() => \redirect()->route('store.new-invoice', ['store_slug' => app('current.tenant')->slug]))->name('sales.create');
     Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');
@@ -2278,7 +2467,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
          ->name('purchases.destroy');
 
     Route::get('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'create'])->middleware('plan.feature:purchase_returns')->name('purchases.return.create');
-    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('permission:purchases.edit')->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
+    Route::post('purchases/{purchaseId}/return', [\App\Http\Controllers\V3\PurchaseReturnController::class, 'store'])->middleware('permission:purchases.returns')->middleware('plan.feature:purchase_returns')->name('purchases.return.store');
 
     Route::post('supplier-payments', [\App\Http\Controllers\V3\SupplierPaymentController::class, 'store'])->middleware('permission:finance.send_payment')->name('supplier-payments.store');
 
@@ -2297,6 +2486,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
 
     Route::post('sales', [\App\Http\Controllers\V3\SaleController::class, 'store'])->middleware('permission:sales.create,pos.checkout')->middleware(\App\Http\Middleware\EnforceTransactionLimit::class)->name('sales.store');
     Route::get('sales/{saleId}/pdf', [\App\Http\Controllers\V3\InvoicePdfController::class, 'show'])->name('sales.pdf');
+    Route::get('returns/{returnId}/pdf', [\App\Http\Controllers\V3\InvoicePdfController::class, 'showReturn'])->name('returns.pdf');
     Route::post('sales/{saleId}/return', [\App\Http\Controllers\V3\SaleReturnController::class, 'store'])->middleware('permission:sales.returns,pos.refund')->name('sales.return.store');
     Route::post('customer-payments', [\App\Http\Controllers\V3\CustomerPaymentController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-payments.store');
     Route::post('customer-payments/{journalEntryId}/bounce', [\App\Http\Controllers\V3\BounceController::class, 'store'])->middleware('permission:finance.receive_payment')->name('customer-payments.bounce');
@@ -2354,16 +2544,44 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('loans/repay', [\App\Http\Controllers\V3\LoanController::class, 'repay'])->middleware('permission:finance.journal')->name('loans.repay');
 
     Route::post('expenses', [\App\Http\Controllers\V3\ExpenseController::class, 'store'])->middleware('permission:finance.expenses')->middleware('plan.feature:expense_manager')->name('expenses.store');
-    Route::post('funds', [\App\Http\Controllers\V3\FundController::class, 'store'])->middleware('permission:finance.journal')->name('funds.store');
-    Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->middleware('permission:finance.send_payment')->name('bank-transfers.store');
+    Route::post('funds', [\App\Http\Controllers\V3\FundController::class, 'store'])->middleware('permission:finance.capital_add,finance.owner_drawings')->name('funds.store');
+    Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->middleware('permission:finance.internal_transfer')->name('bank-transfers.store');
     Route::post('donations', [\App\Http\Controllers\V3\DonationController::class, 'store'])->middleware('permission:finance.expenses')->name('donations.store');
 
     Route::put('users/{id}/role', [\App\Http\Controllers\V3\RoleController::class, 'update'])->middleware('permission:users.manage')->name('users.role.update');
     Route::post('settings/discount-limits', [\App\Http\Controllers\V3\RoleController::class, 'updateDiscountLimit'])->middleware('permission:users.manage')->name('settings.discount-limits');
 
-    Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.journal')->name('fiscal-year.close');
+    Route::get('fiscal-year', [\App\Http\Controllers\V3\FiscalYearController::class, 'index'])->middleware('permission:finance.fiscal_year.view,finance.journal')->name('fiscal-year.index');
+    Route::post('fiscal-year', [\App\Http\Controllers\V3\FiscalYearController::class, 'store'])->middleware('permission:finance.fiscal_year.manage,finance.journal')->name('fiscal-year.store');
+    Route::get('fiscal-year/{id}/preview', [\App\Http\Controllers\V3\FiscalYearController::class, 'preview'])->middleware('permission:finance.fiscal_year.view,finance.journal')->name('fiscal-year.preview');
+    Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.fiscal_year.close,finance.journal')->name('fiscal-year.close');
+    Route::post('v3/fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->middleware('permission:finance.fiscal_year.close,finance.journal');
+    Route::post('fiscal-year/{id}/reopen', [\App\Http\Controllers\V3\FiscalYearController::class, 'reopen'])->middleware('permission:finance.period_reopen,admin.settings_manage')->name('fiscal-year.reopen');
+    Route::post('fiscal-year/locks', [\App\Http\Controllers\V3\FiscalYearController::class, 'storeLock'])->middleware('permission:finance.period_lock,admin.settings_manage')->name('fiscal-year.locks.store');
+    Route::post('fiscal-year/exceptions', [\App\Http\Controllers\V3\FiscalYearController::class, 'storeException'])->middleware('permission:finance.period_exception,admin.settings_manage')->name('fiscal-year.exceptions.store');
+    Route::delete('fiscal-year/exceptions/{id}', [\App\Http\Controllers\V3\FiscalYearController::class, 'revokeException'])->middleware('permission:finance.period_exception,admin.settings_manage')->name('fiscal-year.exceptions.revoke');
+    Route::get('fiscal-year/{id}/report', [\App\Http\Controllers\V3\FiscalYearController::class, 'report'])->middleware('permission:finance.fiscal_year.view,finance.journal')->name('fiscal-year.report');
 
 
+
+    // Reports under /v3/reports/* (JSON APIs for V3 / Scenarios / UI)
+    Route::middleware(['permission:reports.summary', 'plan.report'])->prefix('reports')->name('reports.')->group(function () {
+        Route::get('trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance'])->name('trial-balance');
+        Route::get('profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss'])->name('profit-loss');
+        Route::get('balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet'])->name('balance-sheet');
+        Route::get('cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow'])->name('cash-flow');
+        Route::get('aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('aged-receivables');
+        Route::get('aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('aged-payables');
+        Route::get('sales', [\App\Http\Controllers\V3\ReportController::class, 'sales'])->name('sales');
+        Route::get('purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases'])->name('purchases');
+        Route::get('inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('inventory-valuation');
+        Route::get('cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('cogs');
+        Route::get('gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->name('gross-profit');
+        Route::get('tax', [\App\Http\Controllers\V3\ReportController::class, 'tax'])->name('tax');
+        Route::get('party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('party-ledger');
+        Route::get('inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('inventory-movement');
+        Route::get('export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('export');
+    });
 
     // Dashboard
     Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index'])->name('dashboard');
@@ -2394,6 +2612,9 @@ Route::get('/error/{code}', function ($code) {
 
 // [SECURITY] /debug-error removed — exposed full laravel.log to anyone with the
 // hardcoded key committed to source. Use SSH or `tail storage/logs/laravel.log`.
+
+// ── Customer Delivery Tracking (Public, Tokenised) ─────────────────────────
+Route::get('/track/{token}', [\App\Http\Controllers\TrackingController::class, 'show'])->name('tracking.show');
 
 // ── FALLBACK: 404 for any URL not matched above ────────────────────────────
 // This is the last line of defense. Every URL that doesn't match a route

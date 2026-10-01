@@ -1,0 +1,318 @@
+/* 
+   VenQore POS - Premium Modern Design
+   "The WOW Factor"
+*/
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+    --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Global Enhancements */
+* {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif !important;
+}
+
+.dark body {
+    background: linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+}
+
+/* ========== TOPBAR - Floating Glass Design ========== */
+.fi-topbar {
+    background: transparent !important;
+    border: none !important;
+    padding: 1.5rem 2rem !important;
+}
+
+.fi-topbar nav {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: 0.75rem 1.5rem !important;
+    height: auto !important;
+}
+
+.dark .fi-topbar nav {
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Search - Premium Style */
+.fi-topbar-search-container {
+    position: relative !important;
+    left: auto !important;
+    transform: none !important;
+    width: 320px !important;
+}
+
+.fi-topbar-search-container input {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 12px !important;
+    height: 2.5rem !important;
+    padding-left: 2.5rem !important;
+    color: white !important;
+    font-size: 0.875rem !important;
+}
+
+.fi-topbar-search-container input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.fi-topbar-search-container input:focus {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+/* POS Button - Premium */
+.pos-button {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 0.625rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+}
+
+.pos-button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+}
+
+/* ========== SIDEBAR - Modern Clean ========== */
+.fi-sidebar {
+    background: rgba(15, 23, 42, 0.95) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.fi-sidebar-nav {
+    padding: 1.5rem 1rem !important;
+}
+
+.fi-sidebar-item-button {
+    border-radius: 12px !important;
+    margin-bottom: 4px !important;
+    padding: 0.75rem 1rem !important;
+    font-weight: 500 !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.fi-sidebar-item-button:hover {
+    background: rgba(102, 126, 234, 0.1) !important;
+    color: white !important;
+}
+
+.fi-sidebar-item-button.fi-active {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3) !important;
+}
+
+.fi-sidebar-group-label {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 0.5rem 1rem !important;
+    margin-top: 1rem !important;
+}
+
+/* ========== MAIN CONTENT - Clean & Spacious ========== */
+.fi-main {
+    background: transparent !important;
+    padding: 2rem !important;
+}
+
+.fi-page {
+    max-width: 1600px !important;
+    margin: 0 auto !important;
+}
+
+.fi-page-heading {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: white !important;
+    margin-bottom: 2rem !important;
+    letter-spacing: -0.02em !important;
+}
+
+/* ========== STATS CARDS - Beautiful Glassmorphism ========== */
+.fi-wi-stats-overview-stat {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+.fi-wi-stats-overview-stat:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3) !important;
+}
+
+.fi-wi-stats-overview-stat-label {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+.fi-wi-stats-overview-stat-value {
+    color: white !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.fi-wi-stats-overview-stat-description {
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.875rem !important;
+}
+
+/* Success State */
+.fi-wi-stats-overview-stat.fi-color-success {
+    border-color: rgba(11, 163, 96, 0.3) !important;
+    background: linear-gradient(135deg, rgba(11, 163, 96, 0.1) 0%, rgba(60, 186, 146, 0.05) 100%) !important;
+}
+
+/* Danger State */
+.fi-wi-stats-overview-stat.fi-color-danger {
+    border-color: rgba(245, 87, 108, 0.3) !important;
+    background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.05) 100%) !important;
+}
+
+/* ========== CHART WIDGETS - Modern Design ========== */
+.fi-wi {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 20px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.fi-section-header {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 1.125rem !important;
+    padding: 0 !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Chart Styling */
+canvas {
+    border-radius: 12px !important;
+    max-height: 300px !important;
+}
+
+/* ========== BUTTONS - Modern & Beautiful ========== */
+.fi-btn {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 0.625rem 1.25rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-btn-primary {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+}
+
+.fi-btn-primary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+}
+
+/* ========== DASHBOARD GRID - Perfect Layout ========== */
+.fi-dashboard-widgets-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 320px !important;
+    gap: 1.5rem !important;
+}
+
+@media (max-width: 1024px) {
+    .fi-dashboard-widgets-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ========== SCROLLBAR - Beautiful ========== */
+.fi-main::-webkit-scrollbar,
+.fi-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.fi-main::-webkit-scrollbar-track,
+.fi-sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.fi-main::-webkit-scrollbar-thumb,
+.fi-sidebar::-webkit-scrollbar-thumb {
+    background: var(--primary-gradient);
+    border-radius: 10px;
+}
+
+.fi-main::-webkit-scrollbar-thumb:hover,
+.fi-sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #7c8bf5 0%, #8b5bc5 100%);
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fi-wi,
+.fi-wi-stats-overview-stat {
+    animation: fadeInUp 0.5s ease-out !important;
+}
+
+/* ========== FORMS - Clean Design ========== */
+.fi-input,
+.fi-select,
+.fi-textarea {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    color: white !important;
+}
+
+.fi-input:focus,
+.fi-select:focus,
+.fi-textarea:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}

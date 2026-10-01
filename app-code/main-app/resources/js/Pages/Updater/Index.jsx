@@ -245,6 +245,9 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
 
         // Reset step statuses
         setSteps(prev => prev.map(s => ({ ...s, status: 'pending' })));
+        // A retry starts a new upload operation and receives a new server token.
+        // Never let the previous operation's token survive a retry.
+        updateTokenRef.current = null;
 
         const progressPerStep = 100 / steps.length;
 
@@ -332,6 +335,9 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                 fd.append('total_chunks', totalChunks);
                 fd.append('upload_id', uploadId);
                 fd.append('filename', zipFile.name);
+                if (updateTokenRef.current) {
+                    fd.append('update_token', updateTokenRef.current);
+                }
 
                 const res = await axios.post('/api/updater/run', fd, {
                     headers: { 'Content-Type': 'multipart/form-data' },
@@ -343,6 +349,13 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                     log(`  ↑ Uploading: ${pct}%`, 'dim');
                 }
 
+                // Chunk zero creates the operation token. Capture it before
+                // sending chunk one; the server rejects every later chunk
+                // without this token.
+                if (res.data.update_token) {
+                    updateTokenRef.current = res.data.update_token;
+                }
+
                 // Last chunk returns the assembled result
                 if (res.data.complete) {
                     log(`  ✓ ${res.data.message}`, 'success');
@@ -350,8 +363,8 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                     // All subsequent steps will send this token so the server
                     // can authenticate them even if the session breaks after
                     // new PHP files are extracted onto disk.
-                    if (res.data.update_token) {
-                        updateTokenRef.current = res.data.update_token;
+                    if (!updateTokenRef.current) {
+                        throw new Error('Upload completed, but the server did not return an update token. Refresh the updater before retrying.');
                     }
                 }
             }
@@ -420,7 +433,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                 {/* Back to Platform HQ — only platform admins use the Updater */}
                                 <Link
                                     href={route('platform.dashboard')}
-                                    className="flex items-center gap-1.5 text-xs text-ink-muted hover:text-neutral-200 transition-colors group mr-2"
+                                    className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-200 transition-colors group mr-2"
                                     title="Back to Platform HQ"
                                 >
                                     <ChevronLeft size={15} className="group-hover:-translate-x-0.5 transition-transform" />
@@ -433,15 +446,15 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                                 </div>
                                 <div className="h-4 w-px bg-white/10" />
-                                <span className="text-xs font-mono text-ink-muted tracking-wider">VENQORE_UPDATER_V1.0</span>
+                                <span className="text-xs font-mono text-neutral-400 tracking-wider">VENQORE_UPDATER_V1.0</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="px-3 py-1 rounded text-2xs font-mono text-ink-muted bg-white/5 uppercase tracking-widest border border-white/5">
+                                <div className="px-3 py-1 rounded text-2xs font-mono text-neutral-400 bg-white/5 uppercase tracking-widest border border-white/5">
                                     Current: v{currentVersion || sysInfo?.current_version || '—'}
                                 </div>
                                 <Link
                                     href="/dashboard"
-                                    className="px-3 py-1.5 rounded-lg text-2xs font-bold text-ink-muted hover:text-white bg-white/5 hover:bg-white/10 uppercase tracking-widest border border-white/5 hover:border-white/20 transition-all flex items-center gap-1.5"
+                                    className="px-3 py-1.5 rounded-lg text-2xs font-bold text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 uppercase tracking-widest border border-white/5 hover:border-white/20 transition-all flex items-center gap-1.5"
                                 >
                                     <ChevronLeft size={11} /> Back to App
                                 </Link>
@@ -464,7 +477,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             </div>
                                             <h1 className="text-2xl font-bold text-white tracking-tight">System Update</h1>
                                         </div>
-                                        <p className="text-sm text-ink-muted leading-relaxed max-w-lg">
+                                        <p className="text-sm text-neutral-400 leading-relaxed max-w-lg">
                                             Upload the new version ZIP file you received. Your existing data, database, uploads,
                                             and configuration will <strong className="text-emerald-400">never be touched</strong>.
                                         </p>
@@ -477,7 +490,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                 <AlertTriangle size={18} className="text-rose-400 shrink-0 mt-0.5" />
                                                 <div>
                                                     <p className="text-xs font-bold text-rose-400 mb-1">⚠ Update Lock Active</p>
-                                                    <p className="text-xs text-ink-muted">
+                                                    <p className="text-xs text-neutral-400">
                                                         An update lock is active on this server{sysInfo?.lock_info?.email ? ` by ${sysInfo.lock_info.email}` : ''}{sysInfo?.lock_info?.started_at ? ` (started ${sysInfo.lock_info.started_at})` : ''}.
                                                         If a prior upload or update failed or was interrupted, you can safely reset this lock to retry.
                                                     </p>
@@ -501,7 +514,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <X size={18} className="text-rose-400 shrink-0 mt-0.5" />
                                             <div>
                                                 <p className="text-xs font-bold text-rose-400 mb-1">PHP ZIP Extension Missing</p>
-                                                <p className="text-xs text-ink-muted">Your server does not have the PHP <code className="text-rose-300">zip</code> extension enabled. Updates cannot be applied until this is fixed. Contact your hosting provider to enable <code className="text-rose-300">php_zip</code>.</p>
+                                                <p className="text-xs text-neutral-400">Your server does not have the PHP <code className="text-rose-300">zip</code> extension enabled. Updates cannot be applied until this is fixed. Contact your hosting provider to enable <code className="text-rose-300">php_zip</code>.</p>
                                             </div>
                                         </div>
                                     )}
@@ -512,7 +525,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <AlertTriangle size={18} className="text-amber-400 shrink-0 mt-0.5" />
                                             <div>
                                                 <p className="text-xs font-bold text-amber-400 mb-1">Low Upload Limit Detected: {sysInfo.max_zip_mb} MB</p>
-                                                <p className="text-xs text-ink-muted mb-2">
+                                                <p className="text-xs text-neutral-400 mb-2">
                                                     Your server only allows uploads up to <strong className="text-amber-300">{sysInfo.max_zip_mb} MB</strong>.
                                                     VENQORE update packages are typically 80–120 MB. If your ZIP file is larger than {sysInfo.max_zip_mb} MB, the upload will fail.
                                                 </p>
@@ -531,11 +544,11 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                         {/* ── System Info Column ── */}
                                         <div className="md:col-span-1 space-y-6">
                                             <div className="bg-black/30 rounded-xl border border-white/5 p-5 space-y-3">
-                                                <div className="flex items-center gap-2 text-xs font-mono text-ink-muted uppercase tracking-widest mb-4">
+                                                <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-widest mb-4">
                                                     <Server size={13} /> System Info
                                                 </div>
                                                 {infoLoading ? (
-                                                    <div className="flex items-center gap-2 text-ink-muted">
+                                                    <div className="flex items-center gap-2 text-neutral-400">
                                                         <RefreshCw size={14} className="spin-slow" />
                                                         <span className="text-xs">Scanning...</span>
                                                     </div>
@@ -556,7 +569,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                             { label: 'Base Dir', value: sysInfo.base_writable ? 'Writable' : 'Read Only', ok: sysInfo.base_writable },
                                                         ].map(({ label, value, ok, action }) => (
                                                             <div key={label} className={`flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 ${action ? 'cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors' : ''}`} onClick={action || undefined}>
-                                                                <span className="text-xs text-ink-muted">{label}</span>
+                                                                <span className="text-xs text-neutral-400">{label}</span>
                                                                 <span className={`text-xs font-mono ${ok === false ? 'text-rose-400' : ok === true ? 'text-emerald-400' : 'text-neutral-300'}`}>
                                                                     {value}{action && ' ⚠'}
                                                                 </span>
@@ -564,26 +577,26 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                         ))}
                                                     </>
                                                 ) : (
-                                                    <p className="text-xs text-ink-muted">Could not load system info.</p>
+                                                    <p className="text-xs text-neutral-400">Could not load system info.</p>
                                                 )}
                                             </div>
 
                                             {/* ── Version History Card ── */}
                                             <div className="bg-black/30 rounded-xl border border-white/5 p-5 space-y-3">
-                                                <div className="flex items-center gap-2 text-xs font-mono text-ink-muted uppercase tracking-widest mb-3">
+                                                <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 uppercase tracking-widest mb-3">
                                                     <RotateCcw size={13} /> Update History
                                                 </div>
                                                 {versionHistory.length === 0 ? (
-                                                    <p className="text-xs text-ink-muted italic">No update logs recorded yet.</p>
+                                                    <p className="text-xs text-neutral-400 italic">No update logs recorded yet.</p>
                                                 ) : (
                                                     <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                                                         {versionHistory.map((h, i) => (
                                                             <div key={i} className="flex flex-col py-1.5 border-b border-white/5 last:border-0">
                                                                 <div className="flex items-center justify-between">
                                                                     <span className="text-xs font-bold text-white">v{h.version}</span>
-                                                                    <span className="text-2xs text-ink-muted">{new Date(h.updated_at).toLocaleDateString()}</span>
+                                                                    <span className="text-2xs text-neutral-400">{new Date(h.updated_at).toLocaleDateString()}</span>
                                                                 </div>
-                                                                <span className="text-2xs text-ink-muted mt-0.5">By {h.by}</span>
+                                                                <span className="text-2xs text-neutral-400 mt-0.5">By {h.by}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -617,20 +630,20 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                         </div>
                                                         <div>
                                                             <p className="text-white font-semibold text-sm">{zipFile.name}</p>
-                                                            <p className="text-xs text-ink-muted mt-1">{formatBytes(zipFile.size)} — Ready to deploy</p>
+                                                            <p className="text-xs text-neutral-400 mt-1">{formatBytes(zipFile.size)} — Ready to deploy</p>
                                                         </div>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); setZipFile(null); setNewVersion(''); }}
-                                                            className="text-xs text-ink-muted hover:text-rose-400 transition-colors mt-1 flex items-center gap-1"
+                                                            className="text-xs text-neutral-400 hover:text-rose-400 transition-colors mt-1 flex items-center gap-1"
                                                         >
                                                             <X size={12} /> Remove
                                                         </button>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-center gap-3 text-ink-muted">
+                                                    <div className="flex flex-col items-center gap-3 text-neutral-400">
                                                         <Upload size={40} className="text-brand-500/40" />
                                                         <div>
-                                                            <p className="text-sm font-medium text-ink-muted">Drop your update ZIP here</p>
+                                                            <p className="text-sm font-medium text-neutral-400">Drop your update ZIP here</p>
                                                             <p className="text-xs mt-1">or click to browse — .zip files only</p>
                                                         </div>
                                                     </div>
@@ -640,7 +653,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             {/* Version Input */}
                                             <div className="flex gap-3 items-end">
                                                 <div className="flex-1">
-                                                    <label className="block text-xs font-mono text-ink-muted uppercase tracking-widest mb-2">
+                                                    <label className="block text-xs font-mono text-neutral-400 uppercase tracking-widest mb-2">
                                                         New Version Number
                                                     </label>
                                                     <input
@@ -651,7 +664,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:bg-brand-500/5 transition-all"
                                                     />
                                                 </div>
-                                                <div className="text-xs text-ink-secondary pb-3.5 font-mono">
+                                                <div className="text-xs text-neutral-300 pb-3.5 font-mono">
                                                     from v{currentVersion || '?'}
                                                 </div>
                                             </div>
@@ -663,8 +676,8 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                         <Shield size={18} className="text-emerald-400 shrink-0 mt-0.5" />
                                         <div>
                                             <p className="text-xs font-semibold text-emerald-400 mb-1">Your Data is Safe — Always</p>
-                                            <p className="text-xs text-ink-muted leading-relaxed">
-                                                The following are <strong className="text-ink-muted">never overwritten</strong> during an update:
+                                            <p className="text-xs text-neutral-400 leading-relaxed">
+                                                The following are <strong className="text-neutral-400">never overwritten</strong> during an update:
                                                 <code className="mx-1 text-emerald-300/70 text-1xs">.env</code>,
                                                 <code className="mx-1 text-emerald-300/70 text-1xs">storage/app/public/</code> (your uploads),
                                                 <code className="mx-1 text-emerald-300/70 text-1xs">storage/logs/</code>,
@@ -680,7 +693,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                         disabled={!zipFile || sysInfo?.update_in_progress || (sysInfo && !sysInfo.zip_extension)}
                                         className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-[0.15em] transition-all duration-slow flex items-center justify-center gap-3 ${(zipFile && !sysInfo?.update_in_progress && (!sysInfo || sysInfo.zip_extension))
                                             ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-[0_0_25px_rgba(99,102,241,0.35)] hover:shadow-[0_0_40px_rgba(99,102,241,0.5)]'
-                                            : 'bg-sunken text-ink-secondary cursor-not-allowed'
+                                            : 'bg-neutral-900 text-neutral-300 cursor-not-allowed'
                                             }`}
                                     >
                                         <ArrowRight size={18} />
@@ -701,7 +714,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             </div>
                                             <h2 className="text-xl font-bold text-white">Confirm Deployment</h2>
                                         </div>
-                                        <p className="text-sm text-ink-muted">Review what will happen before proceeding.</p>
+                                        <p className="text-sm text-neutral-400">Review what will happen before proceeding.</p>
                                     </div>
 
                                     {/* Summary */}
@@ -715,7 +728,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <div key={label} className="flex items-center gap-4">
                                                 <div className={`p-2 rounded-lg ${bg} ${color} shrink-0`}><Icon size={16} /></div>
                                                 <div className="flex-1 flex items-center justify-between">
-                                                    <span className="text-xs text-ink-muted">{label}</span>
+                                                    <span className="text-xs text-neutral-400">{label}</span>
                                                     <span className="text-xs font-mono text-neutral-300">{value}</span>
                                                 </div>
                                             </div>
@@ -724,11 +737,11 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
 
                                     {/* Steps preview */}
                                     <div className="bg-black/20 rounded-xl border border-white/5 p-5 mb-8">
-                                        <p className="text-2xs font-mono text-ink-muted uppercase tracking-widest mb-4">Deployment Steps</p>
+                                        <p className="text-2xs font-mono text-neutral-400 uppercase tracking-widest mb-4">Deployment Steps</p>
                                         <div className="space-y-2">
                                             {steps.map((s, i) => (
-                                                <div key={s.id} className="flex items-center gap-3 text-sm text-ink-muted">
-                                                    <div className="w-5 h-5 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-2xs text-ink-muted font-bold shrink-0">
+                                                <div key={s.id} className="flex items-center gap-3 text-sm text-neutral-400">
+                                                    <div className="w-5 h-5 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-2xs text-neutral-400 font-bold shrink-0">
                                                         {i + 1}
                                                     </div>
                                                     <span>{s.label}</span>
@@ -741,7 +754,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                         <button
                                             id="btn-back-to-select"
                                             onClick={() => setPhase('select')}
-                                            className="flex-1 py-4 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                            className="flex-1 py-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                                         >
                                             <RotateCcw size={14} /> Go Back
                                         </button>
@@ -769,7 +782,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <h2 className="text-xl font-bold text-white">
                                                 {phase === 'error' ? 'Update Failed' : 'Deploying Update...'}
                                             </h2>
-                                            <p className="text-xs text-ink-muted mt-0.5">
+                                            <p className="text-xs text-neutral-400 mt-0.5">
                                                 {phase === 'error' ? 'An error occurred. See details below.' : 'Do not close this window.'}
                                             </p>
                                         </div>
@@ -778,7 +791,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     {/* Progress bar */}
                                     <div className="mb-6">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-mono text-ink-muted">Progress</span>
+                                            <span className="text-xs font-mono text-neutral-400">Progress</span>
                                             <span className="text-xs font-mono text-brand-400">{Math.round(progress)}%</span>
                                         </div>
                                         <div className="h-2 bg-neutral-800 rounded-full overflow-hidden">
@@ -796,11 +809,11 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                 <div className={`w-9 h-9 rounded-full flex items-center justify-center border transition-all duration-slower ${s.status === 'done' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' :
                                                     s.status === 'running' ? 'bg-brand-500/20  border-brand-500/50  text-brand-400  pulse-glow' :
                                                         s.status === 'error' ? 'bg-rose-500/20    border-rose-500/50    text-rose-400' :
-                                                            'bg-neutral-800      border-neutral-700      text-ink-secondary'
+                                                            'bg-neutral-800      border-neutral-700      text-neutral-300'
                                                     }`}>
                                                     <StatusIcon status={s.status} />
                                                 </div>
-                                                <span className="text-3xs text-center text-ink-muted leading-tight font-mono">{s.label}</span>
+                                                <span className="text-3xs text-center text-neutral-400 leading-tight font-mono">{s.label}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -814,15 +827,15 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                             <div key={i} className={`log-line flex gap-2 ${l.type === 'error' ? 'text-rose-400' :
                                                 l.type === 'warning' ? 'text-amber-400' :
                                                     l.type === 'success' ? 'text-emerald-400' :
-                                                        l.type === 'dim' ? 'text-ink-secondary' :
-                                                            'text-ink-muted'
+                                                        l.type === 'dim' ? 'text-neutral-300' :
+                                                            'text-neutral-400'
                                                 }`}>
-                                                <span className="text-ink-secondary shrink-0">{l.time}</span>
+                                                <span className="text-neutral-300 shrink-0">{l.time}</span>
                                                 <span>{l.text}</span>
                                             </div>
                                         ))}
                                         {logs.length === 0 && (
-                                            <span className="text-ink-secondary">Initializing update sequence...</span>
+                                            <span className="text-neutral-300">Initializing update sequence...</span>
                                         )}
                                     </div>
 
@@ -840,7 +853,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                                         setPhase('select');
                                                         setZipFile(null);
                                                     }}
-                                                    className="flex-1 py-3.5 rounded-xl bg-neutral-800 hover:bg-interactive-hover text-ink-muted font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
+                                                    className="flex-1 py-3.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-400 font-bold text-xs uppercase tracking-widest transition-all cursor-pointer"
                                                 >
                                                     Start Over & Clear Lock
                                                 </button>
@@ -876,10 +889,10 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     </div>
 
                                     <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">Update Successful!</h2>
-                                    <p className="text-ink-muted text-sm mb-2">
+                                    <p className="text-neutral-400 text-sm mb-2">
                                         VENQORE has been updated to <strong className="text-emerald-400">v{newVersion || 'the latest version'}</strong>.
                                     </p>
-                                    <p className="text-ink-secondary text-xs mb-10">
+                                    <p className="text-neutral-300 text-xs mb-10">
                                         All your data, customer records, and configurations remain intact.
                                     </p>
 
@@ -906,7 +919,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                     </div>{/* /glass-panel */}
 
                     {/* Footer note */}
-                    <p className="text-center text-xs text-ink-secondary mt-4 font-mono">
+                    <p className="text-center text-xs text-neutral-300 mt-4 font-mono">
                         VENQORE — Secure Update Channel. Protected by server-side validation.
                     </p>
                 </div>
@@ -927,16 +940,16 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-bold text-white">How to Increase Upload Limit</h3>
-                                    <p className="text-2xs text-ink-muted">Currently: {sysInfo?.max_zip_mb || '?'} MB — Recommended: 300 MB</p>
+                                    <p className="text-2xs text-neutral-400">Currently: {sysInfo?.max_zip_mb || '?'} MB — Recommended: 300 MB</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowLimitHelp(false)} className="text-ink-muted hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
+                            <button onClick={() => setShowLimitHelp(false)} className="text-neutral-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10">
                                 <X size={18} />
                             </button>
                         </div>
 
                         <div className="px-6 py-5 space-y-6 text-xs text-neutral-300">
-                            <p className="text-ink-muted leading-relaxed">
+                            <p className="text-neutral-400 leading-relaxed">
                                 Your server&apos;s PHP configuration limits how large a file you can upload. VENQORE update packages are typically <strong className="text-white">80–120 MB</strong>.
                                 Your current limit is <strong className="text-amber-400">{sysInfo?.max_zip_mb || '?'} MB</strong>, which may be too low.
                                 Choose the method that matches your server environment:
@@ -947,7 +960,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     <span className="w-5 h-5 rounded bg-brand-500/30 flex items-center justify-center text-2xs font-bold">1</span>
                                     XAMPP / WAMP (Local Windows Server)
                                 </h4>
-                                <ol className="space-y-2 text-ink-muted list-decimal list-inside">
+                                <ol className="space-y-2 text-neutral-400 list-decimal list-inside">
                                     <li>Open <code className="text-brand-300 bg-brand-500/10 px-1.5 py-0.5 rounded">php.ini</code> file. In XAMPP it is usually at:
                                         <code className="block mt-1 text-neutral-300 bg-black/40 px-3 py-1.5 rounded font-mono">D:\Software\XAMPP\php\php.ini</code>
                                     </li>
@@ -964,7 +977,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     <span className="w-5 h-5 rounded bg-emerald-500/30 flex items-center justify-center text-2xs font-bold">2</span>
                                     cPanel / Shared Hosting
                                 </h4>
-                                <ol className="space-y-2 text-ink-muted list-decimal list-inside">
+                                <ol className="space-y-2 text-neutral-400 list-decimal list-inside">
                                     <li>Log in to your <strong className="text-white">cPanel</strong> dashboard.</li>
                                     <li>Search for <strong className="text-white">&quot;MultiPHP INI Editor&quot;</strong> or <strong className="text-white">&quot;PHP Settings&quot;</strong>.</li>
                                     <li>Select your domain from the dropdown.</li>
@@ -973,7 +986,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     <li>Click <strong className="text-white">Apply / Save</strong>.</li>
                                     <li>Refresh this page to verify.</li>
                                 </ol>
-                                <p className="mt-2 text-2xs text-ink-muted">Note: Some shared hosts may have lower hard limits. Contact your hosting provider if the values don&apos;t change.</p>
+                                <p className="mt-2 text-2xs text-neutral-400">Note: Some shared hosts may have lower hard limits. Contact your hosting provider if the values don&apos;t change.</p>
                             </div>
 
                             <div className="bg-brand-500/10 border border-brand-500/20 rounded-xl p-4">
@@ -981,7 +994,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     <span className="w-5 h-5 rounded bg-brand-500/30 flex items-center justify-center text-2xs font-bold">3</span>
                                     Linux Server (VPS / Dedicated)
                                 </h4>
-                                <ol className="space-y-2 text-ink-muted list-decimal list-inside">
+                                <ol className="space-y-2 text-neutral-400 list-decimal list-inside">
                                     <li>Find your PHP config file:
                                         <code className="block mt-1 text-neutral-300 bg-black/40 px-3 py-1.5 rounded font-mono">php -i | grep &quot;php.ini&quot;</code>
                                     </li>
@@ -999,7 +1012,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                             </div>
 
                             <div className="bg-neutral-800/50 border border-white/5 rounded-xl p-4 text-center">
-                                <p className="text-ink-muted text-2xs">
+                                <p className="text-neutral-400 text-2xs">
                                     After changing the settings and restarting, refresh this page.<br />
                                     The &quot;Upload Limit&quot; value in System Info should show <strong className="text-emerald-400">300 MB</strong>.
                                 </p>
@@ -1009,7 +1022,7 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                         <div className="sticky bottom-0 bg-neutral-900 border-t border-white/10 px-6 py-3 rounded-b-2xl">
                             <button
                                 onClick={() => setShowLimitHelp(false)}
-                                className="w-full py-2.5 rounded-lg bg-neutral-800 hover:bg-interactive-hover text-white text-xs font-bold transition-colors"
+                                className="w-full py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold transition-colors"
                             >
                                 Got it, close
                             </button>

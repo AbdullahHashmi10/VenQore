@@ -4,6 +4,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { ArrowDownCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2, BookOpen } from 'lucide-react';
 import axios from 'axios';
+import { handleApprovalResponse, fireToast } from '@/lib/approval-response';
 
 const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
 
@@ -269,9 +270,13 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                 setSuccess(true);
                 setTimeout(() => router.visit(route('store.approvals.show', { store_slug: store?.slug || window.location.pathname.split('/')[2], id: approval_correction.document_id })), 1200);
             } else {
-                await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'in' });
-                setSuccess(true);
-                setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+                const res = await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type: 'in' });
+                if (handleApprovalResponse(res, 'customer receipt')) {
+                    setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+                } else {
+                    setSuccess(true);
+                    setTimeout(() => router.visit(route('store.payments.index', { store_slug: store.slug })), 1200);
+                }
             }
         } catch (error) {
             if (error.response?.status === 422) {

@@ -1,0 +1,338 @@
+<?php
+
+namespace App\Services\Approval;
+
+use App\Models\ApprovalDocument;
+use App\Models\Setting;
+use App\Models\Tenant;
+use App\Models\TenantUser;
+use App\Models\User;
+
+class ApprovalPolicyResolver
+{
+    /**
+     * Resolve whether a transaction requires maker-checker approval before posting.
+     *
+     * @return array{
+     *   requires_approval: bool,
+     *   reason: string,
+     *   effective_mode: string,
+     *   can_approve: bool,
+     *   policy_details: array
+     * }
+     */
+    public function resolve(
+        Tenant $tenant,
+        User $user,
+        string $documentType,
+        float $amount = 0.0,
+        bool $isTrustedPos = false
+    ): array {
+        // 1. Check document type support
+        if (!in_array($documentType, ApprovalDocument::SUPPORTED_TYPES, true)) {
+            return [
+                'requires_approval' => false,
+                'reason'            => 'unsupported_type',
+                'effective_mode'    => 'direct',
+                'can_approve'       => false,
+                'policy_details'    => ['supported' => false],
+            ];
+        }
+
+        // 2. Resolve per-document policy and thresholds upfront
+        $docPolicySetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_policy_{$documentType}")
+            ->value('value') ?? 'inherit';
+
+        $docThresholdSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_threshold_{$documentType}")
+            ->value('value');
+
+        // 3. Check store administrative approval master toggle
+        $adminEnabledSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_admin_enabled')
+            ->value('value');
+        $adminEnabled = $adminEnabledSetting !== null
+            ? (!in_array(strtolower(trim((string)$adminEnabledSetting)), ['false', '0', 'disabled', 'off'], true) && filter_var($adminEnabledSetting, FILTER_VALIDATE_BOOLEAN))
+            : true;
+
+        if (!$adminEnabled) {
+            // Master switch OFF means no approval for future submissions, full stop.
+            // No per-document policy and no threshold may override this — doc 29/30
+            // are explicit that OFF always wins. (Previously a per-document `required`
+            // policy or an armed threshold could still force approval here; that was
+            // a bug, not a feature — a master OFF that sometimes still required
+            // approval was not actually a master switch.)
+            return [
+                'requires_approval' => false,
+                'reason'            => 'store_approval_disabled',
+                'effective_mode'    => 'direct',
+                'can_approve'       => false,
+                'policy_details'    => ['store_admin_enabled' => false],
+            ];
+        }
+
+        // 3. Trusted POS Clearance (verified server-side open shift & cashier)
+        if ($isTrustedPos) {
+            return [
+                'requires_approval' => false,
+                'reason'            => 'trusted_pos_clearance',
+                'effective_mode'    => 'direct',
+                'can_approve'       => false,
+                'policy_details'    => ['trusted_pos' => true],
+            ];
+        }
+
+        // 4. Resolve Membership & Role
+        $membership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->first();
+        $role = $membership?->role ?? 'cashier';
+        $userMode = $membership?->transaction_approval_mode ?? 'inherit';
+
+        $isOwner = ($role === 'owner');
+        $isAdmin = ($role === 'admin');
+        $isManager = ($role === 'manager');
+        $canApprove = ($isOwner || $isAdmin || $isManager);
+
+        // Strict Owner Separation Setting
+        $strictOwnerSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_strict_owner_separation')
+            ->value('value');
+        $strictOwnerSeparation = filter_var($strictOwnerSetting, FILTER_VALIDATE_BOOLEAN);
+
+        // Amount Threshold Setting (global or per-document)
+        $docThresholdSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_threshold_{$documentType}")
+            ->value('value');
+        $globalThresholdSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_amount_threshold')
+            ->value('value');
+
+        $thresholdSetting = $docThresholdSetting ?? $globalThresholdSetting;
+        $amountThreshold = $thresholdSetting !== null && is_numeric($thresholdSetting) ? (float)$thresholdSetting : null;
+        $amountExceeded = ($amountThreshold !== null && $amount >= $amountThreshold);
+
+        // Per-Document Type Policy Setting (direct, required, inherit).
+        // R04 FIX: The UI saves 'disabled' for "Disabled (Direct Post)" and
+        // 'threshold' for "Amount Threshold" mode. The resolver only recognises
+        // 'direct', 'required' and 'inherit'. Normalise the stored values so
+        // the effective logic is correct:
+        //   disabled  → direct  (direct post for all amounts)
+        //   threshold → inherit  (let the amount-threshold logic below decide)
+        $rawDocPolicy = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_policy_{$documentType}")
+            ->value('value') ?? 'inherit';
+
+        $docPolicySetting = match($rawDocPolicy) {
+            'disabled'  => 'direct',
+            'threshold' => 'inherit',
+            default     => $rawDocPolicy,
+        };
+
+        // Per-Employee Per-Document Override Setting (direct, required, inherit)
+        $userDocOverride = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_user_{$user->id}_{$documentType}")
+            ->value('value');
+
+        // Store Default Employee Mode
+        $defaultEmployeeMode = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_default_employee_mode')
+            ->value('value') ?? 'inherit';
+
+        // 5. Evaluate Owner
+        if ($isOwner && !$strictOwnerSeparation && $userDocOverride !== 'required' && $userMode !== 'required') {
+            return [
+                'requires_approval' => false,
+                'reason'            => 'owner_direct_post',
+                'effective_mode'    => 'direct',
+                'can_approve'       => true,
+                'policy_details'    => [
+                    'role' => 'owner',
+                    'strict_owner_separation' => false,
+                ],
+            ];
+        }
+
+        // 6. Evaluate Per-Employee Per-Document Override
+        if ($userDocOverride === 'required') {
+            return [
+                'requires_approval' => true,
+                'reason'            => 'user_document_override_required',
+                'effective_mode'    => 'required',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'user_document_override' => 'required',
+                    'document_type'          => $documentType,
+                ],
+            ];
+        }
+
+        if ($userDocOverride === 'direct') {
+            if ($amountExceeded) {
+                return [
+                    'requires_approval' => true,
+                    'reason'            => 'amount_threshold_exceeded',
+                    'effective_mode'    => 'required_by_threshold',
+                    'can_approve'       => $canApprove,
+                    'policy_details'    => [
+                        'user_document_override' => 'direct',
+                        'amount'                 => $amount,
+                        'amount_threshold'       => $amountThreshold,
+                    ],
+                ];
+            }
+
+            return [
+                'requires_approval' => false,
+                'reason'            => 'user_document_override_direct',
+                'effective_mode'    => 'direct',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'user_document_override' => 'direct',
+                    'document_type'          => $documentType,
+                ],
+            ];
+        }
+
+        // 7. Evaluate Explicit Per-Document Policy (Action mode)
+        if ($docPolicySetting === 'required') {
+            return [
+                'requires_approval' => true,
+                'reason'            => 'document_policy_required',
+                'effective_mode'    => 'required_by_doc_policy',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'document_policy' => 'required',
+                    'document_type'   => $documentType,
+                ],
+            ];
+        }
+
+        if ($docPolicySetting === 'direct' && !$amountExceeded) {
+            return [
+                'requires_approval' => false,
+                'reason'            => 'document_policy_direct',
+                'effective_mode'    => 'direct',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'document_policy' => 'direct',
+                    'document_type'   => $documentType,
+                ],
+            ];
+        }
+
+        // 8. Evaluate Per-Employee Global Mode (Fallback when inheriting and no explicit action rule exists)
+        if ($userMode === 'required') {
+            return [
+                'requires_approval' => true,
+                'reason'            => 'user_approval_required',
+                'effective_mode'    => 'required',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'user_mode' => 'required',
+                ],
+            ];
+        }
+
+        if ($userMode === 'direct') {
+            if ($amountExceeded) {
+                return [
+                    'requires_approval' => true,
+                    'reason'            => 'amount_threshold_exceeded',
+                    'effective_mode'    => 'required_by_threshold',
+                    'can_approve'       => $canApprove,
+                    'policy_details'    => [
+                        'user_mode'        => 'direct',
+                        'amount'           => $amount,
+                        'amount_threshold' => $amountThreshold,
+                    ],
+                ];
+            }
+
+            return [
+                'requires_approval' => false,
+                'reason'            => 'user_direct_mode',
+                'effective_mode'    => 'direct',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'user_mode' => 'direct',
+                ],
+            ];
+        }
+
+        // 9. Amount Threshold Check (on inherit mode)
+        if ($amountExceeded) {
+            return [
+                'requires_approval' => true,
+                'reason'            => 'amount_threshold_exceeded',
+                'effective_mode'    => 'required_by_threshold',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'inherited_role'   => $role,
+                    'amount'           => $amount,
+                    'amount_threshold' => $amountThreshold,
+                ],
+            ];
+        }
+
+        // 9. Store Default Employee Mode (if configured as direct or required)
+        if ($defaultEmployeeMode === 'required') {
+            return [
+                'requires_approval' => true,
+                'reason'            => 'store_default_employee_mode_required',
+                'effective_mode'    => 'required_by_store_default',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'default_employee_mode' => 'required',
+                ],
+            ];
+        }
+
+        if ($defaultEmployeeMode === 'direct') {
+            return [
+                'requires_approval' => false,
+                'reason'            => 'store_default_employee_mode_direct',
+                'effective_mode'    => 'direct',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'default_employee_mode' => 'direct',
+                ],
+            ];
+        }
+
+        // 10. Role Defaults (Inherit)
+        $roleRequiresApproval = in_array($role, ['cashier', 'viewer', 'accountant', 'purchasing_officer'], true);
+
+        if ($roleRequiresApproval) {
+            return [
+                'requires_approval' => true,
+                'reason'            => 'role_default_approval_required',
+                'effective_mode'    => 'required_by_role',
+                'can_approve'       => $canApprove,
+                'policy_details'    => [
+                    'inherited_role' => $role,
+                ],
+            ];
+        }
+
+        return [
+            'requires_approval' => false,
+            'reason'            => 'role_default_direct',
+            'effective_mode'    => 'direct',
+            'can_approve'       => $canApprove,
+            'policy_details'    => [
+                'inherited_role' => $role,
+            ],
+        ];
+    }
+}

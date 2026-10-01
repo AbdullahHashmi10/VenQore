@@ -34,6 +34,7 @@ class ScreenshotRegressionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Cache::flush();
         $this->registry = app(CapabilityRegistry::class);
         $this->builder = app(ConversationalBuilderService::class);
     }

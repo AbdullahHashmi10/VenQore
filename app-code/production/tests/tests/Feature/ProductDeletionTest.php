@@ -70,7 +70,7 @@ class ProductDeletionTest extends VenQoreTestCase
             'type' => 'customer',
         ]);
 
-        $sale = Sale::create([
+        $sale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id' => $tenant->id,
             'reference_number' => 'REF-001',
             'total' => 200,
@@ -79,7 +79,7 @@ class ProductDeletionTest extends VenQoreTestCase
             'party_id' => $customer->id,
             'warehouse_id' => $warehouse->id,
             'user_id' => auth()->id(),
-        ]);
+        ]));
 
         // Mock sale item (transaction history)
         SaleItem::create([

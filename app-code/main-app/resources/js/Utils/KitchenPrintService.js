@@ -1,3 +1,4 @@
+import { escapePrintData, printBrowserHtml } from './BrowserPrint';
 /**
  * KitchenPrintService.js
  * 
@@ -147,7 +148,7 @@ export const KitchenPrintService = {
 
         // Items List (STRICTLY NO PRICES)
         (kot.items || []).forEach(item => {
-            const qty = item.qty || 1;
+            const qty = item.qty ?? 1;
             content.push({
                 type: 'text',
                 value: `${qty}x  ${item.name}`,
@@ -189,26 +190,9 @@ export const KitchenPrintService = {
      * Browser / Hidden Iframe Thermal Fallback
      */
     printViaIframe(kot, { paperWidth, isReprint, isCancellation }) {
-        return new Promise((resolve, reject) => {
-            try {
-                const widthMm = paperWidth === '58mm' ? '48mm' : '72mm';
-                const totalWidthMm = paperWidth === '58mm' ? '58mm' : '80mm';
-
-                const iframeId = 'kot-silent-print-frame';
-                let iframe = document.getElementById(iframeId);
-                if (iframe) iframe.remove();
-
-                iframe = document.createElement('iframe');
-                iframe.id = iframeId;
-                iframe.style.position = 'fixed';
-                iframe.style.right = '0';
-                iframe.style.bottom = '0';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = 'none';
-                iframe.style.visibility = 'hidden';
-                document.body.appendChild(iframe);
-
+        kot = escapePrintData(kot);
+        const widthMm = paperWidth === '58mm' ? '48mm' : '72mm';
+        const totalWidthMm = paperWidth === '58mm' ? '58mm' : '80mm';
                 const orderType = (kot.order_type_badge || kot.order_type || 'DINE-IN').toUpperCase();
 
                 const itemsHtml = (kot.items || []).map(item => `
@@ -309,25 +293,7 @@ export const KitchenPrintService = {
                     </html>
                 `;
 
-                const doc = iframe.contentWindow.document;
-                doc.open();
-                doc.write(html);
-                doc.close();
-
-                setTimeout(() => {
-                    try {
-                        iframe.contentWindow.focus();
-                        iframe.contentWindow.print();
-                        resolve(true);
-                    } catch (e) {
-                        reject(e);
-                    }
-                }, 250);
-            } catch (err) {
-                reject(err);
-            }
-        });
-    }
+        return printBrowserHtml(html, totalWidthMm);
+    },
 };
-
 export default KitchenPrintService;

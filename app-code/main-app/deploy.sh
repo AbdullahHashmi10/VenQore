@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# VenQore Deployment Entrypoint
+# Per RELEASE_AND_DEPLOYMENT_POLICY.md, in-place live mutations are deprecated.
+# Delegating to deploy_production.sh for zero-downtime atomic symlink deployment.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/deploy_production.sh" ]; then
+    echo "Delegating to zero-downtime atomic deployment script (deploy_production.sh)..."
+    exec "$SCRIPT_DIR/deploy_production.sh" "$@"
+fi
+
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 APP_DIR="$REPO_ROOT/app-code/main-app"
 BACKUP_DIR="${BACKUP_DIR:-/var/backups/venqore}"
 BACKUP_DATABASE="${BACKUP_DATABASE:-venqore_pos}"

@@ -72,7 +72,7 @@ class AssistantParityTest extends VenQoreTestCase
         ]);
 
         // 3. Seed Posted Sale
-        $sale = Sale::create([
+        $sale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
             'tenant_id'        => $tenant->id,
             'user_id'          => $user->id,
             'party_id'         => $customer->id,
@@ -86,7 +86,7 @@ class AssistantParityTest extends VenQoreTestCase
             'payment_method'   => 'cash',
             'created_at'       => $now,
             'updated_at'       => $now,
-        ]);
+        ]));
 
         SaleItem::create([
             'tenant_id'   => $tenant->id,

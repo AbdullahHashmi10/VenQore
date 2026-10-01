@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { formatCurrency, formatDate } from '@/Utils/format';
 import { ArrowLeft, Printer, PackageMinus, FileWarning, BadgeCheck } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
-export default function DebitNoteShow({ note, stockMovements = [], bankAccounts = [] }) {
+export default function DebitNoteShow({ note, stockMovements = [], bankAccounts = [], print = false }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    useEffect(() => { if (print) { const timer = setTimeout(() => window.print(), 500); return () => clearTimeout(timer); } }, [print]);
 
     const [showRefundForm, setShowRefundForm] = useState(false);
     const [refundData, setRefundData] = useState({

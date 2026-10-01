@@ -32,9 +32,14 @@ class ApprovalDocumentPolicy
      */
     public function view(User $user, ApprovalDocument $doc): bool
     {
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
         // The submitter can always see their own document.
-        if ($doc->submitted_by === $user->id) {
+        if ($makerId === $user->id) {
             return true;
+        }
+
+        if (!$this->canActOnSubmission($user, $doc)) {
+            return false;
         }
 
         // Reviewers / approvers can see all pending documents in the queue.
@@ -51,8 +56,13 @@ class ApprovalDocumentPolicy
      */
     public function approve(User $user, ApprovalDocument $doc): bool
     {
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
         // Submitter may not self-approve.
-        if ($doc->submitted_by === $user->id) {
+        if ($makerId === $user->id) {
+            return false;
+        }
+
+        if (!$this->canActOnSubmission($user, $doc)) {
             return false;
         }
 
@@ -65,7 +75,12 @@ class ApprovalDocumentPolicy
      */
     public function reject(User $user, ApprovalDocument $doc): bool
     {
-        if ($doc->submitted_by === $user->id) {
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
+        if ($makerId === $user->id) {
+            return false;
+        }
+
+        if (!$this->canActOnSubmission($user, $doc)) {
             return false;
         }
 
@@ -78,7 +93,12 @@ class ApprovalDocumentPolicy
      */
     public function return(User $user, ApprovalDocument $doc): bool
     {
-        if ($doc->submitted_by === $user->id) {
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
+        if ($makerId === $user->id) {
+            return false;
+        }
+
+        if (!$this->canActOnSubmission($user, $doc)) {
             return false;
         }
 
@@ -86,12 +106,44 @@ class ApprovalDocumentPolicy
             || $user->hasPermission('approvals.review');
     }
 
+    public function canActOnSubmission(User $user, ApprovalDocument $doc): bool
+    {
+        if ($user->isPlatformAdmin()) {
+            return true;
+        }
+
+        $membership = \App\Models\TenantUser::where('tenant_id', $doc->tenant_id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($membership && in_array($membership->role, ['owner', 'admin'], true)) {
+            return true;
+        }
+
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
+        // Check if submitter has assigned supervisors configured
+        $supervisorsJson = \App\Models\Setting::withoutGlobalScopes()
+            ->where('tenant_id', $doc->tenant_id)
+            ->where('key', "approval_supervisors_user_{$makerId}")
+            ->value('value');
+
+        if (!empty($supervisorsJson)) {
+            $assignedIds = json_decode($supervisorsJson, true);
+            if (is_array($assignedIds) && count($assignedIds) > 0) {
+                return in_array($user->id, array_map('intval', $assignedIds), true);
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Can the user WITHDRAW their own submission?
      */
     public function withdraw(User $user, ApprovalDocument $doc): bool
     {
-        return $doc->submitted_by === $user->id
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
+        return $makerId === $user->id
             && $doc->status === ApprovalDocument::STATUS_PENDING;
     }
 
@@ -100,7 +152,8 @@ class ApprovalDocumentPolicy
      */
     public function resubmit(User $user, ApprovalDocument $doc): bool
     {
-        return $doc->submitted_by === $user->id
+        $makerId = $doc->maker_id ?? $doc->submitted_by;
+        return $makerId === $user->id
             && $doc->status === ApprovalDocument::STATUS_RETURNED;
     }
 

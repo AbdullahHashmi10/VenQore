@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
@@ -6,9 +6,10 @@ import { ShoppingCart, ArrowLeft, CheckCircle, Printer, Calendar, MapPin, Truck,
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
-export default function PurchaseOrdersShow({ order }) {
+export default function PurchaseOrdersShow({ order, print = false }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    useEffect(() => { if (print) { const timer = setTimeout(() => window.print(), 500); return () => clearTimeout(timer); } }, [print]);
     const [isIntaking, setIsIntaking] = useState(false);
     const [intakeQuantities, setIntakeQuantities] = useState(
         order.items.reduce((acc, item) => {
@@ -39,6 +40,7 @@ export default function PurchaseOrdersShow({ order }) {
 
     return (
         <OneGlanceLayout title={`PO: ${order.reference_number}`}>
+            <style>{`@media print { nav, aside, header, button, .no-print { display:none !important; } main, main > div { overflow:visible !important; height:auto !important; } tr { break-inside:avoid; } }`}</style>
             <Head title={`PO: ${order.reference_number}`} />
 
             <div className="p-6 h-full overflow-y-auto">
@@ -62,7 +64,7 @@ export default function PurchaseOrdersShow({ order }) {
                             </div>
                         </div>
                         <div className="flex gap-3">
-                            <button className="flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-lg font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                            <button onClick={() => window.print()} className="no-print flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-lg font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
                                 <Printer size={18} /> Print
                             </button>
                             {order.status !== 'received' && !isIntaking && (

@@ -1,0 +1,1929 @@
+{
+  "streams": {
+    "ledger.journal": {
+      "key": "ledger.journal",
+      "name": "Journal postings",
+      "what": "Every debit and credit the accounting engine writes. The spine — most money cards trace back here.",
+      "cards": 73
+    },
+    "ledger.accounts": {
+      "key": "ledger.accounts",
+      "name": "Account balances",
+      "what": "Running balance per chart-of-accounts node, per period.",
+      "cards": 67
+    },
+    "sales.headers": {
+      "key": "sales.headers",
+      "name": "Sale documents",
+      "what": "One row per sale, invoice, or counter ticket: date, party, totals, payment state.",
+      "cards": 148
+    },
+    "sales.lines": {
+      "key": "sales.lines",
+      "name": "Sale lines",
+      "what": "One row per line item: product, qty, price, cost at time of sale, discount, tax.",
+      "cards": 78
+    },
+    "purchase.headers": {
+      "key": "purchase.headers",
+      "name": "Purchase documents",
+      "what": "One row per supplier bill: date, supplier, totals, payment state.",
+      "cards": 36
+    },
+    "purchase.lines": {
+      "key": "purchase.lines",
+      "name": "Purchase lines",
+      "what": "One row per bought line: item, qty, cost, landed additions, tax.",
+      "cards": 25
+    },
+    "stock.movements": {
+      "key": "stock.movements",
+      "name": "Stock movements",
+      "what": "Every in, out, transfer, adjustment and write-off, with qty and valuation.",
+      "cards": 54
+    },
+    "stock.positions": {
+      "key": "stock.positions",
+      "name": "Stock positions",
+      "what": "Current qty and value per item per location per batch, plus reorder points.",
+      "cards": 78
+    },
+    "party.balances": {
+      "key": "party.balances",
+      "name": "Party balances",
+      "what": "Running receivable and payable per customer and supplier, with age.",
+      "cards": 84
+    },
+    "payment.entries": {
+      "key": "payment.entries",
+      "name": "Payments",
+      "what": "Every receipt and payout with method, instrument and allocation.",
+      "cards": 76
+    },
+    "expense.entries": {
+      "key": "expense.entries",
+      "name": "Expenses",
+      "what": "Every expense with category, payment method, and paid / unpaid state.",
+      "cards": 41
+    },
+    "tax.entries": {
+      "key": "tax.entries",
+      "name": "Tax entries",
+      "what": "Output and input tax per document, per rate band.",
+      "cards": 8
+    },
+    "production.entries": {
+      "key": "production.entries",
+      "name": "Production",
+      "what": "Runs, consumption, output, yield and wastage.",
+      "cards": 8
+    },
+    "attendance.entries": {
+      "key": "attendance.entries",
+      "name": "Attendance",
+      "what": "Shifts, hours, presence and per-staff sale attribution.",
+      "cards": 8
+    },
+    "doc.status": {
+      "key": "doc.status",
+      "name": "Document states",
+      "what": "Open / fulfilled / overdue / expired counts for orders, quotes, POs and transfers.",
+      "cards": 81
+    },
+    "master.registry": {
+      "key": "master.registry",
+      "name": "Master records",
+      "what": "Counts and completeness of products, parties, accounts, assets, staff.",
+      "cards": 96
+    }
+  },
+  "coreStreams": [
+    "ledger.journal",
+    "ledger.accounts",
+    "party.balances",
+    "payment.entries",
+    "sales.headers",
+    "expense.entries"
+  ],
+  "envelope": [
+    {
+      "field": "status",
+      "type": "ok | empty | locked | stale | error",
+      "note": "Never absent. `empty` means the query ran and found nothing — a new tenant, not a bug. `locked` means the owning module is off. A blank card is currently indistinguishable from all five; that is the bug."
+    },
+    {
+      "field": "value",
+      "type": "number | null",
+      "note": "The headline figure. Null only when status is not ok."
+    },
+    {
+      "field": "unit",
+      "type": "currency | count | percent | days | ratio",
+      "note": "Drives formatting. Wrong units are the second most reported 'wrong number'."
+    },
+    {
+      "field": "precision",
+      "type": "integer",
+      "note": "Decimal places. Fixed per card, never inferred from the value."
+    },
+    {
+      "field": "delta",
+      "type": "{value, pct, basis} | null",
+      "note": "Change against the comparable previous period."
+    },
+    {
+      "field": "series",
+      "type": "[{t, v}] | null",
+      "note": "Present for trend cards. Daily granularity, one year deep."
+    },
+    {
+      "field": "segments",
+      "type": "[{key, label, v}] | null",
+      "note": "Present for breakdown cards. Must sum to `value`."
+    },
+    {
+      "field": "rows",
+      "type": "[{...}] | null",
+      "note": "Present for list cards, with `truncated` when capped."
+    },
+    {
+      "field": "period",
+      "type": "{from, to, grain}",
+      "note": "Exactly the window that produced `value`. Echoed back so the UI can prove what it is showing."
+    },
+    {
+      "field": "asOf",
+      "type": "timestamp",
+      "note": "When the reading was computed. Drives the stale check."
+    },
+    {
+      "field": "sources",
+      "type": "[stream keys]",
+      "note": "Which of the 16 streams fed this reading. Makes a wrong number traceable in one step."
+    },
+    {
+      "field": "checks",
+      "type": "[{invariant, passed}]",
+      "note": "Which invariants were asserted on this reading and whether they held."
+    }
+  ],
+  "invariants": [
+    {
+      "key": "balanced_books",
+      "kind": "ledger",
+      "rule": "Sum of debits equals sum of credits for the tenant, for any period.",
+      "note": "If this fails, nothing downstream is trustworthy. Block the dashboard and raise."
+    },
+    {
+      "key": "accounting_equation",
+      "kind": "ledger",
+      "rule": "Total assets equals total liabilities plus equity.",
+      "note": "Catches a posting that hit only one side of the books."
+    },
+    {
+      "key": "revenue_ties_to_ledger",
+      "kind": "ledger",
+      "rule": "Revenue from sales.headers equals the credit movement on revenue accounts for the same period.",
+      "note": "The single most common cause of a wrong revenue card: the sales table and the ledger drifting apart."
+    },
+    {
+      "key": "cogs_ties_to_ledger",
+      "kind": "ledger",
+      "rule": "COGS from sales.lines equals the debit movement on COGS accounts for the same period.",
+      "note": "Catches sales posted without a cost layer — the reason margin cards go silly."
+    },
+    {
+      "key": "gross_profit_identity",
+      "kind": "internal",
+      "rule": "Gross Profit equals Revenue minus COGS.",
+      "note": "Pure arithmetic. Never allowed to drift."
+    },
+    {
+      "key": "net_profit_identity",
+      "kind": "internal",
+      "rule": "Net Profit equals Gross Profit minus Total Expenses.",
+      "note": "Pure arithmetic."
+    },
+    {
+      "key": "liquidity_identity",
+      "kind": "internal",
+      "rule": "Total Liquidity equals cash in hand plus the sum of every bank balance.",
+      "note": "Also proves Balance in Each Account sums to the headline."
+    },
+    {
+      "key": "receivables_control",
+      "kind": "ledger",
+      "rule": "Receivables equals the sum of positive customer balances, and equals the AR control account.",
+      "note": "Three sources must agree: party ledger, control account, card."
+    },
+    {
+      "key": "payables_control",
+      "kind": "ledger",
+      "rule": "Payables equals the sum of positive supplier balances, and equals the AP control account.",
+      "note": "Same three-way agreement on the buying side."
+    },
+    {
+      "key": "stock_value_control",
+      "kind": "ledger",
+      "rule": "Stock Value from stock.positions equals the inventory control account balance.",
+      "note": "Catches stock moved without a valuation posting."
+    },
+    {
+      "key": "tax_control",
+      "kind": "ledger",
+      "rule": "Tax collected minus tax paid equals the net tax liability account.",
+      "note": "Stops a filing built on a number that was never in the books."
+    },
+    {
+      "key": "aging_sums_to_total",
+      "kind": "shape",
+      "rule": "Every aging breakdown's buckets sum to its headline total.",
+      "note": "Applies to receivables, payables and udhaar aging."
+    },
+    {
+      "key": "breakdown_sums_to_parent",
+      "kind": "shape",
+      "rule": "Any breakdown card's segments sum to the stat card it splits, within rounding tolerance.",
+      "note": "Generic and cheap. Catches a filter applied to one card and not the other."
+    },
+    {
+      "key": "trend_endpoint_matches_stat",
+      "kind": "shape",
+      "rule": "The last point of a trend series equals the stat card for the same period end.",
+      "note": "Generic. Catches a trend built on a different date boundary than its headline."
+    },
+    {
+      "key": "list_total_matches_stat",
+      "kind": "shape",
+      "rule": "A ranked list's rows sum to the stat they rank, when the list is complete.",
+      "note": "Where the list is truncated, the card must say so rather than imply a total."
+    },
+    {
+      "key": "no_silent_null",
+      "kind": "shape",
+      "rule": "No registered card may return null, undefined, or a bare zero without a status.",
+      "note": "This is the rule that turns a blank card into a legible one."
+    }
+  ],
+  "cardStreams": {
+    "core.revenue": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.revenue_trend": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.net_profit": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.profit_trend": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.gross_profit": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.gross_margin_pct": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.net_margin_pct": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.cogs": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.expenses_total": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.expense_ratio": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.receivables": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.receivables_aging": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.payables": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.payables_aging": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.total_liquidity": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.liquidity_trend": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.cash_flow_trend": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.net_cash_position": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.working_capital": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.revenue_vs_prev": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.profit_vs_prev": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.transaction_count": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.avg_transaction_value": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.busiest_day": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.peak_hour": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.balance_sheet_ok": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.journal_entries_count": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.audit_trail_count": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.reversal_count": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.document_sequence_ok": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.user_activity": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "core.plan_usage": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "products.count": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.active_count": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.by_category": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.catalogue_value": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.avg_margin": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.top_margin": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.lowest_margin": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.never_sold": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.missing_cost": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "products.new_this_period": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "services.count": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "services.revenue": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "services.revenue_trend": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "services.share_of_revenue": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "services.top_services": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "services.avg_ticket": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "services.jobs_count": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "customers.count": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.new": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.new_trend": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.active": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.dormant": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.repeat_rate": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.top_customers": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.avg_spend": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.owing": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "customers.by_area": [
+      "master.registry",
+      "party.balances",
+      "sales.headers"
+    ],
+    "suppliers.count": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.active": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.top_suppliers": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.spend_total": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.spend_trend": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.owed_list": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.concentration": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "suppliers.new": [
+      "master.registry",
+      "party.balances",
+      "purchase.headers"
+    ],
+    "pos.revenue": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.revenue_trend": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.sale_count": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.avg_ticket": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.max_sale": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.items_per_sale": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.payment_breakdown": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.hourly_heatmap": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.weekday_split": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.discount_total": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "pos.live_feed": [
+      "sales.headers",
+      "sales.lines",
+      "payment.entries"
+    ],
+    "invoicing.count": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.value": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.value_trend": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.unpaid_value": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.overdue_count": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.overdue_value": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.avg_invoice": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.avg_days_to_pay": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.largest_open": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "invoicing.draft_count": [
+      "sales.headers",
+      "doc.status",
+      "party.balances"
+    ],
+    "quotations.count": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "quotations.open_value": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "quotations.win_rate": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "quotations.win_rate_trend": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "quotations.avg_quote": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "quotations.expiring": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "sales_orders.open_count": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_orders.open_value": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_orders.count": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_orders.value_trend": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_orders.fulfil_rate": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_orders.overdue": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_orders.by_customer": [
+      "doc.status",
+      "sales.headers",
+      "sales.lines"
+    ],
+    "sales_returns.count": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ],
+    "sales_returns.value": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ],
+    "sales_returns.rate": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ],
+    "sales_returns.trend": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ],
+    "sales_returns.top_returned": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ],
+    "sales_returns.by_reason": [
+      "sales.headers",
+      "sales.lines",
+      "stock.movements"
+    ],
+    "recurring.active_count": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "recurring.monthly_value": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "recurring.trend": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "recurring.due_next_7": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "recurring.share_of_revenue": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "recurring.churned": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "proposals.count": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "proposals.pipeline_value": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "proposals.win_rate": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "proposals.avg_value": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "proposals.stale": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "proposals.avg_cycle_days": [
+      "doc.status",
+      "sales.headers"
+    ],
+    "pricing.tier_count": [
+      "sales.lines",
+      "master.registry"
+    ],
+    "pricing.revenue_by_tier": [
+      "sales.lines",
+      "master.registry"
+    ],
+    "pricing.customers_by_tier": [
+      "sales.lines",
+      "master.registry"
+    ],
+    "pricing.avg_realised_price": [
+      "sales.lines",
+      "master.registry"
+    ],
+    "pricing.discount_vs_list": [
+      "sales.lines",
+      "master.registry"
+    ],
+    "park.open_count": [
+      "doc.status"
+    ],
+    "park.open_value": [
+      "doc.status"
+    ],
+    "park.recalled_count": [
+      "doc.status"
+    ],
+    "park.abandoned_count": [
+      "doc.status"
+    ],
+    "park.oldest": [
+      "doc.status"
+    ],
+    "tables.occupied": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.occupancy_rate": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.kitchen_pending": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.avg_turn_minutes": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.covers": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.avg_cover_value": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.revenue_per_table": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "tables.peak_occupancy": [
+      "sales.headers",
+      "doc.status"
+    ],
+    "presales.count": [
+      "doc.status",
+      "stock.positions"
+    ],
+    "presales.value": [
+      "doc.status",
+      "stock.positions"
+    ],
+    "presales.advance_collected": [
+      "doc.status",
+      "stock.positions"
+    ],
+    "presales.pending_delivery": [
+      "doc.status",
+      "stock.positions"
+    ],
+    "presales.overdue": [
+      "doc.status",
+      "stock.positions"
+    ],
+    "inventory.stock_value": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.stock_value_trend": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.product_count": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.units_on_hand": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.low_stock_count": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.low_stock_list": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.out_of_stock_count": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.dead_stock_value": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.turnover_ratio": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.days_of_cover": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.value_by_category": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "inventory.top_by_value": [
+      "stock.positions",
+      "stock.movements",
+      "sales.lines"
+    ],
+    "locations.count": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ],
+    "locations.revenue_by_location": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ],
+    "locations.profit_by_location": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ],
+    "locations.stock_by_location": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ],
+    "locations.revenue_trend_by_location": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ],
+    "locations.stock_imbalance": [
+      "stock.positions",
+      "sales.headers",
+      "ledger.journal",
+      "master.registry"
+    ],
+    "transfers.pending_count": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "transfers.pending_value": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "transfers.count": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "transfers.avg_transit_days": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "transfers.discrepancy_count": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "stocktakes.pending_count": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "stocktakes.variance_value": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "stocktakes.variance_pct": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "stocktakes.last_count_days": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "stocktakes.top_variances": [
+      "stock.movements",
+      "doc.status"
+    ],
+    "batches.count": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "batches.qty": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "batches.expiring_30": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "batches.expiring_value": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "batches.expired_value": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "batches.expiry_list": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "batches.write_off_trend": [
+      "stock.positions",
+      "stock.movements"
+    ],
+    "serials.count": [
+      "stock.positions",
+      "master.registry"
+    ],
+    "serials.in_stock": [
+      "stock.positions",
+      "master.registry"
+    ],
+    "serials.under_warranty": [
+      "stock.positions",
+      "master.registry"
+    ],
+    "serials.warranty_expiring": [
+      "stock.positions",
+      "master.registry"
+    ],
+    "serials.returned": [
+      "stock.positions",
+      "master.registry"
+    ],
+    "variants.count": [
+      "stock.positions",
+      "sales.lines"
+    ],
+    "variants.top_variants": [
+      "stock.positions",
+      "sales.lines"
+    ],
+    "variants.slow_variants": [
+      "stock.positions",
+      "sales.lines"
+    ],
+    "variants.out_of_stock": [
+      "stock.positions",
+      "sales.lines"
+    ],
+    "variants.size_colour_mix": [
+      "stock.positions",
+      "sales.lines"
+    ],
+    "barcodes.coverage_pct": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "barcodes.missing_count": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "barcodes.labels_printed": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "barcodes.scan_share": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "barcodes.duplicate_count": [
+      "master.registry",
+      "sales.lines"
+    ],
+    "uom.count": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "uom.conversion_count": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "uom.sales_by_uom": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "uom.missing_conversion": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "uom.bulk_vs_retail": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "purchases.spend": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.spend_trend": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.count": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.unpaid_value": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.overdue_value": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.paid_to_suppliers": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.by_supplier": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.by_category": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "purchases.price_increases": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "po.open_count": [
+      "doc.status",
+      "purchase.headers"
+    ],
+    "po.open_value": [
+      "doc.status",
+      "purchase.headers"
+    ],
+    "po.pending_receipt_value": [
+      "doc.status",
+      "purchase.headers"
+    ],
+    "po.overdue_count": [
+      "doc.status",
+      "purchase.headers"
+    ],
+    "po.avg_lead_days": [
+      "doc.status",
+      "purchase.headers"
+    ],
+    "po.fill_rate": [
+      "doc.status",
+      "purchase.headers"
+    ],
+    "purchase_returns.count": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "purchase_returns.value": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "purchase_returns.credit_due": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "purchase_returns.by_supplier": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "purchase_returns.rate": [
+      "purchase.headers",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "landed.total": [
+      "purchase.lines",
+      "ledger.journal"
+    ],
+    "landed.pct_of_goods": [
+      "purchase.lines",
+      "ledger.journal"
+    ],
+    "landed.by_type": [
+      "purchase.lines",
+      "ledger.journal"
+    ],
+    "landed.true_cost_gap": [
+      "purchase.lines",
+      "ledger.journal"
+    ],
+    "landed.trend": [
+      "purchase.lines",
+      "ledger.journal"
+    ],
+    "cookbook.recipe_count": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "cookbook.recipe_cost_pct": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "cookbook.best_margin": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "cookbook.worst_margin": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "cookbook.ingredient_cost_trend": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "cookbook.wastage_value": [
+      "master.registry",
+      "purchase.lines",
+      "stock.movements"
+    ],
+    "production.run_count": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.total_cost": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.output_qty": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.cost_per_unit": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.yield_pct": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.wastage_value": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.in_progress": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "production.output_trend": [
+      "production.entries",
+      "stock.movements"
+    ],
+    "composite.count": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "composite.revenue": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "composite.margin": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "composite.top_bundles": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "composite.component_shortage": [
+      "master.registry",
+      "sales.lines",
+      "stock.positions"
+    ],
+    "khata.receivable_total": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.payable_total": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.net_position": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.biggest_debtors": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.overdue_total": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.aging": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.collected": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.collection_trend": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "khata.over_limit": [
+      "party.balances",
+      "payment.entries"
+    ],
+    "payments.received": [
+      "payment.entries"
+    ],
+    "payments.received_trend": [
+      "payment.entries"
+    ],
+    "payments.paid": [
+      "payment.entries"
+    ],
+    "payments.net_flow": [
+      "payment.entries"
+    ],
+    "payments.by_method": [
+      "payment.entries"
+    ],
+    "payments.cash_vs_digital": [
+      "payment.entries"
+    ],
+    "payments.unallocated": [
+      "payment.entries"
+    ],
+    "payments.bounced": [
+      "payment.entries"
+    ],
+    "expenses.count": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.trend": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.by_category": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.top_categories": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.unpaid": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.largest": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.recurring_total": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.per_day": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "expenses.vs_prev": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "register.open_count": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "register.cash_in_drawer": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "register.cash_sales": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "register.expected_vs_actual": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "register.variance_total": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "register.by_staff": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "register.shift_count": [
+      "payment.entries",
+      "doc.status"
+    ],
+    "bank.account_count": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.balances_total": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.balance_trend": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.balance_by_account": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.top_account": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.money_in": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.money_out": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.cash_vs_bank": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "bank.idle_accounts": [
+      "ledger.accounts",
+      "payment.entries"
+    ],
+    "recon.unreconciled_count": [
+      "ledger.accounts",
+      "doc.status"
+    ],
+    "recon.unreconciled_value": [
+      "ledger.accounts",
+      "doc.status"
+    ],
+    "recon.matched_pct": [
+      "ledger.accounts",
+      "doc.status"
+    ],
+    "recon.last_recon_days": [
+      "ledger.accounts",
+      "doc.status"
+    ],
+    "recon.difference": [
+      "ledger.accounts",
+      "doc.status"
+    ],
+    "accounting.trial_balance_ok": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.assets_total": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.liabilities_total": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.equity_total": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.equity_trend": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.pnl_summary": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.balance_sheet": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.unposted_count": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "accounting.drawings": [
+      "ledger.journal",
+      "ledger.accounts"
+    ],
+    "tax.collected": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.paid": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.net_liability": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.liability_trend": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.by_rate": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.taxable_vs_exempt": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.filing_due": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "tax.invoices_missing_tax": [
+      "tax.entries",
+      "sales.headers",
+      "purchase.headers"
+    ],
+    "assets.count": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "assets.gross_value": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "assets.net_book_value": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "assets.depreciation_period": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "assets.by_category": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "assets.warranty_amc_due": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "loans.count": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "loans.outstanding_total": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "loans.outstanding_trend": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "loans.emi_due": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "loans.interest_paid": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "loans.by_lender": [
+      "ledger.accounts",
+      "master.registry"
+    ],
+    "reports.pnl_shortcut": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ],
+    "reports.sales_shortcut": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ],
+    "reports.stock_shortcut": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ],
+    "reports.saved_count": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ],
+    "reports.most_used": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ],
+    "reports.scheduled_count": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions"
+    ],
+    "ai.top_insight": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ],
+    "ai.alerts_open": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ],
+    "ai.anomalies": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ],
+    "ai.forecast_revenue": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ],
+    "ai.forecast_cash": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ],
+    "ai.reorder_suggestions": [
+      "ledger.journal",
+      "sales.headers",
+      "stock.positions",
+      "party.balances"
+    ],
+    "loyalty.member_count": [
+      "master.registry",
+      "sales.headers"
+    ],
+    "loyalty.new_members": [
+      "master.registry",
+      "sales.headers"
+    ],
+    "loyalty.member_revenue_share": [
+      "master.registry",
+      "sales.headers"
+    ],
+    "loyalty.member_avg_spend": [
+      "master.registry",
+      "sales.headers"
+    ],
+    "loyalty.liability": [
+      "master.registry",
+      "sales.headers"
+    ],
+    "loyalty.gift_card_balance": [
+      "master.registry",
+      "sales.headers"
+    ],
+    "marketplace.channel_count": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ],
+    "marketplace.revenue_by_channel": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ],
+    "marketplace.online_vs_offline": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ],
+    "marketplace.sync_errors": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ],
+    "marketplace.stock_mismatch": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ],
+    "marketplace.channel_margin": [
+      "sales.headers",
+      "stock.positions",
+      "master.registry"
+    ],
+    "staff.member_count": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.on_shift_count": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.present_today": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.absent_today": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.hours_worked": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.attendance_rate": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.sales_by_staff": [
+      "attendance.entries",
+      "sales.headers"
+    ],
+    "staff.revenue_per_staff": [
+      "attendance.entries",
+      "sales.headers"
+    ]
+  }
+}

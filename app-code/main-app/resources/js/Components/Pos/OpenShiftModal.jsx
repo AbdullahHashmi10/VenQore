@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePage } from '@inertiajs/react';
-import { PlayCircle, DollarSign, X, Check, Loader2, Sparkles } from 'lucide-react';
-import { formatCurrency } from '@/Utils/format';
+import { PlayCircle, X, Check, Loader2, Sparkles } from 'lucide-react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 
 const PRESET_FLOATS = [0, 500, 1000, 2000, 5000];
 
@@ -88,7 +88,7 @@ export default function OpenShiftModal({
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <DollarSign className="w-5 h-5 text-indigo-400" />
+                                <span className="text-indigo-400 font-bold text-sm">{getCurrencySymbol(store)}</span>
                             </div>
                             <input
                                 type="number"
@@ -99,7 +99,7 @@ export default function OpenShiftModal({
                                 value={openingFloat}
                                 onChange={(e) => setOpeningFloat(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-lg font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-lg font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                             />
                         </div>
 

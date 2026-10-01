@@ -489,6 +489,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/settings',                    [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_view,admin.settings_manage')->name('settings');
         Route::post('/settings',                   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('settings.update');
         Route::post('/settings/data-privacy',      [\App\Http\Controllers\SettingsController::class, 'updateDataPrivacy'])->middleware('permission:admin.settings_manage')->name('settings.data-privacy.update');
+        Route::post('/settings/approvals/disable-all', [\App\Http\Controllers\AdminController::class, 'disableAllApprovals'])->middleware('permission:admin.settings_manage')->name('settings.approvals.disable-all');
 
         // SmartCapture (AI Scan) API
         // NOTE: /extract costs exactly one upstream AI request per call. The
@@ -1114,9 +1115,9 @@ Route::get('/updater', [\App\Http\Controllers\UpdaterController::class, 'index']
     ->middleware(['auth', \App\Http\Middleware\UpdaterLock::class])
     ->name('updater.index');
 
-// API (auth + platform_admin only, no InstallerLock — app must be installed)
+// API (UpdaterLock validates update_token first, or enforces auth + platform_admin role)
 Route::prefix('api/updater')
-    ->middleware(['auth', \App\Http\Middleware\UpdaterLock::class])
+    ->middleware([\App\Http\Middleware\UpdaterLock::class])
     ->group(function () {
         Route::get('/info', [\App\Http\Controllers\UpdaterController::class, 'info']);
         Route::post('/run', [\App\Http\Controllers\UpdaterController::class, 'run']);
@@ -1970,10 +1971,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         ->middleware('permission:approvals.view,approvals.view_own,approvals.submit,approvals.inbox,approvals.review')
         ->name('approvals.index');
     Route::get('/approvals/inbox', [\App\Http\Controllers\ApprovalDocumentController::class, 'inbox'])
-        ->middleware('permission:approvals.inbox,approvals.review')
+        ->middleware('permission:approvals.inbox,approvals.review,approvals.view_own,approvals.submit,approvals.view')
         ->name('approvals.inbox');
     Route::get('/approvals/my-submissions', [\App\Http\Controllers\ApprovalDocumentController::class, 'mySubmissions'])
-        ->middleware('permission:approvals.view_own,approvals.submit')
+        ->middleware('permission:approvals.view_own,approvals.submit,approvals.inbox,approvals.review,approvals.view')
         ->name('approvals.my-submissions');
     Route::get('/approvals/{id}/correct', [\App\Http\Controllers\ApprovalDocumentController::class, 'correct'])
         ->middleware('permission:approvals.resubmit,approvals.view_own,approvals.submit')

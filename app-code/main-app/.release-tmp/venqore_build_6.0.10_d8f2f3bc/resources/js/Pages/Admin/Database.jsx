@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { Head, router, usePage } from '@inertiajs/react';
+import {
+    Database,
+    HardDrive,
+    Save,
+    Trash2,
+    Download,
+    Mail,
+    RefreshCw,
+    Plus,
+    Server,
+    Shield,
+    Clock,
+    FileCode,
+    Activity
+} from 'lucide-react';
+import MidnightNebula from '@/Components/MidnightNebula';
+
+export default function AdminDatabase({ stats, backups }) {
+    const { store } = usePage().props;
+    // Default values to prevent crashes if props are missing
+    const safeStats = stats || { size: '0 MB', tables: 0, db_name: 'Loading...', driver: '-' };
+    const safeBackups = backups || [];
+
+    const [processing, setProcessing] = useState(false);
+
+    // Create Backup
+    const handleCreateBackup = () => {
+        if (confirm('Are you sure you want to create a new database backup? This might take a few moments.')) {
+            setProcessing(true);
+            router.post(route('store.backups.store', { store_slug: store.slug }), {}, {
+                onFinish: () => setProcessing(false),
+                preserveScroll: true
+            });
+        }
+    };
+
+    return (
+        <OneGlanceLayout title="Database Center" mode="admin">
+            <Head title="Database Management" />
+
+            <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
+
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
+                    <div>
+                        <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
+                            <Server className="text-brand-500" />
+                            Database Operations
+                        </h1>
+                        <p className="text-sm text-ink-muted">Manage backups, monitor size, and optimize performance</p>
+                    </div>
+
+                    <button
+                        onClick={handleCreateBackup}
+                        disabled={processing}
+                        className="px-6 py-3 bg-brand-600 hover:bg-brand-500 disabled:bg-sunken disabled:cursor-not-allowed text-white rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
+                    >
+                        {processing ? <RefreshCw className="animate-spin" size={20} /> : <Plus size={20} />}
+                        Create New Backup
+                    </button>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 shrink-0">
+                    {/* Database Name Card */}
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full -mr-16 -mt-16 transition-transform"></div>
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center text-brand-600">
+                                <Database size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Database Name</p>
+                                <p className="text-xl font-bold text-ink truncate max-w-[150px]" title={safeStats.db_name}>{safeStats.db_name}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Size Card */}
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 transition-transform"></div>
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
+                                <HardDrive size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Total Size</p>
+                                <p className="text-xl font-bold text-ink">{safeStats.size}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Tables Card */}
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-16 -mt-16 transition-transform"></div>
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center text-amber-600">
+                                <Activity size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Total Tables</p>
+                                <p className="text-xl font-bold text-ink">{safeStats.tables}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Driver Card */}
+                    <div className="bg-surface p-6 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full -mr-16 -mt-16 transition-transform"></div>
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center text-brand-600">
+                                <Server size={24} />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Connection</p>
+                                <p className="text-xl font-bold text-ink capitalize">{safeStats.driver}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+                    {/* Backups List */}
+                    <div className="lg:col-span-2 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden">
+                        <div className="p-6 border-b border-line flex justify-between items-center">
+                            <h3 className="font-bold text-lg text-ink flex items-center gap-2">
+                                <Save size={20} className="text-ink-muted" />
+                                Available Backups
+                            </h3>
+                            <span className="text-xs font-bold bg-sunken text-ink-muted px-3 py-1 rounded-full">{safeBackups.length} Files</span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar">
+                            {safeBackups.length > 0 ? (
+                                <table className="w-full text-left">
+                                    <thead className="bg-app sticky top-0 z-10 backdrop-blur-md">
+                                        <tr className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
+                                            <th className="px-6 py-4">Filename</th>
+                                            <th className="px-6 py-4">Size</th>
+                                            <th className="px-6 py-4">Created At</th>
+                                            <th className="px-6 py-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-line">
+                                        {safeBackups.map((backup, i) => (
+                                            <tr key={i} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-500">
+                                                            <FileCode size={18} />
+                                                        </div>
+                                                        <span className="font-bold text-sm text-ink-secondary dark:text-ink">{backup.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-sm font-mono text-ink-muted">{backup.size}</span>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2 text-ink-muted text-sm">
+                                                        <Clock size={14} />
+                                                        {backup.date}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex justify-end">
+                                                        <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-semibold">
+                                                            Encrypted & Stored
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center py-20 text-ink-muted opacity-60">
+                                    <Shield size={48} className="mb-4 stroke-1" />
+                                    <p className="text-lg font-medium">No backups found</p>
+                                    <p className="text-sm">Create your first backup to secure your data.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Sidebar Information */}
+                    <div className="flex flex-col gap-6">
+                        <MidnightNebula className="rounded-2xl p-6" primaryColor="indigo" secondaryColor="cyan">
+                            <div className="flex items-start gap-4">
+                                <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+                                    <Shield className="text-white" size={24} />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-white mb-1">Data Safety</h4>
+                                    <p className="text-xs text-brand-100 leading-relaxed opacity-90">
+                                        Regular backups are critical. We recommend running a backup:
+                                    </p>
+                                    <ul className="text-xs text-brand-100 mt-2 list-disc list-inside opacity-90">
+                                        <li>Before running any updates</li>
+                                        <li>After significant data entry</li>
+                                        <li>At least once a week</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </MidnightNebula>
+
+                        <div className="bg-surface border border-line rounded-2xl p-6 shadow-sm">
+                            <h3 className="font-bold text-sm text-ink mb-4 uppercase tracking-wide">Backup Settings</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+                                    <div className="flex gap-2 items-center text-sm font-bold text-ink-secondary">
+                                        <Mail size={16} className="text-ink-muted" /> Auto-Email
+                                    </div>
+                                    <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-2xs font-bold uppercase rounded">Enabled</div>
+                                </div>
+                                <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+                                    <div className="flex gap-2 items-center text-sm font-bold text-ink-secondary">
+                                        <Clock size={16} className="text-ink-muted" /> Schedule
+                                    </div>
+                                    <span className="text-xs text-ink-muted">Daily @ 12:00 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </OneGlanceLayout>
+    );
+}

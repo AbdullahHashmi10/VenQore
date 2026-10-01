@@ -21,6 +21,7 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import axios from 'axios';
+import { handleApprovalResponse } from '@/lib/approval-response';
 
 const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
 
@@ -268,12 +269,17 @@ export default function PaymentModal({ isOpen, onClose, type = 'in', bankAccount
         setLoading(true);
         setErrors({});
         try {
-            await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type });
-            setSuccess(true);
-            setTimeout(() => {
+            const res = await axios.post(route('store.payments.store', { store_slug: store.slug }), { ...formData, type });
+            if (handleApprovalResponse(res, type === 'in' ? 'customer receipt' : 'supplier payment')) {
                 onClose();
                 router.reload();
-            }, 800);
+            } else {
+                setSuccess(true);
+                setTimeout(() => {
+                    onClose();
+                    router.reload();
+                }, 800);
+            }
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});

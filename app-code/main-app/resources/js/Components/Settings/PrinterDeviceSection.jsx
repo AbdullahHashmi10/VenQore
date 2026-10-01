@@ -11,7 +11,7 @@ const PRINT_TYPE_OPTIONS = [
 const THERMAL_SIZE_OPTIONS = [
     { value: '2inch', label: '58mm (2-inch roll - 32 chars)' },
     { value: '3inch', label: '80mm (3-inch roll - 48 chars - Standard)' },
-    { value: '4inch', label: '100mm (4-inch roll - 64 chars)' }
+    { value: '4inch', label: '100mm (4-inch roll - browser printing)' }
 ];
 
 export default function PrinterDeviceSection({ data, setData }) {
@@ -23,7 +23,7 @@ export default function PrinterDeviceSection({ data, setData }) {
                     <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Printer and paper</h3>
 
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Default POS Print Destination</label>
+                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Default POS Receipt Format</label>
                         <PremiumSelect
                             options={PRINT_TYPE_OPTIONS}
                             value={data.default_print_type || 'regular'}
@@ -31,7 +31,7 @@ export default function PrinterDeviceSection({ data, setData }) {
                             searchable={false}
                             placeholder="Select Printer Type"
                         />
-                        <p className="text-3xs text-ink-muted">Choose whether checkout automatically opens thermal slip or full A4 preview.</p>
+                        <p className="text-3xs text-ink-muted">Chooses thermal or A4 layout. In browser mode, select the physical printer in the print dialog; direct device routing requires VenQore Station.</p>
                     </div>
 
                     <div className="space-y-1.5 pt-2 border-t border-line">
@@ -55,14 +55,14 @@ export default function PrinterDeviceSection({ data, setData }) {
                             enabled={data.thermal_auto_cut !== '0' && data.thermal_auto_cut !== false}
                             onChange={v => setData('thermal_auto_cut', v)}
                             label="Cut the receipt automatically"
-                            description="Cut the paper after each receipt, if your printer supports it."
+                            description="For Station printing, configure automatic cutting in the printer driver."
                         />
 
                         <Toggle
                             enabled={data.thermal_open_drawer === true || data.thermal_open_drawer === '1'}
                             onChange={v => setData('thermal_open_drawer', v)}
                             label="Open the cash drawer after a cash sale"
-                            description="Open a connected cash drawer when a cash sale is completed."
+                            description="Station uses the printer driver. Configure its cash-drawer action after printing; standalone drawer control is unavailable."
                         />
 
                         <Toggle

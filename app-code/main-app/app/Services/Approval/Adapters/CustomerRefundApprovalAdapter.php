@@ -36,10 +36,19 @@ class CustomerRefundApprovalAdapter implements ApprovalAdapterInterface
     public function validatePayload(array $payload, Tenant $tenant, User $maker): array
     {
         $customerId = $payload['customer_id'] ?? $payload['party_id'] ?? null;
-        if (!$customerId || !Party::where('tenant_id', $tenant->id)
+        $partyExists = $customerId && Party::where('tenant_id', $tenant->id)
+            ->where('id', $customerId)
+            ->exists();
+
+        if (!$partyExists && $customerId && \Illuminate\Support\Facades\Schema::hasTable('customers')) {
+            $customersAreTenantScoped = \Illuminate\Support\Facades\Schema::hasColumn('customers', 'tenant_id');
+            $partyExists = \Illuminate\Support\Facades\DB::table('customers')
+                ->when($customersAreTenantScoped, fn($q) => $q->where('tenant_id', $tenant->id))
                 ->where('id', $customerId)
-                ->where('type', 'customer')
-                ->exists()) {
+                ->exists();
+        }
+
+        if (!$partyExists) {
             throw ValidationException::withMessages(['customer_id' => 'Invalid or cross-tenant customer selected.']);
         }
 

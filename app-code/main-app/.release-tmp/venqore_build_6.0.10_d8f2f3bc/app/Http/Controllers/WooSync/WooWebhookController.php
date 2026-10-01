@@ -1,0 +1,150 @@
+<?php
+
+namespace App\Http\Controllers\WooSync;
+
+use App\Http\Controllers\Controller;
+use App\Jobs\WooSync\ProcessWebhookJob;
+use App\Models\WooConnection;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+/**
+ * WooWebhookController — Receives incoming WooCommerce product webhooks.
+ *
+ * Each connection has a unique UUID in the URL so we can route
+ * incoming webhooks to the correct tenant without authentication.
+ * Signature verification happens synchronously; processing is async via jobs.
+ */
+class WooWebhookController extends Controller
+{
+    /**
+     * POST /api/woo/webhook/{uuid}
+     *
+     * WooCommerce expects a 200 response within 3 seconds.
+     * We verify the signature here, then hand off to a queued job.
+     */
+    public function receive(Request $request, string $uuid)
+    {
+        // Public receiver has no tenant binding yet; the signed connection UUID
+        // selects the candidate and the HMAC below authenticates the payload.
+        $connection = WooConnection::withoutTenantScope()
+            ->where('uuid', $uuid)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$connection) {
+            Log::warning('[WooWebhook] Received webhook for unknown/inactive connection', ['uuid' => $uuid]);
+            return response()->json(['ok' => false], 404);
+        }
+
+        // Verify HMAC-SHA256 signature
+        if (!$this->verifySignature($request, $connection)) {
+            Log::warning('[WooWebhook] Signature verification failed', ['connection_id' => $connection->id]);
+            return response()->json(['ok' => false], 401);
+        }
+
+        if ($blocked = $this->planBlocked($connection)) {
+            return $blocked;
+        }
+
+        $topic   = $request->header('x-wc-webhook-topic');
+        $payload = $request->json()->all();
+
+        if (empty($topic) || empty($payload)) {
+            return response()->json(['ok' => false], 400);
+        }
+
+        // Product and order events (WOO-001, 2026-09-10: orders were ignored here,
+        // so online sales never reached stock or the ledger).
+        if (!str_starts_with($topic, 'product.') && !in_array($topic, ['order.created', 'order.updated'], true)) {
+            return response()->json(['ok' => true, 'ignored' => true]);
+        }
+
+        Log::info('[WooWebhook] Accepted', [
+            'connection_id' => $connection->id,
+            'topic'         => $topic,
+            'woo_id'        => $payload['id'] ?? 'unknown',
+        ]);
+
+        // Dispatch async — respond immediately
+        ProcessWebhookJob::dispatch($connection->id, $topic, $payload);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * GET /api/woo/verify/{token}
+     *
+     * Called by the WordPress plugin during setup to confirm the token is valid.
+     * Returns the connection details so the plugin knows it's connected.
+     */
+    public function verify(Request $request, string $token)
+    {
+        // Find connection where api_token matches (we decrypt and compare)
+        // Since tokens are encrypted, we must iterate (small table — acceptable)
+        // No tenant is bound on this public call, so the HasTenant scope must be
+        // bypassed explicitly (it returned zero rows before, so verify always failed).
+        $connection = WooConnection::withoutTenantScope()->whereNotNull('api_token')->get()->first(function ($conn) use ($token) {
+            return is_string($conn->api_token) && hash_equals($conn->api_token, $token);
+        });
+
+        if (!$connection) {
+            return response()->json(['valid' => false], 401);
+        }
+
+        if ($blocked = $this->planBlocked($connection)) {
+            return $blocked;
+        }
+
+        return response()->json([
+            'valid'         => true,
+            'connection_id' => $connection->id,
+            'store_name'    => $connection->tenant->name ?? 'VenQore Store',
+            'webhook_url'   => $connection->webhookUrl(),
+            'connected_at'  => $connection->created_at->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Verify the WooCommerce webhook HMAC-SHA256 signature.
+     *
+     * WooCommerce sends: X-WC-Webhook-Signature: base64(HMAC-SHA256(body, secret))
+     */
+    protected function verifySignature(Request $request, WooConnection $connection): bool
+    {
+        $webhookSecret = $connection->webhook_secret;
+
+        if (!$webhookSecret) {
+            // Fail closed: a UUID identifies a connection but is not an
+            // authenticator. Initial setup must persist a secret before any
+            // webhook payload can be accepted.
+            return false;
+        }
+
+        $signature = $request->header('x-wc-webhook-signature');
+
+        if (!$signature) {
+            return false;
+        }
+
+        $body    = $request->getContent();
+        $computed = base64_encode(hash_hmac('sha256', $body, $webhookSecret, true));
+
+        return hash_equals($computed, $signature);
+    }
+
+    /**
+     * Bind the connection's store and enforce the woocommerce plan feature for it.
+     */
+    private function planBlocked(WooConnection $connection)
+    {
+        if (!$connection->tenant) {
+            return response()->json(['ok' => false], 404);
+        }
+        app()->instance('current.tenant', $connection->tenant);
+        if (!\App\Services\PlanGate::check('woocommerce', $connection->tenant)) {
+            return response()->json(['ok' => false, 'type' => 'plan_limit', 'feature' => 'woocommerce'], 402);
+        }
+        return null;
+    }
+}

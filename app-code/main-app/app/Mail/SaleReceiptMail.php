@@ -21,13 +21,13 @@ class SaleReceiptMail extends Mailable
     public function __construct(Sale $sale)
     {
         $this->sale = $sale;
-        $this->settings = \App\Models\Setting::all()->pluck('value', 'key');
+        $this->settings = \App\Services\ReceiptDocument::prepare($sale)['settings'];
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Receipt from ' . ($this->settings['store_name'] ?? 'VenQore POS'),
+            subject: 'Your Receipt from ' . ($this->settings['business_name'] ?? $this->settings['store_name'] ?? 'VenQore POS'),
         );
     }
 
@@ -40,13 +40,15 @@ class SaleReceiptMail extends Mailable
 
     public function attachments(): array
     {
+        $this->settings = \App\Services\ReceiptDocument::prepare($this->sale)['settings'];
+        $filename = preg_replace('/[^A-Za-z0-9._-]/', '-', (string) $this->sale->reference_number);
         $pdf = Pdf::loadView('pdf.receipt', [
             'sale' => $this->sale,
             'settings' => $this->settings
-        ]);
+        ])->setOptions(['isRemoteEnabled' => false]);
 
         return [
-            \Illuminate\Mail\Mailables\Attachment::fromData(fn() => $pdf->output(), "receipt-{$this->sale->reference_number}.pdf")
+            \Illuminate\Mail\Mailables\Attachment::fromData(fn() => $pdf->output(), "receipt-{$filename}.pdf")
                 ->withMime('application/pdf'),
         ];
     }

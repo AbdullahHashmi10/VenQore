@@ -117,7 +117,11 @@ class StaffInvitationController extends Controller
 
         $userDocSettings = \App\Models\Setting::withoutGlobalScopes()
             ->where('tenant_id', $tenant->id)
-            ->where('key', 'like', 'approval_user_%')
+            ->where(function($q) {
+                $q->where('key', 'like', 'approval_user_%')
+                  ->orWhere('key', 'like', 'approval_supervisors_user_%')
+                  ->orWhere('key', 'like', 'approval_threshold_user_%');
+            })
             ->get();
 
         $users = TenantUser::where('tenant_id', $tenant->id)
@@ -128,10 +132,20 @@ class StaffInvitationController extends Controller
             ->map(function ($m) use ($userDocSettings) {
                 $overrides = [];
                 $prefix = "approval_user_{$m->user_id}_";
+                $supervisorsKey = "approval_supervisors_user_{$m->user_id}";
+                $thresholdKey = "approval_threshold_user_{$m->user_id}";
+                $assignedApprovers = [];
+                $thresholdAmount = '';
+
                 foreach ($userDocSettings as $s) {
                     if (str_starts_with($s->key, $prefix)) {
                         $docType = substr($s->key, strlen($prefix));
                         $overrides[$docType] = $s->value;
+                    } elseif ($s->key === $supervisorsKey) {
+                        $decoded = json_decode($s->value, true);
+                        $assignedApprovers = is_array($decoded) ? $decoded : [];
+                    } elseif ($s->key === $thresholdKey) {
+                        $thresholdAmount = $s->value;
                     }
                 }
 
@@ -151,6 +165,8 @@ class StaffInvitationController extends Controller
                     'transaction_approval_mode' => $m->transaction_approval_mode ?? 'inherit',
                     'permission_override_mode'  => $m->permission_override_mode ?? 'inherit',
                     'approval_overrides'        => $overrides,
+                    'assigned_approvers'        => $assignedApprovers,
+                    'approval_threshold_amount' => $thresholdAmount,
                 ];
             })
             ->toArray();
@@ -189,15 +205,40 @@ class StaffInvitationController extends Controller
             ];
         })->sortByDesc('totalSales')->values()->toArray();
 
+        $dbApprovalAdminVal = \App\Models\Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'approval_admin_enabled')
+            ->value('value');
+        $approvalAdminEnabled = $dbApprovalAdminVal !== null
+            ? in_array((string)$dbApprovalAdminVal, ['1', 'true'], true)
+            : false;
+
+        $usersWithApprovals = array_values(array_filter($users, function ($u) {
+            $mode = $u['transaction_approval_mode'] ?? 'inherit';
+            if (in_array($mode, ['required', 'custom'], true)) {
+                return true;
+            }
+            if (!empty($u['approval_overrides']) && is_array($u['approval_overrides'])) {
+                return in_array('required', $u['approval_overrides'], true);
+            }
+            return false;
+        }));
+
         return Inertia::render('Admin/Users', [
-            'mode'        => 'admin',
-            'users'       => $users,
-            'attendance'  => [
+            'mode'                   => 'admin',
+            'users'                  => $users,
+            'attendance'             => [
                 'today'   => $todayAttendance,
                 'history' => $history,
             ],
-            'invitations' => $invitations,
-            'staffData'   => $staffData,
+            'invitations'            => $invitations,
+            'staffData'              => $staffData,
+            'approval_admin_enabled' => $approvalAdminEnabled,
+            'usersWithApprovals'     => $usersWithApprovals,
+            'settings'               => array_merge(
+                \App\Helpers\SettingsHelper::all(),
+                ['approval_admin_enabled' => $approvalAdminEnabled ? '1' : '0']
+            ),
         ]);
     }
 
@@ -214,7 +255,13 @@ class StaffInvitationController extends Controller
             'roles'                     => 'required|array|min:1',
             'roles.*'                   => 'string|in:owner,admin,franchise_admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,production_supervisor,kitchen_manager,dispenser,sales_executive,fulfillment_lead,delivery_driver,cashier,viewer,custom,inventory_staff,support',
             'permissions'               => 'nullable|array',
-            'transaction_approval_mode' => 'nullable|string|in:inherit,required,direct',
+            'transaction_approval_mode' => 'nullable|string|in:inherit,required,direct,custom',
+            'assigned_approvers'        => 'nullable|array',
+            'assigned_approvers.*'      => 'nullable|integer',
+            'id_card_number'            => 'nullable|string|max:100',
+            'designation'               => 'nullable|string|max:100',
+            'approval_overrides'        => 'nullable|array',
+            'approval_threshold_amount' => 'nullable|numeric|min:0',
         ]);
 
         // Check for existing active invite to this email
@@ -241,6 +288,13 @@ class StaffInvitationController extends Controller
             'roles'                     => $validated['roles'],
             'permissions'               => $validated['permissions'] ?? [],
             'transaction_approval_mode' => $validated['transaction_approval_mode'] ?? 'inherit',
+            'metadata'                  => [
+                'assigned_approvers'        => $validated['assigned_approvers'] ?? [],
+                'approval_overrides'        => $validated['approval_overrides'] ?? [],
+                'approval_threshold_amount' => $request->input('approval_threshold_amount'),
+                'designation'               => $validated['designation'] ?? null,
+                'id_card_number'            => $validated['id_card_number'] ?? null,
+            ],
             'role'                      => $validated['roles'][0] ?? 'cashier', // legacy compat
             'token'                     => StaffInvitation::generateToken(),
             'short_code'                => StaffInvitation::generateShortCode(),
@@ -299,7 +353,7 @@ class StaffInvitationController extends Controller
         $tenant = app('current.tenant');
 
         // Link user to this store
-        TenantUser::firstOrCreate(
+        $membership = TenantUser::firstOrCreate(
             ['tenant_id' => $tenant->id, 'user_id' => $user->id],
             [
                 'role'                      => $invitation->primaryRole(),
@@ -310,6 +364,8 @@ class StaffInvitationController extends Controller
                 'joined_at'                 => now(),
             ]
         );
+
+        $this->applyInvitationMetadata($invitation, $user, $membership);
 
         $invitation->update([
             'status'      => 'active',
@@ -445,16 +501,19 @@ class StaffInvitationController extends Controller
         ]);
 
         // Link user to this store immediately
-        \App\Models\TenantUser::updateOrCreate(
+        $membership = \App\Models\TenantUser::updateOrCreate(
             ['tenant_id' => $invitation->tenant_id, 'user_id' => $user->id],
             [
                 'role'         => $invitation->primaryRole(),
                 'status'       => 'active',
-                'display_name' => $invitation->invitee_name,
-                'permissions'  => $invitation->permissions,
-                'joined_at'    => now(),
+                'display_name'              => $invitation->invitee_name,
+                'permissions'               => $invitation->permissions,
+                'transaction_approval_mode' => $invitation->transaction_approval_mode ?? 'inherit',
+                'joined_at'                 => now(),
             ]
         );
+
+        $this->applyInvitationMetadata($invitation, $user, $membership);
 
         return redirect()->route('hub')->with('success', 'Invitation accepted! You now have access to ' . $invitation->tenant->name . '.');
     }
@@ -475,6 +534,52 @@ class StaffInvitationController extends Controller
     }
 
     // ─── Private ─────────────────────────────────────────────────────
+
+    private function applyInvitationMetadata(StaffInvitation $invitation, User $user, TenantUser $membership): void
+    {
+        $metadata = $invitation->metadata ?? [];
+        $tenantId = $invitation->tenant_id;
+
+        if (!empty($invitation->transaction_approval_mode)) {
+            $membership->update([
+                'transaction_approval_mode' => $invitation->transaction_approval_mode,
+                'approval_mode_changed_by'  => $invitation->invited_by,
+                'approval_mode_changed_at'  => now(),
+            ]);
+        }
+
+        if (!empty($metadata['designation'])) {
+            $membership->update(['custom_role_name' => $metadata['designation']]);
+        }
+
+        if (!empty($metadata['assigned_approvers']) && is_array($metadata['assigned_approvers'])) {
+            \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                ['tenant_id' => $tenantId, 'key' => "approval_supervisors_user_{$user->id}"],
+                ['value' => json_encode($metadata['assigned_approvers'])]
+            );
+        }
+
+        if (isset($metadata['approval_threshold_amount']) && is_numeric($metadata['approval_threshold_amount'])) {
+            \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                ['tenant_id' => $tenantId, 'key' => "approval_threshold_user_{$user->id}"],
+                ['value' => (string)$metadata['approval_threshold_amount']]
+            );
+        }
+
+        if (!empty($metadata['approval_overrides']) && is_array($metadata['approval_overrides'])) {
+            foreach ($metadata['approval_overrides'] as $docType => $mode) {
+                if (in_array($docType, \App\Models\ApprovalDocument::SUPPORTED_TYPES, true)) {
+                    $settingKey = "approval_user_{$user->id}_{$docType}";
+                    if (in_array($mode, ['required', 'direct'], true)) {
+                        \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                            ['tenant_id' => $tenantId, 'key' => $settingKey],
+                            ['value' => $mode]
+                        );
+                    }
+                }
+            }
+        }
+    }
 
     private function verifyAcceptanceTenant(StaffInvitation $invitation, Request $request): void
     {

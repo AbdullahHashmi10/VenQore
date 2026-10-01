@@ -36,10 +36,19 @@ class PurchasePostingApprovalAdapter implements ApprovalAdapterInterface
         }
 
         $supplierId = $payload['supplier_id'] ?? $payload['party_id'] ?? null;
-        if (!$supplierId || !Party::where('tenant_id', $tenant->id)
+        $partyExists = $supplierId && Party::where('tenant_id', $tenant->id)
+            ->where('id', $supplierId)
+            ->exists();
+
+        if (!$partyExists && $supplierId && \Illuminate\Support\Facades\Schema::hasTable('suppliers')) {
+            $suppliersAreTenantScoped = \Illuminate\Support\Facades\Schema::hasColumn('suppliers', 'tenant_id');
+            $partyExists = \Illuminate\Support\Facades\DB::table('suppliers')
+                ->when($suppliersAreTenantScoped, fn($q) => $q->where('tenant_id', $tenant->id))
                 ->where('id', $supplierId)
-                ->where('type', 'supplier')
-                ->exists()) {
+                ->exists();
+        }
+
+        if (!$partyExists) {
             throw ValidationException::withMessages(['supplier_id' => 'Invalid or cross-tenant supplier.']);
         }
 

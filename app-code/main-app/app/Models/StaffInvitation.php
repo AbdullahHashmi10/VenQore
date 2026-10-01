@@ -33,6 +33,7 @@ class StaffInvitation extends Model
         'approved_at',
         'permissions',
         'transaction_approval_mode',
+        'metadata',
         // Legacy compat
         'email',
         'role',
@@ -40,6 +41,7 @@ class StaffInvitation extends Model
 
     protected $casts = [
         'roles'       => 'array',
+        'metadata'    => 'array',
         'expires_at'  => 'datetime',
         'accepted_at' => 'datetime',
         'approved_at' => 'datetime',

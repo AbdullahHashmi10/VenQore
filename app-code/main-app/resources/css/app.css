@@ -294,14 +294,12 @@ button[class*="bg-neutral-900"][class*="text-white"] {
         scrollbar-color: rgb(var(--vq-slate-400) / 0.3) transparent;
     }
 
-    /* Hide scrollbars for custom-scrollbar and no-scrollbar */
-    .custom-scrollbar::-webkit-scrollbar,
+    /* Hide scrollbars for no-scrollbar */
     .no-scrollbar::-webkit-scrollbar {
         display: none !important;
         width: 0 !important;
         height: 0 !important;
     }
-    .custom-scrollbar,
     .no-scrollbar {
         -ms-overflow-style: none !important;
         scrollbar-width: none !important;
@@ -522,9 +520,14 @@ button[class*="bg-neutral-900"][class*="text-white"] {
        LEGACY - Keep custom-scrollbar for backwards compat
        ===================================================== */
 
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(var(--vq-slate-400) / 0.4) transparent;
+    }
+
     .custom-scrollbar::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
+        width: 6px;
+        height: 6px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-track {
@@ -532,11 +535,12 @@ button[class*="bg-neutral-900"][class*="text-white"] {
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        @apply bg-slate-200 dark:bg-slate-700 rounded-full;
+        background: rgb(var(--vq-slate-400) / 0.4);
+        border-radius: 9999px;
     }
 
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        @apply bg-slate-300 dark:bg-slate-600;
+        background: rgb(var(--vq-slate-400) / 0.7);
     }
 
     /* =====================================================

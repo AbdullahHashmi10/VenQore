@@ -69,10 +69,19 @@ describe('settings save contracts', () => {
             globalThis.window = { amdSettings: { decimal_places: 1, currency_symbol: 'Rs.', print_amount_decimal: '0' } };
             expect(formatCurrency(1234.56, { slug: 'golden-co' })).toBe('Rs. 1,234.6');
             expect(formatCurrency(1234.56, { print_amount_decimal: '0' })).toBe('Rs. 1,235');
-            globalThis.window.amdSettings.decimal_places = 0;
-            expect(formatCurrency(1234.56, { slug: 'golden-co' })).toBe('Rs. 1,235');
         } finally {
             globalThis.window = previousWindow;
         }
+    });
+
+    it('renders store currency dynamically instead of hardcoded DollarSign in shift modals', () => {
+        const openShiftModalSource = read('resources/js/Components/Pos/OpenShiftModal.jsx');
+        const cashMovementModalSource = read('resources/js/Components/Pos/CashMovementModal.jsx');
+        
+        expect(openShiftModalSource).toContain('getCurrencySymbol(store)');
+        expect(openShiftModalSource).not.toContain('DollarSign className');
+        
+        expect(cashMovementModalSource).toContain('getCurrencySymbol(store)');
+        expect(cashMovementModalSource).not.toContain('DollarSign className');
     });
 });

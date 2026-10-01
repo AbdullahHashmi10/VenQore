@@ -1,0 +1,618 @@
+{
+  "repair_workshop": {
+    "name": "Repair Workshop",
+    "sector": "services",
+    "modules": [
+      "products",
+      "services",
+      "customers",
+      "pos",
+      "invoicing",
+      "park_recall",
+      "inventory",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "invoicing.unpaid_value",
+      "invoicing.value",
+      "invoicing.overdue_count",
+      "services.revenue",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "inventory.stock_value",
+      "customers.owing",
+      "core.liquidity_trend",
+      "customers.top_customers",
+      "inventory.low_stock_count"
+    ],
+    "available": 112
+  },
+  "field_service": {
+    "name": "Field Service & Trades",
+    "sector": "services",
+    "modules": [
+      "products",
+      "services",
+      "customers",
+      "suppliers",
+      "invoicing",
+      "inventory",
+      "purchases",
+      "payments",
+      "expenses",
+      "reports",
+      "staff_attendance"
+    ],
+    "default12": [
+      "invoicing.unpaid_value",
+      "invoicing.value",
+      "invoicing.overdue_count",
+      "services.revenue",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "inventory.stock_value",
+      "customers.owing",
+      "core.liquidity_trend",
+      "payments.received",
+      "customers.top_customers"
+    ],
+    "available": 129
+  },
+  "salon": {
+    "name": "Salon / Spa",
+    "sector": "services",
+    "modules": [
+      "services",
+      "customers",
+      "invoicing",
+      "expenses",
+      "reports",
+      "loyalty_gift",
+      "staff_attendance"
+    ],
+    "default12": [
+      "invoicing.unpaid_value",
+      "invoicing.value",
+      "invoicing.overdue_count",
+      "services.revenue",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "customers.owing",
+      "core.liquidity_trend",
+      "customers.top_customers",
+      "core.profit_trend",
+      "services.top_services"
+    ],
+    "available": 88
+  },
+  "professional_services": {
+    "name": "Professional Services",
+    "sector": "services",
+    "modules": [
+      "services",
+      "customers",
+      "invoicing",
+      "recurring_invoices",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "invoicing.unpaid_value",
+      "invoicing.value",
+      "invoicing.overdue_count",
+      "services.revenue",
+      "recurring.monthly_value",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "customers.owing",
+      "core.liquidity_trend",
+      "payments.received",
+      "customers.top_customers"
+    ],
+    "available": 88
+  },
+  "rental_hire": {
+    "name": "Rental & Hire",
+    "sector": "services",
+    "modules": [
+      "products",
+      "services",
+      "customers",
+      "invoicing",
+      "pre_sales",
+      "inventory",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "invoicing.unpaid_value",
+      "invoicing.value",
+      "invoicing.overdue_count",
+      "services.revenue",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "inventory.stock_value",
+      "customers.owing",
+      "core.liquidity_trend",
+      "payments.received",
+      "customers.top_customers"
+    ],
+    "available": 109
+  },
+  "membership_studio": {
+    "name": "Memberships & Classes",
+    "sector": "services",
+    "modules": [
+      "services",
+      "customers",
+      "invoicing",
+      "recurring_invoices",
+      "payments",
+      "expenses",
+      "reports",
+      "staff_attendance"
+    ],
+    "default12": [
+      "invoicing.unpaid_value",
+      "invoicing.value",
+      "invoicing.overdue_count",
+      "services.revenue",
+      "recurring.monthly_value",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "customers.owing",
+      "core.liquidity_trend",
+      "payments.received",
+      "customers.top_customers"
+    ],
+    "available": 96
+  },
+  "grocery": {
+    "name": "Grocery / Kiryana",
+    "sector": "retail",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "pos",
+      "inventory",
+      "barcodes_labels",
+      "units_of_measure",
+      "purchases",
+      "khata_credit",
+      "payments",
+      "expenses",
+      "cash_register",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "inventory.stock_value",
+      "pos.revenue_trend",
+      "inventory.low_stock_count",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "inventory.dead_stock_value",
+      "core.total_liquidity",
+      "khata.receivable_total",
+      "core.receivables",
+      "khata.biggest_debtors"
+    ],
+    "available": 141
+  },
+  "pharmacy": {
+    "name": "Pharmacy",
+    "sector": "retail",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "pos",
+      "inventory",
+      "batches_expiry",
+      "barcodes_labels",
+      "purchases",
+      "khata_credit",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "inventory.stock_value",
+      "pos.revenue_trend",
+      "inventory.low_stock_count",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "inventory.dead_stock_value",
+      "batches.expiring_30",
+      "core.total_liquidity",
+      "khata.receivable_total",
+      "core.receivables"
+    ],
+    "available": 136
+  },
+  "retail_shop": {
+    "name": "Retail Shop",
+    "sector": "retail",
+    "modules": [
+      "products",
+      "customers",
+      "pos",
+      "inventory",
+      "barcodes_labels",
+      "khata_credit",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "inventory.stock_value",
+      "pos.revenue_trend",
+      "inventory.low_stock_count",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "inventory.dead_stock_value",
+      "core.total_liquidity",
+      "khata.receivable_total",
+      "core.receivables",
+      "khata.biggest_debtors"
+    ],
+    "available": 112
+  },
+  "mobile_electronics": {
+    "name": "Mobile & Electronics",
+    "sector": "retail",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "pos",
+      "sales_returns",
+      "inventory",
+      "serials",
+      "purchases",
+      "khata_credit",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "inventory.stock_value",
+      "pos.revenue_trend",
+      "inventory.low_stock_count",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "inventory.dead_stock_value",
+      "core.total_liquidity",
+      "khata.receivable_total",
+      "core.receivables",
+      "khata.biggest_debtors"
+    ],
+    "available": 135
+  },
+  "clothing": {
+    "name": "Clothing & Footwear",
+    "sector": "retail",
+    "modules": [
+      "products",
+      "customers",
+      "pos",
+      "sales_returns",
+      "inventory",
+      "variants",
+      "barcodes_labels",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "inventory.stock_value",
+      "pos.revenue_trend",
+      "inventory.low_stock_count",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "inventory.dead_stock_value",
+      "core.total_liquidity",
+      "core.receivables",
+      "core.liquidity_trend",
+      "expenses.by_category"
+    ],
+    "available": 106
+  },
+  "hardware_store": {
+    "name": "Hardware / General Store",
+    "sector": "retail",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "pos",
+      "inventory",
+      "units_of_measure",
+      "purchases",
+      "khata_credit",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "inventory.stock_value",
+      "pos.revenue_trend",
+      "inventory.low_stock_count",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "inventory.dead_stock_value",
+      "core.total_liquidity",
+      "khata.receivable_total",
+      "core.receivables",
+      "khata.biggest_debtors"
+    ],
+    "available": 129
+  },
+  "restaurant": {
+    "name": "Restaurant",
+    "sector": "food",
+    "modules": [
+      "products",
+      "pos",
+      "park_recall",
+      "table_service",
+      "inventory",
+      "cookbook",
+      "expenses",
+      "reports",
+      "staff_attendance"
+    ],
+    "default12": [
+      "pos.revenue",
+      "tables.occupied",
+      "tables.kitchen_pending",
+      "cookbook.recipe_cost_pct",
+      "pos.revenue_trend",
+      "tables.occupancy_rate",
+      "cookbook.worst_margin",
+      "cookbook.best_margin",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity"
+    ],
+    "available": 107
+  },
+  "cafe": {
+    "name": "Cafe",
+    "sector": "food",
+    "modules": [
+      "products",
+      "pos",
+      "inventory",
+      "cookbook",
+      "expenses"
+    ],
+    "default12": [
+      "pos.revenue",
+      "cookbook.recipe_cost_pct",
+      "pos.revenue_trend",
+      "cookbook.worst_margin",
+      "cookbook.best_margin",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "inventory.stock_value",
+      "core.receivables",
+      "core.liquidity_trend"
+    ],
+    "available": 80
+  },
+  "bakery": {
+    "name": "Bakery",
+    "sector": "food",
+    "modules": [
+      "products",
+      "customers",
+      "pos",
+      "sales_orders",
+      "inventory",
+      "batches_expiry",
+      "cookbook",
+      "production_runs",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "cookbook.recipe_cost_pct",
+      "pos.revenue_trend",
+      "cookbook.worst_margin",
+      "cookbook.best_margin",
+      "pos.avg_ticket",
+      "batches.expiring_30",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "batches.expiring_value",
+      "batches.expiry_list"
+    ],
+    "available": 118
+  },
+  "food_counter": {
+    "name": "Quick-Service Food",
+    "sector": "food",
+    "modules": [
+      "products",
+      "pos",
+      "inventory",
+      "cookbook",
+      "expenses",
+      "cash_register",
+      "reports"
+    ],
+    "default12": [
+      "pos.revenue",
+      "cookbook.recipe_cost_pct",
+      "pos.revenue_trend",
+      "cookbook.worst_margin",
+      "cookbook.best_margin",
+      "pos.avg_ticket",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "inventory.stock_value",
+      "core.receivables",
+      "register.cash_in_drawer"
+    ],
+    "available": 93
+  },
+  "catering": {
+    "name": "Catering",
+    "sector": "food",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "invoicing",
+      "sales_orders",
+      "inventory",
+      "purchases",
+      "cookbook",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "cookbook.recipe_cost_pct",
+      "cookbook.worst_margin",
+      "cookbook.best_margin",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "core.revenue_trend",
+      "inventory.stock_value",
+      "core.receivables",
+      "payments.received",
+      "inventory.low_stock_count",
+      "payments.net_flow"
+    ],
+    "available": 127
+  },
+  "wholesale": {
+    "name": "Wholesale / Distribution",
+    "sector": "wholesale",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "sales_orders",
+      "pricing_tiers",
+      "inventory",
+      "multi_location",
+      "stock_transfers",
+      "purchases",
+      "purchase_orders",
+      "khata_credit",
+      "payments",
+      "accounting_workspace",
+      "reports"
+    ],
+    "default12": [
+      "khata.receivable_total",
+      "khata.biggest_debtors",
+      "khata.overdue_total",
+      "inventory.stock_value",
+      "sales_orders.open_value",
+      "sales_orders.open_count",
+      "purchases.spend",
+      "inventory.low_stock_count",
+      "core.revenue",
+      "purchases.unpaid_value",
+      "core.net_profit",
+      "core.total_liquidity"
+    ],
+    "available": 142
+  },
+  "tailoring": {
+    "name": "Tailoring & Stitching",
+    "sector": "manufacturing",
+    "modules": [
+      "products",
+      "services",
+      "customers",
+      "sales_orders",
+      "inventory",
+      "khata_credit",
+      "payments",
+      "expenses",
+      "reports",
+      "staff_attendance"
+    ],
+    "default12": [
+      "inventory.stock_value",
+      "inventory.low_stock_count",
+      "core.revenue",
+      "core.net_profit",
+      "core.total_liquidity",
+      "khata.receivable_total",
+      "core.revenue_trend",
+      "inventory.dead_stock_value",
+      "core.receivables",
+      "khata.biggest_debtors",
+      "payments.received",
+      "payments.net_flow"
+    ],
+    "available": 118
+  },
+  "light_manufacturing": {
+    "name": "Light Manufacturing",
+    "sector": "manufacturing",
+    "modules": [
+      "products",
+      "customers",
+      "suppliers",
+      "invoicing",
+      "sales_orders",
+      "inventory",
+      "purchases",
+      "purchase_orders",
+      "cookbook",
+      "production_runs",
+      "payments",
+      "expenses",
+      "reports"
+    ],
+    "default12": [
+      "inventory.stock_value",
+      "production.cost_per_unit",
+      "inventory.low_stock_count",
+      "production.total_cost",
+      "production.yield_pct",
+      "cookbook.recipe_cost_pct",
+      "core.revenue",
+      "core.net_profit",
+      "purchases.spend",
+      "core.total_liquidity",
+      "purchases.unpaid_value",
+      "core.revenue_trend"
+    ],
+    "available": 141
+  }
+}

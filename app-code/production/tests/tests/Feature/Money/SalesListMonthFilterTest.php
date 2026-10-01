@@ -25,7 +25,7 @@ test('M1-XX: sales list month filter includes sales created in the current month
     $customer = \App\Models\Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
 
     // Create one posted Sale for this tenant with created_at/posted_at set to now (June 15)
-    $sale = Sale::create([
+    $sale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
         'tenant_id' => $tenant->id,
         'reference_number' => 'SAL-FIL-0001',
         'source' => 'manual',
@@ -41,7 +41,7 @@ test('M1-XX: sales list month filter includes sales created in the current month
         'posted_at' => now(),
         'created_at' => now(),
         'updated_at' => now(),
-    ]);
+    ]));
 
     // Hit the sales-list route with the month filter
     $response = $this->get("/s/{$tenant->slug}/sales/list?filter=month");

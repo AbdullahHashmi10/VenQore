@@ -77,7 +77,7 @@ class QrMenuToolController extends Controller
             );
             $qrImageBase64 = 'data:' . $this->qrCodeService->mimeType($qrResult['format']) . ';base64,' . base64_encode($qrResult['bytes']);
         } catch (\Throwable $e) {
-            $qrError = 'Note: QR Code generation is running in compatibility mode (' . $e->getMessage() . ').';
+            return response()->json(['message' => 'The menu QR code could not be generated. Please retry with a valid URL and image.'], 422);
         }
 
         $this->usageRecorder->record('qr-menu', 'pdf', null, [

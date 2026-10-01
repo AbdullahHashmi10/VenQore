@@ -55,6 +55,7 @@
         },
         "files": [
             "main.js",
+            "print-payload.js",
             "preload.js",
             "shell.html",
             "shell.css",

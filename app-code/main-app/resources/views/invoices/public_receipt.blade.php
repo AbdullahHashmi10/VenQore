@@ -1,6 +1,9 @@
 @php
-    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals($store->decimal_places ?? 2);
-    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+    $decimals = max(0, min(4, (int) ($settings['decimal_places'] ?? 2)));
+    $showInvoiceNumber = !in_array($settings['invoice_number_enabled'] ?? '1', ['0', 0, false], true);
+    $total = (float) ($sale->invoice_total ?? $sale->total ?? 0);
+    $paid = (float) $sale->payments->sum('amount');
+    $currency = $settings['currency_symbol'] ?? $settings['currency'] ?? 'PKR';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -183,7 +186,7 @@
             @endif
             <div class="meta-row">
                 <span>Payment Status</span>
-                <span class="val">{{ strtoupper($sale->payment_status ?? 'PAID') }}</span>
+                <span class="val">{{ ($paid >= $total ? 'PAID' : ($paid > 0 ? 'PARTIALLY PAID' : 'UNPAID')) }}</span>
             </div>
         </div>
 
@@ -203,7 +206,7 @@
                             <div class="item-qty">@ {{ number_format((float)($item->unit_price ?? 0), $decimals) }}</div>
                         </td>
                         <td style="text-align:center; font-weight:600;">{{ (float)($item->quantity ?? 1) }}</td>
-                        <td style="text-align:right; font-weight:600;">{{ number_format((float)(($item->quantity ?? 1) * ($item->unit_price ?? 0)), $decimals) }}</td>
+                        <td style="text-align:right; font-weight:600;">{{ number_format((float)($item->line_total ?? $item->subtotal ?? (($item->quantity ?? 1) * ($item->unit_price ?? 0) - ($item->discount_amount ?? 0) + ($item->tax_amount ?? 0))), $decimals) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -212,28 +215,29 @@
         <div class="totals-section">
             <div class="total-row">
                 <span>Subtotal</span>
-                <span>{{ number_format((float)($sale->subtotal ?? $sale->total ?? 0), $decimals) }}</span>
+                <span>{{ number_format((float)($sale->subtotal_gross ?? $sale->subtotal ?? 0), $decimals) }}</span>
             </div>
-            @if((float)($sale->tax ?? 0) > 0)
+            @if((float)($sale->total_tax ?? $sale->tax ?? 0) > 0)
                 <div class="total-row">
                     <span>Tax</span>
-                    <span>{{ number_format((float)$sale->tax, $decimals) }}</span>
+                    <span>{{ number_format((float)($sale->total_tax ?? $sale->tax ?? 0), $decimals) }}</span>
                 </div>
             @endif
-            @if((float)($sale->discount ?? 0) > 0)
+            @if((float)($sale->total_item_discounts ?? $sale->discount ?? 0) > 0)
                 <div class="total-row">
                     <span>Discount</span>
-                    <span>-{{ number_format((float)$sale->discount, $decimals) }}</span>
+                    <span>-{{ number_format((float)($sale->total_item_discounts ?? $sale->discount ?? 0), $decimals) }}</span>
                 </div>
             @endif
             <div class="total-row grand-total">
-                <span>Total</span>
-                <span>{{ number_format((float)($sale->total ?? 0), $decimals) }}</span>
+                <span>Total ({{ $currency }})</span>
+                <span>{{ number_format((float)$total, $decimals) }}</span>
             </div>
             <div class="total-row" style="margin-top: 4px;">
                 <span>Paid</span>
-                <span>{{ number_format((float)($sale->paid ?? $sale->total ?? 0), $decimals) }}</span>
+                <span>{{ number_format((float)$paid, $decimals) }}</span>
             </div>
+            <div class="total-row"><span>Balance Due</span><span>{{ number_format(max(0, $total - $paid), $decimals) }}</span></div>
         </div>
 
         <div class="footer-note">

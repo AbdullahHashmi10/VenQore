@@ -18,8 +18,8 @@ abstract class TestCase extends BaseTestCase
         if (isset($uses[\Illuminate\Foundation\Testing\DatabaseTransactions::class])
             && ! isset($uses[\Illuminate\Foundation\Testing\RefreshDatabase::class])
             && ! \Illuminate\Foundation\Testing\RefreshDatabaseState::$migrated) {
-            if (! \Illuminate\Support\Facades\Schema::hasTable('plans')) {
-                $this->artisan('migrate', [
+            if (! \Illuminate\Support\Facades\Schema::hasTable('plans') || ! \Illuminate\Support\Facades\Schema::hasTable('cheque_books')) {
+                $this->artisan('migrate:fresh', [
                     '--seed' => true,
                     '--seeder' => \Database\Seeders\PlanFeatureMatrixSeeder::class,
                 ]);
@@ -62,6 +62,13 @@ abstract class TestCase extends BaseTestCase
                     'feature_batches' => false,
                     'feature_manufacturing' => false,
                     'business_type' => null,
+                    'ai_status' => 'none',
+                    'ai_pages_used' => 0,
+                    'ai_pages_limit' => null,
+                    'ai_queries_used' => 0,
+                    'ai_queries_limit' => null,
+                    'ai_descriptions_balance' => null,
+                    'ai_period_started_at' => null,
                 ], $attributes));
                 $this->exists = true;
             }

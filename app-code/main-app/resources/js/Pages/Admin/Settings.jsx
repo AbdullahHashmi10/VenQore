@@ -386,15 +386,21 @@ const SECTION_FIELD_MAP = {
     ]
 };
 
-export default function AdminSettings({ settings = {} }) {
+export default function AdminSettings({ settings = {}, usersWithApprovals = [] }) {
     const tt = useTermText();
-    const { store } = usePage().props;
+    const { store, auth } = usePage().props;
+    const userRole = auth?.user?.role;
+    const userPerms = auth?.user?.permissions || [];
+    const isPlatformAdmin = !!auth?.user?.is_platform_admin;
+    const canConfigureApprovals = isPlatformAdmin || userRole === 'owner' || userPerms.includes('approvals.configure') || userPerms.includes('*');
 
     const [activeSection, setActiveSection] = useState(() => {
         const hash = window.location.hash.replace('#', '');
-        if (hash) return resolveSectionId(hash);
-        const stored = localStorage.getItem('active_settings_section');
-        return resolveSectionId(stored);
+        let target = hash ? resolveSectionId(hash) : resolveSectionId(localStorage.getItem('active_settings_section'));
+        if (target === 'approvals' && !canConfigureApprovals) {
+            target = 'profile';
+        }
+        return target || 'profile';
     });
 
     useEffect(() => {
@@ -842,7 +848,7 @@ export default function AdminSettings({ settings = {} }) {
             case 'security':
                 return <SecuritySection data={data} setData={setData} />;
             case 'approvals':
-                return <ApprovalsSection data={data} setData={setData} store={store} />;
+                return <ApprovalsSection data={data} setData={setData} store={store} usersWithApprovals={usersWithApprovals} />;
             case 'terminals':
                 return <TerminalPairingSection storeSlug={store?.slug} />;
             case 'backup':
@@ -1024,13 +1030,14 @@ export default function AdminSettings({ settings = {} }) {
                         {SETTINGS_CATEGORIES.map((category) => {
                             const CatIcon = category.icon;
                             const isExpanded = Boolean(sectionSearch) || expandedCategories.includes(category.id);
-                            const categorySections = SETTINGS_SECTIONS.filter(s =>
-                                category.sections.includes(s.id) &&
+                            const categorySections = SETTINGS_SECTIONS.filter(s => {
+                                if (s.id === 'approvals' && !canConfigureApprovals) return false;
+                                return category.sections.includes(s.id) &&
                                 (!sectionSearch ||
                                     s.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
                                     s.description.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-                                    s.keywords?.some(k => k.toLowerCase().includes(sectionSearch.toLowerCase())))
-                            );
+                                    s.keywords?.some(k => k.toLowerCase().includes(sectionSearch.toLowerCase())));
+                            });
 
                             if (categorySections.length === 0) return null;
 

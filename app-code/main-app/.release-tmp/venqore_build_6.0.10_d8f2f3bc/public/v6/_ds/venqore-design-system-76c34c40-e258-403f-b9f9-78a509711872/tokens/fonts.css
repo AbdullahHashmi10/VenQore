@@ -1,0 +1,7 @@
+/* VenQore v5 typefaces — all Google Fonts, loaded from CDN.
+   Bricolage Grotesque = display voice (expressive, slightly quirky, designer).
+   Plus Jakarta Sans   = UI + body (friendly geometric, tall x-height).
+   Space Grotesk       = numerics, eyebrows, code (measured but playful digits).
+   NOTE: no local .woff2 binaries were supplied with the source; if VenQore
+   licences custom faces, drop them in assets/fonts/ and replace this import. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");

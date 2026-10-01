@@ -19,12 +19,12 @@ class LabelController extends Controller
     public function print(Request $request)
     {
         $validated = $request->validate([
-            'items' => 'required|array|min:1',
+            'items' => 'required|array|min:1|max:100',
             'items.*.id' => 'required|exists:products,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity' => 'required|integer|min:1|max:100',
             'settings' => 'required|array',
-            'settings.width' => 'required|numeric',
-            'settings.height' => 'required|numeric',
+            'settings.width' => 'required|numeric|min:10|max:190',
+            'settings.height' => 'required|numeric|min:10|max:277',
             'settings.show_price' => 'boolean',
             'settings.show_name' => 'boolean',
             'settings.show_barcode' => 'boolean',
@@ -32,6 +32,9 @@ class LabelController extends Controller
         ]);
 
         $products = Product::with('barcodes')->whereIn('id', array_column($validated['items'], 'id'))->get();
+
+        abort_if($products->count() !== count(array_unique(array_column($validated['items'], 'id'))), 422, 'One or more products are unavailable in this store.');
+        abort_if(array_sum(array_column($validated['items'], 'quantity')) > 1000, 422, 'Print at most 1000 labels at a time.');
 
         // Map quantities to products
         $printItems = [];
@@ -51,7 +54,7 @@ class LabelController extends Controller
         $pdf = Pdf::loadView('pdf.labels', [
             'items' => $printItems,
             'settings' => $validated['settings']
-        ]);
+        ])->setOptions(['isRemoteEnabled' => false]);
 
         // A4 paper for now, user can cut or we can add custom paper size logic later
         $pdf->setPaper('a4', 'portrait');

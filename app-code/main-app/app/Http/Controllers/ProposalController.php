@@ -583,6 +583,7 @@ class ProposalController extends Controller
     public function print(Proposal $proposal)
     {
         $proposal->load(['items.product', 'customer', 'user']);
-        return view('proposals.print', compact('proposal'));
+        $settings = \App\Models\Setting::where('tenant_id', $proposal->tenant_id)->pluck('value', 'key');
+        return view('proposals.print', compact('proposal', 'settings'));
     }
 }

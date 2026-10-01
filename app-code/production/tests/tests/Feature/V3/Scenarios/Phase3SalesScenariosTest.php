@@ -145,54 +145,22 @@ class Phase3SalesScenariosTest extends VenQoreTestCase
         $this->assertSame(0, DB::table('sales')->where('tenant_id', $this->tenantId)->count());
         $this->assertDatabaseHas('inventory_batches', ['id' => $batchId, 'remaining_qty' => 10]);
 
-        // ── HTTP (V3 checkout route) as a CASHIER ────────────────────────────
+        // The V3 route is an administrative invoice route. A cashier cannot
+        // turn it into trusted POS checkout with client-supplied PIN fields.
+        // Genuine till checkout and manager-PIN coverage lives in
+        // PosApprovalGuardTest against POST /pos/sales.
         $cashier = $this->member('cashier', '999999');
         $manager = $this->member('manager', self::MANAGER_PIN);
         $this->actingAs($cashier);
 
         $payload = $this->httpSale('cash', [['qty' => 2, 'unit_price' => 50.00]]);
-
-        // (a) no approval at all → a validation error, not a 500 and not a sale
-        $this->from('/pos')->post($this->v3('sales'), $payload)
-            ->assertRedirect('/pos')
-            ->assertSessionHasErrors('approved_by');
-
-        // (b) the cashier "approving" their own below-cost sale is not a manager approval
-        $this->from('/pos')->post($this->v3('sales'), $payload + ['approved_by' => (string) $cashier->id, 'approval_pin' => '999999'])
-            ->assertSessionHasErrors('approved_by');
-
-        // (c) naming a manager without the manager's PIN is rejected
-        $this->from('/pos')->post($this->v3('sales'), $payload + ['approved_by' => (string) $manager->id])
-            ->assertSessionHasErrors('approved_by');
-        $this->from('/pos')->post($this->v3('sales'), $payload + ['approved_by' => (string) $manager->id, 'approval_pin' => '000000'])
-            ->assertSessionHasErrors('approved_by');
-
-        $this->assertSame(0, DB::table('sales')->where('tenant_id', $this->tenantId)->count(),
-            'No below-cost sale may be posted without a verified manager PIN.');
-        $this->assertDatabaseHas('inventory_batches', ['id' => $batchId, 'remaining_qty' => 10]);
-
-        // (d) manager + correct PIN → the sale posts, at the below-cost price
-        $this->from('/pos')->post($this->v3('sales'), $payload + [
+        $this->postJson($this->v3('sales'), $payload + [
             'approved_by'  => (string) $manager->id,
             'approval_pin' => self::MANAGER_PIN,
-        ])->assertSessionHasNoErrors();
+        ])->assertStatus(202)->assertJsonPath('status', 'pending_approval');
 
-        $sale = DB::table('sales')->where('tenant_id', $this->tenantId)->first();
-        $this->assertNotNull($sale);
-        $this->assertEqualsWithDelta(100.00, (float) $sale->invoice_total, 0.001);
-        $this->assertSame('paid', $sale->payment_status);
-        // The sale is still recorded as rung up by the cashier — the manager only approved it.
-        $this->assertSame((string) $cashier->id, (string) $sale->user_id);
-
-        $je = $this->saleEntry($sale->id);
-        $this->assertSame((string) $manager->id, (string) $je->approved_by, 'approved_by must be stamped on the journal entry (S-011).');
-        $this->assertLine($je->id, '4000', 0, 100.00);
-        $this->assertLine($je->id, '1000', 100.00, 0);
-        $this->assertLine($je->id, '5000', 120.00, 0);   // true FIFO cost, even though it is a loss
-        $this->assertLine($je->id, '1100', 0, 120.00);
-        $this->assertDatabaseHas('inventory_batches', ['id' => $batchId, 'remaining_qty' => 8]);
-
-        $this->assertAllEntriesBalance();
+        $this->assertSame(0, DB::table('sales')->where('tenant_id', $this->tenantId)->count());
+        $this->assertDatabaseHas('inventory_batches', ['id' => $batchId, 'remaining_qty' => 10]);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -676,40 +644,17 @@ class Phase3SalesScenariosTest extends VenQoreTestCase
         $manager  = $this->member('manager', self::MANAGER_PIN);   // global default limit 50%
         $this->actingAs($cashier);
 
-        // (a) 4% is inside the cashier's own limit
-        $this->from('/pos')->post($this->v3('sales'), $this->httpSale('cash', [['qty' => 1, 'unit_price' => 100.00, 'discount_percent' => 4]]))
-            ->assertSessionHasNoErrors();
+        // The administrative V3 invoice route always enters maker-checker for
+        // this cashier. Client PIN fields cannot grant trusted POS clearance.
+        $this->postJson($this->v3('sales'), $this->httpSale('cash', [['qty' => 1, 'unit_price' => 100.00, 'discount_percent' => 4]]))
+            ->assertStatus(202)->assertJsonPath('status', 'pending_approval');
 
-        // (b) 8% is over this store's 5% → blocked without approval
         $over = $this->httpSale('cash', [['qty' => 2, 'unit_price' => 100.00, 'discount_percent' => 8]]);
-        $this->from('/pos')->post($this->v3('sales'), $over)->assertSessionHasErrors('items.0.discount_percent');
-
-        // (c) another cashier cannot approve it, nor can a manager without a PIN
-        $this->from('/pos')->post($this->v3('sales'), $over + ['approved_by' => (string) $cashier2->id, 'approval_pin' => '888888'])
-            ->assertSessionHasErrors('approved_by');
-        $this->from('/pos')->post($this->v3('sales'), $over + ['approved_by' => (string) $manager->id, 'approval_pin' => '000000'])
-            ->assertSessionHasErrors('approved_by');
-
-        // (d) 60% is beyond even the manager's own 50% limit
-        $this->from('/pos')->post($this->v3('sales'), $this->httpSale('cash', [['qty' => 1, 'unit_price' => 100.00, 'discount_percent' => 60]]) + [
+        $this->postJson($this->v3('sales'), $over + [
             'approved_by' => (string) $manager->id, 'approval_pin' => self::MANAGER_PIN,
-        ])->assertSessionHasErrors('items.0.discount_percent');
+        ])->assertStatus(202)->assertJsonPath('status', 'pending_approval');
 
-        $this->assertSame(1, DB::table('sales')->where('tenant_id', $this->tenantId)->count(), 'Only the 4% sale may have posted so far.');
-
-        // (e) manager + PIN → 8% goes through: 200 − 16 = 184
-        $this->from('/pos')->post($this->v3('sales'), $over + ['approved_by' => (string) $manager->id, 'approval_pin' => self::MANAGER_PIN])
-            ->assertSessionHasNoErrors();
-
-        $sale = DB::table('sales')->where('tenant_id', $this->tenantId)->where('total_item_discounts', '>', 10)->first();
-        $this->assertNotNull($sale);
-        $this->assertEqualsWithDelta(16.00, (float) $sale->total_item_discounts, 0.001);
-        $this->assertEqualsWithDelta(184.00, (float) $sale->net_sales, 0.001);
-        $je = $this->saleEntry($sale->id);
-        $this->assertSame((string) $manager->id, (string) $je->approved_by);
-        $this->assertLine($je->id, '4000', 0, 184.00);
-
-        $this->assertAllEntriesBalance();
+        $this->assertSame(0, DB::table('sales')->where('tenant_id', $this->tenantId)->count());
     }
 
     // ═══════════════════════════════════════════════════════════════════

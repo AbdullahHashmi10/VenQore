@@ -1,3 +1,4 @@
+const { sanitizePrintContent } = require('./print-payload');
 /**
  * VenQore Station - Electron Main Process
  * SaaS Cloud Edition — Hardware Bridge Only
@@ -520,19 +521,28 @@ secureHandle('amd:check', () => ({
 
 // ─── IPC: HARDWARE — PRINTING ─────────────────────────────────────────────────
 async function printReceipt(data) {
+    const printerName = data.printerName || prefs.defaultPrinter;
+    if (!printerName) return { success: false, error: 'Select a receipt printer in Station settings first.' };
+    const printers = await getPrinters();
+    if (!printers.some(printer => printer.name === printerName)) {
+        return { success: false, error: `Selected printer is unavailable: ${printerName}` };
+    }
+    const paperWidth = data.paperWidth || '80mm';
+    if (!['58mm', '80mm'].includes(paperWidth)) return { success: false, error: 'Station supports 58mm and 80mm rolls. Use browser printing for 100mm documents.' };
     const options = {
         preview: false,
         type: 'epson',
-        width: data.paperWidth || '80mm',
+        width: paperWidth,
         margin: '0 0 0 0',
         copies: data.copies || 1,
-        printerName: data.printerName || prefs.defaultPrinter,
+        printerName,
         timeOutPerLine: 400,
         silent: true,
-        pageSize: { width: 80000, height: 297000 }
+        pageSize: paperWidth
     };
     try {
-        await PosPrinter.print(data.content, options);
+        const result = await PosPrinter.print(sanitizePrintContent(data.content), options);
+        if (!result?.complete) return { success: false, error: 'Printer did not accept the job.' };
         return { success: true };
     } catch (e) {
         console.error('[Print]', e.message);
@@ -540,17 +550,9 @@ async function printReceipt(data) {
     }
 }
 
-function kickDrawer(printerName) {
-    try {
-        PosPrinter.print([{ type: 'text', value: '' }], {
-            preview: false, width: '80mm', copies: 1,
-            printerName: printerName || prefs.defaultPrinter,
-            silent: true
-        });
-        return { success: true };
-    } catch (e) {
-        return { success: false, error: e.message };
-    }
+function kickDrawer() {
+    // A blank HTML print is not a drawer pulse. Do not claim hardware success.
+    return { success: false, error: 'Configure the printer driver to open the cash drawer after printing. Standalone drawer control is not supported by this Station transport.' };
 }
 
 async function getPrinters() {
@@ -580,7 +582,13 @@ secureHandle('amd:print',       async (e, d) => {
 });
 secureHandle('amd:drawer',      async (e, p) => kickDrawer(p));
 secureHandle('amd:printers',    async ()    => getPrinters());
-secureHandle('amd:set-printer', async (e, name) => { savePrefs({ defaultPrinter: name }); return { success: true }; });
+secureHandle('amd:set-printer', async (e, name) => {
+    if (typeof name !== 'string' || !(await getPrinters()).some(p => p.name === name)) {
+        return { success: false, error: 'Select an installed printer.' };
+    }
+    savePrefs({ defaultPrinter: name });
+    return { success: true };
+});
 secureHandle('amd:test-print',  async ()    => testPrint());
 
 // ─── IPC: OPEN EXTERNAL LINK ──────────────────────────────────────────────────

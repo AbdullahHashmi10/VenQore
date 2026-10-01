@@ -62,8 +62,8 @@ abstract class VenQoreTestCase extends TestCase
     protected function refreshTestDatabase()
     {
         if (! RefreshDatabaseState::$migrated) {
-            if (! \Illuminate\Support\Facades\Schema::hasTable('plans')) {
-                $this->artisan('migrate', [
+            if (! \Illuminate\Support\Facades\Schema::hasTable('plans') || ! \Illuminate\Support\Facades\Schema::hasTable('cheque_books')) {
+                $this->artisan('migrate:fresh', [
                     '--seed' => true,
                     '--seeder' => \Database\Seeders\PlanFeatureMatrixSeeder::class,
                 ]);

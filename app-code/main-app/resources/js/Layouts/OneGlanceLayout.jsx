@@ -34,6 +34,7 @@ import {
  ChevronUp,
  BookOpen,
  FileText,
+ FileCheck,
  ShieldCheck,
  Database,
  ShoppingCart,
@@ -73,6 +74,7 @@ import CharityButton from '@/Components/CharityButton';
 import VersionChecker from '@/Components/VersionChecker';
 import TerminalStatusBadge from '@/Components/TerminalStatusBadge';
 import Toast from '@/Components/Toast';
+import ApprovalSubmissionModal from '@/Components/ApprovalSubmissionModal';
 import UpgradeModal from '@/Components/UpgradeModal';
 import GlobalOnboardingWidget from '@/Components/GlobalOnboardingWidget';
 import ImpersonationBanner from '@/Components/ImpersonationBanner';
@@ -151,6 +153,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  };
 
  const [currentTime, setCurrentTime] = useState(new Date());
+ const [approvalSubmissionData, setApprovalSubmissionData] = useState(null);
  useEffect(() => {
      if (!showClock) return;
      const clockInterval = setInterval(() => {
@@ -172,8 +175,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  if (flash?.info) {
  addToast(flash.info, 'info');
+
+ // Check if flash.info indicates an approval submission
+ if (typeof flash.info === 'string' && flash.info.toLowerCase().includes('submitted for approval')) {
+     const refMatch = flash.info.match(/\(ref:\s*([^)]+)\)/i);
+     const labelMatch = flash.info.match(/^([^.]+?)\s+submitted/i);
+     setApprovalSubmissionData({
+         documentNumber: refMatch ? refMatch[1] : (flash.document_number || ''),
+         docLabel: labelMatch ? labelMatch[1] : 'Transaction',
+     });
  }
- }, [flash?.success, flash?.error, flash?.warning, flash?.info]);
+ }
+ if (flash?.status === 'pending_approval' && !approvalSubmissionData) {
+     setApprovalSubmissionData({
+         documentNumber: flash.document_number || '',
+         docLabel: flash.document_type || 'Transaction',
+     });
+ }
+ }, [flash?.success, flash?.error, flash?.warning, flash?.info, flash?.status]);
 
  // Listen for AJAX toast events (from axios interceptor in bootstrap.js)
  useEffect(() => {
@@ -190,12 +209,20 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
  };
 
+ const handleApprovalModal = (e) => {
+ if (e.detail) {
+ setApprovalSubmissionData(e.detail);
+ }
+ };
+
  window.addEventListener('amd:toast', handleToast);
  window.addEventListener('amd:network-error', handleNetworkError);
+ window.addEventListener('amd:approval-modal', handleApprovalModal);
 
  return () => {
  window.removeEventListener('amd:toast', handleToast);
  window.removeEventListener('amd:network-error', handleNetworkError);
+ window.removeEventListener('amd:approval-modal', handleApprovalModal);
  };
  }, []);
 
@@ -733,6 +760,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  routeParams: store ? { store_slug: store.slug } : {}
  },
  {
+ 	name: 'Approvals',
+ 	icon: FileCheck,
+ 	badgeCount: (props.auth?.user?.can_review_approvals ?? false) ? (props.auth?.pending_approvals_count || 0) : 0,
+ 	subs: (props.auth?.user?.can_review_approvals ?? false)
+ 	? [
+ 		{ group: 'Workflow', items: ['Approval Inbox', 'Approval Policies'] }
+ 	]
+ 	: [
+ 		{ group: 'Workflow', items: ['My Submissions'] }
+ 	],
+ 	route: (props.auth?.user?.can_review_approvals ?? false)
+ 	? (store ? 'store.approvals.inbox' : 'approvals.inbox')
+ 	: (store ? 'store.approvals.my-submissions' : 'approvals.my-submissions'),
+ 	routeParams: store ? { store_slug: store.slug } : {}
+ },
+ {
  name: 'VenSynQ',
  icon: RefreshCcw,
  subs: [
@@ -763,7 +806,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   icon: ShieldCheck,
   subs: [
   { group: 'Executive', items: ['Executive Dashboard'] },
-  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance', 'Approvals'] },
+  { group: 'Team & Staff', items: ['User Management', 'Staff Attendance'] },
   { group: 'System & Data', items: ['Modules & Features', 'Data Management', 'Activity Log', 'Recycle Bin', ...(!is_demo ? ['Subscription'] : [])] }
   ],
   route: store ? 'store.admin.dashboard' : null,
@@ -934,6 +977,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Bank Reconciliation': ['store.bank-reconciliation.index'],
 		'VenSynQ': ['store.vensynq.index'],
 		'WooCommerce Sync': ['store.vensynq.index', 'store.woocommerce.index'],
+		'Approval Inbox': ['store.approvals.inbox'],
+		'Approval Policies': ['store.settings'],
+		'My Submissions': ['store.approvals.my-submissions'],
 		'Approvals': ['store.approvals.inbox', 'store.approvals.my-submissions'],
 	};
 
@@ -953,6 +999,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const subitemModuleVisible = (item) => {
 		const label = typeof item === 'string' ? item : item?.label;
 		if (!label) return true;
+
+		// Approvals subitems
+		if (label === 'Approval Inbox') {
+			return isPlatformAdmin || userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('approvals.inbox', 'approvals.review');
+		}
+		if (label === 'Approval Policies') {
+			return isPlatformAdmin || userRole === 'owner' || userRole === 'admin' || hasAnyPerm('approvals.configure', 'admin.settings_manage');
+		}
+		if (label === 'My Submissions') {
+			return !(isPlatformAdmin || userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('approvals.inbox', 'approvals.review'));
+		}
 
 		// Kitchen and Dispatch are visible ONLY when prepares_orders is active ('1')
 		if (label === 'Kitchen' || label === 'Dispatch') {
@@ -1001,7 +1058,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 			   falls through to the "no children left" rule like everything
 			   else, and reappears the moment a module that reports on something
 			   is switched back on. */
-			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance'].includes(group.name)) {
+			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance', 'Approvals'].includes(group.name)) {
 				return true;
 			}
 			// For cashiers, keep Sell if POS is enabled
@@ -1114,7 +1171,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'VenSynQ': ['sales.create', 'inventory.adjust'],
  'Insights': ['reports'],
  'Activity Log': ['audit'],
- 'Approvals': ['approvals.inbox', 'approvals.review'],
+ 'Approvals': [],
  'Recycle Bin': ['settings'],
  // 'Settings': ['settings'], // Removed
  // 'System': ['settings', 'audit'], // Removed
@@ -1140,6 +1197,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const rawMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? adminMenuItems : appMenuItems;
 
  const menuItems = rawMenuItems.filter(item => {
+ // Approvals visibility rules:
+ if (item.name === 'Approvals') {
+ const rawVal = settings?.approval_admin_enabled ?? 
+ props?.settings?.approval_admin_enabled ?? 
+ props?.store?.approval_admin_enabled ?? 
+ (typeof window !== 'undefined' ? window?.amdSettings?.approval_admin_enabled : null);
+ const isExplicitlyOff = String(rawVal) === '0' || rawVal === 0 || rawVal === false || String(rawVal).toLowerCase() === 'false' || String(rawVal).toLowerCase() === 'off';
+ const isApprovalEnabled = !isExplicitlyOff;
+ const hasPendingDoc = (props.auth?.pending_approvals_count || 0) > 0;
+ const isApprovalRoute = url?.includes('/approvals');
+ if (isApprovalEnabled || hasPendingDoc || isApprovalRoute) {
+ return true;
+ }
+ return false;
+ }
+
  // Exclude VenSynQ if disabled platform-wide
  if (item.name === 'VenSynQ' && !vensynq_enabled) {
  return false;
@@ -1184,6 +1257,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Check if current route matches the item's main route
  if (item.route && route().current(item.route)) return true;
+
+ // Custom mapping for Approvals
+ if (item.name === 'Approvals' && (route().current('store.approvals.*') || route().current('approvals.*') || url?.includes('/approvals'))) return true;
 
  // Custom mapping for Insights -> reports.*
  if (item.name === 'Insights' && route().current('store.reports.*')) return true;
@@ -1423,6 +1499,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
       route={item.route}
       routeParams={item.routeParams || { store_slug: store?.slug }}
       menuKey={item.name}
+      badgeCount={item.badgeCount || 0}
       onHoverExpand={handleHoverExpand}
       isPlatformHQ={isPlatformAdmin && !store}
       isExpanded={showExpandedSidebar}
@@ -2276,6 +2353,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 				{/* Global Toast Notifications */}
  <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
+
+				{/* Global Approval Submission Centered Modal Popup */}
+				<ApprovalSubmissionModal
+					isOpen={!!approvalSubmissionData}
+					onClose={() => setApprovalSubmissionData(null)}
+					{...approvalSubmissionData}
+				/>
 
  				{/* Loud Kitchen Printer Alerts */}
  				<KitchenPrinterAlertModal />

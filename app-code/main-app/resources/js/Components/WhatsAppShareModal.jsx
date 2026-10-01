@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import {
@@ -27,6 +27,7 @@ export default function WhatsAppShareModal({
 }) {
   const { store } = usePage().props;
 
+  const draftRequest = useRef(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [draftData, setDraftData] = useState(null);
@@ -40,13 +41,17 @@ export default function WhatsAppShareModal({
       setPopupBlocked(false);
       setOpenedSuccess(false);
       setError(null);
-      fetchDraft(phone || initialPhone);
+      setPhone(initialPhone || '');
+      setDraftData(null);
+      fetchDraft(initialPhone);
     } else {
       setDraftData(null);
     }
-  }, [isOpen, documentId, documentType]);
+    return () => { draftRequest.current += 1; };
+  }, [isOpen, documentId, documentType, initialPhone]);
 
   const fetchDraft = async (phoneToUse) => {
+    const request = ++draftRequest.current;
     setLoading(true);
     setError(null);
     try {
@@ -59,18 +64,20 @@ export default function WhatsAppShareModal({
         }
       );
 
+      if (request !== draftRequest.current) return;
       if (res.data.success) {
         setDraftData(res.data);
-        if (!phone && res.data.phone) {
+        if (!phoneToUse && res.data.phone) {
           setPhone(res.data.phone);
         }
       } else {
         setError(res.data.message || 'Unable to prepare WhatsApp draft.');
       }
     } catch (err) {
+      if (request !== draftRequest.current) return;
       setError(err.response?.data?.message || err.message || 'Failed to connect to server.');
     } finally {
-      setLoading(false);
+      if (request === draftRequest.current) setLoading(false);
     }
   };
 
@@ -117,11 +124,13 @@ export default function WhatsAppShareModal({
     if (!draftData?.wa_url) return;
 
     // Synchronously open WhatsApp Click-to-Chat in new tab/app on user gesture
-    const newWin = window.open(draftData.wa_url, '_blank', 'noopener,noreferrer');
+    const newWin = window.open('about:blank', '_blank');
     if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
       // Pop-up blocker triggered: DO NOT record opened status yet!
       setPopupBlocked(true);
     } else {
+      newWin.opener = null;
+      newWin.location.replace(draftData.wa_url);
       // Window opened successfully: record opened status now
       sendOpenedRecord();
       setOpenedSuccess(true);
@@ -138,6 +147,10 @@ export default function WhatsAppShareModal({
       const res = await fetch(draftData.pdf_url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error('PDF download failed');
       const blob = await res.blob();
+      if (!res.headers.get('content-type')?.toLowerCase().includes('application/pdf') ||
+          await blob.slice(0, 5).text() !== '%PDF-') {
+        throw new Error('The server did not return a PDF. Sign in again and retry.');
+      }
       const filename = `${draftData.document_type || 'document'}-${draftData.document_number || 'download'}.pdf`;
       const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -146,10 +159,9 @@ export default function WhatsAppShareModal({
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(blobUrl);
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 30000);
     } catch (e) {
-      console.warn('PDF blob download failed, falling back to direct navigation', e);
-      window.open(draftData.pdf_url, '_blank');
+      setError(e.message || 'PDF download failed. Please retry.');
     } finally {
       setDownloadingPdf(false);
     }
@@ -162,6 +174,10 @@ export default function WhatsAppShareModal({
       const res = await fetch(draftData.pdf_url, { credentials: 'same-origin' });
       if (!res.ok) throw new Error('Failed to fetch PDF for sharing');
       const blob = await res.blob();
+      if (!res.headers.get('content-type')?.toLowerCase().includes('application/pdf') ||
+          await blob.slice(0, 5).text() !== '%PDF-') {
+        throw new Error('The server did not return a PDF. Sign in again and retry.');
+      }
       const filename = `${draftData.document_type || 'document'}-${draftData.document_number || 'receipt'}.pdf`;
       const file = new File([blob], filename, { type: 'application/pdf' });
 

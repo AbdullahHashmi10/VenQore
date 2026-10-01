@@ -1,0 +1,327 @@
+/* ==========================================================================
+   KITCHEN DISPLAY — stylesheet
+   ==========================================================================
+   A wall screen read from two metres, by someone whose hands are full.
+
+   Two rules do most of the work here and neither is decorative:
+
+   1. AGE IS A COLOUR. A cook should not have to read four clocks to find the
+      oldest ticket. The band is on the ticket's edge and header, so it is
+      legible in peripheral vision.
+   2. TYPE IS LARGER THAN ANYWHERE ELSE IN THE PRODUCT. The register's ramp is
+      built for arm's length; this one steps up from it, because the reading
+      distance is different and everything else follows from that.
+
+   It follows the app's theme rather than forcing its own dark. A kitchen that
+   wants a black screen sets dark mode once, and then this board matches the
+   rest of the product instead of being the one page with its own palette.
+   ========================================================================== */
+
+.kds {
+    --kds-gap: 12px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--vq-bg, #f4f7f5);
+    color: var(--vq-text, #0d1412);
+    font-family: var(--vq-font-sans, inherit);
+}
+
+/* --------------------------------------------------------------------------
+   THE BAR
+   -------------------------------------------------------------------------- */
+.kds-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+}
+
+.kds-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--vq-accent-text, #076b5e);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -.01em;
+}
+
+.kds-seg {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 12px;
+    background: var(--vq-sunken, #e6ece8);
+    border: 1px solid var(--vq-line, #d3dcd7);
+}
+.kds-seg button {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 9px;
+    color: var(--vq-text-3, #6b7a73);
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.kds-seg button:hover { color: var(--vq-text, #0d1412); }
+.kds-seg button[data-on='1'] {
+    background: var(--vq-surface, #fff);
+    color: var(--vq-text, #0d1412);
+    box-shadow: 0 1px 2px rgb(13 20 18 / .08);
+}
+.kds-seg button:focus-visible { outline: none; box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30)); }
+
+.kds-bar-end { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+
+.kds-late {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--vq-danger-100, #fbd9d5);
+    color: var(--vq-danger-700, #9c342c);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.kds-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--vq-success-50, #e7f8ee);
+    color: var(--vq-success-700, #14663a);
+    font-size: 12px;
+    font-weight: 800;
+}
+.kds-live[data-live='0'] {
+    background: var(--vq-danger-50, #fdecea);
+    color: var(--vq-danger-700, #9c342c);
+}
+
+.kds-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+    color: var(--vq-text-2, #536159);
+    font-size: 13px;
+    font-weight: 800;
+}
+.kds-link:hover { border-color: var(--vq-teal-300, #59dbc0); color: var(--vq-accent-text, #076b5e); }
+
+/* --------------------------------------------------------------------------
+   THE BOARD
+   Fixed-width columns rather than a fluid grid: a ticket has a natural
+   width -- about forty characters of dish name -- and stretching it to fill
+   an ultrawide screen makes one ticket harder to read, not easier. Extra
+   width buys more COLUMNS, which is the same law the catalog follows.
+   -------------------------------------------------------------------------- */
+.kds-board {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+    align-content: start;
+    gap: var(--kds-gap);
+    padding: var(--kds-gap);
+}
+
+.kds-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 80px 20px;
+    color: var(--vq-text-3, #6b7a73);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   A TICKET
+   -------------------------------------------------------------------------- */
+.kds-ticket {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: 14px;
+    border: 1px solid var(--vq-line, #d3dcd7);
+    border-left-width: 5px;
+    background: var(--vq-surface, #fff);
+    box-shadow: 0 1px 3px rgb(13 20 18 / .07);
+    overflow: hidden;
+}
+
+/* Age, as an edge. */
+.kds-ticket[data-band='new']  { border-left-color: var(--vq-teal-500, #23c4a6); }
+.kds-ticket[data-band='on']   { border-left-color: var(--vq-info-500, #3b82f6); }
+.kds-ticket[data-band='slow'] { border-left-color: var(--vq-warning-500, #e6a417); }
+.kds-ticket[data-band='late'] { border-left-color: var(--vq-danger-500, #dc5a4e); }
+.kds-ticket[data-band='done'] { border-left-color: var(--vq-line, #d3dcd7); opacity: .6; }
+
+.kds-ticket-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--vq-line-soft, #e6ece8);
+    background: var(--vq-sunken, #e6ece8);
+}
+.kds-ticket[data-band='late'] .kds-ticket-h {
+    background: var(--vq-danger-50, #fdecea);
+}
+.kds-ticket[data-band='slow'] .kds-ticket-h {
+    background: var(--vq-warning-50, #fef6e3);
+}
+
+.kds-ticket-where {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    color: var(--vq-text-2, #536159);
+}
+.kds-ticket-where b {
+    color: var(--vq-text, #0d1412);
+    font-family: var(--vq-font-numeric, inherit);
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: .01em;
+}
+
+.kds-course {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--vq-violet-100, #eee3fa);
+    color: var(--vq-violet-700, #6b3aa0);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.kds-clock {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-size: 17px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--vq-text-2, #536159);
+    white-space: nowrap;
+}
+.kds-ticket[data-band='slow'] .kds-clock { color: var(--vq-warning-700, #7a5308); }
+.kds-ticket[data-band='late'] .kds-clock { color: var(--vq-danger-700, #9c342c); }
+
+.kds-items {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    min-height: 0;
+}
+
+.kds-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 5px 2px;
+    min-width: 0;
+}
+.kds-item + .kds-item { border-top: 1px solid var(--vq-line-soft, #e6ece8); }
+.kds-item-empty { color: var(--vq-text-3, #6b7a73); font-size: 13px; }
+
+.kds-qty {
+    flex: 0 0 auto;
+    min-width: 26px;
+    padding: 1px 6px;
+    border-radius: 7px;
+    background: var(--vq-sunken, #e6ece8);
+    color: var(--vq-text, #0d1412);
+    font-size: 15px;
+    font-weight: 800;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.kds-item-body { min-width: 0; display: flex; flex-direction: column; }
+
+.kds-item-name {
+    color: var(--vq-text, #0d1412);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+/* Options and notes are what the cook gets WRONG if they are hard to see, so
+   they are tinted rather than greyed -- the usual "secondary text is quieter"
+   rule is the wrong instinct here. */
+.kds-item-mods {
+    margin-top: 1px;
+    color: var(--vq-accent-text, #076b5e);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+.kds-item-note {
+    margin-top: 1px;
+    color: var(--vq-warning-700, #7a5308);
+    font-size: 13px;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1.35;
+}
+
+.kds-ticket-f {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 6px;
+    padding: 8px 10px;
+    border-top: 1px solid var(--vq-line-soft, #e6ece8);
+}
+
+.kds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 11px;
+    border: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+    color: var(--vq-text-2, #536159);
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+.kds-btn:hover:not(:disabled) { border-color: var(--vq-teal-300, #59dbc0); }
+.kds-btn:disabled { opacity: .45; cursor: default; }
+.kds-btn:focus-visible { outline: none; box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30)); }
+.kds-btn-go {
+    flex: 1 1 auto;
+    background: var(--vq-teal-600, #12a58c);
+    border-color: var(--vq-teal-600, #12a58c);
+    color: #fff;
+}
+.kds-btn-go:hover:not(:disabled) { background: var(--vq-teal-500, #23c4a6); border-color: var(--vq-teal-500, #23c4a6); }
+
+@media (prefers-reduced-motion: reduce) {
+    .kds-ticket, .kds-btn, .kds-seg button { transition: none; }
+}

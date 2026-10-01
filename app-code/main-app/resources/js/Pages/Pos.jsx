@@ -54,12 +54,13 @@ import {
     Lock
 } from 'lucide-react';
 import axios from 'axios';
+import { handleApprovalResponse } from '@/lib/approval-response';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
 import { getProductPrice, shouldStopNegativeStock, roundTotal } from '@/Utils/settings';
 import { db } from '@/Utils/db';
-import { useAMDStation } from '@/Utils/AMDStation';
+import { AMDStation, useAMDStation } from '@/Utils/AMDStation';
 
 import Toast from '@/Components/Toast';
 import AlertModal from '@/Components/AlertModal';
@@ -303,17 +304,21 @@ const POSInterface = ({
         const id = Date.now();
         setToasts(prev => [...prev, { id, message, type }]);
     };
+    useEffect(() => {
+        const handler = event => setToasts(prev => [...prev, { id: Date.now(), message: event.detail.message, type: event.detail.type || 'error' }]);
+        window.addEventListener('amd:toast', handler);
+        return () => window.removeEventListener('amd:toast', handler);
+    }, []);
     const showAlert = (title, message, type = 'error') => setAlertState({ show: true, title, message, type });
     const showConfirm = (title, message, onConfirm, isDangerous = false) => setConfirmState({ show: true, title, message, onConfirm, isDangerous });
     const showInput = (title, placeholder, onSubmit) => setInputState({ show: true, title, placeholder, onSubmit });
 
     // Open Cash Drawer Trigger (Hardware pulse)
-    const handleOpenCashDrawer = () => {
+    const handleOpenCashDrawer = async () => {
         try {
-            if (window.AMDStation && typeof window.AMDStation.openDrawer === 'function') {
-                window.AMDStation.openDrawer();
-            }
-            addToast('Cash drawer signal pulse sent', 'success');
+            const result = await AMDStation.openDrawer();
+            if (!result?.success) throw new Error(result?.error || 'Drawer request failed');
+            addToast('Cash drawer signal sent', 'success');
         } catch(e) {
             addToast('Cash drawer trigger failed: ' + e.message, 'error');
         }
@@ -2532,9 +2537,7 @@ const POSInterface = ({
            completed sale -- the drawer only ever opened from a manual button. */
         if (openDrawerOnCash && (paymentData.method === 'cash' || paymentMethod === 'cash')) {
             try {
-                if (window.AMDStation && typeof window.AMDStation.openDrawer === 'function') {
-                    window.AMDStation.openDrawer();
-                }
+                AMDStation.openDrawer().then(result => { if (!result?.success) addToast(result?.error || 'Cash drawer request failed', 'error'); });
             } catch (_) { /* no station: the sale still completed */ }
         }
 
@@ -4899,7 +4902,9 @@ const POSInterface = ({
                     refund_method: 'cash',
                     reason: 'POS Open Return',
                 });
-                addToast(`Return processed — Ref: ${response.data.reference}`, 'success');
+                if (!handleApprovalResponse(response, 'POS return')) {
+                    addToast(`Return processed — Ref: ${response.data.reference}`, 'success');
+                }
                 setReturnMode(false);
                 updateActiveSale({ cart: [], customer: null });
             } else {
@@ -4908,13 +4913,15 @@ const POSInterface = ({
                     setReturnProcessing(false);
                     return;
                 }
-                await axios.post(route('store.sales.return', { store_slug: store?.slug, sale: returnSaleId }), {
+                const response = await axios.post(route('store.sales.return', { store_slug: store?.slug, sale: returnSaleId }), {
                     refund_method: 'cash',
                     refund_source: 'cash_drawer',
                     reason: 'POS return',
                     items: activeSale.cart.map(i => ({ id: i.sale_item_id || i.id, quantity: i.qty })),
                 });
-                addToast('Return processed successfully', 'success');
+                if (!handleApprovalResponse(response, 'POS return')) {
+                    addToast('Return processed successfully', 'success');
+                }
                 setReturnMode(false);
                 setReturnSaleId(null);
                 setReturnSaleRef('');
@@ -6577,7 +6584,7 @@ const POSInterface = ({
                                             </p>
                                         </div>
                                         <button
-                                            onClick={() => { setLastSale(inv); printReceipt('reprint'); }}
+                                            onClick={() => PrintService.quickPrint(inv, null, settings)}
                                             className="px-4 rounded-lg bg-surface border border-line text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-xs font-bold shrink-0"
                                         >
                                             <Printer size={14} className="inline mr-1.5" />Reprint

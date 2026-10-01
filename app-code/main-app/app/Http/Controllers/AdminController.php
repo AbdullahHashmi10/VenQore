@@ -420,10 +420,47 @@ class AdminController extends Controller
             return strtotime($b['date']) - strtotime($a['date']);
         });
 
+        $tenant = app('current.tenant');
+        $usersWithApprovals = [];
+        if ($tenant) {
+            $userDocSettings = \App\Models\Setting::withoutGlobalScopes()
+                ->where('tenant_id', $tenant->id)
+                ->where('key', 'like', 'approval_user_%')
+                ->where('value', 'required')
+                ->pluck('key')
+                ->toArray();
+
+            $usersWithApprovals = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                ->where(function($q) use ($userDocSettings) {
+                    $q->whereIn('transaction_approval_mode', ['required', 'custom']);
+                    if (!empty($userDocSettings)) {
+                        $userIdsFromSettings = array_unique(array_filter(array_map(function($k) {
+                            if (preg_match('/^approval_user_([0-9a-f\-]+)_/i', $k, $matches)) {
+                                return $matches[1];
+                            }
+                            return null;
+                        }, $userDocSettings)));
+                        if (!empty($userIdsFromSettings)) {
+                            $q->orWhereIn('user_id', $userIdsFromSettings);
+                        }
+                    }
+                })
+                ->with('user:id,name,email')
+                ->get()
+                ->map(fn($tu) => [
+                    'id'   => $tu->user_id,
+                    'name' => $tu->user?->name ?? $tu->display_name ?? 'Staff Member',
+                    'mode' => $tu->transaction_approval_mode,
+                ])
+                ->values()
+                ->toArray();
+        }
+
         return \Inertia\Inertia::render('Admin/Settings', [
-            'mode' => 'admin',
-            'settings' => $settings,
-            'backups' => $backups
+            'mode'               => 'admin',
+            'settings'           => $settings,
+            'backups'            => $backups,
+            'usersWithApprovals' => $usersWithApprovals,
         ]);
     }
 
@@ -472,7 +509,7 @@ class AdminController extends Controller
                 'default_tax_rate', 'default_tax_basis', 'tax_rates', 'default_tax_id'
             ],
             'customers_suppliers' => [
-                'loyalty_enabled', 'enable_credit_limit', 'party_grouping'
+                'loyalty_enabled', 'enable_credit_limit', 'party_grouping', 'strict_party_roles'
             ],
             'stock_items' => [
                 'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
@@ -602,6 +639,49 @@ class AdminController extends Controller
             }
         }
 
+        // Protective safeguard: Cannot turn off store approvals if members have approvals on
+        if (isset($settingsData['approval_admin_enabled']) && in_array((string)$settingsData['approval_admin_enabled'], ['0', 'false'], true)) {
+            $tenantId = app('current.tenant')?->id;
+            if ($tenantId) {
+                $userDocSettings = \App\Models\Setting::withoutGlobalScopes()
+                    ->where('tenant_id', $tenantId)
+                    ->where('key', 'like', 'approval_user_%')
+                    ->where('value', 'required')
+                    ->pluck('key')
+                    ->toArray();
+
+                $activeApprovalMembers = \App\Models\TenantUser::where('tenant_id', $tenantId)
+                    ->where(function($q) use ($userDocSettings) {
+                        $q->whereIn('transaction_approval_mode', ['required', 'custom']);
+                        if (!empty($userDocSettings)) {
+                            $userIdsFromSettings = array_unique(array_filter(array_map(function($k) {
+                                if (preg_match('/^approval_user_([0-9a-f\-]+)_/i', $k, $matches)) {
+                                    return $matches[1];
+                                }
+                                return null;
+                            }, $userDocSettings)));
+                            if (!empty($userIdsFromSettings)) {
+                                $q->orWhereIn('user_id', $userIdsFromSettings);
+                            }
+                        }
+                    })
+                    ->with('user:id,name,email')
+                    ->get();
+
+                if ($activeApprovalMembers->isNotEmpty()) {
+                    $memberNames = $activeApprovalMembers->map(fn($m) => $m->user?->name ?? $m->display_name ?? 'Member')->filter()->implode(', ');
+                    $msg = "Cannot turn off store-wide approvals while active approval requirements are configured for members: {$memberNames}. Please turn off their approval settings first.";
+                    if ($request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $msg,
+                        ], 422);
+                    }
+                    return back()->withErrors(['approval_admin_enabled' => $msg]);
+                }
+            }
+        }
+
         // S04: Server-side passcode verification if passcode protection is enabled
         $passcodeEnabled = \App\Models\Setting::where('key', 'enable_passcode')->value('value');
         if ($passcodeEnabled === '1' || $passcodeEnabled === 'true' || $passcodeEnabled === true) {
@@ -690,7 +770,7 @@ class AdminController extends Controller
             'message_template_statement', 'whatsapp_offer_pdf',
             'whatsapp_api_url', 'whatsapp_access_token', 'whatsapp_phone_number_id',
             // Party / loyalty / credit
-            'party_grouping', 'loyalty_enabled', 'enable_credit_limit',
+            'party_grouping', 'loyalty_enabled', 'enable_credit_limit', 'strict_party_roles',
             'payment_reminders', 'payment_reminder_days',
             // Inventory
             'stock_maintenance', 'barcode_scan_enabled', 'batch_tracking_enabled',
@@ -1191,11 +1271,13 @@ class AdminController extends Controller
             $request->validate([
                 'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
                 'display_name'     => 'nullable|string|max:50',
-                'transaction_approval_mode' => 'nullable|in:inherit,required,direct',
+                'transaction_approval_mode' => 'nullable|in:inherit,required,direct,custom',
                 'permission_override_mode'  => 'nullable|in:inherit,custom',
                 'custom_role_name' => 'nullable|string|max:30',
                 'status'           => 'nullable|in:active,suspended',
                 'permissions'  => 'nullable|array',
+                'assigned_approvers' => 'nullable|array',
+                'approval_threshold_amount' => 'nullable',
                 'passcode'     => [
                     'nullable', 'string', 'min:4', 'max:6',
                     function ($attribute, $value, $fail) use ($member) {
@@ -1246,6 +1328,40 @@ class AdminController extends Controller
                 $updateData['transaction_approval_mode'] = $request->input('transaction_approval_mode');
                 $updateData['approval_mode_changed_by'] = Auth::id();
                 $updateData['approval_mode_changed_at'] = now();
+            }
+
+            if ($request->has('assigned_approvers')) {
+                abort_unless($isAdmin, 403, 'Only store owners and admins can assign supervisors.');
+                $approvers = $request->input('assigned_approvers');
+                $settingKey = "approval_supervisors_user_{$member->user_id}";
+                if (is_array($approvers) && count($approvers) > 0) {
+                    \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                        ['tenant_id' => $member->tenant_id, 'key' => $settingKey],
+                        ['value' => json_encode(array_values(array_map('intval', $approvers)))]
+                    );
+                } else {
+                    \App\Models\Setting::withoutGlobalScopes()
+                        ->where('tenant_id', $member->tenant_id)
+                        ->where('key', $settingKey)
+                        ->delete();
+                }
+            }
+
+            if ($request->has('approval_threshold_amount')) {
+                abort_unless($isAdmin, 403, 'Only store owners and admins can modify approval thresholds.');
+                $threshold = $request->input('approval_threshold_amount');
+                $settingKey = "approval_threshold_user_{$member->user_id}";
+                if ($threshold !== null && $threshold !== '' && is_numeric($threshold)) {
+                    \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+                        ['tenant_id' => $member->tenant_id, 'key' => $settingKey],
+                        ['value' => (string)$threshold]
+                    );
+                } else {
+                    \App\Models\Setting::withoutGlobalScopes()
+                        ->where('tenant_id', $member->tenant_id)
+                        ->where('key', $settingKey)
+                        ->delete();
+                }
             }
 
             if ($request->has('approval_overrides')) {
@@ -1361,5 +1477,49 @@ class AdminController extends Controller
                 abort(403, 'Admins cannot modify or remove other admins, franchise_admins, or owners.');
             }
         }
+    }
+
+    /**
+     * Disable all member-level approval requirements and turn off the master approval toggle.
+     * Called when admin confirms the "Turn Off Approvals" action from the settings UI.
+     */
+    public function disableAllApprovals(Request $request)
+    {
+        $request->validate([
+            'confirmation' => ['required', 'string'],
+        ]);
+
+        if (strtoupper(trim($request->input('confirmation'))) !== 'TURN OFF') {
+            return back()->withErrors(['confirmation' => 'Please type TURN OFF exactly to confirm.']);
+        }
+
+        $tenant = app('current.tenant');
+        if (!$tenant) {
+            abort(403);
+        }
+
+        // Clear approval mode for all members in this tenant who have it set
+        \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->whereIn('transaction_approval_mode', ['required', 'custom'])
+            ->update([
+                'transaction_approval_mode'    => 'inherit',
+                'approval_mode_changed_by'     => \Illuminate\Support\Facades\Auth::id(),
+                'approval_mode_changed_at'     => now(),
+            ]);
+
+        // Remove per-user approval setting keys (approval_user_* = required)
+        \App\Models\Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', 'like', 'approval_user_%')
+            ->where('value', 'required')
+            ->delete();
+
+        // Turn off the master toggle
+        \App\Models\Setting::withoutGlobalScopes()->updateOrCreate(
+            ['tenant_id' => $tenant->id, 'key' => 'approval_admin_enabled'],
+            ['value' => '0']
+        );
+
+        return back()->with('success', 'Approval system has been turned off. All member approval requirements have been cleared.');
     }
 }

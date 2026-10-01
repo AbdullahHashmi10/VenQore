@@ -1058,7 +1058,8 @@ class SaleController extends Controller
     public function printReceipt($id)
     {
         $sale = Sale::with(['customer', 'user', 'items.product', 'items.productVariant', 'payments'])->findOrFail($id);
-        $settings = \App\Models\Setting::all()->pluck('value', 'key');
+        $settings = \App\Services\ReceiptDocument::prepare($sale)['settings'];
+        abort_if(in_array($sale->status, ['draft', 'void', 'voided', 'cancelled'], true), 422, 'This receipt has not been issued.');
 
         if ($sale->party_id) {
             $sale->customer_net_balance  = PartyBalanceQuery::partyNetBalance($sale->party_id, $sale->tenant_id);
@@ -1072,9 +1073,10 @@ class SaleController extends Controller
         $pdf = Pdf::loadView('pdf.receipt', [
             'sale'     => $sale,
             'settings' => $settings,
-        ]);
+        ])->setOptions(['isRemoteEnabled' => false]);
 
-        return $pdf->stream('receipt-' . $sale->reference_number . '.pdf');
+        $filename = preg_replace('/[^A-Za-z0-9._-]/', '-', (string) $sale->reference_number);
+        return $pdf->stream('receipt-' . $filename . '.pdf');
     }
 
     public function lookup(Request $request)
@@ -1149,6 +1151,14 @@ class SaleController extends Controller
                 idempotencyKey: $request->header('Idempotency-Key'),
             );
             $storeSlug = $tenant?->slug ?? $request->route('store_slug') ?? 'default';
+            if ($request->wantsJson() || $request->ajax() || $request->expectsJson()) {
+                return response()->json([
+                    'status'           => 'pending_approval',
+                    'pending_approval' => true,
+                    'document_number'  => $doc->document_number,
+                    'message'          => 'Return submitted for approval (ref: ' . $doc->document_number . ').',
+                ], 202);
+            }
             return redirect()->route('store.sales.index', ['store_slug' => $storeSlug])
                 ->with('info', 'Return submitted for approval (ref: ' . $doc->document_number . ').');
         }

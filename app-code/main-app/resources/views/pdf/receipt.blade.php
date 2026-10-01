@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <title>Invoice #{{ $sale->reference_number }}</title>
     @php
-        $decimals = (int) ($settings['decimal_places'] ?? 2);
+        $decimals = max(0, min(4, (int) ($settings['decimal_places'] ?? 2)));
+        $total = (float) ($sale->invoice_total ?? $sale->total ?? 0);
+        $paid = (float) $sale->payments->sum('amount');
         $currency = $settings['currency'] ?? 'PKR';
         $currencySymbols = [
             'PKR' => 'Rs.',
@@ -40,17 +42,15 @@
         };
     @endphp
     <style>
+        @page { margin: {{ $marginTop }} {{ $marginRight }} {{ $marginBottom }} {{ $marginLeft }}; }
         body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             font-weight: 600;
             font-size: {{ $fontSize }};
             line-height: 1.2;
             color: #000;
             margin: 0;
-            padding-top: {{ $marginTop }};
-            padding-bottom: {{ $marginBottom }};
-            padding-left: {{ $marginLeft }};
-            padding-right: {{ $marginRight }};
+            padding: 0;
         }
 
         .receipt-header {
@@ -71,8 +71,8 @@
         }
 
         .receipt-info div {
-            display: flex;
-            justify-content: space-between;
+            display: table;
+            width: 100%;
         }
 
         table {
@@ -103,8 +103,8 @@
         }
 
         .totals div {
-            display: flex;
-            justify-content: space-between;
+            display: table;
+            width: 100%;
             margin-bottom: 3px;
         }
 
@@ -150,6 +150,11 @@
             width: 150px;
             margin: 0 auto 5px auto;
         }
+        .receipt-info div > *, .totals div > * { display: table-cell; width: 50%; }
+        .receipt-info div > :last-child, .totals div > :last-child { text-align: right; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
+        .totals, .fbr-section { page-break-inside: avoid; }
     </style>
 </head>
 
@@ -158,7 +163,7 @@
         <h1>{{ $settings['business_name'] ?? 'VENQORE System' }}</h1>
         <p>
             {{ $settings['business_address'] ?? '' }}<br>
-            Phone: {{ $settings['business_phone'] ?? '' }}
+            @if(!empty($settings['business_phone']))Phone: {{ $settings['business_phone'] }}@endif
             @if(!empty($settings['business_email']))
                 <br>Email: {{ $settings['business_email'] }}
             @endif
@@ -172,7 +177,7 @@
         <div><strong>Invoice:</strong> <span>{{ $sale->reference_number }}</span></div>
         <div><strong>Date:</strong> <span>{{ $sale->created_at->format($dateFormat) }}</span></div>
         <div><strong>Customer:</strong> <span>{{ $sale->customer->name ?? 'Walk-in Customer' }}</span></div>
-        <div><strong>Cashier:</strong> <span>{{ $sale->user->name }}</span></div>
+        <div><strong>Cashier:</strong> <span>{{ $sale->user->name ?? 'Staff' }}</span></div>
     </div>
 
     <table>
@@ -188,14 +193,14 @@
             @foreach($sale->items as $item)
                 <tr>
                     <td>
-                        {{ $item->product->name }}
+                        {{ $item->product->name ?? $item->item_name ?? 'Item' }}
                         @if($item->productVariant)
                             <br><small>({{ $item->productVariant->name }})</small>
                         @endif
                     </td>
-                    <td class="text-right">{{ $item->quantity }}</td>
+                    <td class="text-right">{{ \App\Helpers\SettingsHelper::formatQuantity($item->quantity, 4) }}</td>
                     <td class="text-right">{{ number_format($item->unit_price, $decimals) }}</td>
-                    <td class="text-right">{{ number_format($item->subtotal, $decimals) }}</td>
+                    <td class="text-right">{{ number_format($item->line_total ?? $item->subtotal ?? (($item->quantity * $item->unit_price) - ($item->discount_amount ?? 0) + ($item->tax_amount ?? 0)), $decimals) }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -204,18 +209,18 @@
     <div class="totals">
         <div>
             <span>Subtotal:</span>
-            <span>{{ $currencySymbol }} {{ number_format($sale->subtotal, $decimals) }}</span>
+            <span>{{ $currencySymbol }} {{ number_format($sale->subtotal_gross ?? $sale->subtotal ?? 0, $decimals) }}</span>
         </div>
-        @if($sale->discount > 0)
+        @if(($sale->total_item_discounts ?? $sale->discount ?? 0) > 0)
             <div>
                 <span>Discount:</span>
-                <span>- {{ $currencySymbol }} {{ number_format($sale->discount, $decimals) }}</span>
+                <span>- {{ $currencySymbol }} {{ number_format($sale->total_item_discounts ?? $sale->discount ?? 0, $decimals) }}</span>
             </div>
         @endif
-        @if($sale->tax > 0)
+        @if(($sale->total_tax ?? $sale->tax ?? 0) > 0)
             <div>
                 <span>Tax:</span>
-                <span>+ {{ $currencySymbol }} {{ number_format($sale->tax, $decimals) }}</span>
+                <span>+ {{ $currencySymbol }} {{ number_format($sale->total_tax ?? $sale->tax ?? 0, $decimals) }}</span>
             </div>
         @endif
         @if($sale->round_off != 0)
@@ -224,9 +229,14 @@
                 <span>{{ $sale->round_off > 0 ? '+' : '' }} {{ $currencySymbol }} {{ number_format($sale->round_off, $decimals) }}</span>
             </div>
         @endif
+        @foreach(['service_charge' => 'Service Charge', 'tip_amount' => 'Tip', 'delivery_charge' => 'Delivery'] as $field => $label)
+            @if((float) $sale->{$field} != 0)
+                <div><span>{{ $label }}:</span><span>{{ $currencySymbol }} {{ number_format((float) $sale->{$field}, $decimals) }}</span></div>
+            @endif
+        @endforeach
         <div class="grand-total">
             <span>Grand Total:</span>
-            <span>{{ $currencySymbol }} {{ number_format($sale->total, $decimals) }}</span>
+            <span>{{ $currencySymbol }} {{ number_format($total, $decimals) }}</span>
         </div>
         <div>
             <span>Amount Paid:</span>
@@ -235,25 +245,17 @@
         <div>
             <span>Balance Due:</span>
             <span>{{ $currencySymbol }}
-                {{ number_format($sale->total - $sale->payments->sum('amount'), $decimals) }}</span>
+                {{ number_format(max(0, $total - $paid), $decimals) }}</span>
         </div>
     </div>
 
-    @if(isset($settings['fbr_integration']) && $settings['fbr_integration'] == '1')
+    @if($sale->is_fbr_reported && !empty($sale->fbr_invoice_number))
         <div class="fbr-section">
-            <strong>FBR VERIFIED INVOICE</strong>
-            <div class="qr-placeholder">
-                @if($sale->fbr_qr_data)
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ urlencode($sale->fbr_qr_data) }}"
-                        alt="QR Code">
-                @else
-                    [FBR QR CODE]
-                @endif
-            </div>
-            <div style="font-size: 10px;">
-                FBR Invoice No: {{ $sale->fbr_invoice_number ?? ('FBR-' . $sale->id . '-' . time()) }}<br>
-                Verify via FBR Tax Asaan App
-            </div>
+            <strong>FBR REPORTED INVOICE</strong>
+            @if(!empty($sale->fbr_qr_data))
+                <img src="{{ \App\Services\ReceiptDocument::qrDataUri($sale->fbr_qr_data) }}" width="100" height="100" alt="FBR QR code">
+            @endif
+            <div>FBR Invoice No: {{ $sale->fbr_invoice_number }}</div>
         </div>
     @endif
 

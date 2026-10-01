@@ -49,7 +49,7 @@ export default function Correct({ document }) {
     };
 
     return (
-        <OneGlanceLayout title="Correct approval request">
+        <OneGlanceLayout title="Correct approval request" activeMenu="Approvals">
             <Head title={`Correct ${document.document_number}`} />
             <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">

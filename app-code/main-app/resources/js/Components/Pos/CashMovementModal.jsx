@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePage } from '@inertiajs/react';
-import { ArrowDownLeft, ArrowUpRight, DollarSign, X, Check, Loader2 } from 'lucide-react';
-import { formatCurrency } from '@/Utils/format';
+import { ArrowDownLeft, ArrowUpRight, X, Check, Loader2 } from 'lucide-react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 
 const REASON_PRESETS_IN = [
     'Add Cash Float',
@@ -149,7 +149,9 @@ export default function CashMovementModal({
                         </label>
                         <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <DollarSign className={`w-5 h-5 ${type === 'in' ? 'text-emerald-400' : 'text-rose-400'}`} />
+                                <span className={`font-bold text-sm ${type === 'in' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    {getCurrencySymbol(store)}
+                                </span>
                             </div>
                             <input
                                 type="number"
@@ -160,7 +162,7 @@ export default function CashMovementModal({
                                 value={amount}
                                 onChange={(e) => setAmount(e.target.value)}
                                 placeholder="0.00"
-                                className="w-full pl-10 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-lg font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-lg font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                             />
                         </div>
                     </div>

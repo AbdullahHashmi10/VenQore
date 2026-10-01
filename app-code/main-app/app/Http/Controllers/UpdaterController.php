@@ -201,6 +201,40 @@ class UpdaterController extends Controller
             return response()->json(['error' => 'Invalid step specified.'], 400);
         }
 
+        // Token and phase order verification
+        // Upload requests are already protected by UpdaterLock's authenticated
+        // platform-admin and CSRF checks. Do not require the operation token
+        // during upload: older updater JavaScript only learns the token after
+        // the final chunk. Every destructive post-upload step still requires
+        // the token and strict phase validation below.
+        if ($step !== 'upload') {
+            $lockPath = $this->lockPath();
+            if (!File::exists($lockPath)) {
+                return response()->json(['error' => 'No active update operation found.'], 409);
+            }
+            $lockData = @json_decode(File::get($lockPath), true) ?: [];
+            $requestToken = $request->input('update_token') ?? $request->header('X-Update-Token');
+            if (empty($requestToken) || empty($lockData['update_token']) || !hash_equals($lockData['update_token'], $requestToken)) {
+                return response()->json(['error' => 'Unauthorized: Invalid or expired update token.'], 403);
+            }
+
+            // Enforce phase order strictly on server
+            $currentPhase = $lockData['phase'] ?? ($lockData['step'] ?? 'idle');
+            $allowedPhaseForStep = [
+                'extract' => ['uploaded'],
+                'migrate' => ['extracted'],
+                'cache'   => ['migrated'],
+                'version' => ['cached'],
+            ];
+            if (isset($allowedPhaseForStep[$step])) {
+                if (!in_array($currentPhase, $allowedPhaseForStep[$step], true)) {
+                    return response()->json([
+                        'error' => "Illegal phase transition: step [{$step}] cannot run when current phase is [{$currentPhase}]."
+                    ], 400);
+                }
+            }
+        }
+
         try {
             switch ($step) {
                 case 'upload':
@@ -217,13 +251,28 @@ class UpdaterController extends Controller
         } catch (\Throwable $e) {
             Log::error("Updater failed at step [{$step}]: " . $e->getMessage() . "\n" . $e->getTraceAsString());
 
-            // Bring app back UP if we put it in maintenance mode
-            $this->safeDisableMaintenanceMode();
+            if ($step === 'upload') {
+                // Upload failure before extraction: no files changed, so lock can be released
+                $this->releaseLock();
+            } else {
+                // Hard failure during active mutation (extract, migrate, cache, version):
+                // Keep the update lock and maintenance mode active! Do NOT re-open traffic to a corrupt release!
+                if (File::exists($this->lockPath())) {
+                    $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+                    $lockData['status'] = 'failed';
+                    $lockData['failed_step'] = $step;
+                    $lockData['error'] = $e->getMessage();
+                    $lockData['failed_at'] = now()->toIso8601String();
+                    $lockData['maintenance'] = true;
+                    File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+                }
+            }
 
-            // Always release lock on step failure so admin can retry without needing SSH
-            $this->releaseLock();
-
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json([
+                'error' => $e->getMessage(),
+                'step' => $step,
+                'status' => 'failed'
+            ], 500);
         }
     }
 
@@ -244,22 +293,51 @@ class UpdaterController extends Controller
 
         $chunkDir = storage_path("app/update_chunks/{$uploadId}");
 
-        // ── First chunk: lock & validate ──────────────────────────
+        // ── First chunk: lock & validate (Atomic Acquisition) ────
         if ($chunkIndex === 0) {
-            // Prevent concurrent updates — auto-clear abandoned or stale locks
-            if (File::exists($this->lockPath())) {
-                $lockTime = File::lastModified($this->lockPath());
+            $lockPath = $this->lockPath();
+            $fp = @fopen($lockPath, 'c+');
+            if (!$fp) {
+                return response()->json(['error' => 'Unable to open or create update lock file.'], 500);
+            }
+            if (!flock($fp, LOCK_EX | LOCK_NB)) {
+                fclose($fp);
+                return response()->json(['error' => 'Another update operation is currently writing to the lock. Concurrent updates are rejected.'], 409);
+            }
+
+            // Read existing lock under advisory exclusive lock
+            $rawLock = stream_get_contents($fp);
+            $existingLock = !empty($rawLock) ? @json_decode($rawLock, true) : null;
+
+            if (is_array($existingLock)) {
+                $lockTime = $existingLock['heartbeat'] ?? ($existingLock['started_at'] ? strtotime($existingLock['started_at']) : time());
                 $ageMinutes = round((time() - $lockTime) / 60);
+                $existingStatus = $existingLock['status'] ?? 'in_progress';
+                $existingPhase = $existingLock['phase'] ?? ($existingLock['step'] ?? '');
 
-                $existingLock = @json_decode(File::get($this->lockPath()), true);
-                $isOldUpload = is_array($existingLock) && (($existingLock['step'] ?? '') === 'uploading_chunks');
+                if ($existingStatus === 'failed') {
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    return response()->json([
+                        'error' => 'A prior update operation failed and the system is held in recovery state. Please inspect logs and reset lock before uploading.'
+                    ], 409);
+                }
 
-                // If previous attempt was an interrupted upload, or older than 5 minutes, auto-clear
-                if ($isOldUpload || $ageMinutes >= 5 || $ageMinutes >= self::LOCK_MAX_AGE_MINUTES) {
-                    File::delete($this->lockPath());
-                    Log::info("Updater: Cleared prior/abandoned update lock ({$ageMinutes} minutes old).");
-                } else {
-                    throw new Exception("An active update is currently in progress (started {$ageMinutes} minute(s) ago). If this is stuck, click 'Force Unlock' to reset it.");
+                $isUploadPhase = ($existingPhase === 'uploading' || $existingPhase === 'uploading_chunks');
+                if ($isUploadPhase && $ageMinutes < 5) {
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    return response()->json([
+                        'error' => "Another update upload is currently in progress (started {$ageMinutes} minute(s) ago). Concurrent uploads are rejected."
+                    ], 409);
+                }
+
+                if (!$isUploadPhase && $ageMinutes < self::LOCK_MAX_AGE_MINUTES) {
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    return response()->json([
+                        'error' => "An active update deployment ({$existingPhase}) is currently in progress. Concurrent operations are rejected."
+                    ], 409);
                 }
             }
 
@@ -268,29 +346,29 @@ class UpdaterController extends Controller
                 File::deleteDirectory($chunkDir);
             }
             File::makeDirectory($chunkDir, 0755, true);
-
-            // Record the expected chunk count for this upload attempt, so a
-            // retry that reuses the same upload_id with a DIFFERENT
-            // total_chunks (e.g. browser retried with a re-split file) can
-            // be detected and rejected below, instead of silently mixing
-            // chunks from two different attempts.
             File::put($chunkDir . '/.expected_total_chunks', (string) $totalChunks);
 
-            // Generate a secure one-time update token.
-            // This token is stored in the lock file and returned to the
-            // browser on the final chunk. Subsequent steps send it back
-            // so UpdaterLock can allow them through even if the HTTP
-            // session is disrupted after new PHP files are extracted.
+            $operationId = 'op_' . bin2hex(random_bytes(16));
             $updateToken = bin2hex(random_bytes(32)); // 64-char hex
 
-            // Acquire lock early
-            File::put($this->lockPath(), json_encode([
+            // Write new lock payload atomically under exclusive lock
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, json_encode([
+                'operation_id' => $operationId,
                 'started_at'   => now()->toIso8601String(),
                 'started_by'   => Auth::user()?->email ?? 'unknown',
+                'phase'        => 'uploading',
                 'step'         => 'uploading_chunks',
+                'status'       => 'in_progress',
+                'maintenance'  => false, // Upload only writes temp chunks to storage/app/update_chunks, not touching active code
                 'total_chunks' => $totalChunks,
                 'update_token' => $updateToken,
-            ]));
+                'heartbeat'    => time(),
+            ], JSON_PRETTY_PRINT));
+            fflush($fp);
+            flock($fp, LOCK_UN);
+            fclose($fp);
         }
 
         // ── Reject total_chunks mismatch against this attempt's record ──
@@ -340,12 +418,23 @@ class UpdaterController extends Controller
 
         Log::debug("Updater: Received chunk {$chunkIndex}/{$totalChunks} for upload {$uploadId}");
 
+        // The token is created while accepting chunk zero. Return it with that
+        // response so the browser can authenticate chunk one and every later
+        // request. Waiting until the final chunk creates an impossible
+        // handshake: run() requires the token for chunk_index > 0.
+        $storedToken = null;
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $storedToken = $lockData['update_token'] ?? null;
+        }
+
         // ── Not the last chunk? Return immediately ────────────────
         if ($chunkIndex < $totalChunks - 1) {
             return response()->json([
                 'message'     => "Chunk " . ($chunkIndex + 1) . " of {$totalChunks} received.",
                 'chunk_index' => $chunkIndex,
                 'complete'    => false,
+                'update_token' => $storedToken,
             ]);
         }
 
@@ -408,13 +497,6 @@ class UpdaterController extends Controller
 
         Log::info("Updater: Package assembled from {$totalChunks} chunks ({$fileSizeMB} MB). By: " . (Auth::user()?->email ?? 'unknown'));
 
-        // Read the token back from the lock file to return it to the frontend
-        $storedToken = null;
-        if (File::exists($this->lockPath())) {
-            $lockData = json_decode(File::get($this->lockPath()), true);
-            $storedToken = $lockData['update_token'] ?? null;
-        }
-
         return response()->json([
             'message'      => "Package received & saved. ({$fileSizeMB} MB, {$totalChunks} chunks)",
             'complete'     => true,
@@ -437,7 +519,23 @@ class UpdaterController extends Controller
             );
         }
 
-        // ── Open and validate ZIP structure BEFORE maintenance mode ──
+        // ── ENTER HARD MAINTENANCE MODE BEFORE TOUCHING ACTIVE CODE ──
+        // The in-app updater mutates active files in place. To prevent customer
+        // requests from encountering a mixture of old and new PHP classes, routes,
+        // or frontend assets during extraction, maintenance mode (HTTP 503) MUST
+        // be activated immediately. The web updater is a MAINTENANCE-MODE updater,
+        // NOT a zero-downtime updater.
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'extracting';
+            $lockData['step'] = 'extract';
+            $lockData['maintenance'] = true; // HARD MAINTENANCE: HTTP 503 for all user traffic
+            $lockData['maintenance_started_at'] = now()->toIso8601String();
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+        }
+
+        // ── Open and validate ZIP structure BEFORE extraction ─────────
         $useZipArchive = class_exists('ZipArchive');
         $fileCount = 0;
         $zipList = [];
@@ -632,23 +730,28 @@ class UpdaterController extends Controller
                     }
                 }
 
-                if ($content !== false) {
-                    File::put($realTarget, $content);
-                    $updated++;
-                } else {
-                    Log::warning("UPDATER: Could not read content from ZIP index {$i} (entry: {$rawEntry}).");
-                    $errors++;
+                if ($content === false) {
+                    throw new Exception("Could not read content from ZIP index {$i} (entry: {$rawEntry}). Update aborted to prevent partial extraction.");
                 }
+
+                $bytesWritten = @file_put_contents($realTarget, $content);
+                if ($bytesWritten === false || $bytesWritten !== strlen($content)) {
+                    throw new Exception("Failed to write extracted file to [{$cleanedName}]. Check disk space and file permissions.");
+                }
+                $updated++;
             } catch (\Throwable $e) {
-                Log::warning("UPDATER: Failed to write [{$cleanedName}]: " . $e->getMessage());
-                $errors++;
+                Log::error("UPDATER: Fatal write failure on [{$cleanedName}]: " . $e->getMessage());
+                throw $e;
             }
         }
 
-        $zip->close();
-        File::delete($zipPath);
+        if ($useZipArchive) {
+            $zip->close();
+        }
+        // NOTE: The update ZIP package is preserved at $zipPath for rollback and recovery.
+        // It will only be cleared after full verification on the final version bump.
 
-        Log::info("Updater extract: {$updated} files updated, {$skipped} protected, {$blocked} blocked, {$errors} errors.");
+        Log::info("Updater extract: {$updated} files updated, {$skipped} protected, {$blocked} blocked.");
         if ($blocked > 0) {
             Log::critical("UPDATER: {$blocked} path traversal attempt(s) were blocked during extraction.");
         }
@@ -689,14 +792,6 @@ class UpdaterController extends Controller
             Log::warning('Updater: package:discover failed: ' . $e->getMessage());
         }
 
-        $message = "Extraction complete. {$updated} files updated, {$skipped} protected files preserved.";
-        if ($blocked > 0) {
-            $message .= " ⚠ {$blocked} malicious path(s) were blocked.";
-        }
-        if ($errors > 0) {
-            $message .= " ⚠ {$errors} file(s) had write errors (check server logs).";
-        }
-
         // ── Validate the frontend build manifest survived extraction ──
         $manifestPath = base_path('public/build/manifest.json');
         $viteManifestPath = base_path('public/build/.vite/manifest.json');
@@ -709,12 +804,27 @@ class UpdaterController extends Controller
             );
         }
 
+        // Update lock state: files extracted cleanly
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'extracted';
+            $lockData['updated_files'] = $updated;
+            $lockData['skipped_files'] = $skipped;
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+        }
+
+        $message = "Extraction complete. {$updated} files updated, {$skipped} protected files preserved.";
+        if ($blocked > 0) {
+            $message .= " ⚠ {$blocked} malicious path(s) were blocked.";
+        }
+
         return response()->json([
             'message' => $message,
             'updated' => $updated,
             'skipped' => $skipped,
             'blocked' => $blocked,
-            'errors'  => $errors,
+            'errors'  => 0,
         ]);
     }
 
@@ -723,6 +833,15 @@ class UpdaterController extends Controller
     // ─────────────────────────────────────────────────────────────
     private function handleMigrate()
     {
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'migrating';
+            $lockData['step'] = 'migrate';
+            $lockData['maintenance'] = true;
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+        }
+
         // Purge cached DB config so fresh .env is used
         DB::purge();
 
@@ -758,18 +877,6 @@ class UpdaterController extends Controller
         $exitCode = Artisan::call('migrate', ['--force' => true]);
         $output   = Artisan::output();
 
-        // ── Step 3.5: Sync V3 Ledger for legacy data ──────────────
-        // This ensures balances are correctly backfilled into the
-        // new V3 accounting architecture.
-        // Wrapped in try/catch — if it fails it must NOT abort the migrate step.
-        try {
-            Artisan::call('migrate:v3-ledger');
-            $output .= "\n" . Artisan::output();
-        } catch (Exception $e) {
-            Log::warning('Updater: migrate:v3-ledger non-critical failure: ' . $e->getMessage());
-            $output .= "\n[v3-ledger skipped: " . $e->getMessage() . "]";
-        }
-
         // ── Detect migration failure ───────────────────────────────
         if ($exitCode !== 0) {
             Log::error("Migration failed with exit code {$exitCode}. Output: {$output}");
@@ -781,81 +888,24 @@ class UpdaterController extends Controller
         }
 
         // ── Post-migrate schema validation gate ────────────────────
-        // Belt-and-suspenders check: even though `migrate` just reported
-        // success, assert that a small allowlist of load-bearing columns
-        // genuinely exist before we let the update proceed to cache-clear
-        // and version-bump. If the app went live querying a column that
-        // isn't there, every page touching that query breaks — this turns
-        // that into a loud, held-lock failure instead of a silent "success"
-        // response that leaves the app broken behind a green checkmark.
+        // Assert that critical load-bearing columns exist before proceeding
         $this->assertCriticalSchema();
 
-        // Auto-restore demo tenant if missing or empty (T4.1)
-        //
-        // Previously this called demo:restore inline and swallowed any
-        // failure in a try/catch that only logged a warning — so the
-        // updater could report "success" while leaving the demo store
-        // completely broken. Two fixes:
-        //   1. demo:restore itself now force-flags the tenant as
-        //      is_golden_master (see DemoRestore::handle()), so it can
-        //      never again silently create an unflagged duplicate "demo"
-        //      tenant the way the old snapshot-payload-trusting version did.
-        //   2. We now verify the restore actually produced a healthy,
-        //      non-empty store afterward and surface a loud warning in the
-        //      update report (not just the log file) if it didn't, instead
-        //      of reporting a clean success either way.
-        $demoWarning = null;
-        try {
-            $demoTenant = \App\Services\DemoStoreService::goldenMaster(createIfMissing: false);
-            $needsRestore = !$demoTenant
-                || $pendingCount > 0
-                || !\Illuminate\Support\Facades\Schema::hasTable('sales')
-                || !DB::table('sales')->where('tenant_id', $demoTenant->id)->exists();
-
-            if ($needsRestore) {
-                Log::info('Updater: Golden Master demo tenant missing, empty, or schema updated. Running demo:restore...');
-                $exitCode = Artisan::call('demo:restore', ['--force' => true]);
-                Log::info('Updater: demo:restore output: ' . Artisan::output());
-
-                $demoTenant = \App\Services\DemoStoreService::goldenMaster(createIfMissing: false);
-                $health = $demoTenant
-                    ? \App\Services\DemoStoreService::healthCheck($demoTenant->id)
-                    : ['ok' => false, 'issues' => ['No Golden Master tenant resolved after restore.']];
-
-                if ($exitCode !== 0 || !$health['ok']) {
-                    Log::warning('Updater: demo:restore failed or unhealthy. Falling back to demo:full-deploy...');
-                    $exitCode = Artisan::call('demo:full-deploy');
-                    Log::info('Updater: demo:full-deploy output: ' . Artisan::output());
-
-                    // Re-take snapshot so server has updated golden master snapshot matching new schema
-                    try {
-                        Artisan::call('demo:snapshot');
-                    } catch (\Exception $e) {
-                        Log::warning('Updater: demo:snapshot failed: ' . $e->getMessage());
-                    }
-
-                    $health = $demoTenant
-                        ? \App\Services\DemoStoreService::healthCheck($demoTenant->id)
-                        : ['ok' => false, 'issues' => ['No Golden Master tenant resolved after full deploy.']];
-                }
-
-                if (!$health['ok']) {
-                    $demoWarning = 'Demo store restore/deploy ran but did not produce a healthy store: '
-                        . implode('; ', $health['issues'] ?: ['demo:restore exited with code ' . $exitCode . '.']);
-                    Log::warning('Updater: ' . $demoWarning);
-                }
-            }
-        } catch (Exception $e) {
-            $demoWarning = 'Failed to restore demo store: ' . $e->getMessage();
-            Log::warning('Updater: ' . $demoWarning);
+        // Update lock state: migrations applied cleanly
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'migrated';
+            $lockData['maintenance'] = true;
+            $lockData['pending_migrations_applied'] = $pendingCount;
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
         }
 
         Log::info("Updater: Migrations completed. {$pendingCount} migration(s) applied.");
 
         return response()->json([
-            'message'      => "Database migrations applied successfully. ({$pendingCount} migration(s) applied)",
-            'output'       => trim($output) ?: 'All migrations ran without errors.',
-            'demo_warning' => $demoWarning, // null when the demo store is healthy or didn't need restoring
+            'message' => "Database migrations applied successfully. ({$pendingCount} migration(s) applied)",
+            'output'  => trim($output) ?: 'All migrations ran without errors.',
         ]);
     }
 
@@ -864,6 +914,15 @@ class UpdaterController extends Controller
     // ─────────────────────────────────────────────────────────────
     private function handleCacheClear()
     {
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'caching';
+            $lockData['step'] = 'cache';
+            $lockData['maintenance'] = true;
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+        }
+
         $results = [];
 
         // ── 1. PHYSICAL DELETE of bootstrap/cache/*.php ───────────
@@ -947,6 +1006,15 @@ class UpdaterController extends Controller
             $results['route:cache'] = 'skipped (closure routes detected)';
         }
 
+        // Update lock state: caches optimized
+        if (File::exists($this->lockPath())) {
+            $lockData = @json_decode(File::get($this->lockPath()), true) ?: [];
+            $lockData['phase'] = 'cached';
+            $lockData['maintenance'] = true;
+            $lockData['heartbeat'] = time();
+            File::put($this->lockPath(), json_encode($lockData, JSON_PRETTY_PRINT));
+        }
+
         return response()->json([
             'message' => 'All caches cleared and application re-optimized.',
             'results' => $results,
@@ -958,11 +1026,42 @@ class UpdaterController extends Controller
     // ─────────────────────────────────────────────────────────────
     private function handleVersionBump(Request $request)
     {
-        // Sanitise version input — only allow semver format or semver with pre-release
-        $rawVersion = trim($request->input('new_version', 'unknown'));
-        $newVersion = preg_match('/^\d+\.\d+\.\d+(-[\w.]+)?$/', $rawVersion)
-            ? $rawVersion
-            : 'unknown';
+        $newVersion = 'unknown';
+
+        // 1. Derive version from release-manifest.json in base path
+        $manifestPath = base_path('release-manifest.json');
+        if (File::exists($manifestPath)) {
+            $manifest = @json_decode(File::get($manifestPath), true);
+            if (!empty($manifest['version']) && preg_match('/^\d+\.\d+\.\d+(-[\w.]+)?$/', (string)$manifest['version'])) {
+                $newVersion = (string)$manifest['version'];
+            }
+        }
+
+        // 2. Derive version from AMD_POS_VERSION.txt
+        if ($newVersion === 'unknown') {
+            $versionFile = base_path('AMD_POS_VERSION.txt');
+            if (File::exists($versionFile)) {
+                $content = File::get($versionFile);
+                if (preg_match('/AMD_POS_VERSION=([^\r\n]+)/', $content, $m)) {
+                    $cand = trim($m[1]);
+                    if (preg_match('/^\d+\.\d+\.\d+(-[\w.]+)?$/', $cand)) {
+                        $newVersion = $cand;
+                    }
+                }
+            }
+        }
+
+        // 3. Fallback to client input ONLY if validated semver and not present on disk
+        if ($newVersion === 'unknown') {
+            $rawVersion = trim($request->input('new_version', 'unknown'));
+            if (preg_match('/^\d+\.\d+\.\d+(-[\w.]+)?$/', $rawVersion)) {
+                $newVersion = $rawVersion;
+            }
+        }
+
+        if ($newVersion === 'unknown') {
+            throw new Exception("Cannot determine release version from validated package manifest.");
+        }
 
         try {
             \App\Models\Setting::updateOrCreate(

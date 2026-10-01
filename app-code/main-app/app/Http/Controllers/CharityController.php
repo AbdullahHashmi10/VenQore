@@ -87,12 +87,13 @@ class CharityController extends Controller
                 idempotencyKey: $request->header('Idempotency-Key'),
             );
             return response()->json([
-                'success'     => false,
-                'pending'     => true,
-                'message'     => 'Charity donation submitted for approval (ref: ' . $doc->document_number . ').',
-                'today_total' => Expense::whereDate('date', Carbon::today())
+                'status'           => 'pending_approval',
+                'pending_approval' => true,
+                'document_number'  => $doc->document_number,
+                'message'          => 'Charity donation submitted for approval (ref: ' . $doc->document_number . ').',
+                'today_total'      => Expense::whereDate('date', Carbon::today())
                     ->where('expense_category_id', $category->id)->sum('amount'),
-            ]);
+            ], 202);
         }
         // ── Direct path: post atomically through ExpensePostingService ────────
 

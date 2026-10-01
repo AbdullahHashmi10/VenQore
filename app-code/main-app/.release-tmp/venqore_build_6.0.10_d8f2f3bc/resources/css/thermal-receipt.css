@@ -1,0 +1,169 @@
+/* Thermal Receipt Print Styles - 80mm (3 inch) thermal printer */
+
+@media print {
+    /* Hide everything except receipt */
+    body * {
+        visibility: hidden;
+    }
+    
+    #thermal-receipt,
+    #thermal-receipt * {
+        visibility: visible;
+    }
+    
+    #thermal-receipt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 80mm;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Page setup for thermal printer */
+    @page {
+        size: 80mm auto;
+        margin: 0;
+    }
+    
+    /* Receipt Container */
+    .receipt-container {
+        width: 80mm;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #000;
+        background: #fff;
+        padding: 10mm 5mm;
+    }
+    
+    /* Header */
+    .receipt-header {
+        text-align: center;
+        border-bottom: 2px dashed #000;
+        padding-bottom: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .receipt-header h1 {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0 0 4px 0;
+    }
+    
+    .receipt-header p {
+        margin: 2px 0;
+        font-size: 11px;
+    }
+    
+    /* Transaction Info */
+    .receipt-info {
+        margin: 8px 0;
+        font-size: 11px;
+    }
+    
+    .receipt-info div {
+        display: flex;
+        justify-content: space-between;
+        margin: 2px 0;
+    }
+    
+    /* Items Table */
+    .receipt-items {
+        border-top: 1px dashed #000;
+        border-bottom: 1px dashed #000;
+        padding: 8px 0;
+        margin: 8px 0;
+    }
+    
+    .receipt-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 4px 0;
+        font-size: 12px;
+    }
+    
+    .receipt-item .item-name {
+        flex: 1;
+        font-weight: bold;
+    }
+    
+    .receipt-item .item-qty {
+        margin: 0 8px;
+        text-align: right;
+        width: 30px;
+    }
+    
+    .receipt-item .item-price {
+        text-align: right;
+        width: 60px;
+        font-weight: bold;
+    }
+    
+    /* Totals */
+    .receipt-totals {
+        margin: 8px 0;
+    }
+    
+    .receipt-totals div {
+        display: flex;
+        justify-content: space-between;
+        margin: 4px 0;
+        font-size: 12px;
+    }
+    
+    .receipt-total-row {
+        font-size: 16px;
+        font-weight: bold;
+        border-top: 2px solid #000;
+        border-bottom: 2px solid #000;
+        padding: 4px 0;
+        margin-top: 8px;
+    }
+    
+    /* Payment Details */
+    .receipt-payment {
+        margin: 8px 0;
+        font-size: 12px;
+    }
+    
+    .receipt-payment div {
+        display: flex;
+        justify-content: space-between;
+        margin: 2px 0;
+    }
+    
+    /* Footer */
+    .receipt-footer {
+        text-align: center;
+        border-top: 2px dashed #000;
+        padding-top: 8px;
+        margin-top: 8px;
+        font-size: 11px;
+    }
+    
+    .receipt-footer p {
+        margin: 2px 0;
+    }
+    
+    .receipt-barcode {
+        margin-top: 8px;
+        text-align: center;
+        font-size: 10px;
+        font-family: 'Libre Barcode 39', monospace;
+        font-size: 24px;
+    }
+}
+
+/* Screen Preview (not printed) */
+@media screen {
+    #thermal-receipt {
+        width: 80mm;
+        margin: 20px auto;
+        padding: 10mm 5mm;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: 1px solid #ddd;
+        font-family: 'Courier New', monospace;
+    }
+}

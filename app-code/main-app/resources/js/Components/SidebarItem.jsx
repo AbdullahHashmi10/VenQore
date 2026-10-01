@@ -25,10 +25,11 @@ export default function SidebarItem({
     id,
     isPlatformHQ = false, // New prop for premium HQ styling
     compact = false,
+    badgeCount = 0,
 }) {
     // Priority: use 'name' if provided, then 'label'
     const displayName = name || label;
-    const { store, planFeatures = {} } = usePage().props;
+    const { store, planFeatures = {}, auth } = usePage().props;
     // Store terminology on screen ("Clients", "Jobs", "Parts") — keys unchanged.
     const navLabel = useNavLabel();
     const finalRoute = targetRoute || routeName;
@@ -114,17 +115,29 @@ export default function SidebarItem({
                                 isActive ? 'text-accent-text' : 'group-hover:text-accent-text'
                             }`}
                         />
+                        {!isExpanded && badgeCount > 0 && (
+                            <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-bold rounded-full bg-amber-500 text-white dark:bg-amber-600 shadow-sm border border-surface">
+                                {badgeCount > 99 ? '99+' : badgeCount}
+                            </span>
+                        )}
                     </div>
                     {isExpanded && (
-                        <span className={`whitespace-nowrap overflow-hidden transition-colors duration-fast ${
-                            compact ? 'text-xs' : 'text-sm'
-                        } ${
-                            isActive
-                                ? 'font-semibold text-accent-text'
-                                : 'font-medium text-ink-muted group-hover:text-ink-secondary'
-                        }`}>
-                            {displayName}
-                        </span>
+                        <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
+                            <span className={`whitespace-nowrap overflow-hidden transition-colors duration-fast ${
+                                compact ? 'text-xs' : 'text-sm'
+                            } ${
+                                isActive
+                                    ? 'font-semibold text-accent-text'
+                                    : 'font-medium text-ink-muted group-hover:text-ink-secondary'
+                            }`}>
+                                {displayName}
+                            </span>
+                            {badgeCount > 0 && (
+                                <span className="ml-2 px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 dark:bg-amber-500/20 border border-amber-500/30 shrink-0">
+                                    {badgeCount > 99 ? '99+' : badgeCount}
+                                </span>
+                            )}
+                        </div>
                     )}
                 </Link>
 
@@ -155,12 +168,17 @@ export default function SidebarItem({
                 {!isExpanded && tipAt && createPortal(
                     <div
                         role="tooltip"
-                        className="fixed z-tooltip px-3 py-2 bg-overlay text-ink text-sm font-medium rounded-sm shadow-lg border border-line whitespace-nowrap pointer-events-none"
+                        className="fixed z-tooltip px-3 py-2 bg-overlay text-ink text-sm font-medium rounded-sm shadow-lg border border-line whitespace-nowrap pointer-events-none flex items-center gap-2"
                         style={{ top: tipAt.top, left: tipAt.left, transform: 'translateY(-50%)' }}
                     >
-                        {displayName}
+                        <span>{displayName}</span>
+                        {badgeCount > 0 && (
+                            <span className="px-1.5 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-white">
+                                {badgeCount}
+                            </span>
+                        )}
                         {subItems.length > 0 && (
-                            <span className="text-xs text-ink-muted ml-2">Hold to expand</span>
+                            <span className="text-xs text-ink-muted ml-1">Hold to expand</span>
                         )}
                     </div>,
                     document.body,
@@ -189,7 +207,7 @@ export default function SidebarItem({
                             'Main Dashboard': 'store.dashboard',
                             'Executive Dashboard': 'store.admin.dashboard',
                             'User Management': 'store.admin.users',
-                            'Approvals': 'store.approvals.inbox',
+                            'Approvals': (auth?.user?.can_review_approvals ?? false) ? 'store.approvals.inbox' : 'store.approvals.my-submissions',
                             'Staff Attendance': 'store.admin.attendance',
                             'Data Management': 'store.admin.data',
                             'System Settings': 'store.admin.settings',
@@ -293,6 +311,7 @@ export default function SidebarItem({
                             'Pre-Purchases': 'store.purchase-orders.index', 
                             'Fund Management': 'store.funds.index',
                             'Approval Inbox': 'store.approvals.inbox',
+                            'Approval Policies': 'store.settings',
                             'My Submissions': 'store.approvals.my-submissions',
                         };
                         return routeMap[itemName];
@@ -325,6 +344,9 @@ export default function SidebarItem({
 
                                     const isComingSoon = itemName.includes('Coming Soon');
                                     const isPlanLocked = isReportLocked(activeRouteName, planFeatures);
+                                    const computedParams = itemName === 'Approval Policies'
+                                        ? { ...(routeParams || {}), tab: 'approvals' }
+                                        : (routeParams || {});
 
                                     return (
                                         <FeatureLockBadge key={sIdx} isLocked={isPlanLocked} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
@@ -347,7 +369,7 @@ export default function SidebarItem({
                                                 window.route().has(activeRouteName) && (
                                                     <Link
                                                         id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
-                                                        href={window.route(activeRouteName, routeParams || {})}
+                                                        href={window.route(activeRouteName, computedParams)}
                                                         className="block pl-4 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                                     >
                                                         <span className="flex items-center gap-1.5">

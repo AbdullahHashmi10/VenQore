@@ -97,8 +97,8 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         // Parse Real Data
         const saleItems = sale.items || sale.cart || [];
         items = saleItems.map((item, idx) => {
-            const qty = parseFloat(item.quantity || item.qty || 1);
-            const rate = parseFloat(item.unit_price || item.price || 0);
+            const qty = parseFloat(item.quantity ?? item.qty ?? 1);
+            const rate = parseFloat(item.unit_price ?? item.price ?? 0);
             const grossAmt = qty * rate;
             
             // Reconstruct discount amount and percentage
@@ -109,18 +109,10 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 if (item.discount_type === 'percent') {
                     discountPercent = parseFloat(item.discount || 0);
                 } else if (discountAmt > 0) {
-                    const gross = grossAmt + discountAmt;
+                    const gross = grossAmt;
                     discountPercent = gross > 0 ? Math.round((discountAmt / gross) * 100) : 0;
                 }
             }
-
-            // Fallback 1: If MRP is greater than rate, calculate the discount based on MRP
-            if (discountAmt === 0 && mrpVal > rate) {
-                discountAmt = (mrpVal - rate) * qty;
-                discountPercent = Math.round(((mrpVal - rate) / mrpVal) * 100);
-            }
-
-
 
             const freeQty = parseFloat(item.free_quantity || item.freeQuantity || item.free_qty || 0);
 
@@ -133,7 +125,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 rate: rate,
                 mrp: mrpVal,
                 gst: parseFloat(item.tax_percent || item.tax_rate || 0),
-                amount: grossAmt - discountAmt, // item total should show amount after item-level discount
+                amount: Number(item.net_amount ?? (item.line_total != null ? Number(item.line_total) - Number(item.tax_amount ?? 0) : grossAmt - discountAmt)), // item total should show amount after item-level discount
                 discount_percent: discountPercent,
                 discount_amount: discountAmt,
                 desc: item.desc || item.description || '',
@@ -147,12 +139,12 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         });
 
         const itemsSubtotal = items.reduce((sum, i) => sum + i.amount, 0);
-        const taxAmount = parseFloat(sale.tax || sale.tax_amount || 0);
+        const taxAmount = parseFloat(sale.total_tax ?? sale.tax ?? sale.tax_amount ?? 0);
         const discountAmount = parseFloat(sale.discount || sale.global_discount || 0);
         const deliveryCharge = parseFloat(sale.delivery_charge || sale.shipping_charges || 0);
-        const extraCharge = parseFloat(sale.extra_charge_value || 0);
-        const extraChargeLabel = sale.extra_charge_label || 'Extra';
-        const grandTotal = parseFloat(sale.total || sale.invoice_total || sale.total_amount || 0);
+        const extraCharge = Number(sale.extra_charge_value ?? 0) + Number(sale.service_charge ?? 0) + Number(sale.tip_amount ?? 0);
+        const extraChargeLabel = [Number(sale.extra_charge_value ?? 0) ? (sale.extra_charge_label || 'Extra') : null, Number(sale.service_charge ?? 0) ? 'Service' : null, Number(sale.tip_amount ?? 0) ? 'Tip' : null].filter(Boolean).join(' + ') || 'Extra';
+        const grandTotal = parseFloat(sale.invoice_total ?? sale.total ?? sale.total_amount ?? 0);
         
         // Fix 0 amountPaid fallback bug
         let amountPaid = 0;
@@ -188,7 +180,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         }
 
         calculations = {
-            subtotal: parseFloat(sale.subtotal || (itemsSubtotal + totalItemDiscounts)), // subtotal before item discounts
+            subtotal: parseFloat(sale.subtotal_gross ?? sale.subtotal ?? (itemsSubtotal + totalItemDiscounts)), // subtotal before item discounts
             qty: items.reduce((sum, i) => sum + i.qty, 0),
             gst: taxAmount,
             discount: totalSavings, // "You Saved" will show total savings

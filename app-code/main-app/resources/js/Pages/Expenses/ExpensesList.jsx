@@ -39,6 +39,7 @@ import {
  CornerUpRight
 } from 'lucide-react';
 import axios from 'axios';
+import { handleApprovalResponse } from '@/lib/approval-response';
 
 import { vq } from '@/theme/runtime';
 // -- Party Search Field (same component as Payments In/Out) ------------------
@@ -568,18 +569,30 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  }
 
  try {
+ let res;
  if (editingExpense) {
  // Axios put with FormData needs _method spoofing
  data.append('_method', 'PUT');
- await axios.post(route('store.expenses.update', { store_slug: store.slug, expense: editingExpense.id }), data, {
+ res = await axios.post(route('store.expenses.update', { store_slug: store.slug, expense: editingExpense.id }), data, {
  headers: { 'Content-Type': 'multipart/form-data' }
  });
  } else {
- await axios.post(route('store.expenses.store', { store_slug: store.slug }), data, {
+ res = await axios.post(route('store.expenses.store', { store_slug: store.slug }), data, {
  headers: { 'Content-Type': 'multipart/form-data' }
  });
  }
+
  setIsModalOpen(false);
+
+ // Check if the expense was routed to approval instead of posted immediately
+ if (!editingExpense && handleApprovalResponse(res, 'Expense', {
+     docPlural: 'Expenses',
+     listUrl: route('store.expenses.index', { store_slug: store.slug })
+ })) {
+ router.reload({ only: ['expenses', 'stats'] });
+ return;
+ }
+
  if (store?.onboarding_step === 'expense_tour') {
  router.post(
  route('store.onboarding.step', { store_slug: store?.slug }),

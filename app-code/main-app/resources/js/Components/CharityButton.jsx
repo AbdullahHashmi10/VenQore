@@ -2,6 +2,7 @@ import { usePage } from '@inertiajs/react';
 import React, { useState, useEffect, useRef } from 'react';
 import { HeartHandshake, Check, X, Edit2 } from 'lucide-react';
 import axios from 'axios';
+import { handleApprovalResponse } from '@/lib/approval-response';
 
 export default function CharityButton({ showLabel = false, charityEnabled = false }) {
     const { store } = usePage().props;
@@ -57,7 +58,9 @@ export default function CharityButton({ showLabel = false, charityEnabled = fals
                 amount: parseFloat(customAmount) || stats.default_amount
             });
 
-            if (response.data.success) {
+            if (handleApprovalResponse(response, 'charity donation')) {
+                setStats(prev => ({ ...prev, today: response.data.today_total }));
+            } else if (response.data.success) {
                 setStats(prev => ({ ...prev, today: response.data.today_total }));
                 setShowSuccess(true);
                 setTimeout(() => setShowSuccess(false), 2000);

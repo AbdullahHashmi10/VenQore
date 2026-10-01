@@ -2,6 +2,10 @@
 
 This is the authoritative context file for AI agents working in this codebase. Read this before doing anything.
 
+## Persistent release preference
+
+Ship only application runtime code, assets, required content, production dependencies and required notices. Never ship SQLite data, developer tests, mockups, old HTML/design exports or repository extras. Windows installers are uploaded manually only when changed and are excluded from routine updater ZIPs. Use `app-code/main-app/release-package-boundary.ps1` through the canonical builder, and read `SERVER_FILE_KEEP_DELETE_GUIDE.md` and `RELEASE_AND_DEPLOYMENT_POLICY.md` before packaging or server cleanup. Keep `public/v6/assets` while current React pages reference it. Never erase server files preserving only .env: uploads, storage, installation state and hosting entrypoints must be accounted for.
+
 ## ⛔ ACTIVE WORK — read these before starting anything
 
 | File | What it is |
@@ -12,6 +16,8 @@ This is the authoritative context file for AI agents working in this codebase. R
 | `VENQORE_LAYOUT_LAW.md` | Geometry law v2.0 — grid, gutters, row track, card categories C1–C6. **Outranks DESIGN-RULES on any geometry number** |
 | `VENQORE_TECHNICAL_BUILD_PLAN_V4.md` | The authoritative technical plan — phases, tasks, acceptance criteria |
 | `VENQORE_PRICING_AND_STRATEGY.md` | Pricing, plan limits, AI quotas and the reasoning behind them |
+| **`RELEASE_AND_DEPLOYMENT_POLICY.md`** | **Mandatory release/build/deployment gate. Read before creating an artifact or deploying. v6.0.5 and v6.0.6 are blocked for production.** |
+| `UPDATER_V6.0.5_AUDIT_AND_IDE_FIX_INSTRUCTIONS.md` | Evidence and required fixes from the 2026-09-30 updater/package audit |
 
 **Do not invent phases, do not replace the plan file, and do not mark a task complete unless its acceptance criteria in the plan actually pass.** If the plan is unclear or looks wrong, say so — do not substitute your own.
 
@@ -95,6 +101,10 @@ Rank 3 never overrides rank 1 or 2 on a value.
 ---
 
 ## Key Commands
+
+### Mandatory release and deployment gate
+
+Before creating, packaging, publishing, or deploying a build, read `RELEASE_AND_DEPLOYMENT_POLICY.md` and follow its gates. Do not upload update ZIPs by default. The current `AMD_POS_Update_v6.0.5.zip` and `AMD_POS_Update_v6.0.6.zip` are blocked for production; see the policy for their hashes and verification scope. v6.0.6's isolated Composer autoload pass is not release approval. Use SSH only after a corrected, rehearsed release deployment path is approved for the named target. Do not call existing SSH/deploy scripts safe until they are fixed and pass the release policy. A ZIP existing or a frontend build passing is not release approval. Report the artifact hash, validation, exact target compatibility, downtime and rollback evidence.
 
 ### Development
 ```bash

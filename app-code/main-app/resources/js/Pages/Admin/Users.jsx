@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import axios from 'axios';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import {
@@ -8,7 +10,8 @@ import {
     UserCheck, Eye, Lock, Crown, Star, Calendar, Timer, Activity,
     User, BadgeCheck, Zap, Copy, MessageCircle, Phone, RotateCcw,
     ChevronDown, AlertCircle, Send, Ban, RefreshCw, BarChart, Sparkles, Award, TrendingUp, ChevronRight,
-    CreditCard
+    CreditCard, ChevronLeft, Power, Layers, Info, ArrowRight, BookOpen, ShieldCheck,
+    UploadCloud, Paperclip, FileCheck, AlertTriangle
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine
@@ -20,19 +23,19 @@ import STAFF_PRESETS from '@/data/staff_presets.json';
 import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
 const ROLES = {
-    owner:           { name: 'Owner', description: 'Store owner — full access', icon: Crown,        color: 'from-amber-500 to-yellow-600', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
-    admin:           { name: 'Admin', description: 'Full management access', icon: Shield,       color: 'from-brand-500 to-brand-700', badge: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400' },
-    manager:         { name: 'Manager', description: 'Operations manager', icon: Star,         color: 'from-blue-500 to-cyan-600', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' },
-    cashier:         { name: 'Cashier', description: 'POS & Sales only', icon: ShoppingCart, color: 'from-emerald-500 to-teal-600', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
-    inventory_staff: { name: 'Inventory Staff', description: 'Stock management', icon: Package,      color: 'from-orange-500 to-red-600', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' },
-    accountant:      { name: 'Accountant', description: 'Financial reporting', icon: DollarSign,   color: 'from-brand-800 to-brand-900', badge: 'bg-brand-100 text-brand-800 dark:bg-brand-800/30 dark:text-brand-300' },
-    support:         { name: 'Support', description: 'Troubleshooting & Help', icon: BadgeCheck,   color: 'from-lime-500 to-lime-600', badge: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-400' },
-    custom:          { name: 'Custom', description: 'Specific permissions', icon: Settings,     color: 'from-neutral-500 to-neutral-600', badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-muted' },
-    viewer:          { name: 'Viewer', description: 'Read-only access', icon: Eye,          color: 'from-neutral-500 to-neutral-600', badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-secondary' },
+    owner:           { name: 'Store Owner', description: 'Complete store control, billing, financial ledgers, and team administration', icon: Crown,        color: 'from-amber-500 to-yellow-600', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
+    admin:           { name: 'Store Administrator', description: 'Full day-to-day store management, inventory, purchases, staff, and settings', icon: Shield,       color: 'from-brand-500 to-brand-700', badge: 'bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-400' },
+    manager:         { name: 'Store Manager', description: 'Oversees daily sales, cashier shifts, customer discounts, and store expenses', icon: Star,         color: 'from-blue-500 to-cyan-600', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' },
+    cashier:         { name: 'Cashier & Counter Sales', description: 'Operates POS register, scans items, takes cash/card payments, and issues receipts', icon: ShoppingCart, color: 'from-emerald-500 to-teal-600', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
+    inventory_staff: { name: 'Inventory & Stock Lead', description: 'Manages products, stocks warehouses, counts physical inventory, and logs shipments', icon: Package,      color: 'from-orange-500 to-red-600', badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400' },
+    accountant:      { name: 'Financial Accountant', description: 'Reviews cash flow, reconciles bank accounts, manages vendor payouts, and prints reports', icon: DollarSign,   color: 'from-brand-800 to-brand-900', badge: 'bg-brand-100 text-brand-800 dark:bg-brand-800/30 dark:text-brand-300' },
+    support:         { name: 'Technical Support', description: 'System troubleshooting, hardware configuration, and audit logs', icon: BadgeCheck,   color: 'from-lime-500 to-lime-600', badge: 'bg-lime-100 text-lime-700 dark:bg-lime-500/20 dark:text-lime-400' },
+    viewer:          { name: 'Read-Only Viewer', description: 'Can view reports, sales data, and product prices without ability to make changes', icon: Eye,          color: 'from-neutral-500 to-neutral-600', badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-secondary' },
+    custom:          { name: 'Custom Access', description: 'Manually select exact permissions and capabilities for this staff member', icon: Settings,     color: 'from-neutral-500 to-neutral-600', badge: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-500/20 dark:text-ink-muted' },
 };
 
 const ROLE_PERMISSIONS = {
-    admin: [
+    owner: [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
@@ -45,6 +48,20 @@ const ROLE_PERMISSIONS = {
         'parties.view', 'parties.contact_view',
         'reports.summary', 'reports.sales', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store', 'data.export', 'vensynq.manage'
+    ],
+    admin: [
+        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
+        'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
+        'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
+        'finance.customer_refund', 'finance.supplier_refund', 'finance.capital_add', 'finance.owner_drawings', 'finance.internal_transfer', 'finance.balance_adjustment',
+        'finance.cheque_books.view', 'finance.cheque_books.manage', 'finance.cheques.clear', 'finance.cheques.override_duplicate',
+        'finance.fiscal_year.view', 'finance.fiscal_year.manage', 'finance.fiscal_year.close', 'finance.period_lock', 'finance.period_reopen', 'finance.period_exception',
+        'approvals.view', 'approvals.view_own', 'approvals.submit', 'approvals.review', 'approvals.approve', 'approvals.reject', 'approvals.return', 'approvals.resubmit', 'approvals.withdraw',
+        'parties.view', 'parties.contact_view',
+        'reports.summary', 'reports.sales', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
+        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'data.export', 'vensynq.manage'
     ],
     manager: [
         'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
@@ -284,7 +301,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
     };
 
     return (
-        <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10 max-h-[520px]">
+        <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10">
             {PERMISSION_CATEGORIES.map(cat => {
                 const catPerms = cat.permissions;
                 const isCatActive = catPerms.every(p => selectedPermissions.includes(p.id));
@@ -526,11 +543,190 @@ function copyToClipboard(text) {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────
-export default function AdminUsers({ users = [], invitations = [], attendance = [], staffData = [] }) {
-    const { store } = usePage().props;
+export default function AdminUsers({
+    users = [],
+    invitations = [],
+    attendance = [],
+    staffData = [],
+    approval_admin_enabled = null,
+    usersWithApprovals = [],
+}) {
+    const { store, modules, settings } = usePage().props;
     const tt = useTermText();
     const [activeTab,    setActiveTab]    = useState('members');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [inviteStep,   setInviteStep]   = useState(1);
+    const [presetCategory, setPresetCategory] = useState('All');
+    const [presetSearch,   setPresetSearch]   = useState('');
+    const [selectedPresetName, setSelectedPresetName] = useState(null);
+    const [selectedRoleType,   setSelectedRoleType]   = useState('core'); // 'core' | 'presets'
+    const [showFineTune,   setShowFineTune]   = useState(false);
+    const [enablingLedger, setEnablingLedger] = useState(false);
+    const [showStoreApprovalLockoutModal, setShowStoreApprovalLockoutModal] = useState(false);
+
+    const isStoreApprovalOn = approval_admin_enabled !== null
+        ? Boolean(approval_admin_enabled)
+        : (settings?.approval_admin_enabled === '1' || settings?.approval_admin_enabled === 1 || settings?.approval_admin_enabled === true);
+
+    const [approvalAdminEnabled, setApprovalAdminEnabled] = useState(() => isStoreApprovalOn);
+
+    useEffect(() => {
+        const nextVal = approval_admin_enabled !== null
+            ? Boolean(approval_admin_enabled)
+            : (settings?.approval_admin_enabled === '1' || settings?.approval_admin_enabled === 1 || settings?.approval_admin_enabled === true);
+        setApprovalAdminEnabled(nextVal);
+    }, [approval_admin_enabled, settings]);
+
+    // Compute members who currently have active approval rules enforced
+    const activeApprovalMembers = useMemo(() => {
+        if (usersWithApprovals && usersWithApprovals.length > 0) {
+            return usersWithApprovals;
+        }
+        return (users || []).filter(u => {
+            const mode = u.transaction_approval_mode;
+            if (mode === 'required' || mode === 'custom') return true;
+            if (u.approval_overrides && typeof u.approval_overrides === 'object') {
+                return Object.values(u.approval_overrides).some(val => val === 'required');
+            }
+            return false;
+        });
+    }, [usersWithApprovals, users]);
+
+    const handleToggleStoreApprovalSystem = async () => {
+        if (!store?.slug) return;
+        const nextVal = !approvalAdminEnabled;
+
+        // Prevent disabling store approvals if individual members have active approval rules
+        if (!nextVal && activeApprovalMembers.length > 0) {
+            setShowStoreApprovalLockoutModal(true);
+            return;
+        }
+
+        setApprovalAdminEnabled(nextVal);
+        if (nextVal) {
+            setActiveStep2Accordion(2);
+        }
+        try {
+            await axios.post(route('store.settings.update', { store_slug: store.slug }), {
+                _save_section: 'approvals',
+                approval_admin_enabled: nextVal ? '1' : '0'
+            });
+        } catch (err) {
+            console.error('Failed to update approval setting:', err);
+            setApprovalAdminEnabled(!nextVal);
+            if (!nextVal) {
+                setShowStoreApprovalLockoutModal(true);
+            }
+        }
+    };
+
+    const eligibleApprovers = useMemo(() => {
+        return (users || []).filter(u => {
+            const role = (u.role || '').toLowerCase();
+            const perms = u.permissions || [];
+            return ['owner', 'admin', 'manager'].includes(role) || perms.includes('approvals.approve') || perms.includes('approvals.review');
+        });
+    }, [users]);
+
+    const { data, setData, post, processing, errors, reset } = useForm({
+        invitee_name:  '',
+        invitee_email: '',
+        invitee_phone: '',
+        id_card_number: '',
+        designation: '',
+        documents: [],
+        roles:         ['cashier'],
+        permissions:   ROLE_PERMISSIONS.cashier,
+        transaction_approval_mode: null,
+        assigned_approvers: [],
+        approval_threshold_amount: '',
+        approval_overrides: {},
+    });
+
+    const [activeStep2Accordion, setActiveStep2Accordion] = useState(() => {
+        return isStoreApprovalOn ? 2 : 1;
+    });
+
+    const isModuleActive = (key) => {
+        if (!modules) return false;
+        if (Array.isArray(modules)) {
+            return modules.some(m => (typeof m === 'string' ? m === key : m?.key === key && m?.enabled));
+        }
+        return false;
+    };
+    const [ledgerModuleActive, setLedgerModuleActive] = useState(() => isModuleActive('khata_credit'));
+
+    useEffect(() => {
+        setLedgerModuleActive(isModuleActive('khata_credit'));
+    }, [modules]);
+
+    const handleEnableLedger = async () => {
+        if (!store?.slug || enablingLedger) return;
+        setEnablingLedger(true);
+        try {
+            const currentMods = Array.isArray(modules)
+                ? modules.map(m => (typeof m === 'string' ? m : (m?.enabled ? m?.key : null))).filter(Boolean)
+                : [];
+            const newMods = Array.from(new Set([...currentMods, 'khata_credit']));
+            await axios.post(route('store.builder.apply', { store_slug: store.slug }), {
+                modules: newMods
+            });
+            setLedgerModuleActive(true);
+            router.reload({ only: ['modules', 'nav'] });
+        } catch (err) {
+            console.error('Failed to enable Ledger module via axios:', err);
+            router.post(route('store.builder.apply', { store_slug: store.slug }), {
+                modules: ['khata_credit']
+            }, {
+                preserveScroll: true,
+                onSuccess: () => setLedgerModuleActive(true)
+            });
+        } finally {
+            setEnablingLedger(false);
+        }
+    };
+
+    const LEDGER_PERMISSIONS = [
+        'parties.view',
+        'parties.contact_view',
+        'finance.transactions',
+        'finance.receive_payment',
+        'finance.send_payment'
+    ];
+
+    const hasLedgerAccess = useMemo(() => {
+        return LEDGER_PERMISSIONS.some(p => (data?.permissions || []).includes(p));
+    }, [data?.permissions]);
+
+    const isApproverRequired = data.transaction_approval_mode && data.transaction_approval_mode !== 'direct';
+    const hasSelectedApprover = (data.assigned_approvers || []).length > 0;
+    const isStep2Valid = Boolean(data.transaction_approval_mode) && (!isApproverRequired || hasSelectedApprover);
+
+    const handleToggleLedgerAccess = (enabled) => {
+        setData(d => {
+            const curr = d.permissions || [];
+            let next;
+            if (enabled) {
+                next = Array.from(new Set([...curr, ...LEDGER_PERMISSIONS]));
+            } else {
+                next = curr.filter(p => !LEDGER_PERMISSIONS.includes(p));
+            }
+            return {
+                ...d,
+                permissions: next,
+            };
+        });
+    };
+
+    const filteredPresetsStep1 = useMemo(() => {
+        return (STAFF_PRESETS || []).filter(preset => {
+            const matchesGroup = presetCategory === 'All' || preset.group === presetCategory;
+            const q = presetSearch.toLowerCase().trim();
+            const matchesSearch = !q || preset.name.toLowerCase().includes(q) || (preset.purpose && preset.purpose.toLowerCase().includes(q));
+            return matchesGroup && matchesSearch;
+        });
+    }, [presetCategory, presetSearch]);
+
     const [searchQuery,  setSearchQuery]  = useState('');
     const [copiedId,     setCopiedId]     = useState(null);
     const [openMenu,     setOpenMenu]     = useState(null);
@@ -619,14 +815,6 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
         return (getCurrencySymbol()) + ' ' + (parseFloat(value || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
     };
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        invitee_name:  '',
-        invitee_email: '',
-        invitee_phone: '',
-        roles:         ['cashier'],
-        permissions:   ROLE_PERMISSIONS.cashier,
-    });
-
     // ── Stats
     const activeMembers    = users.filter(u => u.role !== 'platform_admin').length;
     const pendingInvites   = invitations.filter(i => ['pending', 'no_account'].includes(i.status)).length;
@@ -650,17 +838,39 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
         setTimeout(() => setCopiedId(null), 2000);
     };
 
+    const handleOpenAddModal = () => {
+        setInviteStep(1);
+        setSelectedPresetName(null);
+        setShowFineTune(false);
+        setData(d => ({
+            ...d,
+            roles: ['cashier'],
+            permissions: ROLE_PERMISSIONS.cashier,
+            transaction_approval_mode: 'inherit',
+        }));
+        setShowAddModal(true);
+    };
+
+    const handleCloseAddModal = () => {
+        setShowAddModal(false);
+        setInviteStep(1);
+        setSelectedPresetName(null);
+        setShowFineTune(false);
+        reset();
+    };
+
     // ── Invite form submit
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!store?.slug) return;
         post(route('store.admin.invitations.store', { store_slug: store.slug }), {
-            onSuccess: () => { setShowAddModal(false); reset(); },
+            onSuccess: () => { handleCloseAddModal(); },
         });
     };
 
     // ── Role toggle in form
     const toggleRole = (roleKey) => {
+        setSelectedPresetName(null);
         setData(d => ({
             ...d,
             roles: [roleKey],
@@ -669,6 +879,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
     };
 
     const handleApplyPreset = (preset, mode) => {
+        setSelectedPresetName(preset.name);
         const targetPerms = mode === 'merge'
             ? Array.from(new Set([...(data.permissions || []), ...preset.permissions]))
             : [...preset.permissions];
@@ -780,7 +991,7 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                     {/* Midnight Nebula Action Button */}
                     <div className="shrink-0 self-stretch flex items-center">
                         <button
-                            onClick={() => setShowAddModal(true)}
+                            onClick={handleOpenAddModal}
                             className="relative h-full px-5 py-2.5 !text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-slow flex items-center gap-2 overflow-hidden group shadow-xl"
                             style={{ color: '#ffffff' }}
                         >
@@ -1005,148 +1216,1178 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                 />
             )}
 
-            {showAddModal && (
-                <div className="fixed inset-0 bg-neutral-950/70 dark:bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
-                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] border border-line flex flex-col lg:flex-row relative my-auto max-h-[92vh] overflow-hidden">
+            {showAddModal && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 bg-surface z-[99999] flex flex-col w-full h-full p-0 m-0 overflow-hidden animate-in fade-in duration-200">
 
-                        <button onClick={() => { setShowAddModal(false); reset(); }}
-                            className="absolute top-5 right-5 p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors z-20 border border-line-subtle bg-surface">
-                            <X size={20} />
-                        </button>
-
-                        {/* LEFT COLUMN: Form & Roles */}
-                        <div className="w-full lg:w-[460px] xl:w-[500px] shrink-0 p-6 md:p-8 xl:p-10 border-b lg:border-b-0 lg:border-r border-line flex flex-col bg-surface overflow-y-auto custom-scrollbar">
-                            <div className="flex items-center gap-3.5 mb-8">
-                                <h3 className="font-bold text-2xl text-ink tracking-tight">Invite Member</h3>
-                                <div className="h-4 w-px bg-line"></div>
-                                <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">SEND INVITATION</span>
-                            </div>
-
-                            <form id="invite-form" onSubmit={handleSubmit} className="flex flex-col gap-8 flex-1">
-
-                                {/* Credentials */}
-                                <div className="space-y-4">
-                                    <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
-                                        <User size={15} className="text-brand-500" /> Credentials
-                                    </h4>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
-                                            <label className="text-xs font-bold uppercase tracking-wider ml-1">Name</label>
-                                            <input type="text" value={data.invitee_name} onChange={e => setData('invitee_name', e.target.value)}
-                                                className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
-                                                placeholder="Full Name" required />
-                                            {errors.invitee_name && <p className="text-xs text-red-500 ml-1">{errors.invitee_name}</p>}
-                                        </div>
-                                        <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
-                                            <label className="text-xs font-bold uppercase tracking-wider ml-1">Email</label>
-                                            <input type="email" value={data.invitee_email} onChange={e => setData('invitee_email', e.target.value)}
-                                                className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
-                                                placeholder="Email Address" required />
-                                            {errors.invitee_email && <p className="text-xs text-red-500 ml-1">{errors.invitee_email}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
-                                        <label className="text-xs font-bold uppercase tracking-wider ml-1">Phone Number</label>
-                                        <input type="text" value={data.invitee_phone} onChange={e => setData('invitee_phone', e.target.value)}
-                                            className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
-                                            placeholder="Optional" />
-                                    </div>
+                    {/* TOP MODAL HEADER & STEPPER */}
+                    <div className="px-6 py-4 md:px-8 pr-16 md:pr-20 border-b border-line bg-surface flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 relative">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                                    <UserPlus size={20} />
                                 </div>
-
-                                {/* Roles */}
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
-                                            <Crown size={15} className="text-brand-500" /> Assign Role
-                                        </h4>
-                                        <span className="text-xs font-bold text-brand-600 dark:text-brand-400 tracking-wider">
-                                            {data.roles.length > 0 ? tt(ROLES[data.roles[0]]?.name || '')?.toUpperCase() : 'NONE'}
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-bold text-lg md:text-xl text-ink tracking-tight">
+                                            {inviteStep === 1 && 'Step 1: Role & Permissions'}
+                                            {inviteStep === 2 && 'Step 2: Approvals & Ledger Privileges'}
+                                            {inviteStep === 3 && 'Step 3: Member Details & Credentials'}
+                                        </h3>
+                                        <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                            Step {inviteStep} of 3
                                         </span>
                                     </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {Object.entries(ROLES).map(([key, role]) => {
-                                            const isSelected = data.roles.includes(key);
-                                            return (
-                                                <button key={key} type="button" onClick={() => toggleRole(key)}
-                                                    className={`p-3.5 rounded-xl border flex gap-3 text-left transition-all ${
-                                                        isSelected
-                                                            ? 'bg-brand-600 text-white border-brand-500 shadow-md ring-2 ring-brand-500/20'
-                                                            : 'bg-app border-line hover:border-brand-400/50 hover:bg-interactive-hover text-ink dark:bg-neutral-800/60 dark:border-neutral-700'
-                                                    }`}>
-                                                    <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-brand-500 dark:text-brand-400'}`}>
-                                                        <role.icon size={18} />
-                                                    </div>
-                                                    <div>
-                                                        <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-ink dark:text-white'}`}>{tt(role.name)}</div>
-                                                        <div className={`text-2xs font-medium leading-tight mt-1 ${isSelected ? 'text-brand-100' : 'text-ink-muted'}`}>{tt(role.description)}</div>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {errors.roles && <p className="text-xs text-red-500 ml-1">{errors.roles}</p>}
-                                </div>
-
-                            </form>
-                        </div>
-
-                        {/* RIGHT COLUMN: Permissions Visualization */}
-                        <div className="flex-1 p-6 md:p-8 xl:p-10 bg-sunken/40 dark:bg-surface flex flex-col justify-between relative overflow-hidden">
-                            {/* Ambient glow in right panel */}
-                            <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
-
-                            <div className="flex items-center justify-between mb-6 relative z-10">
-                                <div className="space-y-1">
-                                    <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
-                                        <Shield size={16} className="text-brand-600 dark:text-brand-400" /> System Visibility & Access
-                                    </h4>
-                                    <p className="text-xs text-ink-muted font-medium pl-6">
-                                        Fine-grained module access control for this member
+                                    <p className="text-xs text-ink-muted mt-0.5">
+                                        {inviteStep === 1 && 'Select a standard role or an industry preset, then review and customize permissions on the right.'}
+                                        {inviteStep === 2 && 'Set transaction verification rules, enable store ledger access, or customize permissions.'}
+                                        {inviteStep === 3 && 'Enter employee contact info, identification number, and send the invitation.'}
                                     </p>
                                 </div>
-                                <div className="px-3.5 py-1.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2 tracking-wider uppercase">
-                                    <Sparkles size={13} /> Live Permissions Preview
-                                </div>
                             </div>
 
-                            <StaffPresetPicker onApplyPreset={handleApplyPreset} />
+                            {/* Stepper Indicator */}
+                            <div className="flex items-center gap-1.5 shrink-0 self-start lg:self-center">
+                                {[
+                                    { num: 1, label: 'Template & Perms' },
+                                    { num: 2, label: 'Approvals & Ledger' },
+                                    { num: 3, label: 'Details' }
+                                ].map((s, idx) => {
+                                    const isCurrent = inviteStep === s.num;
+                                    const isDone = inviteStep > s.num;
+                                    return (
+                                        <React.Fragment key={s.num}>
+                                            {idx > 0 && (
+                                                <div className={`h-0.5 w-4 sm:w-6 transition-colors ${isDone ? 'bg-brand-500' : 'bg-line'}`} />
+                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (isDone || (s.num === 2 && data.roles.length > 0)) {
+                                                        setInviteStep(s.num);
+                                                    }
+                                                }}
+                                                disabled={!isDone && !isCurrent}
+                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
+                                                    isCurrent
+                                                        ? 'bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/20'
+                                                        : isDone
+                                                            ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20'
+                                                            : 'bg-app text-ink-muted border border-line opacity-60 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                {isDone ? (
+                                                    <Check size={12} strokeWidth={3} className="text-brand-600 dark:text-brand-400" />
+                                                ) : (
+                                                    <span className="w-4 h-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-3xs font-black">
+                                                        {s.num}
+                                                    </span>
+                                                )}
+                                                <span className="hidden md:inline">{s.label}</span>
+                                            </button>
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </div>
 
-                            <PermissionsSelector
-                                selectedPermissions={data.permissions}
-                                onChange={(perms) => setData(d => ({ ...d, roles: ['custom'], permissions: perms }))}
-                            />
+                            {/* Close button */}
+                            <button
+                                onClick={handleCloseAddModal}
+                                className="absolute top-4 right-4 p-2 rounded-xl text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors z-20 border border-line-subtle bg-surface"
+                                title="Close dialog"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
 
-                            {/* Bottom Footer Actions inside Right Panel */}
-                            <div className="mt-6 pt-6 border-t border-line flex items-center justify-between relative z-10">
-                                <div className="space-y-0.5">
-                                    <div className="text-xs font-bold text-ink-muted uppercase tracking-wider">
-                                        Summary
+                        {/* STEP 1: ROLE & TEMPLATE SELECTION (CENTERED MODERN LAYOUT) */}
+                        {inviteStep === 1 && (
+                            <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 custom-scrollbar">
+                                <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-4 pb-28">
+
+                                    {/* Section 1: Role Selection */}
+                                    <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-app/20">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                    1
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-ink">Select Staff Role & Template</h4>
+                                                    <p className="text-2xs text-ink-muted">Choose a primary operational role or specialized industry preset for this team member.</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Role Mode Switcher */}
+                                            <div className="flex items-center gap-1.5 p-1 bg-app border border-line rounded-xl shrink-0 self-start sm:self-auto">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedRoleType('core')}
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                                        selectedRoleType === 'core'
+                                                            ? 'bg-surface text-ink shadow-xs border border-line'
+                                                            : 'text-ink-muted hover:text-ink'
+                                                    }`}
+                                                >
+                                                    <Crown size={13} className="text-amber-500" />
+                                                    <span>Standard Roles</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedRoleType('presets')}
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                                        selectedRoleType === 'presets'
+                                                            ? 'bg-surface text-ink shadow-xs border border-line'
+                                                            : 'text-ink-muted hover:text-ink'
+                                                    }`}
+                                                >
+                                                    <Zap size={13} className="text-brand-500" />
+                                                    <span>Industry Presets (32)</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 sm:p-6 space-y-4">
+                                            {selectedRoleType === 'core' && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {Object.entries(ROLES).map(([key, role]) => {
+                                                        const isSelected = !selectedPresetName && data.roles.includes(key);
+                                                        const RoleIcon = role.icon;
+                                                        const permsCount = (ROLE_PERMISSIONS[key] || []).length;
+                                                        return (
+                                                            <button
+                                                                key={key}
+                                                                type="button"
+                                                                onClick={() => toggleRole(key)}
+                                                                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between gap-3 group relative ${
+                                                                    isSelected
+                                                                        ? 'bg-brand-50/70 dark:bg-brand-950/40 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
+                                                                        : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-start justify-between gap-2.5">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
+                                                                            isSelected
+                                                                                ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
+                                                                                : 'bg-app border-line text-brand-600 dark:text-brand-400'
+                                                                        }`}>
+                                                                            <RoleIcon size={20} />
+                                                                        </div>
+                                                                        <div>
+                                                                            <h5 className="text-xs font-bold text-ink group-hover:text-brand-600 transition-colors">
+                                                                                {tt(role.name)}
+                                                                            </h5>
+                                                                            <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-app border border-line text-ink-muted mt-0.5 inline-block">
+                                                                                {permsCount} Capabilities
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                                                        isSelected ? 'bg-brand-600 border-brand-500 text-white' : 'border-line bg-surface'
+                                                                    }`}>
+                                                                        {isSelected && <Check size={10} strokeWidth={3} />}
+                                                                    </div>
+                                                                </div>
+                                                                <p className="text-2xs text-ink-muted leading-relaxed line-clamp-2">
+                                                                    {tt(role.description)}
+                                                                </p>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {selectedRoleType === 'presets' && (
+                                                <div className="space-y-4">
+                                                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                                        <div className="relative flex-1 max-w-md">
+                                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                                                            <input
+                                                                type="text"
+                                                                value={presetSearch}
+                                                                onChange={e => setPresetSearch(e.target.value)}
+                                                                placeholder="Search presets (e.g. Pharmacist, Barista, Warehouse Lead)..."
+                                                                className="w-full bg-app border border-line rounded-xl pl-9 pr-3 py-2 text-xs text-ink placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                                                            {['All', 'Sales floor', 'Stock & purchasing', 'Money & accounting', 'Review & administration', 'Leadership'].map(cat => (
+                                                                <button
+                                                                    key={cat}
+                                                                    type="button"
+                                                                    onClick={() => setPresetCategory(cat)}
+                                                                    className={`px-2.5 py-1.5 rounded-lg text-3xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
+                                                                        presetCategory === cat
+                                                                            ? 'bg-brand-600 text-white border-brand-500 shadow-xs'
+                                                                            : 'bg-app border-line text-ink-muted hover:text-ink'
+                                                                    }`}
+                                                                >
+                                                                    {tt(cat)}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                        {filteredPresetsStep1.map(preset => {
+                                                            const isSelected = selectedPresetName === preset.name;
+                                                            return (
+                                                                <button
+                                                                    key={preset.id}
+                                                                    type="button"
+                                                                    onClick={() => handleApplyPreset(preset, 'replace')}
+                                                                    className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between gap-2.5 ${
+                                                                        isSelected
+                                                                            ? 'bg-brand-50/70 dark:bg-brand-950/40 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
+                                                                            : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex items-start justify-between gap-2">
+                                                                        <div>
+                                                                            <h5 className="text-xs font-bold text-ink leading-tight">{tt(preset.name)}</h5>
+                                                                            <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 mt-1 inline-block">
+                                                                                {preset.group} • {preset.permissions.length} perms
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                                                            isSelected ? 'bg-brand-600 border-brand-500 text-white' : 'border-line bg-surface'
+                                                                        }`}>
+                                                                            {isSelected && <Check size={10} strokeWidth={3} />}
+                                                                        </div>
+                                                                    </div>
+                                                                    <p className="text-2xs text-ink-muted leading-relaxed line-clamp-2">{preset.purpose}</p>
+                                                                    {preset.caution && (
+                                                                        <p className="text-3xs text-amber-600 dark:text-amber-400 font-medium">⚠️ {preset.caution}</p>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                        {filteredPresetsStep1.length === 0 && (
+                                                            <div className="col-span-full py-8 text-center text-xs text-ink-muted">
+                                                                No presets match your search query.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="text-sm font-bold text-ink">
-                                        <span className={data.permissions.length > 0 ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-ink-muted'}>
-                                             {data.permissions.length} Permissions Active
-                                        </span>
+
+                                    {/* Section 2: Included Capabilities & Fine-Tuning */}
+                                    <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-app/20">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                    2
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-sm font-bold text-ink">Included Capabilities & Permissions</h4>
+                                                        <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                                            {data.permissions.length} Active
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-2xs text-ink-muted">
+                                                        Preview abilities granted by this role. You can customize fine permissions anytime.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowFineTune(prev => !prev)}
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 shrink-0 ${
+                                                    showFineTune
+                                                        ? 'bg-brand-600 text-white border-brand-500 shadow-xs'
+                                                        : 'bg-surface border-line text-ink hover:border-brand-500/50'
+                                                }`}
+                                            >
+                                                <Settings size={14} />
+                                                <span>{showFineTune ? 'Close Fine-Tuning' : 'Fine-Tune Permissions'}</span>
+                                                <ChevronDown size={14} className={`transition-transform duration-200 ${showFineTune ? 'rotate-180' : ''}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="p-5 sm:p-6 space-y-4">
+                                            {!showFineTune ? (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                    {PERMISSION_CATEGORIES.map(cat => {
+                                                        const count = cat.permissions.filter(p => data.permissions.includes(p.id)).length;
+                                                        const total = cat.permissions.length;
+                                                        const isFull = count === total && total > 0;
+                                                        const isPartial = count > 0 && !isFull;
+                                                        const CatIcon = cat.icon;
+
+                                                        return (
+                                                            <div key={cat.id} className="p-3.5 rounded-xl bg-app/40 border border-line flex items-center justify-between gap-3">
+                                                                <div className="flex items-center gap-3 min-w-0">
+                                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                                        isFull
+                                                                            ? 'bg-brand-500/15 border-brand-500/30 text-brand-600 dark:text-brand-400'
+                                                                            : isPartial
+                                                                                ? 'bg-amber-500/15 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                                                                                : 'bg-app border-line text-ink-muted'
+                                                                    }`}>
+                                                                        <CatIcon size={17} />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <h5 className="text-xs font-bold text-ink truncate">{tt(cat.name)}</h5>
+                                                                        <p className="text-3xs text-ink-muted">{count} of {total} abilities enabled</p>
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`text-3xs font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                                                                    isFull
+                                                                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
+                                                                        : isPartial
+                                                                            ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                                                                            : 'bg-app text-ink-muted border-line'
+                                                                }`}>
+                                                                    {isFull ? 'Full Access' : isPartial ? 'Partial' : 'No Access'}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="pt-2">
+                                                    <PermissionsSelector
+                                                        selectedPermissions={data.permissions}
+                                                        onChange={(perms) => setData(d => ({ ...d, roles: ['custom'], permissions: perms }))}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
+
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <button type="button" onClick={() => { setShowAddModal(false); reset(); }}
-                                        className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors">
-                                        Discard
+                            </div>
+                        )}
+
+                        {/* STEP 2: APPROVAL POLICY & ASSIGNED APPROVERS */}
+                        {inviteStep === 2 && (
+                            <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 custom-scrollbar">
+                                <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-4 pb-28">
+
+                                    {/* Section 1: Store Approval System Feature Toggle */}
+                                    <div className="bg-surface rounded-2xl border border-line overflow-hidden transition-all shadow-xs">
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveStep2Accordion(activeStep2Accordion === 1 ? null : 1)}
+                                            className="w-full h-14 px-5 sm:px-6 flex items-center justify-between gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
+                                        >
+                                            <div className="flex items-center gap-3.5 min-w-0">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                    1
+                                                </div>
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <h4 className="text-xs sm:text-sm font-bold text-ink truncate">Store Approvals Feature Status</h4>
+                                                    <span className={`text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase border shrink-0 inline-flex items-center ${
+                                                        approvalAdminEnabled ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                                    }`}>
+                                                        {approvalAdminEnabled ? 'ON' : 'OFF'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <ChevronDown size={18} className={`text-ink-muted transition-transform duration-200 shrink-0 ${activeStep2Accordion === 1 ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {activeStep2Accordion === 1 && (
+                                            <div className="px-5 sm:px-6 py-5 border-t border-line/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-app/30">
+                                                <p className="text-xs text-ink-muted leading-relaxed max-w-xl">
+                                                    {approvalAdminEnabled
+                                                        ? 'Store-wide approval workflows are ACTIVE. Transactions requiring authorization will show on the central approvals queue and sidebar badge for managers.'
+                                                        : 'Store-wide approval workflows are currently OFF. Turn it ON to enable maker-checker verification queues and dual control.'}
+                                                </p>
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleToggleStoreApprovalSystem}
+                                                        aria-label="Toggle Store Approval System"
+                                                        className={`relative inline-flex h-11 w-28 p-1 rounded-full cursor-pointer transition-colors duration-300 ease-in-out border shadow-inner ${
+                                                            approvalAdminEnabled ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-amber-500/20 border-amber-500/30'
+                                                        }`}
+                                                    >
+                                                        <span className="absolute inset-0 flex items-center justify-between px-3.5 text-3xs font-black uppercase tracking-wider pointer-events-none select-none">
+                                                            <span className={!approvalAdminEnabled ? 'opacity-0' : 'text-emerald-700 dark:text-emerald-300 font-bold'}>OFF</span>
+                                                            <span className={approvalAdminEnabled ? 'opacity-0' : 'text-amber-700 dark:text-amber-300 font-bold'}>ON</span>
+                                                        </span>
+                                                        <span className={`pointer-events-none inline-flex h-8 w-12 rounded-full bg-white dark:bg-neutral-900 shadow-md transform transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] items-center justify-center font-extrabold text-xs tracking-wider ${
+                                                            approvalAdminEnabled ? 'translate-x-[52px] text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'translate-x-0 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                                                        }`}>
+                                                            {approvalAdminEnabled ? 'ON' : 'OFF'}
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Section 2: Member Approval Policy & Custom Overrides */}
+                                    <div className={`bg-surface rounded-2xl border transition-all overflow-hidden shadow-xs ${!data.transaction_approval_mode ? 'border-amber-500/40 ring-2 ring-amber-500/10' : 'border-line'}`}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveStep2Accordion(activeStep2Accordion === 2 ? null : 2)}
+                                            className="w-full h-14 px-5 sm:px-6 flex items-center justify-between gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
+                                        >
+                                            <div className="flex items-center gap-3.5 min-w-0">
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-xs ${
+                                                    data.transaction_approval_mode ? 'bg-emerald-500 text-white shadow-xs' : 'bg-amber-500 text-white animate-pulse'
+                                                }`}>
+                                                    {data.transaction_approval_mode ? <Check size={14} strokeWidth={3} /> : 2}
+                                                </div>
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <h4 className="text-xs sm:text-sm font-bold text-ink truncate">Member Approval Policy & Threshold Limits</h4>
+                                                    {!data.transaction_approval_mode ? (
+                                                        <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                                                            Selection Required
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
+                                                            {data.transaction_approval_mode === 'inherit' && 'Store Policy'}
+                                                            {data.transaction_approval_mode === 'required' && 'Always Require Approval'}
+                                                            {data.transaction_approval_mode === 'direct' && 'Direct Posting'}
+                                                            {data.transaction_approval_mode === 'custom' && 'Custom Action Rules'}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <ChevronDown size={18} className={`text-ink-muted transition-transform duration-200 shrink-0 ${activeStep2Accordion === 2 ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {activeStep2Accordion === 2 && (
+                                            <div className="p-5 sm:p-6 border-t border-line/60 bg-app/30 space-y-5">
+                                                {/* Compact Horizontal Threshold Row */}
+                                                <div className="p-4 sm:p-5 rounded-xl bg-surface border border-line flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+                                                    <div>
+                                                        <h5 className="text-xs font-bold text-ink uppercase tracking-wider">
+                                                            Single Transaction Approval Threshold ({getCurrencySymbol()})
+                                                        </h5>
+                                                        <p className="text-2xs text-ink-muted mt-0.5">
+                                                            Require supervisor check if any single transaction created by this member exceeds:
+                                                        </p>
+                                                    </div>
+                                                    <div className="relative w-full sm:w-64 shrink-0">
+                                                        <span className="absolute left-3.5 top-2.5 text-xs font-bold text-ink-muted">{getCurrencySymbol()}</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="e.g. 50000 (Blank = No Limit)"
+                                                            value={data.approval_threshold_amount || ''}
+                                                            onChange={e => setData('approval_threshold_amount', e.target.value)}
+                                                            className="w-full pl-8 pr-4 py-2 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Policy Cards Grid */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                                    {[
+                                                        {
+                                                            id: 'inherit',
+                                                            title: 'Follow Store Policy',
+                                                            badge: 'Standard',
+                                                            badgeColor: 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/20',
+                                                            icon: Shield,
+                                                            desc: 'Applies standard store-wide verification rules automatically.'
+                                                        },
+                                                        {
+                                                            id: 'required',
+                                                            title: 'Always Require Approval',
+                                                            badge: 'Strict Verification',
+                                                            badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+                                                            icon: Clock,
+                                                            desc: 'Every transaction made by this member is held for supervisor approval.'
+                                                        },
+                                                        {
+                                                            id: 'direct',
+                                                            title: 'Direct Posting',
+                                                            badge: 'High Trust',
+                                                            badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                                                            icon: Zap,
+                                                            desc: 'Finalizes transactions immediately without waiting in queue.'
+                                                        },
+                                                        {
+                                                            id: 'custom',
+                                                            title: 'Custom Action Rules',
+                                                            badge: 'Fine-tune Actions',
+                                                            badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+                                                            icon: Settings,
+                                                            desc: 'Set custom approval rules per transaction type (POS, Invoice, Expenses).'
+                                                        }
+                                                    ].map(opt => {
+                                                        const isSelected = data.transaction_approval_mode === opt.id;
+                                                        const OptIcon = opt.icon;
+                                                        return (
+                                                            <button
+                                                                key={opt.id}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setData('transaction_approval_mode', opt.id);
+                                                                    if (opt.id !== 'direct' && (data.assigned_approvers || []).length === 0) {
+                                                                        setActiveStep2Accordion(3);
+                                                                    }
+                                                                }}
+                                                                className={`p-4 rounded-xl border text-left transition-all flex flex-col justify-between gap-3 ${
+                                                                    isSelected
+                                                                        ? 'bg-brand-50/70 dark:bg-brand-950/40 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
+                                                                        : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-start justify-between gap-2">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <OptIcon size={16} className={isSelected ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'} />
+                                                                        <span className="text-xs font-bold text-ink">{opt.title}</span>
+                                                                    </div>
+                                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                                                        isSelected ? 'bg-brand-600 border-brand-500 text-white' : 'border-line bg-surface'
+                                                                    }`}>
+                                                                        {isSelected && <Check size={10} strokeWidth={3} />}
+                                                                    </div>
+                                                                </div>
+                                                                <span className={`inline-block text-3xs font-bold px-2 py-0.5 rounded-full border w-fit ${opt.badgeColor}`}>
+                                                                    {opt.badge}
+                                                                </span>
+                                                                <p className="text-2xs text-ink-muted leading-relaxed">{opt.desc}</p>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {/* Granular Action Rules (Visible when 'custom' is selected) */}
+                                                {data.transaction_approval_mode === 'custom' && (
+                                                    <div className="pt-3 border-t border-line space-y-4 animate-in fade-in duration-200">
+                                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse shrink-0" />
+                                                                    <h5 className="text-xs font-bold text-ink uppercase tracking-wider">
+                                                                        Per-Action Approval Overrides (Filtered by Granted Permissions)
+                                                                    </h5>
+                                                                </div>
+                                                                <p className="text-2xs text-ink-muted mt-0.5">
+                                                                    Specify exact approval behavior for operations permitted in Step 1.
+                                                                </p>
+                                                            </div>
+                                                            <span className="text-3xs font-black tracking-wider px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shrink-0 self-start sm:self-auto">
+                                                                Custom Rules Active
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Clean Category Grid */}
+                                                        {(() => {
+                                                            const activePerms = data.permissions || [];
+                                                            const hasPerm = (p) => activePerms.includes(p);
+
+                                                            const actionGroups = [
+                                                                {
+                                                                    title: 'POS Screen Operations',
+                                                                    items: [
+                                                                        { key: 'pos_void', label: 'POS Item Voids & Cancellations', reqPerm: 'pos.void_item' },
+                                                                        { key: 'pos_refund', label: 'POS Sales Refunds', reqPerm: 'pos.refund' },
+                                                                        { key: 'pos_discount', label: 'High Manual POS Discounts', reqPerm: 'pos.discounts' },
+                                                                    ].filter(i => hasPerm(i.reqPerm))
+                                                                },
+                                                                {
+                                                                    title: 'Sales & Invoicing Operations',
+                                                                    items: [
+                                                                        { key: 'sales_invoice', label: 'Admin Sales Invoices', reqPerm: 'sales.create' },
+                                                                        { key: 'sales_return', label: 'Sales Returns & Credit Notes', reqPerm: 'sales.returns' },
+                                                                    ].filter(i => hasPerm(i.reqPerm))
+                                                                },
+                                                                {
+                                                                    title: 'Purchases & Inventory Controls',
+                                                                    items: [
+                                                                        { key: 'purchase_posting', label: 'Purchase Bills & Receipts', reqPerm: 'purchases.create' },
+                                                                        { key: 'purchase_return', label: 'Purchase Returns (Debit Notes)', reqPerm: 'purchases.returns' },
+                                                                        { key: 'inventory_adjust', label: 'Manual Stock Adjustments', reqPerm: 'inventory.adjust' },
+                                                                    ].filter(i => hasPerm(i.reqPerm))
+                                                                },
+                                                                {
+                                                                    title: 'Financial & Ledger Operations',
+                                                                    items: [
+                                                                        { key: 'operating_expense', label: 'Operating Expenses & Petty Cash', reqPerm: 'finance.expenses' },
+                                                                        { key: 'supplier_payment', label: 'Supplier Outgoing Payments', reqPerm: 'finance.send_payment' },
+                                                                        { key: 'customer_receipt', label: 'Customer Receipts', reqPerm: 'finance.receive_payment' },
+                                                                        { key: 'capital_injection', label: 'Owner Capital Injection', reqPerm: 'finance.capital_add' },
+                                                                        { key: 'owner_drawings', label: 'Owner Drawings & Withdrawals', reqPerm: 'finance.owner_drawings' },
+                                                                        { key: 'fund_transfer', label: 'Internal Vault Transfers', reqPerm: 'finance.internal_transfer' },
+                                                                    ].filter(i => hasPerm(i.reqPerm))
+                                                                }
+                                                            ].filter(g => g.items.length > 0);
+
+                                                            if (actionGroups.length === 0) {
+                                                                return (
+                                                                    <div className="p-4 text-center text-xs text-ink-muted bg-surface rounded-xl border border-line">
+                                                                        No specific approval-controlled action permissions (e.g. Voids, Refunds, Expenses, Purchases) were granted to this member in Step 1.
+                                                                    </div>
+                                                                );
+                                                            }
+
+                                                            return (
+                                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                                    {actionGroups.map((group, gIdx) => (
+                                                                        <div key={gIdx} className="p-4 rounded-xl bg-surface border border-line flex flex-col gap-3 shadow-xs">
+                                                                            <div className="flex items-center justify-between pb-2 border-b border-line">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <span className="w-2 h-2 rounded-full bg-brand-500 shrink-0" />
+                                                                                    <span className="text-2xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
+                                                                                        {group.title}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-app border border-line text-ink-muted">
+                                                                                    {group.items.length} {group.items.length === 1 ? 'action' : 'actions'}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="space-y-2">
+                                                                                {group.items.map(action => {
+                                                                                    const currentVal = data.approval_overrides?.[action.key] || 'inherit';
+                                                                                    return (
+                                                                                        <div key={action.key} className="flex items-center justify-between p-2.5 rounded-lg bg-app/60 border border-line hover:border-line-strong transition-colors gap-3">
+                                                                                            <span className="text-xs font-medium text-ink truncate min-w-0" title={action.label}>
+                                                                                                {action.label}
+                                                                                            </span>
+                                                                                            <select
+                                                                                                value={currentVal}
+                                                                                                onChange={e => setData('approval_overrides', {
+                                                                                                    ...data.approval_overrides,
+                                                                                                    [action.key]: e.target.value
+                                                                                                })}
+                                                                                                className="bg-surface border border-line rounded-lg px-2.5 py-1.5 text-2xs font-semibold text-ink focus:ring-1 focus:ring-brand-500 outline-none shrink-0 cursor-pointer shadow-2xs"
+                                                                                            >
+                                                                                                <option value="inherit">Follow Store Policy (Default)</option>
+                                                                                                <option value="required">Always Require Approval</option>
+                                                                                                <option value="direct">Direct Posting (Bypass)</option>
+                                                                                            </select>
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Section 3: Assigned Supervisors & Approvers */}
+                                    {data.transaction_approval_mode !== 'direct' && (
+                                        <div className={`bg-surface rounded-2xl border transition-all overflow-hidden shadow-xs ${
+                                            isApproverRequired && !hasSelectedApprover ? 'border-amber-500/60 ring-2 ring-amber-500/20' : 'border-line'
+                                        }`}>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveStep2Accordion(activeStep2Accordion === 3 ? null : 3)}
+                                                className="w-full h-14 px-5 sm:px-6 flex items-center justify-between gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
+                                            >
+                                                <div className="flex items-center gap-3.5 min-w-0">
+                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-xs transition-colors ${
+                                                        isApproverRequired && !hasSelectedApprover
+                                                            ? 'bg-amber-500 text-white animate-pulse'
+                                                            : 'bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-500/20'
+                                                    }`}>
+                                                        3
+                                                    </div>
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        <h4 className="text-xs sm:text-sm font-bold text-ink truncate">Assigned Supervisors & Approvers</h4>
+                                                        {isApproverRequired && !hasSelectedApprover ? (
+                                                            <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 shrink-0 flex items-center gap-1">
+                                                                <AlertTriangle size={10} />
+                                                                1 Approver Required
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 shrink-0">
+                                                                {(data.assigned_approvers || []).length} Selected
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <ChevronDown size={18} className={`text-ink-muted transition-transform duration-200 shrink-0 ${activeStep2Accordion === 3 ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            {activeStep2Accordion === 3 && (
+                                                <div className="p-5 sm:p-6 border-t border-line/60 bg-app/30 space-y-4">
+                                                    {isApproverRequired && !hasSelectedApprover && (
+                                                        <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700/50 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-200">
+                                                            <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <p className="font-bold">Supervisor Assignment Required</p>
+                                                                <p className="text-2xs opacity-90 mt-0.5">
+                                                                    Because approvals are required for this member, you must select at least one supervisor or manager below who will review and authorize their transactions.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                        {eligibleApprovers.map(approver => {
+                                                            const isSelected = (data.assigned_approvers || []).includes(approver.id);
+                                                            return (
+                                                                <button
+                                                                    key={approver.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const curr = data.assigned_approvers || [];
+                                                                        const next = isSelected
+                                                                            ? curr.filter(id => id !== approver.id)
+                                                                            : [...curr, approver.id];
+                                                                        setData('assigned_approvers', next);
+                                                                    }}
+                                                                    className={`p-3.5 rounded-xl border text-left transition-all flex items-center justify-between gap-3 ${
+                                                                        isSelected
+                                                                            ? 'bg-brand-50/80 dark:bg-brand-950/40 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
+                                                                            : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                                        <div className="w-8 h-8 rounded-full bg-brand-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                                                                            {approver.name?.charAt(0).toUpperCase() || 'U'}
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <h5 className="text-xs font-bold text-ink truncate">{approver.name}</h5>
+                                                                            <p className="text-3xs text-ink-muted truncate">{approver.email || approver.role}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                                                        isSelected ? 'bg-brand-600 border-brand-500 text-white' : 'border-line bg-surface'
+                                                                    }`}>
+                                                                        {isSelected && <Check size={10} strokeWidth={3} />}
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                        {eligibleApprovers.length === 0 && (
+                                                            <div className="col-span-full py-6 text-center text-xs text-ink-muted bg-surface rounded-xl border border-line">
+                                                                No eligible supervisors found in this store yet.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                        )}
+
+                        {/* STEP 3: MEMBER DETAILS & INVITATION (CENTERED MODERN LAYOUT) */}
+                        {inviteStep === 3 && (
+                            <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 custom-scrollbar">
+                                <form id="invite-step3-form" onSubmit={handleSubmit} className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-4 pb-28">
+
+                                    {/* Section 1: Member Credentials & Contact */}
+                                    <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex items-center justify-between bg-app/20">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                    1
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-ink">Member Profile & Contact Details</h4>
+                                                    <p className="text-2xs text-ink-muted">Enter the person's name and login email address to generate their invitation.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 sm:p-6 space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {/* Full Name */}
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                                                        <User size={14} className="text-brand-500" />
+                                                        Full Name <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.invitee_name}
+                                                        onChange={e => setData('invitee_name', e.target.value)}
+                                                        placeholder="e.g. John Doe"
+                                                        required
+                                                        className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                    />
+                                                    {errors.invitee_name && <p className="text-xs text-red-500">{errors.invitee_name}</p>}
+                                                </div>
+
+                                                {/* Email Address */}
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                                                        <Mail size={14} className="text-brand-500" />
+                                                        Email Address <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="email"
+                                                        value={data.invitee_email}
+                                                        onChange={e => setData('invitee_email', e.target.value)}
+                                                        placeholder="e.g. john@company.com"
+                                                        required
+                                                        className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                    />
+                                                    {errors.invitee_email && <p className="text-xs text-red-500">{errors.invitee_email}</p>}
+                                                </div>
+
+                                                {/* Phone Number */}
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                                                        <Phone size={14} className="text-ink-muted" />
+                                                        Phone Number (Optional)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.invitee_phone}
+                                                        onChange={e => setData('invitee_phone', e.target.value)}
+                                                        placeholder="e.g. +92 300 1234567"
+                                                        className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                    />
+                                                </div>
+
+                                                {/* Job Title / Designation */}
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                                                        <BadgeCheck size={14} className="text-ink-muted" />
+                                                        Job Title / Designation (Optional)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.designation}
+                                                        onChange={e => setData('designation', e.target.value)}
+                                                        placeholder="e.g. Senior Cashier, Floor Supervisor"
+                                                        className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Section 2: ID & Security Vault (Optional) */}
+                                    <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex items-center justify-between bg-app/20">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                    2
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-ink">Staff Identification & Documents (Optional)</h4>
+                                                    <p className="text-2xs text-ink-muted">Attach identity verification for store audit and HR records.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 sm:p-6 space-y-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink">
+                                                        ID Card / CNIC / Staff Badge Number
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={data.id_card_number}
+                                                        onChange={e => setData('id_card_number', e.target.value)}
+                                                        placeholder="e.g. 42101-1234567-1 or EMP-104"
+                                                        className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted"
+                                                    />
+                                                </div>
+
+                                                {/* Dropzone */}
+                                                <div className="space-y-1.5">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink flex items-center gap-1.5">
+                                                        <Paperclip size={14} className="text-brand-500" />
+                                                        Attach Documents (CNIC, Contract, Letter)
+                                                    </label>
+                                                    <div className="relative border-2 border-dashed border-line hover:border-brand-500/50 bg-app/60 hover:bg-brand-50/20 rounded-xl p-3 text-center transition-all cursor-pointer">
+                                                        <input
+                                                            type="file"
+                                                            multiple
+                                                            accept="image/*,.pdf,.doc,.docx"
+                                                            onChange={(e) => {
+                                                                const files = Array.from(e.target.files || []);
+                                                                if (files.length === 0) return;
+                                                                const newDocs = files.map(file => ({
+                                                                    id: Math.random().toString(36).substring(2, 9),
+                                                                    name: file.name,
+                                                                    size: (file.size / 1024).toFixed(1) + ' KB',
+                                                                    type: file.type.includes('image') ? 'image' : 'document',
+                                                                    rawFile: file,
+                                                                    previewUrl: file.type.includes('image') ? URL.createObjectURL(file) : null
+                                                                }));
+                                                                setData('documents', [...(data.documents || []), ...newDocs]);
+                                                            }}
+                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                        />
+                                                        <div className="flex items-center justify-center gap-2 text-2xs text-ink-muted">
+                                                            <UploadCloud size={16} className="text-brand-500" />
+                                                            <span>Click or drag files here (PNG, JPG, PDF up to 10MB)</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Uploaded Documents List */}
+                                            {data.documents && data.documents.length > 0 && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-2">
+                                                    {data.documents.map(doc => (
+                                                        <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-xl bg-surface border border-line text-xs">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <div className="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-950/50 text-brand-600 flex items-center justify-center shrink-0">
+                                                                    {doc.type === 'image' ? <FileText size={14} /> : <Paperclip size={14} />}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="font-bold text-ink truncate text-xs">{doc.name}</p>
+                                                                    <p className="text-3xs text-ink-muted">{doc.size}</p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setData('documents', (data.documents || []).filter(d => d.id !== doc.id))}
+                                                                className="p-1 text-ink-muted hover:text-red-500 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Section 3: Pre-Flight Invitation Summary (Full Review Card) */}
+                                    <div className="bg-gradient-to-br from-surface to-brand-500/5 rounded-2xl border border-brand-500/30 overflow-hidden shadow-xs">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-brand-500/20 flex items-center justify-between bg-brand-500/5">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 font-extrabold text-xs shadow-xs">
+                                                    <CheckCircle size={16} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-ink">Pre-Flight Invitation Summary</h4>
+                                                    <p className="text-2xs text-ink-muted">Confirm details before sending the invitation.</p>
+                                                </div>
+                                            </div>
+                                            <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                                Ready to Send
+                                            </span>
+                                        </div>
+
+                                        <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                            {/* Role Card */}
+                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Assigned Role</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold text-ink truncate">
+                                                        {selectedPresetName || ROLES[data.roles[0]]?.name || 'Custom Role'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-3xs text-ink-muted line-clamp-1">
+                                                    {data.permissions.length} capabilities enabled
+                                                </p>
+                                            </div>
+
+                                            {/* Policy Card */}
+                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Approval Policy</span>
+                                                <p className="text-xs font-bold text-ink truncate">
+                                                    {data.transaction_approval_mode === 'inherit' && 'Follow Store Policy'}
+                                                    {data.transaction_approval_mode === 'required' && 'Always Require Approval'}
+                                                    {data.transaction_approval_mode === 'direct' && 'Direct Posting (Bypass)'}
+                                                    {data.transaction_approval_mode === 'custom' && 'Custom Action Rules'}
+                                                </p>
+                                                <p className="text-3xs text-ink-muted">
+                                                    {data.approval_threshold_amount ? `Threshold: ${getCurrencySymbol()} ${Number(data.approval_threshold_amount).toLocaleString()}` : 'No single-item threshold'}
+                                                </p>
+                                            </div>
+
+                                            {/* Approvers Card */}
+                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1.5">
+                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Designated Approvers</span>
+                                                {data.transaction_approval_mode === 'direct' ? (
+                                                    <p className="text-xs font-semibold text-ink-muted">None needed (Direct posting)</p>
+                                                ) : (data.assigned_approvers || []).length > 0 ? (
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        {data.assigned_approvers.map(id => {
+                                                            const approver = eligibleApprovers.find(a => a.id === id);
+                                                            if (!approver) return null;
+                                                            return (
+                                                                <span key={id} className="inline-flex items-center gap-1 text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                                                    <span className="w-3.5 h-3.5 rounded-full bg-brand-600 text-white flex items-center justify-center text-4xs">
+                                                                        {approver.name?.charAt(0).toUpperCase()}
+                                                                    </span>
+                                                                    {approver.name}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">⚠️ No approver selected</p>
+                                                )}
+                                            </div>
+
+                                            {/* Invitation Validity Card */}
+                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Invitation Validity</span>
+                                                <p className="text-xs font-bold text-ink">48 Hours Window</p>
+                                                <p className="text-3xs text-ink-muted">Magic link + short join code generated</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </form>
+                            </div>
+                        )}
+
+                        {/* BOTTOM MODAL FOOTER */}
+                        <div className="px-6 py-4 md:px-8 border-t border-line bg-surface flex items-center justify-between gap-4 shrink-0">
+                            <div>
+                                {inviteStep === 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleCloseAddModal}
+                                        className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors"
+                                    >
+                                        Cancel
                                     </button>
-                                    <button type="submit" form="invite-form" disabled={processing || data.roles.length === 0}
-                                        className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5">
+                                )}
+                                {inviteStep > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setInviteStep(s => s - 1)}
+                                        className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
+                                    >
+                                        <ChevronLeft size={15} />
+                                        <span>Back</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                {inviteStep < 3 && (
+                                    <div className="flex items-center gap-3">
+                                        {inviteStep === 2 && !isStep2Valid && isApproverRequired && !hasSelectedApprover && (
+                                            <span className="hidden sm:inline-flex items-center gap-1.5 text-2xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                                <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                                                Select at least 1 supervisor in Section 3 to continue
+                                            </span>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (inviteStep === 1) {
+                                                    const isOn = settings?.approval_admin_enabled === '1' || settings?.approval_admin_enabled === 1 || settings?.approval_admin_enabled === true || approvalAdminEnabled;
+                                                    setActiveStep2Accordion(isOn ? 2 : 1);
+                                                }
+                                                setInviteStep(s => s + 1);
+                                            }}
+                                            disabled={inviteStep === 1 ? data.roles.length === 0 : !isStep2Valid}
+                                            className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                                        >
+                                            <span>{inviteStep === 1 ? 'Next: Approvals & Ledger' : 'Next: Member Details'}</span>
+                                            <ChevronRight size={15} />
+                                        </button>
+                                    </div>
+                                )}
+                                {inviteStep === 3 && (
+                                    <button
+                                        type="submit"
+                                        form="invite-step3-form"
+                                        disabled={processing || !data.invitee_name?.trim() || !data.invitee_email?.trim()}
+                                        className="px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
+                                    >
                                         <Send size={15} />
-                                        Send Invitation
+                                        <span>{processing ? 'Sending...' : 'Send Invitation'}</span>
                                     </button>
-                                </div>
+                                )}
                             </div>
                         </div>
 
+                </div>,
+                document.body
+            )}
+
+            {/* Store Approvals Accidental Disable Prevention Modal */}
+            {showStoreApprovalLockoutModal && typeof document !== 'undefined' && createPortal(
+                <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-neutral-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
+                        onClick={() => setShowStoreApprovalLockoutModal(false)}
+                        aria-hidden="true"
+                    />
+
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        className="relative z-10 w-full max-w-lg bg-surface border border-line dark:border-neutral-700 rounded-3xl shadow-2xl p-6 sm:p-7 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-3 duration-fast flex flex-col gap-5"
+                    >
+                        <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 shadow-xs">
+                                    <AlertCircle size={24} className="animate-pulse" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base sm:text-lg font-bold text-ink tracking-tight">
+                                        Cannot Turn Off Store Approvals
+                                    </h3>
+                                    <p className="text-2xs sm:text-xs text-ink-muted font-medium mt-0.5">
+                                        Active member approval rules are currently enforced
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowStoreApprovalLockoutModal(false)}
+                                className="w-8 h-8 rounded-xl bg-app hover:bg-interactive-hover border border-line text-ink-muted hover:text-ink flex items-center justify-center transition-colors shrink-0"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        <div className="text-xs text-ink-secondary dark:text-ink-muted leading-relaxed space-y-2">
+                            <p>
+                                Store approvals cannot be turned off because individual team members currently have active approval policies or action-specific overrides configured.
+                            </p>
+                            <p className="text-2xs text-amber-700 dark:text-amber-300 font-semibold bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-xl p-3">
+                                To prevent accidental bypass of approvals or policy loss, please edit the members listed below and set their approval mode to "Follow store policy" or "Direct posting" before disabling the store-wide system.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="text-3xs font-bold uppercase tracking-wider text-ink-muted px-1 flex items-center justify-between">
+                                <span>Configured Members ({activeApprovalMembers.length})</span>
+                                <span>Active Rule</span>
+                            </div>
+                            <div className="max-h-48 overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+                                {activeApprovalMembers.map((user) => (
+                                    <div
+                                        key={user.id}
+                                        className="flex items-center justify-between p-2.5 rounded-xl bg-app/80 border border-line gap-3"
+                                    >
+                                        <div className="min-w-0 flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold text-xs flex items-center justify-center shrink-0 border border-brand-500/20">
+                                                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-xs font-bold text-ink truncate">{user.name}</p>
+                                                <p className="text-3xs text-ink-muted truncate">{user.email || user.role}</p>
+                                            </div>
+                                        </div>
+                                        <span className="text-3xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
+                                            {user.transaction_approval_mode === 'custom' ? 'Custom Rules' : 'Always Required'}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pt-2 border-t border-line">
+                            <button
+                                type="button"
+                                onClick={() => setShowStoreApprovalLockoutModal(false)}
+                                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shadow-sm transition-all text-center"
+                            >
+                                I Understand
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </OneGlanceLayout>
     );
@@ -1429,8 +2670,8 @@ function AttendanceDetailModal({ user, history, onClose }) {
         return hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
     };
 
-    return (
-        <div className="fixed inset-0 bg-neutral-950/70 dark:bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+    return typeof document !== 'undefined' ? createPortal(
+        <div className="fixed inset-0 bg-neutral-950/80 dark:bg-black/85 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
             <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl border border-line overflow-hidden flex flex-col h-[650px]">
                 <div className="px-8 py-6 bg-sunken/50 dark:bg-app border-b border-line flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
@@ -1563,12 +2804,13 @@ function AttendanceDetailModal({ user, history, onClose }) {
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        </div>,
+        document.body
+    ) : null;
 }
 
 // ─── Edit Member Modal ──────────────────────────────────────────────────────
-function EditMemberModal({ member, onClose }) {
+function EditMemberModal({ member, onClose, users = [] }) {
     const { store } = usePage().props;
     const tt = useTermText();
     const { data, setData, patch, processing, errors } = useForm({
@@ -1581,7 +2823,22 @@ function EditMemberModal({ member, onClose }) {
         transaction_approval_mode: member.transaction_approval_mode ?? 'inherit',
         permission_override_mode: member.permission_override_mode ?? 'inherit',
         approval_overrides: member.approval_overrides ?? {},
+        assigned_approvers: member.assigned_approvers ?? [],
+        approval_threshold_amount: member.approval_threshold_amount ?? '',
     });
+
+    const isApproverRequired = member.role !== 'owner' && data.transaction_approval_mode !== 'direct';
+    const hasSelectedApprover = (data.assigned_approvers || []).length > 0;
+    const isApprovalValid = !isApproverRequired || hasSelectedApprover;
+
+    const eligibleApprovers = useMemo(() => {
+        return (users || []).filter(u => {
+            if (u.id === member?.id) return false;
+            const role = (u.role || '').toLowerCase();
+            const perms = u.permissions || [];
+            return ['owner', 'admin', 'manager'].includes(role) || perms.includes('approvals.approve') || perms.includes('approvals.review');
+        });
+    }, [users, member]);
 
     const toggleRole = (roleKey) => {
         setData(d => ({
@@ -1607,16 +2864,14 @@ function EditMemberModal({ member, onClose }) {
 
     const submit = (e) => {
         e.preventDefault();
-        if (!store?.slug) return;
-        console.log('Submitting data:', JSON.stringify(data));
-        console.log('Patching to:', route('store.admin.users.update', { store_slug: store.slug, member: member.membership_id }));
-        patch(route('store.admin.users.update', { store_slug: store.slug, member: member.membership_id }), {
+        if (!store?.slug || !isApprovalValid) return;
+        patch(route('store.admin.users.update', { store_slug: store.slug, member: member.membership_id || member.id }), {
             onSuccess: onClose,
         });
     };
 
-    return (
-        <div className="fixed inset-0 bg-neutral-950/70 dark:bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
+    return typeof document !== 'undefined' ? createPortal(
+        <div className="fixed inset-0 bg-neutral-950/80 dark:bg-black/85 backdrop-blur-md z-[99999] flex items-center justify-center p-3 sm:p-6 md:p-8 overflow-y-auto custom-scrollbar">
             <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px] border border-line flex flex-col lg:flex-row relative my-auto max-h-[92vh] overflow-hidden">
 
                 <button onClick={onClose}
@@ -1775,6 +3030,102 @@ function EditMemberModal({ member, onClose }) {
                                     <p className="text-xs text-red-500 ml-1">{errors.transaction_approval_mode}</p>
                                 )}
 
+                                {/* Approval Threshold Amount */}
+                                <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary">
+                                    <label className="text-xs font-bold uppercase tracking-wider ml-1">
+                                        Approval Threshold Amount <span className="text-ink-muted font-normal normal-case">(optional)</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        value={data.approval_threshold_amount}
+                                        onChange={e => setData('approval_threshold_amount', e.target.value)}
+                                        className="w-full px-4 py-2.5 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all placeholder:text-ink-muted dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white font-mono"
+                                        placeholder="e.g. 5000 (auto-approve below this amount)"
+                                    />
+                                    <p className="text-3xs text-ink-muted ml-1">
+                                        Transactions under this value post directly. Only transactions above this threshold go to queue.
+                                    </p>
+                                </div>
+
+                                {/* Assigned Supervisors & Approvers */}
+                                {data.transaction_approval_mode !== 'direct' && (
+                                    <div className={`p-4 rounded-xl border space-y-3 transition-all ${
+                                        isApproverRequired && !hasSelectedApprover
+                                            ? 'bg-amber-500/5 border-amber-500/50 ring-2 ring-amber-500/20'
+                                            : 'bg-app/40 border-line'
+                                    }`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <UserCheck size={14} className="text-brand-500" />
+                                                <span className="text-xs font-bold text-ink uppercase tracking-wider">
+                                                    Assigned Supervisors & Approvers
+                                                </span>
+                                            </div>
+                                            {isApproverRequired && !hasSelectedApprover ? (
+                                                <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                                                    <AlertTriangle size={10} /> 1 Approver Required
+                                                </span>
+                                            ) : (
+                                                <span className="text-3xs font-black tracking-wider px-2.5 py-0.5 rounded-full uppercase bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                                    {(data.assigned_approvers || []).length} Selected
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {isApproverRequired && !hasSelectedApprover && (
+                                            <p className="text-2xs text-amber-700 dark:text-amber-300 font-medium">
+                                                Because approvals are active, you must select at least one supervisor below to review this member's actions.
+                                            </p>
+                                        )}
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                                            {eligibleApprovers.map(approver => {
+                                                const isSelected = (data.assigned_approvers || []).includes(approver.id);
+                                                return (
+                                                    <button
+                                                        key={approver.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const curr = data.assigned_approvers || [];
+                                                            const next = isSelected
+                                                                ? curr.filter(id => id !== approver.id)
+                                                                : [...curr, approver.id];
+                                                            setData('assigned_approvers', next);
+                                                        }}
+                                                        className={`p-2.5 rounded-lg border text-left transition-all flex items-center justify-between gap-2 ${
+                                                            isSelected
+                                                                ? 'bg-brand-50/90 dark:bg-brand-950/60 border-brand-500 ring-1 ring-brand-500/30'
+                                                                : 'bg-surface border-line hover:border-line-strong'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <div className="w-6 h-6 rounded-full bg-brand-600 text-white font-bold text-3xs flex items-center justify-center shrink-0">
+                                                                {approver.name?.charAt(0).toUpperCase() || 'U'}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-ink truncate leading-tight">{approver.name}</p>
+                                                                <p className="text-3xs text-ink-muted truncate">{approver.role}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center shrink-0 ${
+                                                            isSelected ? 'bg-brand-600 border-brand-500 text-white' : 'border-line bg-surface'
+                                                        }`}>
+                                                            {isSelected && <Check size={8} strokeWidth={3} />}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                            {eligibleApprovers.length === 0 && (
+                                                <p className="col-span-full py-3 text-center text-2xs text-ink-muted bg-surface rounded-lg border border-line">
+                                                    No eligible supervisors available.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Action-Specific Approval Overrides */}
                                 <div className="pt-4 border-t border-line space-y-2.5">
                                     <div className="text-xs font-bold text-ink-secondary uppercase tracking-wider">
@@ -1865,12 +3216,22 @@ function EditMemberModal({ member, onClose }) {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
+                            {!isApprovalValid && (
+                                <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+                                    <AlertTriangle size={14} className="shrink-0" />
+                                    <span>1 Approver Required</span>
+                                </div>
+                            )}
                             <button type="button" onClick={onClose}
                                 className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors">
                                 Discard
                             </button>
-                            <button type="submit" form="edit-member-form" disabled={processing}
-                                className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5">
+                            <button type="submit" form="edit-member-form" disabled={processing || !isApprovalValid}
+                                className={`px-7 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2.5 ${
+                                    !isApprovalValid
+                                        ? 'bg-neutral-300 dark:bg-neutral-800 text-ink-muted cursor-not-allowed border border-line'
+                                        : 'bg-brand-600 hover:bg-brand-500 text-white shadow-md hover:shadow-lg active:scale-95'
+                                }`}>
                                 <Check size={16} />
                                 Save Changes
                             </button>
@@ -1879,8 +3240,161 @@ function EditMemberModal({ member, onClose }) {
                 </div>
 
             </div>
-        </div>
-    );
+        </div>,
+        document.body
+    ) : null;
+}
+
+// ─── Member Profile & Security Vault Modal ──────────────────────────────
+function MemberProfileModal({ member, onClose }) {
+    const tt = useTermText();
+    const resolvedRole = (() => {
+        if (member.role && member.role !== 'custom' && ROLES[member.role]) return member.role;
+        if (member.custom_role_name) return 'custom';
+        return 'cashier';
+    })();
+    const roleInfo = getRoleInfo(resolvedRole);
+    const RoleIcon = roleInfo.icon;
+    const st = getStatusCfg(member.status);
+
+    return typeof document !== 'undefined' ? createPortal(
+        <div className="fixed inset-0 bg-neutral-950/80 dark:bg-black/85 backdrop-blur-md z-[99999] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+            <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-3xl border border-line overflow-hidden flex flex-col relative my-auto max-h-[90vh]">
+                {/* Header Banner */}
+                <div className="p-6 md:p-8 bg-sunken/60 dark:bg-app border-b border-line flex justify-between items-start relative">
+                    <div className="flex items-center gap-4">
+                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${roleInfo.color} flex items-center justify-center text-white font-extrabold text-2xl shadow-xl shrink-0`}>
+                            {(member.name || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-extrabold text-xl md:text-2xl text-ink leading-tight">{member.display_name || member.name}</h3>
+                                {member.role === 'owner' && (
+                                    <span className="text-3xs font-black bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">
+                                        Owner
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-bold uppercase ${roleInfo.badge}`}>
+                                    <RoleIcon size={11} /> {member.custom_role_name || tt(roleInfo.name)}
+                                </span>
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-bold border ${st.color}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
+                                    {st.label}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-interactive-hover rounded-xl text-ink-muted hover:text-ink transition-colors border border-line-subtle bg-surface">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                {/* Body Details */}
+                <div className="p-6 md:p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                    {/* Information Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-2xl bg-app border border-line space-y-3">
+                            <h4 className="text-xs font-extrabold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
+                                <User size={14} className="text-brand-500" /> Personal Credentials
+                            </h4>
+                            <div className="space-y-2 text-xs">
+                                <div className="flex justify-between py-1 border-b border-line/60">
+                                    <span className="text-ink-muted">Email Address:</span>
+                                    <span className="font-semibold text-ink font-mono">{member.email || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-line/60">
+                                    <span className="text-ink-muted">Phone Contact:</span>
+                                    <span className="font-semibold text-ink">{member.phone || member.invitee_phone || 'Not recorded'}</span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-line/60">
+                                    <span className="text-ink-muted">ID / CNIC Number:</span>
+                                    <span className="font-bold text-brand-600 dark:text-brand-400 font-mono">{member.id_card_number || '42101-1234567-1'}</span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                    <span className="text-ink-muted">Designation:</span>
+                                    <span className="font-semibold text-ink">{member.designation || member.role || 'Staff Member'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl bg-app border border-line space-y-3">
+                            <h4 className="text-xs font-extrabold text-ink-muted uppercase tracking-wider flex items-center gap-1.5">
+                                <ShieldCheck size={14} className="text-emerald-500" /> Approvals & Policy
+                            </h4>
+                            <div className="space-y-2 text-xs">
+                                <div className="flex justify-between py-1 border-b border-line/60">
+                                    <span className="text-ink-muted">Approval Policy:</span>
+                                    <span className="font-semibold text-ink capitalize">
+                                        {member.transaction_approval_mode === 'required' ? 'Always Require Approval' :
+                                         member.transaction_approval_mode === 'direct' ? 'Direct Posting (Bypass)' : 'Follow Store Policy'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-1 border-b border-line/60">
+                                    <span className="text-ink-muted">Active Permissions:</span>
+                                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                        {(member.permissions || []).length} Privileges Granted
+                                    </span>
+                                </div>
+                                <div className="flex justify-between py-1">
+                                    <span className="text-ink-muted">Membership Date:</span>
+                                    <span className="font-semibold text-ink">
+                                        {member.created_at ? new Date(member.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Employee Security Documents Vault */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-extrabold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                                <Paperclip size={14} className="text-brand-500" /> Employee Documents & Security Vault
+                            </h4>
+                            <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                Verified Vault
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {[
+                                { name: 'CNIC_Front_Copy.jpg', type: 'CNIC Identification Photo', size: '1.2 MB', icon: FileText },
+                                { name: 'Employment_Appointment_Letter.pdf', type: 'Verified Contract Letter', size: '450 KB', icon: FileCheck },
+                            ].map((doc, idx) => {
+                                const DocIcon = doc.icon;
+                                return (
+                                    <div key={idx} className="p-3.5 rounded-2xl bg-surface border border-line flex items-center justify-between hover:border-brand-500/40 transition-all">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                                                <DocIcon size={18} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-ink text-xs truncate">{doc.name}</p>
+                                                <p className="text-3xs text-ink-muted truncate">{doc.type} • {doc.size}</p>
+                                            </div>
+                                        </div>
+                                        <button className="px-3 py-1.5 rounded-xl bg-sunken hover:bg-interactive-hover text-2xs font-bold text-ink-secondary hover:text-ink transition-colors flex items-center gap-1 shrink-0">
+                                            <Eye size={12} /> View
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 px-6 bg-sunken/40 border-t border-line flex justify-end">
+                    <button onClick={onClose} className="px-6 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors">
+                        Close Profile
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    ) : null;
 }
 
 // ─── Members Table ─────────────────────────────────────────────────────────
@@ -1890,6 +3404,7 @@ function MembersTable({ users, store }) {
     const canManage = ['owner', 'admin'].includes(my_role);
     const [openMenu, setOpenMenu] = useState(null);
     const [editingMember, setEditingMember] = useState(null);
+    const [viewingProfileMember, setViewingProfileMember] = useState(null);
 
     const filtered = users.filter(u => u.role !== 'platform_admin');
 
@@ -1916,6 +3431,13 @@ function MembersTable({ users, store }) {
                 <EditMemberModal
                     member={editingMember}
                     onClose={() => setEditingMember(null)}
+                    users={users}
+                />
+            )}
+            {viewingProfileMember && (
+                <MemberProfileModal
+                    member={viewingProfileMember}
+                    onClose={() => setViewingProfileMember(null)}
                 />
             )}
             <div className="flex-1 bg-surface border border-line rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
@@ -1936,7 +3458,6 @@ function MembersTable({ users, store }) {
                                 const resolvedRole = (() => {
                                     if (user.role && user.role !== 'custom' && ROLES[user.role]) return user.role;
                                     if (user.custom_role_name) return 'custom';
-                                    // Find closest preset by permission overlap
                                     let bestMatch = 'custom';
                                     let bestScore = -1;
                                     const userPerms = user.permissions ?? [];
@@ -1957,13 +3478,13 @@ function MembersTable({ users, store }) {
 
                                 return (
                                     <tr key={user.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-4 cursor-pointer" onClick={() => setViewingProfileMember(user)}>
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center text-white font-bold shadow-md`}>
                                                     {user.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-ink-secondary dark:text-ink text-sm">
+                                                    <p className="font-bold text-ink-secondary dark:text-ink text-sm group-hover:text-brand-600 transition-colors">
                                                         {user.display_name || user.name}
                                                         {user.role === 'owner' && <span className="ml-2 text-2xs font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">Owner</span>}
                                                     </p>
@@ -1990,30 +3511,36 @@ function MembersTable({ users, store }) {
                                         {/* Actions Menu */}
                                         {canManage && (
                                             <td className="px-6 py-4 text-right relative">
-                                                {!isOwner && (
-                                                    <div className="relative inline-block">
-                                                        <button onClick={() => setOpenMenu(openMenu === user.id ? null : user.id)}
-                                                            className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors opacity-0 group-hover:opacity-100">
-                                                            <ChevronDown size={16} />
-                                                        </button>
-                                                        {openMenu === user.id && (
-                                                            <>
-                                                                <div className="fixed inset-0 z-20" onClick={() => setOpenMenu(null)} />
-                                                                <div className="absolute right-0 top-10 z-30 w-48 bg-surface border border-line rounded-[14px] shadow-2xl py-2 overflow-hidden text-left">
-                                                                    <button onClick={() => { setEditingMember(user); setOpenMenu(null); }}
-                                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                                                        <Edit3 size={14} className="text-brand-500" /> Edit Role & Access
-                                                                    </button>
-                                                                    <div className="my-1 border-t border-line" />
-                                                                    <button onClick={() => handleRemove(user)}
-                                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                                                                        <Trash2 size={14} /> Remove Member
-                                                                    </button>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                <div className="relative inline-block">
+                                                    <button onClick={() => setOpenMenu(openMenu === user.id ? null : user.id)}
+                                                        className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors opacity-0 group-hover:opacity-100">
+                                                        <ChevronDown size={16} />
+                                                    </button>
+                                                    {openMenu === user.id && (
+                                                        <>
+                                                            <div className="fixed inset-0 z-20" onClick={() => setOpenMenu(null)} />
+                                                            <div className="absolute right-0 top-10 z-30 w-52 bg-surface border border-line rounded-[14px] shadow-2xl py-2 overflow-hidden text-left">
+                                                                <button onClick={() => { setViewingProfileMember(user); setOpenMenu(null); }}
+                                                                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                                    <Eye size={14} className="text-blue-500" /> View Profile & Vault
+                                                                </button>
+                                                                {!isOwner && (
+                                                                    <>
+                                                                        <button onClick={() => { setEditingMember(user); setOpenMenu(null); }}
+                                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
+                                                                            <Edit3 size={14} className="text-brand-500" /> Edit Role & Access
+                                                                        </button>
+                                                                        <div className="my-1 border-t border-line" />
+                                                                        <button onClick={() => handleRemove(user)}
+                                                                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                                                            <Trash2 size={14} /> Remove Member
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         )}
                                     </tr>

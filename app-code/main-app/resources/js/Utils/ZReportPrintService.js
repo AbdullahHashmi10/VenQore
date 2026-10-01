@@ -1,3 +1,4 @@
+import { escapePrintData, printBrowserHtml } from './BrowserPrint';
 /**
  * ZReportPrintService.js
  *
@@ -31,9 +32,11 @@ export const ZReportPrintService = {
                     printerName: options.printerName,
                 });
 
-                if (result && result.success !== false) {
+                if (result?.success === true) {
                     return { success: true, method: 'station' };
                 }
+
+                throw new Error(result?.error || 'VenQore Station could not print the Z-report to the selected printer.');
             }
 
             // Fallback to iframe HTML print
@@ -41,6 +44,11 @@ export const ZReportPrintService = {
             return { success: true, method: 'browser' };
         } catch (err) {
             console.error('[ZReportPrintService] Print error:', err);
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('amd:toast', {
+                    detail: { message: `${err.message || 'Thermal printing failed'} Check the Station printer selection and connection, then retry.`, type: 'error' },
+                }));
+            }
             return { success: false, error: err.message || 'Failed to print Z-Report' };
         }
     },
@@ -129,18 +137,27 @@ export const ZReportPrintService = {
         text += `VARIANCE (${recon.variance_type?.toUpperCase()}) : ${varPrefix}${formatCurrency(recon.variance || 0)}\n`;
         text += ESC + '!' + '\x00';
         text += '================================\n';
+        for (const movement of zReport.movements || []) {
+            text += `[${String(movement.type || '').toUpperCase()}] ${movement.reason || ''}: ${formatCurrency(movement.amount || 0)}\n`;
+        }
+        if (shift.notes) text += `Notes: ${shift.notes}\n`;
         text += `Printed: ${zReport.printed_at || new Date().toLocaleString()}\n`;
         text += '\n\n\n';
         text += GS + 'V' + '\x41' + '\x03'; // Cut paper
 
-        return text;
+        // electron-pos-printer accepts structured rows, not raw ESC/POS bytes.
+        return text.replace(/\x1b[@]/g, '').replace(/\x1b[a!][\s\S]/g, '').replace(/\x1dV[\s\S]{2}/g, '')
+            .trim().split('\n').map(value => ({
+                type: 'text', value,
+                style: { fontFamily: 'monospace', fontSize: '11px', whiteSpace: 'pre-wrap' },
+            }));
     },
 
     /**
      * Print via Browser Iframe
      */
     printViaIframe(zReport, options = {}) {
-        return new Promise((resolve, reject) => {
+        zReport = escapePrintData(zReport);
             const width = options.paperWidth === '58mm' ? '54mm' : '76mm';
             const store = zReport.store || {};
             const shift = zReport.shift || {};
@@ -269,35 +286,6 @@ export const ZReportPrintService = {
 </html>
             `;
 
-            let iframe = document.getElementById('z-report-print-iframe');
-            if (!iframe) {
-                iframe = document.createElement('iframe');
-                iframe.id = 'z-report-print-iframe';
-                iframe.style.position = 'fixed';
-                iframe.style.right = '0';
-                iframe.style.bottom = '0';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
-                document.body.appendChild(iframe);
-            }
-
-            const doc = iframe.contentWindow.document;
-            doc.open();
-            doc.write(html);
-            doc.close();
-
-            iframe.onload = () => {
-                setTimeout(() => {
-                    try {
-                        iframe.contentWindow.focus();
-                        iframe.contentWindow.print();
-                        resolve({ success: true, method: 'browser' });
-                    } catch (e) {
-                        reject(e);
-                    }
-                }, 300);
-            };
-        });
+        return printBrowserHtml(html, options.paperWidth);
     }
 };

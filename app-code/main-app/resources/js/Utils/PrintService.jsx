@@ -1,3 +1,4 @@
+import { printBrowserHtml } from './BrowserPrint';
 /**
  * VENQORE Print Service
  *
@@ -29,7 +30,7 @@ import React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import axios from 'axios';
-import { formatNumber } from './format';
+import { formatNumber, getCurrencySymbol } from './format';
 import { AMDStation, isAMDStationAvailable } from './AMDStation';
 import PrintPreview from '@/Components/PrintPreview';
 
@@ -52,12 +53,22 @@ class PrintService {
         if (type === 'thermal' && isAMDStationAvailable()) {
             try {
                 const stationRes = await this.printWithAMDStation(sale, data, options);
-                if (stationRes && stationRes.success !== false) {
+                if (stationRes?.success === true) {
                     return stationRes;
                 }
-                console.warn('[PrintService] AMD Station returned failure, falling back to browser dialog:', stationRes);
+                const message = stationRes?.error || 'VenQore Station could not print to the selected thermal printer.';
+                console.error('[PrintService] AMD Station returned failure:', stationRes);
+                window.dispatchEvent(new CustomEvent('amd:toast', {
+                    detail: { message: `${message} Check the Station printer selection and connection, then retry.`, type: 'error' },
+                }));
+                return { success: false, transport: 'station', error: message };
             } catch (e) {
-                console.error('[PrintService] AMD Station failed, falling back to browser:', e);
+                const message = e?.message || 'VenQore Station could not reach the selected thermal printer.';
+                console.error('[PrintService] AMD Station failed:', e);
+                window.dispatchEvent(new CustomEvent('amd:toast', {
+                    detail: { message: `${message} Check the Station printer selection and connection, then retry.`, type: 'error' },
+                }));
+                return { success: false, transport: 'station', error: message };
             }
         }
 
@@ -128,7 +139,7 @@ class PrintService {
                     
                     const fullSale = response.data?.sale || response.data?.purchase || response.data?.return || response.data;
                     if (fullSale) {
-                        return await this.printInvoice(fullSale, settings, effectiveType);
+                        sale = fullSale;
                     }
                 }
             } catch (err) {
@@ -147,6 +158,7 @@ class PrintService {
         const receiptData = this._formatForStation(sale, settings);
         return await AMDStation.printAndOpenDrawer(receiptData, {
             openDrawer: options.openDrawer !== false && settings.thermal_open_drawer,
+            printerName: options.printerName,
             copies:     options.copies || settings.thermal_copies || 1,
             paperWidth: settings.thermal_page_size === '2inch' ? '58mm' : (settings.thermal_page_size === '4inch' ? '100mm' : '80mm'),
             autoCut:    options.autoCut !== undefined ? options.autoCut : (settings.thermal_auto_cut !== false),
@@ -163,6 +175,7 @@ class PrintService {
      *  2. window.amdSettings  (page-load snapshot, may be stale)
      */
     static getSettings() {
+        if (window.amdSettings) return this.normalizeSettings(window.amdSettings);
         try {
             const appEl = document.getElementById('app');
             if (appEl?.dataset?.page) {
@@ -180,8 +193,8 @@ class PrintService {
         if (!raw) return {};
         const b = (v, def = false) => {
             if (typeof v === 'boolean') return v;
-            if (v === true  || v === '1' || v === 'true'  || v === 'on')  return true;
-            if (v === false || v === '0' || v === 'false' || v === 'off') return false;
+            if (v === true  || v === 1 || v === '1' || v === 'true'  || v === 'on')  return true;
+            if (v === false || v === 0 || v === '0' || v === 'false' || v === 'off') return false;
             return def;
         };
         const n = (v, def = 0)  => { const p = parseInt(v); return isNaN(p) ? def : p; };
@@ -295,13 +308,11 @@ class PrintService {
     }
 
     static _regularWidthMm(data) {
-        const sizes = { A4: 210, A5: 148, Letter: 216, Legal: 216 };
-        const pw = data.paper_size === 'Custom'
-            ? (parseFloat(data.custom_paper_width) || 210)
-            : (sizes[data.paper_size] || 210);
-        return data.paper_orientation === 'Landscape'
-            ? (data.paper_size === 'A4' ? 297 : pw)
-            : pw;
+        const sizes = { A4: [210, 297], A5: [148, 210], Letter: [216, 279], Legal: [216, 356] };
+        const size = data.paper_size === 'Custom'
+            ? [parseFloat(data.custom_paper_width) || 210, parseFloat(data.custom_paper_height) || 297]
+            : (sizes[data.paper_size] || sizes.A4);
+        return size[data.paper_orientation === 'Landscape' ? 1 : 0];
     }
 
     static _renderToHtml(sale, data, type) {
@@ -381,14 +392,14 @@ class PrintService {
         const copies = parseInt(isThermal ? (data?.thermal_copies || 1) : (data?.print_copies || 1)) || 1;
         let contentHtml = '';
         for (let c = 0; c < copies; c++) {
-            contentHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
+            contentHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'break-before: page;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
         }
 
         return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Receipt ${title}</title>
+  <title>Receipt ${String(title ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}</title>
   <style>
     ${allStyles}
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -426,39 +437,7 @@ class PrintService {
      * The @page size is already correct in the HTML — no post-hoc measurement.
      */
     static _openPrintWindow(html, type, widthMm) {
-        return new Promise((resolve) => {
-            const isThermal = type === 'thermal';
-
-            const iframe = document.createElement('iframe');
-            iframe.style.cssText = [
-                'position:fixed',
-                'border:none',
-                'visibility:hidden',
-                'pointer-events:none',
-                isThermal ? `left:-9999px;top:0;width:${widthMm}mm;height:1px` : 'left:0;top:0;width:0;height:0',
-            ].join(';');
-            iframe.name = 'printFrame';
-            document.body.appendChild(iframe);
-
-            const doc = iframe.contentWindow.document;
-            doc.open();
-            doc.write(html);
-            doc.close();
-
-            let printed = false;
-            const triggerPrint = () => {
-                if (printed || !iframe.contentWindow) return;
-                printed = true;
-                iframe.contentWindow.focus();
-                iframe.contentWindow.print();
-                resolve({ success: true, transport: 'browser' });
-                setTimeout(() => { if (document.body.contains(iframe)) document.body.removeChild(iframe); }, 2500);
-            };
-
-            // For thermal: images are already measured in the main doc, so a short delay suffices
-            const delay = isThermal ? 350 : 500;
-            setTimeout(triggerPrint, delay);
-        });
+        return printBrowserHtml(html, null).then(result => ({ ...result, transport: 'browser' }));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -467,28 +446,39 @@ class PrintService {
 
     static _formatForStation(sale, settings) {
         const items = sale.items || sale.cart || [];
+        const money = value => formatNumber(value, null, settings);
+        const total = Number(sale.invoice_total ?? sale.total ?? sale.total_amount ?? 0);
+        const paid = Number(sale.paid_amount ?? sale.amount_paid ?? sale.paid ?? 0);
         return {
-            businessName:    settings.business_name || 'VenQore Store',
+            businessName: settings.business_name || 'VenQore Store',
             businessAddress: settings.business_address,
-            businessPhone:   settings.business_phone,
-            invoiceNumber:   sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id,
-            date:            sale.created_at || new Date().toLocaleString(),
-            customerName:    sale.customer?.name || 'Walk-in Customer',
-            items: items.map(item => ({
-                name:  item.product?.name || item.name,
-                qty:   item.quantity || item.qty || 1,
-                price: formatNumber(item.unit_price || item.price || 0),
-                total: formatNumber((item.unit_price || item.price || 0) * (item.quantity || item.qty || 1)),
-            })),
-            subtotal:      formatNumber(sale.subtotal || items.reduce((s, i) => s + ((i.quantity || i.qty || 1) * (i.unit_price || i.price || 0)), 0)),
-            tax:           formatNumber(sale.tax || sale.tax_amount || 0),
-            discount:      formatNumber(sale.discount || 0),
-            total:         formatNumber(sale.total || sale.total_amount),
-            paidAmount:    formatNumber(sale.paid ?? sale.amount_paid ?? 0),
-            changeAmount:  formatNumber(sale.change || 0),
-            balanceAmount: formatNumber(sale.balance || 0),
+            businessPhone: settings.business_phone,
+            currencySymbol: getCurrencySymbol(settings) + ' ',
+            invoiceNumber: sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id,
+            date: sale.created_at || new Date().toLocaleString(),
+            customerName: sale.customer?.name || 'Walk-in Customer',
+            items: items.map(item => {
+                const qty = Number(item.quantity ?? item.qty ?? 1);
+                const price = Number(item.unit_price ?? item.price ?? 0);
+                return {
+                    name: item.product?.name || item.name || item.description || 'Item',
+                    qty, price: money(price),
+                    total: money(item.net_amount ?? (item.line_total != null ? Number(item.line_total) - Number(item.tax_amount ?? 0) : qty * price - Number(item.discount_amount ?? 0))),
+                };
+            }),
+            subtotal: money(sale.subtotal_gross ?? sale.subtotal ?? items.reduce((sum, item) => sum + Number(item.quantity ?? item.qty ?? 1) * Number(item.unit_price ?? item.price ?? 0), 0)),
+            tax: money(sale.total_tax ?? sale.tax ?? sale.tax_amount ?? 0),
+            discount: money(sale.total_item_discounts ?? sale.discount ?? 0),
+            serviceCharge: money(sale.service_charge ?? 0),
+            tipAmount: money(sale.tip_amount ?? 0),
+            deliveryCharge: money(sale.delivery_charge ?? sale.shipping_charges ?? 0),
+            roundOff: money(sale.round_off ?? 0),
+            total: money(total),
+            paidAmount: money(paid),
+            changeAmount: money(sale.change ?? Math.max(0, paid - total)),
+            balanceAmount: money(Math.max(0, total - paid)),
             footerMessage: settings.print_terms || settings.thermal_custom_footer || 'Thank you!',
-            showBarcode:   settings.thermal_show_barcode !== false,
+            showBarcode: settings.thermal_show_barcode !== false,
         };
     }
 }

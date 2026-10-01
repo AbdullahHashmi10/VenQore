@@ -63,7 +63,7 @@ test('proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals', f
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     
     $product1 = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 10]);
@@ -121,7 +121,7 @@ test('v3_quotation_to_sales_order_conversion', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     $product = Product::factory()->create(['tenant_id' => $tenant->id]);
 
@@ -161,7 +161,7 @@ test('sales_orders_stock_hold_and_conversion_to_sale', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 50]);
 
@@ -237,7 +237,7 @@ test('recurring invoice generation creates a correct new invoice with line items
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 50, 'price' => 100]);
 
@@ -307,7 +307,7 @@ test('duplicate conversion prevention via status guards and locks', function () 
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 10]);
     Stock::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 100]);
@@ -384,7 +384,7 @@ test('sales conversion mapping retains discounts tax and net sales', function ()
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 30]);
     Stock::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 100]);
@@ -438,7 +438,7 @@ test('sales order completion and cancellation releases inventory', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
 
-    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $warehouse = Warehouse::where('tenant_id', $tenant->id)->first() ?? Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id, 'is_default' => true]);
     $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
     $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 20]);
     Stock::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 100]);

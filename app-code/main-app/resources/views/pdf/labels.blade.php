@@ -34,10 +34,7 @@
             text-align: center;
             overflow: hidden;
             page-break-inside: avoid;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            display: block;
         }
 
         .product-name {
@@ -110,7 +107,7 @@
                     @if(isset($settings['show_qrcode']) && $settings['show_qrcode'])
                         <div class="qrcode-container">
                             <img class="qrcode-img"
-                                src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data={{ urlencode($item['qrcode_url']) }}">
+                                src="{{ \App\Services\ReceiptDocument::qrDataUri($item['qrcode_url']) }}">
                         </div>
                     @endif
 

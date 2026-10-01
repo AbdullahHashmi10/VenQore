@@ -51,7 +51,21 @@ export default function SettingsPanel({ settings }) {
  const isAdmin = auth.user.role === 'admin' || auth.user.role === 'owner' || auth.user.role === 'platform_admin';
  const tt = useTermText();
 
- const [activeSection, setActiveSection] = useState('general');
+ const canSeeApprovals = Boolean(auth?.user?.can_review_approvals && !auth?.user?.requires_approval);
+ const getInitialSection = () => {
+     if (typeof window !== 'undefined') {
+         const tab = new URLSearchParams(window.location.search).get('tab');
+         if (tab === 'approvals') {
+             return canSeeApprovals ? 'approvals' : 'general';
+         }
+         if (tab && SETTINGS_SECTIONS.some(s => s.id === tab)) {
+             return tab;
+         }
+     }
+     return 'general';
+ };
+
+ const [activeSection, setActiveSection] = useState(getInitialSection);
  const [saved, setSaved] = useState(false);
  const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -915,6 +929,7 @@ export default function SettingsPanel({ settings }) {
  const isExpanded = expandedCategories.includes(category.id);
  const categorySections = SETTINGS_SECTIONS.filter(s => {
  if (!category.sections.includes(s.id)) return false;
+ if (s.id === 'approvals' && !canSeeApprovals) return false;
  if (s.id === 'pos' && Array.isArray(modules) && !modules.includes('pos')) return false;
  if (s.id === 'taxes' && Array.isArray(modules) && !modules.includes('tax_compliance')) return false;
  return true;

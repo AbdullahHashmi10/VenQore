@@ -365,7 +365,7 @@ const RegularSettings = ({ data, setData }) => {
  <>
  <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
  <Toggle
- label="Set as Default Printer"
+ label="Set as Default Receipt Format"
  checked={data.default_print_type === 'regular' || !data.default_print_type}
  onChange={v => setData('default_print_type', v ? 'regular' : 'thermal')}
  color="indigo"
@@ -513,7 +513,7 @@ const ThermalSettings = ({ data, setData }) => (
  <>
  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 mb-6">
  <Toggle
- label="Set as Default Printer"
+ label="Set as Default Receipt Format"
  checked={data.default_print_type === 'thermal'}
  onChange={v => setData('default_print_type', v ? 'thermal' : 'regular')}
  color="emerald"
@@ -923,7 +923,7 @@ const HardwareSettings = ({ data, setData }) => {
 		try {
 			if (isAMDStationAvailable()) {
 				const res = await openDrawer();
-				if (res?.success !== false) {
+				if (res?.success === true) {
 					Swal.fire({
 						title: 'Drawer Signal Sent',
 						text: 'Trigger pulse sent to cash drawer kickout port.',
@@ -966,7 +966,7 @@ const HardwareSettings = ({ data, setData }) => {
 						<p className="text-2xs text-ink-muted leading-relaxed">
 							{isConnected
 								? 'Desktop companion connected. Silent high-speed ESC/POS thermal printing and hardware cash drawer triggers are active.'
-								: 'Running directly in browser. Printing opens the system print dialog. Connect VenQore Station desktop companion for silent receipts and automated drawer kicks.'}
+								: 'Running directly in browser. Printing opens the system print dialog, where you choose the physical printer. Connect VenQore Station desktop companion for silent direct printing and automated drawer kicks.'}
 						</p>
 					</div>
 
@@ -976,10 +976,12 @@ const HardwareSettings = ({ data, setData }) => {
 						{printers && printers.length > 0 ? (
 							<select
 								value={defaultPrinter || ''}
-								onChange={(e) => setDefaultPrinter(e.target.value)}
+								onChange={async (e) => { const result = await setDefaultPrinter(e.target.value); if (!result?.success) Swal.fire('Printer selection failed', result?.error || 'Could not save printer', 'error'); }}
 								className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
 							>
-								{printers.map((p) => (
+								<option value="" disabled>Select a receipt printer</option>
+                                {defaultPrinter && !printers.some(p => p.name === defaultPrinter) && <option value={defaultPrinter}>{defaultPrinter} (unavailable)</option>}
+                                {printers.map((p) => (
 									<option key={p.name} value={p.name}>
 										{p.name} {p.isDefault ? '(System Default)' : ''}
 									</option>

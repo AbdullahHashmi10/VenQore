@@ -52,7 +52,7 @@
 
         .invoice-info div {
             display: flex;
-            justify-between;
+            justify-content: space-between;
             margin: 3px 0;
         }
 
@@ -66,7 +66,7 @@
 
         .item-row {
             display: flex;
-            justify-between;
+            justify-content: space-between;
             margin: 5px 0;
         }
 
@@ -94,7 +94,7 @@
 
         .total-row {
             display: flex;
-            justify-between;
+            justify-content: space-between;
             margin: 5px 0;
             font-size: 13px;
         }

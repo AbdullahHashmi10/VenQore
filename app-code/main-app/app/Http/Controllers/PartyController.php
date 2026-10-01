@@ -21,7 +21,12 @@ class PartyController extends Controller
         $type = $request->input('type') ?? $request->route('type');
 
         if ($type && $type !== 'all') {
-            $query->where('type', $type);
+            $strict = \App\Helpers\SettingsHelper::isStrictPartyRoles();
+            if ($strict) {
+                $query->where('type', $type);
+            } else {
+                $query->whereIn('type', [$type, 'both']);
+            }
         }
 
         $searchTerm = $request->input('search') ?? $request->input('query');

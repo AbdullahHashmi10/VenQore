@@ -43,6 +43,15 @@ export default function PurchaseForm({
     products,
     warehouses,
     expenseCategories,
+    locked = false,
+    lockNote,
+    notice,
+    extraActions,
+    saveLabel,
+    url,
+    afterUrl,
+    onSaved,
+    buildPayload: outerBuildPayload,
 }) {
     const tt = useTermText();
     const { store, settings } = usePage().props;
@@ -97,6 +106,8 @@ export default function PurchaseForm({
         notes: purchase?.notes || '',
         discount: num(purchase?.discount),
         paymentMethod: purchase?.payment_method || 'cash',
+        paymentAccountId: purchase?.payment_account_id || null,
+        paymentAccountKey: purchase?.payment_account_id ? `bank:${purchase.payment_account_id}` : (purchase?.payment_account_key || null),
         /* Hydrated from what the purchase actually settled. Starting at 0 meant
            re-saving a paid cash purchase with no changes posted the whole bill
            to the supplier's payable and marked it unpaid. */
@@ -138,17 +149,30 @@ export default function PurchaseForm({
             seed={seed}
             editSeed={editSeed}
             isEdit={isEdit}
+            locked={locked}
+            lockNote={lockNote}
+            notice={notice !== undefined ? notice : (isEdit ? (
+                <div className="vqdoc-note" data-tone="warn">
+                    <span className="eyebrow">Editing a posted purchase</span>
+                    <span>
+                        Saving reverses this purchase&rsquo;s journal entries and posts them again from
+                        what is on the screen now. Stock movements and costs are recalculated with it.
+                    </span>
+                </div>
+            ) : null)}
+            extraActions={extraActions}
             products={products}
             parties={suppliers}
             transport="axios"
-            saveLabel={isEdit ? 'Update purchase' : 'Record purchase'}
+            saveLabel={saveLabel || (isEdit ? 'Update purchase' : 'Record purchase')}
             /* A purchase line starts at what this product last cost, not at its
                selling price — the commonest keying error on the old screen. */
             priceOf={(pr) => num(pr.cost ?? pr.cost_price ?? pr.price)}
-            afterUrl={route('store.v3.purchases.index', { store_slug: store?.slug })}
-            url={({ d }) => (isEdit
+            afterUrl={afterUrl || route('store.v3.purchases.index', { store_slug: store?.slug })}
+            url={url || (({ d }) => (isEdit
                 ? route('store.v3.purchases.update', { store_slug: store?.slug, purchase: d.id })
-                : route('store.v3.purchases.store', { store_slug: store?.slug }))}
+                : route('store.v3.purchases.store', { store_slug: store?.slug })))}
+            onSaved={onSaved}
 
             validate={({ d, totals }) => {
                 /* On an edit the account is not hydrated — which account a
@@ -162,16 +186,6 @@ export default function PurchaseForm({
                 return null;
             }}
 
-            notice={isEdit ? (
-                <div className="vqdoc-note" data-tone="warn">
-                    <span className="eyebrow">Editing a posted purchase</span>
-                    <span>
-                        Saving reverses this purchase&rsquo;s journal entries and posts them again from
-                        what is on the screen now. Stock movements and costs are recalculated with it.
-                    </span>
-                </div>
-            ) : null}
-
             /* A line at nil cost is nearly always a slip, and it silently
                poisons stock valuation for as long as those units are on the
                shelf. The server refuses it unless it is acknowledged, so the
@@ -184,7 +198,9 @@ export default function PurchaseForm({
                 return false;
             }}
 
-            buildPayload={({ d, items, totals, acct, opts }) => {
+            buildPayload={(bag) => {
+                if (outerBuildPayload) return outerBuildPayload(bag);
+                const { d, items, totals, acct, opts } = bag;
                 const priced = items.filter((i) => i.product);
                 return {
                     supplier_id: d.party?.id,

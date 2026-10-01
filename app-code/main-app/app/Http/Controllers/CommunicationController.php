@@ -19,10 +19,12 @@ class CommunicationController extends Controller
      */
     public function sendEmail(Request $request, $id)
     {
+        $request->validate(['email' => 'nullable|email|max:254']);
         $sale = Sale::with(['customer', 'items.product'])->findOrFail($id);
+        abort_if(in_array($sale->status, ['draft', 'void', 'voided', 'cancelled'], true), 422, 'Only issued receipts can be emailed.');
         $email = $request->email ?? $sale->customer?->email;
 
-        if (!$email) {
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return response()->json(['success' => false, 'message' => 'No email address provided.'], 422);
         }
 
@@ -65,6 +67,7 @@ class CommunicationController extends Controller
         $template = '';
 
         $storeName = SettingsHelper::get('business_name', $tenant?->name ?? config('app.name'));
+        $decimals = max(0, min(4, (int) SettingsHelper::get('decimal_places', 2)));
         $currency = SettingsHelper::get('currency_code', SettingsHelper::get('currency', 'PKR'));
 
         if ($documentType === 'sale' || $documentType === 'sale_return') {
@@ -113,7 +116,7 @@ class CommunicationController extends Controller
                     [
                         $storeName,
                         $docNumber,
-                        $currency . ' ' . number_format($docAmount, 2),
+                        $currency . ' ' . number_format($docAmount, $decimals),
                         $docLink,
                         $partyName,
                     ],
@@ -133,7 +136,7 @@ class CommunicationController extends Controller
                     [
                         $storeName,
                         $docNumber,
-                        $currency . ' ' . number_format($docAmount, 2),
+                        $currency . ' ' . number_format($docAmount, $decimals),
                         $docLink,
                         $partyName,
                     ],
@@ -166,7 +169,7 @@ class CommunicationController extends Controller
                 [
                     $storeName,
                     $docNumber,
-                    $currency . ' ' . number_format($docAmount, 2),
+                    $currency . ' ' . number_format($docAmount, $decimals),
                     $partyName,
                 ],
                 $template
@@ -186,7 +189,7 @@ class CommunicationController extends Controller
             $partyPhone = $overridePhone ?: ($party->phone ?? '');
             $docNumber = "STMT-" . date('Ymd');
             $docLabel = 'Party Statement';
-            $docAmount = (float)($party->current_balance ?? 0.0);
+            $docAmount = \App\Queries\PartyBalanceQuery::partyNetBalance($party->id, $tenantId);
 
             $template = SettingsHelper::get('message_template_statement')
                 ?? 'Greetings from [Firm_Name]. Statement for [Party_Name]: Current balance is [Balance_Amount].';
@@ -196,7 +199,7 @@ class CommunicationController extends Controller
                 [
                     $storeName,
                     $partyName,
-                    $currency . ' ' . number_format($docAmount, 2),
+                    $currency . ' ' . number_format($docAmount, $decimals),
                 ],
                 $template
             );
@@ -229,7 +232,7 @@ class CommunicationController extends Controller
             'message_text' => $messageText,
             'wa_url' => $waUrl,
             'pdf_url' => $pdfUrl,
-            'offer_pdf' => (bool)SettingsHelper::get('whatsapp_offer_pdf', true) && !empty($pdfUrl),
+            'offer_pdf' => filter_var(SettingsHelper::get('whatsapp_offer_pdf', true), FILTER_VALIDATE_BOOLEAN) && !empty($pdfUrl),
         ]);
     }
 

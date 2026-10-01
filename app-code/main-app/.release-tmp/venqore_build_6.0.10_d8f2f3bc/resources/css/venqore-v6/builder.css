@@ -1,0 +1,328 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   VenQore V6 — public AI builder (/build-workspace)
+   Owns: PromptTextarea (.vq-prompt-box) and ConversationalDiscovery (.vq-cd-*).
+   Every value is a V6 token, so light and dark come from theme.css alone —
+   nothing here may name a colour directly.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── PromptTextarea ────────────────────────────────────────────────────────
+   The landing-hero prompt, as a reusable surface: 20px radius, surface
+   ground, hairline border, focus ring on the WHOLE box (not the bare
+   textarea) so the send button reads as part of the field. */
+.vq-prompt-box {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--vq-space-2);
+  width: 100%;
+  padding: 7px 7px 7px 18px;
+  border-radius: var(--vq-r-lg);
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  box-shadow: var(--vq-elev-1);
+  transition:
+    border-color var(--vq-dur-1) var(--vq-ease-out),
+    box-shadow   var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-prompt-box:hover { border-color: var(--vq-line-strong); }
+.vq-prompt-box:focus-within {
+  border-color: var(--vq-accent);
+  box-shadow: var(--vq-elev-1), var(--vq-ring-focus);
+}
+.vq-prompt-box[data-disabled="true"] { opacity: .72; }
+
+.vq-prompt-box__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: block;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 8px 0;                       /* 1 line ≈ 58px box, send button 40 */
+  margin: 0;
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-body);
+  line-height: 1.5;
+  color: var(--vq-text);
+  overflow-y: hidden;                   /* JS flips to auto only past max */
+  scrollbar-width: thin;
+}
+/* The site layer draws a focus outline on every textarea; the box owns it. */
+.vq-prompt-box__input:focus,
+.vq-prompt-box__input:focus-visible { outline: none !important; box-shadow: none !important; border: 0 !important; }
+.vq-prompt-box__input::placeholder { color: var(--vq-text-3); opacity: 1; }
+.vq-prompt-box__input:disabled { cursor: not-allowed; }
+.vq-prompt-box--lg .vq-prompt-box__input { font-size: var(--vq-fs-lede); padding: 8px 0; }
+
+.vq-prompt-box__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--vq-space-2);
+  flex: none;
+}
+.vq-prompt-box__count {
+  font-size: var(--vq-fs-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--vq-text-3);
+  white-space: nowrap;
+}
+.vq-prompt-box__count[data-full="true"] { color: var(--vq-warning); font-weight: var(--vq-fw-semi); }
+
+/* Icon send button: a square-ish primary, 40px, sitting on the box edge. */
+.vq-prompt-box__send.vq-btn { height: 40px; padding-inline: 0; width: 40px; }
+.vq-prompt-box__send.vq-btn[data-label="true"] { width: auto; padding-inline: 18px; }
+.vq-prompt-box__send.vq-btn:disabled,
+.vq-prompt-box__send.vq-btn[aria-disabled="true"] {
+  opacity: .45; cursor: not-allowed; transform: none; box-shadow: none;
+}
+
+.vq-prompt-box__hint {
+  margin-top: var(--vq-space-2);
+  padding-inline: 4px;
+  font-size: var(--vq-fs-caption);
+  color: var(--vq-text-3);
+}
+.vq-prompt-box__hint kbd {
+  font-family: var(--vq-font-sans);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-text-2);
+}
+
+/* ── ConversationalDiscovery ───────────────────────────────────────────── */
+.vq-cd {
+  width: 100%;
+  max-width: 46rem;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vq-space-6);
+}
+
+/* Transcript — quiet, compact, above the current question. */
+.vq-cd-log { border-bottom: 1px solid var(--vq-line-soft); padding-bottom: var(--vq-space-4); }
+.vq-cd-log__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--vq-space-3);
+  margin-bottom: var(--vq-space-2);
+}
+.vq-cd-log__toggle,
+.vq-cd-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 32px;
+  padding: 0;
+  border: 0; background: none; cursor: pointer;
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-text-3);
+  border-radius: var(--vq-r-xs);
+  transition: color var(--vq-dur-1) var(--vq-ease-out);
+}
+.vq-cd-log__toggle:hover,
+.vq-cd-link:hover { color: var(--vq-text); }
+.vq-cd-log__toggle svg { transition: transform var(--vq-dur-2) var(--vq-ease-out); }
+.vq-cd-log__toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.vq-cd-log__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.vq-cd-log__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px var(--vq-space-3);
+  padding: 8px 0;
+  font-size: var(--vq-fs-small);
+  line-height: var(--vq-lh-small);
+}
+.vq-cd-log__row + .vq-cd-log__row { border-top: 1px dashed var(--vq-line-soft); }
+.vq-cd-log__q { color: var(--vq-text-3); min-width: 0; }
+.vq-cd-log__q b { font-weight: var(--vq-fw-semi); color: var(--vq-text-3); margin-right: 6px; }
+.vq-cd-log__a {
+  grid-column: 1 / 2;
+  color: var(--vq-text-2);
+  font-weight: var(--vq-fw-medium);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.vq-cd-log__a::before { content: "→ "; color: var(--vq-accent-text); }
+.vq-cd-log__edit { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+
+/* Out-of-scope / error notice — calm, inline, never a bubble. */
+.vq-cd-notice {
+  display: flex; align-items: flex-start; gap: var(--vq-space-3);
+  padding: 14px 16px;
+  border-radius: var(--vq-r-md);
+  background: var(--vq-info-bg);
+  border: 1px solid var(--vq-info-line);
+  color: var(--vq-text);
+  font-size: var(--vq-fs-small);
+  line-height: var(--vq-lh-small);
+}
+.vq-cd-notice > svg { flex: none; margin-top: 2px; color: var(--vq-info); }
+.vq-cd-notice[data-tone="warning"] { background: var(--vq-warning-bg); border-color: var(--vq-warning-line); }
+.vq-cd-notice[data-tone="warning"] > svg { color: var(--vq-warning); }
+.vq-cd-notice__actions { display: flex; flex-wrap: wrap; gap: var(--vq-space-2); margin-top: var(--vq-space-3); }
+
+/* The current question — the visual focus of the screen. */
+.vq-cd-ask__who {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: var(--vq-space-3);
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-accent-text);
+}
+.vq-cd-question {
+  margin: 0;
+  font-family: var(--vq-font-display);
+  font-size: clamp(26px, 3.2vw, 40px);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-text);
+  max-width: 30ch;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.vq-cd-question:focus { outline: none; }
+.vq-cd-why {
+  margin: var(--vq-space-3) 0 0;
+  max-width: 62ch;
+  font-size: var(--vq-fs-small);
+  line-height: var(--vq-lh-small);
+  color: var(--vq-text-2);
+}
+
+.vq-cd-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: var(--vq-space-6);
+}
+@media (min-width: 640px) { .vq-cd-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.vq-cd-option {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--vq-space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: 12px 16px;
+  text-align: left;
+  border-radius: var(--vq-r-md);
+  background: var(--vq-surface);
+  border: 1px solid var(--vq-line);
+  box-shadow: var(--vq-elev-1);
+  color: var(--vq-text);
+  font-size: var(--vq-fs-body);
+  font-weight: var(--vq-fw-medium);
+  line-height: 1.35;
+  cursor: pointer;
+  transition:
+    background-color var(--vq-dur-1) var(--vq-ease-out),
+    border-color     var(--vq-dur-1) var(--vq-ease-out),
+    color            var(--vq-dur-1) var(--vq-ease-out),
+    transform        var(--vq-dur-2) var(--vq-ease-out);
+}
+.vq-cd-option svg { flex: none; color: var(--vq-text-3); transition: transform var(--vq-dur-2) var(--vq-ease-out), color var(--vq-dur-1) var(--vq-ease-out); }
+
+/* An option is a choice, not a word. The second line says what choosing it
+   does, in the same plain terms as the question — picking "Yes" should never
+   be a guess about what you have just switched on. */
+.vq-cd-option__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vq-cd-option__label { font-weight: var(--vq-fw-medium); }
+.vq-cd-option__desc {
+  font-size: var(--vq-fs-caption);
+  font-weight: var(--vq-fw-regular);
+  line-height: 1.4;
+  color: var(--vq-text-3);
+}
+.vq-cd-option:hover .vq-cd-option__desc { color: var(--vq-accent-text); opacity: .85; }
+.vq-cd-option:hover {
+  border-color: var(--vq-accent);
+  background: var(--vq-accent-quiet);
+  color: var(--vq-accent-text);
+}
+.vq-cd-option:hover svg { color: var(--vq-accent-text); transform: translateX(3px); }
+.vq-cd-option:active { transform: translateY(1px); }
+.vq-cd-option:focus-visible { outline: 2px solid var(--vq-focus); outline-offset: 2px; }
+.vq-cd-option:disabled { opacity: .5; cursor: not-allowed; }
+
+/* A tick list answers in both directions, so an option has to read as chosen
+   or not chosen at a glance — not as a button waiting to be pressed. */
+.vq-cd-option[data-ticked="true"] {
+  border-color: var(--vq-accent);
+  background: var(--vq-accent-quiet);
+}
+.vq-cd-tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; width: 22px; height: 22px;
+  border-radius: var(--vq-r-xs);
+  border: 1.5px solid var(--vq-line);
+  background: var(--vq-surface);
+  color: transparent;
+}
+.vq-cd-tick--on {
+  border-color: var(--vq-accent);
+  background: var(--vq-accent-fill);
+  color: var(--vq-accent-on);
+}
+.vq-cd-tickcount { font-size: var(--vq-fs-caption); color: var(--vq-text-3); }
+
+.vq-cd-or {
+  display: flex; align-items: center; gap: var(--vq-space-3);
+  margin: var(--vq-space-6) 0 var(--vq-space-3);
+  font-size: var(--vq-fs-caption);
+  color: var(--vq-text-3);
+}
+.vq-cd-or::after { content: ""; flex: 1; height: 1px; background: var(--vq-line-soft); }
+
+/* Thinking state — orb + shimmer line (Kokonut "AI Text Loading" pattern,
+   rebuilt on tokens: the gradient runs text → text-3 → text, so it inverts
+   with the theme on its own). */
+.vq-cd-thinking {
+  display: flex; align-items: center; gap: var(--vq-space-4);
+  min-height: 160px;
+}
+.vq-cd-shimmer {
+  display: inline-block;
+  font-family: var(--vq-font-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  line-height: 1.2;
+  font-weight: var(--vq-fw-semi);
+  letter-spacing: -0.02em;
+  background-image: linear-gradient(90deg, var(--vq-text) 0%, var(--vq-text) 35%, var(--vq-text-3) 50%, var(--vq-text) 65%, var(--vq-text) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: vq-cd-shimmer 2.4s linear infinite;
+}
+.vq-cd-thinking__sub { margin-top: 6px; font-size: var(--vq-fs-small); color: var(--vq-text-3); }
+@keyframes vq-cd-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -150% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .vq-cd-shimmer { animation: none; color: var(--vq-text-2); background: none; }
+}
+
+.vq-cd-foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--vq-space-3);
+  font-size: var(--vq-fs-caption);
+  color: var(--vq-text-3);
+}
+
+/* Intent screen (BuildWorkspace 'intent' phase). */
+.vq-intent { max-width: 44rem; margin-inline: auto; }
+.vq-intent__title {
+  margin: 0;
+  font-family: var(--vq-font-display);
+  font-size: clamp(30px, 3.6vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -0.024em;
+  font-weight: var(--vq-fw-semi);
+  color: var(--vq-text);
+  text-wrap: balance;
+}
+.vq-intent__lede {
+  margin: var(--vq-space-4) 0 var(--vq-space-8);
+  max-width: 60ch;
+  font-size: var(--vq-fs-body);
+  line-height: var(--vq-lh-body);
+  color: var(--vq-text-2);
+}
+.vq-intent__examples { display: flex; flex-wrap: wrap; gap: var(--vq-space-2); margin-top: var(--vq-space-4); }
+.vq-intent__examples .vq-chip { height: auto; min-height: 40px; padding-block: 6px; text-align: left; }

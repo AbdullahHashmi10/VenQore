@@ -93,12 +93,12 @@ class ModalValidationRegressionTest extends VenQoreTestCase
 
         // 2. Valid category creation should succeed
         $response = $this->postJson($this->storeUrl($tenant, 'categories'), [
-            'name' => 'Beverages',
+            'name' => 'Fresh Cold Beverages',
         ]);
         $response->assertStatus(200);
         $this->assertDatabaseHas('categories', [
             'tenant_id' => $tenant->id,
-            'name' => 'Beverages',
+            'name' => 'Fresh Cold Beverages',
         ]);
     }
 

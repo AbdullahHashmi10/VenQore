@@ -245,7 +245,7 @@ describe('Settings Allowlist and Value Normalization Engine', () => {
         const threeCopies = PrintService._buildHtml(preview, '', '', {}, true, { thermal_copies: 3 });
         const threeMatches = (threeCopies.match(/print-copy-wrapper/g) || []).length;
         expect(threeMatches).toBe(3);
-        expect(threeCopies).toContain('border-dashed');
+        expect(threeCopies).toContain('break-before: page;');
     });
 
     it('prioritizes server-authoritative store policies over local client defaults in NewPos (S16)', async () => {

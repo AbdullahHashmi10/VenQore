@@ -1,0 +1,267 @@
+import React from 'react';
+import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
+
+import {
+    TrendingUp,
+    Users,
+    ArrowRight,
+    DollarSign,
+    Calendar,
+    Monitor,
+    Package,
+    ArrowUpRight,
+    ArrowDownRight,
+    Trophy
+} from 'lucide-react';
+import MidnightNebula from '@/Components/MidnightNebula';
+import SellModuleTabs from '@/Components/SellModuleTabs';
+import { useTermText } from '@/lib/terms';
+
+export default function SalesDashboard({ stats, recentSales, salesByMethod, topSelling }) {
+    const { store } = usePage().props;
+    const tt = useTermText();
+
+    if (!stats) {
+        return (
+            <OneGlanceLayout title="Sell Command Center" activeMenu="Sell">
+                <div className="p-10 text-center text-ink-muted">Loading stats...</div>
+            </OneGlanceLayout>
+        );
+    }
+
+    const StatCard = ({ title, value, icon: Icon, color, subValue, trend }) => {
+        return (
+            <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm hover:shadow-md transition-all group relative overflow-hidden h-full">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-sunken rounded-full -translate-y-1/2 translate-x-1/2 transition-transform duration-slower"></div>
+
+                <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className={`p-3 rounded-2xl ${color} bg-opacity-10 dark:bg-opacity-20`}>
+                            <Icon className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
+                        </div>
+                        {trend !== undefined && trend !== 0 && (
+                            <span className={`flex items-center gap-1 text-2xs font-bold px-2 py-1 rounded-lg ${trend > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                                {Math.abs(trend)}%
+                            </span>
+                        )}
+                    </div>
+                    <h3 className="text-ink-muted text-xs font-bold uppercase tracking-wider mb-1">{title}</h3>
+                    <div className="flex items-baseline gap-1">
+                        <p className="text-2xl font-bold text-ink">
+                            {value}
+                        </p>
+                        {subValue && <span className="text-xs text-ink-muted font-medium ml-1">{subValue}</span>}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <OneGlanceLayout title="Sell Command Center" activeMenu="Sell">
+            <Head title="Sales Hub" />
+
+            {/* Dashboard Container - Full Height on Desktop, Scrollable on Mobile */}
+            <div className="flex flex-col xl:h-full gap-4 pb-2">
+
+                {/* 1. Header & Pulse (Auto Height) */}
+                <div className="shrink-0 space-y-4">
+                    {/* Secondary Navigation */}
+                    <SellModuleTabs activeTab="overview" />
+
+                    {/* Performance Pulse */}
+                    <section>
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-1 h-6 bg-brand-600 rounded-full"></div>
+                            <h2 className="text-sm font-bold uppercase tracking-widest text-ink-muted">Performance Pulse</h2>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <StatCard
+                                title="Revenue Today"
+                                value={formatCurrency(Number(stats.sales_today || 0), store)}
+                                icon={DollarSign}
+                                color="bg-emerald-500"
+                                subValue={`${stats.orders_today || 0} ${tt('Orders')}`}
+                                trend={stats.sales_today_growth}
+                            />
+                            <StatCard
+                                title="Monthly Revenue"
+                                value={formatCurrency(Number(stats.sales_month || 0), store)}
+                                icon={Calendar}
+                                color="bg-brand-500"
+                                subValue={`${stats.orders_month || 0} ${tt('Orders')}`}
+                                trend={stats.sales_month_growth}
+                            />
+                            <StatCard
+                                title={tt('Avg. Order Value')}
+                                value={formatCurrency(Number(stats.avg_order_value || 0), store)}
+                                icon={TrendingUp}
+                                color="bg-blue-500"
+                                trend={stats.avg_order_growth}
+                            />
+                            <StatCard
+                                title={tt('Active Customers')}
+                                value={(stats.active_customers || 0).toLocaleString()}
+                                icon={Users}
+                                color="bg-brand-500"
+                                subValue="Last 30 Days"
+                            />
+                        </div>
+                    </section>
+                </div>
+
+                {/* 2. Middle & Bottom Sections (Flexible Grid) */}
+                <div className="flex-1 flex flex-col xl:grid xl:grid-rows-2 gap-4 min-h-0">
+
+                    {/* Top Selling & Payment Breakdown */}
+                    <section className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:h-full min-h-0">
+                        {/* Top Selling */}
+                        <div className="xl:col-span-2 flex flex-col xl:h-full xl:min-h-0 min-h-[300px]">
+                            <div className="flex items-center justify-between shrink-0 mb-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
+                                    <h2 className="text-sm font-bold uppercase tracking-widest text-ink-muted">Top Selling Today</h2>
+                                </div>
+                            </div>
+                            <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col">
+                                <div className="p-4 overflow-y-auto custom-scrollbar flex-1">
+                                    {topSelling && topSelling.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {topSelling.map((item, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30`}>
+                                                            #{idx + 1}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-sm text-ink truncate max-w-[150px]">{item.name}</p>
+                                                            <p className="text-2xs text-ink-muted">{item.qty} units</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="font-bold text-sm text-ink">{formatCurrency(Number(item.revenue || 0), store)}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center h-full flex flex-col justify-center items-center text-ink-muted">
+                                            <Trophy size={40} className="mb-2 opacity-20" />
+                                            <p className="text-xs">No sales yet.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Payment Breakdown */}
+                        <div className="flex flex-col xl:h-full xl:min-h-0 min-h-[250px]">
+                            <div className="flex items-center gap-2 shrink-0 mb-2">
+                                <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+                                <h2 className="text-sm font-bold uppercase tracking-widest text-ink-muted">Payment Breakdown</h2>
+                            </div>
+                            <div className="bg-surface rounded-2xl border border-line shadow-sm p-4 flex-1 min-h-0 flex flex-col justify-between overflow-hidden">
+                                <div className="space-y-4 overflow-y-auto custom-scrollbar pr-1">
+                                    {salesByMethod && salesByMethod.length > 0 ? salesByMethod.map((method, idx) => (
+                                        <div key={idx} className="space-y-1">
+                                            <div className="flex items-center justify-between text-2xs font-bold uppercase tracking-wider">
+                                                <span className="text-ink-muted">{method.payment_method}</span>
+                                                <span className="text-ink">{formatCurrency(Number(method.total || 0), store)}</span>
+                                            </div>
+                                            <div className="h-1.5 bg-sunken rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full rounded-full ${['bg-brand-500', 'bg-emerald-500', 'bg-amber-500'][idx % 3]}`}
+                                                    style={{ width: `${stats.sales_month > 0 ? (method.total / stats.sales_month) * 100 : 0}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="text-center text-ink-muted text-xs py-8">No data</div>
+                                    )}
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-line shrink-0">
+                                    <MidnightNebula className="rounded-xl p-3" primaryColor="indigo" secondaryColor="purple">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-white/20 rounded-lg">
+                                                <TrendingUp className="text-white" size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-2xs font-bold text-brand-100 uppercase">Tip</p>
+                                                <p className="text-2xs text-white font-medium leading-tight">Digital payments bump AOV by 15%.</p>
+                                            </div>
+                                        </div>
+                                    </MidnightNebula>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Live Feed */}
+                    <section className="flex flex-col xl:h-full min-h-[350px]">
+                        <div className="flex items-center gap-2 shrink-0 mb-2">
+                            <div className="w-1 h-6 bg-emerald-600 rounded-full"></div>
+                            <h2 className="text-sm font-bold uppercase tracking-widest text-ink-muted">Live Sales Feed</h2>
+                        </div>
+
+                        <div className="bg-surface rounded-2xl border border-line shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
+                            <div className="flex-1 overflow-auto custom-scrollbar">
+                                <table className="w-full text-left text-sm min-w-[600px] xl:min-w-0">
+                                    <thead className="bg-app text-ink-muted font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
+                                        <tr>
+                                            <th className="px-6 py-3">Reference</th>
+                                            <th className="px-6 py-3">{tt('Customer')}</th>
+                                            <th className="px-6 py-3 text-right">Amount</th>
+                                            <th className="px-6 py-3 text-right">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-line">
+                                        {recentSales && recentSales.map((sale) => (
+                                            <tr key={sale.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
+                                                <td className="px-6 py-3 font-bold text-brand-600 dark:text-brand-400 text-xs">
+                                                    <Link href={route('store.sales.show', { store_slug: store?.slug, sale: sale.id })} className="flex items-center gap-2">
+                                                        {sale.reference_number}
+                                                    </Link>
+                                                </td>
+                                                <td className="px-6 py-3 text-ink-secondary font-medium text-xs">
+                                                    {sale.party ? sale.party.name : tt('Walk-in Customer')}
+                                                </td>
+                                                <td className="px-6 py-3 text-right font-bold text-ink text-xs">
+                                                    {formatCurrency(Number(sale.total), store)}
+                                                </td>
+                                                <td className="px-6 py-3 text-right">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-bold uppercase tracking-tighter
+                                                        ${sale.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                            sale.payment_status === 'partial' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                                                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                        }
+`}>
+                                                        {sale.payment_status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {(!recentSales || recentSales.length === 0) && (
+                                            <tr>
+                                                <td colSpan="4" className="px-6 py-8 text-center text-ink-muted text-xs">
+                                                    No recent sales found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="p-2 border-t border-line flex justify-center shrink-0 bg-surface">
+                                <Link href={route('store.sales.index', { store_slug: store?.slug })} className="text-2xs font-bold text-brand-600 hover:text-brand-500 hover:underline flex items-center gap-1 transition-colors">
+                                    View Full History <ArrowRight size={10} />
+                                </Link>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </OneGlanceLayout >
+    );
+}

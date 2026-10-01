@@ -1,0 +1,258 @@
+import React, { useState } from 'react';
+import { Calendar, ChevronDown, Filter, X, RefreshCw } from 'lucide-react';
+
+/**
+ * FilterPanel - Reusable filter panel for reports and lists
+ * 
+ * @param {Array} filters - Filter definitions [{key, label, type, options}]
+ * @param {Object} values - Current filter values
+ * @param {Function} onChange - Callback when filters change
+ * @param {Function} onReset - Callback to reset filters
+ * @param {Function} onApply - Callback when apply is clicked (optional)
+ * @param {Boolean} collapsible - Allow collapsing the filter panel
+ */
+export default function FilterPanel({
+    filters = [],
+    values = {},
+    onChange,
+    onReset,
+    onApply,
+    collapsible = true,
+    defaultExpanded = true,
+    compact = false
+}) {
+    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+    const handleChange = (key, value) => {
+        onChange({ ...values, [key]: value });
+    };
+
+    const hasActiveFilters = Object.values(values).some(v => v !== '' && v !== null && v !== undefined);
+
+    const renderFilter = (filter) => {
+        const inputBaseClass = `w-full ${compact ? 'px-2 py-1 text-xs rounded-lg' : 'px-3 py-2 text-sm rounded-xl'} bg-surface border border-line outline-none focus:ring-2 ring-brand-500/20`;
+
+        switch (filter.type) {
+            case 'select':
+                return (
+                    <div key={filter.key} className="flex-1 min-w-[150px]">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
+                            {filter.label}
+                        </label>
+                        <div className="relative">
+                            <select
+                                value={values[filter.key] || ''}
+                                onChange={(e) => handleChange(filter.key, e.target.value)}
+                                className={`${inputBaseClass} appearance-none cursor-pointer`}
+                            >
+                                <option value="">All</option>
+                                {filter.options?.map(opt => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                        </div>
+                    </div>
+                );
+
+            case 'date':
+                const dateValue = values[filter.key] ? String(values[filter.key]).substring(0, 10) : '';
+                return (
+                    <div key={filter.key} className="flex-1 min-w-[150px]">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
+                            {filter.label}
+                        </label>
+                        <div className="relative">
+                            <input
+                                type="date"
+                                value={dateValue}
+                                onChange={(e) => handleChange(filter.key, e.target.value)}
+                                className={`${inputBaseClass} pl-3`} // Browser native date picker usually needs less horizontal padding management than custom icons unless we have an icon overlay
+                            />
+                        </div>
+                    </div>
+                );
+
+            case 'dateRange':
+                const fromValue = values[`${filter.key}_from`] ? String(values[`${filter.key}_from`]).substring(0, 10) : '';
+                const toValue = values[`${filter.key}_to`] ? String(values[`${filter.key}_to`]).substring(0, 10) : '';
+                return (
+                    <div key={filter.key} className="flex-1 min-w-[300px]">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
+                            {filter.label}
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    type="date"
+                                    value={fromValue}
+                                    onChange={(e) => handleChange(`${filter.key}_from`, e.target.value)}
+                                    className={inputBaseClass}
+                                />
+                            </div>
+                            <span className="text-ink-muted text-sm">to</span>
+                            <div className="relative flex-1">
+                                <input
+                                    type="date"
+                                    value={toValue}
+                                    onChange={(e) => handleChange(`${filter.key}_to`, e.target.value)}
+                                    className={inputBaseClass}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 'search':
+                return (
+                    <div key={filter.key} className="flex-1 min-w-[200px]">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
+                            {filter.label}
+                        </label>
+                        <input
+                            type="text"
+                            placeholder={filter.placeholder || 'Search...'}
+                            value={values[filter.key] || ''}
+                            onChange={(e) => handleChange(filter.key, e.target.value)}
+                            className={inputBaseClass}
+                        />
+                    </div>
+                );
+
+            case 'number':
+                return (
+                    <div key={filter.key} className="flex-1 min-w-[120px]">
+                        <label className="block text-xs font-semibold text-ink-muted mb-1.5 uppercase tracking-wider">
+                            {filter.label}
+                        </label>
+                        <input
+                            type="number"
+                            placeholder={filter.placeholder || '0'}
+                            value={values[filter.key] || ''}
+                            onChange={(e) => handleChange(filter.key, e.target.value)}
+                            className={inputBaseClass}
+                        />
+                    </div>
+                );
+
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className={`bg-surface rounded-xl border border-line overflow-hidden ${compact ? 'mb-2 shadow-sm' : 'mb-6'}`}>
+            {/* Header */}
+            <div
+                className={`flex items-center justify-between ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-3'} ${collapsible ? 'cursor-pointer' : ''} border-b border-line`}
+                onClick={() => collapsible && setIsExpanded(!isExpanded)}
+            >
+                <div className="flex items-center gap-2">
+                    <Filter size={compact ? 14 : 16} className="text-ink-muted" />
+                    <span className={`font-semibold ${compact ? 'text-xs uppercase tracking-wider' : 'text-sm'} text-ink-secondary dark:text-ink`}>Filters</span>
+                    {hasActiveFilters && (
+                        <span className="px-1.5 py-0.5 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold rounded">
+                            Active
+                        </span>
+                    )}
+                </div>
+
+                {/* Compact Actions in Header */}
+                <div className="flex items-center gap-2">
+                    {compact && isExpanded && (
+                        <div className="flex items-center gap-2 mr-2">
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onReset(); }}
+                                    className="px-2 py-0.5 text-2xs font-medium text-ink-muted hover:text-ink-secondary bg-sunken rounded hover:bg-interactive-hover transition-colors"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                            {onApply && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onApply(); }}
+                                    className="px-2 py-0.5 text-2xs font-medium text-white bg-brand-600 rounded hover:bg-brand-700 transition-colors"
+                                >
+                                    Apply
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {collapsible && (
+                        <ChevronDown
+                            size={16}
+                            className={`text-ink-muted transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        />
+                    )}
+                </div>
+            </div>
+
+            {/* Filter Content */}
+            {isExpanded && (
+                <div className={compact ? 'p-2' : 'p-4'}>
+                    <div className={`flex flex-wrap ${compact ? 'gap-2' : 'gap-4'}`}>
+                        {filters.map(renderFilter)}
+                    </div>
+
+                    {/* Standard Actions Footer (Only if NOT compact) */}
+                    {!compact && (
+                        <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-line">
+                            {hasActiveFilters && (
+                                <button
+                                    onClick={onReset}
+                                    className="px-3 py-1.5 text-sm text-ink-secondary hover:text-ink dark:hover:text-neutral-200 flex items-center gap-1.5 transition-colors"
+                                >
+                                    <X size={14} />
+                                    Clear
+                                </button>
+                            )}
+                            {onApply && (
+                                <button
+                                    onClick={onApply}
+                                    className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+                                >
+                                    <RefreshCw size={14} />
+                                    Apply
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+        </div>
+    );
+
+}
+
+/**
+ * Quick date range presets
+ */
+export function DateRangePresets({ onSelect }) {
+    const presets = [
+        { label: 'Today', value: 'today' },
+        { label: 'Yesterday', value: 'yesterday' },
+        { label: 'Last 7 Days', value: 'last7days' },
+        { label: 'Last 30 Days', value: 'last30days' },
+        { label: 'This Month', value: 'thisMonth' },
+        { label: 'Last Month', value: 'lastMonth' },
+        { label: 'This Year', value: 'thisYear' },
+    ];
+
+    return (
+        <div className="flex flex-wrap gap-2">
+            {presets.map(preset => (
+                <button
+                    key={preset.value}
+                    onClick={() => onSelect(preset.value)}
+                    className="px-3 py-1 text-xs font-medium text-ink-secondary bg-sunken hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
+                >
+                    {preset.label}
+                </button>
+            ))}
+        </div>
+    );
+}

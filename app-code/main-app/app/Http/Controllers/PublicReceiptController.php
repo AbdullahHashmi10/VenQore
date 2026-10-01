@@ -22,7 +22,7 @@ class PublicReceiptController extends Controller
         $timestamp = time() + (30 * 86400); // 30 days validity
         $payload = $sale->id . ':' . $timestamp;
         $sig = hash_hmac('sha256', $payload, $appKey);
-        $token = base64_encode($payload . ':' . substr($sig, 0, 16));
+        $token = rtrim(strtr(base64_encode($payload . ':' . substr($sig, 0, 16)), '+/', '-_'), '=');
 
         return url('/r/' . $token);
     }
@@ -32,7 +32,7 @@ class PublicReceiptController extends Controller
      */
     public function show(string $token)
     {
-        $decoded = base64_decode($token, true);
+        $decoded = base64_decode(strtr($token, '-_', '+/'), true);
         if (!$decoded) {
             abort(404, 'Invalid or malformed receipt token.');
         }
@@ -57,16 +57,27 @@ class PublicReceiptController extends Controller
         }
 
         // Fetch sale without leaking internal margin data
-        $sale = Sale::with(['tenant', 'customer', 'items.product'])->find($saleId);
-        if (!$sale) {
+        // The verified capability grants access only to this sale. Keep soft-delete
+        // scopes and constrain every related tenant-owned query explicitly.
+        $sale = Sale::withoutGlobalScope('tenant')->find($saleId);
+        if (!$sale || in_array($sale->status, ['draft', 'void', 'voided', 'cancelled'], true)) {
             abort(404, 'Receipt not found or transaction was voided.');
         }
 
-        return view('invoices.public_receipt', [
+        $tenantId = $sale->tenant_id;
+        $scope = fn ($query) => $query->withoutGlobalScope('tenant')
+            ->where($query->getModel()->qualifyColumn('tenant_id'), $tenantId);
+        $sale->load(['tenant', 'customer' => $scope, 'items' => $scope,
+            'items.product' => $scope, 'payments' => $scope]);
+        $settings = \App\Models\Setting::withoutGlobalScope('tenant')
+            ->where('tenant_id', $tenantId)->pluck('value', 'key');
+
+        return response()->view('invoices.public_receipt', [
+            'settings' => $settings,
             'sale' => $sale,
             'store' => $sale->tenant,
             'customer' => $sale->customer,
             'items' => $sale->items ?? [],
-        ]);
+        ])->header('Cache-Control', 'private, no-store')->header('X-Robots-Tag', 'noindex, nofollow')->header('Referrer-Policy', 'no-referrer');
     }
 }

@@ -91,6 +91,23 @@ class HandleInertiaRequests extends Middleware
                         // Google Auth flags — used by DangerSettingsSection to determine
                         // whether to ask for password or email address for confirmation.
                         'google_id'         => !empty($user->attributes['google_id'] ?? null),
+                        'requires_approval'    => (function () use ($user) {
+                            if (!$user) return false;
+                            $membership = $user->getActiveMembership();
+                            if (!$membership) return false;
+                            if ($membership->transaction_approval_mode === 'required') return true;
+                            if ($membership->role === 'owner' || $user->isPlatformAdmin()) return false;
+                            return !$user->hasPermission('approvals.inbox') && !$user->hasPermission('approvals.review');
+                        })(),
+                        'can_review_approvals' => (function () use ($user) {
+                            if (!$user) return false;
+                            $membership = $user->getActiveMembership();
+                            if (!$membership) return false;
+                            if ($membership->transaction_approval_mode === 'required') return false;
+                            if ($membership->role === 'owner' || $user->isPlatformAdmin()) return true;
+                            return $user->hasPermission('approvals.inbox') || $user->hasPermission('approvals.review');
+                        })(),
+                        'transaction_approval_mode' => $user ? ($user->getActiveMembership()?->transaction_approval_mode ?? 'inherit') : 'inherit',
                         'has_password'      => !empty($user->attributes['password'] ?? null),
                     ]
                 ) : null,
@@ -118,6 +135,32 @@ class HandleInertiaRequests extends Middleware
                     ? \Illuminate\Support\Facades\Cache::remember("user_stores_count:{$user->id}", 300, function () use ($user) {
                         return \App\Models\TenantUser::where('user_id', $user->id)->where('status', 'active')->count();
                     })
+                    : 0,
+                // Pending approvals count for sidebar badge
+                'pending_approvals_count' => ($user && $dbReady && $this->hasTable('approval_documents'))
+                    ? rescue(function () use ($user) {
+                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                        if (!$tenant) return 0;
+
+                        $tenantId = $tenant->id;
+                        return \Illuminate\Support\Facades\Cache::remember("user_pending_approvals:{$user->id}:{$tenantId}", 10, function () use ($user, $tenantId) {
+                            $canApprove = $user->isPlatformAdmin()
+                                || in_array($user->role, ['owner', 'admin', 'manager'])
+                                || $user->hasPermission('approvals.inbox')
+                                || $user->hasPermission('approvals.review');
+
+                            if ($canApprove) {
+                                return \App\Models\ApprovalDocument::where('tenant_id', $tenantId)
+                                    ->where('status', \App\Models\ApprovalDocument::STATUS_PENDING)
+                                    ->count();
+                            }
+
+                            return \App\Models\ApprovalDocument::where('tenant_id', $tenantId)
+                                ->where('maker_id', $user->id)
+                                ->whereIn('status', [\App\Models\ApprovalDocument::STATUS_PENDING, \App\Models\ApprovalDocument::STATUS_RETURNED])
+                                ->count();
+                        });
+                    }, 0, false)
                     : 0,
             ],
             'growth_engine' => [

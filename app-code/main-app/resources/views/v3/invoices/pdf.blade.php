@@ -1,7 +1,7 @@
 @php
-    $decimals = (int) \App\Helpers\SettingsHelper::getPrintDecimals($store->decimal_places ?? 2);
-    $currSymbol = \App\Helpers\SettingsHelper::get('currency_symbol') ?? ($store->currency_symbol ?? 'Rs.');
-    $showInvoiceNumber = \App\Helpers\SettingsHelper::isInvoiceNumberEnabled();
+    $decimals = max(0, min(4, (int) ($settings['decimal_places'] ?? 2)));
+    $currSymbol = $settings['currency_symbol'] ?? $settings['currency'] ?? 'PKR';
+    $showInvoiceNumber = !in_array($settings['invoice_number_enabled'] ?? '1', ['0', 0, false, 'false'], true);
 @endphp
 <!DOCTYPE html>
 <html>
@@ -100,6 +100,7 @@
         border-top: 1px solid #e5e7eb; padding-top: 12px;
         text-align: center;
     }
+thead { display: table-header-group; } tr { page-break-inside: avoid; }
 </style>
 </head>
 <body>
@@ -108,7 +109,7 @@
     {{-- ── Header ─────────────────────────────────────────────── --}}
     <div class="header">
         <div class="header-left">
-            <div class="company-name">VenQore ERP</div>
+            <div class="company-name">{{ $settings['business_name'] ?? $settings['store_name'] ?? 'Store' }}</div>
             <div style="color:#555; margin-top:4px;">
                 {{ $sale->warehouse_name }}
             </div>
@@ -246,37 +247,39 @@
         <tr>
             <td>Subtotal (Gross)</td>
             <td class="text-right">
-                {{ number_format($sale->subtotal_gross, $decimals) }}
+                {{ number_format($sale->subtotal_gross ?? $sale->subtotal ?? 0, $decimals) }}
             </td>
         </tr>
-        @if($sale->total_item_discounts > 0)
+        @if(($sale->total_item_discounts ?? $sale->discount ?? 0) > 0)
         <tr>
             <td>Discounts</td>
             <td class="text-right" style="color:#dc2626;">
-                ({{ number_format($sale->total_item_discounts, $decimals) }})
+                ({{ number_format($sale->total_item_discounts ?? $sale->discount ?? 0, $decimals) }})
             </td>
         </tr>
         @endif
         <tr>
             <td>Net Sales</td>
             <td class="text-right">
-                {{ number_format($sale->net_sales, $decimals) }}
+                {{ number_format($sale->net_sales ?? (($sale->subtotal ?? 0) - ($sale->discount ?? 0)), $decimals) }}
             </td>
         </tr>
-        @if($sale->total_tax > 0)
+        @if(($sale->total_tax ?? $sale->tax ?? 0) > 0)
         <tr>
             <td>Tax</td>
             <td class="text-right">
-                {{ number_format($sale->total_tax, $decimals) }}
+                {{ number_format($sale->total_tax ?? $sale->tax ?? 0, $decimals) }}
             </td>
         </tr>
         @endif
         <tr class="grand-total">
             <td><strong>Total</strong></td>
             <td class="text-right">
-                <strong>{{ $currSymbol }} {{ number_format($sale->invoice_total, $decimals) }}</strong>
+                <strong>{{ $currSymbol }} {{ number_format($sale->invoice_total ?? $sale->total ?? 0, $decimals) }}</strong>
             </td>
         </tr>
+        <tr><td>Paid</td><td class="text-right">{{ $currSymbol }} {{ number_format($paid ?? 0, $decimals) }}</td></tr>
+        <tr><td>Balance Due</td><td class="text-right">{{ $currSymbol }} {{ number_format(max(0, ($sale->invoice_total ?? $sale->total ?? 0) - ($paid ?? 0)), $decimals) }}</td></tr>
         <tr>
             <td style="color:#888; font-size:11px;">Status</td>
             <td class="text-right">

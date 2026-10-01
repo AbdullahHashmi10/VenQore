@@ -84,6 +84,15 @@ abstract class SmokeTestCase extends BaseTestCase
                         'feature_batches' => false,
                         'feature_manufacturing' => false,
                         'business_type' => null,
+                        // AI entitlement fields read directly by HandleInertiaRequests::share()
+                        // (no ?? fallback there, so missing attrs throw MissingAttributeException)
+                        'ai_status'                => 'none',
+                        'ai_pages_used'            => 0,
+                        'ai_pages_limit'           => null,
+                        'ai_queries_used'          => 0,
+                        'ai_queries_limit'         => null,
+                        'ai_descriptions_balance'  => null,
+                        'ai_period_started_at'     => null,
                     ], $attributes));
                     $this->exists = true;
                 }

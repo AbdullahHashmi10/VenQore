@@ -16,7 +16,7 @@
             'SAR' => 'SAR',
             'INR' => '₹',
         ];
-        $currencySymbol = $currencySymbols[$currency] ?? $currency;
+        $currencySymbol = $settings['currency_symbol'] ?? $currencySymbols[$currency] ?? $currency;
 
         $dateFormat = match ($settings['date_format'] ?? 'DD/MM/YYYY') {
             'DD/MM/YYYY' => 'd/m/Y',
@@ -53,8 +53,8 @@
         }
 
         .info div {
-            display: flex;
-            justify-content: space-between;
+            display: table;
+            width: 100%;
         }
 
         table {
@@ -84,8 +84,8 @@
         }
 
         .totals div {
-            display: flex;
-            justify-content: space-between;
+            display: table;
+            width: 100%;
             margin-bottom: 3px;
         }
 
@@ -102,13 +102,17 @@
             margin-top: 30px;
             font-size: 10px;
         }
+        .info div > *, .totals div > * { display: table-cell; width: 50%; }
+        .info div > :last-child, .totals div > :last-child { text-align: right; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <h1>{{ $settings['store_name'] ?? 'Pre-Order' }}</h1>
-        <p>{{ $settings['store_address'] ?? '' }}</p>
+        <h1>{{ $settings['business_name'] ?? $settings['store_name'] ?? 'Pre-Order' }}</h1>
+        <p>{{ $settings['business_address'] ?? $settings['store_address'] ?? '' }}</p>
         <h2>SALES PRE-ORDER</h2>
     </div>
 
@@ -133,7 +137,7 @@
             @foreach($order->items as $item)
                 <tr>
                     <td>
-                        {{ $item->product->name }}
+                        {{ $item->product->name ?? $item->name ?? 'Item' }}
                     </td>
                     <td class="text-right">{{ $item->quantity_requested }}</td>
                     <td class="text-right">{{ number_format($item->unit_price, $decimals) }}</td>

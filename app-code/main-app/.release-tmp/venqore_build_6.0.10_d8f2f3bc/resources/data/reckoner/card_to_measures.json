@@ -1,0 +1,1079 @@
+{
+    "core.revenue": [
+        "gl.sales_revenue"
+    ],
+    "core.revenue_trend": [
+        "gl.sales_revenue"
+    ],
+    "core.net_profit": [
+        "calc.net_profit",
+        "gl.income",
+        "gl.cogs",
+        "gl.opex"
+    ],
+    "core.profit_trend": [
+        "calc.net_profit",
+        "gl.income",
+        "gl.cogs",
+        "gl.opex"
+    ],
+    "core.gross_profit": [
+        "calc.gross_profit",
+        "gl.sales_revenue",
+        "gl.cogs"
+    ],
+    "core.gross_margin_pct": [
+        "calc.gross_margin_pct",
+        "calc.gross_profit",
+        "gl.sales_revenue"
+    ],
+    "core.net_margin_pct": [
+        "calc.net_margin_pct",
+        "calc.net_profit",
+        "gl.sales_revenue"
+    ],
+    "core.cogs": [
+        "gl.cogs"
+    ],
+    "core.expenses_total": [
+        "gl.opex"
+    ],
+    "core.expense_ratio": [
+        "calc.expense_ratio",
+        "gl.opex",
+        "gl.sales_revenue"
+    ],
+    "core.receivables": [
+        "gl.balance_ar"
+    ],
+    "core.receivables_aging": [
+        "raw.ar_aging_breakdown",
+        "gl.balance_ar"
+    ],
+    "core.payables": [
+        "gl.balance_ap"
+    ],
+    "core.payables_aging": [
+        "raw.ap_aging_breakdown",
+        "gl.balance_ap"
+    ],
+    "core.total_liquidity": [
+        "calc.total_liquidity",
+        "gl.balance_cash",
+        "gl.balance_bank"
+    ],
+    "core.liquidity_trend": [
+        "calc.total_liquidity",
+        "gl.balance_cash",
+        "gl.balance_bank"
+    ],
+    "core.cash_flow_trend": [
+        "gl.cash_in",
+        "gl.cash_out"
+    ],
+    "core.net_cash_position": [
+        "calc.net_cash_position",
+        "calc.total_liquidity",
+        "gl.balance_liabilities"
+    ],
+    "core.working_capital": [
+        "calc.working_capital"
+    ],
+    "core.revenue_vs_prev": [
+        "calc.revenue_vs_prev",
+        "gl.sales_revenue"
+    ],
+    "core.profit_vs_prev": [
+        "calc.profit_vs_prev",
+        "calc.net_profit"
+    ],
+    "core.transaction_count": [
+        "sales.count",
+        "purchases.count",
+        "expenses.count",
+        "gl.journal_count"
+    ],
+    "core.avg_transaction_value": [
+        "calc.avg_ticket",
+        "sales.net_revenue",
+        "sales.count"
+    ],
+    "core.busiest_day": [
+        "sales.busiest_day"
+    ],
+    "core.peak_hour": [
+        "sales.peak_hour"
+    ],
+    "core.balance_sheet_ok": [
+        "gl.trial_balance_ok"
+    ],
+    "core.journal_entries_count": [
+        "gl.journal_count"
+    ],
+    "core.audit_trail_count": [
+        "master.activity_log_count"
+    ],
+    "core.reversal_count": [
+        "gl.reversal_count"
+    ],
+    "core.document_sequence_ok": [
+        "sales.document_sequence_ok"
+    ],
+    "core.user_activity": [
+        "master.activity_log_count"
+    ],
+    "core.plan_usage": [
+        "master.plan_usage_limits"
+    ],
+    "products.count": [
+        "gl.sales_revenue"
+    ],
+    "products.active_count": [
+        "gl.sales_revenue"
+    ],
+    "products.by_category": [
+        "gl.sales_revenue"
+    ],
+    "products.catalogue_value": [
+        "gl.sales_revenue"
+    ],
+    "products.avg_margin": [
+        "gl.sales_revenue"
+    ],
+    "products.top_margin": [
+        "gl.sales_revenue"
+    ],
+    "products.lowest_margin": [
+        "gl.sales_revenue"
+    ],
+    "products.never_sold": [
+        "gl.sales_revenue"
+    ],
+    "products.missing_cost": [
+        "gl.sales_revenue"
+    ],
+    "products.new_this_period": [
+        "gl.sales_revenue"
+    ],
+    "services.count": [
+        "gl.sales_revenue"
+    ],
+    "services.revenue": [
+        "gl.sales_revenue"
+    ],
+    "services.revenue_trend": [
+        "gl.sales_revenue"
+    ],
+    "services.share_of_revenue": [
+        "gl.sales_revenue"
+    ],
+    "services.top_services": [
+        "gl.sales_revenue"
+    ],
+    "services.avg_ticket": [
+        "gl.sales_revenue"
+    ],
+    "services.jobs_count": [
+        "gl.sales_revenue"
+    ],
+    "customers.count": [
+        "gl.sales_revenue"
+    ],
+    "customers.new": [
+        "gl.sales_revenue"
+    ],
+    "customers.new_trend": [
+        "gl.sales_revenue"
+    ],
+    "customers.active": [
+        "gl.sales_revenue"
+    ],
+    "customers.dormant": [
+        "gl.sales_revenue"
+    ],
+    "customers.repeat_rate": [
+        "gl.sales_revenue"
+    ],
+    "customers.top_customers": [
+        "gl.sales_revenue"
+    ],
+    "customers.avg_spend": [
+        "gl.sales_revenue"
+    ],
+    "customers.owing": [
+        "gl.sales_revenue"
+    ],
+    "customers.by_area": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.count": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.active": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.top_suppliers": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.spend_total": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.spend_trend": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.owed_list": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.concentration": [
+        "gl.sales_revenue"
+    ],
+    "suppliers.new": [
+        "gl.sales_revenue"
+    ],
+    "pos.revenue": [
+        "gl.sales_revenue"
+    ],
+    "pos.revenue_trend": [
+        "gl.sales_revenue"
+    ],
+    "pos.sale_count": [
+        "gl.sales_revenue"
+    ],
+    "pos.avg_ticket": [
+        "gl.sales_revenue"
+    ],
+    "pos.max_sale": [
+        "gl.sales_revenue"
+    ],
+    "pos.items_per_sale": [
+        "gl.sales_revenue"
+    ],
+    "pos.payment_breakdown": [
+        "gl.sales_revenue"
+    ],
+    "pos.hourly_heatmap": [
+        "gl.sales_revenue"
+    ],
+    "pos.weekday_split": [
+        "gl.sales_revenue"
+    ],
+    "pos.discount_total": [
+        "gl.sales_revenue"
+    ],
+    "pos.live_feed": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.count": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.value": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.value_trend": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.unpaid_value": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.overdue_count": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.overdue_value": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.avg_invoice": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.avg_days_to_pay": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.largest_open": [
+        "gl.sales_revenue"
+    ],
+    "invoicing.draft_count": [
+        "gl.sales_revenue"
+    ],
+    "quotations.count": [
+        "gl.sales_revenue"
+    ],
+    "quotations.open_value": [
+        "gl.sales_revenue"
+    ],
+    "quotations.win_rate": [
+        "gl.sales_revenue"
+    ],
+    "quotations.win_rate_trend": [
+        "gl.sales_revenue"
+    ],
+    "quotations.avg_quote": [
+        "gl.sales_revenue"
+    ],
+    "quotations.expiring": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.open_count": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.open_value": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.count": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.value_trend": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.fulfil_rate": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.overdue": [
+        "gl.sales_revenue"
+    ],
+    "sales_orders.by_customer": [
+        "gl.sales_revenue"
+    ],
+    "sales_returns.count": [
+        "gl.sales_revenue"
+    ],
+    "sales_returns.value": [
+        "gl.sales_revenue"
+    ],
+    "sales_returns.rate": [
+        "gl.sales_revenue"
+    ],
+    "sales_returns.trend": [
+        "gl.sales_revenue"
+    ],
+    "sales_returns.top_returned": [
+        "gl.sales_revenue"
+    ],
+    "sales_returns.by_reason": [
+        "gl.sales_revenue"
+    ],
+    "recurring.active_count": [
+        "gl.sales_revenue"
+    ],
+    "recurring.monthly_value": [
+        "gl.sales_revenue"
+    ],
+    "recurring.trend": [
+        "gl.sales_revenue"
+    ],
+    "recurring.due_next_7": [
+        "gl.sales_revenue"
+    ],
+    "recurring.share_of_revenue": [
+        "gl.sales_revenue"
+    ],
+    "recurring.churned": [
+        "gl.sales_revenue"
+    ],
+    "proposals.count": [
+        "gl.sales_revenue"
+    ],
+    "proposals.pipeline_value": [
+        "gl.sales_revenue"
+    ],
+    "proposals.win_rate": [
+        "gl.sales_revenue"
+    ],
+    "proposals.avg_value": [
+        "gl.sales_revenue"
+    ],
+    "proposals.stale": [
+        "gl.sales_revenue"
+    ],
+    "proposals.avg_cycle_days": [
+        "gl.sales_revenue"
+    ],
+    "pricing.tier_count": [
+        "gl.sales_revenue"
+    ],
+    "pricing.revenue_by_tier": [
+        "gl.sales_revenue"
+    ],
+    "pricing.customers_by_tier": [
+        "gl.sales_revenue"
+    ],
+    "pricing.avg_realised_price": [
+        "gl.sales_revenue"
+    ],
+    "pricing.discount_vs_list": [
+        "gl.sales_revenue"
+    ],
+    "park.open_count": [
+        "gl.sales_revenue"
+    ],
+    "park.open_value": [
+        "gl.sales_revenue"
+    ],
+    "park.recalled_count": [
+        "gl.sales_revenue"
+    ],
+    "park.abandoned_count": [
+        "gl.sales_revenue"
+    ],
+    "park.oldest": [
+        "gl.sales_revenue"
+    ],
+    "tables.occupied": [
+        "gl.sales_revenue"
+    ],
+    "tables.occupancy_rate": [
+        "gl.sales_revenue"
+    ],
+    "tables.kitchen_pending": [
+        "gl.sales_revenue"
+    ],
+    "tables.avg_turn_minutes": [
+        "gl.sales_revenue"
+    ],
+    "tables.covers": [
+        "gl.sales_revenue"
+    ],
+    "tables.avg_cover_value": [
+        "gl.sales_revenue"
+    ],
+    "tables.revenue_per_table": [
+        "gl.sales_revenue"
+    ],
+    "tables.peak_occupancy": [
+        "gl.sales_revenue"
+    ],
+    "presales.count": [
+        "gl.sales_revenue"
+    ],
+    "presales.value": [
+        "gl.sales_revenue"
+    ],
+    "presales.advance_collected": [
+        "gl.sales_revenue"
+    ],
+    "presales.pending_delivery": [
+        "gl.sales_revenue"
+    ],
+    "presales.overdue": [
+        "gl.sales_revenue"
+    ],
+    "inventory.stock_value": [
+        "gl.sales_revenue"
+    ],
+    "inventory.stock_value_trend": [
+        "gl.sales_revenue"
+    ],
+    "inventory.product_count": [
+        "gl.sales_revenue"
+    ],
+    "inventory.units_on_hand": [
+        "gl.sales_revenue"
+    ],
+    "inventory.low_stock_count": [
+        "gl.sales_revenue"
+    ],
+    "inventory.low_stock_list": [
+        "gl.sales_revenue"
+    ],
+    "inventory.out_of_stock_count": [
+        "gl.sales_revenue"
+    ],
+    "inventory.dead_stock_value": [
+        "gl.sales_revenue"
+    ],
+    "inventory.turnover_ratio": [
+        "gl.sales_revenue"
+    ],
+    "inventory.days_of_cover": [
+        "gl.sales_revenue"
+    ],
+    "inventory.value_by_category": [
+        "gl.sales_revenue"
+    ],
+    "inventory.top_by_value": [
+        "gl.sales_revenue"
+    ],
+    "locations.count": [
+        "gl.sales_revenue"
+    ],
+    "locations.revenue_by_location": [
+        "gl.sales_revenue"
+    ],
+    "locations.profit_by_location": [
+        "gl.sales_revenue"
+    ],
+    "locations.stock_by_location": [
+        "gl.sales_revenue"
+    ],
+    "locations.revenue_trend_by_location": [
+        "gl.sales_revenue"
+    ],
+    "locations.stock_imbalance": [
+        "gl.sales_revenue"
+    ],
+    "transfers.pending_count": [
+        "gl.sales_revenue"
+    ],
+    "transfers.pending_value": [
+        "gl.sales_revenue"
+    ],
+    "transfers.count": [
+        "gl.sales_revenue"
+    ],
+    "transfers.avg_transit_days": [
+        "gl.sales_revenue"
+    ],
+    "transfers.discrepancy_count": [
+        "gl.sales_revenue"
+    ],
+    "stocktakes.pending_count": [
+        "gl.sales_revenue"
+    ],
+    "stocktakes.variance_value": [
+        "gl.sales_revenue"
+    ],
+    "stocktakes.variance_pct": [
+        "gl.sales_revenue"
+    ],
+    "stocktakes.last_count_days": [
+        "gl.sales_revenue"
+    ],
+    "stocktakes.top_variances": [
+        "gl.sales_revenue"
+    ],
+    "batches.count": [
+        "gl.sales_revenue"
+    ],
+    "batches.qty": [
+        "gl.sales_revenue"
+    ],
+    "batches.expiring_30": [
+        "gl.sales_revenue"
+    ],
+    "batches.expiring_value": [
+        "gl.sales_revenue"
+    ],
+    "batches.expired_value": [
+        "gl.sales_revenue"
+    ],
+    "batches.expiry_list": [
+        "gl.sales_revenue"
+    ],
+    "batches.write_off_trend": [
+        "gl.sales_revenue"
+    ],
+    "serials.count": [
+        "gl.sales_revenue"
+    ],
+    "serials.in_stock": [
+        "gl.sales_revenue"
+    ],
+    "serials.under_warranty": [
+        "gl.sales_revenue"
+    ],
+    "serials.warranty_expiring": [
+        "gl.sales_revenue"
+    ],
+    "serials.returned": [
+        "gl.sales_revenue"
+    ],
+    "variants.count": [
+        "gl.sales_revenue"
+    ],
+    "variants.top_variants": [
+        "gl.sales_revenue"
+    ],
+    "variants.slow_variants": [
+        "gl.sales_revenue"
+    ],
+    "variants.out_of_stock": [
+        "gl.sales_revenue"
+    ],
+    "variants.size_colour_mix": [
+        "gl.sales_revenue"
+    ],
+    "barcodes.coverage_pct": [
+        "gl.sales_revenue"
+    ],
+    "barcodes.missing_count": [
+        "gl.sales_revenue"
+    ],
+    "barcodes.labels_printed": [
+        "gl.sales_revenue"
+    ],
+    "barcodes.scan_share": [
+        "gl.sales_revenue"
+    ],
+    "barcodes.duplicate_count": [
+        "gl.sales_revenue"
+    ],
+    "uom.count": [
+        "gl.sales_revenue"
+    ],
+    "uom.conversion_count": [
+        "gl.sales_revenue"
+    ],
+    "uom.sales_by_uom": [
+        "gl.sales_revenue"
+    ],
+    "uom.missing_conversion": [
+        "gl.sales_revenue"
+    ],
+    "uom.bulk_vs_retail": [
+        "gl.sales_revenue"
+    ],
+    "purchases.spend": [
+        "purchases.spend"
+    ],
+    "purchases.spend_trend": [
+        "purchases.spend"
+    ],
+    "purchases.count": [
+        "purchases.count"
+    ],
+    "purchases.unpaid_value": [
+        "purchases.unpaid_value"
+    ],
+    "purchases.overdue_value": [
+        "purchases.overdue_value"
+    ],
+    "purchases.paid_to_suppliers": [
+        "purchases.spend"
+    ],
+    "purchases.by_supplier": [
+        "purchases.spend"
+    ],
+    "purchases.by_category": [
+        "purchases.spend"
+    ],
+    "purchases.price_increases": [
+        "purchases.spend"
+    ],
+    "po.open_count": [
+        "gl.sales_revenue"
+    ],
+    "po.open_value": [
+        "gl.sales_revenue"
+    ],
+    "po.pending_receipt_value": [
+        "gl.sales_revenue"
+    ],
+    "po.overdue_count": [
+        "gl.sales_revenue"
+    ],
+    "po.avg_lead_days": [
+        "gl.sales_revenue"
+    ],
+    "po.fill_rate": [
+        "gl.sales_revenue"
+    ],
+    "purchase_returns.count": [
+        "gl.sales_revenue"
+    ],
+    "purchase_returns.value": [
+        "gl.sales_revenue"
+    ],
+    "purchase_returns.credit_due": [
+        "gl.sales_revenue"
+    ],
+    "purchase_returns.by_supplier": [
+        "gl.sales_revenue"
+    ],
+    "purchase_returns.rate": [
+        "gl.sales_revenue"
+    ],
+    "landed.total": [
+        "gl.sales_revenue"
+    ],
+    "landed.pct_of_goods": [
+        "gl.sales_revenue"
+    ],
+    "landed.by_type": [
+        "gl.sales_revenue"
+    ],
+    "landed.true_cost_gap": [
+        "gl.sales_revenue"
+    ],
+    "landed.trend": [
+        "gl.sales_revenue"
+    ],
+    "cookbook.recipe_count": [
+        "gl.sales_revenue"
+    ],
+    "cookbook.recipe_cost_pct": [
+        "gl.sales_revenue"
+    ],
+    "cookbook.best_margin": [
+        "gl.sales_revenue"
+    ],
+    "cookbook.worst_margin": [
+        "gl.sales_revenue"
+    ],
+    "cookbook.ingredient_cost_trend": [
+        "gl.sales_revenue"
+    ],
+    "cookbook.wastage_value": [
+        "gl.sales_revenue"
+    ],
+    "production.run_count": [
+        "production.runs_count"
+    ],
+    "production.total_cost": [
+        "production.total_cost"
+    ],
+    "production.output_qty": [
+        "production.output_qty"
+    ],
+    "production.cost_per_unit": [
+        "production.runs_count"
+    ],
+    "production.yield_pct": [
+        "production.runs_count"
+    ],
+    "production.wastage_value": [
+        "production.runs_count"
+    ],
+    "production.in_progress": [
+        "production.in_progress_count"
+    ],
+    "production.output_trend": [
+        "production.runs_count"
+    ],
+    "composite.count": [
+        "gl.sales_revenue"
+    ],
+    "composite.revenue": [
+        "gl.sales_revenue"
+    ],
+    "composite.margin": [
+        "gl.sales_revenue"
+    ],
+    "composite.top_bundles": [
+        "gl.sales_revenue"
+    ],
+    "composite.component_shortage": [
+        "gl.sales_revenue"
+    ],
+    "khata.receivable_total": [
+        "gl.sales_revenue"
+    ],
+    "khata.payable_total": [
+        "gl.sales_revenue"
+    ],
+    "khata.net_position": [
+        "gl.sales_revenue"
+    ],
+    "khata.biggest_debtors": [
+        "gl.sales_revenue"
+    ],
+    "khata.overdue_total": [
+        "gl.sales_revenue"
+    ],
+    "khata.aging": [
+        "gl.sales_revenue"
+    ],
+    "khata.collected": [
+        "gl.sales_revenue"
+    ],
+    "khata.collection_trend": [
+        "gl.sales_revenue"
+    ],
+    "khata.over_limit": [
+        "gl.sales_revenue"
+    ],
+    "payments.received": [
+        "payments.receipts_total"
+    ],
+    "payments.received_trend": [
+        "payments.receipts_total"
+    ],
+    "payments.paid": [
+        "payments.receipts_total"
+    ],
+    "payments.net_flow": [
+        "payments.receipts_total"
+    ],
+    "payments.by_method": [
+        "payments.receipts_total"
+    ],
+    "payments.cash_vs_digital": [
+        "payments.receipts_total"
+    ],
+    "payments.unallocated": [
+        "payments.receipts_total"
+    ],
+    "payments.bounced": [
+        "payments.receipts_total"
+    ],
+    "expenses.count": [
+        "expenses.count"
+    ],
+    "expenses.trend": [
+        "expenses.grand_total"
+    ],
+    "expenses.by_category": [
+        "expenses.grand_total"
+    ],
+    "expenses.top_categories": [
+        "expenses.grand_total"
+    ],
+    "expenses.unpaid": [
+        "expenses.unpaid_value"
+    ],
+    "expenses.largest": [
+        "expenses.grand_total"
+    ],
+    "expenses.recurring_total": [
+        "expenses.grand_total"
+    ],
+    "expenses.per_day": [
+        "expenses.grand_total"
+    ],
+    "expenses.vs_prev": [
+        "expenses.grand_total"
+    ],
+    "register.open_count": [
+        "gl.sales_revenue"
+    ],
+    "register.cash_in_drawer": [
+        "gl.sales_revenue"
+    ],
+    "register.cash_sales": [
+        "gl.sales_revenue"
+    ],
+    "register.expected_vs_actual": [
+        "gl.sales_revenue"
+    ],
+    "register.variance_total": [
+        "gl.sales_revenue"
+    ],
+    "register.by_staff": [
+        "gl.sales_revenue"
+    ],
+    "register.shift_count": [
+        "gl.sales_revenue"
+    ],
+    "bank.account_count": [
+        "gl.sales_revenue"
+    ],
+    "bank.balances_total": [
+        "gl.sales_revenue"
+    ],
+    "bank.balance_trend": [
+        "gl.sales_revenue"
+    ],
+    "bank.balance_by_account": [
+        "gl.sales_revenue"
+    ],
+    "bank.top_account": [
+        "gl.sales_revenue"
+    ],
+    "bank.money_in": [
+        "gl.sales_revenue"
+    ],
+    "bank.money_out": [
+        "gl.sales_revenue"
+    ],
+    "bank.cash_vs_bank": [
+        "gl.sales_revenue"
+    ],
+    "bank.idle_accounts": [
+        "gl.sales_revenue"
+    ],
+    "recon.unreconciled_count": [
+        "gl.sales_revenue"
+    ],
+    "recon.unreconciled_value": [
+        "gl.sales_revenue"
+    ],
+    "recon.matched_pct": [
+        "gl.sales_revenue"
+    ],
+    "recon.last_recon_days": [
+        "gl.sales_revenue"
+    ],
+    "recon.difference": [
+        "gl.sales_revenue"
+    ],
+    "accounting.trial_balance_ok": [
+        "gl.sales_revenue"
+    ],
+    "accounting.assets_total": [
+        "gl.sales_revenue"
+    ],
+    "accounting.liabilities_total": [
+        "gl.sales_revenue"
+    ],
+    "accounting.equity_total": [
+        "gl.sales_revenue"
+    ],
+    "accounting.equity_trend": [
+        "gl.sales_revenue"
+    ],
+    "accounting.pnl_summary": [
+        "gl.sales_revenue"
+    ],
+    "accounting.balance_sheet": [
+        "gl.sales_revenue"
+    ],
+    "accounting.unposted_count": [
+        "gl.sales_revenue"
+    ],
+    "accounting.drawings": [
+        "gl.sales_revenue"
+    ],
+    "tax.collected": [
+        "gl.sales_revenue"
+    ],
+    "tax.paid": [
+        "gl.sales_revenue"
+    ],
+    "tax.net_liability": [
+        "gl.sales_revenue"
+    ],
+    "tax.liability_trend": [
+        "gl.sales_revenue"
+    ],
+    "tax.by_rate": [
+        "gl.sales_revenue"
+    ],
+    "tax.taxable_vs_exempt": [
+        "gl.sales_revenue"
+    ],
+    "tax.filing_due": [
+        "gl.sales_revenue"
+    ],
+    "tax.invoices_missing_tax": [
+        "gl.sales_revenue"
+    ],
+    "assets.count": [
+        "gl.sales_revenue"
+    ],
+    "assets.gross_value": [
+        "gl.sales_revenue"
+    ],
+    "assets.net_book_value": [
+        "gl.sales_revenue"
+    ],
+    "assets.depreciation_period": [
+        "gl.sales_revenue"
+    ],
+    "assets.by_category": [
+        "gl.sales_revenue"
+    ],
+    "assets.warranty_amc_due": [
+        "gl.sales_revenue"
+    ],
+    "loans.count": [
+        "gl.sales_revenue"
+    ],
+    "loans.outstanding_total": [
+        "gl.sales_revenue"
+    ],
+    "loans.outstanding_trend": [
+        "gl.sales_revenue"
+    ],
+    "loans.emi_due": [
+        "gl.sales_revenue"
+    ],
+    "loans.interest_paid": [
+        "gl.sales_revenue"
+    ],
+    "loans.by_lender": [
+        "gl.sales_revenue"
+    ],
+    "reports.pnl_shortcut": [
+        "gl.sales_revenue"
+    ],
+    "reports.sales_shortcut": [
+        "gl.sales_revenue"
+    ],
+    "reports.stock_shortcut": [
+        "gl.sales_revenue"
+    ],
+    "reports.saved_count": [
+        "gl.sales_revenue"
+    ],
+    "reports.most_used": [
+        "gl.sales_revenue"
+    ],
+    "reports.scheduled_count": [
+        "gl.sales_revenue"
+    ],
+    "ai.top_insight": [
+        "gl.sales_revenue"
+    ],
+    "ai.alerts_open": [
+        "gl.sales_revenue"
+    ],
+    "ai.anomalies": [
+        "gl.sales_revenue"
+    ],
+    "ai.forecast_revenue": [
+        "gl.sales_revenue"
+    ],
+    "ai.forecast_cash": [
+        "gl.sales_revenue"
+    ],
+    "ai.reorder_suggestions": [
+        "gl.sales_revenue"
+    ],
+    "loyalty.member_count": [
+        "gl.sales_revenue"
+    ],
+    "loyalty.new_members": [
+        "gl.sales_revenue"
+    ],
+    "loyalty.member_revenue_share": [
+        "gl.sales_revenue"
+    ],
+    "loyalty.member_avg_spend": [
+        "gl.sales_revenue"
+    ],
+    "loyalty.liability": [
+        "gl.sales_revenue"
+    ],
+    "loyalty.gift_card_balance": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.channel_count": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.revenue_by_channel": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.online_vs_offline": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.sync_errors": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.stock_mismatch": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.channel_margin": [
+        "gl.sales_revenue"
+    ],
+    "staff.member_count": [
+        "gl.sales_revenue"
+    ],
+    "staff.on_shift_count": [
+        "gl.sales_revenue"
+    ],
+    "staff.present_today": [
+        "gl.sales_revenue"
+    ],
+    "staff.absent_today": [
+        "gl.sales_revenue"
+    ],
+    "staff.hours_worked": [
+        "gl.sales_revenue"
+    ],
+    "staff.attendance_rate": [
+        "gl.sales_revenue"
+    ],
+    "staff.sales_by_staff": [
+        "gl.sales_revenue"
+    ],
+    "staff.revenue_per_staff": [
+        "gl.sales_revenue"
+    ]
+}

@@ -21,14 +21,8 @@ It combines a Laravel 11 backend, FilamentPHP v3 Admin Panel, and a React + Iner
 6. `php artisan filament:install --panels`
 7. `npm run dev`
 
-## Deployment (Hostinger)
-1. Run `npm run build` locally.
-2. Zip the project (excluding `node_modules`).
-3. Upload to Hostinger `public_html` (or subfolder).
-4. Unzip.
-5. Configure `.env` with Hostinger DB credentials.
-6. Import database schema.
-7. Set up Cron Job: `* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1`
+## Production builds and deployment
+Follow [`RELEASE_AND_DEPLOYMENT_POLICY.md`](RELEASE_AND_DEPLOYMENT_POLICY.md) before creating or uploading a release. Do not manually ZIP the project or assume an existing deployment script is safe. The 6.0.5 update artifact has a confirmed Composer startup failure and is blocked. The existing web updater and SSH deployment scripts also require repair and staging validation before production use.
 
 ## Key Features
 - **Inventory**: Multi-barcode, Weighted items, Composite products (Recipes).

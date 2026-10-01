@@ -105,7 +105,11 @@ class ApprovalPolicyResolver
             ->value('value');
         $strictOwnerSeparation = filter_var($strictOwnerSetting, FILTER_VALIDATE_BOOLEAN);
 
-        // Amount Threshold Setting (global or per-document)
+        // Amount Threshold Setting (user-specific, per-document, or global)
+        $userThresholdSetting = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenant->id)
+            ->where('key', "approval_threshold_user_{$user->id}")
+            ->value('value');
         $docThresholdSetting = Setting::withoutGlobalScopes()
             ->where('tenant_id', $tenant->id)
             ->where('key', "approval_threshold_{$documentType}")
@@ -115,7 +119,7 @@ class ApprovalPolicyResolver
             ->where('key', 'approval_amount_threshold')
             ->value('value');
 
-        $thresholdSetting = $docThresholdSetting ?? $globalThresholdSetting;
+        $thresholdSetting = $userThresholdSetting ?? $docThresholdSetting ?? $globalThresholdSetting;
         $amountThreshold = $thresholdSetting !== null && is_numeric($thresholdSetting) ? (float)$thresholdSetting : null;
         $amountExceeded = ($amountThreshold !== null && $amount >= $amountThreshold);
 

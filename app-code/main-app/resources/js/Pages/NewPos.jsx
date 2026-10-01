@@ -1,3 +1,4 @@
+import { AMDStation } from '@/Utils/AMDStation';
 /**
  * ╔═══════════════════════════════════════════════════════════════════════════╗
  * ║  New POS — the composed register (Live Database & Ledger Connected)       ║
@@ -381,8 +382,16 @@ export default function NewPos({
     const toast = useCallback((text, opts = {}) => {
         const t = { id: `t${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, text, tone: opts.tone || 'info', action: opts.action, onAction: opts.onAction };
         setToasts((ts) => [...ts.slice(-3), t]);
+
+
         setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== t.id)), opts.ms || 3400);
     }, []);
+
+    useEffect(() => {
+        const handler = event => toast(event.detail.message, { tone: event.detail.type === 'success' ? 'good' : 'bad' });
+        window.addEventListener('amd:toast', handler);
+        return () => window.removeEventListener('amd:toast', handler);
+    }, [toast]);
 
     const onToastAction = useCallback((t) => {
         t.onAction?.();
@@ -563,16 +572,13 @@ export default function NewPos({
     };
 
     /* ── Actions: Drawer, Hold, Complete ─────────────────────────────────── */
-    const openDrawer = useCallback(() => {
+    const openDrawer = useCallback(async () => {
         if (!prefs?.perms?.['pos.open_drawer']) {
             toast('Your role may not open the cash drawer.', { tone: 'bad' });
             return;
         }
-        // Trigger drawer pulse via hardware service if configured
-        if (PrintService.isAMDStationAvailable?.()) {
-            PrintService.printWithAMDStation({}, settings, { openDrawer: true });
-        }
-        toast('Cash drawer opened.', { tone: 'good' });
+        const result = await AMDStation.openDrawer();
+        toast(result?.success ? 'Cash drawer signal sent.' : (result?.error || 'Drawer request failed.'), { tone: result?.success ? 'good' : 'bad' });
     }, [prefs?.perms, settings, toast]);
 
     const holdSale = useCallback(async () => {

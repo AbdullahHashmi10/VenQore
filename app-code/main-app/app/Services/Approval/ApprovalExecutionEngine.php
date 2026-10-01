@@ -262,10 +262,12 @@ class ApprovalExecutionEngine
         Tenant $tenant,
         User $reviewer,
         ?int $expectedVersion = null,
-        ?string $reviewerNotes = null
+        ?string $reviewerNotes = null,
+        ?array $updatedPayload = null,
+        ?float $updatedAmount = null
     ): array {
         app()->instance('current.tenant', $tenant);
-        return DB::transaction(function () use ($documentId, $tenant, $reviewer, $expectedVersion, $reviewerNotes) {
+        return DB::transaction(function () use ($documentId, $tenant, $reviewer, $expectedVersion, $reviewerNotes, $updatedPayload, $updatedAmount) {
             /** @var ApprovalDocument $doc */
             $doc = ApprovalDocument::where('tenant_id', $tenant->id)
                 ->where('id', $documentId)
@@ -310,6 +312,30 @@ class ApprovalExecutionEngine
             }
 
             $adapter = $this->getAdapter($doc->document_type);
+
+            // If the reviewer adjusted the payload/amount, record the reviewer's revision
+            if ($updatedPayload !== null) {
+                $normalizedPayload = $adapter->validatePayload($updatedPayload, $tenant, $reviewer);
+                $latestRevision = $doc->revisions()->orderByDesc('revision_number')->first();
+                $nextRevisionNumber = ($latestRevision ? $latestRevision->revision_number : 0) + 1;
+
+                $newRevision = \App\Models\ApprovalRevision::create([
+                    'approval_document_id' => $doc->id,
+                    'revision_number'      => $nextRevisionNumber,
+                    'maker_id'             => $reviewer->id,
+                    'payload'              => $normalizedPayload,
+                    'amount'               => $updatedAmount !== null ? (float)$updatedAmount : (float)$doc->amount,
+                    'notes'                => 'Adjusted by reviewer before approval' . ($reviewerNotes ? ": {$reviewerNotes}" : ''),
+                ]);
+
+                $doc->current_revision_id = $newRevision->id;
+                if ($updatedAmount !== null) {
+                    $doc->amount = (float)$updatedAmount;
+                }
+                $doc->save();
+                $doc->refresh();
+                $doc->load('currentRevision');
+            }
 
             // Revalidate against live database state
             $adapter->revalidate($doc, $tenant, $reviewer);
