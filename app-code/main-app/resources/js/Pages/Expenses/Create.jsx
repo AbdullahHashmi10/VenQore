@@ -7,6 +7,7 @@ import VqSelect from '@/Documents/VqSelect';
 import MoneyDocument, { uid, today } from '@/Documents/MoneyDocument';
 import { documentType } from '@/Documents/documentTypes';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useChequeLeaves } from '@/Documents/useChequeLeaves';
 
 const DOC = documentType('expense');
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
@@ -35,6 +36,9 @@ export default function CreateExpense({ categories = [], approval_correction = n
        records the expense twice. */
     const posting = useRef(false);
     const [cats, setCats] = useState(categories);
+    const [chequeBankAccountId, setChequeBankAccountId] = useState(null);
+    const { options: chequeLeafOptions, loading: chequeLeafLoading, error: chequeLeafError } =
+        useChequeLeaves(chequeBankAccountId, null, null);
 
     const blankCost = () => ({ id: uid(), category_id: '', desc: '', amount: 0 });
 
@@ -53,6 +57,8 @@ export default function CreateExpense({ categories = [], approval_correction = n
                 amountPaid: p.amount_paid || p.amount || 0,
                 paymentAccountId: p.bank_account_id || null,
                 paymentAccountKey: null,
+                chequeLeafId: null,
+                chequeDate: p.cheque_date || today(),
                 items: p.items?.length ? p.items.map(it => ({
                     id: uid(),
                     category_id: it.expense_category_id || it.category_id || p.expense_category_id || '',
@@ -78,6 +84,8 @@ export default function CreateExpense({ categories = [], approval_correction = n
             amountPaid: 0,
             paymentAccountId: null,
             paymentAccountKey: null,
+            chequeLeafId: null,
+            chequeDate: today(),
             items: [blankCost()],
         };
     }, [approval_correction]);
@@ -133,11 +141,10 @@ export default function CreateExpense({ categories = [], approval_correction = n
                 }
             }}
             validate={({ d, items }) => {
-                /* A cheque has to be drawn on something, and the expense
-                   endpoint records a bank account or the till — nothing in
-                   between. */
-                if (d.paymentAccountKind === 'cheque') {
-                    return { party: 'Choose the bank account the cheque is drawn on.' };
+                /* A cheque expense must reference a specific cheque leaf so the
+                   physical instrument is traceable. */
+                if (d.paymentAccountKind === 'cheque' && !d.chequeLeafId) {
+                    return { party: 'Select the cheque leaf (serial number) used for this payment.' };
                 }
                 const priced = items.filter((i) => i.category_id || i.desc);
                 if (!priced.length) return { items: 'Say what the money was for.' };
@@ -161,10 +168,55 @@ export default function CreateExpense({ categories = [], approval_correction = n
                             <VqSelect
                                 ariaLabel="Which account this is paid out of"
                                 value={d.paymentAccountKey ?? acct.defaultKey ?? ''}
-                                onChange={(v) => { const p = acct.resolve(v); if (p) patch(p); }}
+                                onChange={(v) => {
+                                    const p = acct.resolve(v);
+                                    if (!p) return;
+                                    if (p.isCheque) {
+                                        setChequeBankAccountId(p.bankReferenceId || null);
+                                        patch({ ...p, chequeLeafId: null, chequeDate: today() });
+                                    } else {
+                                        setChequeBankAccountId(null);
+                                        patch({ ...p, chequeLeafId: null, isCheque: false });
+                                    }
+                                }}
                                 options={acct.options}
                             />
                         </Field>
+                    )}
+
+                    {/* Cheque leaf and date — only when paying an expense by cheque */}
+                    {d.isCheque && (
+                        <>
+                            <Field
+                                label="Cheque leaf"
+                                span={3}
+                                required
+                                hint={chequeLeafError || (chequeLeafLoading ? 'Loading…' : undefined)}
+                            >
+                                <VqSelect
+                                    ariaLabel="Select the cheque leaf (serial number) used"
+                                    value={d.chequeLeafId || ''}
+                                    onChange={(v) => patch({ chequeLeafId: v || null })}
+                                    options={chequeLeafOptions}
+                                    placeholder={
+                                        chequeLeafLoading
+                                            ? 'Loading leaves…'
+                                            : chequeLeafOptions.length === 0
+                                            ? 'No leaves — register a chequebook first'
+                                            : 'Select a cheque leaf'
+                                    }
+                                    disabled={chequeLeafLoading || chequeLeafOptions.length === 0}
+                                />
+                            </Field>
+                            <Field label="Cheque date" span={2}>
+                                <input
+                                    type="date"
+                                    className="vqdoc-in"
+                                    value={d.chequeDate || today()}
+                                    onChange={(e) => patch({ chequeDate: e.target.value })}
+                                />
+                            </Field>
+                        </>
                     )}
 
                     {chrome.field('docno') && (
@@ -230,8 +282,10 @@ export default function CreateExpense({ categories = [], approval_correction = n
                        there is no column for it on an expense and a figure
                        that cannot be typed is a figure that is always zero. */
                     tax_amount: totals.taxAmount,
-                    payment_method: acctIsBank(d) ? 'bank' : 'cash',
-                    bank_account_id: acctIsBank(d) ? d.bankReferenceId || d.paymentAccountId : null,
+                    payment_method: d.isCheque ? 'cheque' : (acctIsBank(d) ? 'bank' : 'cash'),
+                    bank_account_id: d.isCheque ? (chequeBankAccountId || null) : (acctIsBank(d) ? d.bankReferenceId || d.paymentAccountId : null),
+                    cheque_leaf_id: d.isCheque ? (d.chequeLeafId || null) : null,
+                    cheque_date: d.isCheque ? (d.chequeDate || null) : null,
                     payee: d.party?.name || null,
                     party_id: d.party?.id || null,
                     amount_paid: totals.settled,

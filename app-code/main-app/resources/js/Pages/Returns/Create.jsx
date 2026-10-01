@@ -9,6 +9,7 @@ import { documentType } from '@/Documents/documentTypes';
 import { linePayload } from '@/Documents/documentMoney';
 import { formatCurrency } from '@/Utils/format';
 import { useAlert } from '@/Contexts/AlertContext';
+import { useChequeLeaves } from '@/Documents/useChequeLeaves';
 
 const DOC = documentType('sale-return');
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
@@ -36,6 +37,9 @@ export default function CreateReturn({ aiPrefill }) {
     const [query, setQuery] = useState('');
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [chequeBankAccountId, setChequeBankAccountId] = useState(null);
+    const { options: chequeLeafOptions, loading: chequeLeafLoading, error: chequeLeafError } =
+        useChequeLeaves(chequeBankAccountId, null, null);
     const money = (n) => formatCurrency(n, store || settings);
 
     const seed = useCallback(() => ({
@@ -55,6 +59,8 @@ export default function CreateReturn({ aiPrefill }) {
         amountPaid: 0,
         paymentAccountId: null,
         paymentAccountKey: null,
+        chequeLeafId: null,
+        chequeDate: today(),
         items: [blankLine()],
         ...(aiPrefill && typeof aiPrefill === 'object' ? aiPrefill : {}),
     }), [aiPrefill]);
@@ -169,10 +175,55 @@ export default function CreateReturn({ aiPrefill }) {
                             <VqSelect
                                 ariaLabel="Which account the refund is paid out of"
                                 value={d.paymentAccountKey ?? acct.defaultKey ?? ''}
-                                onChange={(v) => { const p = acct.resolve(v); if (p) patch(p); }}
+                                onChange={(v) => {
+                                    const p = acct.resolve(v);
+                                    if (!p) return;
+                                    if (p.isCheque) {
+                                        setChequeBankAccountId(p.bankReferenceId || null);
+                                        patch({ ...p, chequeLeafId: null, chequeDate: today() });
+                                    } else {
+                                        setChequeBankAccountId(null);
+                                        patch({ ...p, chequeLeafId: null, isCheque: false });
+                                    }
+                                }}
                                 options={acct.options}
                             />
                         </Field>
+                    )}
+
+                    {/* Cheque leaf and date — only when a refund is paid by cheque */}
+                    {d.isCheque && d.paymentMethod === 'cash' && (
+                        <>
+                            <Field
+                                label="Cheque leaf"
+                                span={3}
+                                required
+                                hint={chequeLeafError || (chequeLeafLoading ? 'Loading…' : undefined)}
+                            >
+                                <VqSelect
+                                    ariaLabel="Select the cheque leaf (serial number) used"
+                                    value={d.chequeLeafId || ''}
+                                    onChange={(v) => patch({ chequeLeafId: v || null })}
+                                    options={chequeLeafOptions}
+                                    placeholder={
+                                        chequeLeafLoading
+                                            ? 'Loading leaves…'
+                                            : chequeLeafOptions.length === 0
+                                            ? 'No leaves — register a chequebook first'
+                                            : 'Select a cheque leaf'
+                                    }
+                                    disabled={chequeLeafLoading || chequeLeafOptions.length === 0}
+                                />
+                            </Field>
+                            <Field label="Cheque date" span={2}>
+                                <input
+                                    type="date"
+                                    className="vqdoc-in"
+                                    value={d.chequeDate || today()}
+                                    onChange={(e) => patch({ chequeDate: e.target.value })}
+                                />
+                            </Field>
+                        </>
                     )}
 
                     {chrome.field('docno') && (
@@ -209,12 +260,16 @@ export default function CreateReturn({ aiPrefill }) {
                 return_reason: d.reason || null,
                 notes: d.notes || null,
                 date: d.date,
-                payment_method: d.paymentMethod === 'cash' ? 'cash' : 'credit',
+                payment_method: d.paymentMethod === 'cash'
+                    ? (d.isCheque ? 'cheque' : 'cash')
+                    : 'credit',
                 /* What actually went back over the counter. Anything short of
                    the return's value becomes credit on their account rather
                    than quietly disappearing. */
                 amount_refunded: totals.settled,
                 payment_account_id: d.paymentMethod === 'cash' ? (d.paymentAccountId || null) : null,
+                cheque_leaf_id: d.isCheque && d.paymentMethod === 'cash' ? (d.chequeLeafId || null) : null,
+                cheque_date: d.isCheque && d.paymentMethod === 'cash' ? (d.chequeDate || null) : null,
                 /* Lines nobody is returning are not part of the return. */
                 items: linePayload({
                     doc: DOC,

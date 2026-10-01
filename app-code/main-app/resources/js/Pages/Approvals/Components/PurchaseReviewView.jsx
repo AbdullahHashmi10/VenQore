@@ -403,6 +403,24 @@ export default function PurchaseReviewView({
                             <p className="text-xs text-ink mt-0.5 italic">{payload.notes}</p>
                         </div>
                     )}
+
+                    {/* Cheque details — shown when the purchase is paid by cheque */}
+                    {(payload.payment_method === 'cheque' || payload.payment_account_id === 'CHEQUE') && (
+                        <div className="pt-2 border-t border-line/60 grid grid-cols-2 gap-2">
+                            {payload.cheque_leaf_id && (
+                                <div>
+                                    <span className="text-3xs font-semibold text-ink-muted uppercase block">Cheque Leaf ID</span>
+                                    <span className="text-xs text-ink font-mono">{payload.cheque_leaf_id}</span>
+                                </div>
+                            )}
+                            {payload.cheque_date && (
+                                <div>
+                                    <span className="text-3xs font-semibold text-ink-muted uppercase block">Cheque Date</span>
+                                    <span className="text-xs text-ink font-mono">{payload.cheque_date}</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Financial Summary Card (Span 5) */}

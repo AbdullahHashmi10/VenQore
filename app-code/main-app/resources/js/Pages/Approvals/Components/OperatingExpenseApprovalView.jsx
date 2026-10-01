@@ -47,6 +47,9 @@ export default function OperatingExpenseApprovalView({
             amountPaid: num(p.amount_paid ?? p.amount ?? document.amount ?? 0),
             paymentAccountId: p.bank_account_id || p.payment_account_id || null,
             paymentAccountKey: p.bank_account_id ? `bank:${p.bank_account_id}` : null,
+            isCheque: p.payment_method === 'cheque',
+            chequeLeafId: p.cheque_leaf_id || null,
+            chequeDate: p.cheque_date || today(),
             items,
         };
     }, [payload, document, categories]);
@@ -80,6 +83,8 @@ export default function OperatingExpenseApprovalView({
                     amount_paid: num(d.amountPaid),
                     payment_method: d.paymentMethod,
                     bank_account_id: d.paymentAccountId || null,
+                    cheque_leaf_id: d.isCheque ? (d.chequeLeafId || null) : null,
+                    cheque_date: d.isCheque ? (d.chequeDate || null) : null,
                     items: validLines.map(src => ({
                         category_id: src.category_id,
                         expense_category_id: src.category_id,

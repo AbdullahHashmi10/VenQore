@@ -158,6 +158,29 @@ class PurchaseService
                 $this->writeLandedCostExpenses($purchaseId, $extras, $validated['purchase_date'], $invoiceNumber);
             }
 
+            /* Mark the cheque leaf as issued so it cannot be reused. The leaf is
+               only linked when the purchase is received and actually paid with a
+               cheque; a pending (goods not yet arrived) purchase posts no journal
+               and issues no instrument. */
+            if ($isReceived && $amountPaid > 0.0001) {
+                $paymentAccountId = $validated['payment_account_id'] ?? null;
+                $chequeLeafId     = $validated['cheque_leaf_id'] ?? null;
+                if (is_string($paymentAccountId) && strtoupper($paymentAccountId) === 'CHEQUE' && $chequeLeafId) {
+                    $tenant = app('current.tenant');
+                    app(\App\Services\Cheque\ChequeLifecycleService::class)->issueCheque(
+                        $tenant,
+                        $chequeLeafId,
+                        null,                                                  // paymentId — no payments row for a purchase payment
+                        $amountPaid,
+                        $partyId,                                              // payee = the supplier
+                        $validated['purchase_date'],                           // issueDate
+                        $validated['cheque_date'] ?? $validated['purchase_date'], // chequeDate
+                        null,                                                  // user — will use auth()
+                        null,                                                  // approvalDocId
+                    );
+                }
+            }
+
             return $this->find($purchaseId);
         });
     }

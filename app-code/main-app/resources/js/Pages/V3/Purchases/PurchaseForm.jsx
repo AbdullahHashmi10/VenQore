@@ -9,6 +9,7 @@ import MoneyDocument, { uid, blankLine, today } from '@/Documents/MoneyDocument'
 import { documentType } from '@/Documents/documentTypes';
 import { linePayload } from '@/Documents/documentMoney';
 import { useTermText } from '@/lib/terms';
+import { useChequeLeaves } from '@/Documents/useChequeLeaves';
 
 const DOC = documentType('purchase-invoice');
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
@@ -59,9 +60,19 @@ export default function PurchaseForm({
 
     const [showLanded, setShowLanded] = useState(false);
     const [zeroCostAsk, setZeroCostAsk] = useState(null);
-    /* The scaffold hands its save back through this, so the zero-cost question
+    /* Track the bank account behind the selected cheque so we can fetch its
+       available leaves. Must be component-level state (not inside a render
+       prop) because useChequeLeaves is a hook. */
+    const [chequeBankAccountId, setChequeBankAccountId] = useState(null);
+    /* A scaffold hands its save back through this, so the zero-cost question
        can finish the save it interrupted. */
     const saveAgain = useRef(null);
+
+    const {
+        options: chequeLeafOptions,
+        loading: chequeLeafLoading,
+        error: chequeLeafError,
+    } = useChequeLeaves(chequeBankAccountId, null, null);
 
     /* A tab is a whole purchase — supplier, lines and landed costs together.
        Holding the lines outside the draft is what made the old screens' tabs
@@ -86,6 +97,8 @@ export default function PurchaseForm({
         paymentAccountKey: null,
         terms: 'net30',
         workflow_status: 'received',
+        chequeLeafId: null,
+        chequeDate: today(),
         items: [blankLine({ business_pct: 100 })],
         extras: [],
     }), [warehouses]);
@@ -183,6 +196,11 @@ export default function PurchaseForm({
                 if (isEdit && totals.settled > 0.005 && !d.paymentAccountKey) {
                     return { party: 'Say which account this purchase was paid from.' };
                 }
+                /* A cheque drawn without a leaf number is untracked — there is
+                   no way to know which physical cheque was handed over. */
+                if (d.isCheque && !d.chequeLeafId) {
+                    return { party: 'Select the cheque leaf (serial number) used for this payment.' };
+                }
                 return null;
             }}
 
@@ -255,6 +273,8 @@ export default function PurchaseForm({
                     tax_rate: undefined,
                     tax_inclusive: undefined,
                     tax_exempt: undefined,
+                    cheque_leaf_id: d.isCheque ? (d.chequeLeafId || null) : null,
+                    cheque_date: d.isCheque ? (d.chequeDate || null) : null,
                 };
             }}
 
@@ -274,10 +294,58 @@ export default function PurchaseForm({
                             <VqSelect
                                 ariaLabel="Which account this is paid out of"
                                 value={d.paymentAccountKey ?? acct.defaultKey ?? ''}
-                                onChange={(v) => { const p = acct.resolve(v); if (p) patch(p); }}
+                                onChange={(v) => {
+                                    const p = acct.resolve(v);
+                                    if (!p) return;
+                                    /* When switching to cheque, note the bank account
+                                       so the hook can fetch its leaves. Clear any
+                                       previously-chosen leaf — it belongs to the old account. */
+                                    if (p.isCheque) {
+                                        setChequeBankAccountId(p.bankReferenceId || null);
+                                        patch({ ...p, chequeLeafId: null, chequeDate: today() });
+                                    } else {
+                                        setChequeBankAccountId(null);
+                                        patch({ ...p, chequeLeafId: null, isCheque: false });
+                                    }
+                                }}
                                 options={acct.options}
                             />
                         </Field>
+                    )}
+
+                    {/* Cheque leaf and date — only when payment is by cheque */}
+                    {d.isCheque && (
+                        <>
+                            <Field
+                                label="Cheque leaf"
+                                span={3}
+                                required
+                                hint={chequeLeafError || (chequeLeafLoading ? 'Loading…' : undefined)}
+                            >
+                                <VqSelect
+                                    ariaLabel="Select the cheque leaf (serial number) used"
+                                    value={d.chequeLeafId || ''}
+                                    onChange={(v) => patch({ chequeLeafId: v || null })}
+                                    options={chequeLeafOptions}
+                                    placeholder={
+                                        chequeLeafLoading
+                                            ? 'Loading leaves…'
+                                            : chequeLeafOptions.length === 0
+                                            ? 'No leaves available — register a chequebook first'
+                                            : 'Select a cheque leaf'
+                                    }
+                                    disabled={chequeLeafLoading || chequeLeafOptions.length === 0}
+                                />
+                            </Field>
+                            <Field label="Cheque date" span={2}>
+                                <input
+                                    type="date"
+                                    className="vqdoc-in"
+                                    value={d.chequeDate || today()}
+                                    onChange={(e) => patch({ chequeDate: e.target.value })}
+                                />
+                            </Field>
+                        </>
                     )}
 
                     {chrome.field('supplierRef') && (

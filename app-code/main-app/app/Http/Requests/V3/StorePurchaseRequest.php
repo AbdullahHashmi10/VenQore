@@ -110,6 +110,17 @@ class StorePurchaseRequest extends FormRequest
             'extras.*.bank_account_id' => ['nullable', 'string', Rule::exists('bank_accounts', 'id')->where('tenant_id', $tenantId)],
 
             'zero_cost_acknowledged'  => ['boolean'],
+
+            // ── cheque payment ───────────────────────────────────────────────
+            /* When the user pays by cheque (payment_account_id === 'CHEQUE')
+               the specific physical leaf MUST be nominated. Without it the
+               cheque is untracked and can never be reconciled. */
+            'cheque_leaf_id' => [
+                'nullable',
+                'string',
+                Rule::exists('cheque_leaves', 'id'),
+            ],
+            'cheque_date'    => ['nullable', 'date'],
         ];
     }
 
@@ -203,6 +214,17 @@ class StorePurchaseRequest extends FormRequest
                     'discount',
                     'The discount cannot be greater than the total value of the items.'
                 );
+            }
+
+            /* A cheque payment without a leaf reference is untraceable. */
+            $paymentAccountId = $this->input('payment_account_id');
+            if (is_string($paymentAccountId) && strtoupper($paymentAccountId) === 'CHEQUE') {
+                if (! $this->filled('cheque_leaf_id')) {
+                    $validator->errors()->add(
+                        'cheque_leaf_id',
+                        'Select the cheque leaf (serial number) used for this payment.'
+                    );
+                }
             }
         });
     }
