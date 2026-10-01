@@ -14,6 +14,9 @@ import {
   RefreshCw,
   Box,
   Tag,
+  PackageCheck,
+  PackageMinus,
+  CheckCircle2,
   Activity as ActivityIcon
 } from 'lucide-react';
 
@@ -24,6 +27,9 @@ const ActionMenu = ({ isOpen, onClose, store, onAction, can }) => {
   const actions = [
     { label: 'Payment In', icon: ArrowDownLeft, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', action: 'payment-in' },
     { label: 'Payment Out', icon: ArrowUpRight, color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20', action: 'payment-out' },
+    { label: 'Goods In', icon: PackageCheck, color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/20', route: 'store.purchases.goods-in' },
+    { label: 'Goods Out', icon: PackageMinus, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20', route: 'store.sales.goods-out' },
+    { label: 'Approvals', icon: CheckCircle2, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', route: 'store.approvals.inbox' },
     { label: 'New Sale', icon: ArrowDownLeft, color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', route: 'store.sales.invoice.create' },
     { label: 'New Purchase', icon: ArrowUpRight, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', route: 'store.purchases.create' },
     { label: 'Add Product', icon: Box, color: 'text-teal-400', bg: 'bg-teal-500/10 border-teal-500/20', route: 'store.inventory.create' },
@@ -34,6 +40,9 @@ const ActionMenu = ({ isOpen, onClose, store, onAction, can }) => {
   ].filter(action => can({
     'Payment In': 'finance.receive_payment',
     'Payment Out': 'finance.send_payment',
+    'Goods In': 'purchases.receive',
+    'Goods Out': 'sales.dispatch',
+    'Approvals': 'approvals.view',
     'New Sale': 'sales.create',
     'New Purchase': 'purchases.create',
     'Add Product': 'inventory.create',
@@ -278,7 +287,7 @@ export default function V6FinancialSidebar({
           {/* SALE Button */}
           {canSell && <button
             type="button"
-            onClick={() => handleNavigate(can('pos.checkout') ? 'store.pos' : 'store.sales.invoice.create')}
+            onClick={() => handleNavigate('store.sales.invoice.create')}
             className="bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 hover:border-emerald-500/50 text-emerald-950 dark:bg-emerald-500/[0.10] dark:hover:bg-emerald-500/[0.20] dark:border-emerald-500/30 dark:hover:border-emerald-500/50 dark:text-emerald-300 rounded-2xl py-2 px-1 flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95 group shadow-sm backdrop-blur-sm"
           >
             <div className="w-7 h-7 rounded-xl bg-emerald-500/25 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 group-hover:bg-emerald-600 group-hover:text-white dark:group-hover:text-black flex items-center justify-center transition-all duration-200">

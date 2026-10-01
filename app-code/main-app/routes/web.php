@@ -1833,6 +1833,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::match(['put', 'patch'], '/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'update'])->middleware('permission:purchases.edit')->name('purchases.update');
     Route::delete('/purchases/{purchase}', [\App\Http\Controllers\V3\PurchaseController::class, 'destroy'])->middleware('permission:purchases.void')->name('purchases.destroy');
     Route::get('/purchases/{purchase}/receive', [\App\Http\Controllers\V3\PurchaseController::class, 'receive'])->middleware('permission:purchases.edit')->name('purchases.receive');
+    Route::get('/purchases-goods-in', [\App\Http\Controllers\V3\PurchaseController::class, 'goodsIn'])->name('purchases.goods-in');
 
     // All Transactions
     Route::get('/transactions', [\App\Http\Controllers\TransactionController::class, 'index'])->name('transactions.index');
@@ -1962,6 +1963,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'dashboard'])->middleware('permission:sales.view')->name('sales.dashboard');
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
+    Route::get('/sales-goods-out', [\App\Http\Controllers\V3\SaleController::class, 'goodsOut'])->name('sales.goods-out');
+    Route::post('/sales/{sale}/dispatch', [\App\Http\Controllers\V3\SaleController::class, 'storeDispatch'])->name('sales.dispatch.store');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create,pos.checkout', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
     // Dedicated Trusted POS Route (Server-verified shift boundary)
     Route::post('/pos/sales', [\App\Http\Controllers\PosSaleController::class, 'store'])->middleware(['permission:pos.checkout,sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('pos.sales.store');

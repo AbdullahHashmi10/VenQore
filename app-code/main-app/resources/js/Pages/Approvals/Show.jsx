@@ -57,6 +57,8 @@ export default function ApprovalShow({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const getDocumentTitle = (type) => {
+        if (initialPayload._path === 'receive') return 'Goods Receipt (GRN)';
+        if (initialPayload._path === 'dispatch') return 'Goods Dispatch (GDN)';
         switch (type) {
             case 'purchase_posting': return 'Purchase Bill';
             case 'purchase_return': return 'Purchase Return (Debit Note)';

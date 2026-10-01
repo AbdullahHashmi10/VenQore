@@ -25,6 +25,10 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
 
     public function validatePayload(array $payload, Tenant $tenant, User $maker): array
     {
+        if (($payload['_path'] ?? null) === 'dispatch') {
+            return $this->validateDispatchPayload($payload, $tenant);
+        }
+
         $customerId = $payload['customer_id'] ?? $payload['party_id'] ?? null;
         if ($customerId) {
             $partyExists = Party::where('tenant_id', $tenant->id)->where('id', $customerId)->exists();
@@ -107,6 +111,10 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
     {
         $payload = $doc->currentRevision->payload;
 
+        if (($payload['_path'] ?? null) === 'dispatch') {
+            return $this->postDispatch($payload, $tenant, $reviewer);
+        }
+
         $formattedItems = array_map(fn($item) => [
             'product_id'       => $item['product_id'],
             'qty'              => (float)($item['quantity'] ?? $item['qty'] ?? 1),
@@ -137,6 +145,96 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
             'invoice_number'  => $sale->reference_number ?? ($sale->invoice_number ?? null),
             'total'           => (float)($sale->net_sales ?? ($sale->total ?? ($sale->invoice_total ?? 0))),
         ];
+    }
+
+    private function validateDispatchPayload(array $payload, Tenant $tenant): array
+    {
+        $saleId = $payload['sale_id'] ?? null;
+        if (!$saleId || !\App\Models\Sale::where('tenant_id', $tenant->id)->where('id', $saleId)->exists()) {
+            throw ValidationException::withMessages(['sale_id' => 'Invalid or missing sale for delivery dispatch.']);
+        }
+
+        $items = (array)($payload['items'] ?? []);
+        if (empty($items)) {
+            throw ValidationException::withMessages(['items' => 'At least one dispatch item line is required.']);
+        }
+
+        foreach ($items as $i => $item) {
+            $qty = (float)($item['dispatching_qty'] ?? 0);
+            if ($qty < 0) {
+                throw ValidationException::withMessages(["items.{$i}.dispatching_qty" => 'Dispatch quantity cannot be negative.']);
+            }
+        }
+
+        return [
+            '_path'           => 'dispatch',
+            'sale_id'         => $saleId,
+            'items'           => $items,
+            'tracking_number' => $payload['tracking_number'] ?? null,
+            'carrier_name'    => $payload['carrier_name'] ?? null,
+            'notes'           => $payload['notes'] ?? null,
+        ];
+    }
+
+    private function postDispatch(array $payload, Tenant $tenant, User $reviewer): array
+    {
+        $saleId = $payload['sale_id'];
+        $items  = $payload['items'];
+        $tenantId = $tenant->id;
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($tenantId, $saleId, $items, $reviewer) {
+            $sale = \Illuminate\Support\Facades\DB::table('sales')->where('tenant_id', $tenantId)->where('id', $saleId)->firstOrFail();
+            $saleItems = \Illuminate\Support\Facades\DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $saleId)->get()->keyBy('id');
+
+            foreach ($items as $line) {
+                $item = $saleItems[$line['sale_item_id']] ?? null;
+                if (!$item) continue;
+                $dispatchQty = (float)($line['dispatching_qty'] ?? 0);
+                if ($dispatchQty <= 0) continue;
+
+                $remaining = (float)$item->quantity - (float)($item->delivered_qty ?? 0);
+                if ($dispatchQty > $remaining + 0.0001) {
+                    throw new \DomainException("Cannot dispatch {$dispatchQty} — only {$remaining} remaining on item.");
+                }
+
+                app(\App\Engines\FifoService::class)->deductStock(
+                    productId: $item->product_id,
+                    qty: $dispatchQty,
+                    saleItemId: $item->id,
+                    warehouseId: $sale->warehouse_id
+                );
+
+                \Illuminate\Support\Facades\DB::table('sale_items')
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $item->id)
+                    ->update([
+                        'delivered_qty' => (float)($item->delivered_qty ?? 0) + $dispatchQty,
+                        'updated_at'    => now(),
+                    ]);
+            }
+
+            $fresh = \Illuminate\Support\Facades\DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $saleId)->get();
+            $allDelivered = $fresh->every(fn($i) => (float)($i->delivered_qty ?? 0) >= (float)$i->quantity - 0.0001);
+            $anyDelivered = $fresh->contains(fn($i) => (float)($i->delivered_qty ?? 0) > 0);
+            $newStatus = $allDelivered ? 'delivered' : ($anyDelivered ? 'partial' : 'pending');
+
+            \Illuminate\Support\Facades\DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('id', $saleId)
+                ->update([
+                    'delivery_status' => $newStatus,
+                    'updated_at'      => now(),
+                ]);
+
+            return [
+                'type'            => 'sale_dispatch',
+                'id'              => $sale->id,
+                'reference'       => $sale->reference_number ?? ($sale->invoice_number ?? null),
+                'invoice_number'  => $sale->reference_number ?? ($sale->invoice_number ?? null),
+                'total'           => (float)($sale->total ?? 0),
+                'delivery_status' => $newStatus,
+            ];
+        });
     }
 
     public function reviewerEligibilityPermissions(): array

@@ -188,4 +188,168 @@ class SaleController extends Controller
             ]);
         }
     }
+
+    public function goodsOut(\Illuminate\Http\Request $request)
+    {
+        $tenantId = app('current.tenant')->id;
+        $selectedId = $request->input('sale_id');
+
+        $pendingSales = DB::table('sales')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.delivery_status', ['pending', 'partial'])
+            ->leftJoin('parties', 'sales.customer_id', '=', 'parties.id')
+            ->select('sales.*', 'parties.name as customer_name')
+            ->orderBy('sales.created_at', 'desc')
+            ->get();
+
+        $saleIds = $pendingSales->pluck('id')->all();
+
+        $itemsBySale = DB::table('sale_items')
+            ->where('sale_items.tenant_id', $tenantId)
+            ->whereIn('sale_items.sale_id', $saleIds)
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->select(
+                'sale_items.*',
+                'products.name as product_name',
+                'products.sku',
+                'products.base_unit'
+            )
+            ->get()
+            ->groupBy('sale_id');
+
+        $salesWithItems = $pendingSales->map(function ($s) use ($itemsBySale) {
+            $s->items = $itemsBySale[$s->id] ?? collect();
+            return $s;
+        });
+
+        return \Inertia\Inertia::render('V3/Sales/GoodsOut', [
+            'pendingSales'   => $salesWithItems,
+            'selectedSaleId' => $selectedId,
+        ]);
+    }
+
+    public function storeDispatch(\Illuminate\Http\Request $request, string $id)
+    {
+        $tenantId = app('current.tenant')->id;
+        $tenant   = app('current.tenant');
+        $user     = Auth::user();
+
+        $request->validate([
+            'items'                      => ['required', 'array', 'min:1'],
+            'items.*.sale_item_id'       => ['required', 'string'],
+            'items.*.dispatching_qty'    => ['required', 'numeric', 'min:0'],
+            'tracking_number'            => ['nullable', 'string', 'max:100'],
+            'carrier_name'               => ['nullable', 'string', 'max:100'],
+            'notes'                      => ['nullable', 'string'],
+        ]);
+
+        $items = $request->input('items');
+
+        // Estimate total value being dispatched for approval check
+        $lineIds = collect($items)->pluck('sale_item_id')->filter()->all();
+        $pricesByLine = DB::table('sale_items')->where('tenant_id', $tenantId)->whereIn('id', $lineIds)->pluck('unit_price', 'id');
+        $estimatedAmount = 0.0;
+        foreach ($items as $line) {
+            $qty = (float)($line['dispatching_qty'] ?? 0);
+            $price = (float)($pricesByLine[$line['sale_item_id']] ?? 0);
+            $estimatedAmount += $qty * $price;
+        }
+
+        $policy = resolve(ApprovalPolicyResolver::class)->resolve(
+            tenant:       $tenant,
+            user:         $user,
+            documentType: ApprovalDocument::TYPE_SALES_INVOICE,
+            amount:       $estimatedAmount,
+        );
+
+        if ($policy['requires_approval']) {
+            $doc = resolve(ApprovalExecutionEngine::class)->submit(
+                tenant:         $tenant,
+                maker:          $user,
+                documentType:   ApprovalDocument::TYPE_SALES_INVOICE,
+                payload:        [
+                    '_path'           => 'dispatch',
+                    'sale_id'         => $id,
+                    'items'           => $items,
+                    'tracking_number' => $request->input('tracking_number'),
+                    'carrier_name'    => $request->input('carrier_name'),
+                    'notes'           => $request->input('notes'),
+                ],
+                amount:         $estimatedAmount,
+                description:    'Goods delivery dispatch against sale #' . $id,
+                idempotencyKey: $request->header('Idempotency-Key'),
+            );
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'pending_approval' => true,
+                    'document_number'  => $doc->document_number,
+                    'message'          => 'Goods dispatch submitted for approval.',
+                ], 202);
+            }
+
+            return redirect()->route('store.sales.index', ['store_slug' => $tenant->slug])
+                ->with('info', 'Goods dispatch submitted for approval (ref: ' . $doc->document_number . ').');
+        }
+
+        // Direct Execution
+        return DB::transaction(function () use ($tenantId, $id, $items, $request, $tenant) {
+            $sale = DB::table('sales')->where('tenant_id', $tenantId)->where('id', $id)->firstOrFail();
+            $saleItems = DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $id)->get()->keyBy('id');
+
+            foreach ($items as $line) {
+                $item = $saleItems[$line['sale_item_id']] ?? null;
+                if (!$item) continue;
+                $dispatchQty = (float)($line['dispatching_qty'] ?? 0);
+                if ($dispatchQty <= 0) continue;
+
+                $remaining = (float)$item->quantity - (float)($item->delivered_qty ?? 0);
+                if ($dispatchQty > $remaining + 0.0001) {
+                    throw new \DomainException("Cannot dispatch {$dispatchQty} — only {$remaining} remaining on item.");
+                }
+
+                // Deduct stock via FIFO / aggregates
+                app(\App\Engines\FifoService::class)->deductStock(
+                    productId: $item->product_id,
+                    qty: $dispatchQty,
+                    saleItemId: $item->id,
+                    warehouseId: $sale->warehouse_id
+                );
+
+                // Update delivered_qty on sale_item
+                DB::table('sale_items')
+                    ->where('tenant_id', $tenantId)
+                    ->where('id', $item->id)
+                    ->update([
+                        'delivered_qty' => (float)($item->delivered_qty ?? 0) + $dispatchQty,
+                        'updated_at'    => now(),
+                    ]);
+            }
+
+            // Recompute sale delivery status
+            $fresh = DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $id)->get();
+            $allDelivered = $fresh->every(fn($i) => (float)($i->delivered_qty ?? 0) >= (float)$i->quantity - 0.0001);
+            $anyDelivered = $fresh->contains(fn($i) => (float)($i->delivered_qty ?? 0) > 0);
+            $newStatus = $allDelivered ? 'delivered' : ($anyDelivered ? 'partial' : 'pending');
+
+            DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('id', $id)
+                ->update([
+                    'delivery_status' => $newStatus,
+                    'updated_at'      => now(),
+                ]);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Goods dispatched successfully. Inventory has been updated.',
+                    'delivery_status' => $newStatus,
+                ]);
+            }
+
+            return redirect()->route('store.sales.index', ['store_slug' => $tenant->slug])
+                ->with('success', 'Goods dispatched successfully. Inventory updated.');
+        });
+    }
 }

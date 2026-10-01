@@ -496,6 +496,45 @@ class PurchaseController extends Controller
             ->with('success', 'Purchase voided. Journal entries reversed and stock released.');
     }
 
+    public function goodsIn(Request $request)
+    {
+        $tenantId = app('current.tenant')->id;
+        $selectedId = $request->input('purchase_id');
+
+        $pendingPurchases = DB::table('purchases')
+            ->where('purchases.tenant_id', $tenantId)
+            ->whereIn('purchases.workflow_status', ['pending', 'partial'])
+            ->leftJoin('parties', 'purchases.party_id', '=', 'parties.id')
+            ->select('purchases.*', 'parties.name as supplier_name')
+            ->orderBy('purchases.purchase_date', 'desc')
+            ->get();
+
+        $purchaseIds = $pendingPurchases->pluck('id')->all();
+
+        $itemsByPurchase = DB::table('purchase_items')
+            ->where('purchase_items.tenant_id', $tenantId)
+            ->whereIn('purchase_items.purchase_id', $purchaseIds)
+            ->join('products', 'purchase_items.product_id', '=', 'products.id')
+            ->select(
+                'purchase_items.*',
+                'products.name as product_name',
+                'products.sku',
+                'products.base_unit'
+            )
+            ->get()
+            ->groupBy('purchase_id');
+
+        $purchasesWithItems = $pendingPurchases->map(function ($p) use ($itemsByPurchase) {
+            $p->items = $itemsByPurchase[$p->id] ?? collect();
+            return $p;
+        });
+
+        return Inertia::render('V3/Purchases/GoodsIn', [
+            'pendingPurchases'   => $purchasesWithItems,
+            'selectedPurchaseId' => $selectedId,
+        ]);
+    }
+
     public function receive(string $id)
     {
         $tenantId = app('current.tenant')->id;

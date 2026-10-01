@@ -20,7 +20,10 @@ import {
  LogOut,
  Truck,
  Shield,
- BarChart2
+ BarChart2,
+ PackageCheck,
+ PackageMinus,
+ CheckCircle2
 } from 'lucide-react';
 
 const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
@@ -36,6 +39,9 @@ const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
  const actions = [
   { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', perm: 'finance.receive_payment', altPerm: 'finance.balances' },
   { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', perm: 'finance.send_payment', altPerm: 'finance.balances' },
+  { label: 'Goods In', icon: PackageCheck, color: 'text-teal-500', bg: 'bg-teal-500/10', route: 'store.purchases.goods-in', perm: 'purchases.receive', altPerm: 'inventory.view' },
+  { label: 'Goods Out', icon: PackageMinus, color: 'text-indigo-500', bg: 'bg-indigo-500/10', route: 'store.sales.goods-out', perm: 'sales.dispatch', altPerm: 'inventory.view' },
+  { label: 'Approvals', icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-500/10', route: 'store.approvals.inbox', perm: 'approvals.view', altPerm: '*' },
   { label: 'New Quote', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', route: 'store.proposals.create', perm: 'sales.quotations', altPerm: 'sales.create' },
   { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-500', bg: 'bg-orange-500/10', route: 'store.stock-transfers.create', perm: 'inventory.transfer' },
   { label: 'Add Product', icon: Box, color: 'text-brand-500', bg: 'bg-brand-500/10', route: 'store.inventory.create', perm: 'inventory.create' },

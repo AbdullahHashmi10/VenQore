@@ -30,7 +30,8 @@ import {
  Truck,
  XCircle,
  Clock,
- Filter
+ Filter,
+ PackageMinus
 } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
@@ -749,6 +750,13 @@ export default function SalesIndex({ sales, filters, stats }) {
 
  {/* 2. Convert To Return */}
  <Link href={route('store.sales.show', { store_slug: store?.slug, sale: row.id }) + '?action=return'} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><RefreshCcw size={14} /> Convert To Return</Link>
+
+ {/* 2b. Dispatch Goods */}
+ {['pending', 'partial'].includes(row.delivery_status) && (
+ <Link href={route('store.sales.goods-out', { store_slug: store?.slug, sale_id: row.id })} className="w-full text-left px-3 py-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded flex items-center gap-2 text-sm text-emerald-600 font-medium">
+ <Truck size={14} /> Dispatch Goods
+ </Link>
+ )}
 
  {/* 3. Preview Delivery Challan */}
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Truck size={14} /> Preview Delivery Challan</button>
