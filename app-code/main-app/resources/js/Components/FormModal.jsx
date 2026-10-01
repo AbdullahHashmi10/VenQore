@@ -98,39 +98,39 @@ export default function FormModal({
 
     return (
         <Fragment>
-            {/* 1. SEPARATE BACKDROP: High-opacity blur behind everything */}
+            {/* 1. SEPARATE BACKDROP: High-opacity blur behind everything - High z-index (z-[99999]) so AI island/Vena is completely covered */}
             <div
-                className="fixed inset-0 z-drawer bg-neutral-950/90 backdrop-blur-2xl animate-in fade-in duration-slower cursor-pointer"
+                className="fixed inset-0 z-[99999] bg-neutral-950/85 backdrop-blur-xl animate-in fade-in duration-normal cursor-pointer"
                 onMouseDown={handleBackdropInteraction}
                 onTouchStart={handleBackdropInteraction}
             />
 
-            {/* 2. MODAL CONTAINER: Higher z-index, centered, pointer-events-none so backdrop is reachable */}
-            <div className="fixed inset-0 z-drawer flex items-center justify-center p-4 md:p-12 pointer-events-none overflow-hidden">
+            {/* 2. MODAL CONTAINER: Higher z-index (z-[100000]), centered, pointer-events-none so backdrop is reachable */}
+            <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 md:p-6 pointer-events-none overflow-hidden">
                 <div
                     className={`
                         ${sizeClasses[size]} w-full pointer-events-auto
-                        bg-surface rounded-2xl shadow-[0_0_150px_rgba(0,0,0,0.8)]
-                        border-4 border-white/10 dark:border-line
-                        animate-in zoom-in-95 fade-in duration-slower
-                        ${size === 'full' ? 'h-[94vh]' : 'max-h-[96vh]'} 
+                        bg-surface rounded-2xl shadow-2xl
+                        border border-line dark:border-white/10
+                        animate-in zoom-in-95 fade-in duration-normal
+                        ${size === 'full' ? 'h-[94vh]' : 'max-h-[92vh]'} 
                         flex flex-col relative overflow-hidden
 `}
                 >
                     {/* Midnight Nebula Background Effect */}
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-600/20 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[130px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
+                    <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-600/15 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-brand-600/15 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
 
-                    {/* Header: Elevated with glass effect */}
-                    <div className="px-10 py-8 border-b-2 border-line shrink-0 relative z-10 bg-white/70 dark:bg-app backdrop-blur-xl">
-                        <div className="flex items-center justify-between gap-6">
+                    {/* Header: Elevated with glass effect - Compact & Readable */}
+                    <div className="px-6 py-4 border-b border-line shrink-0 relative z-10 bg-white/80 dark:bg-app backdrop-blur-xl">
+                        <div className="flex items-center justify-between gap-4">
                             <div>
-                                <h2 className="text-4xl font-bold text-ink tracking-tighter flex items-center gap-4">
-                                    <span className="w-3 h-10 bg-gradient-to-b from-brand-500 to-brand-700 rounded-full" />
+                                <h2 className="text-xl md:text-2xl font-bold text-ink tracking-tight flex items-center gap-3">
+                                    <span className="w-2 h-6 bg-gradient-to-b from-brand-500 to-brand-700 rounded-full" />
                                     {title}
                                 </h2>
                                 {subtitle && (
-                                    <p className="text-lg font-bold text-ink-muted mt-2 max-w-4xl tracking-tight leading-none">
+                                    <p className="text-xs md:text-sm font-medium text-ink-muted mt-0.5 max-w-3xl tracking-normal">
                                         {subtitle}
                                     </p>
                                 )}
@@ -141,36 +141,36 @@ export default function FormModal({
                                     e.stopPropagation();
                                     requestClose();
                                 }}
-                                className="group p-5 rounded-xl bg-sunken hover:bg-rose-600 dark:hover:bg-rose-600 text-ink-muted hover:text-white transition-all active:scale-90 shadow-inner"
+                                className="group p-2 rounded-lg bg-sunken hover:bg-rose-600 dark:hover:bg-rose-600 text-ink-muted hover:text-white transition-all active:scale-90 shadow-sm"
                                 title="Safe Close (Esc)"
                             >
-                                <X size={32} className="group-hover:rotate-180 transition-transform duration-slower ease-out" />
+                                <X size={20} className="group-hover:rotate-90 transition-transform duration-normal ease-out" />
                             </button>
                         </div>
                     </div>
 
-                    {/* Content Area */}
-                    <div className="flex-1 overflow-y-auto px-10 py-10 relative z-10 custom-scrollbar-premium bg-gradient-to-b from-transparent to-neutral-50/20 dark:to-neutral-900/10">
+                    {/* Content Area - Balanced Paddings */}
+                    <div className="flex-1 overflow-y-auto px-6 py-5 relative z-10 custom-scrollbar-premium bg-gradient-to-b from-transparent to-neutral-50/10 dark:to-neutral-900/10">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-40 gap-8">
+                            <div className="flex flex-col items-center justify-center py-20 gap-6">
                                 <div className="relative">
-                                    <div className="w-32 h-32 border-8 border-brand-600/10 rounded-full" />
-                                    <div className="absolute top-0 left-0 w-32 h-32 border-8 border-brand-600 border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-20 h-20 border-4 border-brand-600/10 rounded-full" />
+                                    <div className="absolute top-0 left-0 w-20 h-20 border-4 border-brand-600 border-t-transparent rounded-full animate-spin" />
                                 </div>
-                                <div className="space-y-2 text-center">
-                                    <p className="text-2xl font-bold text-ink-secondary tracking-[0.2em] uppercase animate-pulse">Processing Block...</p>
-                                    <p className="text-sm font-bold text-ink-muted">Please do not refresh or close.</p>
+                                <div className="space-y-1 text-center">
+                                    <p className="text-base font-bold text-ink-secondary tracking-wider uppercase animate-pulse">Processing...</p>
+                                    <p className="text-xs text-ink-muted">Please wait while we process your request.</p>
                                 </div>
                             </div>
                         ) : (
                             <>
                                 {errorList.length > 0 && (
-                                    <div className="mb-6 p-6 rounded-xl bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-slow">
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <AlertTriangle size={24} className="shrink-0 text-rose-500" />
-                                            <h4 className="text-base font-bold uppercase tracking-wider">Please correct the following:</h4>
+                                    <div className="mb-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-2 duration-fast">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <AlertTriangle size={18} className="shrink-0 text-rose-500" />
+                                            <h4 className="text-xs font-bold uppercase tracking-wider">Please correct the following:</h4>
                                         </div>
-                                        <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
+                                        <ul className="list-disc pl-5 space-y-0.5 text-xs font-semibold">
                                             {errorList.map((err, idx) => (
                                                 <li key={idx} className="tracking-tight">
                                                     <span className="capitalize">{err.label}</span>: {err.message}
@@ -184,9 +184,9 @@ export default function FormModal({
                         )}
                     </div>
 
-                    {/* Footer Area */}
+                    {/* Footer Area - Compact */}
                     {footer && (
-                        <div className="px-10 py-10 border-t-2 border-line shrink-0 relative z-10 bg-sunken/95 dark:bg-app backdrop-blur-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.05)]">
+                        <div className="px-6 py-3.5 border-t border-line shrink-0 relative z-10 bg-sunken/95 dark:bg-app backdrop-blur-2xl">
                             {footer}
                         </div>
                     )}
@@ -194,25 +194,25 @@ export default function FormModal({
                     {/* EXIT CONFIRMATION OVERLAY */}
                     {showExitConfirmation && (
                         <div className="absolute inset-0 z-modal bg-neutral-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-normal">
-                            <div className="bg-surface w-full max-w-sm rounded-2xl shadow-2xl p-6 border-2 border-line animate-in zoom-in-95 duration-normal">
-                                <div className="flex flex-col items-center text-center gap-4">
-                                    <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 text-rose-600 rounded-full flex items-center justify-center mb-2">
-                                        <AlertTriangle size={32} strokeWidth={2.5} />
+                            <div className="bg-surface w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-line animate-in zoom-in-95 duration-normal">
+                                <div className="flex flex-col items-center text-center gap-3">
+                                    <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/30 text-rose-600 rounded-full flex items-center justify-center">
+                                        <AlertTriangle size={24} strokeWidth={2.5} />
                                     </div>
 
-                                    <h3 className="text-xl font-bold text-ink">Discard Changes?</h3>
-                                    <p className="text-sm font-medium text-ink-muted">
-                                        You have unsaved changes. Are you sure you want to close this form? Data will be lost.
+                                    <h3 className="text-lg font-bold text-ink">Discard Changes?</h3>
+                                    <p className="text-xs font-medium text-ink-muted">
+                                        You have unsaved changes. Are you sure you want to close this form?
                                     </p>
 
-                                    <div className="grid grid-cols-2 gap-3 w-full mt-2">
+                                    <div className="grid grid-cols-2 gap-3 w-full mt-1">
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 setShowExitConfirmation(false);
                                             }}
-                                            className="px-4 py-3 rounded-2xl font-bold bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
+                                            className="px-3 py-2 rounded-xl text-xs font-bold bg-sunken text-ink-secondary hover:bg-interactive-hover transition-colors"
                                         >
                                             No, Stay
                                         </button>
@@ -222,7 +222,7 @@ export default function FormModal({
                                                 e.stopPropagation();
                                                 onClose();
                                             }}
-                                            className="px-4 py-3 rounded-2xl font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-lg transition-colors"
+                                            className="px-3 py-2 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 shadow-sm transition-colors"
                                         >
                                             Yes, Discard
                                         </button>
@@ -242,20 +242,20 @@ export default function FormModal({
  */
 export function FormField({ label, error, required, children, hint, className = "" }) {
     return (
-        <div className={`space-y-2 ${className}`}>
+        <div className={`space-y-1 ${className}`}>
             {label && (
-                <label className="block text-sm font-bold uppercase text-ink-muted tracking-wider">
+                <label className="block text-xs font-bold uppercase text-ink-muted tracking-wider">
                     {label}
-                    {required && <span className="text-rose-500 ml-1.5">*</span>}
+                    {required && <span className="text-rose-500 ml-1">*</span>}
                 </label>
             )}
             {children}
             {(hint || error) && (
-                <div className="flex items-start gap-2 pt-1 transition-all">
+                <div className="pt-0.5">
                     {error ? (
-                        <p className="text-sm font-bold text-rose-500 animate-in slide-in-from-left-2">{error}</p>
+                        <p className="text-xs font-bold text-rose-500">{error}</p>
                     ) : (
-                        <p className="text-xs font-medium text-ink-muted">{hint}</p>
+                        <p className="text-2xs font-medium text-ink-muted">{hint}</p>
                     )}
                 </div>
             )}
@@ -264,7 +264,7 @@ export function FormField({ label, error, required, children, hint, className = 
 }
 
 /**
- * Form input with consistent styling
+ * Form input with clean compact styling
  */
 export function FormInput({
     type = 'text',
@@ -276,12 +276,12 @@ export function FormInput({
         <input
             type={type}
             className={`
-                w-full px-5 py-4 rounded-2xl
+                w-full px-3.5 py-2.5 rounded-xl
                 bg-app
-                border-2 ${error ? 'border-rose-500/50' : 'border-line'}
-                text-ink text-lg font-bold
-                placeholder:text-ink-faint dark:placeholder:text-ink-secondary
-                outline-none focus:ring-4 ${error ? 'ring-rose-500/10 focus:border-rose-500' : 'ring-brand-500/10 focus:border-brand-500'}
+                border ${error ? 'border-rose-500' : 'border-line'}
+                text-ink text-sm font-semibold
+                placeholder:text-ink-muted/60 dark:placeholder:text-ink-muted/60
+                outline-none focus:ring-2 ${error ? 'ring-rose-500/20 focus:border-rose-500' : 'ring-brand-500/20 focus:border-brand-500'}
                 transition-all hover:bg-white dark:hover:bg-interactive-hover
                 ${className}
 `}
