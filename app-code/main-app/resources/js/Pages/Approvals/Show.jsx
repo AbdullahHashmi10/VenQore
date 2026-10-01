@@ -233,6 +233,10 @@ export default function ApprovalShow({
             discount: parseFloat(p.discount || 0),
             payment_method: p.payment_method || p.paymentMethod || 'credit',
             payment_account_id: p.payment_account_id || null,
+            bank_reference_id: p.bank_account_id || p.bank_reference_id || null,
+            cheque_leaf_id: p.cheque_leaf_id || null,
+            cheque_number: p.cheque_number || null,
+            cheque_date: p.cheque_date || null,
             total: parseFloat(p.grand_total || p.total || document.amount || 0),
             amount_paid: parseFloat(p.paid_amount || p.amount_paid || p.amountPaid || 0),
             payment_status: parseFloat(p.paid_amount || p.amount_paid || 0) >= parseFloat(document.amount || 0) ? 'paid' : 'unpaid',
@@ -520,6 +524,10 @@ export default function ApprovalShow({
                                 description: x.description || null,
                             })),
                             payment_account_id: d.paymentAccountId || null,
+                            bank_account_id: d.bankReferenceId || null,
+                            cheque_leaf_id: d.isCheque ? (d.chequeLeafId || null) : null,
+                            cheque_number: d.isCheque ? (d.chequeNumber || null) : null,
+                            cheque_date: d.isCheque ? (d.chequeDate || null) : null,
                             amount_paid: num(d.amountPaid),
                         };
 

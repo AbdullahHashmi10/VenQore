@@ -57,6 +57,7 @@ export default function PaymentInApprovalView({
         payment_method: payload.payment_method || 'cash',
         bank_account_id: payload.bank_account_id || payload.account_id || '',
         cheque_number: payload.cheque_number || '',
+        cheque_date: payload.cheque_date || payload.date || '',
         bank_name: payload.bank_name || '',
         reference: payload.reference || document.document_number || '',
         description: payload.description || payload.notes || '',

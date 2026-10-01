@@ -122,6 +122,10 @@ export default function PurchaseForm({
         paymentMethod: purchase?.payment_method || 'cash',
         paymentAccountId: purchase?.payment_account_id || null,
         paymentAccountKey: purchase?.payment_account_id ? `bank:${purchase.payment_account_id}` : (purchase?.payment_account_key || null),
+        isCheque: purchase?.payment_method === 'cheque',
+        bankReferenceId: purchase?.bank_reference_id || purchase?.bank_account_id || null,
+        chequeLeafId: purchase?.cheque_leaf_id || null,
+        chequeDate: purchase?.cheque_date?.slice(0, 10) || today(),
         /* Hydrated from what the purchase actually settled. Starting at 0 meant
            re-saving a paid cash purchase with no changes posted the whole bill
            to the supplier's payable and marked it unpaid. */

@@ -47,7 +47,9 @@ export default function PaymentOutApprovalView({
         date: payload.date || payload.payment_date || (document.created_at ? document.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10)),
         payment_method: payload.payment_method || 'cash',
         bank_account_id: payload.bank_account_id || payload.account_id || '',
-        cheque_number: payload.cheque_number || '',
+        cheque_number: payload.cheque_number || payload.cheque_leaf_id || '',
+        cheque_leaf_id: payload.cheque_leaf_id || '',
+        cheque_date: payload.cheque_date || payload.date || '',
         bank_name: payload.bank_name || '',
         reference: payload.reference || document.document_number || '',
         description: payload.description || payload.notes || '',
@@ -263,22 +265,40 @@ export default function PaymentOutApprovalView({
                             </div>
 
                             {form.payment_method === 'cheque' && (
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-ink">Cheque Number</label>
-                                    {!isEditing ? (
-                                        <div className="p-2.5 bg-sunken rounded-xl border border-line text-xs font-mono text-ink">
-                                            {form.cheque_number || '—'}
-                                        </div>
-                                    ) : (
-                                        <input
-                                            type="text"
-                                            className="vqdoc-in w-full text-xs"
-                                            value={form.cheque_number}
-                                            onChange={(e) => setForm(prev => ({ ...prev, cheque_number: e.target.value }))}
-                                            placeholder="Cheque No."
-                                        />
-                                    )}
-                                </div>
+                                <>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-ink">Cheque Serial Number</label>
+                                        {!isEditing ? (
+                                            <div className="p-2.5 bg-sunken rounded-xl border border-line text-xs font-mono text-ink">
+                                                {form.cheque_number || form.cheque_leaf_id || '—'}
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                className="vqdoc-in w-full text-xs font-mono"
+                                                value={form.cheque_number}
+                                                onChange={(e) => setForm(prev => ({ ...prev, cheque_number: e.target.value }))}
+                                                placeholder="Cheque Leaf / Serial No."
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-ink">Cheque Date</label>
+                                        {!isEditing ? (
+                                            <div className="p-2.5 bg-sunken rounded-xl border border-line text-xs font-mono text-ink">
+                                                {form.cheque_date || '—'}
+                                            </div>
+                                        ) : (
+                                            <input
+                                                type="date"
+                                                className="vqdoc-in w-full text-xs font-mono"
+                                                value={form.cheque_date}
+                                                onChange={(e) => setForm(prev => ({ ...prev, cheque_date: e.target.value }))}
+                                            />
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}

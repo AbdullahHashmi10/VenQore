@@ -377,6 +377,22 @@ export default function SalesReviewView({
                                 {formatCurrency(balanceRemaining, store)}
                             </span>
                         </div>
+                        {(payload.payment_method === 'cheque' || payload.paymentMethod === 'cheque') && (
+                            <>
+                                <div className="p-2.5 rounded-lg bg-sunken/60 border border-line">
+                                    <span className="text-3xs font-semibold text-ink-muted uppercase block">Cheque Number</span>
+                                    <span className="font-bold font-mono text-ink mt-0.5 block">
+                                        {payload.payment_reference || payload.cheque_number || '—'}
+                                    </span>
+                                </div>
+                                <div className="p-2.5 rounded-lg bg-sunken/60 border border-line">
+                                    <span className="text-3xs font-semibold text-ink-muted uppercase block">Cheque Date</span>
+                                    <span className="font-bold text-ink mt-0.5 block">
+                                        {payload.cheque_date || '—'}
+                                    </span>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {payload.notes && (

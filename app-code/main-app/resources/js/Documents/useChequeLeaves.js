@@ -5,13 +5,13 @@ import axios from 'axios';
  * useChequeLeaves
  *
  * Fetches available cheque leaves for a given bank account ID (or all bank accounts
- * if omitted) and returns options shaped for VqSelect.
+ * if omitted) and returns options shaped for VqSelect with search and auto-suggestion.
  *
- *   const { options, loading, error, leaves } = useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, storeSlug);
+ *   const { options, loading, error, leaves, nextLeaf } = useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, storeSlug, onAutoSelect);
  *
  * The API endpoint is `/{store_slug}/banking/cheque-books/available-leaves`
  */
-export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, storeSlug) {
+export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, storeSlug, onAutoSelect) {
     const [leaves, setLeaves] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -53,9 +53,16 @@ export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, stor
                 if (cancelled) return;
                 const available = res.data?.leaves || [];
                 setLeaves(available);
-                /* If the currently-selected leaf is not in the new list, clear it. */
-                if (selectedLeafId && !available.some((l) => l.id === selectedLeafId)) {
-                    onClearLeaf?.();
+                /* If no leaf is currently selected, auto-suggest the next available leaf */
+                if (!selectedLeafId && available.length > 0 && onAutoSelect) {
+                    onAutoSelect(available[0].id, available[0]);
+                } else if (selectedLeafId && !available.some((l) => l.id === selectedLeafId)) {
+                    /* If the currently-selected leaf is not in the new list, clear or reset to first */
+                    if (available.length > 0 && onAutoSelect) {
+                        onAutoSelect(available[0].id, available[0]);
+                    } else {
+                        onClearLeaf?.();
+                    }
                 }
             })
             .catch((err) => {
@@ -70,13 +77,15 @@ export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, stor
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [bankAccountId, storeSlug]);
 
-    const options = leaves.map((leaf) => ({
+    const options = leaves.map((leaf, index) => ({
         value: leaf.id,
         label: leaf.bank_account_name
-            ? `${leaf.display_serial_number || '#' + leaf.serial_number} — ${leaf.bank_account_name}`
-            : (leaf.display_serial_number || `#${leaf.serial_number}`),
+            ? `${leaf.display_serial_number || '#' + leaf.serial_number} — ${leaf.bank_account_name}${index === 0 ? ' (Next Available)' : ''}`
+            : `${leaf.display_serial_number || '#' + leaf.serial_number}${index === 0 ? ' (Next Available)' : ''}`,
         hint: leaf.serial_number ? `Serial ${leaf.serial_number}` : undefined,
     }));
 
-    return { options, loading, error, leaves };
+    const nextLeaf = leaves.length > 0 ? leaves[0] : null;
+
+    return { options, loading, error, leaves, nextLeaf };
 }

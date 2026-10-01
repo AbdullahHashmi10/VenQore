@@ -45,6 +45,9 @@ export default function SalesInvoiceApprovalView({
             amountPaid: num(p.amount_paid ?? p.paid_amount ?? 0),
             paymentAccountId: p.payment_account_id || p.bank_account_id || null,
             paymentAccountKey: p.payment_account_id ? `bank:${p.payment_account_id}` : null,
+            isCheque: p.payment_method === 'cheque',
+            chequeDate: p.cheque_date || null,
+            paymentReference: p.payment_reference || p.cheque_number || '',
             items: (p.items && p.items.length) ? p.items.map(i => ({
                 id: uid(),
                 product: {
@@ -101,6 +104,9 @@ export default function SalesInvoiceApprovalView({
                     payment_method: d.paymentMethod,
                     amount_paid: num(d.amountPaid),
                     payment_account_id: d.paymentAccountId || null,
+                    bank_account_id: d.bankReferenceId || d.paymentAccountId || null,
+                    cheque_date: d.isCheque ? (d.chequeDate || null) : null,
+                    payment_reference: d.paymentReference || null,
                     items: priced.map(src => ({
                         product_id: src.product?.id,
                         product_name: src.product?.name,

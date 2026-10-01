@@ -1,29 +1,13 @@
 import React, { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Search } from 'lucide-react';
 
 /**
- * VqSelect — the document screen's dropdown.
+ * VqSelect — the document screen's dropdown with built-in search & keyboard navigation.
  *
- * A native <select> hands its list to the operating system: Windows draws a
- * grey box with a blue highlight and nothing about it can be styled, which is
- * why the tax and account menus looked like they came from a different decade
- * than the screen around them.
- *
- * So the list is ours. The trigger is a real button, the list is a portalled
- * listbox positioned against the trigger, and the whole thing keeps the
- * keyboard contract people expect from a select:
- *
- *   ↑ ↓        move through the options
- *   Home/End   first / last
- *   a–z        jump to the next option starting with that letter
- *   Enter/Space  choose
- *   Esc        close and keep what was there
- *   Tab        close
- *
- * It is portalled for the same reason the product search is: this screen puts
- * its rows in a scrolling container, and a list positioned inside its own
- * field would be clipped the moment it opened.
+ * A native <select> hands its list to the operating system. VqSelect delivers
+ * a fully styled, accessible, portalled listbox with instant search filtering
+ * for large option lists (like serial numbers, accounts, and contacts).
  */
 export default function VqSelect({
     value,
@@ -35,24 +19,37 @@ export default function VqSelect({
     className = '',
     ariaLabel,
     maxHeight = 320,
+    searchable = undefined, /* Auto-enabled if options > 7, or explicitly boolean */
+    searchPlaceholder = 'Search serial or options…',
 }) {
     const reactId = useId();
     const listId = id ? `${id}-list` : `vqsel-${reactId}`;
     const btnRef = useRef(null);
     const popRef = useRef(null);
+    const searchInputRef = useRef(null);
     const typed = useRef({ str: '', at: 0 });
 
     const [open, setOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [active, setActive] = useState(-1);
     const [rect, setRect] = useState(null);
-    /* The list is portalled to <body>, outside the screen's own scale
-       variable, so the trigger's resolved scale travels with it. Without this
-       the menu stays at Normal size while the page is at Senior. */
     const [scale, setScale] = useState('1');
 
-    const items = options || [];
-    const index = items.findIndex(o => String(o.value) === String(value));
-    const current = index >= 0 ? items[index] : null;
+    const rawItems = options || [];
+    const isSearchable = searchable !== undefined ? searchable : rawItems.length > 6;
+
+    const filteredItems = React.useMemo(() => {
+        if (!searchQuery.trim()) return rawItems;
+        const q = searchQuery.trim().toLowerCase();
+        return rawItems.filter(o =>
+            String(o.label || '').toLowerCase().includes(q) ||
+            String(o.hint || '').toLowerCase().includes(q) ||
+            String(o.value || '').toLowerCase().includes(q)
+        );
+    }, [rawItems, searchQuery]);
+
+    const index = rawItems.findIndex(o => String(o.value) === String(value));
+    const current = index >= 0 ? rawItems[index] : null;
 
     const measure = useCallback(() => {
         const el = btnRef.current;
@@ -74,7 +71,10 @@ export default function VqSelect({
     }, [open, measure]);
 
     useEffect(() => {
-        if (!open) return undefined;
+        if (!open) {
+            setSearchQuery('');
+            return undefined;
+        }
         const onDown = (e) => {
             if (popRef.current?.contains(e.target) || btnRef.current?.contains(e.target)) return;
             setOpen(false);
@@ -85,11 +85,15 @@ export default function VqSelect({
 
     useEffect(() => {
         if (!open) return;
-        setActive(index >= 0 ? index : 0);
-    }, [open, index]);
+        const filteredIdx = filteredItems.findIndex(o => String(o.value) === String(value));
+        setActive(filteredIdx >= 0 ? filteredIdx : 0);
+        if (isSearchable) {
+            setTimeout(() => {
+                searchInputRef.current?.focus();
+            }, 20);
+        }
+    }, [open, value, filteredItems, isSearchable]);
 
-    /* Keep the highlighted row in view — a list you can arrow past the bottom
-       of is a list you cannot use with the keyboard. */
     useEffect(() => {
         if (!open || active < 0) return;
         const el = popRef.current?.querySelector(`[data-i="${active}"]`);
@@ -97,7 +101,7 @@ export default function VqSelect({
     }, [open, active]);
 
     const choose = (i) => {
-        const opt = items[i];
+        const opt = filteredItems[i];
         if (!opt || opt.disabled) return;
         onChange(opt.value);
         setOpen(false);
@@ -105,11 +109,11 @@ export default function VqSelect({
     };
 
     const step = (delta) => {
-        if (!items.length) return;
+        if (!filteredItems.length) return;
         let i = active;
-        for (let n = 0; n < items.length; n += 1) {
-            i = (i + delta + items.length) % items.length;
-            if (!items[i].disabled) break;
+        for (let n = 0; n < filteredItems.length; n += 1) {
+            i = (i + delta + filteredItems.length) % filteredItems.length;
+            if (!filteredItems[i].disabled) break;
         }
         setActive(i);
     };
@@ -127,16 +131,16 @@ export default function VqSelect({
         if (e.key === 'Tab') { setOpen(false); return; }
         if (e.key === 'ArrowDown') { e.preventDefault(); step(1); return; }
         if (e.key === 'ArrowUp') { e.preventDefault(); step(-1); return; }
-        if (e.key === 'Home') { e.preventDefault(); setActive(items.findIndex(o => !o.disabled)); return; }
-        if (e.key === 'End') { e.preventDefault(); for (let i = items.length - 1; i >= 0; i -= 1) { if (!items[i].disabled) { setActive(i); break; } } return; }
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(active); return; }
+        if (e.key === 'Home') { e.preventDefault(); setActive(filteredItems.findIndex(o => !o.disabled)); return; }
+        if (e.key === 'End') { e.preventDefault(); for (let i = filteredItems.length - 1; i >= 0; i -= 1) { if (!filteredItems[i].disabled) { setActive(i); break; } } return; }
+        if (e.key === 'Enter') { e.preventDefault(); choose(active); return; }
 
-        if (e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (!isSearchable && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) {
             const now = Date.now();
             typed.current.str = now - typed.current.at > 700 ? e.key : typed.current.str + e.key;
             typed.current.at = now;
             const q = typed.current.str.toLowerCase();
-            const hit = items.findIndex(o => !o.disabled && String(o.label).toLowerCase().startsWith(q));
+            const hit = filteredItems.findIndex(o => !o.disabled && String(o.label).toLowerCase().startsWith(q));
             if (hit >= 0) setActive(hit);
         }
     };
@@ -147,40 +151,63 @@ export default function VqSelect({
             id={listId}
             role="listbox"
             aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
-            className="vqdoc-menu"
+            className="vqdoc-menu flex flex-col"
             style={{
                 '--d-scale': scale,
                 left: rect.left,
-                width: Math.max(rect.width, 200 * Number(scale || 1)),
-                maxHeight: maxHeight * Number(scale || 1),
+                width: Math.max(rect.width, 220 * Number(scale || 1)),
+                maxHeight: (maxHeight + 50) * Number(scale || 1),
                 ...(window.innerHeight - rect.bottom < Math.min(maxHeight, 240) && rect.top > window.innerHeight - rect.bottom
                     ? { bottom: window.innerHeight - rect.top + 6 }
                     : { top: rect.bottom + 6 }),
             }}
         >
-            {items.map((o, i) => (
-                <div
-                    key={`${o.value}-${i}`}
-                    id={`${listId}-${i}`}
-                    data-i={i}
-                    role="option"
-                    aria-selected={String(o.value) === String(value)}
-                    aria-disabled={o.disabled || undefined}
-                    className="vqdoc-menu-item"
-                    data-active={i === active ? 'true' : undefined}
-                    data-chosen={String(o.value) === String(value) ? 'true' : undefined}
-                    onMouseEnter={() => !o.disabled && setActive(i)}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => choose(i)}
-                >
-                    <span className="lbl">
-                        {o.label}
-                        {o.hint && <span className="hint">{o.hint}</span>}
-                    </span>
-                    {String(o.value) === String(value) && <Check size={15} className="tick" />}
+            {isSearchable && (
+                <div className="p-1.5 border-b border-line/60 bg-surface/80 sticky top-0 z-10">
+                    <div className="relative flex items-center">
+                        <Search size={13} className="absolute left-2.5 text-ink-muted pointer-events-none" />
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={onKeyDown}
+                            placeholder={searchPlaceholder}
+                            className="w-full pl-7 pr-2.5 py-1 text-xs bg-app/80 border border-line rounded-md text-ink outline-none focus:border-brand-500 transition-colors"
+                        />
+                    </div>
                 </div>
-            ))}
-            {!items.length && <div className="vqdoc-menu-empty">Nothing to choose from</div>}
+            )}
+
+            <div className="overflow-y-auto flex-1 max-h-[260px]">
+                {filteredItems.map((o, i) => (
+                    <div
+                        key={`${o.value}-${i}`}
+                        id={`${listId}-${i}`}
+                        data-i={i}
+                        role="option"
+                        aria-selected={String(o.value) === String(value)}
+                        aria-disabled={o.disabled || undefined}
+                        className="vqdoc-menu-item"
+                        data-active={i === active ? 'true' : undefined}
+                        data-chosen={String(o.value) === String(value) ? 'true' : undefined}
+                        onMouseEnter={() => !o.disabled && setActive(i)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => choose(i)}
+                    >
+                        <span className="lbl">
+                            {o.label}
+                            {o.hint && <span className="hint">{o.hint}</span>}
+                        </span>
+                        {String(o.value) === String(value) && <Check size={15} className="tick" />}
+                    </div>
+                ))}
+                {!filteredItems.length && (
+                    <div className="vqdoc-menu-empty py-3 text-xs text-center text-ink-muted">
+                        {searchQuery ? `No matching results for "${searchQuery}"` : 'Nothing to choose from'}
+                    </div>
+                )}
+            </div>
         </div>,
         document.body,
     ) : null;

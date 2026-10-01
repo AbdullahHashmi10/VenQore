@@ -30,7 +30,12 @@ export default function SalesReturnApprovalView({
             reference: p.reference || document.document_number || '',
             reason: p.reason || p.notes || '',
             notes: p.notes || '',
+            paymentMethod: p.payment_method || 'cash',
             refund: num(p.amount_refunded ?? p.refund_amount ?? p.amount ?? 0),
+            paymentAccountId: p.payment_account_id || p.bank_account_id || null,
+            isCheque: p.payment_method === 'cheque',
+            chequeLeafId: p.cheque_leaf_id || null,
+            chequeDate: p.cheque_date || (p.date || today()),
             items: (p.items && p.items.length) ? p.items.map(i => ({
                 id: uid(),
                 product: {
@@ -75,6 +80,10 @@ export default function SalesReturnApprovalView({
                     reason: d.reason,
                     notes: d.notes,
                     amount: totals.grandTotal,
+                    payment_method: d.isCheque ? 'cheque' : (d.paymentMethod || 'cash'),
+                    payment_account_id: d.paymentAccountId || null,
+                    cheque_leaf_id: d.isCheque ? (d.chequeLeafId || null) : null,
+                    cheque_date: d.isCheque ? (d.chequeDate || null) : null,
                     items: priced.map(src => ({
                         product_id: src.product?.id,
                         product_name: src.product?.name,

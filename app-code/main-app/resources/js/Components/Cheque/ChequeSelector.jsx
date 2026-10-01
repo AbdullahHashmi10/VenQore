@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { BookOpen, AlertCircle, Loader2 } from 'lucide-react';
+import VqSelect from '@/Documents/VqSelect';
 
 export default function ChequeSelector({
     bankAccountId,
@@ -8,7 +9,8 @@ export default function ChequeSelector({
     onChange,
     error,
     disabled = false,
-    className = ''
+    className = '',
+    storeSlug
 }) {
     const [leaves, setLeaves] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -28,16 +30,34 @@ export default function ChequeSelector({
         setLoading(true);
         setFetchError(null);
 
-        axios.get('/banking/cheque-books/available-leaves', {
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const slug = storeSlug || (pathParts.length > 0 && pathParts[0] !== 'banking' && pathParts[0] !== 'admin' ? pathParts[0] : '');
+
+        let targetUrl = '/banking/cheque-books/available-leaves';
+        try {
+            if (typeof window.route === 'function') {
+                targetUrl = window.route('store.banking.cheque-books.available-leaves', { store_slug: slug || undefined });
+            } else if (slug) {
+                targetUrl = `/${slug}/banking/cheque-books/available-leaves`;
+            }
+        } catch (_) {
+            if (slug) {
+                targetUrl = `/${slug}/banking/cheque-books/available-leaves`;
+            }
+        }
+
+        axios.get(targetUrl, {
             params: { bank_account_id: bankAccountId }
         })
         .then(res => {
             if (isMounted) {
                 const available = res.data?.leaves || [];
                 setLeaves(available);
-                // If current value is not in available leaves and not empty, reset it
-                if (value && !available.some(l => l.id === value)) {
-                    onChange('');
+                // If value is empty and leaves exist, auto-suggest the first leaf
+                if (!value && available.length > 0) {
+                    onChange(available[0].id);
+                } else if (value && !available.some(l => l.id === value)) {
+                    onChange(available.length > 0 ? available[0].id : '');
                 }
             }
         })
@@ -55,11 +75,19 @@ export default function ChequeSelector({
         return () => {
             isMounted = false;
         };
-    }, [bankAccountId]);
+    }, [bankAccountId, storeSlug]);
+
+    const leafOptions = useMemo(() => {
+        return leaves.map((leaf, index) => ({
+            value: leaf.id,
+            label: `${leaf.display_serial_number}${index === 0 ? ' ★ (Next Available)' : ''}`,
+            hint: `Serial #${leaf.serial_number}`,
+        }));
+    }, [leaves]);
 
     if (!bankAccountId) {
         return (
-            <div className={`text-xs text-neutral-400 italic p-2 border border-dashed border-neutral-200 dark:border-neutral-700 rounded-lg ${className}`}>
+            <div className={`text-xs text-neutral-400 italic p-2.5 border border-dashed border-neutral-200 dark:border-neutral-700 rounded-lg ${className}`}>
                 Select a bank account first to view and select available cheque leaves.
             </div>
         );
@@ -67,39 +95,26 @@ export default function ChequeSelector({
 
     return (
         <div className={`space-y-1.5 ${className}`}>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted">
                 Cheque Leaf <span className="text-red-500">*</span>
             </label>
 
             <div className="relative">
-                <select
-                    value={value || ''}
-                    onChange={(e) => onChange(e.target.value)}
-                    disabled={disabled || loading || leaves.length === 0}
-                    className={`w-full rounded-lg border text-sm transition-colors py-2 px-3 pr-8 ${
-                        error
-                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                            : 'border-neutral-300 dark:border-neutral-700 focus:border-brand-500 focus:ring-brand-500'
-                    } bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 disabled:opacity-50`}
-                >
-                    <option value="">
-                        {loading
-                            ? 'Loading available leaves...'
-                            : leaves.length === 0
-                            ? 'No available leaves found'
-                            : '-- Select Available Cheque Leaf --'}
-                    </option>
-                    {leaves.map((leaf) => (
-                        <option key={leaf.id} value={leaf.id}>
-                            {leaf.display_serial_number} (Serial #{leaf.serial_number})
-                        </option>
-                    ))}
-                </select>
-
-                {loading && (
-                    <div className="absolute right-3 top-2.5 text-neutral-400">
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                {loading ? (
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg border border-line bg-app text-xs text-ink-muted">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary shrink-0" />
+                        <span>Loading available leaves…</span>
                     </div>
+                ) : (
+                    <VqSelect
+                        value={value || ''}
+                        onChange={(val) => onChange(val)}
+                        options={leafOptions}
+                        disabled={disabled || loading || leaves.length === 0}
+                        placeholder={leaves.length === 0 ? "No available leaves in this bank" : "Search leaf serial..."}
+                        searchable={true}
+                        searchPlaceholder="Type serial or reference..."
+                    />
                 )}
             </div>
 
