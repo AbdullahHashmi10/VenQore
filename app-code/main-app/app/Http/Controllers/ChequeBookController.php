@@ -241,21 +241,38 @@ class ChequeBookController extends Controller
     }
 
     /**
-     * Return list of available leaves for a given bank account.
+     * Return list of available leaves for a given bank account (or all bank accounts if omitted).
      */
     public function availableLeaves(Request $request)
     {
         $request->validate([
-            'bank_account_id' => 'required|uuid|exists:bank_accounts,id',
+            'bank_account_id' => 'nullable|uuid|exists:bank_accounts,id',
         ]);
 
         $tenant = app('current.tenant');
 
-        $leaves = ChequeLeaf::where('tenant_id', $tenant->id)
-            ->where('bank_account_id', $request->bank_account_id)
+        $query = ChequeLeaf::where('tenant_id', $tenant->id)
             ->where('status', ChequeLeaf::STATUS_AVAILABLE)
-            ->orderBy('serial_number', 'asc')
-            ->get(['id', 'cheque_book_id', 'bank_account_id', 'series_prefix', 'serial_number', 'display_serial_number', 'cheque_number']);
+            ->with(['bankAccount:id,name,bank_name']);
+
+        if ($request->filled('bank_account_id')) {
+            $query->where('bank_account_id', $request->bank_account_id);
+        }
+
+        $leaves = $query->orderBy('serial_number', 'asc')
+            ->get(['id', 'cheque_book_id', 'bank_account_id', 'series_prefix', 'serial_number', 'display_serial_number', 'cheque_number'])
+            ->map(function ($leaf) {
+                return [
+                    'id'                    => $leaf->id,
+                    'cheque_book_id'        => $leaf->cheque_book_id,
+                    'bank_account_id'       => $leaf->bank_account_id,
+                    'bank_account_name'     => $leaf->bankAccount?->name ?? $leaf->bankAccount?->bank_name ?? 'Bank Account',
+                    'series_prefix'         => $leaf->series_prefix,
+                    'serial_number'         => $leaf->serial_number,
+                    'display_serial_number' => $leaf->display_serial_number,
+                    'cheque_number'         => $leaf->cheque_number,
+                ];
+            });
 
         return response()->json([
             'success' => true,

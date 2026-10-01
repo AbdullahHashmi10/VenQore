@@ -37,7 +37,7 @@ export default function CreateExpense({ categories = [], approval_correction = n
     const posting = useRef(false);
     const [cats, setCats] = useState(categories);
     const [chequeBankAccountId, setChequeBankAccountId] = useState(null);
-    const { options: chequeLeafOptions, loading: chequeLeafLoading, error: chequeLeafError } =
+    const { options: chequeLeafOptions, loading: chequeLeafLoading, error: chequeLeafError, leaves: chequeLeaves } =
         useChequeLeaves(chequeBankAccountId, null, null);
 
     const blankCost = () => ({ id: uid(), category_id: '', desc: '', amount: 0 });
@@ -196,7 +196,13 @@ export default function CreateExpense({ categories = [], approval_correction = n
                                 <VqSelect
                                     ariaLabel="Select the cheque leaf (serial number) used"
                                     value={d.chequeLeafId || ''}
-                                    onChange={(v) => patch({ chequeLeafId: v || null })}
+                                    onChange={(v) => {
+                                        const chosen = chequeLeaves?.find((l) => l.id === v);
+                                        patch({
+                                            chequeLeafId: v || null,
+                                            bankReferenceId: chosen?.bank_account_id || d.bankReferenceId || null,
+                                        });
+                                    }}
                                     options={chequeLeafOptions}
                                     placeholder={
                                         chequeLeafLoading

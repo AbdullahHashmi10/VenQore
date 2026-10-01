@@ -4,14 +4,12 @@ import axios from 'axios';
 /**
  * useChequeLeaves
  *
- * Fetches available cheque leaves for a given bank account ID and returns
- * options shaped for VqSelect. When `bankAccountId` is falsy the hook returns
- * an empty list and fires `onClearLeaf` so the caller can reset its state.
+ * Fetches available cheque leaves for a given bank account ID (or all bank accounts
+ * if omitted) and returns options shaped for VqSelect.
  *
- *   const { options, loading, error } = useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf);
+ *   const { options, loading, error, leaves } = useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf);
  *
- * The API endpoint is `/banking/cheque-books/available-leaves?bank_account_id=…`
- * which is the same endpoint ChequeSelector.jsx uses.
+ * The API endpoint is `/banking/cheque-books/available-leaves`
  */
 export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf) {
     const [leaves, setLeaves] = useState([]);
@@ -25,22 +23,16 @@ export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf) {
     }, []);
 
     useEffect(() => {
-        if (!bankAccountId) {
-            setLeaves([]);
-            setError(null);
-            if (selectedLeafId) {
-                onClearLeaf?.();
-            }
-            return;
-        }
-
         let cancelled = false;
         setLoading(true);
         setError(null);
 
-        axios.get('/banking/cheque-books/available-leaves', {
-            params: { bank_account_id: bankAccountId },
-        })
+        const params = {};
+        if (bankAccountId) {
+            params.bank_account_id = bankAccountId;
+        }
+
+        axios.get('/banking/cheque-books/available-leaves', { params })
             .then((res) => {
                 if (cancelled) return;
                 const available = res.data?.leaves || [];
@@ -64,7 +56,9 @@ export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf) {
 
     const options = leaves.map((leaf) => ({
         value: leaf.id,
-        label: leaf.display_serial_number || `#${leaf.serial_number}`,
+        label: leaf.bank_account_name
+            ? `${leaf.display_serial_number || '#' + leaf.serial_number} — ${leaf.bank_account_name}`
+            : (leaf.display_serial_number || `#${leaf.serial_number}`),
         hint: leaf.serial_number ? `Serial ${leaf.serial_number}` : undefined,
     }));
 
