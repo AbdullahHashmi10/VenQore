@@ -73,7 +73,7 @@ export default function PurchaseForm({
         loading: chequeLeafLoading,
         error: chequeLeafError,
         leaves: chequeLeaves,
-    } = useChequeLeaves(chequeBankAccountId, null, null);
+    } = useChequeLeaves(chequeBankAccountId, null, null, store?.slug);
 
     /* A tab is a whole purchase — supplier, lines and landed costs together.
        Holding the lines outside the draft is what made the old screens' tabs
@@ -302,8 +302,10 @@ export default function PurchaseForm({
                                        so the hook can fetch its leaves. Clear any
                                        previously-chosen leaf — it belongs to the old account. */
                                     if (p.isCheque) {
-                                        setChequeBankAccountId(p.bankReferenceId || null);
-                                        patch({ ...p, chequeLeafId: null, chequeDate: today() });
+                                        const firstBank = (acct.accounts || []).find((a) => a.kind === 'bank' || a.kind === 'wallet');
+                                        const targetBankId = p.bankReferenceId || d.bankReferenceId || firstBank?.bankReferenceId || null;
+                                        setChequeBankAccountId(targetBankId);
+                                        patch({ ...p, bankReferenceId: targetBankId, chequeLeafId: null, chequeDate: today() });
                                     } else {
                                         setChequeBankAccountId(null);
                                         patch({ ...p, chequeLeafId: null, isCheque: false });
@@ -314,9 +316,28 @@ export default function PurchaseForm({
                         </Field>
                     )}
 
-                    {/* Cheque leaf and date — only when payment is by cheque */}
+                    {/* Bank Account, Cheque leaf and date — only when payment is by cheque */}
                     {d.isCheque && (
                         <>
+                            <Field label="Drawn on Bank" span={3} required>
+                                <VqSelect
+                                    ariaLabel="Select the bank account the cheque is drawn on"
+                                    value={d.bankReferenceId || chequeBankAccountId || ''}
+                                    onChange={(v) => {
+                                        setChequeBankAccountId(v || null);
+                                        patch({ bankReferenceId: v || null, chequeLeafId: null });
+                                    }}
+                                    options={(acct.accounts || [])
+                                        .filter((a) => a.kind === 'bank' || a.kind === 'wallet')
+                                        .map((a) => ({
+                                            value: a.bankReferenceId,
+                                            label: a.name + (a.bankName && a.bankName !== a.name ? ` (${a.bankName})` : ''),
+                                            hint: a.accountNumber ? `…${String(a.accountNumber).slice(-4)}` : undefined,
+                                        }))}
+                                    placeholder="Select bank account..."
+                                />
+                            </Field>
+
                             <Field
                                 label="Cheque leaf"
                                 span={3}
@@ -330,7 +351,7 @@ export default function PurchaseForm({
                                         const chosen = chequeLeaves?.find((l) => l.id === v);
                                         patch({
                                             chequeLeafId: v || null,
-                                            bankReferenceId: chosen?.bank_account_id || d.bankReferenceId || null,
+                                            bankReferenceId: chosen?.bank_account_id || d.bankReferenceId || chequeBankAccountId || null,
                                         });
                                     }}
                                     options={chequeLeafOptions}
@@ -338,7 +359,7 @@ export default function PurchaseForm({
                                         chequeLeafLoading
                                             ? 'Loading leaves…'
                                             : chequeLeafOptions.length === 0
-                                            ? 'No leaves available — register a chequebook first'
+                                            ? (d.bankReferenceId || chequeBankAccountId ? 'No available leaves in this bank' : 'Select a bank account first')
                                             : 'Select a cheque leaf'
                                     }
                                     disabled={chequeLeafLoading || chequeLeafOptions.length === 0}

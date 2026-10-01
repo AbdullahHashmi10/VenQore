@@ -177,7 +177,12 @@ class FinanceController extends Controller
      */
     public function bankAccounts()
     {
-        $bankAccounts = BankAccount::orderBy('name')->get()->map(function ($account) {
+        $bankAccounts = BankAccount::with(['chequeBooks' => function ($q) {
+            $q->withCount([
+                'leaves as available_leaves_count' => fn ($sq) => $sq->where('status', 'available'),
+                'leaves as issued_leaves_count' => fn ($sq) => $sq->where('status', 'issued'),
+            ])->orderByDesc('created_at');
+        }])->orderBy('name')->get()->map(function ($account) {
             // V3: Single source of truth — balance comes exclusively from journal_items
             $account->current_balance = $account->v3Balance();
             return $account;
@@ -305,52 +310,87 @@ class FinanceController extends Controller
         $bankAccount = BankAccount::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'account_number' => 'nullable|string|max:50',
-            'bank_name' => 'nullable|string|max:255',
-            'account_type' => 'required|in:cash,checking,savings,credit',
-            'opening_balance' => 'nullable|numeric',
-            'notes' => 'nullable|string'
+            'name'                      => 'required|string|max:255',
+            'account_number'            => 'nullable|string|max:50',
+            'bank_name'                 => 'nullable|string|max:255',
+            'account_type'              => 'required|in:cash,checking,savings,credit',
+            'opening_balance'           => 'nullable|numeric',
+            'notes'                     => 'nullable|string',
+
+            // Inline Cheque Book option
+            'add_cheque_book'           => 'nullable|boolean',
+            'cheque_book_prefix'        => 'nullable|string|max:10',
+            'cheque_book_start_number'  => 'nullable|required_if:add_cheque_book,true|integer|min:1',
+            'cheque_book_end_number'    => 'nullable|required_if:add_cheque_book,true|integer|min:1|gte:cheque_book_start_number',
+            'cheque_book_padding_zeros' => 'nullable|integer|min:1|max:12',
+            'cheque_book_notes'         => 'nullable|string|max:255',
         ]);
+
+        $validated['type'] = $validated['account_type'] === 'cash' ? 'cash' : 'bank';
 
         // We store the difference to adjust the journal
         $oldOpening = $bankAccount->opening_balance ?? 0;
         $newOpening = $validated['opening_balance'] ?? 0;
         $diff = $newOpening - $oldOpening;
 
-        $bankAccount->update($validated);
+        $tenant = app('current.tenant');
+        $chequeBook = null;
 
-        if ($diff != 0) {
-            $accountSvc = resolve(\App\Engines\AccountingService::class);
-            
-            $bankAcct    = \App\Models\Account::where('code', '1010')->firstOrFail();
-            $capitalAcct = \App\Models\Account::where('code', '3000')->firstOrCreate(
-                ['code' => '3000'],
-                ['name' => "Owner's Capital", 'type' => 'equity', 'is_active' => true]
-            );
+        \Illuminate\Support\Facades\DB::transaction(function () use ($bankAccount, $validated, $diff, $tenant, $request, &$chequeBook) {
+            $bankAccount->update($validated);
 
-            // If diff > 0, we need to debit bank more. If diff < 0, we credit bank.
-            $debitLine =  $diff > 0 ? ['account_id' => $bankAcct->id, 'debit' => abs($diff), 'credit' => 0] 
-                                    : ['account_id' => $bankAcct->id, 'debit' => 0, 'credit' => abs($diff)];
-                                    
-            $creditLine = $diff > 0 ? ['account_id' => $capitalAcct->id, 'debit' => 0, 'credit' => abs($diff)] 
-                                    : ['account_id' => $capitalAcct->id, 'debit' => abs($diff), 'credit' => 0];
+            if ($diff != 0) {
+                $accountSvc = resolve(\App\Engines\AccountingService::class);
+                
+                $bankAcct    = \App\Models\Account::where('code', '1010')->firstOrFail();
+                $capitalAcct = \App\Models\Account::where('code', '3000')->firstOrCreate(
+                    ['code' => '3000'],
+                    ['name' => "Owner's Capital", 'type' => 'equity', 'is_active' => true]
+                );
 
-            $accountSvc->createEntry(
-                data: [
-                    'date'     => now()->format('Y-m-d'),
-                    'reference_type' => 'bank_account_opening',
-                    'reference'   => $bankAccount->id,
-                    'description'    => 'Opening Balance Adjustment: ' . $bankAccount->name,
-                ],
-                lines: [$debitLine, $creditLine]
-            );
+                // If diff > 0, we need to debit bank more. If diff < 0, we credit bank.
+                $debitLine =  $diff > 0 ? ['account_id' => $bankAcct->id, 'debit' => abs($diff), 'credit' => 0] 
+                                        : ['account_id' => $bankAcct->id, 'debit' => 0, 'credit' => abs($diff)];
+                                        
+                $creditLine = $diff > 0 ? ['account_id' => $capitalAcct->id, 'debit' => 0, 'credit' => abs($diff)] 
+                                        : ['account_id' => $capitalAcct->id, 'debit' => abs($diff), 'credit' => 0];
+
+                $accountSvc->createEntry(
+                    data: [
+                        'date'           => now()->format('Y-m-d'),
+                        'reference_type' => 'bank_account_opening',
+                        'reference'      => $bankAccount->id,
+                        'description'    => 'Opening Balance Adjustment: ' . $bankAccount->name,
+                    ],
+                    lines: [$debitLine, $creditLine]
+                );
+            }
+
+            if (!empty($validated['add_cheque_book']) && $validated['account_type'] !== 'cash') {
+                $chequeSvc = app(\App\Services\Cheque\ChequeBookService::class);
+                $chequeBook = $chequeSvc->createChequeBook(
+                    tenant: $tenant,
+                    bankAccountId: $bankAccount->id,
+                    startNumber: (int) $validated['cheque_book_start_number'],
+                    endNumber: (int) $validated['cheque_book_end_number'],
+                    seriesPrefix: !empty($validated['cheque_book_prefix']) ? strtoupper(trim($validated['cheque_book_prefix'])) : null,
+                    paddingZeros: (int) ($validated['cheque_book_padding_zeros'] ?? 6),
+                    description: $validated['cheque_book_notes'] ?? "Additional Cheque Book for {$bankAccount->name}",
+                    user: $request->user()
+                );
+            }
+        });
+
+        $msg = 'Bank account updated successfully';
+        if ($chequeBook) {
+            $msg .= " with new Cheque Book ({$chequeBook->total_leaves} leaves registered).";
         }
 
         return response()->json([
-            'success' => true,
-            'message' => 'Bank account updated successfully',
-            'bankAccount' => $bankAccount
+            'success'     => true,
+            'message'     => $msg,
+            'bankAccount' => $bankAccount->fresh(['chequeBooks']),
+            'chequeBook'  => $chequeBook,
         ]);
     }
 

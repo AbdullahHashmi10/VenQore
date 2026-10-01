@@ -7,11 +7,11 @@ import axios from 'axios';
  * Fetches available cheque leaves for a given bank account ID (or all bank accounts
  * if omitted) and returns options shaped for VqSelect.
  *
- *   const { options, loading, error, leaves } = useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf);
+ *   const { options, loading, error, leaves } = useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, storeSlug);
  *
- * The API endpoint is `/banking/cheque-books/available-leaves`
+ * The API endpoint is `/{store_slug}/banking/cheque-books/available-leaves`
  */
-export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf) {
+export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf, storeSlug) {
     const [leaves, setLeaves] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -32,7 +32,23 @@ export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf) {
             params.bank_account_id = bankAccountId;
         }
 
-        axios.get('/banking/cheque-books/available-leaves', { params })
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const slug = storeSlug || (pathParts.length > 0 && pathParts[0] !== 'banking' && pathParts[0] !== 'admin' ? pathParts[0] : '');
+
+        let targetUrl = '/banking/cheque-books/available-leaves';
+        try {
+            if (typeof window.route === 'function') {
+                targetUrl = window.route('store.banking.cheque-books.available-leaves', { store_slug: slug || undefined });
+            } else if (slug) {
+                targetUrl = `/${slug}/banking/cheque-books/available-leaves`;
+            }
+        } catch (_) {
+            if (slug) {
+                targetUrl = `/${slug}/banking/cheque-books/available-leaves`;
+            }
+        }
+
+        axios.get(targetUrl, { params })
             .then((res) => {
                 if (cancelled) return;
                 const available = res.data?.leaves || [];
@@ -52,7 +68,7 @@ export function useChequeLeaves(bankAccountId, selectedLeafId, onClearLeaf) {
 
         return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [bankAccountId]);
+    }, [bankAccountId, storeSlug]);
 
     const options = leaves.map((leaf) => ({
         value: leaf.id,

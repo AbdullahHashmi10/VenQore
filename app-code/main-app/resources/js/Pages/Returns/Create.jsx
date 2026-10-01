@@ -39,7 +39,7 @@ export default function CreateReturn({ aiPrefill }) {
     const [loading, setLoading] = useState(false);
     const [chequeBankAccountId, setChequeBankAccountId] = useState(null);
     const { options: chequeLeafOptions, loading: chequeLeafLoading, error: chequeLeafError, leaves: chequeLeaves } =
-        useChequeLeaves(chequeBankAccountId, null, null);
+        useChequeLeaves(chequeBankAccountId, null, null, store?.slug);
     const money = (n) => formatCurrency(n, store || settings);
 
     const seed = useCallback(() => ({
@@ -179,8 +179,10 @@ export default function CreateReturn({ aiPrefill }) {
                                     const p = acct.resolve(v);
                                     if (!p) return;
                                     if (p.isCheque) {
-                                        setChequeBankAccountId(p.bankReferenceId || null);
-                                        patch({ ...p, chequeLeafId: null, chequeDate: today() });
+                                        const firstBank = (acct.accounts || []).find((a) => a.kind === 'bank' || a.kind === 'wallet');
+                                        const targetBankId = p.bankReferenceId || d.bankReferenceId || firstBank?.bankReferenceId || null;
+                                        setChequeBankAccountId(targetBankId);
+                                        patch({ ...p, bankReferenceId: targetBankId, chequeLeafId: null, chequeDate: today() });
                                     } else {
                                         setChequeBankAccountId(null);
                                         patch({ ...p, chequeLeafId: null, isCheque: false });
@@ -191,9 +193,28 @@ export default function CreateReturn({ aiPrefill }) {
                         </Field>
                     )}
 
-                    {/* Cheque leaf and date — only when a refund is paid by cheque */}
+                    {/* Bank Account, Cheque leaf and date — only when a refund is paid by cheque */}
                     {d.isCheque && d.paymentMethod === 'cash' && (
                         <>
+                            <Field label="Drawn on Bank" span={3} required>
+                                <VqSelect
+                                    ariaLabel="Select the bank account the cheque is drawn on"
+                                    value={d.bankReferenceId || chequeBankAccountId || ''}
+                                    onChange={(v) => {
+                                        setChequeBankAccountId(v || null);
+                                        patch({ bankReferenceId: v || null, chequeLeafId: null });
+                                    }}
+                                    options={(acct.accounts || [])
+                                        .filter((a) => a.kind === 'bank' || a.kind === 'wallet')
+                                        .map((a) => ({
+                                            value: a.bankReferenceId,
+                                            label: a.name + (a.bankName && a.bankName !== a.name ? ` (${a.bankName})` : ''),
+                                            hint: a.accountNumber ? `…${String(a.accountNumber).slice(-4)}` : undefined,
+                                        }))}
+                                    placeholder="Select bank account..."
+                                />
+                            </Field>
+
                             <Field
                                 label="Cheque leaf"
                                 span={3}
@@ -207,7 +228,7 @@ export default function CreateReturn({ aiPrefill }) {
                                         const chosen = chequeLeaves?.find((l) => l.id === v);
                                         patch({
                                             chequeLeafId: v || null,
-                                            bankReferenceId: chosen?.bank_account_id || d.bankReferenceId || null,
+                                            bankReferenceId: chosen?.bank_account_id || d.bankReferenceId || chequeBankAccountId || null,
                                         });
                                     }}
                                     options={chequeLeafOptions}
@@ -215,7 +236,7 @@ export default function CreateReturn({ aiPrefill }) {
                                         chequeLeafLoading
                                             ? 'Loading leaves…'
                                             : chequeLeafOptions.length === 0
-                                            ? 'No leaves — register a chequebook first'
+                                            ? (d.bankReferenceId || chequeBankAccountId ? 'No available leaves in this bank' : 'Select a bank account first')
                                             : 'Select a cheque leaf'
                                     }
                                     disabled={chequeLeafLoading || chequeLeafOptions.length === 0}
