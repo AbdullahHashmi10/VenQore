@@ -253,24 +253,24 @@ class ChequeBookController extends Controller
 
         $query = ChequeLeaf::where('tenant_id', $tenant->id)
             ->where('status', ChequeLeaf::STATUS_AVAILABLE)
-            ->with(['bankAccount:id,name,bank_name']);
+            ->with(['bankAccount:id,name,bank_name', 'chequeBook:id,series_prefix']);
 
         if ($request->filled('bank_account_id')) {
             $query->where('bank_account_id', $request->bank_account_id);
         }
 
-        $leaves = $query->orderBy('serial_number', 'asc')
-            ->get(['id', 'cheque_book_id', 'bank_account_id', 'series_prefix', 'serial_number', 'display_serial_number', 'cheque_number'])
+        $leaves = $query->orderBy('numeric_serial', 'asc')
+            ->get(['id', 'cheque_book_id', 'bank_account_id', 'numeric_serial', 'display_serial_number', 'status'])
             ->map(function ($leaf) {
                 return [
                     'id'                    => $leaf->id,
                     'cheque_book_id'        => $leaf->cheque_book_id,
                     'bank_account_id'       => $leaf->bank_account_id,
                     'bank_account_name'     => $leaf->bankAccount?->name ?? $leaf->bankAccount?->bank_name ?? 'Bank Account',
-                    'series_prefix'         => $leaf->series_prefix,
-                    'serial_number'         => $leaf->serial_number,
+                    'series_prefix'         => $leaf->chequeBook?->series_prefix,
+                    'serial_number'         => $leaf->numeric_serial,
                     'display_serial_number' => $leaf->display_serial_number,
-                    'cheque_number'         => $leaf->cheque_number,
+                    'cheque_number'         => $leaf->display_serial_number,
                 ];
             });
 
