@@ -209,46 +209,94 @@ class FinanceController extends Controller
     public function storeBankAccount(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'account_number' => 'nullable|string|max:50',
-            'bank_name' => 'nullable|string|max:255',
-            'account_type' => 'required|in:cash,checking,savings,credit',
-            'opening_balance' => 'nullable|numeric',
-            'notes' => 'nullable|string'
+            'name'                      => 'required|string|max:255',
+            'account_number'            => 'nullable|string|max:50',
+            'bank_name'                 => 'nullable|string|max:255',
+            'account_type'              => 'required|in:cash,checking,savings,credit',
+            'opening_balance'           => 'nullable|numeric',
+            'notes'                     => 'nullable|string',
+
+            // Inline Cheque Book option
+            'add_cheque_book'           => 'nullable|boolean',
+            'cheque_book_prefix'        => 'nullable|string|max:10',
+            'cheque_book_start_number'  => 'nullable|required_if:add_cheque_book,true|integer|min:1',
+            'cheque_book_end_number'    => 'nullable|required_if:add_cheque_book,true|integer|min:1|gte:cheque_book_start_number',
+            'cheque_book_padding_zeros' => 'nullable|integer|min:1|max:12',
+            'cheque_book_notes'         => 'nullable|string|max:255',
         ]);
 
         $validated['current_balance'] = $validated['opening_balance'] ?? 0;
 
-        $bankAccount = BankAccount::create($validated);
+        $tenant = app('current.tenant');
+        $bankAccount = null;
+        $chequeBook = null;
 
-        if (!empty($validated['opening_balance']) && $validated['opening_balance'] > 0) {
-            $accountSvc = resolve(\App\Engines\AccountingService::class);
-            
-            $bankAcct    = \App\Models\Account::where('code', '1010')->firstOrFail();
-            $capitalAcct = \App\Models\Account::where('code', '3000')->firstOrCreate(
-                ['code' => '3000'],
-                ['name' => "Owner's Capital", 'type' => 'equity', 'is_active' => true]
-            );
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $tenant, $request, &$bankAccount, &$chequeBook) {
+                $bankAccount = BankAccount::create($validated);
 
-            $accountSvc->createEntry(
-                data: [
-                    'date'     => now()->format('Y-m-d'),
-                    'reference_type' => 'bank_account_opening',
-                    'reference'   => $bankAccount->id,
-                    'description'    => 'Opening Balance: ' . $bankAccount->name,
-                ],
-                lines: [
-                    ['account_id' => $bankAcct->id, 'debit' => $validated['opening_balance'], 'credit' => 0],
-                    ['account_id' => $capitalAcct->id, 'debit' => 0, 'credit' => $validated['opening_balance']],
-                ]
-            );
+                if (!empty($validated['opening_balance']) && $validated['opening_balance'] > 0) {
+                    $accountSvc  = resolve(\App\Engines\AccountingService::class);
+                    $bankAcct    = \App\Models\Account::where('code', '1010')->firstOrCreate(
+                        ['code' => '1010'],
+                        ['name' => 'Bank Accounts', 'type' => 'asset', 'is_active' => true]
+                    );
+                    $capitalAcct = \App\Models\Account::where('code', '3000')->firstOrCreate(
+                        ['code' => '3000'],
+                        ['name' => "Owner's Capital", 'type' => 'equity', 'is_active' => true]
+                    );
+
+                    $accountSvc->createEntry(
+                        data: [
+                            'date'           => now()->format('Y-m-d'),
+                            'reference_type' => 'bank_account_opening',
+                            'reference'      => $bankAccount->id,
+                            'description'    => 'Opening Balance: ' . $bankAccount->name,
+                        ],
+                        lines: [
+                            ['account_id' => $bankAcct->id, 'debit' => $validated['opening_balance'], 'credit' => 0],
+                            ['account_id' => $capitalAcct->id, 'debit' => 0, 'credit' => $validated['opening_balance']],
+                        ]
+                    );
+                }
+
+                if (!empty($validated['add_cheque_book']) && $validated['account_type'] !== 'cash') {
+                    $chequeSvc = app(\App\Services\Cheque\ChequeBookService::class);
+                    $chequeBook = $chequeSvc->createChequeBook(
+                        tenant: $tenant,
+                        bankAccountId: $bankAccount->id,
+                        startNumber: (int) $validated['cheque_book_start_number'],
+                        endNumber: (int) $validated['cheque_book_end_number'],
+                        seriesPrefix: !empty($validated['cheque_book_prefix']) ? strtoupper(trim($validated['cheque_book_prefix'])) : null,
+                        paddingZeros: (int) ($validated['cheque_book_padding_zeros'] ?? 6),
+                        description: $validated['cheque_book_notes'] ?? "Initial Cheque Book for {$bankAccount->name}",
+                        user: $request->user()
+                    );
+                }
+            });
+
+            $msg = 'Bank account created successfully';
+            if ($chequeBook) {
+                $msg .= " with Cheque Book ({$chequeBook->total_leaves} leaves registered).";
+            }
+
+            return response()->json([
+                'success'     => true,
+                'message'     => $msg,
+                'bankAccount' => $bankAccount,
+                'chequeBook'  => $chequeBook,
+            ]);
+        } catch (\InvalidArgumentException | \Illuminate\Validation\ValidationException $e) {
+            $msg = $e instanceof \Illuminate\Validation\ValidationException
+                ? collect($e->errors())->flatten()->first()
+                : $e->getMessage();
+
+            return response()->json([
+                'success' => false,
+                'message' => $msg,
+                'errors'  => $e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : ['cheque_book_start_number' => [$msg]],
+            ], 422);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Bank account created successfully',
-            'bankAccount' => $bankAccount
-        ]);
     }
 
     public function updateBankAccount(Request $request, $id)

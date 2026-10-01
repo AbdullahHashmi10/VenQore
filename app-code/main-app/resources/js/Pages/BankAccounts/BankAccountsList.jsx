@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
+import BankAccountModal from '@/Components/BankAccounts/BankAccountModal';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import {
     Landmark,
@@ -26,16 +26,6 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeActionMenu, setActiveActionMenu] = useState(null);
-
-    const [formData, setFormData] = useState({
-        name: '',
-        account_number: '',
-        bank_name: '',
-        account_type: 'checking',
-        opening_balance: 0,
-        current_balance: 0,
-        notes: ''
-    });
     const [errors, setErrors] = useState({});
 
     // Format currency
@@ -49,15 +39,6 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
     // Open create modal
     const handleCreate = () => {
         setEditingAccount(null);
-        setFormData({
-            name: '',
-            account_number: '',
-            bank_name: '',
-            account_type: 'checking',
-            opening_balance: 0,
-            current_balance: 0,
-            notes: ''
-        });
         setErrors({});
         setIsModalOpen(true);
     };
@@ -65,15 +46,6 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
     // Open edit modal
     const handleEdit = (account) => {
         setEditingAccount(account);
-        setFormData({
-            name: account.name || '',
-            account_number: account.account_number || '',
-            bank_name: account.bank_name || '',
-            account_type: account.account_type === 'Default' ? 'cash' : (account.account_type || 'checking'),
-            opening_balance: account.opening_balance || 0,
-            current_balance: account.current_balance || 0,
-            notes: account.notes || ''
-        });
         setErrors({});
         setIsModalOpen(true);
     };
@@ -91,16 +63,15 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
     };
 
     // Submit form
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (submittedPayload) => {
         setLoading(true);
         setErrors({});
 
         try {
             if (editingAccount) {
-                await axios.put(route('store.bank-accounts.update', { store_slug: store.slug, bankAccount: editingAccount.id }), formData);
+                await axios.put(route('store.bank-accounts.update', { store_slug: store.slug, bankAccount: editingAccount.id }), submittedPayload);
             } else {
-                await axios.post(route('store.bank-accounts.store', { store_slug: store.slug }), formData);
+                await axios.post(route('store.bank-accounts.store', { store_slug: store.slug }), submittedPayload);
             }
             setIsModalOpen(false);
             router.reload({ only: ['bankAccounts', 'stats'] });
@@ -318,100 +289,14 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
             </div>
 
             {/* Create/Edit Modal */}
-            <FormModal
+            <BankAccountModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingAccount ? 'Edit Bank Account' : 'Add Bank Account'}
-                subtitle={editingAccount ? 'Update account details' : 'Add a new bank or cash account'}
-                size="lg"
+                editingAccount={editingAccount}
+                onSubmit={handleSubmit}
+                loading={loading}
                 errors={errors}
-                footer={
-                    <div className="flex justify-end gap-3">
-                        <SecondaryButton onClick={() => setIsModalOpen(false)}>
-                            Cancel
-                        </SecondaryButton>
-                        <PrimaryButton onClick={handleSubmit} loading={loading}>
-                            {editingAccount ? 'Update' : 'Create'}
-                        </PrimaryButton>
-                    </div>
-                }
-            >
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField label="Account Name" required error={errors.name?.[0]}>
-                            <FormInput
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g., Main Business Account"
-                                error={errors.name}
-                            />
-                        </FormField>
-
-                        <FormField label="Account Type" required error={errors.account_type?.[0]}>
-                            <FormSelect
-                                value={formData.account_type}
-                                onChange={(e) => setFormData({ ...formData, account_type: e.target.value })}
-                            >
-                                <option value="cash">Cash</option>
-                                <option value="checking">Checking Account</option>
-                                <option value="savings">Savings Account</option>
-                                <option value="credit">Credit Card</option>
-                            </FormSelect>
-                        </FormField>
-                    </div>
-
-                    {formData.account_type !== 'cash' && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField label="Bank Name">
-                                <FormInput
-                                    value={formData.bank_name}
-                                    onChange={(e) => setFormData({ ...formData, bank_name: e.target.value })}
-                                    placeholder="e.g., HBL, UBL, Meezan"
-                                />
-                            </FormField>
-
-                            <FormField label="Account Number">
-                                <FormInput
-                                    value={formData.account_number}
-                                    onChange={(e) => setFormData({ ...formData, account_number: e.target.value })}
-                                    placeholder="Enter account number"
-                                />
-                            </FormField>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField label="Opening Balance" hint="Initial balance when adding this account">
-                            <FormInput
-                                type="number"
-                                value={formData.opening_balance}
-                                onChange={(e) => setFormData({ ...formData, opening_balance: parseFloat(e.target.value) || 0 })}
-                                placeholder="0"
-                            />
-                        </FormField>
-
-                        {editingAccount && (
-                            <FormField label="Current Balance">
-                                <FormInput
-                                    type="number"
-                                    value={formData.current_balance}
-                                    disabled
-                                    className="bg-app"
-                                />
-                            </FormField>
-                        )}
-                    </div>
-
-                    <FormField label="Notes">
-                        <FormTextarea
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            placeholder="Optional notes about this account"
-                            rows={2}
-                        />
-                    </FormField>
-                </form>
-            </FormModal>
+            />
         </OneGlanceLayout>
     );
 }
