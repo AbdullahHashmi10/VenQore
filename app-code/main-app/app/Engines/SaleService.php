@@ -217,6 +217,9 @@ class SaleService
                             $saleUom
                         );
 
+                        // Commerce MVP: never consume stock held by an accepted online order.
+                        \App\Services\Commerce\HoldGuard::assertSellable((string) $item['product_id'], (string) $data['warehouse_id'], (float) $baseQty, $data['source_order_id'] ?? null);
+
                         // FIFO deduction — returns array of batch deductions
                         $deductions = $this->fifo->deductStock(
                             productId:   $item['product_id'],

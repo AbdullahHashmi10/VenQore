@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import './NewDashboard.css';
+import './DashboardMobile.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import FramePicker from '@/Dashboard/components/FramePicker';
@@ -3516,8 +3517,13 @@ function saveServerLayout(){
   clearTimeout(SAVE_LAYOUT_TIMER);
   SAVE_LAYOUT_TIMER = setTimeout(() => {
     const cards = CARDS.map(serverCard).filter(Boolean);
+    window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'saving' }));
     axios.put(`/api/dashboards/${DASHBOARD_ID}/layout`, { cards, frame_dirty: FRAME_DIRTY })
-      .catch(error => console.error("[VenQoreCards] Could not save dashboard layout.", error));
+      .then(() => window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'saved' })))
+      .catch(error => {
+        window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'error' }));
+        console.error("[VenQoreCards] Could not save dashboard layout.", error);
+      });
   }, 250);
 }
 function markFrameDirty(){
@@ -4301,6 +4307,23 @@ export default function NewDashboard(props) {
   const user = auth?.user || { name: 'Store Owner', email: 'business@venqore.com' };
   const settings = props?.settings || {};
   const isDemo = props?.is_demo === true;
+  const [isNativeMobileApp, setIsNativeMobileApp] = useState(false);
+  const [layoutSaveStatus, setLayoutSaveStatus] = useState('');
+
+  useEffect(() => {
+    setIsNativeMobileApp(/VenQoreMobile/i.test(window.navigator.userAgent || ''));
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('vq-native-dashboard', isNativeMobileApp);
+    return () => document.documentElement.classList.remove('vq-native-dashboard');
+  }, [isNativeMobileApp]);
+
+  useEffect(() => {
+    const onSave = event => setLayoutSaveStatus(event.detail);
+    window.addEventListener('vq:layout-save', onSave);
+    return () => window.removeEventListener('vq:layout-save', onSave);
+  }, []);
   /* Real data from DashboardController ───────────────────────────── */
   const cashData          = props?.cashData          || null;
   const bankAccounts      = props?.bankAccounts      || [];
@@ -5785,13 +5808,38 @@ export default function NewDashboard(props) {
   );
 
   return (
-    <OneGlanceLayout activeMenu="Dashboard" noPadding={true}>
-      <Head title="Command Center — New Dashboard" />
+    <OneGlanceLayout activeMenu="Dashboard" noPadding={true} hideHeader={isNativeMobileApp}>
+      <Head title="Dashboard" />
 
       <div ref={containerRef}
-           className={`vq-shell ${isEditMode ? 'is-editing' : ''} vq-nav-embedded`}
+           className={`vq-shell ${isEditMode ? 'is-editing' : ''} ${isNativeMobileApp ? 'is-native-app' : ''} vq-nav-embedded`}
            id="vq-app-shell">
         <div className="vq-main-stage">
+
+        {isNativeMobileApp && (
+          <section className="vq-mobile-command" aria-label="Dashboard controls">
+            <div className="vq-mobile-command-copy">
+              <span className="vq-mobile-command-kicker">{store?.name || 'Your business'}</span>
+              <h1>My dashboard</h1>
+              <p>{isEditMode ? 'Move and resize cards, then tap Done.' : 'Live numbers and the actions you use most.'}</p>
+            </div>
+            <div className="vq-mobile-command-actions">
+              <button type="button" className="vq-mobile-command-add" onClick={() => openPicker(0)}>
+                <Plus size={17} strokeWidth={2.4} /> Add card
+              </button>
+              <button type="button" className={`vq-mobile-command-edit ${isEditMode ? 'is-active' : ''}`} onClick={() => setIsEditMode(v => !v)}>
+                {isEditMode ? <BadgeCheck size={17} /> : <PenLine size={17} />}
+                {isEditMode ? 'Done' : 'Customize'}
+              </button>
+            </div>
+            {layoutSaveStatus && (
+              <div className={`vq-mobile-save-state ${layoutSaveStatus === 'error' ? 'is-error' : ''}`} role="status" aria-live="polite">
+                {layoutSaveStatus === 'saving' ? 'Saving layout…' : layoutSaveStatus === 'saved' ? 'Layout saved' : 'Could not save layout. Check your connection.'}
+                {layoutSaveStatus === 'error' && <button type="button" onClick={saveServerLayout}>Retry</button>}
+              </div>
+            )}
+          </section>
+        )}
 
         {isEditMode && (
           <div className="vq-edit-banner">

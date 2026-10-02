@@ -2013,6 +2013,112 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   overflow-x: hidden;
 }
 
+/* Native mobile app presentation. The Flutter shell owns the application
+   chrome, while this page owns the dashboard content and card tools. */
+.vq-mobile-command { display: none; }
+
+@media (max-width: 599px) {
+  .vq-shell.is-native-app {
+    --vq-header-h: 0px;
+    background:
+      radial-gradient(circle at 100% 0%, rgb(11 170 143 / .10), transparent 38%),
+      var(--vq-bg, var(--vq-ink-25));
+  }
+
+  .vq-shell.is-native-app .vq-mobile-command {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 16px 16px;
+    background: linear-gradient(145deg, #0b2d27 0%, #0d4339 62%, #087f6d 145%);
+    color: #fff;
+    border-bottom: 1px solid rgb(255 255 255 / .10);
+    box-shadow: 0 10px 30px rgb(7 42 36 / .14);
+    flex: 0 0 auto;
+  }
+
+  .vq-mobile-command-copy { min-width: 0; }
+  .vq-mobile-command-kicker {
+    display: block;
+    margin-bottom: 4px;
+    color: #79e2cd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .vq-mobile-command h1 {
+    margin: 0;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1.18;
+    letter-spacing: -.025em;
+    font-weight: 800;
+  }
+  .vq-mobile-command p {
+    margin: 5px 0 0;
+    color: rgb(255 255 255 / .72);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .vq-mobile-command-actions { display: flex; gap: 9px; }
+  .vq-mobile-command-actions button {
+    min-height: 42px;
+    border-radius: 12px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font: 750 13px/1 var(--vq-font-sans);
+    cursor: pointer;
+  }
+  .vq-mobile-command-add {
+    flex: 1 1 auto;
+    border: 1px solid #38cdb0;
+    background: #18b99b;
+    color: #062b25;
+    box-shadow: 0 6px 16px rgb(0 0 0 / .16);
+  }
+  .vq-mobile-command-edit {
+    flex: 0 0 auto;
+    border: 1px solid rgb(255 255 255 / .22);
+    background: rgb(255 255 255 / .10);
+    color: #fff;
+  }
+  .vq-mobile-command-edit.is-active {
+    background: #fff;
+    color: #0a594c;
+    border-color: #fff;
+  }
+
+  .vq-shell.is-native-app .vq-canvas { padding: 14px 12px 112px; }
+  .vq-shell.is-native-app .vq-frame-picker { margin-bottom: 14px; }
+  .vq-shell.is-native-app .vq-edit-banner {
+    margin: 10px 12px 0;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+  .vq-shell.is-native-app .vqc {
+    box-shadow: 0 2px 10px rgb(13 32 27 / .07);
+  }
+  .vq-shell.is-native-app.is-editing .vqc-resize {
+    opacity: 1;
+    width: 34px;
+    height: 34px;
+  }
+  .vq-shell.is-native-app.is-editing .vqc-resize::after {
+    right: 9px;
+    bottom: 9px;
+    width: 11px;
+    height: 11px;
+    border-width: 0 3px 3px 0;
+  }
+}
+
 .vq-sidebar {
   width: var(--vq-nav-w);
   flex: 0 0 var(--vq-nav-w);

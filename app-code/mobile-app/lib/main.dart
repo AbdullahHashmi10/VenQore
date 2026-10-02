@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/welcome_screen.dart';
 import 'theme/app_colors.dart';
 
 void main() {
@@ -8,9 +8,9 @@ void main() {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.black,
-      systemNavigationBarIconBrightness: Brightness.light,
+      statusBarIconBrightness: Brightness.dark,
+      systemNavigationBarColor: AppColors.canvas,
+      systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
   runApp(const AmdErpApp());
@@ -26,22 +26,57 @@ class AmdErpApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: AppColors.canvas,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.indigoOrb,
-          brightness: Brightness.dark,
-          surface: AppColors.voidBase,
-          background: Colors.black,
+          seedColor: AppColors.teal,
+          brightness: Brightness.light,
+          surface: AppColors.surface,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.surface,
+          foregroundColor: AppColors.ink,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          systemOverlayStyle: SystemUiOverlayStyle.dark,
         ),
         textTheme: const TextTheme(
-          displayLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-          bodyLarge: TextStyle(color: AppColors.textPrimary),
-          bodyMedium: TextStyle(color: AppColors.textSecondary),
+          headlineLarge: TextStyle(
+            color: AppColors.ink,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1.1,
+          ),
+          titleLarge: TextStyle(
+            color: AppColors.ink,
+            fontWeight: FontWeight.w700,
+          ),
+          bodyLarge: TextStyle(color: AppColors.ink, height: 1.45),
+          bodyMedium: TextStyle(color: AppColors.inkMuted, height: 1.45),
         ),
-        fontFamily: 'Roboto', // Defaulting to Roboto, can be changed later
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.surface,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.line),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.teal,
+            foregroundColor: Colors.white,
+            minimumSize: const Size.fromHeight(54),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
       ),
-      home: const DashboardScreen(),
+      home: const WelcomeScreen(),
     );
   }
 }

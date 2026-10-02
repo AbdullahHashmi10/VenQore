@@ -145,7 +145,7 @@ export default function Security() {
         <h3 className="vq-h3">Proved, not asserted</h3>
         <p className="vq-tile__body vq-mt-3">The first of the eight correctness laws sets up two businesses and
           tries to read one's figures while authenticated as the other, across the whole metric registry. It
-          runs on every release. If isolation regresses, that release does not ship.</p>
+          runs on every update alongside 13,500+ automated tests and 60,000+ deep assertions. If isolation regresses, that release does not ship.</p>
       </div>
       <div className="vq-card vq-card--xl vq-reveal">
         <h3 className="vq-h3">Modules you switched off are actually off</h3>

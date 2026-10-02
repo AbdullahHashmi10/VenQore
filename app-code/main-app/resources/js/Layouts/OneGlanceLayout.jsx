@@ -265,6 +265,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+ useEffect(() => {
+     const openNavigation = () => setMobileSidebarOpen(true);
+     window.addEventListener('vq:open-navigation', openNavigation);
+     return () => window.removeEventListener('vq:open-navigation', openNavigation);
+ }, []);
  const [isMobileFabsOpen, setIsMobileFabsOpen] = useState(false);
  const [budIconType, setBudIconType] = useState('setup'); // 'setup' or 'chat'
 
@@ -401,11 +406,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const displayMenuRef = useRef(null);
  const mobileMenuRef = useRef(null);
  const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
+ const [isNativeMobileApp, setIsNativeMobileApp] = useState(false);
+
+ useEffect(() => {
+     setIsNativeMobileApp(/VenQoreMobile/i.test(window.navigator.userAgent || ''));
+ }, []);
 
  // Dynamic Mobile Bottom Nav Bar visibility check
  const showMobileNavBar = (() => {
  if (!props.auth?.user) return false;
  if (fullScreen) return false;
+ if (isNativeMobileApp) return false;
 
  const path = url.toLowerCase();
 

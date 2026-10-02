@@ -1,0 +1,77 @@
+/* App-only presentation for the canonical /dashboard card engine. */
+.vq-mobile-save-state { font-size: 12px; color: var(--vq-text-2); }
+.vq-mobile-save-state.is-error { color: var(--vq-danger-text, #b42318); }
+.vq-mobile-save-state button {
+  margin-left: 8px; border: 0; background: transparent; color: inherit;
+  text-decoration: underline; font: inherit; min-height: 32px; cursor: pointer;
+}
+
+@media (max-width: 1023px) {
+  .vq-shell.is-native-app .vq-mobile-command {
+    display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
+    padding: 16px; background: var(--vq-surface, #fff);
+    color: var(--vq-text); border-bottom: 1px solid var(--vq-line);
+    box-shadow: none;
+  }
+  .vq-shell.is-native-app .vq-mobile-command-kicker {
+    color: var(--vq-text-2); text-transform: none; letter-spacing: 0;
+    font-size: 13px; font-weight: 600;
+  }
+  .vq-shell.is-native-app .vq-mobile-command h1 {
+    color: var(--vq-text); font-size: 26px; letter-spacing: -.035em;
+  }
+  .vq-shell.is-native-app .vq-mobile-command p { color: var(--vq-text-2); }
+  .vq-shell.is-native-app .vq-mobile-command-edit {
+    color: var(--vq-text); background: var(--vq-sunken);
+    border-color: var(--vq-line);
+  }
+  .vq-shell.is-native-app .vq-mobile-command-edit.is-active {
+    color: var(--vq-accent-text); background: var(--vq-accent-quiet);
+    border-color: var(--vq-accent);
+  }
+  .vq-shell.is-native-app .vq-mobile-command-actions button { min-height: 44px; }
+  .vq-shell.is-native-app .vq-canvas { padding: 16px 12px 28px; }
+  .vq-shell.is-native-app .vq-scroll-region { scrollbar-gutter: auto; }
+  .vq-shell.is-native-app.is-editing .vqc-resize {
+    opacity: 1; width: 44px; height: 44px; touch-action: none;
+    background: var(--vq-accent-quiet); border-radius: 12px 0 12px 0;
+  }
+  .vq-shell.is-native-app.is-editing .vqc-resize::after {
+    right: 12px; bottom: 12px; width: 12px; height: 12px;
+  }
+  .vq-shell.is-native-app .vqc-nav-link { opacity: 1; }
+  .vq-shell.is-native-app button:focus-visible {
+    outline: 3px solid var(--vq-accent, #0baa8f); outline-offset: 3px;
+  }
+  html.vq-native-dashboard .vq-modal-overlay {
+    padding: 0; align-items: stretch; justify-content: stretch;
+  }
+  html.vq-native-dashboard .vq-modal-card {
+    width: 100%; max-width: none; height: 100dvh; max-height: 100dvh;
+    border-radius: 0; display: flex; flex-direction: column;
+  }
+  html.vq-native-dashboard .vq-modal-scroll-area {
+    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+    padding: 16px;
+  }
+  html.vq-native-dashboard .vq-modal-top-bar,
+  html.vq-native-dashboard .vq-modal-bottom-bar { flex-shrink: 0; padding: 14px 16px; }
+  html.vq-native-dashboard .vq-modal-bottom-bar {
+    background: var(--vq-surface); border-top: 1px solid var(--vq-line);
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+  html.vq-native-dashboard .vq-modal-heading { font-size: 20px; }
+  html.vq-native-dashboard .vq-family-tab-sub { display: none; }
+  html.vq-native-dashboard .vq-family-tab { min-height: 48px; padding: 10px 8px; }
+  html.vq-native-dashboard .vq-family-tab-title { font-size: 12px; }
+  html.vq-native-dashboard .vq-modal-close-x { min-width: 44px; min-height: 44px; }
+  html.vq-native-dashboard .vq-choice-btn,
+  html.vq-native-dashboard .vqb,
+  html.vq-native-dashboard .vq-modal-close-btn { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vq-shell.is-native-app *, html.vq-native-dashboard .vq-modal-card * {
+    animation: none !important; transition-duration: 0ms !important;
+  }
+}

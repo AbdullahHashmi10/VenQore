@@ -61,7 +61,7 @@ function InnerGlobalLayout({ children, settings }) {
  // this prefix, SyncService/offline-lock/tenant widgets below were firing
  // against pages with no store context at all — same bug class as the
  // /gift/{token} fix noted above.
- const isPublicPrefix = ['/gift/', '/blog/', '/invitation/', '/join/', '/tools/', '/tools']
+ const isPublicPrefix = ['/gift/', '/blog/', '/invitation/', '/join/', '/tools/', '/tools', '/shop', '/order-status/']
  .some(prefix => currentPath.startsWith(prefix));
 
  const isMarketing = [

@@ -33,6 +33,15 @@ class CanonicalHostMiddleware
 
         $response = $next($request);
 
+        // Staging must never be indexed. Search Console reported
+        // staging.venqore.com being discovered and crawled (5xx + 404 entries).
+        // A header is used rather than a robots.txt Disallow because
+        // public/robots.txt is one static file shared by every host, and a
+        // Disallow would stop Google from ever seeing a noindex.
+        if (str_starts_with(strtolower($request->getHost()), 'staging.')) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        }
+
         if ($request->isSecure() && !$response->headers->has('Strict-Transport-Security')) {
             $response->headers->set(
                 'Strict-Transport-Security',

@@ -1,0 +1,427 @@
+/* VenQore Shops — design tokens from the approved storefront mockups (v5 "Qore"), scoped to .vqs-shop so the rest of the app is untouched. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+/* ── VenQore v5 raw ramps ──────────────────────────────────────────────────
+   v2 capped brand chroma at 0.071 and the product read grey. v5 runs the
+   brand hot (chroma ~0.13 at the 400 step) and keeps the neutrals faintly
+   green so saturated teal never looks pasted on. */
+.vqs-shop {
+  /* Qore Teal — the brand. Mint at the top, deep pine at the bottom. */
+  --vq-teal-50: #E6FBF5;
+  --vq-teal-100: #C6F5E9;
+  --vq-teal-200: #93EBD6;
+  --vq-teal-300: #59DBC0;
+  --vq-teal-400: #23C4A6;
+  --vq-teal-500: #0BAA8F;
+  --vq-teal-600: #088975;
+  --vq-teal-700: #076B5E;
+  --vq-teal-800: #0A5049;
+  --vq-teal-900: #0B3A35;
+  --vq-teal-950: #062421;
+
+  /* Ink — neutrals with a 160° cast so they sit *with* the teal. */
+  --vq-ink-0: #FFFFFF;
+  --vq-ink-25: #F8FAF8;
+  --vq-ink-50: #F1F5F2;
+  --vq-ink-100: #E6ECE8;
+  --vq-ink-200: #D3DCD7;
+  --vq-ink-300: #B4C0BA;
+  --vq-ink-400: #8B9A93;
+  --vq-ink-500: #6B7A73;
+  --vq-ink-600: #536159;
+  --vq-ink-700: #3C4841;
+  --vq-ink-800: #29332D;
+  --vq-ink-900: #17201B;
+  --vq-ink-950: #0D1412;
+  --vq-ink-1000: #060A09;
+
+  /* Playmates — three warm counterpoints + one cool. Used for delight and
+     for categorical data. Never for "good/bad" meaning (that's semantic). */
+  --vq-lime-100: #EEF9D7;
+  --vq-lime-300: #C8EE7E;
+  --vq-lime-400: #A9E34B;
+  --vq-lime-500: #8CCB2E;
+  --vq-lime-700: #5E8C15;
+
+  --vq-coral-100: #FFE8E1;
+  --vq-coral-300: #FFAE96;
+  --vq-coral-400: #FF8A6B;
+  --vq-coral-500: #F26A47;
+  --vq-coral-700: #B94526;
+
+  --vq-butter-100: #FFF3D6;
+  --vq-butter-300: #FFDD8E;
+  --vq-butter-400: #FFCD5B;
+  --vq-butter-500: #F5B32E;
+  --vq-butter-700: #A6740A;
+
+  --vq-sky-100: #DDF2FB;
+  --vq-sky-300: #8FD9F5;
+  --vq-sky-400: #55C4EC;
+  --vq-sky-500: #2BA5D1;
+  --vq-sky-700: #1B7096;
+
+  --vq-plum-300: #E0B4E0;
+  --vq-plum-400: #C98BC9;
+  --vq-plum-500: #B266A8;
+  --vq-plum-700: #7E3E76;
+
+  /* Categorical data slots — fixed order, never cycled. Slot 1 is the brand. */
+  --vq-series-1: #0BAA8F;
+  --vq-series-2: #F26A47;
+  --vq-series-3: #2BA5D1;
+  --vq-series-4: #F5B32E;
+  --vq-series-5: #8CCB2E;
+  --vq-series-6: #B266A8;
+  --vq-series-7: #0B3A35;
+  --vq-series-8: #8B9A93;
+
+  /* Sequential (magnitude) and diverging (polarity) ramps. */
+  --vq-seq-1: #C6F5E9; --vq-seq-2: #59DBC0; --vq-seq-3: #0BAA8F;
+  --vq-seq-4: #076B5E; --vq-seq-5: #0B3A35;
+  --vq-div-neg-2: #C4443A; --vq-div-neg-1: #F0A79E;
+  --vq-div-mid: #E6ECE8;
+  --vq-div-pos-1: #6FDCC3; --vq-div-pos-2: #088975;
+}
+
+.vqs-shop {
+  --vq-font-display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+  --vq-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --vq-font-numeric: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+  --vq-font-mono: "Space Grotesk", ui-monospace, "SF Mono", monospace;
+
+  /* Display voice — Bricolage, weight 600, tracking pulled tight. */
+  --vq-fs-hero: 76px;
+  --vq-lh-hero: 0.98; /* @kind other */
+  --vq-ls-hero: -0.038em; /* @kind other */
+  --vq-fs-display: 56px;
+  --vq-lh-display: 1.02; /* @kind other */
+  --vq-ls-display: -0.032em; /* @kind other */
+  --vq-fs-h1: 40px;
+  --vq-lh-h1: 1.08; /* @kind other */
+  --vq-ls-h1: -0.028em; /* @kind other */
+  --vq-fs-h2: 30px;
+  --vq-lh-h2: 1.16; /* @kind other */
+  --vq-ls-h2: -0.024em; /* @kind other */
+  --vq-fs-h3: 21px;
+  --vq-lh-h3: 1.30; /* @kind other */
+  --vq-ls-h3: -0.016em; /* @kind other */
+
+  /* Text voice — Plus Jakarta Sans. */
+  --vq-fs-lede: 19px;
+  --vq-lh-lede: 1.55; /* @kind other */
+  --vq-ls-lede: -0.008em; /* @kind other */
+  --vq-fs-body: 16px;
+  --vq-lh-body: 1.6; /* @kind other */
+  --vq-ls-body: -0.002em; /* @kind other */
+  --vq-fs-small: 14px;
+  --vq-lh-small: 1.5; /* @kind other */
+  --vq-ls-small: 0em; /* @kind other */
+  --vq-fs-caption: 13px;
+  --vq-lh-caption: 1.45; /* @kind other */
+  --vq-ls-caption: 0em; /* @kind other */
+
+  /* Numeric voice — Space Grotesk, tabular. */
+  --vq-fs-metric: 38px;
+  --vq-lh-metric: 1.0; /* @kind other */
+  --vq-ls-metric: -0.03em; /* @kind other */
+  --vq-fs-metric-sm: 26px;
+  --vq-fs-eyebrow: 11px;
+  --vq-lh-eyebrow: 1.2; /* @kind other */
+  --vq-ls-eyebrow: 0.12em; /* @kind other */
+
+  --vq-fw-regular: 400; /* @kind other */
+  --vq-fw-medium: 500; /* @kind other */
+  --vq-fw-semi: 600; /* @kind other */
+  --vq-fw-bold: 700; /* @kind other */
+  --vq-measure: 68ch; /* @kind other */
+}
+
+.vqs-shop {
+  --vq-space-0: 0px;   --vq-space-1: 4px;   --vq-space-2: 8px;
+  --vq-space-3: 12px;  --vq-space-4: 16px;  --vq-space-5: 20px;
+  --vq-space-6: 24px;  --vq-space-7: 28px;  --vq-space-8: 32px;
+  --vq-space-10: 40px; --vq-space-12: 48px; --vq-space-14: 56px;
+  --vq-space-16: 64px; --vq-space-20: 80px; --vq-space-24: 96px;
+  --vq-space-32: 128px;
+
+  /* Density — v5 runs roomier than v2. Playful needs air. */
+  --vq-control-sm: 34px;
+  --vq-control-md: 42px;
+  --vq-control-lg: 48px;
+  --vq-control-xl: 56px;
+  --vq-row-h: 52px;
+  --vq-row-head-h: 40px;
+  --vq-rail-w: 248px;
+  --vq-rail-w-min: 76px;
+  --vq-topbar-h: 68px;
+  --vq-page-max: 1240px;
+  --vq-gutter: 20px;      /* gap between dashboard cards */
+  --vq-section-y: 112px;  /* marketing section rhythm */
+
+  /* Stacking ladder — these twelve are the only legal z-index values. */
+  --vq-z-base: 0; /* @kind other */
+  --vq-z-raised: 10; /* @kind other */
+  --vq-z-sticky: 100; /* @kind other */
+  --vq-z-nav: 200; /* @kind other */
+  --vq-z-rail: 300; /* @kind other */
+  --vq-z-dropdown: 400; /* @kind other */
+  --vq-z-drawer: 500; /* @kind other */
+  --vq-z-modal: 600; /* @kind other */
+  --vq-z-popover: 700; /* @kind other */
+  --vq-z-tooltip: 800; /* @kind other */
+  --vq-z-toast: 900; /* @kind other */
+  --vq-z-command: 1000; /* @kind other */
+}
+
+/* v5 shape: soft and chunky. v2's 10px base read like a bank form; the
+   playful register lives between 14 and 28. Nesting rule stays:
+   inner radius = outer radius − inner padding. */
+.vqs-shop {
+  --vq-r-none: 0px;
+  --vq-r-xs: 8px;    /* checkbox, cell chip */
+  --vq-r-sm: 12px;   /* badge, tag, tooltip, small inner tile */
+  --vq-r-md: 14px;   /* BASE — input, select, menu item */
+  --vq-r-lg: 20px;   /* card, panel, dropdown surface, button */
+  --vq-r-xl: 28px;   /* modal, drawer, big feature tile, KPI card */
+  --vq-r-2xl: 36px;  /* CEILING — hero card, app frame */
+  --vq-r-full: 999px;
+}
+
+/* Two-part shadows: a tight contact shadow plus a wide soft bloom. Neutral,
+   never teal-tinted — except --vq-glow-accent, which is the one deliberate
+   coloured light in the system (primary buttons and the active KPI card). */
+.vqs-shop {
+  --vq-elev-0: none;
+  --vq-elev-1: 0 1px 2px rgb(13 20 18 / .05), 0 2px 8px -4px rgb(13 20 18 / .06);
+  --vq-elev-2: 0 1px 2px rgb(13 20 18 / .05), 0 10px 24px -10px rgb(13 20 18 / .12);
+  --vq-elev-3: 0 2px 4px rgb(13 20 18 / .06), 0 24px 56px -16px rgb(13 20 18 / .20);
+  --vq-elev-inset: inset 0 1px 0 rgb(255 255 255 / .55);
+  --vq-glow-accent: 0 6px 20px -6px rgb(11 170 143 / .55);
+  --vq-glow-accent-strong: 0 10px 32px -8px rgb(11 170 143 / .70);
+  --vq-ring-focus: 0 0 0 4px rgb(35 196 166 / .30);
+}
+
+/* v5 motion has a pulse. Things arrive with a little overshoot, settle, and
+   never wobble twice. Springs are for entrances, toggles, chips and counters;
+   colour/hover changes stay on --vq-ease-out so they feel instant. */
+.vqs-shop {
+  --vq-dur-1: 120ms; /* @kind other */
+  --vq-dur-2: 200ms; /* @kind other */
+  --vq-dur-3: 320ms; /* @kind other */
+  --vq-dur-4: 520ms; /* @kind other */
+  --vq-dur-amb: 9000ms; /* @kind other */
+  --vq-ease-out: cubic-bezier(.22, 1, .36, 1); /* @kind other */
+  --vq-ease-in-out: cubic-bezier(.65, 0, .35, 1); /* @kind other */
+  --vq-ease-spring: cubic-bezier(.34, 1.56, .64, 1); /* @kind other */
+  --vq-ease-spring-soft: cubic-bezier(.32, 1.28, .5, 1); /* @kind other */
+  --vq-stagger: 60ms; /* @kind other */
+}
+
+/* ── Semantic layer — LIGHT (default) ─────────────────────────────────────
+   The light theme is not white-on-white. The page is a soft green-grey and
+   cards are pure white, so every card floats. That contrast is where the
+   "lively" comes from — v2 put grey cards on a white page and everything
+   sank. */
+.vqs-shop {
+  --vq-bg: #F1F5F2;              /* page — never pure white */
+  --vq-bg-alt: #E9EFEB;          /* alternating marketing band */
+  --vq-surface: #FFFFFF;         /* cards, panels — the floaters */
+  --vq-surface-2: var(--vq-ink-25);
+  --vq-sunken: var(--vq-ink-100);
+  --vq-raised: #FFFFFF;          /* menus, popovers, modals */
+  --vq-scrim: rgb(13 20 18 / .40);
+  --vq-glass: rgb(255 255 255 / .72);
+  --vq-glass-blur: 18px; /* @kind other */
+
+  --vq-text: var(--vq-ink-900);
+  --vq-text-2: var(--vq-ink-600);
+  --vq-text-3: var(--vq-ink-500);   /* lightest legal text */
+  --vq-text-inverted: #FFFFFF;
+
+  --vq-accent: var(--vq-teal-500);        /* the identity colour */
+  --vq-accent-fill: var(--vq-teal-600);   /* solid buttons — white on it */
+  --vq-accent-fill-hover: var(--vq-teal-700);
+  --vq-accent-text: var(--vq-teal-700);   /* links, inline accent */
+  --vq-accent-quiet: var(--vq-teal-50);   /* tint wash — takes ink text */
+  --vq-accent-quiet-line: var(--vq-teal-200);
+  --vq-on-accent: #FFFFFF;
+  --vq-on-danger: #FFFFFF;
+
+  --vq-line: var(--vq-ink-200);
+  --vq-line-soft: var(--vq-ink-100);
+  --vq-line-strong: var(--vq-ink-300);
+  --vq-focus: var(--vq-teal-400);
+
+  --vq-success: #12855C; --vq-success-bg: #E4F6EC; --vq-success-line: #A9E0C4;
+  --vq-warning: #A6690A; --vq-warning-bg: #FFF3D6; --vq-warning-line: #F2D08A;
+  --vq-danger:  #C4443A; --vq-danger-bg:  #FDEAE7; --vq-danger-line:  #F3B7AF;
+  --vq-info:    #1B7096; --vq-info-bg:    #DDF2FB; --vq-info-line:    #A8DCF0;
+
+  --vq-chart-surface: #FFFFFF;
+  --vq-chart-grid: var(--vq-ink-100);
+  --vq-chart-axis: var(--vq-ink-300);
+  --vq-chart-label: var(--vq-ink-500);
+  --vq-chart-track: var(--vq-ink-100);   /* the unfilled part of a bar/ring */
+
+  /* The signature marketing gradient: deep pine → mint → page. */
+  --vq-grad-hero: linear-gradient(175deg, #062421 0%, #0A5049 34%, #23C4A6 72%, #E6FBF5 100%); /* @kind color */
+  --vq-grad-mint: linear-gradient(135deg, #23C4A6 0%, #0BAA8F 55%, #076B5E 100%); /* @kind color */
+  --vq-grad-spot: radial-gradient(60% 70% at 20% 10%, rgb(35 196 166 / .40), transparent 70%),
+                  radial-gradient(50% 60% at 85% 80%, rgb(11 58 53 / .35), transparent 70%); /* @kind color */
+  --vq-grad-warm: linear-gradient(135deg, #FFCD5B 0%, #FF8A6B 100%); /* @kind color */
+}
+
+
+
+.vqs-shop{background:var(--vq-bg);color:var(--vq-text);font-family:var(--vq-font-sans);min-height:100vh;-webkit-font-smoothing:antialiased}
+.vqs-shop *,.vqs-shop *::before,.vqs-shop *::after{box-sizing:border-box}
+.vqs-shop a{color:var(--vq-accent-text);text-decoration:none}
+.vqs-shop a:hover{color:var(--vq-accent-fill-hover);text-decoration:underline}
+.vqs-shop :focus-visible{outline:none;box-shadow:var(--vq-ring-focus)}
+@media (prefers-reduced-motion:reduce){.vqs-shop *{transition:none!important;animation:none!important}}
+
+/* ── Components (values lifted from the approved mockup) ─────────────────── */
+.vqs-shop .vqs-wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.vqs-shop .vqs-topbar{background:var(--vq-surface);border-bottom:1px solid var(--vq-line);position:sticky;top:0;z-index:var(--vq-z-sticky)}
+.vqs-shop .vqs-topbar-in{display:flex;align-items:center;gap:14px;min-height:68px}
+.vqs-shop .vqs-brand{display:flex;align-items:center;gap:10px;color:var(--vq-text)!important;text-decoration:none!important;font:600 20px/1 var(--vq-font-display);letter-spacing:-0.025em}
+.vqs-shop .vqs-brand img{width:30px;height:30px;object-fit:contain}
+.vqs-shop .vqs-tag{font:600 10px/1 var(--vq-font-numeric);letter-spacing:.14em;text-transform:uppercase;color:var(--vq-accent-text);background:var(--vq-accent-quiet);border:1px solid var(--vq-accent-quiet-line);padding:5px 8px;border-radius:99px}
+.vqs-shop .vqs-spacer{flex:1}
+.vqs-shop .vqs-crumb{font:500 13px/1 var(--vq-font-sans);color:var(--vq-text-2);max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vqs-shop .vqs-main{padding:24px 0 56px}
+.vqs-shop .vqs-foot{padding:8px 0 40px;font:400 12px/1.5 var(--vq-font-sans);color:var(--vq-text-3)}
+
+.vqs-shop .vqs-hero{position:relative;overflow:hidden;border-radius:var(--vq-r-2xl);padding:clamp(28px,5vw,56px);color:#fff;background:linear-gradient(135deg,#062421 0%,#0A5049 55%,#062421 100%)}
+.vqs-shop .vqs-hero::before{content:"";position:absolute;inset:0;background:var(--vq-grad-spot);pointer-events:none}
+.vqs-shop .vqs-hero>*{position:relative}
+.vqs-shop .vqs-eyebrow{font:500 11px/1.2 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)}
+.vqs-shop .vqs-hero .vqs-eyebrow{color:rgb(255 255 255 / .7)}
+.vqs-shop .vqs-h1{margin:0;font:600 clamp(30px,5vw,56px)/1.02 var(--vq-font-display);letter-spacing:-0.035em}
+.vqs-shop .vqs-h1 em{font-style:normal;color:var(--vq-teal-300)}
+.vqs-shop .vqs-h2{margin:0;font:600 clamp(22px,3vw,30px)/1.1 var(--vq-font-display);letter-spacing:-0.03em}
+.vqs-shop .vqs-lede{font:400 16px/1.55 var(--vq-font-sans);color:rgb(255 255 255 / .82);max-width:52ch;margin:14px 0 0}
+.vqs-shop .vqs-muted{color:var(--vq-text-2)}
+.vqs-shop .vqs-faint{color:var(--vq-text-3)}
+.vqs-shop .vqs-num{font-family:var(--vq-font-numeric);font-variant-numeric:tabular-nums}
+
+.vqs-shop .vqs-card{background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:var(--vq-r-lg);box-shadow:var(--vq-elev-1)}
+.vqs-shop .vqs-pad{padding:20px}
+.vqs-shop .vqs-stack{display:flex;flex-direction:column;gap:14px}
+.vqs-shop .vqs-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vqs-shop .vqs-between{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vqs-shop .vqs-grid{display:grid;gap:20px}
+
+.vqs-shop .vqs-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:var(--vq-control-md);padding:0 20px;border-radius:var(--vq-r-full);border:1px solid transparent;background:var(--vq-accent-fill);color:var(--vq-on-accent)!important;font:600 14px/1 var(--vq-font-sans);cursor:pointer;text-decoration:none!important;box-shadow:var(--vq-glow-accent);transition:background var(--vq-dur-1) var(--vq-ease-out),transform var(--vq-dur-2) var(--vq-ease-spring)}
+.vqs-shop .vqs-btn:hover{background:var(--vq-accent-fill-hover)}
+.vqs-shop .vqs-btn:active{transform:scale(.98)}
+.vqs-shop .vqs-btn[disabled]{opacity:.5;cursor:not-allowed;box-shadow:none}
+.vqs-shop .vqs-btn--lg{min-height:var(--vq-control-lg);padding:0 26px;font-size:15px}
+.vqs-shop .vqs-btn--full{width:100%}
+.vqs-shop .vqs-btn--soft{background:var(--vq-surface);color:var(--vq-text)!important;border-color:var(--vq-line-strong);box-shadow:none}
+.vqs-shop .vqs-btn--soft:hover{background:var(--vq-sunken)}
+.vqs-shop .vqs-btn--round{width:40px;height:40px;min-height:0;padding:0;font-size:20px}
+
+.vqs-shop .vqs-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:var(--vq-r-full);font:600 12px/1 var(--vq-font-sans);background:var(--vq-sunken);color:var(--vq-text-2);border:1px solid var(--vq-line)}
+.vqs-shop .vqs-badge--ok{background:var(--vq-success-bg);color:var(--vq-success);border-color:var(--vq-success-line)}
+.vqs-shop .vqs-badge--warn{background:var(--vq-warning-bg);color:var(--vq-warning);border-color:var(--vq-warning-line)}
+.vqs-shop .vqs-badge--bad{background:var(--vq-danger-bg);color:var(--vq-danger);border-color:var(--vq-danger-line)}
+.vqs-shop .vqs-badge--info{background:var(--vq-info-bg);color:var(--vq-info);border-color:var(--vq-info-line)}
+.vqs-shop .vqs-badge--ok::before{content:"";width:6px;height:6px;border-radius:99px;background:currentColor}
+
+.vqs-shop .vqs-input,.vqs-shop .vqs-select,.vqs-shop .vqs-textarea{width:100%;min-height:var(--vq-control-md);padding:10px 14px;border-radius:var(--vq-r-md);border:1px solid var(--vq-line-strong);background:var(--vq-surface);color:var(--vq-text);font:500 14px/1.4 var(--vq-font-sans)}
+.vqs-shop .vqs-textarea{resize:vertical}
+.vqs-shop .vqs-label{display:block;font:600 13px/1.2 var(--vq-font-sans);color:var(--vq-text);margin-bottom:6px}
+.vqs-shop .vqs-hint{font:400 12px/1.4 var(--vq-font-sans);color:var(--vq-text-3);margin-top:5px}
+.vqs-shop .vqs-err{font:500 12px/1.4 var(--vq-font-sans);color:var(--vq-danger);margin-top:5px}
+
+.vqs-shop .vqs-seg{display:flex;gap:8px}
+.vqs-shop .vqs-seg label{flex:1;text-align:center;padding:11px 12px;border-radius:var(--vq-r-full);border:1px solid var(--vq-line-strong);background:var(--vq-surface);font:600 14px/1 var(--vq-font-sans);cursor:pointer;transition:all var(--vq-dur-2) var(--vq-ease-out)}
+.vqs-shop .vqs-seg label.on{background:var(--vq-accent-quiet);border-color:var(--vq-accent);color:var(--vq-accent-text);box-shadow:inset 0 0 0 1px var(--vq-accent)}
+.vqs-shop .vqs-seg input{position:absolute;opacity:0;pointer-events:none}
+.vqs-shop .vqs-check{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--vq-line);border-radius:var(--vq-r-md);font:500 14px/1.3 var(--vq-font-sans);cursor:pointer}
+.vqs-shop .vqs-check.on{border-color:var(--vq-accent);background:var(--vq-accent-quiet)}
+
+.vqs-shop .vqs-alert{border:1px solid var(--vq-info-line);background:var(--vq-info-bg);color:var(--vq-info);border-radius:var(--vq-r-md);padding:12px 16px;font:500 14px/1.5 var(--vq-font-sans)}
+.vqs-shop .vqs-alert--warn{border-color:var(--vq-warning-line);background:var(--vq-warning-bg);color:var(--vq-warning)}
+.vqs-shop .vqs-alert--bad{border-color:var(--vq-danger-line);background:var(--vq-danger-bg);color:var(--vq-danger)}
+.vqs-shop .vqs-alert--ok{border-color:var(--vq-success-line);background:var(--vq-success-bg);color:var(--vq-success)}
+
+.vqs-shop .vqs-shopcard{display:flex;flex-direction:column;overflow:hidden;color:inherit!important;text-decoration:none!important;transition:transform var(--vq-dur-2) var(--vq-ease-out),box-shadow var(--vq-dur-2) var(--vq-ease-out)}
+.vqs-shop .vqs-shopcard:hover{transform:translateY(-2px);box-shadow:var(--vq-elev-2)}
+.vqs-shop .vqs-cover{height:92px;position:relative;display:flex;justify-content:flex-end;align-items:flex-start;padding:12px}
+.vqs-shop .vqs-cover .vqs-badge{background:var(--vq-surface)}
+.vqs-shop .vqs-mark{position:relative;z-index:1;width:60px;height:60px;border-radius:18px;background:var(--vq-surface);border:3px solid var(--vq-surface);box-shadow:var(--vq-elev-2);display:flex;align-items:center;justify-content:center;font:600 21px/1 var(--vq-font-display);letter-spacing:-0.03em;overflow:hidden}
+.vqs-shop .vqs-mark img{width:100%;height:100%;object-fit:cover}
+.vqs-shop .vqs-mark--lg{width:84px;height:84px;border-radius:24px;border-width:4px;font-size:30px}
+.vqs-shop .vqs-shopbody{padding:0 18px 18px;display:flex;flex-direction:column;gap:12px;margin-top:-30px;flex:1}
+.vqs-shop .vqs-shopname{font:600 19px/1.15 var(--vq-font-display);letter-spacing:-0.025em;color:var(--vq-text)}
+.vqs-shop .vqs-shopfoot{margin-top:auto;padding-top:12px;border-top:1px solid var(--vq-line-soft);display:flex;flex-wrap:wrap;gap:6px 14px;font:500 13px/1.2 var(--vq-font-sans);color:var(--vq-text-2);align-items:center}
+.vqs-shop .vqs-shopfoot .go{margin-left:auto;font-weight:600;color:var(--vq-accent-text)}
+
+.vqs-shop .vqs-storehead{border-radius:var(--vq-r-xl);overflow:hidden}
+.vqs-shop .vqs-storehead .vqs-cover{height:120px}
+.vqs-shop .vqs-storebody{padding:0 24px 24px;margin-top:-42px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+.vqs-shop .vqs-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font:500 13px/1.3 var(--vq-font-sans);color:var(--vq-text-2)}
+.vqs-shop .vqs-tiles{flex:1 1 300px;max-width:440px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.vqs-shop .vqs-tile{background:var(--vq-bg);border:1px solid var(--vq-line-soft);border-radius:var(--vq-r-md);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.vqs-shop .vqs-tile b{font:600 14px/1.2 var(--vq-font-sans)}
+
+.vqs-shop .vqs-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+@media (min-width:1024px){.vqs-shop .vqs-layout{grid-template-columns:minmax(0,1fr) 380px}.vqs-shop .vqs-sticky{position:sticky;top:88px}}
+.vqs-shop .vqs-prods{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.vqs-shop .vqs-prod{display:flex;flex-direction:column;gap:10px;padding:8px;min-width:0}
+.vqs-shop .vqs-pimg{position:relative;aspect-ratio:1/1;border-radius:var(--vq-r-md);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vqs-shop .vqs-pimg img{width:100%;height:100%;object-fit:cover}
+.vqs-shop .vqs-pimg span{font:600 38px/1 var(--vq-font-display);letter-spacing:-0.04em}
+.vqs-shop .vqs-pname{font:600 14px/1.3 var(--vq-font-sans);padding:0 6px}
+.vqs-shop .vqs-pdesc{font:400 12px/1.4 var(--vq-font-sans);color:var(--vq-text-3);padding:0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vqs-shop .vqs-pfoot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 6px;padding-left:6px;min-height:40px;margin-top:auto}
+.vqs-shop .vqs-price{font:600 15px/1 var(--vq-font-numeric);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vqs-shop .vqs-unit{font:400 11px/1 var(--vq-font-sans);color:var(--vq-text-3)}
+.vqs-shop .vqs-qty{display:flex;align-items:center;height:40px;border-radius:99px;background:var(--vq-accent-quiet);border:1px solid var(--vq-accent-quiet-line)}
+.vqs-shop .vqs-qty button{width:36px;height:38px;border:0;background:transparent;color:var(--vq-accent-text);cursor:pointer;font:600 18px/1 var(--vq-font-sans)}
+.vqs-shop .vqs-qty span{min-width:16px;text-align:center;font:600 14px/1 var(--vq-font-numeric)}
+.vqs-shop .vqs-line{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--vq-line-soft);font:500 14px/1.3 var(--vq-font-sans)}
+.vqs-shop .vqs-line:last-child{border-bottom:0}
+.vqs-shop .vqs-qty--sm{height:32px}.vqs-shop .vqs-qty--sm button{width:28px;height:30px}
+.vqs-shop .vqs-totals{display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--vq-line);font:500 14px/1.3 var(--vq-font-sans)}
+.vqs-shop .vqs-totals .big{font:600 18px/1.2 var(--vq-font-display);letter-spacing:-0.02em}
+.vqs-shop .vqs-empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:48px 24px}
+.vqs-shop .vqs-empty .ic{width:56px;height:56px;border-radius:18px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center;font-size:24px}
+
+.vqs-shop .vqs-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0;padding:0;list-style:none}
+.vqs-shop .vqs-step{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;font:500 12px/1.25 var(--vq-font-sans);color:var(--vq-text-3)}
+.vqs-shop .vqs-step i{width:28px;height:28px;border-radius:99px;background:var(--vq-sunken);display:flex;align-items:center;justify-content:center;font:600 12px/1 var(--vq-font-numeric);font-style:normal}
+.vqs-shop .vqs-step.done{color:var(--vq-text)}
+.vqs-shop .vqs-step.done i{background:var(--vq-accent-fill);color:#fff}
+.vqs-shop .vqs-step.now i{box-shadow:var(--vq-ring-focus)}
+.vqs-shop .vqs-step.now{color:var(--vq-accent-text);font-weight:700}
+@media (max-width:640px){.vqs-shop .vqs-wrap{padding:0 14px}.vqs-shop .vqs-topbar-in{min-height:58px}.vqs-shop .vqs-crumb{display:none}.vqs-shop .vqs-prods{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.vqs-shop .vqs-step{font-size:10.5px}}
+
+.vqs-shop input[type=radio],.vqs-shop input[type=checkbox]{accent-color:var(--vq-accent-fill)}
+
+.vqs-shop .vqs-reset{all:unset;box-sizing:border-box;cursor:pointer}
+.vqs-shop .vqs-reset:focus-visible{box-shadow:var(--vq-ring-focus,0 0 0 4px rgb(35 196 166 / .30));border-radius:var(--vq-r-sm)}
+.vqs-shop button.vqs-pimg{display:flex;position:relative;width:100%;aspect-ratio:1/1;border-radius:var(--vq-r-md);align-items:center;justify-content:center;overflow:hidden}
+.vqs-shop .vqs-linkish:hover{color:var(--vq-accent-text)}
+.vqs-shop .vqs-closex{display:none;width:32px;height:32px;border-radius:99px;align-items:center;justify-content:center;background:var(--vq-sunken);font:600 13px/1 var(--vq-font-sans);color:var(--vq-text-2)}
+.vqs-shop .vqs-scrim{position:fixed;inset:0;background:var(--vq-scrim);z-index:var(--vq-z-drawer);animation:vqsFade var(--vq-dur-2) var(--vq-ease-out)}
+.vqs-shop .vqs-cartbar{display:none}
+.vqs-shop .vqs-cartcount{min-width:26px;height:26px;padding:0 7px;border-radius:99px;background:rgb(255 255 255 / .22);display:inline-flex;align-items:center;justify-content:center;font:600 13px/1 var(--vq-font-numeric)}
+.vqs-shop .vqs-sheet{position:fixed;inset:0;z-index:var(--vq-z-modal);display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
+.vqs-shop .vqs-sheet-in{pointer-events:auto;position:relative;width:100%;max-width:520px;max-height:92vh;overflow:auto;padding:12px 12px 20px;border-radius:var(--vq-r-xl) var(--vq-r-xl) 0 0;box-shadow:var(--vq-elev-3);animation:vqsUp var(--vq-dur-3) var(--vq-ease-spring-soft)}
+.vqs-shop .vqs-sheet-x{display:flex;position:absolute;right:16px;top:16px;z-index:2;background:var(--vq-surface);box-shadow:var(--vq-elev-2)}
+.vqs-shop .vqs-detail-img{aspect-ratio:4/3;margin-bottom:12px}
+.vqs-shop .vqs-detail-img span{font-size:64px}
+@keyframes vqsFade{from{opacity:0}to{opacity:1}}
+@keyframes vqsUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@media (min-width:640px){.vqs-shop .vqs-sheet{align-items:center}.vqs-shop .vqs-sheet-in{border-radius:var(--vq-r-xl)}}
+@media (max-width:1023px){
+  .vqs-shop .vqs-layout{padding-bottom:84px}
+  .vqs-shop .vqs-cartbar{display:block;position:fixed;left:0;right:0;bottom:0;z-index:var(--vq-z-sticky);padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--vq-bg) 60%,transparent)}
+  .vqs-shop aside.vqs-sticky{display:none}
+  .vqs-shop aside.vqs-sticky.open{display:block;position:fixed;left:0;right:0;bottom:0;z-index:var(--vq-z-modal);max-height:92vh;overflow:auto;animation:vqsUp var(--vq-dur-3) var(--vq-ease-spring-soft)}
+  .vqs-shop aside.vqs-sticky.open .vqs-cartcard{border-radius:var(--vq-r-xl) var(--vq-r-xl) 0 0;box-shadow:var(--vq-elev-3)}
+  .vqs-shop aside.vqs-sticky.open .vqs-closex{display:flex}
+}

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color voidBase = Color(0xFF0F172A); // bg-slate-900
-  static const Color indigoOrb = Color(0xFF4F46E5);
-  static const Color purpleOrb = Color(0xFF9333EA);
-  static const Color surface = Color(0xFF1E293B); // bg-slate-800
-  static const Color accentIndigo = Color(0xFF6366F1);
-  
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Color(0xFF94A3B8);
-  
-  static const Color success = Color(0xFF10B981);
-  static const Color danger = Color(0xFFEF4444);
-  static const Color warning = Color(0xFFF59E0B);
+  AppColors._();
+
+  // Mobile equivalents of the active VenQore V6 semantic tokens.
+  static const Color pine = Color(0xFF062421);
+  static const Color pineRaised = Color(0xFF0A3934);
+  static const Color teal = Color(0xFF0BAA8F);
+  static const Color tealBright = Color(0xFF23C4A6);
+  static const Color canvas = Color(0xFFF1F5F2);
+  static const Color surface = Colors.white;
+  static const Color ink = Color(0xFF17211E);
+  static const Color inkMuted = Color(0xFF55645F);
+  static const Color line = Color(0xFFD7E1DC);
+  static const Color danger = Color(0xFFC4443A);
+  static const Color warning = Color(0xFFA6690A);
 }

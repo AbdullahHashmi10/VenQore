@@ -333,3 +333,8 @@ Artisan::command('inspire', function () {
     ->name('email-otp:prune')
     ->dailyAt('03:15')
     ->withoutOverlapping();
+
+// Commerce MVP: expire online orders that were never accepted
+\Illuminate\Support\Facades\Schedule::command('commerce:expire-orders')->everyFiveMinutes();
+// Commerce MVP: email outbox for new online orders
+\Illuminate\Support\Facades\Schedule::command('commerce:send-notifications')->everyMinute();

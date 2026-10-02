@@ -1,0 +1,82 @@
+/* ── VenQore v5 raw ramps ──────────────────────────────────────────────────
+   v2 capped brand chroma at 0.071 and the product read grey. v5 runs the
+   brand hot (chroma ~0.13 at the 400 step) and keeps the neutrals faintly
+   green so saturated teal never looks pasted on. */
+:root {
+  /* Qore Teal — the brand. Mint at the top, deep pine at the bottom. */
+  --vq-teal-50: #E6FBF5;
+  --vq-teal-100: #C6F5E9;
+  --vq-teal-200: #93EBD6;
+  --vq-teal-300: #59DBC0;
+  --vq-teal-400: #23C4A6;
+  --vq-teal-500: #0BAA8F;
+  --vq-teal-600: #088975;
+  --vq-teal-700: #076B5E;
+  --vq-teal-800: #0A5049;
+  --vq-teal-900: #0B3A35;
+  --vq-teal-950: #062421;
+
+  /* Ink — neutrals with a 160° cast so they sit *with* the teal. */
+  --vq-ink-0: #FFFFFF;
+  --vq-ink-25: #F8FAF8;
+  --vq-ink-50: #F1F5F2;
+  --vq-ink-100: #E6ECE8;
+  --vq-ink-200: #D3DCD7;
+  --vq-ink-300: #B4C0BA;
+  --vq-ink-400: #8B9A93;
+  --vq-ink-500: #6B7A73;
+  --vq-ink-600: #536159;
+  --vq-ink-700: #3C4841;
+  --vq-ink-800: #29332D;
+  --vq-ink-900: #17201B;
+  --vq-ink-950: #0D1412;
+  --vq-ink-1000: #060A09;
+
+  /* Playmates — three warm counterpoints + one cool. Used for delight and
+     for categorical data. Never for "good/bad" meaning (that's semantic). */
+  --vq-lime-100: #EEF9D7;
+  --vq-lime-300: #C8EE7E;
+  --vq-lime-400: #A9E34B;
+  --vq-lime-500: #8CCB2E;
+  --vq-lime-700: #5E8C15;
+
+  --vq-coral-100: #FFE8E1;
+  --vq-coral-300: #FFAE96;
+  --vq-coral-400: #FF8A6B;
+  --vq-coral-500: #F26A47;
+  --vq-coral-700: #B94526;
+
+  --vq-butter-100: #FFF3D6;
+  --vq-butter-300: #FFDD8E;
+  --vq-butter-400: #FFCD5B;
+  --vq-butter-500: #F5B32E;
+  --vq-butter-700: #A6740A;
+
+  --vq-sky-100: #DDF2FB;
+  --vq-sky-300: #8FD9F5;
+  --vq-sky-400: #55C4EC;
+  --vq-sky-500: #2BA5D1;
+  --vq-sky-700: #1B7096;
+
+  --vq-plum-300: #E0B4E0;
+  --vq-plum-400: #C98BC9;
+  --vq-plum-500: #B266A8;
+  --vq-plum-700: #7E3E76;
+
+  /* Categorical data slots — fixed order, never cycled. Slot 1 is the brand. */
+  --vq-series-1: #0BAA8F;
+  --vq-series-2: #F26A47;
+  --vq-series-3: #2BA5D1;
+  --vq-series-4: #F5B32E;
+  --vq-series-5: #8CCB2E;
+  --vq-series-6: #B266A8;
+  --vq-series-7: #0B3A35;
+  --vq-series-8: #8B9A93;
+
+  /* Sequential (magnitude) and diverging (polarity) ramps. */
+  --vq-seq-1: #C6F5E9; --vq-seq-2: #59DBC0; --vq-seq-3: #0BAA8F;
+  --vq-seq-4: #076B5E; --vq-seq-5: #0B3A35;
+  --vq-div-neg-2: #C4443A; --vq-div-neg-1: #F0A79E;
+  --vq-div-mid: #E6ECE8;
+  --vq-div-pos-1: #6FDCC3; --vq-div-pos-2: #088975;
+}

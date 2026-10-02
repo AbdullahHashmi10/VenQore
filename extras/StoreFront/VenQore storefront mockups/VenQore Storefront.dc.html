@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/radius.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/elevation.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/motion.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/theme.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/tokens/base.css">
+  <link rel="stylesheet" href="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/styles.css">
+  <script src="_ds/venqore-design-system-76c34c40-e258-403f-b9f9-78a509711872/_ds_bundle.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #E9EFEB; }
+    a { color: var(--vq-accent-text); text-decoration: none; }
+    a:hover { color: var(--vq-accent-fill-hover); text-decoration: underline; }
+    @keyframes vqUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  </style>
+</helmet>
+
+<div class="{{ themeClass }}" style="min-height:100vh;background:var(--vq-bg-alt);color:var(--vq-text);font-family:var(--vq-font-sans);padding:20px 20px 48px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:20px">
+
+  <!-- Presenter bar (reference tooling, not product UI) -->
+  <div data-screen-label="Presenter" style="width:100%;max-width:1320px;box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;padding:14px 16px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;box-shadow:var(--vq-elev-1)">
+    <div style="display:flex;align-items:center;gap:10px;margin-right:auto">
+      <img src="assets/logo-mark.png" alt="" style="width:28px;height:28px;object-fit:contain">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <span style="font:600 15px/1.1 var(--vq-font-display);letter-spacing:-0.02em">VenQore Shops — storefront reference</span>
+        <span style="font:500 11px/1.2 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">Customer-facing · MVP → V2</span>
+      </div>
+    </div>
+    <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Tabs" tabs="{{ deviceTabs }}" value="{{ device }}" onChange="{{ setDevice }}" size="sm" hint-size="220px,34px"></x-import>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <sc-for list="{{ jumps }}" as="j" hint-placeholder-count="7">
+        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Chip" selected="{{ j.selected }}" onClick="{{ j.onClick }}" hint-size="90px,34px">{{ j.label }}</x-import>
+      </sc-for>
+    </div>
+    <sc-if value="{{ isOrderView }}" hint-placeholder-val="{{ false }}">
+      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="soft" size="sm" onClick="{{ advance }}" hint-size="170px,34px">Simulate shop update</x-import>
+    </sc-if>
+  </div>
+
+  <!-- Device frame -->
+  <div style="position:relative;width:{{ frameW }};max-width:1320px;height:{{ frameH }};border-radius:{{ frameR }};border:{{ frameBorder }};background:var(--vq-bg);box-shadow:var(--vq-elev-3);overflow:hidden;display:flex;flex-direction:column;flex:none;box-sizing:border-box">
+
+    <sc-if value="{{ isWeb }}" hint-placeholder-val="{{ true }}">
+      <div style="height:44px;flex:none;display:flex;align-items:center;gap:16px;padding:0 16px;background:var(--vq-surface);border-bottom:1px solid var(--vq-line)">
+        <div style="display:flex;gap:7px">
+          <span style="width:11px;height:11px;border-radius:99px;background:var(--vq-coral-400)"></span>
+          <span style="width:11px;height:11px;border-radius:99px;background:var(--vq-butter-400)"></span>
+          <span style="width:11px;height:11px;border-radius:99px;background:var(--vq-lime-400)"></span>
+        </div>
+        <div style="flex:1;display:flex;justify-content:center">
+          <div style="min-width:0;max-width:440px;width:100%;height:28px;border-radius:999px;background:var(--vq-sunken);display:flex;align-items:center;justify-content:center;gap:8px;font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-2);overflow:hidden;white-space:nowrap">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+            <span>{{ url }}</span>
+          </div>
+        </div>
+        <span style="width:57px"></span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--vq-bg);font:600 15px/1 var(--vq-font-numeric);color:var(--vq-text)">
+        <span>9:41</span>
+        <span style="width:96px;height:26px;border-radius:99px;background:#0D1412"></span>
+        <span style="display:flex;gap:4px;align-items:center"><span style="width:22px;height:11px;border-radius:3px;border:1.5px solid currentColor"></span></span>
+      </div>
+    </sc-if>
+
+    <!-- App viewport -->
+    <div style="position:relative;flex:1;min-height:0">
+      <div ref="{{ scroller }}" style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin">
+
+        <!-- Header -->
+        <div data-hsearch="1" style="position:sticky;top:0;z-index:20;background:var(--vq-glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--vq-line)">
+          <sc-if value="{{ isWeb }}" hint-placeholder-val="{{ true }}">
+            <div style="max-width:1240px;margin:0 auto;height:71px;padding:0 28px;box-sizing:border-box;display:flex;align-items:center;gap:18px">
+              <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:9px;cursor:pointer;flex:none">
+                <img src="assets/logo-mark.png" alt="" style="width:30px;height:30px;object-fit:contain">
+                <span style="font:600 19px/1 var(--vq-font-display);letter-spacing:-0.03em;color:var(--vq-text)">VenQore</span>
+                <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-accent-text);padding:5px 8px;border-radius:99px;background:var(--vq-accent-quiet)">Shops</span>
+              </div>
+              <div style="position:relative;flex:none">
+                <button onClick="{{ toggleCity }}" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--vq-line);background:var(--vq-surface);color:var(--vq-text);font:600 14px/1 var(--vq-font-sans);cursor:pointer">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vq-accent-text)"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  <span>{{ city.name }}</span><span style="font-weight:400;color:var(--vq-text-3)">{{ city.country }}</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vq-text-3)"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+                <sc-if value="{{ cityOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:48px;left:0;width:280px;background:var(--vq-raised);border:1px solid var(--vq-line);border-radius:18px;box-shadow:var(--vq-elev-3);padding:8px;z-index:40">
+                    <div style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3);padding:10px 10px 8px">Pilot cities</div>
+                    <sc-for list="{{ cities }}" as="c" hint-placeholder-count="3">
+                      <button onClick="{{ c.pick }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 10px;border:0;border-radius:12px;background:{{ c.bg }};color:var(--vq-text);cursor:pointer;text-align:left;font:500 14px/1.2 var(--vq-font-sans)" style-hover="background:var(--vq-sunken)">
+                        <span>{{ c.name }}, {{ c.country }}</span>
+                        <span style="font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-3)">{{ c.countLabel }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px">
+                <div style="flex:1;min-width:0;max-width:520px"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.SearchField" value="{{ q }}" onChange="{{ onHeaderSearch }}" placeholder="Search shops and products" shortcut="" width="calc(100% - 22px)" style="min-width:0;box-sizing:border-box" hint-size="100%,40px"></x-import></div>
+                <sc-if value="{{ showScope }}" hint-placeholder-val="{{ true }}">
+                  <span title="Marketplace search ships in Version 2" style="flex:none;font:600 10px/1 var(--vq-font-numeric);letter-spacing:.12em;padding:5px 8px;border-radius:99px;border:1px dashed var(--vq-line-strong);color:var(--vq-text-3)">V2</span>
+                </sc-if>
+              </div>
+              <div style="flex:none"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="ghost" onClick="{{ goOrders }}" hint-size="90px,40px">Orders</x-import></div>
+              <div style="flex:none"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="{{ cartBtnVariant }}" onClick="{{ openCart }}" hint-size="120px,40px">
+                <span style="display:inline-flex;align-items:center;gap:8px">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                  <span>{{ cartBtnLabel }}</span>
+                </span>
+              </x-import></div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+            <div style="height:59px;padding:0 10px 0 12px;display:flex;align-items:center;gap:8px">
+              <sc-if value="{{ headerBack }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.IconButton" label="Back" variant="ghost" size="{{ 44 }}" onClick="{{ back }}" hint-size="44px,44px">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+                </x-import>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                  <span style="font:600 16px/1.1 var(--vq-font-display);letter-spacing:-0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ headerTitle }}</span>
+                  <span style="font:500 12px/1 var(--vq-font-sans);color:var(--vq-text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ headerSub }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ headerHome }}" hint-placeholder-val="{{ true }}">
+                <div style="position:relative;flex:1;min-width:0">
+                  <button onClick="{{ toggleCity }}" style="display:flex;align-items:center;gap:10px;height:44px;padding:0 6px;border:0;background:transparent;color:var(--vq-text);cursor:pointer;text-align:left">
+                    <span style="width:36px;height:36px;border-radius:12px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    </span>
+                    <span style="display:flex;flex-direction:column;gap:3px">
+                      <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">Shopping in</span>
+                      <span style="display:flex;align-items:center;gap:4px;font:600 16px/1 var(--vq-font-display);letter-spacing:-0.02em">{{ city.name }}
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+                      </span>
+                    </span>
+                  </button>
+                  <sc-if value="{{ cityOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;top:50px;left:0;width:280px;background:var(--vq-raised);border:1px solid var(--vq-line);border-radius:18px;box-shadow:var(--vq-elev-3);padding:8px;z-index:40">
+                      <div style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3);padding:10px 10px 8px">Pilot cities</div>
+                      <sc-for list="{{ cities }}" as="c" hint-placeholder-count="3">
+                        <button onClick="{{ c.pick }}" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:0 10px;border:0;border-radius:12px;background:{{ c.bg }};color:var(--vq-text);cursor:pointer;text-align:left;font:500 14px/1.2 var(--vq-font-sans)">
+                          <span>{{ c.name }}, {{ c.country }}</span>
+                          <span style="font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-3)">{{ c.countLabel }}</span>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <div style="position:relative;flex:none">
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.IconButton" label="Open cart" size="{{ 44 }}" onClick="{{ openCart }}" hint-size="44px,44px">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                </x-import>
+                <sc-if value="{{ cartHas }}" hint-placeholder-val="{{ false }}">
+                  <span style="position:absolute;top:-3px;right:-3px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:99px;background:var(--vq-accent-fill);color:var(--vq-on-accent);font:600 11px/20px var(--vq-font-numeric);text-align:center;border:2px solid var(--vq-bg);pointer-events:none">{{ cart.count }}</span>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="max-width:1240px;margin:0 auto;padding:{{ padY }} {{ padX }} {{ padBottom }};box-sizing:border-box">
+
+          <!-- HOME / DIRECTORY -->
+          <sc-if value="{{ v.home }}" hint-placeholder-val="{{ true }}">
+            <div data-screen-label="Directory" style="display:flex;flex-direction:column;gap:{{ gapL }}">
+              <div style="position:relative;overflow:hidden;border-radius:{{ heroR }};background:var(--vq-grad-spot), var(--vq-teal-950);padding:{{ heroPad }};color:#FFFFFF;display:flex;flex-direction:column;gap:18px">
+                <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-teal-200)">{{ heroEyebrow }}</span>
+                <h1 style="margin:0;font:600 {{ heroFs }}/1.02 var(--vq-font-display);letter-spacing:-0.035em;max-width:13ch;text-wrap:balance">Shop local. <span style="color:var(--vq-teal-300)">Order in a minute.</span></h1>
+                <p style="margin:0;max-width:48ch;font:400 {{ ledeFs }}/1.5 var(--vq-font-sans);color:#D6E4DF;text-wrap:pretty">Browse real businesses in your city, fill a cart, and pay on delivery or at pickup. No account needed.</p>
+                <button onClick="{{ goSearch }}" style="display:flex;align-items:center;gap:12px;width:100%;max-width:580px;height:56px;padding:0 8px 0 18px;box-sizing:border-box;border:0;border-radius:999px;background:#FFFFFF;color:var(--vq-ink-500);cursor:pointer;text-align:left;font:400 15px/1 var(--vq-font-sans);box-shadow:0 12px 30px -12px rgb(0 0 0 / .45)">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vq-teal-700);flex:none"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+                  <span style="flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Milk, phone charger, sourdough…</span>
+                  <span style="flex:none;height:40px;padding:0 18px;border-radius:999px;background:var(--vq-teal-600);color:#FFFFFF;display:flex;align-items:center;font:600 14px/1 var(--vq-font-sans)">Search</span>
+                </button>
+                <div style="display:flex;flex-wrap:wrap;gap:8px 22px;font:500 13px/1.3 var(--vq-font-sans);color:#D6E4DF">
+                  <span style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:22px;border-radius:99px;background:rgb(255 255 255 / .16);display:flex;align-items:center;justify-content:center;font:600 11px/1 var(--vq-font-numeric);color:#FFFFFF">1</span>Pick a shop</span>
+                  <span style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:22px;border-radius:99px;background:rgb(255 255 255 / .16);display:flex;align-items:center;justify-content:center;font:600 11px/1 var(--vq-font-numeric);color:#FFFFFF">2</span>Add to cart</span>
+                  <span style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:22px;border-radius:99px;background:rgb(255 255 255 / .16);display:flex;align-items:center;justify-content:center;font:600 11px/1 var(--vq-font-numeric);color:#FFFFFF">3</span>Pay when it arrives</span>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <h2 style="margin:0;font:600 {{ h2Fs }}/1.1 var(--vq-font-display);letter-spacing:-0.03em">Browse by type</h2>
+                  <sc-if value="{{ showScope }}" hint-placeholder-val="{{ true }}">
+                    <span style="font:600 10px/1 var(--vq-font-numeric);letter-spacing:.12em;padding:5px 8px;border-radius:99px;border:1px dashed var(--vq-line-strong);color:var(--vq-text-3)">V2</span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 {{ bleed }};padding:2px {{ padX }}">
+                  <sc-for list="{{ bizCats }}" as="c" hint-placeholder-count="8">
+                    <div style="flex:none"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Chip" selected="{{ c.selected }}" count="{{ c.count }}" onClick="{{ c.onClick }}" hint-size="100px,34px">{{ c.label }}</x-import></div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <sc-for list="{{ filters }}" as="f" hint-placeholder-count="3">
+                    <button onClick="{{ f.onClick }}" style="display:flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:999px;border:1px solid {{ f.bd }};background:{{ f.bg }};color:{{ f.fg }};font:600 13px/1 var(--vq-font-sans);cursor:pointer">
+                      <span style="width:14px;height:14px;border-radius:5px;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;box-sizing:border-box">
+                        <sc-if value="{{ f.on }}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+                      </span>
+                      {{ f.label }}
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+                  <h2 style="margin:0;font:600 {{ h2Fs }}/1.1 var(--vq-font-display);letter-spacing:-0.03em">{{ listTitle }}</h2>
+                  <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">Open now first · then A–Z</span>
+                </div>
+                <sc-if value="{{ hasShops }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax({{ shopMin }},1fr));gap:{{ gutter }}">
+                    <sc-for list="{{ shops }}" as="s" hint-placeholder-count="6">
+                      <div onClick="{{ s.open }}" style="cursor:pointer;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;overflow:hidden;box-shadow:var(--vq-elev-1);transition:transform 200ms var(--vq-ease-out), box-shadow 200ms var(--vq-ease-out);display:flex;flex-direction:column" style-hover="transform:translateY(-2px);box-shadow:var(--vq-elev-2)">
+                        <div style="height:92px;background:{{ s.bg }};position:relative;display:flex;justify-content:flex-end;align-items:flex-start;padding:12px;box-sizing:border-box">
+                          <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="{{ s.badgeTone }}" style="background:var(--vq-surface)" hint-size="120px,26px">{{ s.status }}</x-import>
+                        </div>
+                        <div style="padding:0 18px 18px;display:flex;flex-direction:column;gap:12px;margin-top:-30px;flex:1">
+                          <span style="width:60px;height:60px;border-radius:18px;background:var(--vq-surface);border:3px solid var(--vq-surface);box-shadow:var(--vq-elev-2);display:flex;align-items:center;justify-content:center;font:600 21px/1 var(--vq-font-display);letter-spacing:-0.03em;color:{{ s.fg }};box-sizing:border-box">{{ s.initials }}</span>
+                          <div style="display:flex;flex-direction:column;gap:4px">
+                            <span style="font:600 19px/1.15 var(--vq-font-display);letter-spacing:-0.025em;color:var(--vq-text)">{{ s.name }}</span>
+                            <span style="font:400 13px/1.3 var(--vq-font-sans);color:var(--vq-text-2)">{{ s.type }} · {{ s.area }}</span>
+                          </div>
+                          <div style="margin-top:auto;padding-top:12px;border-top:1px solid var(--vq-line-soft);display:flex;flex-wrap:wrap;gap:6px 14px;font:500 13px/1.2 var(--vq-font-sans);color:var(--vq-text-2)">
+                            <sc-if value="{{ s.delivery }}" hint-placeholder-val="{{ true }}">
+                              <span style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>{{ s.deliveryLabel }}</span>
+                            </sc-if>
+                            <sc-if value="{{ s.pickup }}" hint-placeholder-val="{{ true }}">
+                              <span style="display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>Pickup</span>
+                            </sc-if>
+                            <span style="margin-left:auto;font-weight:600;color:var(--vq-accent-text)">Open store →</span>
+                          </div>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ noShops }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:56px 24px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px">
+                    <span style="width:56px;height:56px;border-radius:18px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"></path><path d="M4 9v11h16V9"></path><path d="M3 9h18"></path><path d="M9 20v-6h6v6"></path></svg></span>
+                    <span style="font:600 20px/1.2 var(--vq-font-display);letter-spacing:-0.025em">{{ emptyTitle }}</span>
+                    <span style="max-width:44ch;font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">{{ emptyBody }}</span>
+                    <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="secondary" onClick="{{ resetDirectory }}" hint-size="160px,40px">{{ emptyAction }}</x-import>
+                  </div>
+                </sc-if>
+              </div>
+
+              <p style="margin:0;padding:8px 0 0;font:400 13px/1.5 var(--vq-font-sans);color:var(--vq-text-3);max-width:68ch">Every shop here runs on VenQore and is a verified business. Prices are set by each shop. Location shows where a shop is, not every address it delivers to.</p>
+            </div>
+          </sc-if>
+
+          <!-- SEARCH -->
+          <sc-if value="{{ v.search }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Search" data-search="1" style="display:flex;flex-direction:column;gap:{{ gapL }}">
+              <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.SearchField" value="{{ q }}" onChange="{{ onSearch }}" placeholder="Shops and products in Lahore" shortcut="" width="calc(100% - 22px)" hint-size="100%,40px"></x-import>
+              </sc-if>
+              <sc-if value="{{ noQuery }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">Popular in Lahore</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px">
+                    <sc-for list="{{ popular }}" as="p" hint-placeholder-count="6">
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Chip" onClick="{{ p.onClick }}" hint-size="90px,34px">{{ p.label }}</x-import>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <h1 style="margin:0;font:600 {{ h1Fs }}/1.1 var(--vq-font-display);letter-spacing:-0.03em">Results for “{{ q }}”</h1>
+                  <span style="font:400 14px/1.4 var(--vq-font-sans);color:var(--vq-text-2)">{{ search.summary }}</span>
+                </div>
+              </sc-if>
+              <sc-if value="{{ search.hasShops }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">Shops</span>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px">
+                    <sc-for list="{{ search.shops }}" as="s" hint-placeholder-count="2">
+                      <div onClick="{{ s.open }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:18px;box-shadow:var(--vq-elev-1)" style-hover="box-shadow:var(--vq-elev-2)">
+                        <span style="width:48px;height:48px;flex:none;border-radius:14px;background:{{ s.bg }};display:flex;align-items:center;justify-content:center;font:600 17px/1 var(--vq-font-display);color:{{ s.fg }}">{{ s.initials }}</span>
+                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                          <span style="font:600 15px/1.2 var(--vq-font-sans);color:var(--vq-text)">{{ s.name }}</span>
+                          <span style="font:400 13px/1.2 var(--vq-font-sans);color:var(--vq-text-2)">{{ s.type }} · {{ s.area }}</span>
+                        </div>
+                        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="{{ s.badgeTone }}" hint-size="70px,26px">{{ s.shortStatus }}</x-import>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ search.hasProducts }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">Products</span>
+                  <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:4px 16px;box-shadow:var(--vq-elev-1)">
+                    <sc-for list="{{ search.products }}" as="p" hint-placeholder-count="4">
+                      <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--vq-line-soft)">
+                        <span onClick="{{ p.open }}" style="cursor:pointer;width:60px;height:60px;flex:none;border-radius:14px;background:{{ p.bg }};display:flex;align-items:center;justify-content:center;font:600 20px/1 var(--vq-font-display);color:{{ p.fg }}">{{ p.mono }}</span>
+                        <div onClick="{{ p.open }}" style="cursor:pointer;flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                          <span style="font:600 15px/1.25 var(--vq-font-sans);color:var(--vq-text)">{{ p.name }}</span>
+                          <span style="font:400 13px/1.3 var(--vq-font-sans);color:var(--vq-text-2)">{{ p.storeName }} · {{ p.unit }}</span>
+                          <span style="font:600 14px/1 var(--vq-font-numeric);font-variant-numeric:tabular-nums;color:var(--vq-text)">{{ p.price }}</span>
+                        </div>
+                        <sc-if value="{{ p.canAdd }}" hint-placeholder-val="{{ true }}">
+                          <button aria-label="Add {{ p.name }} to cart" onClick="{{ p.add }}" style="width:44px;height:44px;flex:none;border-radius:99px;border:0;background:var(--vq-accent-fill);color:var(--vq-on-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--vq-glow-accent)" style-hover="background:var(--vq-accent-fill-hover)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                        </sc-if>
+                        <sc-if value="{{ p.inCart }}" hint-placeholder-val="{{ false }}">
+                          <div style="flex:none;display:flex;align-items:center;height:40px;border-radius:99px;background:var(--vq-accent-quiet);border:1px solid var(--vq-accent-quiet-line)">
+                            <button aria-label="Remove one" onClick="{{ p.dec }}" style="width:40px;height:40px;border:0;background:transparent;color:var(--vq-accent-text);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                            <span style="min-width:20px;text-align:center;font:600 14px/1 var(--vq-font-numeric);color:var(--vq-text)">{{ p.qty }}</span>
+                            <button aria-label="Add one" onClick="{{ p.inc }}" style="width:40px;height:40px;border:0;background:transparent;color:var(--vq-accent-text);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                          </div>
+                        </sc-if>
+                        <sc-if value="{{ p.blocked }}" hint-placeholder-val="{{ false }}">
+                          <span style="flex:none;font:600 12px/1.2 var(--vq-font-sans);color:var(--vq-text-3);max-width:80px;text-align:right">{{ p.blockedLabel }}</span>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ search.none }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:48px 24px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px">
+                  <span style="width:56px;height:56px;border-radius:18px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></span>
+                  <span style="font:600 20px/1.2 var(--vq-font-display);letter-spacing:-0.025em">Nothing matches “{{ q }}” in Lahore</span>
+                  <span style="max-width:44ch;font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Try a shorter word, a product type like “bread”, or browse shops by type.</span>
+                  <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="secondary" onClick="{{ goHome }}" hint-size="140px,40px">Browse all shops</x-import>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- STORE -->
+          <sc-if value="{{ v.store }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Store" style="display:flex;flex-direction:column;gap:{{ gapM }}">
+              <sc-if value="{{ isWeb }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ goHome }}" style="align-self:flex-start;display:flex;align-items:center;gap:6px;height:32px;padding:0;border:0;background:transparent;color:var(--vq-text-2);font:500 14px/1 var(--vq-font-sans);cursor:pointer" style-hover="color:var(--vq-text)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>All shops in {{ city.name }}
+                </button>
+              </sc-if>
+
+              <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:28px;overflow:hidden;box-shadow:var(--vq-elev-1)">
+                <div style="height:{{ coverH }};background:{{ store.bg }}"></div>
+                <div style="padding:0 {{ cardPad }} {{ cardPad }};margin-top:-42px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between">
+                  <div style="flex:1 1 360px;min-width:0;display:flex;flex-direction:column;gap:12px">
+                    <span style="width:84px;height:84px;border-radius:24px;background:var(--vq-surface);border:4px solid var(--vq-surface);box-shadow:var(--vq-elev-2);display:flex;align-items:center;justify-content:center;font:600 30px/1 var(--vq-font-display);letter-spacing:-0.03em;color:{{ store.fg }};box-sizing:border-box">{{ store.initials }}</span>
+                    <div style="display:flex;flex-direction:column;gap:6px">
+                      <h1 style="margin:0;font:600 {{ h1Fs }}/1.05 var(--vq-font-display);letter-spacing:-0.035em">{{ store.name }}</h1>
+                      <p style="margin:0;font:400 15px/1.5 var(--vq-font-sans);color:var(--vq-text-2);max-width:56ch">{{ store.tagline }}</p>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;font:500 13px/1.3 var(--vq-font-sans);color:var(--vq-text-2)">
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="{{ store.badgeTone }}" hint-size="130px,26px">{{ store.status }}</x-import>
+                      <span style="display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>{{ store.hours }}</span>
+                      <span style="display:flex;align-items:center;gap:6px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>{{ store.addr }}</span>
+                      <span style="display:flex;align-items:center;gap:6px;font-family:var(--vq-font-numeric)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>{{ store.phone }}</span>
+                    </div>
+                  </div>
+                  <div style="flex:1 1 300px;max-width:440px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+                    <sc-for list="{{ store.fulfil }}" as="f" hint-placeholder-count="2">
+                      <div style="padding:14px;border-radius:18px;background:var(--vq-surface-2);border:1px solid var(--vq-line-soft);display:flex;flex-direction:column;gap:6px;opacity:{{ f.opacity }}">
+                        <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">{{ f.label }}</span>
+                        <span style="font:600 17px/1.1 var(--vq-font-display);letter-spacing:-0.02em;color:var(--vq-text)">{{ f.main }}</span>
+                        <span style="font:400 12px/1.35 var(--vq-font-sans);color:var(--vq-text-2)">{{ f.sub }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <sc-if value="{{ store.closed }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Alert" tone="warning" hint-size="100%,52px">{{ store.name }} is closed right now. You can look around; ordering opens at {{ store.opensAt }}.</x-import>
+              </sc-if>
+
+              <div style="display:grid;grid-template-columns:{{ storeCols }};gap:{{ gutter }};align-items:start">
+                <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+                  <div style="position:sticky;top:{{ stickyTop }};z-index:10;background:var(--vq-bg);padding:10px 0 12px;margin:0 {{ bleed }};padding-left:{{ padX }};padding-right:{{ padX }};display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--vq-line-soft)">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.SearchField" value="{{ storeQ }}" onChange="{{ onStoreSearch }}" placeholder="Search in {{ store.name }}" shortcut="" width="calc(100% - 22px)" style="max-width:420px" hint-size="100%,40px"></x-import>
+                      <sc-if value="{{ showScope }}" hint-placeholder-val="{{ true }}">
+                        <span title="Store categories and in-store search ship in Version 1" style="flex:none;font:600 10px/1 var(--vq-font-numeric);letter-spacing:.12em;padding:5px 8px;border-radius:99px;border:1px dashed var(--vq-line-strong);color:var(--vq-text-3)">V1</span>
+                      </sc-if>
+                    </div>
+                    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none">
+                      <sc-for list="{{ storeCats }}" as="c" hint-placeholder-count="6">
+                        <div style="flex:none"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Chip" selected="{{ c.selected }}" count="{{ c.count }}" onClick="{{ c.onClick }}" hint-size="100px,34px">{{ c.label }}</x-import></div>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+                    <h2 style="margin:0;font:600 {{ h2Fs }}/1.1 var(--vq-font-display);letter-spacing:-0.03em">{{ catTitle }}</h2>
+                    <span style="font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-3)">{{ catCount }}</span>
+                  </div>
+
+                  <sc-if value="{{ hasProducts }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax({{ prodMin }},1fr));gap:{{ prodGap }}">
+                      <sc-for list="{{ products }}" as="p" hint-placeholder-count="8">
+                        <div style="display:flex;flex-direction:column;gap:10px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:8px;box-shadow:var(--vq-elev-1);min-width:0">
+                          <div onClick="{{ p.open }}" style="position:relative;aspect-ratio:1 / 1;border-radius:14px;background:{{ p.bg }};display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">
+                            <span style="font:600 38px/1 var(--vq-font-display);letter-spacing:-0.04em;color:{{ p.fg }};transition:transform 320ms var(--vq-ease-out)">{{ p.mono }}</span>
+                            <sc-if value="{{ p.low }}" hint-placeholder-val="{{ false }}">
+                              <span style="position:absolute;left:8px;top:8px"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="warning" style="background:var(--vq-surface)" hint-size="70px,26px">Few left</x-import></span>
+                            </sc-if>
+                            <sc-if value="{{ p.out }}" hint-placeholder-val="{{ false }}">
+                              <span style="position:absolute;left:8px;top:8px"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="neutral" style="background:var(--vq-surface)" hint-size="70px,26px">Sold out</x-import></span>
+                            </sc-if>
+                          </div>
+                          <div onClick="{{ p.open }}" style="cursor:pointer;padding:0 6px;display:flex;flex-direction:column;gap:3px;flex:1">
+                            <span style="font:600 14px/1.3 var(--vq-font-sans);color:var(--vq-text);text-wrap:pretty">{{ p.name }}</span>
+                            <span style="font:400 12px/1.3 var(--vq-font-sans);color:var(--vq-text-3)">{{ p.unit }}</span>
+                          </div>
+                          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 0 0 6px;min-height:40px">
+                            <span style="font:600 15px/1 var(--vq-font-numeric);font-variant-numeric:tabular-nums;color:var(--vq-text);white-space:nowrap">{{ p.price }}</span>
+                            <sc-if value="{{ p.canAdd }}" hint-placeholder-val="{{ true }}">
+                              <button aria-label="Add {{ p.name }} to cart" onClick="{{ p.add }}" style="width:40px;height:40px;flex:none;border-radius:99px;border:0;background:var(--vq-accent-fill);color:var(--vq-on-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--vq-glow-accent);transition:background 120ms var(--vq-ease-out)" style-hover="background:var(--vq-accent-fill-hover)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                            </sc-if>
+                            <sc-if value="{{ p.inCart }}" hint-placeholder-val="{{ false }}">
+                              <div style="flex:none;display:flex;align-items:center;height:40px;border-radius:99px;background:var(--vq-accent-quiet);border:1px solid var(--vq-accent-quiet-line);box-sizing:border-box">
+                                <button aria-label="Remove one" onClick="{{ p.dec }}" style="width:36px;height:38px;border:0;background:transparent;color:var(--vq-accent-text);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                                <span style="min-width:16px;text-align:center;font:600 14px/1 var(--vq-font-numeric);color:var(--vq-text)">{{ p.qty }}</span>
+                                <button aria-label="Add one" onClick="{{ p.inc }}" style="width:36px;height:38px;border:0;background:transparent;color:var(--vq-accent-text);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                              </div>
+                            </sc-if>
+                            <sc-if value="{{ p.blocked }}" hint-placeholder-val="{{ false }}">
+                              <span style="font:600 12px/1 var(--vq-font-sans);color:var(--vq-text-3);padding-right:6px">{{ p.blockedLabel }}</span>
+                            </sc-if>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ noProducts }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 24px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px">
+                      <span style="font:600 18px/1.2 var(--vq-font-display);letter-spacing:-0.02em">No items match “{{ storeQ }}”</span>
+                      <span style="font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Check the spelling or see everything this shop sells.</span>
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="secondary" onClick="{{ clearStoreSearch }}" hint-size="140px,40px">Show all items</x-import>
+                    </div>
+                  </sc-if>
+                </div>
+
+                <sc-if value="{{ isWeb }}" hint-placeholder-val="{{ true }}">
+                  <div style="position:sticky;top:{{ sideTop }};background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;box-shadow:var(--vq-elev-1);padding:20px;display:flex;flex-direction:column;gap:14px">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between">
+                      <span style="font:600 19px/1 var(--vq-font-display);letter-spacing:-0.025em">Your cart</span>
+                      <span style="font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-3)">{{ cart.countLabel }}</span>
+                    </div>
+                    <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ true }}">
+                      <div style="padding:20px 0 8px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px">
+                        <span style="width:48px;height:48px;border-radius:16px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span>
+                        <span style="font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2);max-width:26ch">Items you add from {{ store.name }} appear here.</span>
+                      </div>
+                    </sc-if>
+                    <sc-if value="{{ cartOther }}" hint-placeholder-val="{{ false }}">
+                      <span style="font:400 13px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Your cart has {{ cart.countLabel }} from <b style="color:var(--vq-text)">{{ cart.storeName }}</b>. One shop per order — adding here will ask before replacing it.</span>
+                    </sc-if>
+                    <sc-if value="{{ cartHere }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column">
+                        <sc-for list="{{ cart.lines }}" as="l" hint-placeholder-count="2">
+                          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--vq-line-soft)">
+                            <span style="width:44px;height:44px;flex:none;border-radius:12px;background:{{ l.bg }};display:flex;align-items:center;justify-content:center;font:600 15px/1 var(--vq-font-display);color:{{ l.fg }}">{{ l.mono }}</span>
+                            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                              <span style="font:600 13px/1.25 var(--vq-font-sans);color:var(--vq-text)">{{ l.name }}</span>
+                              <span style="font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-2)">{{ l.lineTotal }}</span>
+                            </div>
+                            <div style="flex:none;display:flex;align-items:center;height:32px;border-radius:99px;border:1px solid var(--vq-line)">
+                              <button aria-label="Remove one" onClick="{{ l.dec }}" style="width:30px;height:30px;border:0;background:transparent;color:var(--vq-text-2);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                              <span style="min-width:14px;text-align:center;font:600 13px/1 var(--vq-font-numeric)">{{ l.qty }}</span>
+                              <button aria-label="Add one" onClick="{{ l.inc }}" style="width:30px;height:30px;border:0;background:transparent;color:var(--vq-text-2);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                            </div>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:8px;font:400 14px/1 var(--vq-font-sans);color:var(--vq-text-2)">
+                        <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ cart.subtotal }}</span></div>
+                        <div style="display:flex;justify-content:space-between"><span>{{ cart.feeLabel }}</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ cart.fee }}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--vq-line-strong);font:600 16px/1 var(--vq-font-sans);color:var(--vq-text)"><span>Total</span><span style="font-family:var(--vq-font-numeric)">{{ cart.total }}</span></div>
+                      </div>
+                      <sc-if value="{{ cart.belowMin }}" hint-placeholder-val="{{ false }}">
+                        <span style="font:500 13px/1.4 var(--vq-font-sans);color:var(--vq-warning)">Add {{ cart.toMin }} more for delivery, or choose pickup at checkout.</span>
+                      </sc-if>
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" full="{{ true }}" size="lg" onClick="{{ goCheckout }}" hint-size="100%,48px">Go to checkout</x-import>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- CHECKOUT -->
+          <sc-if value="{{ v.checkout }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Checkout" style="display:flex;flex-direction:column;gap:{{ gapM }}">
+              <sc-if value="{{ isWeb }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button onClick="{{ backToStore }}" style="align-self:flex-start;display:flex;align-items:center;gap:6px;height:32px;padding:0;border:0;background:transparent;color:var(--vq-text-2);font:500 14px/1 var(--vq-font-sans);cursor:pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>Back to {{ cart.storeName }}</button>
+                  <h1 style="margin:0;font:600 {{ h1Fs }}/1.05 var(--vq-font-display);letter-spacing:-0.035em">Checkout</h1>
+                </div>
+              </sc-if>
+              <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:48px 24px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px">
+                  <span style="font:600 20px/1.2 var(--vq-font-display);letter-spacing:-0.025em">Your cart is empty</span>
+                  <span style="font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Pick a shop and add a few items — checkout takes about a minute.</span>
+                  <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" onClick="{{ goHome }}" hint-size="140px,40px">Browse shops</x-import>
+                </div>
+              </sc-if>
+              <sc-if value="{{ cartHas }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:{{ checkoutCols }};gap:{{ gutter }};align-items:start">
+                  <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:16px">
+                      <div style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:99px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center;font:600 12px/1 var(--vq-font-numeric)">1</span><span style="font:600 18px/1 var(--vq-font-display);letter-spacing:-0.02em">How do you want it?</span></div>
+                      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+                        <sc-for list="{{ modeOpts }}" as="o" hint-placeholder-count="2">
+                          <button onClick="{{ o.onClick }}" disabled="{{ o.disabled }}" style="display:flex;align-items:flex-start;gap:10px;padding:14px;border-radius:16px;border:1.5px solid {{ o.bd }};background:{{ o.bg }};cursor:pointer;text-align:left;opacity:{{ o.opacity }};min-height:72px">
+                            <span style="width:18px;height:18px;flex:none;margin-top:1px;border-radius:99px;border:1.5px solid {{ o.dot }};display:flex;align-items:center;justify-content:center;box-sizing:border-box"><sc-if value="{{ o.selected }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:99px;background:var(--vq-accent-fill)"></span></sc-if></span>
+                            <span style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                              <span style="font:600 15px/1.2 var(--vq-font-sans);color:var(--vq-text)">{{ o.label }}</span>
+                              <span style="font:400 12px/1.35 var(--vq-font-sans);color:var(--vq-text-2)">{{ o.sub }}</span>
+                            </span>
+                          </button>
+                        </sc-for>
+                      </div>
+                      <sc-if value="{{ isDelivery }}" hint-placeholder-val="{{ true }}">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+                          <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Input" label="Street address" placeholder="House 12, Street 4, Block C" value="{{ form.address }}" onChange="{{ setAddress }}" error="{{ errors.address }}" hint-size="100%,72px"></x-import>
+                          <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Input" label="Area" placeholder="Gulberg III" value="{{ form.area }}" onChange="{{ setArea }}" hint="Helps the rider find you" hint-size="100%,72px"></x-import>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ isPickup }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:16px;background:var(--vq-surface-2);border:1px solid var(--vq-line-soft)">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="color:var(--vq-accent-text);flex:none;margin-top:1px"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                          <span style="font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)"><b style="color:var(--vq-text)">Pick up at {{ cart.storeName }}</b><br>{{ cart.storeAddr }} · usually ready in {{ cart.ready }} after the shop confirms</span>
+                        </div>
+                      </sc-if>
+                    </div>
+
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:16px">
+                      <div style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:99px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center;font:600 12px/1 var(--vq-font-numeric)">2</span><span style="font:600 18px/1 var(--vq-font-display);letter-spacing:-0.02em">Your details</span></div>
+                      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+                        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Input" label="Full name" placeholder="Ayesha Khan" value="{{ form.name }}" onChange="{{ setName }}" error="{{ errors.name }}" hint-size="100%,72px"></x-import>
+                        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Input" label="Mobile number" placeholder="300 1234567" prefix="+92" type="tel" value="{{ form.phone }}" onChange="{{ setPhone }}" error="{{ errors.phone }}" hint="The shop calls this number to confirm" hint-size="100%,72px"></x-import>
+                      </div>
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Input" label="Note for the shop (optional)" placeholder="Ring the bell twice, leave with the guard…" value="{{ form.note }}" onChange="{{ setNote }}" hint-size="100%,72px"></x-import>
+                    </div>
+
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:16px">
+                      <div style="display:flex;align-items:center;gap:10px"><span style="width:26px;height:26px;border-radius:99px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center;font:600 12px/1 var(--vq-font-numeric)">3</span><span style="font:600 18px/1 var(--vq-font-display);letter-spacing:-0.02em">Payment</span></div>
+                      <div style="display:flex;flex-direction:column;gap:10px">
+                        <sc-for list="{{ payOpts }}" as="o" hint-placeholder-count="2">
+                          <button onClick="{{ o.onClick }}" disabled="{{ o.disabled }}" style="display:flex;align-items:flex-start;gap:10px;padding:14px;border-radius:16px;border:1.5px solid {{ o.bd }};background:{{ o.bg }};cursor:pointer;text-align:left;opacity:{{ o.opacity }}">
+                            <span style="width:18px;height:18px;flex:none;margin-top:1px;border-radius:99px;border:1.5px solid {{ o.dot }};display:flex;align-items:center;justify-content:center;box-sizing:border-box"><sc-if value="{{ o.selected }}" hint-placeholder-val="{{ false }}"><span style="width:8px;height:8px;border-radius:99px;background:var(--vq-accent-fill)"></span></sc-if></span>
+                            <span style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1">
+                              <span style="font:600 15px/1.2 var(--vq-font-sans);color:var(--vq-text)">{{ o.label }}</span>
+                              <span style="font:400 12px/1.35 var(--vq-font-sans);color:var(--vq-text-2)">{{ o.sub }}</span>
+                            </span>
+                            <sc-if value="{{ o.disabled }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="neutral" dot="{{ false }}" hint-size="80px,26px">Coming soon</x-import></sc-if>
+                          </button>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="position:{{ summaryPos }};top:{{ sideTop }};display:flex;flex-direction:column;gap:14px">
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;box-shadow:var(--vq-elev-1);padding:20px;display:flex;flex-direction:column;gap:14px">
+                      <div style="display:flex;align-items:center;gap:10px">
+                        <span style="width:40px;height:40px;border-radius:12px;background:{{ cart.storeBg }};display:flex;align-items:center;justify-content:center;font:600 14px/1 var(--vq-font-display);color:{{ cart.storeFg }}">{{ cart.storeInitials }}</span>
+                        <div style="display:flex;flex-direction:column;gap:3px"><span style="font:600 15px/1.2 var(--vq-font-sans)">{{ cart.storeName }}</span><span style="font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-3)">{{ cart.countLabel }}</span></div>
+                      </div>
+                      <div style="display:flex;flex-direction:column">
+                        <sc-for list="{{ cart.lines }}" as="l" hint-placeholder-count="3">
+                          <div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--vq-line-soft);font:400 14px/1.35 var(--vq-font-sans)">
+                            <span style="color:var(--vq-text-2)"><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ l.qty }}×</span> {{ l.name }}</span>
+                            <span style="font-family:var(--vq-font-numeric);white-space:nowrap">{{ l.lineTotal }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:8px;font:400 14px/1 var(--vq-font-sans);color:var(--vq-text-2)">
+                        <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ cart.subtotal }}</span></div>
+                        <div style="display:flex;justify-content:space-between"><span>{{ checkoutFeeLabel }}</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ checkoutFee }}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--vq-line-strong);font:600 18px/1 var(--vq-font-display);color:var(--vq-text)"><span>Total</span><span style="font-family:var(--vq-font-numeric)">{{ checkoutTotal }}</span></div>
+                      </div>
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" full="{{ true }}" size="lg" onClick="{{ placeOrder }}" hint-size="100%,48px">Place order · {{ checkoutTotal }}</x-import>
+                      <span style="font:400 12px/1.5 var(--vq-font-sans);color:var(--vq-text-3)">The shop confirms stock before preparing your order. Nothing is charged now — you pay {{ payWhen }}.</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- ORDER STATUS -->
+          <sc-if value="{{ v.order }}" hint-placeholder-val="{{ false }}">
+            <div data-screen-label="Order status" style="display:flex;flex-direction:column;gap:{{ gapM }}">
+              <sc-if value="{{ noOrder }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:56px 24px;background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px">
+                  <span style="width:56px;height:56px;border-radius:18px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path><path d="M16 8h-6M16 12H8M13 16H8"></path></svg></span>
+                  <span style="font:600 20px/1.2 var(--vq-font-display);letter-spacing:-0.025em">Your orders show up here</span>
+                  <span style="max-width:40ch;font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Place an order from any shop and follow it from this page — no account needed.</span>
+                  <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" onClick="{{ goHome }}" hint-size="140px,40px">Browse shops</x-import>
+                </div>
+              </sc-if>
+              <sc-if value="{{ hasOrder }}" hint-placeholder-val="{{ true }}">
+                <div style="display:grid;grid-template-columns:{{ checkoutCols }};gap:{{ gutter }};align-items:start">
+                  <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
+                    <div style="border-radius:28px;background:var(--vq-grad-mint);box-shadow:var(--vq-glow-accent);padding:{{ cardPad }};color:#FFFFFF;display:flex;flex-direction:column;gap:12px">
+                      <span style="width:48px;height:48px;border-radius:99px;background:rgb(255 255 255 / .2);display:flex;align-items:center;justify-content:center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+                      <span style="font:600 {{ h1Fs }}/1.05 var(--vq-font-display);letter-spacing:-0.035em;color:#FFFFFF;text-shadow:0 1px 12px rgb(6 36 33 / .25)">{{ order.headline }}</span>
+                      <span style="font:500 13px/1 var(--vq-font-numeric);letter-spacing:.06em;color:#FFFFFF">ORDER {{ order.no }} · PLACED {{ order.placed }}</span>
+                    </div>
+
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:{{ cardPad }};display:flex;flex-direction:column;gap:4px">
+                      <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3);padding-bottom:14px">Status</span>
+                      <sc-for list="{{ order.steps }}" as="s" hint-placeholder-count="5">
+                        <div style="display:flex;gap:14px">
+                          <div style="display:flex;flex-direction:column;align-items:center;flex:none">
+                            <span style="width:28px;height:28px;border-radius:99px;background:{{ s.dotBg }};border:2px solid {{ s.dotBd }};color:{{ s.dotFg }};display:flex;align-items:center;justify-content:center;box-sizing:border-box;font:600 11px/1 var(--vq-font-numeric);box-shadow:{{ s.glow }}">{{ s.mark }}</span>
+                            <span style="width:2px;flex:1;min-height:22px;background:{{ s.lineBg }};margin:4px 0"></span>
+                          </div>
+                          <div style="display:flex;flex-direction:column;gap:4px;padding:4px 0 18px">
+                            <span style="font:600 15px/1.2 var(--vq-font-sans);color:{{ s.labelColor }}">{{ s.label }}</span>
+                            <sc-if value="{{ s.current }}" hint-placeholder-val="{{ false }}"><span style="font:400 13px/1.45 var(--vq-font-sans);color:var(--vq-text-2);max-width:48ch">{{ s.desc }}</span></sc-if>
+                          </div>
+                        </div>
+                      </sc-for>
+                    </div>
+
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;padding:{{ cardPad }};display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+                      <span style="width:48px;height:48px;border-radius:14px;background:{{ order.storeBg }};display:flex;align-items:center;justify-content:center;font:600 16px/1 var(--vq-font-display);color:{{ order.storeFg }}">{{ order.storeInitials }}</span>
+                      <div style="flex:1 1 180px;min-width:0;display:flex;flex-direction:column;gap:4px">
+                        <span style="font:600 15px/1.2 var(--vq-font-sans)">{{ order.storeName }}</span>
+                        <span style="font:400 13px/1.35 var(--vq-font-sans);color:var(--vq-text-2)">{{ order.storeAddr }}</span>
+                      </div>
+                      <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="secondary" hint-size="130px,40px">Call {{ order.storePhone }}</x-import>
+                    </div>
+                  </div>
+
+                  <div style="position:{{ summaryPos }};top:{{ sideTop }};display:flex;flex-direction:column;gap:14px">
+                    <div style="background:var(--vq-surface);border:1px solid var(--vq-line);border-radius:20px;box-shadow:var(--vq-elev-1);padding:20px;display:flex;flex-direction:column;gap:14px">
+                      <span style="font:600 18px/1 var(--vq-font-display);letter-spacing:-0.02em">Order summary</span>
+                      <div style="display:flex;flex-direction:column">
+                        <sc-for list="{{ order.lines }}" as="l" hint-placeholder-count="3">
+                          <div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--vq-line-soft);font:400 14px/1.35 var(--vq-font-sans)">
+                            <span style="color:var(--vq-text-2)"><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ l.qty }}×</span> {{ l.name }}</span>
+                            <span style="font-family:var(--vq-font-numeric);white-space:nowrap">{{ l.lineTotal }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:8px;font:400 14px/1 var(--vq-font-sans);color:var(--vq-text-2)">
+                        <div style="display:flex;justify-content:space-between"><span>Subtotal</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ order.subtotal }}</span></div>
+                        <div style="display:flex;justify-content:space-between"><span>{{ order.feeLabel }}</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ order.fee }}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--vq-line-strong);font:600 18px/1 var(--vq-font-display);color:var(--vq-text)"><span>{{ order.payLabel }}</span><span style="font-family:var(--vq-font-numeric)">{{ order.total }}</span></div>
+                      </div>
+                      <div style="display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;background:var(--vq-surface-2);border:1px solid var(--vq-line-soft)">
+                        <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-text-3)">{{ order.modeLabel }}</span>
+                        <span style="font:400 13px/1.45 var(--vq-font-sans);color:var(--vq-text)">{{ order.dest }}</span>
+                      </div>
+                      <div style="display:flex;gap:8px;align-items:center">
+                        <span style="flex:1;min-width:0;height:40px;padding:0 12px;border-radius:12px;background:var(--vq-sunken);display:flex;align-items:center;font:500 12px/1 var(--vq-font-numeric);color:var(--vq-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">venqore.shop/o/7Kq9Xw2mPa</span>
+                        <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="secondary" size="sm" hint-size="90px,34px">Copy link</x-import>
+                      </div>
+                      <span style="font:400 12px/1.5 var(--vq-font-sans);color:var(--vq-text-3)">Keep this private link to check your order. It shows this order only.</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- Mobile floating cart bar -->
+      <sc-if value="{{ showCartBar }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:12px;right:12px;bottom:{{ cartBarBottom }};z-index:25">
+          <button onClick="{{ cartBarAction }}" style="width:100%;height:56px;display:flex;align-items:center;gap:12px;padding:0 8px 0 18px;box-sizing:border-box;border:0;border-radius:999px;background:var(--vq-accent-fill);color:var(--vq-on-accent);box-shadow:var(--vq-glow-accent-strong);cursor:pointer;font:600 15px/1 var(--vq-font-sans)">
+            <span style="min-width:26px;height:26px;padding:0 6px;box-sizing:border-box;border-radius:99px;background:rgb(255 255 255 / .2);display:flex;align-items:center;justify-content:center;font:600 13px/1 var(--vq-font-numeric)">{{ cart.count }}</span>
+            <span style="flex:1;text-align:left">{{ cartBarLabel }}</span>
+            <span style="height:40px;padding:0 16px;border-radius:99px;background:rgb(255 255 255 / .16);display:flex;align-items:center;font-family:var(--vq-font-numeric)">{{ cartBarTotal }}</span>
+          </button>
+        </div>
+      </sc-if>
+
+      <!-- Mobile bottom nav -->
+      <sc-if value="{{ showTabBar }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:0;right:0;bottom:0;z-index:24;height:76px;padding:0 8px 14px;box-sizing:border-box;background:var(--vq-glass);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--vq-line);display:grid;grid-template-columns:repeat(4,1fr)">
+          <button onClick="{{ goHome }}" style="border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ tab.shops }};font:600 11px/1 var(--vq-font-sans);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"></path><path d="M4 9v11h16V9"></path><path d="M3 9h18"></path><path d="M9 20v-6h6v6"></path></svg>Shops</button>
+          <button onClick="{{ goSearch }}" style="border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ tab.search }};font:600 11px/1 var(--vq-font-sans);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>Search</button>
+          <button onClick="{{ openCart }}" style="border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ tab.cart }};font:600 11px/1 var(--vq-font-sans);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>Cart</button>
+          <button onClick="{{ goOrders }}" style="border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:{{ tab.orders }};font:600 11px/1 var(--vq-font-sans);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path><path d="M16 8h-6M16 12H8M13 16H8"></path></svg>Orders</button>
+        </div>
+      </sc-if>
+
+      <!-- Product sheet -->
+      <sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Product" onClick="{{ closeSheet }}" style="position:absolute;inset:0;z-index:50;background:var(--vq-scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:{{ sheetAlign }};justify-content:center;padding:{{ sheetPad }};box-sizing:border-box">
+          <div onClick="{{ stop }}" style="position:relative;width:100%;max-width:{{ sheetMax }};max-height:100%;overflow-y:auto;background:var(--vq-raised);border-radius:{{ sheetR }};box-shadow:var(--vq-elev-3);display:grid;grid-template-columns:{{ sheetCols }};animation:vqUp 320ms var(--vq-ease-spring)">
+            <div style="position:absolute;top:12px;right:12px;z-index:2">
+              <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.IconButton" label="Close" size="{{ 44 }}" onClick="{{ closeSheet }}" hint-size="44px,44px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></x-import>
+            </div>
+            <div style="padding:{{ sheetImgPad }}">
+              <div style="aspect-ratio:{{ sheetRatio }};border-radius:22px;background:{{ sp.bg }};display:flex;align-items:center;justify-content:center">
+                <span style="font:600 88px/1 var(--vq-font-display);letter-spacing:-0.05em;color:{{ sp.fg }}">{{ sp.mono }}</span>
+              </div>
+            </div>
+            <div style="padding:{{ sheetBodyPad }};display:flex;flex-direction:column;gap:16px;min-width:0">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <span style="font:500 11px/1 var(--vq-font-numeric);letter-spacing:.12em;text-transform:uppercase;color:var(--vq-accent-text)">{{ sp.storeName }} · {{ sp.cat }}</span>
+                <span style="font:600 28px/1.1 var(--vq-font-display);letter-spacing:-0.03em;color:var(--vq-text);padding-right:40px">{{ sp.name }}</span>
+                <span style="font:400 14px/1 var(--vq-font-sans);color:var(--vq-text-2)">{{ sp.unit }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <span style="font:600 26px/1 var(--vq-font-numeric);font-variant-numeric:tabular-nums;color:var(--vq-text)">{{ sp.price }}</span>
+                <sc-if value="{{ sp.low }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="warning" hint-size="80px,26px">Few left</x-import></sc-if>
+                <sc-if value="{{ sp.out }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Badge" tone="neutral" hint-size="80px,26px">Sold out</x-import></sc-if>
+              </div>
+              <p style="margin:0;font:400 15px/1.55 var(--vq-font-sans);color:var(--vq-text-2);text-wrap:pretty">{{ sp.desc }}</p>
+              <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:var(--vq-surface-2);border:1px solid var(--vq-line-soft);font:400 13px/1.4 var(--vq-font-sans);color:var(--vq-text-2)">
+                <span style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--vq-accent-text)"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path><path d="M15 18H9"></path><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path><circle cx="17" cy="18" r="2"></circle><circle cx="7" cy="18" r="2"></circle></svg>{{ sp.deliveryLine }}</span>
+                <span style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex:none;color:var(--vq-accent-text)"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>Pay on delivery or at pickup — nothing charged online</span>
+              </div>
+              <sc-if value="{{ sp.canBuy }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;gap:10px;align-items:center;margin-top:auto">
+                  <div style="flex:none;display:flex;align-items:center;height:48px;border-radius:99px;border:1px solid var(--vq-line-strong)">
+                    <button aria-label="Decrease quantity" onClick="{{ sheetDec }}" style="width:46px;height:46px;border:0;background:transparent;color:var(--vq-text);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <span style="min-width:22px;text-align:center;font:600 16px/1 var(--vq-font-numeric)">{{ sheetQty }}</span>
+                    <button aria-label="Increase quantity" onClick="{{ sheetInc }}" style="width:46px;height:46px;border:0;background:transparent;color:var(--vq-text);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                  </div>
+                  <div style="flex:1;min-width:0"><x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" full="{{ true }}" size="lg" onClick="{{ sheetAdd }}" hint-size="100%,48px">{{ sheetCta }}</x-import></div>
+                </div>
+                <span style="font:400 12px/1.4 var(--vq-font-sans);color:var(--vq-text-3)">{{ sp.capNote }}</span>
+              </sc-if>
+              <sc-if value="{{ sp.cantBuy }}" hint-placeholder-val="{{ false }}">
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Alert" tone="neutral" hint-size="100%,52px">{{ sp.cantReason }}</x-import>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Cart drawer -->
+      <sc-if value="{{ cartOpen }}" hint-placeholder-val="{{ false }}">
+        <div data-screen-label="Cart" onClick="{{ closeCart }}" style="position:absolute;inset:0;z-index:50;background:var(--vq-scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;justify-content:flex-end;align-items:{{ drawerAlign }}">
+          <div onClick="{{ stop }}" style="width:{{ drawerW }};height:{{ drawerH }};max-height:100%;background:var(--vq-raised);border-radius:{{ drawerR }};box-shadow:var(--vq-elev-3);display:flex;flex-direction:column;animation:vqUp 320ms var(--vq-ease-spring)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 12px 22px">
+              <div style="display:flex;flex-direction:column;gap:4px">
+                <span style="font:600 22px/1 var(--vq-font-display);letter-spacing:-0.03em">Your cart</span>
+                <span style="font:400 13px/1 var(--vq-font-sans);color:var(--vq-text-2)">{{ cart.drawerSub }}</span>
+              </div>
+              <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.IconButton" label="Close cart" size="{{ 44 }}" onClick="{{ closeCart }}" hint-size="44px,44px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></x-import>
+            </div>
+            <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px">
+                <span style="width:56px;height:56px;border-radius:18px;background:var(--vq-accent-quiet);color:var(--vq-accent-text);display:flex;align-items:center;justify-content:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span>
+                <span style="font:600 18px/1.2 var(--vq-font-display);letter-spacing:-0.02em">Your cart is empty</span>
+                <span style="max-width:30ch;font:400 14px/1.5 var(--vq-font-sans);color:var(--vq-text-2)">Open a shop and tap + on anything you want. One shop per order.</span>
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" onClick="{{ goHome }}" hint-size="140px,40px">Browse shops</x-import>
+              </div>
+            </sc-if>
+            <sc-if value="{{ cartHas }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1;overflow-y:auto;padding:0 22px">
+                <div onClick="{{ openCartStore }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px;border-radius:16px;background:var(--vq-surface-2);border:1px solid var(--vq-line-soft);margin-bottom:6px">
+                  <span style="width:36px;height:36px;border-radius:11px;background:{{ cart.storeBg }};display:flex;align-items:center;justify-content:center;font:600 13px/1 var(--vq-font-display);color:{{ cart.storeFg }}">{{ cart.storeInitials }}</span>
+                  <span style="flex:1;font:600 14px/1.2 var(--vq-font-sans)">{{ cart.storeName }}</span>
+                  <span style="font:600 13px/1 var(--vq-font-sans);color:var(--vq-accent-text)">Add more</span>
+                </div>
+                <sc-for list="{{ cart.lines }}" as="l" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--vq-line-soft)">
+                    <span style="width:52px;height:52px;flex:none;border-radius:14px;background:{{ l.bg }};display:flex;align-items:center;justify-content:center;font:600 17px/1 var(--vq-font-display);color:{{ l.fg }}">{{ l.mono }}</span>
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                      <span style="font:600 14px/1.25 var(--vq-font-sans);color:var(--vq-text)">{{ l.name }}</span>
+                      <span style="font:400 12px/1 var(--vq-font-sans);color:var(--vq-text-3)">{{ l.unit }} · {{ l.price }}</span>
+                      <span style="font:600 13px/1 var(--vq-font-numeric);color:var(--vq-text)">{{ l.lineTotal }}</span>
+                    </div>
+                    <div style="flex:none;display:flex;align-items:center;height:40px;border-radius:99px;border:1px solid var(--vq-line)">
+                      <button aria-label="Remove one" onClick="{{ l.dec }}" style="width:40px;height:38px;border:0;background:transparent;color:var(--vq-text-2);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                      <span style="min-width:16px;text-align:center;font:600 14px/1 var(--vq-font-numeric)">{{ l.qty }}</span>
+                      <button aria-label="Add one" onClick="{{ l.inc }}" style="width:40px;height:38px;border:0;background:transparent;color:var(--vq-text-2);cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></button>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:16px 22px 22px;border-top:1px solid var(--vq-line);display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;font:400 14px/1 var(--vq-font-sans);color:var(--vq-text-2)"><span>Subtotal</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ cart.subtotal }}</span></div>
+                <div style="display:flex;justify-content:space-between;font:400 14px/1 var(--vq-font-sans);color:var(--vq-text-2)"><span>{{ cart.feeLabel }}</span><span style="font-family:var(--vq-font-numeric);color:var(--vq-text)">{{ cart.fee }}</span></div>
+                <sc-if value="{{ cart.belowMin }}" hint-placeholder-val="{{ false }}">
+                  <span style="font:500 13px/1.4 var(--vq-font-sans);color:var(--vq-warning)">Add {{ cart.toMin }} more for delivery, or choose pickup at checkout.</span>
+                </sc-if>
+                <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" full="{{ true }}" size="lg" onClick="{{ goCheckout }}" hint-size="100%,48px">Checkout · {{ cart.total }}</x-import>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Replace cart dialog -->
+      <sc-if value="{{ pendingOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ cancelReplace }}" style="position:absolute;inset:0;z-index:60;background:var(--vq-scrim);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px">
+          <div onClick="{{ stop }}" role="dialog" style="width:100%;max-width:420px;background:var(--vq-raised);border-radius:28px;box-shadow:var(--vq-elev-3);padding:24px;display:flex;flex-direction:column;gap:14px;animation:vqUp 320ms var(--vq-ease-spring)">
+            <span style="font:600 22px/1.15 var(--vq-font-display);letter-spacing:-0.03em">Start a new cart?</span>
+            <span style="font:400 14px/1.55 var(--vq-font-sans);color:var(--vq-text-2)">Your cart has {{ cart.countLabel }} from <b style="color:var(--vq-text)">{{ cart.storeName }}</b>. Each order comes from one shop, so adding {{ pendingName }} from {{ pendingStore }} replaces it.</span>
+            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding-top:6px">
+              <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" variant="secondary" onClick="{{ cancelReplace }}" hint-size="130px,40px">Keep my cart</x-import>
+              <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Button" onClick="{{ replaceCart }}" hint-size="160px,40px">Replace cart</x-import>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- Toast -->
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:{{ toastBottom }};z-index:70;width:max-content;max-width:calc(100% - 32px);pointer-events:none">
+          <x-import component-from-global-scope="VenQoreDesignSystem_76c34c.Toast" title="Added to cart" description="{{ toast }}" hint-size="300px,64px"></x-import>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;web&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;web&quot;,&quot;tsType&quot;:&quot;'web'|'mobile'&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showScope&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const T = {
+  lime: ['var(--vq-lime-100)', 'var(--vq-lime-700)'],
+  butter: ['var(--vq-butter-100)', 'var(--vq-butter-700)'],
+  coral: ['var(--vq-coral-100)', 'var(--vq-coral-700)'],
+  sky: ['var(--vq-sky-100)', 'var(--vq-sky-700)'],
+  teal: ['var(--vq-teal-50)', 'var(--vq-teal-700)'],
+  plum: ['var(--vq-plum-300)', 'var(--vq-plum-700)']
+};
+const TONES = ['lime', 'butter', 'sky', 'coral', 'teal', 'plum'];
+const FMT = n => 'Rs ' + Math.round(n).toLocaleString('en-US');
+const STORES = [
+  { id: 'fresh', code: 'DFM', name: 'Daily Fresh Mart', type: 'Grocery', area: 'Gulberg III', addr: '14-B Main Boulevard, Gulberg III', open: true, hours: '8:00 – 23:00', status: 'Open · until 23:00', delivery: true, pickup: true, fee: 150, eta: '35–50 min', min: 1000, ready: '20 min', tone: 'lime', phone: '+92 42 3571 2290', tagline: 'Fresh produce, dairy and pantry staples, packed within the hour.' },
+  { id: 'qissa', code: 'QBH', name: 'Qissa Bakehouse', type: 'Bakery', area: 'DHA Phase 5', addr: '22-CCA, DHA Phase 5', open: true, hours: '9:00 – 22:00', status: 'Open · until 22:00', delivery: true, pickup: true, fee: 200, eta: '40–60 min', min: 800, ready: '30 min', tone: 'butter', phone: '+92 42 3589 1144', tagline: 'Sourdough, cakes and patties baked every morning.' },
+  { id: 'noor', code: 'NPH', name: 'Noor Pharmacy', type: 'Pharmacy', area: 'Model Town', addr: '7 Link Road, Model Town', open: true, hours: 'Open 24 hours', status: 'Open · 24 hours', delivery: true, pickup: true, fee: 100, eta: '25–40 min', min: 500, ready: '10 min', tone: 'sky', phone: '+92 42 3583 0070', tagline: 'Licensed pharmacy. Medicines are checked by the pharmacist before dispatch.' },
+  { id: 'chai', code: 'CKC', name: 'Chai Khana Co.', type: 'Tea & coffee', area: 'MM Alam Road', addr: '91 MM Alam Road, Gulberg II', open: false, opensAt: '10:00', hours: '10:00 – 23:30', status: 'Closed · opens 10:00', delivery: false, pickup: true, fee: 0, eta: '', min: 0, ready: '15 min', tone: 'coral', phone: '+92 42 3575 6620', tagline: 'Loose-leaf tea, house-roasted beans and brewing gear.' },
+  { id: 'pixel', code: 'PMH', name: 'Pixel Mobile Hub', type: 'Electronics', area: 'Hafeez Centre', addr: 'Shop 118, Hafeez Centre, Gulberg III', open: true, hours: '11:00 – 21:00', status: 'Open · until 21:00', delivery: true, pickup: true, fee: 250, eta: '60–90 min', min: 1500, ready: '15 min', tone: 'plum', phone: '+92 42 3578 4410', tagline: 'Chargers, cables, cases and audio — original stock with shop warranty.' },
+  { id: 'kitab', code: 'KGR', name: 'Kitab Ghar', type: 'Books', area: 'Urdu Bazaar', addr: '31 Urdu Bazaar, Old City', open: true, hours: '10:00 – 20:00', status: 'Open · until 20:00', delivery: false, pickup: true, fee: 0, eta: '', min: 0, ready: '20 min', tone: 'teal', phone: '+92 42 3732 1180', tagline: 'Books, notebooks and stationery since 1987.' },
+  { id: 'sana', code: 'SHL', name: "Sana's Home Linen", type: 'Home', area: 'Johar Town', addr: 'G-1 Market, Johar Town', open: true, hours: '11:00 – 21:00', status: 'Open · until 21:00', delivery: true, pickup: false, fee: 300, eta: '1–2 days', min: 2000, ready: '', tone: 'butter', phone: '+92 42 3530 9921', tagline: 'Cotton bedding, towels and cushions, made in Faisalabad.' },
+  { id: 'green', code: 'GLO', name: 'Green Leaf Organics', type: 'Grocery', area: 'Cantt', addr: '4 Sarwar Road, Cantt', open: false, opensAt: '9:00 tomorrow', hours: '9:00 – 19:00', status: 'Closed · opens 9:00', delivery: true, pickup: true, fee: 180, eta: '45–60 min', min: 1200, ready: '25 min', tone: 'lime', phone: '+92 42 3660 2201', tagline: 'Certified organic produce, grains and cold-pressed oils.' }
+];
+const RAW = {
+  fresh: [['Fruits & veg', 'Bananas', '1 dozen', 180], ['Fruits & veg', 'Tomatoes', '1 kg', 220], ['Fruits & veg', 'Potatoes', '1 kg', 120], ['Fruits & veg', 'Kala Kulu apples', '1 kg', 420, 'low'], ['Fruits & veg', 'Fresh coriander', '1 bunch', 40], ['Dairy & eggs', 'Fresh milk', '1 litre', 220], ['Dairy & eggs', 'Farm eggs', 'Pack of 12', 390], ['Dairy & eggs', 'Plain yoghurt', '800 g', 260], ['Dairy & eggs', 'Cheddar slices', '200 g', 650, 'out'], ['Bakery', 'Sandwich bread', 'Large loaf', 210], ['Bakery', 'Cake rusk', '300 g', 240], ['Pantry', 'Basmati rice', '5 kg', 2450], ['Pantry', 'Chakki atta', '10 kg', 1680], ['Pantry', 'Red lentils (masoor)', '1 kg', 360], ['Pantry', 'Cooking oil', '5 litre', 2650, 'low'], ['Beverages', 'Green tea', '30 bags', 450], ['Beverages', 'Mineral water', '1.5 L × 6', 540], ['Household', 'Dishwash liquid', '500 ml', 330], ['Household', 'Laundry powder', '1 kg', 520]],
+  qissa: [['Breads', 'Sourdough loaf', '750 g', 1100], ['Breads', 'Milk brioche', '400 g', 650], ['Cakes', 'Chocolate fudge cake', '2 lb', 3200], ['Cakes', 'Lemon drizzle slice', '1 slice', 420], ['Cookies', 'Brown butter cookies', 'Box of 6', 950], ['Cookies', 'Nankhatai', '250 g', 480], ['Savoury', 'Chicken patties', 'Box of 4', 720], ['Savoury', 'Cheese croissant', '1 piece', 380, 'low']],
+  noor: [['Pain & fever', 'Paracetamol 500 mg', '20 tablets', 60], ['Pain & fever', 'Ibuprofen 400 mg', '20 tablets', 140], ['Vitamins', 'Vitamin D3 1000 IU', '30 capsules', 890], ['Vitamins', 'Vitamin C effervescent', '20 tablets', 520], ['Baby care', 'Baby wipes', 'Pack of 80', 450], ['Baby care', 'Diaper rash cream', '50 g', 380], ['Personal care', 'Hand sanitiser', '250 ml', 320], ['Personal care', 'Sunscreen SPF 50', '60 ml', 1650, 'low']],
+  chai: [['Loose tea', 'Kashmiri chai leaves', '250 g', 950], ['Loose tea', 'Assam black tea', '500 g', 1100], ['Coffee', 'House espresso beans', '250 g', 1850], ['Coffee', 'Ground filter coffee', '250 g', 1650], ['Brewing gear', 'Pour-over set', '1 set', 4200], ['Brewing gear', 'Steel chai strainer', '1 piece', 350]],
+  pixel: [['Chargers', '20W USB-C charger', '1 piece', 2400], ['Chargers', '65W GaN charger', '1 piece', 6500, 'low'], ['Cables', 'USB-C to USB-C cable', '1 m', 900], ['Cables', 'Lightning cable', '1 m', 1100], ['Cases', 'Clear case, iPhone 15', '1 piece', 1200], ['Audio', 'Wireless earbuds', '1 pair', 5800, 'out'], ['Audio', 'Wired earphones', '1 pair', 750]],
+  kitab: [['Notebooks', 'A5 dotted notebook', '120 pages', 450], ['Notebooks', 'Spiral register', '200 pages', 380], ['Pens', 'Gel pens', 'Pack of 10', 600], ['Pens', 'Highlighters', 'Pack of 5', 420], ['Books', 'Urdu–English dictionary', 'Hardcover', 1450], ['Books', 'Colouring set', '24 colours', 850]],
+  sana: [['Bedsheets', 'Cotton bedsheet set', 'King size', 6800], ['Bedsheets', 'Fitted sheet', 'Queen size', 3900], ['Towels', 'Bath towel', '1 piece', 1900], ['Towels', 'Hand towels', 'Set of 2', 1200], ['Cushions', 'Cushion cover', '18 in', 950], ['Cushions', 'Filled cushion', '16 in', 1400]],
+  green: [['Produce', 'Organic spinach', '500 g', 260], ['Produce', 'Organic carrots', '1 kg', 240], ['Grains', 'Brown rice', '2 kg', 1350], ['Grains', 'Rolled oats', '1 kg', 980], ['Oils', 'Cold-pressed mustard oil', '1 litre', 1450], ['Oils', 'Desi ghee', '500 g', 1600]]
+};
+const SBY = {}; STORES.forEach(s => SBY[s.id] = s);
+const PRODUCTS = []; const PBY = {}; const CATS = {};
+Object.keys(RAW).forEach(sid => {
+  const cats = [];
+  RAW[sid].forEach((r, i) => {
+    if (!cats.includes(r[0])) cats.push(r[0]);
+    const tone = TONES[(cats.indexOf(r[0]) + TONES.indexOf(SBY[sid].tone)) % TONES.length];
+    const p = { id: sid + '-' + i, store: sid, cat: r[0], name: r[1], unit: r[2], price: r[3], stock: r[4] || 'in', tone };
+    PRODUCTS.push(p); PBY[p.id] = p;
+  });
+  CATS[sid] = cats;
+});
+const initials = n => n.replace(/[^A-Za-z ]/g, '').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+const CITIES = [{ name: 'Lahore', country: 'Pakistan' }, { name: 'Karachi', country: 'Pakistan' }, { name: 'Islamabad', country: 'Pakistan' }];
+const BIZ = ['All', 'Grocery', 'Bakery', 'Pharmacy', 'Electronics', 'Tea & coffee', 'Books', 'Home'];
+const POPULAR = ['Milk', 'Bread', 'Charger', 'Paracetamol', 'Tea', 'Notebook'];
+const DEMO_CART = { storeId: 'fresh', lines: { 'fresh-0': 2, 'fresh-5': 2, 'fresh-6': 1, 'fresh-11': 1 } };
+const val = e => (e && e.target ? e.target.value : e) || '';
+
+class Component extends DCLogic {
+  state = { device: null, view: 'home', city: 'Lahore', cityOpen: false, bizCat: 'All', fOpen: false, fDel: false, fPick: false, q: '', storeId: 'fresh', storeCat: 'All', storeQ: '', productId: null, sheetQty: 1, cart: { storeId: null, lines: {} }, cartOpen: false, pending: null, form: { name: '', phone: '', address: '', area: '', note: '' }, mode: 'delivery', pay: 'cod', errors: {}, order: null, toast: null, prevView: 'home' };
+  scroller = React.createRef();
+
+  componentDidUpdate(pp) { if (pp.device !== this.props.device && this.state.device) this.setState({ device: null }); }
+  componentWillUnmount() { clearTimeout(this._t); }
+
+  go(view, extra = {}) {
+    this.setState(s => ({ view, cartOpen: false, productId: null, cityOpen: false, prevView: s.view, ...extra }), () => {
+      const el = this.scroller.current;
+      if (el) el.scrollTop = 0;
+      if (view === 'search' && el) setTimeout(() => { const i = el.querySelector('[data-search] input') || el.querySelector('[data-hsearch] input'); i && i.focus(); }, 40);
+    });
+  }
+  cap(p) { return p.stock === 'low' ? 3 : 10; }
+  flash(p) { clearTimeout(this._t); this.setState({ toast: p.name + ' · ' + p.unit }); this._t = setTimeout(() => this.setState({ toast: null }), 1800); }
+  add(pid, qty = 1) {
+    const p = PBY[pid], c = this.state.cart;
+    if (Object.keys(c.lines).length && c.storeId !== p.store) { this.setState({ pending: { pid, qty }, productId: null }); return; }
+    const lines = { ...c.lines }; lines[pid] = Math.min(this.cap(p), (lines[pid] || 0) + qty);
+    this.setState({ cart: { storeId: p.store, lines } }); this.flash(p);
+  }
+  setQty(pid, q) {
+    const c = this.state.cart, lines = { ...c.lines }, p = PBY[pid];
+    if (q <= 0) delete lines[pid]; else lines[pid] = Math.min(this.cap(p), q);
+    this.setState({ cart: { storeId: Object.keys(lines).length ? c.storeId : null, lines } });
+  }
+  openStore(id) { const s = SBY[id]; this.go('store', { storeId: id, storeCat: 'All', storeQ: '', mode: s.delivery ? 'delivery' : 'pickup', pay: s.delivery ? 'cod' : 'pickup' }); }
+  openProduct(id) { this.setState({ productId: id, sheetQty: 1, cartOpen: false }); }
+  ensureCart() { if (!Object.keys(this.state.cart.lines).length) return { cart: DEMO_CART, mode: 'delivery', pay: 'cod' }; return {}; }
+  totals(cart, mode) {
+    const s = SBY[cart.storeId]; let sub = 0, count = 0;
+    Object.entries(cart.lines).forEach(([pid, q]) => { sub += PBY[pid].price * q; count += q; });
+    const fee = s && mode === 'delivery' && s.delivery ? s.fee : 0;
+    return { s, sub, count, fee, total: sub + fee };
+  }
+  placeOrder() {
+    const { form: f, mode, pay, cart } = this.state, e = {};
+    if (!f.name.trim()) e.name = 'Enter your name so the shop knows who the order is for.';
+    if (f.phone.replace(/\D/g, '').length < 10) e.phone = 'Enter a 10-digit mobile number — the shop calls it to confirm.';
+    if (mode === 'delivery' && !f.address.trim()) e.address = 'Enter the street address for delivery.';
+    if (Object.keys(e).length) { this.setState({ errors: e }); return; }
+    this.go('order', { order: this.makeOrder(cart, mode, pay, f), cart: { storeId: null, lines: {} }, errors: {} });
+  }
+  makeOrder(cart, mode, pay, f) {
+    const t = this.totals(cart, mode), now = new Date();
+    return { no: t.s.code + '-' + (20400 + Math.floor(Math.random() * 500)), storeId: t.s.id, lines: Object.entries(cart.lines).map(([pid, q]) => ({ name: PBY[pid].name, qty: q, lineTotal: FMT(PBY[pid].price * q) })), subtotal: t.sub, fee: t.fee, total: t.total, mode, pay, name: f.name || 'Ayesha Khan', address: [f.address || 'House 12, Street 4, Block C', f.area].filter(Boolean).join(', '), step: 0, placed: now.toTimeString().slice(0, 5) };
+  }
+
+  renderVals() {
+    const st = this.state, P = this.props;
+    const device = st.device || P.device || 'web', isWeb = device === 'web', isMobile = !isWeb;
+    const view = st.view, store = SBY[st.storeId];
+    const cityHas = st.city === 'Lahore';
+    const tone = t => T[t] || T.teal;
+
+    const shopVm = s => ({ ...s, bg: tone(s.tone)[0], fg: tone(s.tone)[1], initials: initials(s.name), badgeTone: s.open ? 'success' : 'neutral', shortStatus: s.open ? 'Open' : 'Closed', deliveryLabel: s.delivery ? 'Delivery ' + FMT(s.fee) + ' · ' + s.eta : '', open: () => this.openStore(s.id) });
+    const pvm = p => {
+      const s = SBY[p.store], qty = (st.cart.lines[p.id] || 0), out = p.stock === 'out';
+      const can = s.open && !out;
+      return { ...p, price: FMT(p.price), bg: tone(p.tone)[0], fg: tone(p.tone)[1], mono: initials(p.name), qty, storeName: s.name, low: p.stock === 'low', out,
+        canAdd: can && !qty, inCart: can && qty > 0, blocked: !can, blockedLabel: out ? 'Sold out' : 'Shop closed',
+        open: () => this.openProduct(p.id), add: e => { e && e.stopPropagation && e.stopPropagation(); this.add(p.id, 1); }, inc: () => this.setQty(p.id, qty + 1), dec: () => this.setQty(p.id, qty - 1) };
+    };
+
+    // Directory
+    let shops = cityHas ? STORES.filter(s => (st.bizCat === 'All' || s.type === st.bizCat) && (!st.fOpen || s.open) && (!st.fDel || s.delivery) && (!st.fPick || s.pickup)) : [];
+    shops = shops.slice().sort((a, b) => (b.open - a.open) || a.name.localeCompare(b.name));
+    const bizCats = BIZ.map(c => ({ label: c, selected: st.bizCat === c, count: cityHas ? (c === 'All' ? STORES.length : STORES.filter(s => s.type === c).length) : 0, onClick: () => this.setState({ bizCat: c }) }));
+    const fdef = [['fOpen', 'Open now'], ['fDel', 'Delivers'], ['fPick', 'Pickup']];
+    const filters = fdef.map(([k, label]) => ({ label, on: st[k], bg: st[k] ? 'var(--vq-accent-quiet)' : 'var(--vq-surface)', bd: st[k] ? 'var(--vq-accent-quiet-line)' : 'var(--vq-line)', fg: st[k] ? 'var(--vq-accent-text)' : 'var(--vq-text-2)', onClick: () => this.setState({ [k]: !st[k] }) }));
+
+    // Search
+    const q = st.q.trim().toLowerCase();
+    const sShops = q ? STORES.filter(s => (s.name + ' ' + s.type + ' ' + s.area).toLowerCase().includes(q)) : [];
+    const sProds = q ? PRODUCTS.filter(p => (p.name + ' ' + p.cat).toLowerCase().includes(q)).sort((a, b) => SBY[b.store].open - SBY[a.store].open).slice(0, 14) : [];
+    const search = { shops: sShops.map(shopVm), products: sProds.map(pvm), hasShops: sShops.length > 0, hasProducts: sProds.length > 0, none: !!q && !sShops.length && !sProds.length,
+      summary: `${sShops.length} shop${sShops.length === 1 ? '' : 's'} · ${sProds.length} product${sProds.length === 1 ? '' : 's'} in Lahore` };
+
+    // Store
+    const sv = shopVm(store);
+    const sQ = st.storeQ.trim().toLowerCase();
+    const inStore = PRODUCTS.filter(p => p.store === store.id);
+    const prods = inStore.filter(p => (st.storeCat === 'All' || p.cat === st.storeCat) && (!sQ || p.name.toLowerCase().includes(sQ)));
+    const storeCats = ['All', ...CATS[store.id]].map(c => ({ label: c, selected: st.storeCat === c, count: c === 'All' ? inStore.length : inStore.filter(p => p.cat === c).length, onClick: () => this.setState({ storeCat: c }) }));
+    const storeVm = { ...sv, closed: !store.open, fulfil: [
+      { label: 'Delivery', main: store.delivery ? FMT(store.fee) : 'Not offered', sub: store.delivery ? store.eta + ' · min order ' + FMT(store.min) : 'This shop does pickup only', opacity: store.delivery ? 1 : .6 },
+      { label: 'Pickup', main: store.pickup ? 'Free' : 'Not offered', sub: store.pickup ? 'Ready in about ' + store.ready + ' after confirmation' : 'This shop delivers only', opacity: store.pickup ? 1 : .6 }] };
+
+    // Cart
+    const cs = SBY[st.cart.storeId];
+    const t = this.totals(st.cart, cs && cs.delivery ? (view === 'checkout' ? st.mode : 'delivery') : 'pickup');
+    const cartLines = Object.entries(st.cart.lines).map(([pid, qn]) => { const v = pvm(PBY[pid]); return { ...v, lineTotal: FMT(PBY[pid].price * qn) }; });
+    const cartHas = cartLines.length > 0;
+    const cart = { lines: cartLines, count: t.count, countLabel: t.count + (t.count === 1 ? ' item' : ' items'), subtotal: FMT(t.sub),
+      fee: cs && cs.delivery ? FMT(cs.fee) : 'Free', feeLabel: cs && cs.delivery ? 'Delivery' : 'Pickup', total: FMT(t.sub + (cs && cs.delivery ? cs.fee : 0)),
+      belowMin: !!(cs && cs.delivery && t.sub < cs.min), toMin: cs ? FMT(cs.min - t.sub) : '', storeName: cs ? cs.name : '', storeAddr: cs ? cs.addr : '', ready: cs ? cs.ready : '',
+      storeBg: cs ? tone(cs.tone)[0] : '', storeFg: cs ? tone(cs.tone)[1] : '', storeInitials: cs ? initials(cs.name) : '', drawerSub: cs ? cs.name + ' · ' + t.count + ' items' : 'One shop per order' };
+
+    // Checkout
+    const ct = this.totals(st.cart, st.mode);
+    const opt = (sel, dis) => ({ bd: sel ? 'var(--vq-accent)' : 'var(--vq-line)', bg: sel ? 'var(--vq-accent-quiet)' : 'var(--vq-surface)', dot: sel ? 'var(--vq-accent)' : 'var(--vq-line-strong)', opacity: dis ? .55 : 1, selected: sel, disabled: dis });
+    const modeOpts = cs ? [
+      { label: 'Delivery', sub: cs.delivery ? FMT(cs.fee) + ' · ' + cs.eta : 'Not offered by this shop', ...opt(st.mode === 'delivery', !cs.delivery), onClick: () => this.setState({ mode: 'delivery', pay: 'cod' }) },
+      { label: 'Pickup', sub: cs.pickup ? 'Free · ' + cs.area : 'Not offered by this shop', ...opt(st.mode === 'pickup', !cs.pickup), onClick: () => this.setState({ mode: 'pickup', pay: 'pickup' }) }] : [];
+    const payOpts = st.mode === 'delivery' ? [
+      { label: 'Cash on delivery', sub: 'Pay the rider in cash when your order arrives.', ...opt(true, false), onClick: () => {} },
+      { label: 'Bank transfer', sub: 'Available once the shop can verify transfers.', ...opt(false, true), onClick: () => {} }]
+      : [{ label: 'Pay at pickup', sub: 'Cash or card at the counter when you collect.', ...opt(true, false), onClick: () => {} }];
+    const setF = k => e => this.setState({ form: { ...this.state.form, [k]: val(e) }, errors: { ...this.state.errors, [k]: undefined } });
+
+    // Order
+    const o = st.order; let order = null;
+    if (o) {
+      const os = SBY[o.storeId], del = o.mode === 'delivery';
+      const labels = del ? [['Waiting for the shop to confirm', 'The shop checks stock and calls if anything is missing. Usually within 10 minutes.'], ['Confirmed', 'Your items are set aside for you.'], ['Preparing', 'The shop is packing your order.'], ['Out for delivery', 'A rider is on the way. Keep ' + FMT(o.total) + ' in cash ready.'], ['Delivered', 'Thanks for ordering from ' + os.name + '.']]
+        : [['Waiting for the shop to confirm', 'The shop checks stock and calls if anything is missing. Usually within 10 minutes.'], ['Confirmed', 'Your items are set aside for you.'], ['Preparing', 'The shop is packing your order.'], ['Ready for pickup', 'Collect at ' + os.addr + '. Pay ' + FMT(o.total) + ' at the counter.'], ['Picked up', 'Thanks for ordering from ' + os.name + '.']];
+      const steps = labels.map(([label, desc], i) => {
+        const done = i < o.step, cur = i === o.step;
+        return { label, desc, current: cur, mark: done ? '✓' : String(i + 1),
+          dotBg: done ? 'var(--vq-accent-fill)' : cur ? 'var(--vq-surface)' : 'var(--vq-surface)', dotBd: done || cur ? 'var(--vq-accent)' : 'var(--vq-line-strong)',
+          dotFg: done ? 'var(--vq-on-accent)' : cur ? 'var(--vq-accent-text)' : 'var(--vq-text-3)', glow: cur ? 'var(--vq-ring-focus)' : 'none',
+          lineBg: i === labels.length - 1 ? 'transparent' : done ? 'var(--vq-accent)' : 'var(--vq-line)', labelColor: done || cur ? 'var(--vq-text)' : 'var(--vq-text-3)' };
+      });
+      order = { ...o, steps, subtotal: FMT(o.subtotal), fee: o.fee ? FMT(o.fee) : 'Free', feeLabel: del ? 'Delivery' : 'Pickup', total: FMT(o.total),
+        payLabel: del ? 'Pay on delivery' : 'Pay at pickup', modeLabel: del ? 'Delivering to' : 'Pick up from', dest: del ? o.name + ' · ' + o.address : os.name + ' · ' + os.addr,
+        headline: o.step >= 4 ? (del ? 'Delivered. Enjoy.' : 'Picked up. Enjoy.') : o.step === 0 ? 'Order sent to ' + os.name : labels[o.step][0],
+        storeName: os.name, storeAddr: os.addr, storePhone: os.phone, storeBg: tone(os.tone)[0], storeFg: tone(os.tone)[1], storeInitials: initials(os.name) };
+    }
+
+    // Product sheet
+    const P0 = st.productId && PBY[st.productId]; let sp = {};
+    if (P0) {
+      const s = SBY[P0.store], v = pvm(P0);
+      sp = { ...v, canBuy: !v.blocked, cantBuy: v.blocked, cantReason: v.out ? 'Sold out at ' + s.name + ' right now.' : s.name + ' is closed. Ordering opens at ' + s.opensAt + '.',
+        desc: P0.unit + ' of ' + P0.name.toLowerCase() + ' from ' + s.name + ', ' + s.area + '. The price is set by the shop and confirmed when it accepts your order.',
+        deliveryLine: s.delivery ? 'Delivery ' + FMT(s.fee) + ' · ' + s.eta + (s.pickup ? ' · or free pickup' : '') : 'Pickup only · ' + s.addr,
+        capNote: P0.stock === 'low' ? 'Only a few left — up to 3 per order.' : 'Up to 10 per order.' };
+    }
+    const sheetTotal = P0 ? FMT(P0.price * st.sheetQty) : '';
+
+    const jumpDefs = [['Directory', 'home'], ['Search', 'search'], ['Store', 'store'], ['Product', 'product'], ['Cart', 'cart'], ['Checkout', 'checkout'], ['Order status', 'order']];
+    const activeJump = st.productId ? 'product' : st.cartOpen ? 'cart' : view;
+    const jumps = jumpDefs.map(([label, k]) => ({ label, selected: activeJump === k, onClick: () => {
+      if (k === 'home') this.go('home');
+      else if (k === 'search') this.go('search', { q: st.q || 'tea' });
+      else if (k === 'store') this.openStore(st.storeId || 'fresh');
+      else if (k === 'product') { this.openStore('fresh'); setTimeout(() => this.openProduct('fresh-6'), 10); }
+      else if (k === 'cart') { const ec = this.ensureCart(); this.setState({ ...ec, cartOpen: true, productId: null }); }
+      else if (k === 'checkout') this.go('checkout', this.ensureCart());
+      else if (k === 'order') this.go('order', { order: st.order || this.makeOrder(DEMO_CART, 'delivery', 'cod', { name: 'Ayesha Khan', address: 'House 12, Street 4, Block C', area: 'Gulberg III' }) });
+    } }));
+
+    const tabC = k => (k === (st.cartOpen ? 'cart' : view === 'store' ? 'home' : view) ? 'var(--vq-accent-text)' : 'var(--vq-text-3)');
+    const showTabBar = isMobile && view !== 'checkout';
+    const showCartBar = isMobile && cartHas && (view === 'store' || view === 'search' || view === 'checkout') && !st.cartOpen && !st.productId;
+    const checkoutTotal = FMT(ct.total);
+
+    const urlMap = { home: 'venqore.shop/lahore', search: 'venqore.shop/lahore/search?q=' + encodeURIComponent(st.q), store: 'venqore.shop/lahore/' + store.name.toLowerCase().replace(/[^a-z]+/g, '-').replace(/-$/, ''), checkout: 'venqore.shop/checkout', order: 'venqore.shop/o/7Kq9Xw2mPa' };
+
+    return {
+      themeClass: P.dark ? 'vq-dark' : '', showScope: P.showScope ?? true,
+      device, isWeb, isMobile, deviceTabs: [{ value: 'web', label: 'Web app' }, { value: 'mobile', label: 'Mobile app' }], setDevice: d => this.setState({ device: d }),
+      jumps, isOrderView: view === 'order' && !!o, advance: () => o && this.setState({ order: { ...o, step: (o.step + 1) % 5 } }),
+      frameW: isWeb ? '100%' : '390px', frameH: isWeb ? '860px' : '844px', frameR: isWeb ? '28px' : '54px', frameBorder: isWeb ? '1px solid var(--vq-line)' : '10px solid #0D1412',
+      url: urlMap[view], scroller: this.scroller,
+      padX: isWeb ? '28px' : '16px', bleed: isWeb ? '-28px' : '-16px', padY: isWeb ? '28px' : '12px', padBottom: isMobile ? (showCartBar ? '170px' : '100px') : '56px',
+      gapL: isWeb ? '36px' : '24px', gapM: isWeb ? '20px' : '14px', gutter: isWeb ? '20px' : '12px',
+      heroR: isWeb ? '36px' : '28px', heroPad: isWeb ? '48px 48px 40px' : '26px 22px 24px', heroFs: isWeb ? '56px' : '34px', ledeFs: isWeb ? '17px' : '15px',
+      h1Fs: isWeb ? '40px' : '28px', h2Fs: isWeb ? '24px' : '20px', shopMin: isWeb ? '270px' : '100%',
+      heroEyebrow: cityHas ? 'Lahore · ' + STORES.filter(s => s.open).length + ' shops open now' : st.city + ' · coming soon',
+      coverH: isWeb ? '132px' : '96px', cardPad: isWeb ? '28px' : '18px', storeCols: isWeb ? 'minmax(0,1fr) 340px' : 'minmax(0,1fr)',
+      stickyTop: isWeb ? '71px' : '59px', sideTop: isWeb ? '92px' : '0', prodMin: isWeb ? '172px' : '150px', prodGap: isWeb ? '16px' : '10px',
+      checkoutCols: isWeb ? 'minmax(0,1fr) 380px' : 'minmax(0,1fr)', summaryPos: isWeb ? 'sticky' : 'static',
+      v: { home: view === 'home', search: view === 'search', store: view === 'store', checkout: view === 'checkout', order: view === 'order' },
+      city: CITIES.find(c => c.name === st.city), cityOpen: st.cityOpen, toggleCity: () => this.setState({ cityOpen: !st.cityOpen }),
+      cities: CITIES.map(c => ({ ...c, countLabel: c.name === 'Lahore' ? STORES.length + ' shops' : 'No shops yet', bg: c.name === st.city ? 'var(--vq-accent-quiet)' : 'transparent', pick: () => this.go('home', { city: c.name, bizCat: 'All' }) })),
+      headerBack: isMobile && view !== 'home' && view !== 'search', headerHome: isMobile && (view === 'home' || view === 'search'),
+      headerTitle: view === 'store' ? store.name : view === 'checkout' ? 'Checkout' : 'Your order', headerSub: view === 'store' ? store.type + ' · ' + store.area : view === 'checkout' ? cart.storeName + ' · ' + cart.countLabel : (o ? 'Order ' + o.no : 'Lahore'),
+      back: () => view === 'checkout' ? this.openStore(st.cart.storeId || st.storeId) : view === 'order' ? this.go('home') : this.go(st.prevView === 'search' ? 'search' : 'home'),
+      goHome: () => this.go('home'), goSearch: () => this.go('search'), goOrders: () => this.go('order'),
+      goCheckout: () => this.go('checkout', { mode: cs && cs.delivery ? 'delivery' : 'pickup', pay: cs && cs.delivery ? 'cod' : 'pickup' }),
+      backToStore: () => this.openStore(st.cart.storeId || st.storeId), openCartStore: () => this.openStore(st.cart.storeId),
+      q: st.q, onHeaderSearch: e => { const v = val(e); if (st.view !== 'search') this.go('search', { q: v }); else this.setState({ q: v }); }, onSearch: e => this.setState({ q: val(e) }),
+      noQuery: !q, hasQuery: !!q, search, popular: POPULAR.map(l => ({ label: l, onClick: () => this.setState({ q: l }) })),
+      bizCats, filters, shops: shops.map(shopVm), hasShops: shops.length > 0, noShops: !shops.length,
+      listTitle: cityHas ? (st.bizCat === 'All' ? 'Shops in Lahore' : st.bizCat + ' in Lahore') : 'Shops in ' + st.city,
+      emptyTitle: cityHas ? 'No shops match these filters' : 'No shops in ' + st.city + ' yet',
+      emptyBody: cityHas ? 'Try removing a filter — some shops do pickup only, and a few are closed right now.' : 'VenQore Shops is live in Lahore first. Shops in ' + st.city + ' appear here as soon as they publish.',
+      emptyAction: cityHas ? 'Clear filters' : 'Browse Lahore', resetDirectory: () => this.setState({ city: 'Lahore', bizCat: 'All', fOpen: false, fDel: false, fPick: false }),
+      store: storeVm, storeCats, storeQ: st.storeQ, onStoreSearch: e => this.setState({ storeQ: val(e) }), clearStoreSearch: () => this.setState({ storeQ: '', storeCat: 'All' }),
+      catTitle: sQ ? 'Matching “' + st.storeQ + '”' : st.storeCat === 'All' ? 'Everything' : st.storeCat, catCount: prods.length + ' items',
+      products: prods.map(pvm), hasProducts: prods.length > 0, noProducts: !prods.length,
+      cart, cartHas, cartEmpty: !cartHas, cartHere: cartHas && st.cart.storeId === store.id, cartOther: cartHas && st.cart.storeId !== store.id,
+      cartBtnVariant: cartHas ? 'primary' : 'secondary', cartBtnLabel: cartHas ? cart.countLabel + ' · ' + cart.total : 'Cart',
+      cartOpen: st.cartOpen, openCart: () => this.setState({ cartOpen: true, productId: null, cityOpen: false }), closeCart: () => this.setState({ cartOpen: false }), stop: e => e.stopPropagation(),
+      drawerAlign: isWeb ? 'stretch' : 'flex-end', drawerW: isWeb ? '420px' : '100%', drawerH: isWeb ? '100%' : '86%', drawerR: isWeb ? '28px 0 0 28px' : '28px 28px 0 0',
+      modeOpts, payOpts, isDelivery: st.mode === 'delivery', isPickup: st.mode === 'pickup', form: st.form, errors: st.errors,
+      setName: setF('name'), setPhone: setF('phone'), setAddress: setF('address'), setArea: setF('area'), setNote: setF('note'),
+      checkoutFeeLabel: st.mode === 'delivery' ? 'Delivery' : 'Pickup', checkoutFee: ct.fee ? FMT(ct.fee) : 'Free', checkoutTotal, payWhen: st.mode === 'delivery' ? 'the rider in cash' : 'at the counter',
+      placeOrder: () => this.placeOrder(),
+      order: order || {}, hasOrder: !!o, noOrder: !o,
+      sheetOpen: !!P0, sp, sheetQty: st.sheetQty, closeSheet: () => this.setState({ productId: null }),
+      sheetInc: () => P0 && this.setState({ sheetQty: Math.min(this.cap(P0), st.sheetQty + 1) }), sheetDec: () => this.setState({ sheetQty: Math.max(1, st.sheetQty - 1) }),
+      sheetAdd: () => { if (!P0) return; const id = P0.id, n = st.sheetQty; this.setState({ productId: null }); this.add(id, n); },
+      sheetCta: 'Add ' + st.sheetQty + ' to cart · ' + sheetTotal,
+      sheetAlign: isWeb ? 'center' : 'flex-end', sheetPad: isWeb ? '32px' : '0', sheetMax: isWeb ? '880px' : '100%', sheetR: isWeb ? '28px' : '28px 28px 0 0',
+      sheetCols: isWeb ? '1fr 1fr' : '1fr', sheetImgPad: isWeb ? '16px' : '14px 14px 0', sheetBodyPad: isWeb ? '28px 28px 28px 12px' : '18px 20px 28px', sheetRatio: isWeb ? '1 / 1' : '16 / 11',
+      pendingOpen: !!st.pending, pendingName: st.pending ? PBY[st.pending.pid].name : '', pendingStore: st.pending ? SBY[PBY[st.pending.pid].store].name : '',
+      cancelReplace: () => this.setState({ pending: null }), replaceCart: () => { const { pid, qty } = st.pending; const p = PBY[pid]; this.setState({ cart: { storeId: p.store, lines: { [pid]: qty } }, pending: null }); this.flash(p); },
+      showCartBar, showTabBar, cartBarBottom: showTabBar ? '88px' : '16px', cartBarLabel: view === 'checkout' ? 'Place order' : 'View cart', cartBarTotal: view === 'checkout' ? checkoutTotal : cart.total,
+      cartBarAction: () => view === 'checkout' ? this.placeOrder() : this.setState({ cartOpen: true }),
+      tab: { shops: tabC('home'), search: tabC('search'), cart: tabC('cart'), orders: tabC('order') },
+      hasToast: !!st.toast, toast: st.toast, toastBottom: isMobile ? (showCartBar ? '160px' : '96px') : '24px'
+    };
+  }
+}
+</script>
+</body>
+</html>

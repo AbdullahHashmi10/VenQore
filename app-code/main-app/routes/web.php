@@ -2294,7 +2294,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::post('/marketing/campaigns', [\App\Http\Controllers\MarketingCampaignController::class, 'store'])->middleware('permission:admin.settings_manage')->name('marketing-campaigns.store');
 
     // Online Store
-    Route::get('/online-store-manager', [\App\Http\Controllers\OnlineStoreController::class, 'index'])->name('online-store.index');
+    Route::get('/online-store-manager', fn () => redirect()->route('store.commerce.home', ['store_slug' => app('current.tenant')->slug]))->name('online-store.index'); // Commerce MVP: see routes/commerce.php
     Route::post('/online-store-manager', [\App\Http\Controllers\OnlineStoreController::class, 'update'])->middleware('permission:admin.settings_manage')->name('online-store.update');
 
     // ── WooCommerce Sync (Full System) ────────────────────────────────────────
@@ -2619,6 +2619,9 @@ Route::get('/error/{code}', function ($code) {
 
 // ── Customer Delivery Tracking (Public, Tokenised) ─────────────────────────
 Route::get('/track/{token}', [\App\Http\Controllers\TrackingController::class, 'show'])->name('tracking.show');
+
+// VenQore Commerce MVP (public shop + merchant online store)
+require __DIR__ . '/commerce.php';
 
 // ── FALLBACK: 404 for any URL not matched above ────────────────────────────
 // This is the last line of defense. Every URL that doesn't match a route

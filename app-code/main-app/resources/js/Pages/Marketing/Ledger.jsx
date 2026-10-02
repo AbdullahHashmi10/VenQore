@@ -105,7 +105,7 @@ export default function Ledger() {
       <div className="vq-card vq-card--xl vq-card--accent vq-stat vq-reveal">
         <span className="vq-stat__label">Correctness checks</span>
         <span className="vq-stat__value">7<span className="vq-stat__unit">/ 7 passing</span></span>
-        <span className="vq-stat__note">Run on every release, not once at launch</span>
+        <span className="vq-stat__note">Verified against 13,500+ tests &amp; 60,000+ assertions on every update</span>
       </div>
       <div className="vq-card vq-card--xl vq-tile vq-reveal">
         <span className="vq-tile__icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M9 7h6"/><path d="M9 11h4"/></svg></span>

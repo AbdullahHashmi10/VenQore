@@ -3,7 +3,7 @@
 @foreach ($pages as $page)
     <url>
         <loc>{{ $page['loc'] }}</loc>
-        <lastmod>{{ $page['lastmod'] }}</lastmod>
+        @if (!empty($page['lastmod']))<lastmod>{{ $page['lastmod'] }}</lastmod>@endif
         <changefreq>{{ $page['changefreq'] }}</changefreq>
         <priority>{{ $page['priority'] }}</priority>
     </url>

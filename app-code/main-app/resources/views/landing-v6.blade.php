@@ -286,14 +286,14 @@
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>46 proven modules</b> parameterized in milliseconds</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>13,500+ tests &amp; 60,000+ assertions</b> verified before every update</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       <!-- Seamless Loop Duplicate -->
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>46 proven modules</b> parameterized in milliseconds</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>13,500+ tests &amp; 60,000+ assertions</b> verified before every update</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
     </div>

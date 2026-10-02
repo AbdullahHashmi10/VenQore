@@ -20,12 +20,13 @@ class SitemapController extends Controller
         }
 
         if ($totalCount > 30) {
-            $now = Carbon::now()->toIso8601String();
             $sitemaps = [];
-            foreach (array_keys($categorized) as $type) {
+            foreach ($categorized as $type => $group) {
+                // Newest real lastmod in the group; omitted when none is known.
+                $dates = array_filter(array_column($group, 'lastmod'));
                 $sitemaps[] = [
                     'loc' => route('sitemap.sub', ['type' => $type]),
-                    'lastmod' => $now
+                    'lastmod' => $dates ? max($dates) : null,
                 ];
             }
             $xml = view('marketing.sitemap-index', compact('sitemaps'))->render();
@@ -70,7 +71,6 @@ class SitemapController extends Controller
      */
     private function getCategorizedPages(): array
     {
-        $now = Carbon::now()->toIso8601String();
         $categorized = [
             'pages' => [],
             'blog' => [],
@@ -80,20 +80,18 @@ class SitemapController extends Controller
         ];
 
         // 1. Pages (Static pages and feature deep-dives)
-        $categorized['pages'][] = ['loc' => route('welcome'), 'lastmod' => $now, 'changefreq' => 'daily', 'priority' => '1.0'];
-        $categorized['pages'][] = ['loc' => route('marketing.features'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.pricing'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.about'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.5'];
-        $categorized['pages'][] = ['loc' => route('marketing.contact'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.5'];
-        $categorized['pages'][] = ['loc' => route('terms'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'];
-        $categorized['pages'][] = ['loc' => route('workspace.build'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.9'];
-        $categorized['pages'][] = ['loc' => route('demo.landing'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.4'];
-        $categorized['pages'][] = ['loc' => route('refund-policy'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'];
-        $categorized['pages'][] = ['loc' => route('marketing.newsletter'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.4'];
-        $categorized['pages'][] = ['loc' => route('marketing.vensynq'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.smartcapture'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.roadmap'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.partners'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('welcome'), 'changefreq' => 'daily', 'priority' => '1.0'];
+        $categorized['pages'][] = ['loc' => route('marketing.features'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.pricing'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.about'), 'changefreq' => 'monthly', 'priority' => '0.5'];
+        $categorized['pages'][] = ['loc' => route('marketing.contact'), 'changefreq' => 'monthly', 'priority' => '0.5'];
+        $categorized['pages'][] = ['loc' => route('privacy'), 'changefreq' => 'monthly', 'priority' => '0.3'];
+        $categorized['pages'][] = ['loc' => route('terms'), 'changefreq' => 'monthly', 'priority' => '0.3'];
+        $categorized['pages'][] = ['loc' => route('refund-policy'), 'changefreq' => 'monthly', 'priority' => '0.3'];
+        $categorized['pages'][] = ['loc' => route('marketing.vensynq'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.smartcapture'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.roadmap'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.partners'), 'changefreq' => 'weekly', 'priority' => '0.8'];
 
         // ── V6 product pages ────────────────────────────────────────────────
         // Added 2026-09-05. These seven shipped with the AI-builder
@@ -101,21 +99,19 @@ class SitemapController extends Controller
         // new product story was discoverable: Blueprint is the entry point of
         // the whole positioning, and the Reckoner and Core Ledger pages carry
         // the correctness argument the product is sold on.
-        $categorized['pages'][] = ['loc' => route('marketing.blueprint'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.9'];
-        $categorized['pages'][] = ['loc' => route('marketing.security'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.7'];
-        $categorized['pages'][] = ['loc' => route('marketing.onboarding'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.ledger'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.reckoner'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.documents'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.dashboard-preview'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.blueprint'), 'changefreq' => 'weekly', 'priority' => '0.9'];
+        $categorized['pages'][] = ['loc' => route('marketing.security'), 'changefreq' => 'monthly', 'priority' => '0.7'];
+        $categorized['pages'][] = ['loc' => route('marketing.onboarding'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.ledger'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.reckoner'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.documents'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.dashboard-preview'), 'changefreq' => 'weekly', 'priority' => '0.8'];
 
         // The POS terminal page
-        $categorized['pages'][] = ['loc' => route('marketing.pos'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.pos'), 'changefreq' => 'weekly', 'priority' => '0.8'];
 
         // ── Help centre, tools hub and status ────────────────────────────────
-        $categorized['pages'][] = ['loc' => route('help.index'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.7'];
-        $categorized['pages'][] = ['loc' => route('known-issues.show'), 'lastmod' => $now, 'changefreq' => 'daily', 'priority' => '0.4'];
-        $categorized['pages'][] = ['loc' => route('marketing.digital-products'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.5'];
+        $categorized['pages'][] = ['loc' => route('help.index'), 'changefreq' => 'weekly', 'priority' => '0.7'];
 
         // Help articles — read from HelpCenterController's own array, so the
         // sitemap cannot drift from what the pages actually render.
@@ -123,8 +119,7 @@ class SitemapController extends Controller
             foreach (\App\Http\Controllers\HelpCenterController::slugs() as $slug) {
                 $categorized['pages'][] = [
                     'loc' => route('help.show', ['slug' => $slug]),
-                    'lastmod' => $now,
-                    'changefreq' => 'monthly',
+                        'changefreq' => 'monthly',
                     'priority' => '0.5',
                 ];
             }
@@ -133,7 +128,7 @@ class SitemapController extends Controller
         }
 
         // Documentation (Dynamic /docs and /docs/{slug})
-        $categorized['pages'][] = ['loc' => route('marketing.docs.index'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.docs.index'), 'changefreq' => 'weekly', 'priority' => '0.8'];
         $docsDir = resource_path('docs');
         if (\Illuminate\Support\Facades\File::exists($docsDir)) {
             foreach (\Illuminate\Support\Facades\File::files($docsDir) as $file) {
@@ -152,14 +147,14 @@ class SitemapController extends Controller
         }
 
         // Feature deep-dives
-        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'accounting']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'growth-engine']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'inventory-management']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'offline-pos']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'point-of-sale']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'accounting']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'growth-engine']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'inventory-management']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'offline-pos']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['pages'][] = ['loc' => route('marketing.features.show', ['slug' => 'point-of-sale']), 'changefreq' => 'weekly', 'priority' => '0.8'];
 
         // 2. Blog (Dynamic and index)
-        $categorized['blog'][] = ['loc' => route('blog.index'), 'lastmod' => $now, 'changefreq' => 'daily', 'priority' => '0.7'];
+        $categorized['blog'][] = ['loc' => route('blog.index'), 'changefreq' => 'daily', 'priority' => '0.7'];
         $blogController = new BlogController();
         foreach ($blogController->getPosts() as $post) {
             $postDate = Carbon::parse($post['date'])->toIso8601String();
@@ -172,18 +167,18 @@ class SitemapController extends Controller
         }
 
         // 3. Compare (Index and specific comparison links)
-        $categorized['compare'][] = ['loc' => route('marketing.compare.index'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['compare'][] = ['loc' => route('marketing.compare.show', ['slug' => 'venqore-vs-square']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['compare'][] = ['loc' => route('marketing.compare.show', ['slug' => 'venqore-vs-vyapar']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['compare'][] = ['loc' => route('marketing.compare.index'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['compare'][] = ['loc' => route('marketing.compare.show', ['slug' => 'venqore-vs-square']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['compare'][] = ['loc' => route('marketing.compare.show', ['slug' => 'venqore-vs-vyapar']), 'changefreq' => 'weekly', 'priority' => '0.8'];
 
         // 4. Solutions (Index and 6 industry detail pages)
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.index'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'pharmacy']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'electronics-store']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'grocery']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'wholesale']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'clothing']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
-        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'multi-store']), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.index'), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'pharmacy']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'electronics-store']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'grocery']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'wholesale']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'clothing']), 'changefreq' => 'weekly', 'priority' => '0.8'];
+        $categorized['solutions'][] = ['loc' => route('marketing.solutions.show', ['slug' => 'multi-store']), 'changefreq' => 'weekly', 'priority' => '0.8'];
 
         // 5. Tools
         foreach (array_keys(\App\Support\ToolSeo::pages()) as $seoKey) {
@@ -209,7 +204,6 @@ class SitemapController extends Controller
 
             $categorized['tools'][] = [
                 'loc' => $loc,
-                'lastmod' => $now,
                 'changefreq' => 'monthly',
                 'priority' => $priority,
             ];

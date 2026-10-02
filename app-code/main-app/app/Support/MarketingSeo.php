@@ -260,7 +260,10 @@ class MarketingSeo
 
     private static function navLinks(): string
     {
-        return '<nav><a href="/">Home</a> · <a href="/features">Features</a> · <a href="/pricing">Pricing</a> · <a href="/demo">Live Demo</a> · <a href="/tools">Free Tools</a> · <a href="/vensynq">VenSynQ</a> · <a href="/smartcapture">SmartCapture</a> · <a href="/blog">Blog</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/subscribe">Newsletter</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></nav>';
+        return '<nav><a href="/">Home</a> · <a href="/features">Features</a> · <a href="/pricing">Pricing</a> · <a href="/demo">Live Demo</a> · <a href="/tools">Free Tools</a> · <a href="/vensynq">VenSynQ</a> · <a href="/smartcapture">SmartCapture</a> · <a href="/blog">Blog</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/subscribe">Newsletter</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></nav>'
+            // Crawlable links to the commercial guides Google has discovered via the
+            // sitemap but never crawled. Links from every page raise their crawl priority.
+            . '<nav aria-label="Popular guides"><a href="/blog/best-pos-system-small-retail-store-2026-buyers-guide">Best POS for small retail (2026 guide)</a> · <a href="/blog/fifo-vs-lifo-vs-weighted-average-inventory-costing-retail-2026">FIFO vs LIFO vs weighted average</a> · <a href="/blog/hidden-cost-square-shopify-credit-card-processing-fees-2026">Square and Shopify processing fees</a> · <a href="/blog/predictive-ai-retail-demand-forecasting-reduce-overstocking-stockouts-2026">AI demand forecasting</a> · <a href="/blog/automating-double-entry-bookkeeping-retail-pos-2026">Automating double-entry bookkeeping</a> · <a href="/blog/multi-location-barcode-inventory-synchronization-omnichannel-2026">Multi-location inventory sync</a></nav>';
     }
 
     private static function pages(): array
@@ -569,33 +572,6 @@ class MarketingSeo
                     . $nav . '</main>',
             ],
 
-            'marketing.solutions.index' => [
-                'title' => 'Industry Solutions — Industry-Specific Operating Systems | VenQore',
-                'description' => 'Explore VenQore\'s industry-tailored POS and ERP operating systems. Built for Pharmacy batch/expiry, Electronics IMEI tracking, Grocery, Wholesale, and Multi-Store retail.',
-                'jsonld' => [
-                    [
-                        '@context' => 'https://schema.org',
-                        '@graph' => [
-                            self::organizationLd(),
-                            [
-                                '@type' => 'ItemList',
-                                'name' => 'VenQore Industry Operating Systems',
-                                'itemListElement' => [
-                                    ['@type' => 'ListItem', 'position' => 1, 'name' => 'Pharmacy POS & ERP', 'url' => url('/solutions/pharmacy')],
-                                    ['@type' => 'ListItem', 'position' => 2, 'name' => 'Electronics Store POS & ERP', 'url' => url('/solutions/electronics-store')],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>Industry Operating Systems &mdash; Built for Your Trade</h1>'
-                    . '<p>Generic POS tools force every retail trade into a cash register box. VenQore delivers trade-specific controls backed by auditor-grade double-entry accounting.</p>'
-                    . '<ul><li><a href="/solutions/pharmacy"><strong>Pharmacy POS &amp; Inventory:</strong></a> batch/expiry tracking, FEFO/FIFO dispatch, drug control registers.</li>'
-                    . '<p><a href="/register"><strong>Start Free Trial</strong></a> &middot; <a href="/demo">Try Live Demo</a></p>'
-                    . $nav . '</main>',
-            ],
-
             'marketing.solutions.show:pharmacy' => [
                 'title' => 'Pharmacy POS System with Expiry Tracking & FIFO Batch Control — VenQore',
                 'description' => 'The pharmacy POS software built for precision. Track batch numbers, expiry dates, FEFO dispatch, drug control registers, and real double-entry accounting. Try the live demo.',
@@ -814,22 +790,6 @@ class MarketingSeo
                     . $nav . '</main>',
             ],
 
-            'marketing.contact' => [
-                'title' => 'Contact VenQore — Sales, Support & Partnerships',
-                'description' => 'Talk to the VenQore team about your store, migration from another POS, partnerships, or support. We reply within one business day.',
-                'jsonld' => [],
-                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>Contact VenQore &mdash; Let&#39;s Talk</h1>'
-                    . '<p><strong>Whether you need a personalized walkthrough, have technical questions, or want to discuss enterprise licensing, we respond within hours, not days.</strong></p>'
-                    . '<ul><li><strong>WhatsApp:</strong> the fastest way to reach us, with immediate response during business hours</li>'
-                    . '<li><strong>Email:</strong> <a href="mailto:hello@venqore.com">hello@venqore.com</a> for detailed inquiries, partnerships and enterprise discussions</li>'
-                    . '<li><strong>Live demo:</strong> book a 30-minute, one-on-one walkthrough of VenQore with your own data</li>'
-                    . '<li><strong>Partners:</strong> <a href="mailto:partners@venqore.com">partners@venqore.com</a> for reselling, white-labeling or integration inquiries</li></ul>'
-                    . '<p>We are a remote-first team with engineering based in Pakistan, serving retail and food businesses globally. Typical response time is 2-4 hours during business hours.</p>'
-                    . '<p><a href="/register"><strong>Start your free trial</strong></a> &middot; <a href="/demo">Try the live demo first</a></p>'
-                    . $nav . '</main>',
-            ],
-
             'marketing.partners' => [
                 'title' => 'B2B Partnership & Licensing Programs — VenQore',
                 'description' => 'Explore white-label opportunities, B2B reseller programs, and source-code licensing for VenQore\'s offline-first POS & ERP platform.',
@@ -872,18 +832,6 @@ class MarketingSeo
                     . '<li><strong>Strategic Acquisition:</strong> Full IP and asset purchase. Discussed only under strategic premiums and direct revenue multiples. No code-broker anchor negotiations.</li>'
                     . '</ol>'
                     . '<p>Submit your inquiry below or contact <a href="mailto:founder@venqore.com">founder@venqore.com</a> directly.</p>'
-                    . $nav . '</main>',
-            ],
-
-            'marketing.newsletter' => [
-                'title' => 'VenQore Newsletter — Product Launches & Retail Playbooks',
-                'description' => 'Get notified when new VenQore capabilities launch (VenSynQ marketplace sync, SmartCapture scan-to-invoice) plus practical playbooks for running a tighter retail operation.',
-                'jsonld' => [],
-                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>VenQore Newsletter &mdash; Product Launches &amp; Retail Playbooks</h1>'
-                    . '<p><strong>Get notified the moment new VenQore capabilities launch</strong> &mdash; VenSynQ marketplace sync, SmartCapture scan-to-invoice &mdash; plus practical playbooks for running a tighter retail operation: inventory control, FIFO costing, and double-entry accounting for shopkeepers.</p>'
-                    . '<p>One email per release, no spam. Unsubscribe any time.</p>'
-                    . '<p><a href="/demo"><strong>Try the live demo</strong></a> &middot; <a href="/blog">Read the blog</a></p>'
                     . $nav . '</main>',
             ],
 
@@ -951,70 +899,6 @@ class MarketingSeo
                     . '<li>Dozens of verified financial reports: Profit &amp; Loss, Balance Sheet, Cash Flow and more</li>'
                     . '<li>Full inventory control: FIFO costing, batch tracking, multi-warehouse support</li></ul>'
                     . '<p><a href="/pricing">See plans from $18/month</a> &middot; <a href="/demo">Try the live demo first, no signup</a></p>'
-                    . $nav . '</main>',
-            ],
-
-            'marketing.vensynq' => [
-                'title' => 'VenSynQ — Sync POS Inventory with WooCommerce & Marketplaces',
-                'description' => 'VenSynQ is VenQore\'s multi-channel e-commerce sync engine: one inventory, one ledger, every marketplace. WooCommerce sync is live; Amazon, eBay and TikTok Shop are coming soon — join the waitlist.',
-                'jsonld' => [
-                    self::faq([
-                        ['What is VenSynQ?', 'VenSynQ is the multi-channel e-commerce fulfillment engine inside VenQore POS. It keeps one inventory and one verified ledger across your physical store and online channels — WooCommerce today, with Amazon, eBay and TikTok Shop connections coming soon.'],
-                        ['Does VenQore sync with WooCommerce?', 'Yes. VenQore syncs stock levels to WooCommerce and turns WooCommerce orders into POS sales automatically, matched by SKU, with webhook-verified security.'],
-                        ['When do Amazon, eBay and TikTok Shop sync launch?', 'They are in active development. Join the VenSynQ waitlist on this page and you will be emailed the moment each channel goes live.'],
-                    ]),
-                ],
-                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>VenSynQ — One Inventory. One Ledger. Every Channel.</h1>'
-                    . '<p><strong>VenSynQ is VenQore\'s multi-channel e-commerce sync engine.</strong> It connects your physical store\'s POS inventory and accounting to your online channels, so a sale anywhere updates stock and books everywhere. <strong>WooCommerce sync is live today.</strong> Amazon, eBay and TikTok Shop connections are coming soon.</p>'
-                    . '<ul><li>Stock synced to WooCommerce automatically when it changes in store</li>'
-                    . '<li>Online orders become POS sales with correct COGS and a balanced journal entry</li>'
-                    . '<li>SKU-based matching, webhook signature verification, conflict resolution</li>'
-                    . '<li>Coming soon: Amazon, eBay, TikTok Shop — one dashboard for every channel</li></ul>'
-                    . '<h2>Frequently asked</h2>'
-                    . '<p><strong>What is VenSynQ?</strong> The multi-channel e-commerce fulfillment engine inside VenQore POS. It keeps one inventory and one verified ledger across your physical store and online channels — WooCommerce today, with Amazon, eBay and TikTok Shop connections coming soon.</p>'
-                    . '<p><strong>Does VenQore sync with WooCommerce?</strong> Yes — stock levels sync automatically and WooCommerce orders become POS sales, matched by SKU, with webhook-verified security.</p>'
-                    . '<p><a href="/subscribe"><strong>Join the waitlist</strong></a> — get an email the moment each channel launches. · <a href="/demo">Try the live demo</a></p>'
-                    . $nav . '</main>',
-            ],
-
-            'marketing.smartcapture' => [
-                'title' => 'SmartCapture — Paper Invoices & Voice Notes to Digital Records',
-                'description' => 'SmartCapture converts a photo of a supplier invoice or a spoken voice note into a structured digital transaction inside VenQore — items matched, prices filled, ledger-ready. Coming soon; join the waitlist.',
-                'jsonld' => [
-                    self::faq([
-                        ['What is SmartCapture?', 'SmartCapture is VenQore\'s AI input layer: photograph a paper invoice or speak a voice note, and it becomes a structured, editable transaction — line items recognized, products matched to your catalog, totals ready to post to the verified ledger.'],
-                        ['Can I convert scanned invoices into digital invoices?', 'Yes — that is exactly what SmartCapture does. Snap a photo of a supplier bill or receipt and VenQore extracts the line items and matches them to your products. You review, confirm, and it posts with a balanced journal entry.'],
-                        ['Can I create an invoice by voice?', 'Yes. Speak a memo like "sold 5 bags of rice to Ali on credit" and SmartCapture drafts the transaction for your review.'],
-                        ['When does SmartCapture launch?', 'SmartCapture is in final testing. Join the waitlist on this page and you will be notified at launch.'],
-                    ]),
-                ],
-                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>SmartCapture — From Paper or Voice to Posted Books.</h1>'
-                    . '<p><strong>SmartCapture turns a photo of any paper invoice — or a spoken voice note — into a structured digital transaction in VenQore.</strong> Line items extracted, products matched to your catalog, prices filled in, and one tap posts it to your verified double-entry ledger. No more evening data entry.</p>'
-                    . '<ul><li><strong>Scan to invoice:</strong> photograph supplier bills and receipts; get editable line items, not just a stored image</li>'
-                    . '<li><strong>Voice to transaction:</strong> say it — "sold 5 bags of rice to Ali on credit" — and review the drafted sale</li>'
-                    . '<li><strong>Catalog matching:</strong> recognized items map to your real products and cost history</li>'
-                    . '<li><strong>Ledger-ready:</strong> every capture posts as a balanced journal entry, like everything in VenQore</li></ul>'
-                    . '<h2>Frequently asked</h2>'
-                    . '<p><strong>What is SmartCapture?</strong> VenQore&#39;s AI input layer: photograph a paper invoice or speak a voice note, and it becomes a structured, editable transaction — line items recognized, products matched to your catalog, ready to post to the verified ledger.</p>'
-                    . '<p><strong>When does it launch?</strong> SmartCapture is in final testing. Join the waitlist on this page to be notified at launch.</p>'
-                    . '<p><strong>Coming soon.</strong> <a href="/subscribe"><strong>Join the waitlist</strong></a> and be first in when it ships. · <a href="/demo">Try the live demo</a></p>'
-                    . $nav . '</main>',
-            ],
-            'marketing.compare.index' => [
-                'title' => 'VenQore POS & ERP Comparisons — See How VenQore Compares',
-                'description' => 'Compare VenQore with Square, Vyapar, Shopify POS, Lightspeed and Toast. Discover why growing businesses choose VenQore for zero transaction fees and built-in double-entry accounting.',
-                'jsonld' => [
-                    self::organizationLd(),
-                ],
-                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>VenQore POS &amp; ERP Comparisons</h1>'
-                    . '<p><strong>Compare VenQore to legacy POS systems and billing software.</strong> Discover how VenQore eliminates 2.6%+ transaction markups and integrates real double-entry accounting directly into your point of sale.</p>'
-                    . '<ul>'
-                    . '<li><a href="/compare/venqore-vs-square"><strong>VenQore vs Square POS:</strong> Compare transaction fee math, accounting capabilities, and offline stability.</a></li>'
-                    . '<li><a href="/compare/venqore-vs-vyapar"><strong>VenQore vs Vyapar:</strong> Discover auditor-grade double-entry general ledger vs desktop single-entry billing.</a></li>'
-                    . '</ul>'
                     . $nav . '</main>',
             ],
 
