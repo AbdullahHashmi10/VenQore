@@ -2,7 +2,7 @@
 
 import { localPoint } from "@visx/event";
 import { ParentSize } from "@visx/responsive";
-import { sankey, sankeyCenter, sankeyLinkHorizontal } from "@visx/sankey";
+import { sankey, sankeyCenter, sankeyLinkHorizontal } from "d3-sankey";
 import type { Transition } from "motion/react";
 import {
   memo,

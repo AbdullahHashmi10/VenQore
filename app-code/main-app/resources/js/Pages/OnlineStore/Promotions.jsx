@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
+import { BadgePercent, CalendarDays, Info, Pencil, Plus, Power, Ticket, Trash2, Zap } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StoreTabs from '@/Components/Commerce/StoreTabs';
-import { Alert, Button, Card, Field, Pill, inputCls } from '@/Components/Commerce/ui';
+import { Alert, Button, EmptyState, Field, Pill, inputCls } from '@/Components/Commerce/ui';
 
 const STATE = {
     live: ['Live', 'bg-emerald-100 text-emerald-800'], scheduled: ['Scheduled', 'bg-sky-100 text-sky-800'], ended: ['Ended', 'bg-neutral-200 text-neutral-700'],
@@ -22,45 +23,57 @@ export default function Promotions({ store, promotions, categories, urls }) {
     };
 
     return (
-        <OneGlanceLayout title="Online Store" activeMenu="Marketing">
+        <OneGlanceLayout title="Online Store" activeMenu="Online Store">
             <Head title="Offers and coupons" />
-            <h1 className="text-2xl font-bold text-ink mb-4">Online Store</h1>
-            <StoreTabs active="promotions" urls={urls} status={store.status} />
+            <div className="flex flex-col min-h-full min-w-0 bg-app p-1 md:p-2 gap-1">
+            <StoreTabs active="promotions" urls={urls} status={store.status} action={{ label: 'New offer', href: '#', icon: Plus, onClick: (e) => { e.preventDefault(); setForm({ ...blank }); } }} />
 
-            <Card className="space-y-2 mb-4">
-                <h2 className="font-semibold">How offers work</h2>
-                <ul className="text-sm text-ink-muted list-disc ml-5 space-y-1">
-                    <li>Offers take a percentage off your online price for a date range ({store.timezone} time). Customers see the lower price in your catalogue.</li>
-                    <li>An offer with a code is a coupon: the customer types it at checkout. A coupon replaces automatic offers for that order.</li>
-                    <li>Otherwise each item gets the best automatic offer that applies to it. A category offer wins a tie against a store-wide one.</li>
-                    <li>Items are never discounted below cost unless you approved selling them below cost. Existing orders keep the price they were placed at.</li>
-                </ul>
-            </Card>
-
-            <div className="flex justify-end mb-3"><Button onClick={() => setForm({ ...blank })}>New offer</Button></div>
-            {Object.keys(errors || {}).length > 0 && !form && <div className="mb-3"><Alert kind="error">{Object.values(errors)[0]}</Alert></div>}
-
-            <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
-                <table className="w-full text-sm">
-                    <thead className="text-left text-ink-muted"><tr><th className="p-3">Offer</th><th className="p-3">Discount</th><th className="p-3">When</th><th className="p-3">Status</th><th className="p-3"><span className="sr-only">Actions</span></th></tr></thead>
-                    <tbody>
-                        {promotions.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-ink-muted">No offers yet.</td></tr>}
-                        {promotions.map((p) => (
-                            <tr key={p.id} className="border-t border-line align-top">
-                                <td className="p-3"><div className="font-medium text-ink">{p.name}</div><div className="text-xs text-ink-muted">{p.code ? `Code ${p.code} · used ${p.uses}${p.max_uses ? ` of ${p.max_uses}` : ''}` : 'Automatic'}</div></td>
-                                <td className="p-3">{p.kind === 'amount' ? `${store.currency_symbol} ${p.amount} off` : `${p.percent}% off`}<div className="text-xs text-ink-muted">{p.scope === 'category' ? `Category: ${p.category_name || '—'}` : 'Whole store'}{p.min_order > 0 ? ` · min ${store.currency_symbol} ${p.min_order}` : ''}</div></td>
-                                <td className="p-3 text-xs text-ink-muted">{fmtLocal(p.starts_at)}<br />to {fmtLocal(p.ends_at)}</td>
-                                <td className="p-3"><Pill tone={STATE[p.state][1]}>{STATE[p.state][0]}</Pill></td>
-                                <td className="p-3 text-right space-x-3 whitespace-nowrap">
-                                    <button type="button" className="underline" onClick={() => setForm({ ...p, code: p.code || '', category_id: p.category_id || '', max_uses: p.max_uses || '', starts_at: p.starts_at || '', ends_at: p.ends_at || '' })}>Edit</button>
-                                    <button type="button" className="underline" onClick={() => router.post(urls.toggle.replace('__ID__', p.id), {}, { preserveScroll: true })}>{p.is_active ? 'Switch off' : 'Switch on'}</button>
-                                    <button type="button" className="underline text-red-700" onClick={() => { if (window.confirm('Delete this offer? Past orders keep their prices.')) router.delete(urls.destroy.replace('__ID__', p.id), { preserveScroll: true }); }}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="flex flex-wrap items-center justify-between gap-1">
+                <details className="group rounded-xl border border-line bg-surface px-3 py-2 text-sm flex-1 min-w-[16rem] shadow-sm">
+                    <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold text-ink"><Info size={16} className="text-brand-700" />How offers work<span className="ml-auto text-xs font-normal text-ink-muted group-open:hidden">Show</span></summary>
+                    <ul className="mt-2 text-ink-muted list-disc ml-5 space-y-1">
+                        <li>An offer takes a percentage or a fixed amount off your online prices for a date range ({store.timezone} time). Customers see the lower price in your catalogue.</li>
+                        <li>An offer with a code is a coupon: the customer types it at checkout, and it replaces automatic offers for that order.</li>
+                        <li>Otherwise each item gets the best automatic offer that applies. A category offer wins a tie against a store-wide one.</li>
+                        <li>Items are never discounted below cost unless you allowed it. Existing orders keep the price they were placed at.</li>
+                    </ul>
+                </details>
             </div>
+            {Object.keys(errors || {}).length > 0 && !form && <div><Alert kind="error">{Object.values(errors)[0]}</Alert></div>}
+
+            {promotions.length === 0 ? (
+                <EmptyState icon={BadgePercent} title="No offers yet" text="Create an automatic sale for a category or the whole store, or a coupon code to share with customers." action={<Button onClick={() => setForm({ ...blank })}><Plus size={16} />Create your first offer</Button>} />
+            ) : (
+                <ul className="grid sm:grid-cols-2 xl:grid-cols-3 gap-1">
+                    {promotions.map((p) => (
+                        <li key={p.id} className={`relative flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm ${p.state === 'live' ? 'border-brand-200 dark:border-brand-800' : 'border-line'}`}>
+                            <div className={`flex items-center justify-between gap-3 px-4 py-3 ${p.state === 'live' ? 'bg-gradient-to-r from-brand-600 to-brand-700 text-white' : 'bg-sunken text-ink'}`}>
+                                <span className="text-2xl font-extrabold tracking-tight">{p.kind === 'amount' ? `${store.currency_symbol} ${Number(p.amount).toLocaleString()}` : `${Number(p.percent)}%`}<span className="ml-1 text-sm font-semibold opacity-80">off</span></span>
+                                <Pill tone={p.state === 'live' ? 'bg-white/20 text-white' : STATE[p.state][1]}>{STATE[p.state][0]}</Pill>
+                            </div>
+                            <div className="flex-1 px-4 py-3 space-y-2">
+                                <div className="font-semibold text-ink">{p.name}</div>
+                                <div className="flex flex-wrap items-center gap-2 text-xs">
+                                    {p.code ? <span className="inline-flex items-center gap-1 rounded-lg border border-dashed border-brand-400 bg-brand-50 px-2 py-0.5 font-mono font-bold text-brand-800 dark:bg-brand-900/30 dark:text-brand-200"><Ticket size={12} />{p.code}</span> : <span className="inline-flex items-center gap-1 rounded-lg bg-sunken px-2 py-0.5 font-semibold text-ink-secondary"><Zap size={12} />Automatic</span>}
+                                    <span className="text-ink-muted">{p.scope === 'category' ? `Category: ${p.category_name || '—'}` : 'Whole store'}{p.min_order > 0 ? ` · min ${store.currency_symbol} ${p.min_order}` : ''}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-ink-muted"><CalendarDays size={12} />{p.starts_at || p.ends_at ? `${fmtLocal(p.starts_at)} → ${fmtLocal(p.ends_at)}` : 'No end date'}</div>
+                                {p.code && p.max_uses ? (
+                                    <div>
+                                        <div className="flex justify-between text-xs text-ink-muted"><span>Used</span><span className="tabular-nums">{p.uses} / {p.max_uses}</span></div>
+                                        <div className="mt-1 h-1.5 rounded-full bg-sunken"><div className="h-1.5 rounded-full bg-brand-600" style={{ width: `${Math.min(100, (p.uses / p.max_uses) * 100)}%` }} /></div>
+                                    </div>
+                                ) : p.code ? <div className="text-xs text-ink-muted">Used {p.uses} time{p.uses === 1 ? '' : 's'}</div> : null}
+                            </div>
+                            <div className="flex items-center gap-1 border-t border-line px-2 py-1.5 text-sm">
+                                <Button variant="ghost" className="!px-3 !py-1.5" onClick={() => setForm({ ...p, code: p.code || '', category_id: p.category_id || '', max_uses: p.max_uses || '', starts_at: p.starts_at || '', ends_at: p.ends_at || '' })}><Pencil size={14} />Edit</Button>
+                                <Button variant="ghost" className="!px-3 !py-1.5" onClick={() => router.post(urls.toggle.replace('__ID__', p.id), {}, { preserveScroll: true })}><Power size={14} />{p.is_active ? 'Switch off' : 'Switch on'}</Button>
+                                <Button variant="ghost" className="!px-3 !py-1.5 ml-auto !text-red-700" aria-label={`Delete ${p.name}`} onClick={() => { if (window.confirm('Delete this offer? Past orders keep their prices.')) router.delete(urls.destroy.replace('__ID__', p.id), { preserveScroll: true }); }}><Trash2 size={14} /></Button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
 
             {form && (
                 <dialog open className="fixed inset-0 z-50 m-0 h-full w-full max-w-none max-h-none bg-black/40 flex items-center justify-center p-4 text-inherit" aria-modal="true" aria-label="Offer">
@@ -94,6 +107,7 @@ export default function Promotions({ store, promotions, categories, urls }) {
                     </form>
                 </dialog>
             )}
+            </div>
         </OneGlanceLayout>
     );
 }

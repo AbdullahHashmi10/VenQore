@@ -2,7 +2,8 @@
 
 /*
 |==============================================================================
-| Dashboard frames — the eight shapes
+| Dashboard frames — three curated designs (Classic, Headline, Command Centre)
+| plus five retired shapes kept so saved boards still resolve.
 |==============================================================================
 |
 | A FRAME IS GEOMETRY. It contains no reading key, no chart type, no business
@@ -33,6 +34,7 @@
 return [
 
     'spotlight' => [
+        'curated'     => false,
         'name'        => 'Spotlight',
         'rows'        => 14,
         'accent_slot' => 1,
@@ -50,6 +52,8 @@ return [
     ],
 
     'headline' => [
+        'curated'     => true,
+        'blurb'       => 'Lead with one large trend, then supporting panels and three key numbers.',
         'name'        => 'Headline',
         'rows'        => 12,
         'accent_slot' => 4,
@@ -66,6 +70,7 @@ return [
     ],
 
     'mosaic' => [
+        'curated'     => false,
         'name'        => 'Mosaic',
         'rows'        => 11,
         'accent_slot' => 4,
@@ -84,6 +89,8 @@ return [
     ],
 
     'command' => [
+        'curated'     => true,
+        'blurb'       => 'A dense control room: hero trend, two panels, three tall lists, closing trend.',
         'name'        => 'Command Centre',
         'rows'        => 19,
         'accent_slot' => 1,
@@ -99,6 +106,8 @@ return [
     ],
 
     'classic' => [
+        'curated'     => true,
+        'blurb'       => 'Key numbers across the top, one big trend, two supporting panels. The everyday board.',
         'name'        => 'Classic',
         'rows'        => 9,
         'accent_slot' => 1,
@@ -114,6 +123,7 @@ return [
     ],
 
     'workbench' => [
+        'curated'     => false,
         'name'        => 'Workbench',
         'rows'        => 11,
         'accent_slot' => 4,
@@ -131,6 +141,7 @@ return [
     ],
 
     'pillar' => [
+        'curated'     => false,
         'name'        => 'Pillar',
         'rows'        => 13,
         'accent_slot' => 4,
@@ -147,6 +158,7 @@ return [
     ],
 
     'focus' => [
+        'curated'     => false,
         'name'        => 'Focus',
         'rows'        => 12,
         'accent_slot' => 1,

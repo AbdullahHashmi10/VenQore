@@ -43,7 +43,7 @@ class StoreManagerController extends Controller
                 'country_id' => $country->id ?? null,
                 'timezone' => $t->timezone ?: 'UTC',
                 'currency_code' => $t->currency_code ?: 'PKR',
-                'currency_symbol' => $t->currency_symbol ?: 'Rs',
+                'currency_symbol' => \App\Helpers\SettingsHelper::get('currency_symbol') ?? ($t->currency_symbol ?: 'Rs'),
                 'warehouse_id' => DB::table('warehouses')->where('tenant_id', $t->id)->whereNull('deleted_at')->orderByDesc('is_default')->value('id'),
                 'status' => 'draft',
             ])->refresh(); // load DB defaults (pricing_mode, flags…)
@@ -60,6 +60,7 @@ class StoreManagerController extends Controller
             'promotions' => $r('promotions'), 'products' => $r('products'), 'products_bulk' => $r('products.bulk'), 'products_photo' => $r('products.photo', ['product' => '__ID__']),
             'publish' => $r('publish'), 'unpublish' => $r('unpublish'), 'intake' => $r('intake'),
             'orders' => $r('orders'), 'alerts' => $r('alerts'),
+            'public' => ($sl = DB::table('storefronts')->where('tenant_id', $this->tenant()->id)->value('slug')) ? url('/shop/' . $sl) : null,
         ];
     }
 
@@ -75,6 +76,11 @@ class StoreManagerController extends Controller
 
         return Inertia::render('OnlineStore/Home', [
             'insights' => $this->insights($t->id),
+            'recent' => DB::table('commerce_orders')->where('tenant_id', $t->id)->orderByDesc('created_at')->limit(5)
+                ->get(['id', 'public_number', 'customer_name', 'status', 'total', 'currency_symbol', 'fulfilment', 'created_at'])
+                ->map(fn ($o) => ['id' => $o->id, 'number' => $o->public_number, 'name' => $o->customer_name, 'status' => $o->status, 'total' => (float) $o->total,
+                    'symbol' => $o->currency_symbol, 'fulfilment' => $o->fulfilment, 'at' => \App\Models\Commerce\CommerceOrder::localTime($o->created_at, $store->timezone ?: 'UTC'),
+                    'url' => route('store.commerce.orders.show', ['store_slug' => $t->slug, 'id' => $o->id])])->values(),
             'store' => $this->forManager($store),
             'problems' => $problems,
             'can_publish' => empty($problems) && $store->status !== 'suspended',
@@ -115,12 +121,29 @@ class StoreManagerController extends Controller
     {
         $store = $this->store(true);
         $t = $this->tenant();
+        $popularZones = ['Asia/Karachi', 'Asia/Dubai', 'Asia/Riyadh', 'Asia/Dhaka', 'Asia/Kolkata', 'Europe/London', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Asia/Singapore', 'Asia/Kuala_Lumpur', 'Australia/Sydney', 'UTC'];
+        $allZones = \DateTimeZone::listIdentifiers();
+        $zoneList = array_values(array_unique(array_merge($popularZones, $allZones)));
+        $timezoneOptions = array_map(function ($z) {
+            try {
+                $offset = (new \DateTime('now', new \DateTimeZone($z)))->format('P');
+            } catch (\Throwable) {
+                $offset = '+00:00';
+            }
+            return ['value' => $z, 'label' => "{$z} (UTC{$offset})"];
+        }, $zoneList);
+
+        $effectiveTz = $store->timezone ?: ($t->timezone ?: 'Asia/Karachi');
+
         return Inertia::render('OnlineStore/Settings', [
             'store' => $this->forManager($store),
             'countries' => DB::table('commerce_countries')->where('is_active', 1)->orderBy('name')->get(['id', 'code', 'name']),
             'cities' => DB::table('commerce_cities')->where('is_active', 1)->orderBy('sort_order')->orderBy('name')->get(['id', 'country_id', 'name']),
             'warehouses' => DB::table('warehouses')->where('tenant_id', $t->id)->whereNull('deleted_at')->orderBy('name')->get(['id', 'name']),
             'days' => OpeningHours::DAYS,
+            'timezones' => $timezoneOptions,
+            'store_time_now' => now($effectiveTz)->format('l, g:i A (T)'),
+            'hours_guidance' => OpeningHours::statusGuidance($store->opening_hours, $effectiveTz),
             'urls' => $this->urls(),
         ]);
     }
@@ -140,10 +163,13 @@ class StoreManagerController extends Controller
             'map_url' => ['nullable', 'url', 'max:500'],
             'phone' => ['nullable', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:150'],
+            'timezone' => ['nullable', 'string', 'max:64'],
             'opening_hours' => ['nullable', 'array'],
             'opening_hours.*' => ['nullable', 'array'],
             'opening_hours.*.open' => ['nullable', 'date_format:H:i'],
             'opening_hours.*.close' => ['nullable', 'date_format:H:i'],
+            'opening_hours.*.break_start' => ['nullable', 'date_format:H:i'],
+            'opening_hours.*.break_end' => ['nullable', 'date_format:H:i'],
             'supports_pickup' => ['boolean'],
             'supports_delivery' => ['boolean'],
             'delivery_charge' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
@@ -161,6 +187,7 @@ class StoreManagerController extends Controller
             'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
             'prep_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
             'orders_outside_hours' => ['boolean'],
+            'orders_during_break' => ['boolean'],
             'delivery_zones' => ['nullable', 'array', 'max:20'],
             'delivery_zones.*.name' => ['required', 'string', 'max:60'],
             'delivery_zones.*.fee' => ['required', 'numeric', 'min:0', 'max:1000000'],
@@ -185,7 +212,12 @@ class StoreManagerController extends Controller
             $hours = [];
             foreach (OpeningHours::DAYS as $d) {
                 $h = $data['opening_hours'][$d] ?? null;
-                $hours[$d] = ($h && ! empty($h['open']) && ! empty($h['close'])) ? ['open' => $h['open'], 'close' => $h['close']] : null;
+                $hours[$d] = ($h && ! empty($h['open']) && ! empty($h['close'])) ? [
+                    'open' => $h['open'],
+                    'close' => $h['close'],
+                    'break_start' => (! empty($h['break_start']) && ! empty($h['break_end'])) ? $h['break_start'] : null,
+                    'break_end' => (! empty($h['break_start']) && ! empty($h['break_end'])) ? $h['break_end'] : null,
+                ] : null;
             }
         }
 
@@ -211,11 +243,14 @@ class StoreManagerController extends Controller
             'delivery_charge' => (float) ($data['delivery_charge'] ?? 0),
             'min_order_amount' => (float) ($data['min_order_amount'] ?? 0),
             'accept_deadline_minutes' => (int) ($data['accept_deadline_minutes'] ?? $store->accept_deadline_minutes),
-            // currency / timezone come from the business, never from a visitor
-            'timezone' => $t->timezone ?: $store->timezone,
+            // currency / timezone come from the business or user selection
+            'timezone' => ! empty($data['timezone']) ? $data['timezone'] : ($store->timezone ?: ($t->timezone ?: 'Asia/Karachi')),
             'currency_code' => $t->currency_code ?: $store->currency_code,
-            'currency_symbol' => $t->currency_symbol ?: $store->currency_symbol,
+            'currency_symbol' => \App\Helpers\SettingsHelper::get('currency_symbol') ?? ($t->currency_symbol ?: $store->currency_symbol),
         ]))->save();
+        if (! empty($data['timezone']) && $t->timezone !== $data['timezone']) {
+            $t->update(['timezone' => $data['timezone']]);
+        }
         if ($oldSlug && $oldSlug !== $store->slug) {
             // keep the old link alive (301) so printed QR codes and shared links do not break
             DB::table('storefront_slug_history')->updateOrInsert(['slug' => $oldSlug], ['storefront_id' => $store->id, 'created_at' => now()]);
@@ -281,7 +316,9 @@ class StoreManagerController extends Controller
 
         $page = $query->select(['p.id', 'p.tenant_id', 'p.name', 'p.sku', 'p.price', 'p.cost_price', 'p.tax_rate', 'p.price_includes_tax',
             'p.is_active', 'p.type', 'p.has_variants', 'p.is_weighted', 'p.track_serial', 'p.image_path', 'p.base_unit',
-            'sp.id as listing_id', 'sp.is_featured', 'sp.option_group', 'sp.option_label', 'sp.image_path as listing_image', 'sp.is_published', 'sp.override_price', 'sp.public_name', 'sp.public_description', 'sp.allow_below_cost'])
+            'sp.id as listing_id', 'sp.is_featured', 'sp.option_group', 'sp.option_label', 'sp.image_path as listing_image',
+            'sp.is_published', 'sp.override_price', 'sp.public_name', 'sp.public_description', 'sp.allow_below_cost',
+            'sp.offline_reserve_qty', 'sp.online_stock_limit'])
             ->paginate(25)->withQueryString();
 
         $pricing = app(OnlinePricing::class);
@@ -289,6 +326,13 @@ class StoreManagerController extends Controller
         $rows = collect($page->items())->map(function ($p) use ($store, $pricing, $stock, $t) {
             $reason = ProductReadiness::reason($p);
             $price = $pricing->resolve($p, (object) ['override_price' => $p->override_price], $store);
+            $physical = $store->warehouse_id ? round($stock->available($t->id, $p->id, $store->warehouse_id), 2) : null;
+            $offlineReserve = (float) ($p->offline_reserve_qty ?? 0);
+            $onlineLimit = $p->online_stock_limit !== null ? (float) $p->online_stock_limit : null;
+            $onlineAvailable = $physical !== null ? max(0.0, round($physical - $offlineReserve, 2)) : null;
+            if ($onlineAvailable !== null && $onlineLimit !== null) {
+                $onlineAvailable = min($onlineAvailable, $onlineLimit);
+            }
             return [
                 'id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'has_image' => (bool) ($p->listing_image ?: $p->image_path), 'image_url' => StorefrontPresenter::mediaUrl($p->listing_image ?: $p->image_path), 'featured' => (bool) $p->is_featured, 'has_custom_image' => (bool) $p->listing_image,
                 'regular_price' => (float) $p->price, 'online_price' => $price['online_price'], 'rule' => $price['rule'],
@@ -296,7 +340,11 @@ class StoreManagerController extends Controller
                 'published' => (bool) $p->is_published, 'override_price' => $p->override_price !== null ? (float) $p->override_price : null,
                 'public_name' => $p->public_name, 'public_description' => $p->public_description, 'option_group' => $p->option_group, 'option_label' => $p->option_label,
                 'blocked_reason' => $reason,
-                'available' => $store->warehouse_id ? round($stock->available($t->id, $p->id, $store->warehouse_id), 2) : null,
+                'physical_stock' => $physical,
+                'offline_reserve' => $offlineReserve,
+                'online_stock_limit' => $onlineLimit,
+                'available' => $onlineAvailable,
+                'online_available' => $onlineAvailable,
             ];
         });
 
@@ -340,7 +388,7 @@ class StoreManagerController extends Controller
         $v = $request->validate([
             'ids' => ['required', 'array', 'min:1', 'max:200'],
             'ids.*' => ['string'],
-            'action' => ['required', Rule::in(['publish', 'unpublish', 'update', 'feature', 'unfeature'])],
+            'action' => ['required', Rule::in(['publish', 'unpublish', 'update', 'feature', 'unfeature', 'set_reserve'])],
             'override_price' => ['nullable', 'numeric', 'min:0.01', 'max:100000000'],
             'clear_override' => ['boolean'],
             'public_name' => ['nullable', 'string', 'max:191'],
@@ -348,12 +396,42 @@ class StoreManagerController extends Controller
             'allow_below_cost' => ['nullable', 'boolean'],
             'option_group' => ['nullable', 'string', 'max:60'],
             'option_label' => ['nullable', 'string', 'max:60'],
+            'offline_reserve_qty' => ['nullable', 'numeric', 'min:0', 'max:10000000'],
+            'online_stock_limit' => ['nullable', 'numeric', 'min:0', 'max:10000000'],
         ]);
 
         $products = DB::table('products')->where('tenant_id', $t->id)->whereNull('deleted_at')->whereIn('id', $v['ids'])->get()->keyBy('id');
         $pricing = app(OnlinePricing::class);
         $done = 0;
         $skipped = [];
+
+        if ($v['action'] === 'set_reserve') {
+            $reserveVal = array_key_exists('offline_reserve_qty', $v) && $v['offline_reserve_qty'] !== null && $v['offline_reserve_qty'] !== ''
+                ? round((float) $v['offline_reserve_qty'], 4)
+                : 0;
+            $limitVal = array_key_exists('online_stock_limit', $v) && $v['online_stock_limit'] !== null && $v['online_stock_limit'] !== ''
+                ? round((float) $v['online_stock_limit'], 4)
+                : null;
+            foreach ($v['ids'] as $id) {
+                $sp = DB::table('storefront_products')->where('storefront_id', $store->id)->where('product_id', $id)->first();
+                $now = now();
+                if ($sp) {
+                    DB::table('storefront_products')->where('id', $sp->id)->update([
+                        'offline_reserve_qty' => $reserveVal,
+                        'online_stock_limit' => $limitVal,
+                        'updated_at' => $now,
+                    ]);
+                } else {
+                    DB::table('storefront_products')->insert([
+                        'id' => (string) Str::uuid(), 'storefront_id' => $store->id, 'tenant_id' => $t->id,
+                        'product_id' => $id, 'is_published' => 0, 'offline_reserve_qty' => $reserveVal,
+                        'online_stock_limit' => $limitVal, 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
+                $done++;
+            }
+            return back()->with('success', "{$done} product(s) stock reserve updated.");
+        }
 
         foreach ($v['ids'] as $id) {
             $p = $products->get($id);
@@ -408,6 +486,16 @@ class StoreManagerController extends Controller
                     $skipped[] = ['id' => $id, 'name' => $p->name, 'reason' => 'Give this option a label (for example "Large" or "Red").'];
                     continue;
                 }
+                if (array_key_exists('offline_reserve_qty', $v)) {
+                    $fields['offline_reserve_qty'] = ($v['offline_reserve_qty'] === null || $v['offline_reserve_qty'] === '')
+                        ? 0
+                        : round((float) $v['offline_reserve_qty'], 4);
+                }
+                if (array_key_exists('online_stock_limit', $v)) {
+                    $fields['online_stock_limit'] = ($v['online_stock_limit'] === null || $v['online_stock_limit'] === '')
+                        ? null
+                        : round((float) $v['online_stock_limit'], 4);
+                }
             }
             if (array_key_exists('allow_below_cost', $v) && $v['allow_below_cost'] !== null) {
                 $fields['allow_below_cost'] = (bool) $v['allow_below_cost'];
@@ -453,11 +541,15 @@ class StoreManagerController extends Controller
 
     private function forManager(Storefront $s): array
     {
+        $dynCurrency = \App\Helpers\SettingsHelper::get('currency_symbol') ?? ($s->currency_symbol ?: ($this->tenant()->currency_symbol ?: 'Rs'));
         return [
             'id' => $s->id, 'slug' => $s->slug, 'display_name' => $s->display_name, 'description' => $s->description,
             'country_id' => $s->country_id, 'city_id' => $s->city_id, 'address_line' => $s->address_line, 'map_url' => $s->map_url,
             'logo_url' => StorefrontPresenter::mediaUrl($s->logo_path), 'phone' => $s->phone, 'email' => $s->email,
-            'opening_hours' => $s->opening_hours, 'timezone' => $s->timezone, 'currency_symbol' => $s->currency_symbol,
+            'opening_hours' => $s->opening_hours,
+            'timezone' => $s->timezone ?: ($this->tenant()->timezone ?: 'Asia/Karachi'),
+            'hours_guidance' => OpeningHours::statusGuidance($s->opening_hours, $s->timezone ?: ($this->tenant()->timezone ?: 'Asia/Karachi')),
+            'currency_symbol' => $dynCurrency,
             'supports_pickup' => $s->supports_pickup, 'supports_delivery' => $s->supports_delivery,
             'delivery_charge' => $s->delivery_charge, 'delivery_note' => $s->delivery_note, 'min_order_amount' => $s->min_order_amount,
             'warehouse_id' => $s->warehouse_id, 'pricing_mode' => $s->pricing_mode, 'pricing_percent' => $s->pricing_percent,

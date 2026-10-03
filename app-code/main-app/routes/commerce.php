@@ -22,6 +22,10 @@ Route::post('/order-status/{token}/revision', [PublicStoreController::class, 'an
 Route::post('/order-status/{token}/cancel', [PublicStoreController::class, 'cancel'])->middleware('throttle:10,1')->name('commerce.order-status.cancel');
 Route::get('/order-lookup', [PublicStoreController::class, 'lookupForm'])->name('commerce.order-lookup');
 Route::post('/order-lookup', [PublicStoreController::class, 'lookup'])->middleware('throttle:6,1')->name('commerce.order-lookup.find');
+Route::post('/shop/{slug}/customer/login', [PublicStoreController::class, 'customerLogin'])->where('slug', '[a-z0-9-]+')->middleware('throttle:30,1')->name('commerce.customer.login');
+Route::post('/shop/{slug}/customer/logout', [PublicStoreController::class, 'customerLogout'])->where('slug', '[a-z0-9-]+')->name('commerce.customer.logout');
+Route::post('/shop/{slug}/rate', [PublicStoreController::class, 'submitRating'])->where('slug', '[a-z0-9-]+')->middleware('throttle:20,1')->name('commerce.rate');
+Route::get('/shop/{slug}/customer/orders', [PublicStoreController::class, 'customerOrders'])->where('slug', '[a-z0-9-]+')->name('commerce.customer.orders');
 Route::post('/order-status/{token}/transfer', [PublicStoreController::class, 'reportTransfer'])->middleware('throttle:10,1')->name('commerce.order-status.transfer');
 
 /*

@@ -152,6 +152,18 @@ class DashboardSanitizer
             $style = $item['style'] ?? null;
             $style = is_array($style) ? self::sanitizeStyle($style) : null;
 
+            // v2 cards carry a free integer span (1-12 columns x 1-16 rows)
+            // chosen against a per-family legibility floor on the client.
+            // The category/fit above stays as legacy metadata only; the
+            // geometry that renders is the span the user drew, clamped to
+            // the grid so it can never leave the board.
+            if (($style['v'] ?? null) === 2 && isset($item['w'], $item['h'])) {
+                $cols = LayoutLaw::columns();
+                $geometry['w'] = max(1, min($cols, (int) $item['w']));
+                $geometry['h'] = max(1, min(16, (int) $item['h']));
+                $geometry['x'] = max(0, min($cols - $geometry['w'], (int) ($item['x'] ?? 0)));
+            }
+
             $clean[] = [
                 'id' => $item['id'] ?? null, // keep ID if updating
                 'reading_key' => $readingKey,
@@ -222,6 +234,32 @@ class DashboardSanitizer
             ));
             if ($keys !== []) {
                 $clean['extraKeys'] = array_slice($keys, 0, 3);
+            }
+        }
+
+        // v2 presentation: a family + variant chosen from closed sets, a
+        // tone from the palette, and display switches. All slug-shaped or
+        // boolean; nothing free-form reaches the DOM.
+        $slug = fn ($v) => is_string($v) && preg_match('/^[a-z][a-z0-9_-]{0,31}$/', $v);
+        foreach (['family', 'tone', 'legend'] as $k) {
+            if (isset($style[$k]) && $slug($style[$k])) {
+                $clean[$k] = $style[$k];
+            }
+        }
+        foreach (['glare', 'starBorder', 'showOpenArrow', 'showWhen', 'showDelta', 'showPeriodPicker', 'motion', 'full'] as $k) {
+            if (isset($style[$k])) {
+                $clean[$k] = (bool) $style[$k];
+            }
+        }
+        if (($style['v'] ?? null) === 2) {
+            $clean['v'] = 2;
+        }
+
+        // A goal is a finite positive number or nothing.
+        if (isset($style['goal']) && is_array($style['goal'])) {
+            $value = $style['goal']['target'] ?? null;
+            if (is_numeric($value) && is_finite((float) $value) && (float) $value > 0) {
+                $clean['goal'] = ['target' => (float) $value];
             }
         }
 

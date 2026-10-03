@@ -7,6 +7,12 @@ import './DashboardMobile.css';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import FramePicker from '@/Dashboard/components/FramePicker';
+import { mountCardChart, resetCardAnimation, renameCardAnimation } from '@/Dashboard/cards/mount';
+import * as Fam from '@/Dashboard/cards/families';
+import * as Geo from '@/Dashboard/cards/geometry';
+import { toEnvelope, formatValue as fmtEnvValue } from '@/Dashboard/cards/envelope';
+import CardEditor from '@/Dashboard/cards/CardEditor';
+import '@/Dashboard/cards/card-charts.css';
 
 /* The real nav arrives as the shared `nav` prop (ModuleNavBuilder) carrying
    lucide icon NAMES — the same contract QoreShell consumes. */
@@ -219,9 +225,10 @@ function runCardBuilder(opts) {
   /* Inertia remounts this page on every client-side navigation back to it. The
      engine registers document-level listeners, so running it twice would double
      every pointerup and leak a listener per visit. Re-boot the board instead. */
-  const ENGINE_VERSION = 4;
+  const ENGINE_VERSION = 5;
   if (typeof window !== "undefined" && window.VenQoreCards?.engineVersion === ENGINE_VERSION && window.__vqCardEngine){
     window.VenQoreCards.setStoreSlug(opts && opts.storeSlug);
+    if (opts && opts.currency && window.VenQoreCards.setCurrency) window.VenQoreCards.setCurrency(opts.currency);
     window.VenQoreCards.setEnabledModules(opts && opts.modules);
     if (opts && opts.layoutLaw && window.VenQoreCards.setLayoutLaw) {
       window.VenQoreCards.setLayoutLaw(opts.layoutLaw);
@@ -403,7 +410,7 @@ function abbrNum(n){
   if (a >= 1e3) return (n/1e3).toFixed(a >= 1e5 ? 0 : 1).replace(/\.0$/,"") + "K";
   return groupNum(n);
 }
-function unitPrefix(unit){ return unit === "currency" ? "Rs " : ""; }
+function unitPrefix(unit){ return unit === "currency" ? `${CURRENCY} ` : ""; }
 function unitSuffix(unit){ return unit === "percent" ? "%" : ""; }
 
 
@@ -444,8 +451,14 @@ function queueLiveReadings(cards, onComplete) {
       requests.push({ key: c.key, period: reckPer, granularity: gran, reqKey, uiPeriod: uiPer });
     }
 
-    if (Array.isArray(c.extraKeys)) {
-      c.extraKeys.forEach(ek => {
+    /* Compared readings, plus the history companion of any scalar that is
+       drawn on a time axis — requested in the same batch as the total. */
+    const more = Array.isArray(c.extraKeys) ? [...c.extraKeys] : [];
+    if (needsSeries(c)) {
+      [c.key, ...more].forEach(k => { const comp = trendCompanionKey(k); if (comp && !more.includes(comp)) more.push(comp); });
+    }
+    if (more.length) {
+      more.forEach(ek => {
         const ekRd = readingOf(ek);
         let ekReckPer = toReckonerPeriod(uiPer);
         if (ekRd && ekRd.periods && Array.isArray(ekRd.periods) && ekRd.periods.length > 0 && !ekRd.periods.includes(ekReckPer)) {
@@ -572,11 +585,11 @@ function renderDataState(host, card, emptyMessage = "No data in this period."){
   if (live && (!live.ok || live.status === "error")){
     let errText = live.error?.message || "New transactions will automatically stream here.";
     if (typeof errText === 'string' && (errText.includes("Invariant failure:") || errText.includes("stock_value_control") || errText.includes("FAILED:"))) {
-      errText = "Reconciling ledger entries. Data will update on next sync.";
+      errText = "This figure is held back until it matches your accounts.";
     }
     host.innerHTML = `<div class="ck-state is-unavailable" role="status">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="ck-state-ic"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <b>Data reconciling</b>
+      <b>Being verified</b>
       <span>${esc(errText)}</span>
     </div>`;
     return true;
@@ -882,7 +895,12 @@ const VARIANTS = {
   sankey:   [["flow","Flow"],["thin","Thin links"]],
   choropleth:[["grid","Region grid"],["list","Ranked list"]],
 };
-const variantsOf = c => VARIANTS[c] || [["default","Default"]];
+/* The card families and their variants now come from the shared registry
+   (Dashboard/cards/families.js); the table above survives only so a board
+   saved under the old chart keys can be read and translated. */
+const variantsOf = c => Fam.FAMILIES[c]
+  ? Fam.FAMILIES[c].variants.map(v => [v.id, v.label])
+  : (VARIANTS[c] || [["default","Default"]]);
 const defaultVariant = c => variantsOf(c)[0][0];
 
 /* which charts are cartesian (share the axis + crosshair engine) */
@@ -1812,19 +1830,97 @@ const MOUNT = {
   choropleth: mountChoropleth, sparkline: mountSparkline,
   stat: mountStat, status: mountStatus, list: mountTable,
 };
+/* ══ the React / BKLIT chart layer ═════════════════════════════════════════
+   Every reading card's plot is drawn by Dashboard/cards/CardChart through one
+   React root per host (Dashboard/cards/mount). The engine's job is only to
+   say WHAT to draw: the family, the variant and the honest data envelope for
+   each series. The editor preview calls this same function, so the preview
+   and the saved card can never render differently. */
+let CURRENCY = (opts && opts.currency) || "Rs";
+
+/* A scalar reading may have a sibling that carries its day-by-day history
+   (core.revenue → core.revenue_trend). Only exact siblings of the SAME
+   measure are used — never a different measure that happens to be close. */
+const COMPANION_MAP = { "core.total_liquidity": "core.liquidity_trend" };
+function trendCompanionKey(key){
+  const rd = readingOf(key);
+  if (Fam.kindOf(rd) !== "scalar") return null;
+  const want = COMPANION_MAP[key] || `${key}_trend`;
+  const hit = READINGS.find(r => r.key === want);
+  return hit && readingAvailable(hit) && Fam.kindOf(hit) === "series" ? hit.key : null;
+}
+/** Does this card draw time on an axis, so a scalar needs its companion? */
+const needsSeries = c => ["area", "line", "bar", "composed", "scatter", "live"]
+  .includes(Fam.FAMILIES[c.chart] ? c.chart : (Fam.normalizePresentation(c.chart, c.variant).family || c.chart));
+
+function capCtx(card){
+  const rd = readingOf(card.key);
+  const kind = Fam.kindOf(rd);
+  return {
+    seriesAvailable: kind === "series" || !!trendCompanionKey(card.key),
+    seriesCount: 1 + ((card.extraKeys || []).length),
+    hasGoal: Number(card.goal && card.goal.target) > 0,
+    supportsComparison: kind === "scalar" && rd.supports_comparison !== false,
+  };
+}
+
+function liveFor(key, period){
+  const reckPer = toReckonerPeriod(period);
+  const gran = PERIOD[period]?.grain || "day";
+  return LIVE_RECKONER_DATA[`${key}|${period}`]
+    || LIVE_RECKONER_DATA[`${key}|${reckPer}|${gran}`]
+    || LIVE_RECKONER_DATA[`${key}|${reckPer}`]
+    || null;
+}
+const pendingFor = (key, period) => PENDING_RECKONER_REQUESTS.has(`${key}|${period}`);
+
+/** The normalised envelope for one reading in one period. */
+function envelopeFor(key, period, withSeries){
+  const rd = readingOf(key);
+  const comp = withSeries ? trendCompanionKey(key) : null;
+  const live = liveFor(key, period);
+  const env = toEnvelope(live, rd, {
+    pending: pendingFor(key, period),
+    companion: comp ? liveFor(comp, period) : null,
+  });
+  /* the total arrived but its history is still on the way — that is loading,
+     not "no history" */
+  if (comp && env.state === "ready" && !env.series && pendingFor(comp, period)) {
+    return { ...env, state: "loading", message: "Loading…" };
+  }
+  return env;
+}
+
+/** Everything CardChart needs for one card. */
+function chartPropsFor(card){
+  /* A card saved under an old chart key ("pl", "trend"…) is read as the family
+     it maps to — never left to draw nothing. */
+  if (!Fam.FAMILIES[card.chart]) {
+    const np = Fam.normalizePresentation(card.chart, card.variant);
+    if (np.family) card = { ...card, chart: np.family, variant: np.variant };
+  }
+  const keys = [card.key, ...(card.extraKeys || [])];
+  const withSeries = needsSeries(card);
+  return {
+    card: {
+      id: card.id, family: card.chart, variant: card.variant,
+      legend: card.legend !== false, goal: card.goal || null,
+      link: card.targetUrl || card.link || getDeepLinkForCard(card.key),
+      period: card.period, dataSig: keys.join(","),
+      motion: card.motion !== false,
+    },
+    series: keys.map((k, i) => ({
+      key: k,
+      label: (i === 0 && card.title) ? card.title : readingOf(k).label,
+      env: envelopeFor(k, card.period, withSeries),
+    })),
+    currency: CURRENCY,
+  };
+}
+
 function mountChart(host, card){
-  if (!host) return;
-  if (!isSpecial(card) && renderDataState(host, card)) return;
-  const shape = String(readingOf(card.key)?.shape || "").toUpperCase();
-  const legacyTimeChart = CARTESIAN.has(card.chart) || ["sparkline", "stat", "gauge", "ring"].includes(card.chart);
-  if (shape === "RANKING" && (card.chart === "bar" || legacyTimeChart)) return mountTable(host, card);
-  if (shape === "BREAKDOWN" && legacyTimeChart) return mountRadial(host, { ...card, chart: "pie" });
-  if (shape === "TABLE" && legacyTimeChart) return mountTable(host, card);
-  if (shape === "FEED" && legacyTimeChart) return mountFeed(host, card);
-  if (CARTESIAN.has(card.chart)) return mountCartesian(host, card);
-  if (RADIAL.has(card.chart))    return mountRadial(host, card);
-  const fn = MOUNT[card.chart];
-  if (fn) return fn(host, card);
+  if (!host || !card || isSpecial(card)) return;
+  mountCardChart(host, chartPropsFor(card));
 }
 
 /* ══ board, editor, library, builder ═══════════════════════════════════════ */
@@ -2072,9 +2168,27 @@ const isSpecial = c => !!(c && c.type && SPECIAL[c.type]);
 const fitsTable = () => FITS;
 
 /** A stat showing only its number — no chart body to make room for. */
-const isBare = c => c.chart === "stat" && c.variant === "number";
+const isBare = c => (c.chart === "number" && c.variant === "value") || (c.chart === "stat" && c.variant === "number");
+/** Default span for a freshly placed reading card, by family. */
+function defaultSpanFor(card){
+  const f = card.chart, v = card.variant;
+  const legend = card.legend !== false;
+  const span = ({
+    number: v === "value" ? [3, 1] : [3, 2],
+    area: [6, 4], line: [6, 4], bar: v === "horizontal" ? [5, 5] : [6, 4], composed: [8, 4],
+    pie: legend ? [6, 4] : [4, 4], ring: [4, 4], gauge: v === "linear" ? [4, 2] : [4, 3],
+    radar: [4, 5], heatmap: [8, 4], records: v === "feed" ? [4, 5] : [5, 5], status: [3, 2],
+  })[f] || [4, 4];
+  const [mw, mh] = Geo.minSize(f, v, { legend, seriesCount: 1 + (card.extraKeys || []).length });
+  return [Math.max(span[0], mw), Math.max(span[1], mh)];
+}
 function minSizeFor(card){
   if (isSpecial(card)) return SPECIAL[card.type].min.slice();
+  if (Fam.FAMILIES[card.chart]) {
+    return Geo.minSize(card.chart, card.variant, {
+      legend: card.legend !== false, seriesCount: 1 + (card.extraKeys || []).length,
+    });
+  }
   /* A tile and a strip have no chart body — renderCard draws the reading and
      nothing else there — so the chart's own floor does not apply. Measuring a
      C2 strip against a sparkline's three-row minimum is what made every strip
@@ -2134,23 +2248,22 @@ function fitCat(card){ return catsFor(card)[0] || (isSpecial(card) ? SPECIAL[car
    max and the live grid. A card can therefore never be smaller than it can
    draw, nor wider than the screen it is on. */
 function geometryOf(card, cols, colW){
+  /* A frame slot is only where a card STARTS. It seeds the first size of a
+     card that has none of its own; after that the card's own span rules, and
+     it is always held to its chart's floor and ceiling. Sizing a card by its
+     slot is what squeezed a trend chart into a strip too short to read. */
   const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(card.frameSlot));
-  if (frameSlot && (cols || 12) >= 12) {
-    const sw = Number(frameSlot.w);
-    const sh = Number(frameSlot.h);
-    const scat = frameSlot.category || card.cat || "C4";
-    const T = fitsTable(card);
-    const [gw, gh] = fitToGrid(sw, sh, cols);
-    return {
-      w: gw,
-      h: gh,
-      authoredW: sw,
-      authoredH: sh,
-      cat: scat,
-      colW: colW || COL_W,
-      fit: resolveFit(scat, gw, gh, T) ?? 0,
-      clamped: false,
-    };
+  const seeded = (frameSlot && !(card.w && card.h))
+    ? { ...card, w: Number(frameSlot.w), h: Number(frameSlot.h) } : card;
+  card = seeded;
+  if (!isSpecial(card) && Fam.FAMILIES[card.chart]) {
+    const [dw, dh] = defaultSpanFor(card);
+    const r = Geo.resolveSpan({ w: card.w || dw, h: card.h || dh, full: !!card.full },
+      card.chart, card.variant, cols || 12,
+      { legend: card.legend !== false, seriesCount: 1 + (card.extraKeys || []).length });
+    return { w: r.w, h: r.h, authoredW: r.reqW, authoredH: r.reqH,
+             cat: Geo.categoryOf(r.w, r.h, card.chart), colW: colW || COL_W,
+             fit: 0, clamped: r.clamped, raised: r.raised, reason: r.reason, full: r.full };
   }
   const cat = card.cat || fitCat(card);
   const T = fitsTable(card);
@@ -2177,7 +2290,7 @@ function geometryOf(card, cols, colW){
 }
 /* dial charts need a legend under the dial; the rest are fine in a panel */
 const TALL = new Set(["pie","ring","sunburst","gauge"]);
-const MULTI_OK = new Set(["line","area","bar","composed"]);
+const MULTI_OK = new Set(["line","area","composed"]);
 
 /* Variants that only differ once a card carries more than one series.
    Offering them on a single-series card is a fake choice — it renders the
@@ -2194,6 +2307,11 @@ const ONLY_SINGLE = { composed: ["bar-trend"] };
 
 /** [id, name, enabled, why] for the variants of this card, in context. */
 function variantsFor(card){
+  if (!isSpecial(card) && Fam.FAMILIES[card.chart]) {
+    const cap = Fam.capabilitiesFor(readingOf(card.key), capCtx(card)).find(x => x.family === card.chart);
+    if (cap) return cap.variants.map(v => [v.id, v.label, v.enabled, v.reason]);
+    return variantsOf(card.chart).map(([id, name]) => [id, name, true, ""]);
+  }
   const need = NEEDS_SERIES[card.chart] || {};
   const solo = ONLY_SINGLE[card.chart] || [];
   const have = 1 + card.extraKeys.length;
@@ -2246,12 +2364,25 @@ function catFor(chart){ return MIN_CAT[chart] || "C3"; }
    straight away — including dropping any hand-resize, which was measured for
    the old chart and means nothing for the new one. */
 function resizeForChart(c){
+  if (!isSpecial(c) && Fam.FAMILIES[c.chart]) {
+    /* keep the author's span when it still fits the new family; otherwise the
+       resolver raises it to the family's floor — never shrink silently */
+    const g = geometryOf(c, 12);
+    c.w = g.authoredW; c.h = g.authoredH; c.cat = g.cat; c.fit = 0;
+    return;
+  }
   c.w = c.h = null;
   c.cat = fitCat(c);
   c.fit = DEFAULT_FIT[c.cat];
   clampFit(c);
 }
 function clampFit(c, wanted){
+  if (!isSpecial(c) && Fam.FAMILIES[c.chart]) {
+    const g = geometryOf(c, 12);
+    if (c.w || c.h) { c.w = g.authoredW; c.h = g.authoredH; }
+    c.cat = g.cat; c.fit = 0;
+    return;
+  }
   const T = fitsTable(c);
   if (c.w && c.h){
     const g = geometryOf(c, 24);          /* 24 = the widest legal grid; no clamp here */
@@ -2264,18 +2395,30 @@ function clampFit(c, wanted){
   c.fit = legal.some(([i]) => i === want) ? want : legal[0][0];
   void T;
 }
-function legalFor(key){ const rd = readingOf(key); return LEGAL[rd.shape] || ["stat"]; }
+/** The families a reading may be drawn as, default first. */
+function legalFor(key, card){
+  const rd = readingOf(key);
+  const ctx = capCtx(card || { key, extraKeys: [] });
+  const def = Fam.defaultFamilyFor(rd, ctx).family;
+  const on = Fam.capabilitiesFor(rd, ctx).filter(x => x.enabled).map(x => x.family);
+  return [def, ...on.filter(f => f !== def)];
+}
+/** A reading's starting family and variant. */
+function defaultLookFor(key){
+  return Fam.defaultFamilyFor(readingOf(key), capCtx({ key, extraKeys: [] }));
+}
 
 function addCard(key, opts = {}){
   const rd = readingOf(key); if (!rd) return null;
-  const chart = opts.chart || legalFor(key)[0];
+  const look = defaultLookFor(key);
+  const chart = opts.chart || look.family;
   const c = { id:newId(), key, extraKeys: opts.extraKeys || [], chart,
-              variant: opts.variant || defaultVariant(chart), cat:"C3", fit:0,
+              variant: opts.variant || (chart === look.family ? look.variant : defaultVariant(chart)), cat:"C3", fit:0,
               period: opts.period || "Month",
               title: opts.title || null, accent: !!opts.accent };
   /* the card decides its own smallest honest size — never the caller */
-  c.cat = opts.cat && fitsFor(c, opts.cat).length ? opts.cat : fitCat(c);
-  clampFit(c, opts.fit);
+  if (Fam.FAMILIES[c.chart]) { normaliseCard(c); }
+  else { c.cat = opts.cat && fitsFor(c, opts.cat).length ? opts.cat : fitCat(c); clampFit(c, opts.fit); }
   const cols = boardCols();
   const [w, h] = sizeOf(c, cols);
   const spot = freeSpot(c, 0, 0, w, h, cols);
@@ -2288,129 +2431,52 @@ function addCard(key, opts = {}){
 }
 
 /* ── card face ─────────────────────────────────────────────────────────── */
+const MON_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function dayLabel(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ""));
+  return m ? `${+m[3]} ${MON_SHORT[+m[2] - 1]}` : "";
+}
+/** The headline of a reading card — read from the same envelope the chart
+    draws, so the number above a plot can never disagree with the plot. */
 function headlineOf(card){
   const rd = readingOf(card.key);
-  const reqKey = `${card.key}|${card.period}`;
-  const live = liveReading(card);
+  const env = envelopeFor(card.key, card.period, false);
   const times = timeline(card.period), grain = PERIOD[card.period].grain;
+  const window = env.period && env.period.from
+    ? `${dayLabel(env.period.from)} – ${dayLabel(env.period.to)}`
+    : `${tickLabel(times[0], grain)} – ${tickLabel(times[times.length-1], grain)}`;
+  const when = `${card.period} · ${window}`;
+  const blank = (w, state) => ({ value: "—", valueCompact: "—", dir: "up", pct: "", when: w, state });
 
-  if (live?.status === "unavailable") {
-    return {
-      value: "—",
-      valueCompact: "—",
-      dir: "up", pct: "",
-      when: live.error?.message || "Not available yet",
-    };
+  if (env.state === "loading") return blank("Loading data…", "loading");
+  if (env.state !== "ready") {
+    /* The caption under a dash stays short; the full reason lives in the card body. */
+    const SHORT = { reconciling: "Being verified", error: "Could not load", forbidden: "No access", locked: "Module not active", unavailable: "Not available yet", idle: "Waiting for data" };
+    return blank(SHORT[env.state] || env.message || "No activity recorded", env.state);
   }
 
-  if (live && live.ok && (live.data !== undefined && live.data !== null || live.value !== undefined)) {
-    let last = null;
-    let prev = null;
-    let hasDelta = false;
-
-    if (typeof live.data === 'number') {
-      last = live.data;
-    } else if (typeof live.data === 'object' && live.data !== null) {
-      if (live.data.value !== undefined && live.data.value !== null) {
-        last = Number(live.data.value);
-        if (live.data.previous !== undefined && live.data.previous !== null) {
-          prev = Number(live.data.previous);
-          hasDelta = true;
-        } else if (live.data.comparison?.previous !== undefined && live.data.comparison?.previous !== null) {
-          prev = Number(live.data.comparison.previous);
-          hasDelta = true;
-        }
-      } else if (live.value !== undefined && live.value !== null) {
-        last = Number(live.value);
-      } else if (live.data.total !== undefined && live.data.total !== null) {
-        last = Number(live.data.total);
-      } else if (live.data.current !== undefined && live.data.current !== null) {
-        last = Number(live.data.current);
-        if (live.data.previous !== undefined && live.data.previous !== null) {
-          prev = Number(live.data.previous);
-          hasDelta = true;
-        } else if (live.data.comparison?.previous !== undefined && live.data.comparison?.previous !== null) {
-          prev = Number(live.data.comparison.previous);
-          hasDelta = true;
-        }
-      } else if (Array.isArray(live.data.slices) && live.data.slices.length > 0) {
-        last = live.data.slices.reduce((acc, x) => acc + (x.value !== undefined && x.value !== null ? Number(x.value) : 0), 0);
-      } else {
-        const seriesSource = live.data.series || live.data.points || live.series;
-        if (Array.isArray(seriesSource) && seriesSource.length > 0) {
-          if (live.data.total !== undefined && live.data.total !== null) {
-            last = Number(live.data.total);
-          } else if (live.value !== undefined && live.value !== null) {
-            last = Number(live.value);
-          } else {
-            const nonZeroPts = seriesSource.filter(pt => {
-              const v = pt?.y ?? pt?.value ?? (typeof pt === 'number' ? pt : null);
-              return v !== null && v !== undefined && v !== 0;
-            });
-            const chosenPt = nonZeroPts.length ? nonZeroPts[nonZeroPts.length - 1] : seriesSource[seriesSource.length - 1];
-            const rawVal = chosenPt?.y ?? chosenPt?.value ?? (typeof chosenPt === 'number' ? chosenPt : null);
-            if (rawVal !== null && rawVal !== undefined) {
-              last = Number(rawVal);
-            }
-          }
-          if (seriesSource.length > 1) {
-            const prevPt = seriesSource[seriesSource.length - 2];
-            const rawPrev = prevPt?.y ?? prevPt?.value ?? (typeof prevPt === 'number' ? prevPt : null);
-            if (rawPrev !== null && rawPrev !== undefined) {
-              prev = Number(rawPrev);
-              hasDelta = true;
-            }
-          }
-        }
-      }
-    } else if (typeof live.value === 'number') {
-      last = live.value;
-    }
-
-    if (last === null || isNaN(last)) {
-      return {
-        value: "—",
-        valueCompact: "—",
-        dir: "up", pct: "",
-        when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
-      };
-    }
-
-    let pctNum = null;
-    if (hasDelta && prev !== null && !isNaN(prev) && prev !== 0) {
-      pctNum = ((last - prev) / Math.abs(prev)) * 100;
-    } else if (live.delta?.pct !== undefined && live.delta?.pct !== null) {
-      pctNum = Number(live.delta.pct);
-    } else if (live.data?.comparison?.percent !== undefined && live.data?.comparison?.percent !== null) {
-      pctNum = Number(live.data.comparison.percent);
-    } else if (live.data?.change_pct !== undefined && live.data?.change_pct !== null) {
-      pctNum = Number(live.data.change_pct);
-    } else if (live.data?.delta_pct !== undefined && live.data?.delta_pct !== null) {
-      pctNum = Number(live.data.delta_pct);
-    }
-
-    const dir = (pctNum === null || pctNum >= 0) ? "up" : "down";
-    const pct = pctNum !== null && !isNaN(pctNum) ? (Math.abs(pctNum).toFixed(1) + "%") : "";
-    const freshness = live.meta?.freshness || "live";
-    const asOf = live.meta?.computed_at || null;
-
-    return {
-      value: unitPrefix(rd.unit) + fmtValue(last, rd.unit),
-      valueCompact: unitPrefix(rd.unit) + fmtValue(last, rd.unit, true),
-      dir, pct,
-      when: card.period + " · " + tickLabel(times[0], grain) + " – " + tickLabel(times[times.length-1], grain),
-      freshness,
-      asOf,
-    };
+  let v = env.value;
+  if (v === null && env.series && env.series.length){
+    /* A flow's period total is the sum of its buckets; a balance is its
+       latest reading. Never the "last non-zero day". */
+    const flow = rd.period_aware !== false && (rd.unit === "currency" || rd.unit === "count");
+    const vals = env.series.map(p => p.value).filter(x => x !== null);
+    v = vals.length ? (flow ? vals.reduce((a, x) => a + x, 0) : vals[vals.length - 1]) : null;
   }
+  if (v === null || isNaN(v)) return blank(when, "ready");
 
-  const pending = PENDING_RECKONER_REQUESTS.has(reqKey)
-    || PENDING_RECKONER_REQUESTS.has(`${card.key}|${toReckonerPeriod(card.period)}`);
+  const pctNum = env.deltaPct;
   return {
-    value: "—",
-    valueCompact: "—",
-    dir: "up", pct: "",
-    when: pending ? "Loading data…" : "No activity recorded",
+    value: unitPrefix(rd.unit) + fmtValue(v, rd.unit),
+    valueCompact: unitPrefix(rd.unit) + fmtValue(v, rd.unit, true),
+    dir: (pctNum === null || pctNum >= 0) ? "up" : "down",
+    pct: pctNum !== null && isFinite(pctNum) ? (Math.abs(pctNum).toFixed(1) + "%") : "",
+    compareLabel: env.compareLabel || "",
+    when,
+    freshness: env.freshness || "live",
+    asOf: env.asOf,
+    verify: env.verification || null,
+    state: "ready",
   };
 }
 
@@ -2623,10 +2689,12 @@ function cardFrame(c, opts){
   const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
   const is12 = (opts.cols || 12) >= 12;
   const pinned = is12 && ((frameSlot != null) || (Number.isInteger(c.gx) && Number.isInteger(c.gy)));
-  const colSpan = (frameSlot && is12) ? Number(frameSlot.w) : w;
-  const rowSpan = (frameSlot && is12) ? Number(frameSlot.h) : h;
-  const colStart = ((frameSlot && is12) ? Number(frameSlot.x) : (Number.isInteger(c.gx) ? c.gx : 0)) + 1;
-  const rowStart = ((frameSlot && is12) ? Number(frameSlot.y) : (Number.isInteger(c.gy) ? c.gy : 0)) + 1;
+  /* The card's own span and position rule; its slot only supplies a start
+     position for a card that has not been placed yet. */
+  const colSpan = w;
+  const rowSpan = h;
+  const colStart = (Number.isInteger(c.gx) ? c.gx : ((frameSlot && is12) ? Number(frameSlot.x) : 0)) + 1;
+  const rowStart = (Number.isInteger(c.gy) ? c.gy : ((frameSlot && is12) ? Number(frameSlot.y) : 0)) + 1;
   const place = pinned
     ? `grid-column:${colStart} / span ${colSpan};grid-row:${rowStart} / span ${rowSpan};`
     : "";
@@ -2634,7 +2702,13 @@ function cardFrame(c, opts){
     tabindex="0" draggable="false"
     style="--i:${CARDS.indexOf(c)};--vqw:${colSpan};--vqh:${rowSpan};${place}">
     ${opts.body}
-    <button type="button" class="vqc-resize" aria-label="Resize card" title="Drag to resize"></button>
+    <span class="vqc-move" data-move role="button" tabindex="0" aria-label="Move card. Drag, or use the arrow keys." title="Drag to move">
+      <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true" fill="currentColor">
+        ${[2,8,14].map(x => `<circle cx="${x}" cy="2" r="1.4"/><circle cx="${x}" cy="8" r="1.4"/>`).join("")}
+      </svg>
+    </span>
+    ${["n","e","s","w","ne","nw","se","sw"].map(d =>
+      `<span class="vqc-resize vqc-edge vqc-edge--${d}" data-edge="${d}" role="presentation" title="Drag to resize"></span>`).join("")}
   </article>`;
 }
 
@@ -2709,7 +2783,7 @@ function bodyBankLiquidity(c, geo){
     `<div class="vqc-bank-grid">${boxes.map(b => `
       <div class="vqc-bank-box${b.total ? ' is-total' : ''}">
         <span class="vqc-bank-label" title="${esc(b.l)}">${esc(b.l)}</span>
-        <span class="vqc-bank-val" data-full="Rs ${groupNum(b.v)}" data-compact="Rs ${abbrNum(b.v)}">Rs ${groupNum(b.v)}</span>
+        <span class="vqc-bank-val" data-full="${esc(CURRENCY)} ${groupNum(b.v)}" data-compact="${esc(CURRENCY)} ${abbrNum(b.v)}">${esc(CURRENCY)} ${groupNum(b.v)}</span>
         <span class="vqc-bank-sub">${esc(b.s)}</span>
       </div>`).join("")}</div>`;
 }
@@ -2856,42 +2930,39 @@ function getDomainColor(key, area){
 
 function bodyChartCard(c, geo, link){
   const title = titleOf(c);
-  const rd = readingOf(c.key);
-  const shape = String(rd?.shape || "").toUpperCase();
   const hl = headlineOf(c);
-  const keys = [c.key, ...(c.extraKeys || [])];
-  const legend = (keys.length > 1 && CARTESIAN.has(c.chart))
-    ? `<div class="vqc-leg">${keys.map((k,i) => `<button type="button" class="vqc-leg-i" data-i="${i}">
-        <span class="vqc-leg-d" style="background:var(--vq-series-${(i%8)+1})"></span>${esc(readingOf(k).label)}</button>`).join("")}</div>`
-    : "";
-  /* the number is suppressed only when the chart already draws it in its centre */
-  const selfLabelled = c.chart === "gauge" || c.chart === "ring" || c.chart === "sunburst"
-    || (c.chart === "pie" && c.variant === "donut");
-  
-  // List/table/ranking/feed cards NEVER display a standalone "Rs 0" or "0" metric
-  const isList = shape === "RANKING" || shape === "TABLE" || shape === "FEED"
-    || ["table", "list", "feed", "ranking"].includes(c.chart);
-
-  const showHead = c.chart !== "status" && !selfLabelled && !isList;
+  /* A dial, a list, a heatmap and a status draw their own answer; every
+     other family leads with the number and puts its evidence underneath. */
+  const selfLabelled = Fam.SELF_LABELLED.has(c.chart);
+  const isList = c.chart === "records";
+  const showHead = !selfLabelled;
   const room = geo.h;
-  const showWhen   = c.showWhen !== false && c.chart !== "status" && !isList && room >= 4;
-  const showDelta  = c.showDelta !== false && !isList && geo.w >= 2;
-  /* List/ranking/table/feed cards don't need a period picker — there is no
-     headline number on them and the period context is obvious from the data. */
+  const tall = c.chart === "number" ? room >= 3 : room >= 4;
+  const showWhen   = c.showWhen !== false && !selfLabelled && tall;
+  const showDelta  = c.showDelta !== false && !selfLabelled && geo.w >= 2;
   const showPicker = c.showPeriodPicker !== false && PREFS.periodPicker
-                     && room >= 2 && geo.w >= 3 && !isList;
+                     && room >= 2 && geo.w >= 3 && c.chart !== "status";
+  const host = isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}" data-variant="${esc(c.variant)}"></div>`;
+  const deltaTitle = hl.compareLabel ? ` title="vs ${esc(hl.compareLabel)}"` : "";
+
+  const verifyChip = hl.verify ? (() => {
+    const d = hl.verify.difference;
+    const amt = d !== null && isFinite(d) ? ` by ${fmtValue(Math.abs(d), "currency", true)}` : "";
+    return `<span class="vqc-verify" role="note" title="This figure comes from your sales. Your accounting ledger shows a different total${amt}, usually from returns, imported history or entries posted by hand. Open Accounting to review."><i aria-hidden="true"></i>Differs from accounts${amt}</span>`;
+  })() : "";
 
   return `<div class="vqc-hd">
       <span class="vqc-eyebrow" title="${esc(title)}">${esc(title)}</span>
       <span class="vqc-hd-r">${showPicker ? periodPicker(c) : ""}${cardTools(c, link)}</span>
     </div>
-    <div class="vqc-bd">
+    <div class="vqc-bd${c.chart === "number" ? " vqc-bd--number" : ""}${isList ? " vqc-bd--list" : ""}">
       ${showHead ? `<div class="vqc-head">
         ${valueHTML(hl)}
-        ${(showDelta && hl.pct) ? `<span class="vqc-delta vqc-delta--${hl.dir}">${ic(hl.dir,10)}${hl.pct}</span>` : ""}
+        ${(showDelta && hl.pct) ? `<span class="vqc-delta vqc-delta--${hl.dir}"${deltaTitle}>${ic(hl.dir,10)}${hl.pct}</span>` : ""}
       </div>` : ""}
       ${showWhen ? `<p class="vqc-when"${hl.asOf ? ` title="As of ${esc(hl.asOf)}"` : ''}>${esc(hl.when)}</p>` : ""}
-      ${isBare(c) ? "" : `<div class="vqc-host" data-chart="${c.chart}"></div>${legend}`}
+      ${verifyChip}
+      ${host}
     </div>`;
 }
 
@@ -2943,53 +3014,110 @@ const HOST_RO = typeof ResizeObserver === "undefined" ? null : new ResizeObserve
   }
 });
 
+/* ── board layout ─────────────────────────────────────────────────────────
+   A frame is only a starting point. Once a card exists its OWN size is the
+   truth — never its slot's. Whatever the user just touched (resized, moved,
+   edited, added) keeps the spot they gave it; every other card that now
+   collides is pushed straight down, in reading order, and the board is then
+   pulled up to close gaps. Nothing is ever moved sideways or reshuffled. */
+const LAST_BOX = new Map();   // card id → "x,y,w,h" as of the previous layout
+
 function resolveCollisions(cards, cols){
   if (!Array.isArray(cards) || !cards.length) return;
-  if (cols >= 12){
-    const occupied = [];
-    const usedSlots = new Set();
-    cards.forEach(c => {
-      const slotNum = Number(c.frameSlot);
-      const slot = (Number.isFinite(slotNum) && !usedSlots.has(slotNum))
-        ? FRAME_SLOTS.find(s => Number(s.slot) === slotNum)
-        : null;
+  if (cols < 12) return;
 
-      if (slot) {
-        usedSlots.add(slotNum);
+  const items = cards.map((c, order) => {
+    const [w0, h0] = sizeOf(c, cols);
+    const w = Math.max(1, Math.min(cols, w0)), h = Math.max(1, h0);
+    const hasPos = Number.isInteger(c.gx) && Number.isInteger(c.gy);
+    const x = hasPos ? Math.max(0, Math.min(cols - w, c.gx)) : 0;
+    const y = hasPos ? Math.max(0, c.gy) : null;
+    const was = LAST_BOX.get(c.id);
+    const changed = !was || !hasPos || was !== `${x},${y},${w},${h}`;
+    return { c, w, h, x, y, order, changed, isNew: !was };
+  });
+
+  const bottomOf = list => list.reduce((m, o) => Math.max(m, o.y + o.h), 0);
+  const hit = (list, it, x, y) => list.find(o => x < o.x + o.w && o.x < x + it.w && y < o.y + o.h && o.y < y + it.h);
+
+  /* 1. Touched cards claim their spot first; new cards without a spot go to
+        the bottom. 2. Everyone else follows in reading order and yields. */
+  const firstPass = items.filter(i => i.changed && !i.isNew && i.y !== null)
+    .concat(items.filter(i => i.isNew && i.y !== null));
+  const rest = items.filter(i => !firstPass.includes(i) && i.y !== null)
+    .sort((a, b) => a.y - b.y || a.x - b.x || a.order - b.order);
+  const unplaced = items.filter(i => i.y === null).sort((a, b) => a.order - b.order);
+
+  const placed = [];
+  const settle = it => {
+    let y = it.y;
+    let o;
+    while ((o = hit(placed, it, it.x, y))) y = o.y + o.h;   // push down past the blocker
+    it.y = y;
+    placed.push(it);
+  };
+  firstPass.forEach(settle);
+  rest.forEach(settle);
+  unplaced.forEach(it => { it.y = bottomOf(placed); settle(it); });
+
+  /* Close gaps: lift every card as far up as it can go, top to bottom. */
+  const compacted = [];
+  [...placed].sort((a, b) => a.y - b.y || a.x - b.x || a.order - b.order).forEach(it => {
+    while (it.y > 0 && !hit(compacted, it, it.x, it.y - 1)) it.y -= 1;
+    compacted.push(it);
+  });
+
+  LAST_BOX.clear();
+  items.forEach(it => {
+    it.c.gx = it.x;
+    it.c.gy = it.y;
+    LAST_BOX.set(it.c.id, `${it.x},${it.y},${it.w},${it.h}`);
+    /* A card that has left its slot no longer belongs to the frame. */
+    const slot = Number.isFinite(Number(it.c.frameSlot))
+      ? FRAME_SLOTS.find(s => Number(s.slot) === Number(it.c.frameSlot)) : null;
+    if (slot && (Number(slot.x) !== it.x || Number(slot.y) !== it.y || Number(slot.w) !== it.w || Number(slot.h) !== it.h)) {
+      delete it.c.frameSlot;
+    }
+  });
+}
+
+/* ── Tidy up ─────────────────────────────────────────────────────────────
+   Repacks the board: every card keeps its size and its reading order (top to
+   bottom, left to right) and takes the first free spot, so gaps close in both
+   directions. Remembers the previous arrangement so it can be undone. */
+let TIDY_UNDO = null;
+function tidyBoard(){
+  const board = document.getElementById("board");
+  const cols = board ? boardCols(board) : 12;
+  if (cols < 12 || !CARDS.length) return false;
+  TIDY_UNDO = CARDS.map(c => ({ id: c.id, gx: c.gx, gy: c.gy, frameSlot: c.frameSlot }));
+  const order = [...CARDS].sort((a, b) => (a.gy ?? 0) - (b.gy ?? 0) || (a.gx ?? 0) - (b.gx ?? 0));
+  const placed = [];
+  order.forEach(c => {
+    const [w, h] = sizeOf(c, cols);
+    let y = 0, x = 0, found = false;
+    while (!found) {
+      for (x = 0; x + w <= cols; x++) {
+        if (!placed.some(o => x < o.x + o.w && o.x < x + w && y < o.y + o.h && o.y < y + h)) { found = true; break; }
       }
-
-      let [w, h] = slot ? [Number(slot.w), Number(slot.h)] : sizeOf(c, cols);
-      let x = slot ? Number(slot.x) : (Number.isInteger(c.gx) ? c.gx : null);
-      let y = slot ? Number(slot.y) : (Number.isInteger(c.gy) ? c.gy : null);
-
-      const collides = (xx, yy) => occupied.some(o =>
-        xx < o.x + o.w && o.x < xx + w && yy < o.y + o.h && o.y < yy + h
-      );
-
-      if (x === null || y === null || collides(x, y)) {
-        let testY = y != null ? y : 0;
-        let testX = x != null ? Math.max(0, Math.min(cols - w, x)) : 0;
-        while (collides(testX, testY)) {
-          testX++;
-          if (testX + w > cols) {
-            testX = 0;
-            testY++;
-          }
-        }
-        x = testX;
-        y = testY;
-        c.gx = x;
-        c.gy = y;
-        if (slot && (x !== Number(slot.x) || y !== Number(slot.y))) {
-          delete c.frameSlot;
-        }
-      } else {
-        c.gx = x;
-        c.gy = y;
-      }
-      occupied.push({ x, y, w, h });
-    });
-  }
+      if (!found) y++;
+    }
+    placed.push({ x, y, w, h });
+    c.gx = x; c.gy = y; delete c.frameSlot;
+  });
+  markFrameDirty(); draw();
+  return true;
+}
+function undoTidy(){
+  if (!TIDY_UNDO) return false;
+  TIDY_UNDO.forEach(u => {
+    const c = cardOf(u.id); if (!c) return;
+    c.gx = u.gx; c.gy = u.gy;
+    if (u.frameSlot === undefined) delete c.frameSlot; else c.frameSlot = u.frameSlot;
+  });
+  TIDY_UNDO = null;
+  markFrameDirty(); draw();
+  return true;
 }
 
 function renderEmptySlot(slot){
@@ -3030,7 +3158,11 @@ function draw(){
       const s = Number(c.frameSlot);
       if (Number.isFinite(s)) occupiedSlots.add(s);
     });
-    const emptySlots = FRAME_SLOTS.filter(s => !occupiedSlots.has(Number(s.slot)));
+    const emptySlots = FRAME_SLOTS.filter(s => !occupiedSlots.has(Number(s.slot)) && !CARDS.some(c => {
+      const [cw, ch] = sizeOf(c, cols);
+      const sx = Number(s.x), sy = Number(s.y), sw = Number(s.w), sh = Number(s.h);
+      return sx < c.gx + cw && c.gx < sx + sw && sy < c.gy + ch && c.gy < sy + sh;
+    }));
     emptySlotsHtml = emptySlots.map(renderEmptySlot).join("");
   }
 
@@ -3154,79 +3286,101 @@ function wirePeriod(el, c){
 document.addEventListener("click", () =>
   document.querySelectorAll(".vqc-per-m").forEach(m => m.hidden = true));
 
-/* ── resize from the bottom-right corner, snapped to the grid ──────────── */
+/* ── resize from any edge or corner, snapped to the grid ───────────────────
+   Always available — no edit mode. A card can never be made smaller than its
+   chart's floor or larger than its ceiling. Dragging the west or north edge
+   moves the card's origin so the opposite edge stays where it is. */
 function wireResize(el, c){
-  const grip = el.querySelector(".vqc-resize"); if (!grip) return;
-  grip.addEventListener("pointerdown", e => {
-    e.preventDefault(); e.stopPropagation();
-    grip.setPointerCapture?.(e.pointerId);
-    const board = document.getElementById("board");
-    const cols = boardCols(board);
-    const colW = (board.clientWidth - GRID.gutter * (cols - 1)) / cols;
-    const pitchX = colW + GRID.gutter, pitchY = GRID.unit + GRID.gutter;
-    const start = el.getBoundingClientRect();
-    const T = fitsTable(c);
-    const cat = c.cat || fitCat(c);
-    const [MW, MH] = CAT_MAX[cat] || [12, 16];
-    const [floorW, floorH] = minSizeFor(c);
-    const capW = Math.min(cols, MW);
-    el.classList.add("is-resizing");
-    document.body.classList.add("is-reordering");
-    const hint = document.createElement("span");
-    hint.className = "vqc-size-hint"; el.appendChild(hint);
-    let lastW = 0, lastH = 0;
+  el.querySelectorAll(".vqc-resize").forEach(grip => {
+    const edge = grip.dataset.edge || "se";
+    grip.addEventListener("pointerdown", e => {
+      if (e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      grip.setPointerCapture?.(e.pointerId);
+      const board = document.getElementById("board");
+      const cols = boardCols(board);
+      const is12 = cols >= 12;
+      if (!is12 && (edge.includes("w") || edge.includes("n"))) return;   /* stacked boards grow right/down only */
+      const colW = (board.clientWidth - GRID.gutter * (cols - 1)) / cols;
+      const pitchX = colW + GRID.gutter, pitchY = GRID.unit + GRID.gutter;
+      const T = fitsTable(c);
+      const free = !isSpecial(c) && !!Fam.FAMILIES[c.chart];
+      const cat = c.cat || fitCat(c);
+      const [floorW, floorH] = minSizeFor(c);
+      const [MW, MH] = free ? Geo.maxSize(c.chart, c.variant) : (CAT_MAX[cat] || [12, 16]);
+      const capW = Math.min(cols, MW);
+      const [w0, h0] = sizeOf(c, cols, colW);
+      const x0 = Number.isInteger(c.gx) ? c.gx : 0;
+      const y0 = Number.isInteger(c.gy) ? c.gy : 0;
+      const startX = e.clientX, startY = e.clientY;
+      el.classList.add("is-resizing");
+      document.body.classList.add("is-reordering");
+      const hint = document.createElement("span");
+      hint.className = "vqc-size-hint"; el.appendChild(hint);
+      let last = "";
 
-    const frameSlot = FRAME_SLOTS.find(slot => Number(slot.slot) === Number(c.frameSlot));
-    const is12 = cols >= 12;
-    const pinned = is12 && ((frameSlot != null) || (Number.isInteger(c.gx) && Number.isInteger(c.gy)));
-    const colStart = ((frameSlot && is12) ? Number(frameSlot.x) : (Number.isInteger(c.gx) ? c.gx : 0)) + 1;
-    const rowStart = ((frameSlot && is12) ? Number(frameSlot.y) : (Number.isInteger(c.gy) ? c.gy : 0)) + 1;
-
-    const move = ev => {
-      let w = Math.round((ev.clientX - start.left + GRID.gutter) / pitchX);
-      let h = Math.round((ev.clientY - start.top + GRID.gutter) / pitchY);
-      w = Math.max(floorW, Math.min(capW, w));
-      h = Math.max(floorH, Math.min(MH, h));
-      /* the category will not accept every rectangle — raise to the nearest
-         one it will, so a drag can never leave a card in an illegal shape */
-      if (!sizeLegal(cat, w, h, T)){
-        const needH = minHeightAt(cat, w, T);
-        if (needH != null) h = Math.max(h, needH);
-        else { const needW = minWidthAt(cat, h, T); if (needW != null) w = Math.max(w, needW); }
-        h = Math.min(h, MH); w = Math.min(w, capW);
-      }
-      if (w === lastW && h === lastH) return;
-      lastW = w; lastH = h;
-      c.w = w; c.h = h;
-      c.fit = resolveFit(cat, w, h, T) ?? c.fit;
-      el.className = el.className
-        .replace(/vq-w\d+/, "vq-w" + w).replace(/vq-h\d+/, "vq-h" + h)
-        .replace(/vqc--fit-\d+/, "vqc--fit-" + c.fit);
-      el.style.setProperty("--vqw", w); el.style.setProperty("--vqh", h);
-      el.dataset.w = w; el.dataset.h = h;
-      if (pinned) {
-        el.style.gridColumn = `${colStart} / span ${w}`;
-        el.style.gridRow = `${rowStart} / span ${h}`;
-      } else {
-        el.style.gridColumn = `span ${w}`;
-        el.style.gridRow = `span ${h}`;
-      }
-      const fitName = (T[cat][c.fit] || [])[2];
-      hint.textContent = `${w} × ${h}${fitName ? " · " + fitName : ""}`;
-      const host = el.querySelector(".vqc-host"); if (host) mountChart(host, c);
-      fitValues(el);
-    };
-    const up = () => {
-      removeEventListener("pointermove", move); removeEventListener("pointerup", up);
-      el.classList.remove("is-resizing");
-      document.body.classList.remove("is-reordering");
-      hint.remove();
-      delete c.frameSlot;
-      markFrameDirty();
-      draw();                       /* the interior may resolve to a new fit */
-      if (EDIT === c.id) openEdit(c.id);
-    };
-    addEventListener("pointermove", move); addEventListener("pointerup", up);
+      const move = ev => {
+        const dx = Math.round((ev.clientX - startX) / pitchX);
+        const dy = Math.round((ev.clientY - startY) / pitchY);
+        let w = w0, h = h0;
+        if (edge.includes("e")) w = w0 + dx;
+        if (edge.includes("w")) w = w0 - dx;
+        if (edge.includes("s")) h = h0 + dy;
+        if (edge.includes("n")) h = h0 - dy;
+        w = Math.max(floorW, Math.min(capW, w));
+        h = Math.max(floorH, Math.min(MH, h));
+        if (!free && !sizeLegal(cat, w, h, T)){
+          const needH = minHeightAt(cat, w, T);
+          if (needH != null) h = Math.max(h, needH);
+          else { const needW = minWidthAt(cat, h, T); if (needW != null) w = Math.max(w, needW); }
+          h = Math.min(h, MH); w = Math.min(w, capW);
+        }
+        /* the edge opposite the one being dragged stays put */
+        let x = edge.includes("w") ? x0 + w0 - w : x0;
+        let y = edge.includes("n") ? y0 + h0 - h : y0;
+        if (x < 0) { w += x; x = 0; }
+        if (y < 0) { h += y; y = 0; }
+        if (x + w > cols) w = cols - x;
+        w = Math.max(floorW, w); h = Math.max(floorH, h);
+        const sig = `${x},${y},${w},${h}`;
+        if (sig === last) return;
+        last = sig;
+        c.w = w; c.h = h;
+        if (is12) { c.gx = x; c.gy = y; }
+        if (free) { c.full = w >= Geo.GRID.cols && cols >= Geo.GRID.cols; c.cat = Geo.categoryOf(w, h, c.chart); }
+        else c.fit = resolveFit(cat, w, h, T) ?? c.fit;
+        el.className = el.className
+          .replace(/vq-w\d+/, "vq-w" + w).replace(/vq-h\d+/, "vq-h" + h)
+          .replace(/vqc--fit-\d+/, "vqc--fit-" + c.fit);
+        el.style.setProperty("--vqw", w); el.style.setProperty("--vqh", h);
+        el.dataset.w = w; el.dataset.h = h;
+        if (is12) {
+          el.style.gridColumn = `${x + 1} / span ${w}`;
+          el.style.gridRow = `${y + 1} / span ${h}`;
+        } else {
+          el.style.gridColumn = `span ${w}`;
+          el.style.gridRow = `span ${h}`;
+        }
+        const fitName = free ? Geo.spanName(w, h, c.full) : (T[cat][c.fit] || [])[2];
+        const atMin = w <= floorW && h <= floorH, atMax = w >= capW && h >= MH;
+        hint.textContent = `${w} × ${h}${fitName ? " · " + fitName : ""}${atMin ? " · smallest" : atMax ? " · largest" : ""}`;
+        const host = el.querySelector(".vqc-host"); if (host) mountChart(host, c);
+        fitValues(el);
+      };
+      const up = () => {
+        removeEventListener("pointermove", move); removeEventListener("pointerup", up);
+        removeEventListener("pointercancel", up);
+        el.classList.remove("is-resizing");
+        document.body.classList.remove("is-reordering");
+        hint.remove();
+        delete c.frameSlot;
+        markFrameDirty();
+        draw();                       /* touched card keeps its spot; the rest make room */
+        if (EDIT === c.id) openEdit(c.id);
+      };
+      addEventListener("pointermove", move); addEventListener("pointerup", up);
+      addEventListener("pointercancel", up);
+    });
   });
 }
 
@@ -3263,6 +3417,7 @@ function freeSpot(self, gx, gy, w, h, cols){
   }
   return { x, y };
 }
+let LAST_DRAG_AT = 0;
 function beginMove(e0, el, c){
   e0.preventDefault(); e0.stopPropagation();
   const board = document.getElementById("board"); if (!board) return;
@@ -3291,8 +3446,8 @@ function beginMove(e0, el, c){
     document.body.classList.remove("is-reordering");
     ghost.remove();
     if (gx != null && gy != null && cols >= 12){
-      const spot = freeSpot(c, gx, gy, w, h, cols);
-      c.gx = spot.x; c.gy = spot.y;
+      c.gx = gx; c.gy = gy;          /* the moved card keeps the spot; the others make room */
+      LAST_DRAG_AT = Date.now();
       delete c.frameSlot;
       markFrameDirty();
       draw();
@@ -3307,11 +3462,38 @@ function beginMove(e0, el, c){
 function wireDrag(el, c){
   const grip = el.querySelector(".vqc-grip");
   grip?.addEventListener("pointerdown", e => beginMove(e, el, c));
+  const handle = el.querySelector(".vqc-move");
+  handle?.addEventListener("pointerdown", e => { if (e.button === 0) beginMove(e, el, c); });
+  /* keyboard: arrows nudge the card one cell, shift+arrows five */
+  handle?.addEventListener("keydown", e => {
+    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const step = e.shiftKey ? 5 : 1;
+    const cols = boardCols(document.getElementById("board"));
+    const [w] = sizeOf(c, cols);
+    c.gx = Math.max(0, Math.min(cols - w, (Number.isInteger(c.gx) ? c.gx : 0) + d[0] * step));
+    c.gy = Math.max(0, (Number.isInteger(c.gy) ? c.gy : 0) + d[1] * step);
+    delete c.frameSlot; markFrameDirty(); draw();
+    document.querySelector(`.vqc[data-id="${c.id}"] .vqc-move`)?.focus();
+  });
   el.addEventListener("pointerdown", e => {
-    if (!document.documentElement.classList.contains("vq-editing")) return;
     if (e.button !== 0) return;
     if (e.target.closest(".vqc-act, .vqc-nav-link, .vqc-per, .vqc-resize, a, button, input, .ck-cap")) return;
-    beginMove(e, el, c);
+    const editing = document.documentElement.classList.contains("vq-editing");
+    /* Outside edit mode the card's header is the handle; a press only becomes a
+       drag after a few pixels, so a plain click still opens the card. */
+    if (!editing && !e.target.closest(".vqc-hd")) return;
+    if (!editing && e.pointerType === "touch") return;
+    if (editing) { beginMove(e, el, c); return; }
+    const sx = e.clientX, sy = e.clientY;
+    const probe = ev => {
+      if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
+      removeEventListener("pointermove", probe); removeEventListener("pointerup", drop);
+      beginMove(ev, el, c);
+    };
+    const drop = () => { removeEventListener("pointermove", probe); removeEventListener("pointerup", drop); };
+    addEventListener("pointermove", probe); addEventListener("pointerup", drop);
   });
 }
 
@@ -3476,7 +3658,8 @@ function renderLibrary(){
   }
   box.querySelectorAll(".lib-tab").forEach(b => b.onclick = () => { LIB_AREA = b.dataset.a; renderLibrary(); });
   box.querySelectorAll(".lib-add").forEach(b => b.onclick = () => {
-    const c = addCard(b.dataset.k); if (c) openEdit(c.id); });
+    const c = addCard(b.dataset.k);
+    if (c) { if (typeof window !== "undefined" && window._vqEditCard) window._vqEditCard(c.id); else openEdit(c.id); } });
 }
 
 /* ── persistence ───────────────────────────────────────────────────────────
@@ -3484,7 +3667,10 @@ function renderLibrary(){
    browser, per store, and comes back on the next visit. A reset swaps in a
    starting layout rather than silently destroying their work. */
 const BOARD_KEY = () => `vq-dashboard-v6:${STORE_SLUG || "default"}`;
-const BOARD_SCHEMA_VERSION = 4;
+const BOARD_SCHEMA_VERSION = 5;
+/* v4 boards (old chart keys, category sizes) are read and translated by
+   normaliseCard — a person's board survives the move to card families. */
+const BOARD_SCHEMA_READABLE = new Set([4, 5]);
 let SKIP_LEGACY_SERVER_LAYOUT = false;
 let PERSIST_ON = false;            /* off until the first board is in place */
 function persistBoard(){
@@ -3493,14 +3679,42 @@ function persistBoard(){
   catch {}
 }
 
+/* The family → the nearest chart key the server's legacy `chart` column
+   accepts. The full look travels in `style` (family, variant, face options,
+   goal, full-width intent) and is validated by App\Reckoner\CardPresentation. */
+const SERVER_CHART = {
+  number: "stat", area: "area", line: "line", bar: "bar", composed: "composed",
+  pie: "pie", ring: "ring", gauge: "gauge", radar: "radar", heatmap: "heatmap",
+  records: "table", status: "status",
+  funnel: "funnel", scatter: "scatter", sankey: "sankey", sunburst: "sunburst", live: "live_line",
+};
+const CARD_SPEC_VERSION = 2;
 function serverCard(c){
   if (!c.key || c.type) return null;
   const [w, h] = authoredSizeOf(c);
   const fit = (FITS[c.cat] || [])[c.fit]?.[2];
+  const style = {
+    v: CARD_SPEC_VERSION,
+    family: c.chart,
+    variant: c.variant,
+    accent: !!c.accent,
+    tone: c.tone || (c.accent ? "accent" : "surface"),
+    glare: !!c.glare,
+    starBorder: !!c.starBorder,
+    showOpenArrow: c.showOpenArrow !== false,
+    showWhen: c.showWhen !== false,
+    showDelta: c.showDelta !== false,
+    showPeriodPicker: c.showPeriodPicker !== false,
+    legend: c.legend !== false,
+    motion: c.motion !== false,
+    full: !!c.full,
+  };
+  if (Array.isArray(c.extraKeys) && c.extraKeys.length) style.extraKeys = c.extraKeys.slice(0, 3);
+  if (c.goal && Number(c.goal.target) > 0) style.goal = { target: Number(c.goal.target) };
   return {
     id: /^[0-9a-f-]{32,36}$/i.test(String(c.id || "")) ? c.id : undefined,
     reading_key: c.key,
-    chart: ({ pl:"profit_loss_line", live:"live_line" }[c.chart] || c.chart),
+    chart: SERVER_CHART[c.chart] || ({ pl:"profit_loss_line", live:"live_line" }[c.chart] || c.chart),
     period: ({ Today:"today", Week:"this_week", Month:"this_month", Quarter:"this_quarter", Year:"this_year" }[c.period] || "this_month"),
     category: c.cat,
     fit,
@@ -3509,22 +3723,69 @@ function serverCard(c){
     x: Number.isInteger(c.gx) ? c.gx : null,
     y: Number.isInteger(c.gy) ? c.gy : null,
     frame_slot: Number.isFinite(Number(c.frameSlot)) ? Number(c.frameSlot) : null,
-    style: { variant: c.variant, accent: !!c.accent },
+    title_override: c.title || null,
+    style,
   };
+}
+/** A row from /api/dashboards → an engine card. Reads the v2 style bag when
+    present and falls back to the legacy columns when not. */
+function fromServerCard(bc){
+  const st = bc.style || {};
+  const card = {
+    id: bc.id || newId(),
+    key: bc.reading_key || bc.key,
+    chart: st.family || chartKey(bc.chart),
+    variant: st.variant || bc.variant || null,
+    period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
+    w: bc.w, h: bc.h, gx: bc.x, gy: bc.y,
+    frameSlot: bc.frame_slot,
+    cat: bc.category || "C4",
+    fit: Math.max(0, (FITS[bc.category] || []).findIndex(fit => fit[2] === bc.fit)),
+    type: bc.type,
+    accent: !!st.accent,
+    title: bc.title_override || null,
+  };
+  if (st.tone) card.tone = st.tone;
+  ["glare", "starBorder", "full"].forEach(k => { if (st[k] !== undefined) card[k] = !!st[k]; });
+  ["showOpenArrow", "showWhen", "showDelta", "showPeriodPicker", "legend", "motion"].forEach(k => {
+    if (st[k] === false) card[k] = false;
+  });
+  if (Array.isArray(st.extraKeys)) card.extraKeys = st.extraKeys;
+  if (st.goal && Number(st.goal.target) > 0) card.goal = { target: Number(st.goal.target) };
+  return card;
+}
+/* Saves are sequenced: only the newest request may apply its result, so a
+   slow early save can never overwrite the ids or state of a later one. */
+let SAVE_SEQ = 0;
+function saveServerLayoutNow(){
+  clearTimeout(SAVE_LAYOUT_TIMER);
+  if (!DASHBOARD_ID || typeof axios === "undefined") return Promise.resolve({ local: true });
+  const seq = ++SAVE_SEQ;
+  const payload = CARDS.map(c => { const sc = serverCard(c); return sc ? { ...sc, ref: c.id } : null; }).filter(Boolean);
+  window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'saving' }));
+  return axios.put(`/api/dashboards/${DASHBOARD_ID}/layout`, { cards: payload, frame_dirty: FRAME_DIRTY })
+    .then(res => {
+      if (seq !== SAVE_SEQ) return res;                 /* superseded */
+      const ids = res?.data?.ids || {};
+      let changed = false;
+      CARDS.forEach(c => {
+        const id = ids[c.id];
+        if (id && id !== c.id) { renameCardAnimation(c.id, id); if (EDIT === c.id) EDIT = id; c.id = id; changed = true; }
+      });
+      if (changed) persistBoard();
+      window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'saved' }));
+      return res;
+    })
+    .catch(error => {
+      if (seq === SAVE_SEQ) window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'error' }));
+      console.error("[VenQoreCards] Could not save dashboard layout.", error);
+      throw error;
+    });
 }
 function saveServerLayout(){
   if (!DASHBOARD_ID || typeof axios === "undefined") return;
   clearTimeout(SAVE_LAYOUT_TIMER);
-  SAVE_LAYOUT_TIMER = setTimeout(() => {
-    const cards = CARDS.map(serverCard).filter(Boolean);
-    window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'saving' }));
-    axios.put(`/api/dashboards/${DASHBOARD_ID}/layout`, { cards, frame_dirty: FRAME_DIRTY })
-      .then(() => window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'saved' })))
-      .catch(error => {
-        window.dispatchEvent(new CustomEvent('vq:layout-save', { detail: 'error' }));
-        console.error("[VenQoreCards] Could not save dashboard layout.", error);
-      });
-  }, 250);
+  SAVE_LAYOUT_TIMER = setTimeout(() => { saveServerLayoutNow().catch(() => {}); }, 250);
 }
 function markFrameDirty(){
   FRAME_DIRTY = true;
@@ -3546,12 +3807,13 @@ function setFrame(frameKey, slots){
     if (!matched) {
       const availReading = READINGS.find(r => !usedKeys.has(r.key) && readingAvailable(r));
       if (availReading) {
+        const look = defaultLookFor(availReading.key);
         matched = {
           id: newId(),
           key: availReading.key,
-          chart: legalFor(availReading.key)[0] || "stat",
+          chart: look.family,
           period: "Month",
-          variant: "spark",
+          variant: look.variant,
         };
       }
     }
@@ -3574,7 +3836,7 @@ function setFrame(frameKey, slots){
     }
   });
 
-  CARDS = newCards.map(normaliseCard);
+  CARDS = newCards.map(c => normaliseCard(fitFamilyToSlot(c, FRAME_SLOTS.find(sl => Number(sl.slot) === Number(c.frameSlot)))));
   draw();
 
   if (DASHBOARD_ID && typeof axios !== "undefined") {
@@ -3583,25 +3845,50 @@ function setFrame(frameKey, slots){
       .then(response => {
         const cards = response?.data?.data?.cards;
         if (!Array.isArray(cards) || !cards.length) return;
-        CARDS = availableCards(cards.map(bc => ({
-          id: bc.id || newId(), key: bc.reading_key || bc.key, chart: chartKey(bc.chart),
-          period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
-          w: bc.w, h: bc.h, gx: bc.x, gy: bc.y, cat: bc.category || "C4",
-          fit: Math.max(0, (FITS[bc.category] || []).findIndex(fit => fit[2] === bc.fit)),
-          frameSlot: bc.frame_slot, variant: bc.style?.variant || defaultVariant(chartKey(bc.chart)),
-          accent: !!bc.style?.accent,
-        }))).map(normaliseCard);
+        CARDS = availableCards(cards.map(fromServerCard)).map(normaliseCard);
         draw();
       })
       .catch(error => console.error("[VenQoreCards] Could not switch dashboard frame.", error));
   }
 }
+/* A frame slot is a fixed rectangle. A card whose family cannot be read at
+   that size changes its LOOK (never its metric): a donut drops its legend,
+   then a chart becomes its number. A big slot gives a number its history
+   when the reading has one. */
+function fitFamilyToSlot(c, slot){
+  if (!c || !slot || isSpecial(c)) return c;
+  if (!Fam.FAMILIES[c.chart]) {
+    const np = Fam.normalizePresentation(c.chart, c.variant);
+    if (np.family) { c.chart = np.family; c.variant = np.variant; }
+  }
+  if (!Fam.FAMILIES[c.chart]) return c;
+  const sw = Number(slot.w), sh = Number(slot.h);
+  const opt = { legend: c.legend !== false, seriesCount: 1 + (c.extraKeys || []).length };
+  const fits = (f, v, o) => { const [mw, mh] = Geo.minSize(f, v, o); return mw <= sw && mh <= sh; };
+  const ctx = capCtx(c);
+  if (c.chart === "number" && sh >= 3 && sw >= 4 && ctx.seriesAvailable) {
+    c.chart = "area"; c.variant = "gradient"; return c;
+  }
+  if (fits(c.chart, c.variant, opt)) return c;
+  if ((c.chart === "pie" || c.chart === "ring") && fits(c.chart, c.variant, { ...opt, legend: false })) {
+    c.legend = false; return c;
+  }
+  c.chart = "number";
+  c.variant = sh >= 2 && ctx.supportsComparison ? "comparison" : "value";
+  c.extraKeys = [];
+  return c;
+}
+
 function loadBoard(){
   if (typeof localStorage === "undefined") return null;
   try {
     const data = JSON.parse(localStorage.getItem(BOARD_KEY()) || "null");
-    if (data && data.v !== BOARD_SCHEMA_VERSION) SKIP_LEGACY_SERVER_LAYOUT = true;
-    if (!data || data.v !== BOARD_SCHEMA_VERSION || !Array.isArray(data.cards) || !data.cards.length) return null;
+    if (data && !BOARD_SCHEMA_READABLE.has(data.v)) SKIP_LEGACY_SERVER_LAYOUT = true;
+    if (!data || !BOARD_SCHEMA_READABLE.has(data.v) || !Array.isArray(data.cards) || !data.cards.length) return null;
+    if (data.v === 4) {
+      /* keep the v4 copy once, so the migration can be rolled back by hand */
+      try { localStorage.setItem(BOARD_KEY() + ":v4-backup", JSON.stringify(data)); } catch {}
+    }
     return availableCards(data.cards.filter(c => c && (c.type ? SPECIAL[c.type] : true)));
   } catch { return null; }
 }
@@ -3634,21 +3921,7 @@ function boot(frameKey){
         if (Array.isArray(list) && list.length > 0) {
           const activeBoard = list.find(b => b.is_default) || list[0];
           if (!SKIP_LEGACY_SERVER_LAYOUT && activeBoard && Array.isArray(activeBoard.cards) && activeBoard.cards.length > 0) {
-            const backendCards = activeBoard.cards.map(bc => ({
-              id: bc.id || newId(),
-              key: bc.reading_key || bc.key,
-              chart: chartKey(bc.chart),
-              period: ({ today:"Today", this_week:"Week", this_year:"Year", this_quarter:"Quarter" }[bc.period] || "Month"),
-              w: bc.w,
-              h: bc.h,
-              gx: bc.x,
-              gy: bc.y,
-              frameSlot: bc.frame_slot,
-              cat: bc.category || 'C4',
-              fit: bc.fit || 0,
-              type: bc.type,
-              variant: bc.variant || defaultVariant(chartKey(bc.chart)),
-            }));
+            const backendCards = activeBoard.cards.map(fromServerCard);
             CARDS = availableCards(backendCards).map(normaliseCard);
             DASHBOARD_ID = activeBoard.id || DASHBOARD_ID;
             ACTIVE_FRAME = activeBoard.frame_key || ACTIVE_FRAME;
@@ -3682,13 +3955,38 @@ function boot(frameKey){
 // Expose engines and chart constraint helpers to React component
 window.VenQoreCards = {
   engineVersion: ENGINE_VERSION,
+  tidy: tidyBoard,
+  undoTidy,
   getCards: () => CARDS,
   setCards: (newCards) => { CARDS = newCards.map(normaliseCard); draw(); },
-  addCardObject: (card) => { CARDS.push(normaliseCard(card)); draw(); return card; },
+  addCardObject: (card) => {
+    const c = normaliseCard(card);
+    if (!Number.isInteger(c.gx) || !Number.isInteger(c.gy)) {
+      const cols = boardCols(); const [w, h] = sizeOf(c, cols);
+      const spot = freeSpot(c, 0, 0, w, h, cols); c.gx = spot.x; c.gy = spot.y;
+    }
+    CARDS.push(c); draw(); saveServerLayout(); return c;
+  },
   updateCard: (id, patch) => {
     const c = cardOf(id); if (!c) return null;
-    Object.assign(c, patch); normaliseCard(c); draw(); return c;
+    /* properties the editor turned OFF arrive as `undefined` — remove them */
+    Object.keys(patch).forEach(k => { if (patch[k] === undefined) delete c[k]; else c[k] = patch[k]; });
+    normaliseCard(c); draw(); saveServerLayout(); return c;
   },
+  saveNow: () => saveServerLayoutNow(),
+  normalise: (card) => normaliseCard({ ...card, extraKeys: [...((card && card.extraKeys) || [])] }),
+  fitFamilyToSlot: (card, slot) => fitFamilyToSlot({ ...card }, slot),
+  chartPropsFor: (card) => chartPropsFor(normaliseCard({ ...card, extraKeys: [...(card.extraKeys || [])] })),
+  queueReads: (cards) => queueLiveReadings((cards || []).map(c => normaliseCard({ ...c, extraKeys: [...(c.extraKeys || [])] })), () => {
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("vq:readings-updated"));
+  }),
+  capabilitiesFor: (card) => Fam.capabilitiesFor(readingOf(card.key), capCtx({ extraKeys: [], ...card })),
+  capCtx: (card) => capCtx({ extraKeys: [], ...card }),
+  defaultLookFor,
+  boardColW: () => boardColW(),
+  getCurrency: () => CURRENCY,
+  setCurrency: (sym) => { if (sym) { CURRENCY = sym; draw(); } },
+  trendCompanionKey,
   getReadings: () => READINGS,
   getAvailableReadings: () => availableReadings(),
   setReadings: (newReadings) => {
@@ -3770,21 +4068,28 @@ function normaliseCard(c){
     const S = SPECIAL[c.type];
     if (!c.cat || !S.cats.includes(c.cat)) c.cat = S.cat;
   } else {
-    if (!c.chart) c.chart = legalFor(c.key)[0];
-    if (!c.variant) c.variant = defaultVariant(c.chart);
     if (!Array.isArray(c.extraKeys)) c.extraKeys = [];
     if (!c.period) c.period = "Month";
-    if (!c.cat || !FITS[c.cat] || !fitsFor(c, c.cat).length) c.cat = fitCat(c);
-    /* The bare number is the TILE and STRIP interior — those categories have no
-       chart host at all. A stat that lands in C3 or above has a body to fill,
-       and leaving it on `number` there is how a 3×3 card ended up as one figure
-       floating in 240px of nothing. */
-    if (c.chart === "stat"){
-      const chartless = c.cat === "C1" || c.cat === "C2";
-      if (chartless && c.variant !== "number") c.variant = "number";
-      if (!chartless && c.variant === "number") c.variant = "spark";
+    if (c.goal && !(Number(c.goal.target) > 0)) delete c.goal;
+    /* Translate any stored look (old chart keys included) onto a family, then
+       make sure the reading can honestly be drawn that way. A look the data
+       cannot support falls back to the reading's natural family — it is never
+       drawn with invented data. */
+    const rd = readingOf(c.key);
+    const np = Fam.normalizePresentation(c.chart, c.variant);
+    const ctx = capCtx(c);
+    const caps = Fam.capabilitiesFor(rd, ctx);
+    const cap = np.family ? caps.find(x => x.family === np.family && x.enabled) : null;
+    if (cap) {
+      c.chart = np.family;
+      const ok = cap.variants.find(v => v.id === np.variant && v.enabled);
+      c.variant = ok ? ok.id : ((cap.variants.find(v => v.enabled) || cap.variants[0]).id);
+    } else {
+      const d = Fam.defaultFamilyFor(rd, ctx);
+      c.chart = d.family; c.variant = d.variant;
     }
-    fixVariant(c);
+    if (!["area", "line", "composed"].includes(c.chart)) c.extraKeys = [];
+    c.extraKeys = c.extraKeys.filter(k => k !== c.key && READINGS.some(r => r.key === k)).slice(0, 3);
   }
   if (!Number.isInteger(c.gx) || !Number.isInteger(c.gy) || c.gx < 0 || c.gy < 0 || c.gx > 11){
     delete c.gx; delete c.gy;
@@ -3793,7 +4098,7 @@ function normaliseCard(c){
   if (c.tone === "accent") c.accent = true;
   const g = geometryOf(c, 24);
   c.cat = g.cat; c.fit = g.fit;
-  if (c.w || c.h){ c.w = g.authoredW; c.h = g.authoredH; }
+  if (c.w || c.h || (!isSpecial(c) && Fam.FAMILIES[c.chart])){ c.w = g.authoredW; c.h = g.authoredH; }
   return c;
 }
 
@@ -4297,9 +4602,6 @@ function DashRail({
 
 export default function NewDashboard(props) {
   const containerRef = useRef(null);
-  const previewRef = useRef(null);
-  const previewFrameRef = useRef(null);
-  const previewHandleRef = useRef(null);
 
   const pageProps = usePage()?.props || {};
   const store = props?.store || pageProps.store || { name: 'VenQore Main Outlet', currency_symbol: 'Rs', slug: '' };
@@ -4397,6 +4699,7 @@ export default function NewDashboard(props) {
   const [navOverlayOpen, setNavOverlayOpen] = useState(false);
   const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1920));
   const [isEditMode, setIsEditMode] = useState(false);
+  const [canUndoTidy, setCanUndoTidy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [engineReady, setEngineReady] = useState(false);
 
@@ -4455,32 +4758,10 @@ export default function NewDashboard(props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [glassModalOpen]);
 
-  /* the draft — one shape for all three families */
-  const [selectedReading, setSelectedReading] = useState(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [customBtnTarget, setCustomBtnTarget] = useState(SHORTCUT_TARGETS[0]);
-
-  const [draftCat, setDraftCat] = useState('C3');
-  const [draftW, setDraftW] = useState(4);
-  const [draftH, setDraftH] = useState(3);
-  const [draftChart, setDraftChart] = useState('area');
-  const [draftVariant, setDraftVariant] = useState('gradient');
-  const [draftTone, setDraftTone] = useState('surface');
-  const [draftPeriod, setDraftPeriod] = useState('Month');
-  /* The four things the author may put on, or take off, the card face. All
-     four default ON; each is additionally gated at render by whether the card
-     is big enough to carry it, so a preference can never cause an overflow. */
-  const [draftShowPeriodPicker, setDraftShowPeriodPicker] = useState(true);
-  const [draftShowWhen, setDraftShowWhen] = useState(true);
-  const [draftShowDelta, setDraftShowDelta] = useState(true);
-  const [draftOpenArrow, setDraftOpenArrow] = useState(true);
-  const [draftGlare, setDraftGlare] = useState(false);
-  const [draftStarBorder, setDraftStarBorder] = useState(false);
-  const [draftIcon, setDraftIcon] = useState('cart');
-  const [draftColor, setDraftColor] = useState('#0baa8f');
-  const [draftLink, setDraftLink] = useState('');
-  const [previewZoom, setPreviewZoom] = useState('fit');   // 'fit' | 'actual'
-  const [previewScale, setPreviewScale] = useState(100);
+  /* The editor owns its own draft; this is only what it opens with. */
+  const [editorInit, setEditorInit] = useState(null);   // { mode, initial, isNew, catalog }
+  const editorDirtyRef = useRef(false);
+  const addedCardIdRef = useRef(null);                  // a retried "Add" updates, never duplicates
 
   const engine = () => (typeof window !== 'undefined' ? window.VenQoreCards : null);
 
@@ -4605,6 +4886,7 @@ export default function NewDashboard(props) {
     const activeFrame = frames.find(frame => frame.key === activeFrameKey);
     runCardBuilder({
       storeSlug, modules: enabledModules, readings: readingsProp, layoutLaw: layoutLawProp,
+      currency: store?.currency_symbol || 'Rs',
       dashboardId: props?.dashboardId, activeFrame: activeFrameKey,
       frameSlots: frameDirty ? [] : (activeFrame?.slots || []), frameDirty,
     });
@@ -4694,294 +4976,26 @@ export default function NewDashboard(props) {
     };
   }, [panelDesign, railPrefs.collapsed]);
 
-  /* ── the draft, as a card object ─────────────────────────────────────── */
-  const draftCard = useMemo(() => {
-    const base = {
-      id: editingCardId || 'preview-card',
-      tone: draftTone,
-      accent: draftTone === 'accent',
-      glare: draftGlare,
-      starBorder: draftStarBorder,
-      showOpenArrow: draftOpenArrow,
-      cat: draftCat, w: draftW, h: draftH,
-    };
-    if (categoryFolderIndex === 0 && selectedReading) {
-      const chartless = draftCat === 'C1' || draftCat === 'C2';
-      return {
-        ...base,
-        key: selectedReading.key,
-        chart: chartless ? 'stat' : draftChart,
-        variant: chartless ? 'number' : draftVariant,
-        period: draftPeriod,
-        showPeriodPicker: draftShowPeriodPicker,
-        showWhen: draftShowWhen,
-        showDelta: draftShowDelta,
-        extraKeys: [],
-      };
-    }
-    if (categoryFolderIndex === 1 && selectedTemplate) {
-      return { ...base, type: selectedTemplate.type, title: selectedTemplate.title };
-    }
-    if (categoryFolderIndex === 2) {
-      const url = draftLink
-        || (customBtnTarget.absolute ? customBtnTarget.path : storePath(customBtnTarget.path));
-      return { ...base, type: 'custom_button', cat: 'C1',
-               title: customBtnTarget.label,
-               targetUrl: url, icon: draftIcon, btnColor: draftColor };
-    }
-    return null;
-  }, [categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget, editingCardId,
-      draftCat, draftW, draftH, draftChart, draftVariant, draftTone, draftPeriod,
-      draftShowPeriodPicker, draftShowWhen, draftShowDelta, draftOpenArrow,
-      draftGlare, draftStarBorder, draftIcon, draftColor, draftLink, storeSlug]);
-
-  /* What the card will be called, and where its arrow goes — both derived. */
-  const draftName = useMemo(() => {
-    if (isReadingCardIdx(categoryFolderIndex) && selectedReading) return selectedReading.label;
-    if (categoryFolderIndex === 1 && selectedTemplate) return selectedTemplate.title;
-    if (categoryFolderIndex === 2) return customBtnTarget.label;
-    return '—';
-  }, [categoryFolderIndex, selectedReading, selectedTemplate, customBtnTarget]);
-
-  const draftDest = useMemo(() => {
-    if (categoryFolderIndex === 2)
-      return draftLink || (customBtnTarget.absolute ? customBtnTarget.path : storePath(customBtnTarget.path));
-    const e = engine();
-    if (!e || !draftCard) return '/pos';
-    if (draftCard.targetUrl || draftCard.link) return draftCard.targetUrl || draftCard.link;
-    try { return e.deepLinkFor(draftCard.key); } catch { return '/pos'; }
-  }, [categoryFolderIndex, draftCard, draftLink, customBtnTarget, storeSlug, engineReady]);
-
-  const destLabel = useMemo(() => {
-    const e = engine();
-    try { return e?.destinationName?.(draftDest) || draftDest; } catch { return draftDest; }
-  }, [draftDest, engineReady]);
-
-  /* ── which categories and sizes this draft may take ──────────────────── */
-  const legalCats = useMemo(() => {
-    const e = engine();
-    if (!e || !draftCard) return ['C3'];
-    try { return e.catsFor(draftCard); } catch { return ['C3']; }
-  }, [draftCard, engineReady]);
-
-  const catMax = engine()?.getCatMax?.() || catMaxFromLaw(layoutLawProp);
-  const catNames = engine()?.getCatNames?.() || {};
-  const catDescs = engine()?.getCatDescs?.() || {};
-
-  const draftFloor = useMemo(() => {
-    const e = engine();
-    if (!e || !draftCard) return [1, 1];
-    try { return e.minSizeFor({ ...draftCard, cat: draftCat }); } catch { return [1, 1]; }
-  }, [draftCard, draftCat, engineReady]);
-
-  const sizePresets = useMemo(() => {
-    const e = engine();
-    if (!e || !draftCard) return [];
-    const T = e.fitsTable(draftCard);
-    const [fw, fh] = draftFloor;
-    return e.presetsFor(draftCat, T)
-      .filter(s => s.w >= fw && s.h >= fh)
-      .sort((a, b) => (a.w * a.h) - (b.w * b.h));
-  }, [draftCat, draftCard, draftFloor, engineReady]);
-
-  /* the resolved geometry of the draft, on the live grid */
-  const draftGeo = useMemo(() => {
-    const e = engine();
-    if (!e || !draftCard) return { w: draftW, h: draftH, fit: 0, cat: draftCat, clamped: false };
-    try { return e.geometryOf(draftCard, 24, e.REFERENCE_COL_W || 112); }
-    catch { return { w: draftW, h: draftH, fit: 0, cat: draftCat, clamped: false }; }
-  }, [draftCard, engineReady]);
-
-  /* the name of the interior this size resolves to — the Law's own word for it */
-  const resolvedFitName = useMemo(() => {
-    const e = engine();
-    if (!e || !draftCard) return '—';
-    try {
-      const T = e.fitsTable(draftCard);
-      const i = e.resolveFit(draftCat, draftW, draftH, T);
-      return (T[draftCat] && T[draftCat][i] && T[draftCat][i][2]) || '—';
-    } catch { return '—'; }
-  }, [draftCard, draftCat, draftW, draftH, engineReady]);
-
-  const boardColCount = useMemo(() => {
-    const e = engine();
-    return e?.boardCols ? e.boardCols() : (vw < 600 ? 4 : vw < 1024 ? 6 : vw < 1440 ? 8 : vw < 1800 ? 10 : vw < 2400 ? 12 : 16);
-  }, [vw, engineReady]);
-
-  /* step a dimension, staying inside the law */
-  const stepSize = (axis, delta) => {
-    const e = engine(); if (!e || !draftCard) return;
-    const T = e.fitsTable(draftCard);
-    const [MW, MH] = catMax[draftCat] || [12, 16];
-    const [fw, fh] = draftFloor;
-    let w = draftW, h = draftH;
-    if (axis === 'w') w += delta; else h += delta;
-    w = Math.max(1, Math.min(MW, w));
-    h = Math.max(1, Math.min(MH, h));
-    if (w < fw || h < fh) return;
-    if (!e.sizeLegal(draftCat, w, h, T)) {
-      if (axis === 'w') {
-        const need = e.minHeightAt(draftCat, w, T);
-        if (need == null || need > MH) return;
-        h = Math.max(h, need);
-      } else {
-        const need = e.minWidthAt(draftCat, h, T);
-        if (need == null || need > MW) return;
-        w = Math.max(w, need);
-      }
-    }
-    setDraftW(w); setDraftH(h);
-  };
-  const canStep = (axis, delta) => {
-    const e = engine(); if (!e || !draftCard) return false;
-    const T = e.fitsTable(draftCard);
-    const [MW, MH] = catMax[draftCat] || [12, 16];
-    const [fw, fh] = draftFloor;
-    let w = draftW, h = draftH;
-    if (axis === 'w') w += delta; else h += delta;
-    if (w < Math.max(1, fw) || h < Math.max(1, fh) || w > MW || h > MH) return false;
-    if (e.sizeLegal(draftCat, w, h, T)) return true;
-    if (axis === 'w') { const n = e.minHeightAt(draftCat, w, T); return n != null && n <= MH; }
-    const n = e.minWidthAt(draftCat, h, T); return n != null && n <= MW;
-  };
-
-  /* changing category re-seats the size on that category's richest legal fit */
-  const chooseCat = (cat) => {
-    const e = engine(); if (!e) { setDraftCat(cat); return; }
-    setDraftCat(cat);
-    /* A tile and a strip draw no chart, so a stat there is the plain number.
-       Moving up to a category that HAS a body gives the sparkline back rather
-       than leaving the card looking emptier than the one it grew out of. */
-    let variant = draftVariant;
-    if (isReadingCard && draftChart === 'stat') {
-      if ((cat === 'C1' || cat === 'C2') && variant !== 'number') variant = 'number';
-      if (cat !== 'C1' && cat !== 'C2' && variant === 'number') variant = 'spark';
-      setDraftVariant(variant);
-    }
-    const probe = { ...draftCard, cat, variant };
-    let T, floor;
-    try { T = e.fitsTable(probe); floor = e.minSizeFor(probe); } catch { T = null; floor = [1, 1]; }
-    const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
-    const keep = list.find(s => s.w === draftW && s.h === draftH);
-    const pick = keep || list.find(s => s.isFit) || list[0];
-    if (pick) { setDraftW(pick.w); setDraftH(pick.h); }
-  };
-
-  const chooseSize = (s) => { setDraftCat(s.cat); setDraftW(s.w); setDraftH(s.h); };
-
-  /* ── live preview ────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (!stepperModalOpen || step !== 2) return;
-    const e = engine();
-    const host = previewRef.current, frame = previewFrameRef.current;
-    if (!e || !host || !frame || !draftCard) return;
-
-    /* Draw the card at true board geometry, then scale the whole thing to fit
-       the stage. Scaling — rather than squeezing the card into whatever space
-       is left — is what makes 12×16 actually look like four times 6×8 instead
-       of landing on the same clamped rectangle. */
-    const COLW = e.REFERENCE_COL_W || 112, UNIT = 64, GUT = 24;   /* the Law's own numbers */
-    const geo = e.geometryOf(draftCard, 24, COLW);
-    const cardW = geo.w * COLW + (geo.w - 1) * GUT;
-    const cardH = geo.h * UNIT + (geo.h - 1) * GUT;
-
-    const avail = frame.getBoundingClientRect();
-    const padded = { w: Math.max(160, avail.width - 32), h: Math.max(140, avail.height - 32) };
-    const scale = previewZoom === 'actual'
-      ? 1
-      : Math.min(1, padded.w / cardW, padded.h / cardH);
-
-    /* Two boxes, because a transform does not change layout. The outer one is
-       the SCALED size, so the frame centres and scrolls around what is actually
-       painted; the inner one is the TRUE size, scaled from its top-left corner.
-       Scaling rather than squeezing is what makes 12×16 look four times 6×8
-       instead of landing on the same clamped rectangle. */
-    host.style.width = `${Math.round(cardW * scale)}px`;
-    host.style.height = `${Math.round(cardH * scale)}px`;
-
-    host.innerHTML = `<div class="vq-preview-scaler"></div>`;
-    const scaler = host.firstElementChild;
-    scaler.style.width = `${cardW}px`;
-    scaler.style.height = `${cardH}px`;
-    scaler.style.transform = `scale(${scale})`;
-    scaler.style.transformOrigin = 'top left';
-    scaler.innerHTML = e.renderCard(draftCard, 24, COLW);
-
-    const cardEl = scaler.querySelector('.vqc');
-    if (cardEl) {
-      cardEl.style.width = '100%';
-      cardEl.style.height = '100%';
-      cardEl.style.gridColumn = 'auto';
-      cardEl.style.gridRow = 'auto';
-      cardEl.style.animation = 'none';
-    }
-    frame.dataset.size = `${geo.w} × ${geo.h} · ${cardW}×${cardH}px · ${Math.round(scale * 100)}%`;
-    setPreviewScale(Math.round(scale * 100));
-
-    /* seat the resize handle on the card's bottom-right corner — it lives
-       outside the re-rendered host so a drag survives every re-render */
-    const handle = previewHandleRef.current;
-    if (handle){
-      const seat = () => {
-        handle.style.left = (host.offsetLeft + Math.round(cardW * scale) - 8) + 'px';
-        handle.style.top  = (host.offsetTop  + Math.round(cardH * scale) - 8) + 'px';
-        handle.style.display = 'block';
-      };
-      seat();
-      requestAnimationFrame(seat);
-    }
-
-    const raf = requestAnimationFrame(() => {
-      const chartHost = scaler.querySelector('.vqc-host');
-      if (chartHost) e.mountChart(chartHost, draftCard);
-      e.fitValues?.(scaler);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [stepperModalOpen, step, draftCard, previewZoom, vw, engineReady]);
-
   /* ── opening the wizard ──────────────────────────────────────────────── */
-  const resetDraftChrome = () => {
-    setDraftTone('surface'); setDraftGlare(false); setDraftStarBorder(false);
-    setDraftLink(''); setPreviewZoom('fit');
-    setDraftOpenArrow(true); setDraftShowWhen(true);
-    setDraftShowDelta(true); setDraftShowPeriodPicker(true);
-  };
-
   /* One picker, three families as tabs — no launcher in between. */
   const setFamily = (catIndex) => {
     setCategoryFolderIndex(catIndex);
     setStep(1);
     setEditingCardId(null);
-    setSelectedReading(null);
-    setSelectedTemplate(null);
+    setEditorInit(null);
     setSearchQuery('');
-    resetDraftChrome();
-    if (catIndex === 2) {
-      setDraftCat('C1'); setDraftW(2); setDraftH(1);
-      setDraftShowPeriodPicker(false);
-    } else if (catIndex === 1) {
-      setDraftCat('C4'); setDraftW(4); setDraftH(2);
-    } else {
-      setDraftCat('C3'); setDraftW(4); setDraftH(3);
-      setDraftShowPeriodPicker(true);
-    }
   };
   const openPicker = (catIndex = 0) => {
     setFamily(catIndex);
     setTargetSlot(null);
+    addedCardIdRef.current = null;
     setStepperModalOpen(true);
   };
   const openPickerForSlot = useCallback((slot) => {
     setTargetSlot(slot || null);
-    if (slot) {
-      setFamily(0);
-      setDraftCat(slot.category || 'C3');
-      setDraftW(slot.w || 4);
-      setDraftH(slot.h || 3);
-      setStepperModalOpen(true);
-    } else {
-      openPicker(0);
-    }
+    addedCardIdRef.current = null;
+    setFamily(0);
+    setStepperModalOpen(true);
   }, []);
 
   useEffect(() => {
@@ -4990,63 +5004,44 @@ export default function NewDashboard(props) {
   }, [openPickerForSlot]);
   const launchCategoryModal = openPicker;
 
-  const seatDraftOn = (card) => {
-    const e = engine(); if (!e) return;
-    const T = e.fitsTable(card);
-    const cat = card.cat;
-    const floor = e.minSizeFor(card);
-    const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
-    const pick = list.find(s => s.isFit) || list[0];
-    setDraftCat(cat);
-    if (pick) { setDraftW(pick.w); setDraftH(pick.h); }
+  const editorCatalog = (extra = {}) => ({
+    tones: CARD_TONES,
+    shortcutTargets: SHORTCUT_TARGETS,
+    shortcutColors: SHORTCUT_COLORS,
+    shortcutIcons: SHORTCUT_ICON_NAMES,
+    storePath,
+    ...extra,
+  });
+
+  const openEditorWith = (mode, initial, isNew, extra) => {
+    editorDirtyRef.current = false;
+    setEditorInit({ mode, initial, isNew, catalog: editorCatalog(extra) });
+    setStep(2);
   };
 
   const selectMetricForStep2 = (rd) => {
-    setSelectedReading(rd);
-    setSelectedTemplate(null);
-    const byShape = {
-      SCALAR:       ['stat',   'spark',    'C2'],
-      GAUGE:        ['gauge',  'standard', 'C4'],
-      TABLE:        ['table',  'standard', 'C5'],
-      FEED:         ['feed',   'live',     'C4'],
-      BREAKDOWN:    ['bar',    'grouped',  'C4'],
-      RANKING:      ['bar',    'solid',    'C4'],
-      STATUS:       ['status', 'standard', 'C2'],
-      MULTI_SERIES: ['composed','bar-line-area','C5'],
-      SERIES:       ['area',   'gradient', 'C5'],
-    };
-    let [chart, variant, cat] = byShape[rd.shape] || ['area', 'gradient', 'C5'];
-    /* a strip has no chart body, so the sparkline variant would be a lie */
-    if (cat === 'C2' || cat === 'C1') variant = 'number';
-    setDraftChart(chart);
-    setDraftVariant(variant);
-    setDraftPeriod('Month');
-    resetDraftChrome();
-    seatDraftOn({ key: rd.key, chart, variant, extraKeys: [], period: 'Month', cat });
-    setStep(2);
+    const e = engine(); if (!e) return;
+    const look = e.defaultLookFor(rd.key);
+    let init = { key: rd.key, chart: look.family, variant: look.variant, period: 'Month',
+                 extraKeys: [], tone: 'surface', accent: false };
+    if (targetSlot) {
+      init = e.fitFamilyToSlot({ ...init }, targetSlot);
+      init.w = Number(targetSlot.w); init.h = Number(targetSlot.h);
+    }
+    openEditorWith('reading', init, true);
   };
 
   const selectTemplateForStep2 = (tmpl) => {
-    setSelectedTemplate(tmpl);
-    setSelectedReading(null);
     const specials = engine()?.getSpecials?.() || {};
     const S = specials[tmpl.type] || { cat: 'C4' };
-    resetDraftChrome();
-    setDraftTone(tmpl.tone || 'surface');
-    seatDraftOn({ type: tmpl.type, cat: S.cat });
-    setStep(2);
+    openEditorWith('hub', { type: tmpl.type, title: tmpl.title, tone: tmpl.tone || 'surface', cat: S.cat },
+      true, { templateName: tmpl.title, templateDesc: tmpl.desc });
   };
 
   const selectCustomBtnForStep2 = (target) => {
-    setCustomBtnTarget(target);
-    setSelectedReading(null);
-    setSelectedTemplate(null);
-    setDraftCat('C1'); setDraftW(2); setDraftH(1);
-    setDraftIcon(target.icon);
-    setDraftColor(target.color);
-    resetDraftChrome();
-    setDraftLink(target.absolute ? target.path : storePath(target.path));
-    setStep(2);
+    const url = target.absolute ? target.path : storePath(target.path);
+    openEditorWith('shortcut', { type: 'custom_button', cat: 'C1', w: 2, h: 1, title: target.label,
+      targetUrl: url, icon: target.icon, btnColor: target.color, tone: 'surface' }, true, { templateName: target.label });
   };
 
   /* ── editing a card already on the board ─────────────────────────────── */
@@ -5055,31 +5050,17 @@ export default function NewDashboard(props) {
     const c = (e.getCards() || []).find(x => x.id === id);
     if (!c) return;
     setEditingCardId(id);
+    setTargetSlot(null);
+    addedCardIdRef.current = null;
     const special = e.isSpecial(c);
-    setCategoryFolderIndex(special ? (c.type === 'custom_button' ? 2 : 1) : 0);
-    if (special && c.type !== 'custom_button') {
-      setSelectedTemplate(OPERATIONAL_TEMPLATES.find(t => t.type === c.type) || OPERATIONAL_TEMPLATES[0]);
-      setSelectedReading(null);
-    } else if (special) {
-      setSelectedTemplate(null); setSelectedReading(null);
-      setDraftIcon(c.icon || 'cart'); setDraftColor(c.btnColor || '#0baa8f');
-    } else {
-      setSelectedReading(e.getReadingOf(c.key));
-      setSelectedTemplate(null);
-      setDraftChart(c.chart); setDraftVariant(c.variant);
-      setDraftPeriod(c.period || 'Month');
-      setDraftShowPeriodPicker(c.showPeriodPicker !== false);
-      setDraftShowWhen(c.showWhen !== false);
-      setDraftShowDelta(c.showDelta !== false);
-    }
+    const mode = special ? (c.type === 'custom_button' ? 'shortcut' : 'hub') : 'reading';
+    setCategoryFolderIndex(mode === 'reading' ? 0 : mode === 'hub' ? 1 : 2);
+    /* a card sitting in a frame slot is edited at its slot's size */
     const g = e.geometryOf(c, 24);
-    setDraftCat(g.cat); setDraftW(g.authoredW ?? g.w); setDraftH(g.authoredH ?? g.h);
-    setDraftTone(c.tone || (c.accent ? 'accent' : 'surface'));
-    setDraftGlare(!!c.glare); setDraftStarBorder(!!c.starBorder);
-    setDraftOpenArrow(c.showOpenArrow !== false);
-    setDraftLink(c.targetUrl || c.link || '');
-    setPreviewZoom('fit');
-    setStep(2);
+    const initial = JSON.parse(JSON.stringify({ ...c, w: g.authoredW ?? g.w, h: g.authoredH ?? g.h }));
+    delete initial.frameSlot;
+    const tmpl = mode === 'hub' ? (OPERATIONAL_TEMPLATES.find(t => t.type === c.type) || null) : null;
+    openEditorWith(mode, initial, false, tmpl ? { templateName: tmpl.title, templateDesc: tmpl.desc } : { templateName: c.title });
     setStepperModalOpen(true);
   };
 
@@ -5088,51 +5069,61 @@ export default function NewDashboard(props) {
     return () => { window._vqEditCard = null; };
   });
 
-  /* ── chart + variant selection ───────────────────────────────────────── */
-  const handleChartSelect = (chartType) => {
-    const e = engine();
-    setDraftChart(chartType);
-    const variants = e?.getVariants?.() || {};
-    const first = (variants[chartType] || [['standard']])[0][0];
-    setDraftVariant(first);
-    if (!e || !selectedReading) return;
-    const probe = { key: selectedReading.key, chart: chartType, variant: first,
-                    extraKeys: [], period: draftPeriod, cat: draftCat };
-    const cats = e.catsFor(probe);
-    const cat = cats.includes(draftCat) ? draftCat : (cats[0] || 'C5');
-    const T = e.fitsTable(probe);
-    const floor = e.minSizeFor({ ...probe, cat });
-    const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
-    setDraftCat(cat);
-    const keep = list.find(s => s.w === draftW && s.h === draftH);
-    const pick = keep || list.find(s => s.isFit) || list[0];
-    if (pick) { setDraftW(pick.w); setDraftH(pick.h); }
-  };
-
-  /* ── commit ──────────────────────────────────────────────────────────── */
-  const handleAddCardConfirm = () => {
-    const e = engine(); if (!e || !draftCard) return;
-    const card = { ...draftCard };
-    if (targetSlot) {
-      card.frameSlot = Number(targetSlot.slot);
-      card.gx = Number(targetSlot.x);
-      card.gy = Number(targetSlot.y);
-      card.w = Number(targetSlot.w);
-      card.h = Number(targetSlot.h);
-      card.cat = targetSlot.category || card.cat;
-    }
+  /* ── commit: apply to the board, then persist; a failure keeps the draft ── */
+  const handleEditorSave = async (draft) => {
+    const e = engine(); if (!e) return;
+    const card = { ...draft };
+    const slotOf = (c) => {
+      if (c?.frameSlot == null) return null;
+      return (frames.find(f => f.key === activeFrameKey)?.slots || []).find(s => Number(s.slot) === Number(c.frameSlot)) || null;
+    };
     if (editingCardId) {
+      const orig = (e.getCards() || []).find(x => x.id === editingCardId);
+      const slot = slotOf(orig);
+      if (slot) {
+        /* unchanged size keeps the frame slot; a new size pins the card at the
+           slot's corner instead, and the frame is marked as customised */
+        if (Number(card.w) === Number(slot.w) && Number(card.h) === Number(slot.h)) card.frameSlot = Number(slot.slot);
+        else { card.frameSlot = undefined; card.gx = Number(slot.x); card.gy = Number(slot.y); }
+      }
       delete card.id;
       e.updateCard(editingCardId, card);
+    } else if (addedCardIdRef.current) {
+      delete card.id;
+      e.updateCard(addedCardIdRef.current, card);
     } else {
+      if (targetSlot) {
+        card.gx = Number(targetSlot.x); card.gy = Number(targetSlot.y);
+        if (Number(card.w) === Number(targetSlot.w) && Number(card.h) === Number(targetSlot.h)) card.frameSlot = Number(targetSlot.slot);
+      }
       card.id = 'c-' + Math.random().toString(36).substring(2, 9);
-      e.addCardObject(card);
+      const added = e.addCardObject(card);
+      addedCardIdRef.current = added?.id || card.id;
     }
+    await e.saveNow();
+    editorDirtyRef.current = false;
+    closeWizard();
+  };
+
+  const closeWizard = () => {
     setStepperModalOpen(false);
     setEditingCardId(null);
+    setEditorInit(null);
     setTargetSlot(null);
+    addedCardIdRef.current = null;
     setStep(1);
   };
+  /* the backdrop: step 1 just closes; the editor asks before discarding */
+  const onWizardBackdrop = () => {
+    if (step === 2 && editorDirtyRef.current && !window.confirm('Discard your changes to this card?')) return;
+    closeWizard();
+  };
+  useEffect(() => {
+    if (!stepperModalOpen || step !== 1) return undefined;
+    const onKey = (ev) => { if (ev.key === 'Escape') closeWizard(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [stepperModalOpen, step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleResetLayout = () => { setFramePickerModalOpen(true); setMenuOpen(false); };
 
@@ -5174,161 +5165,8 @@ export default function NewDashboard(props) {
     return groups;
   }, [filteredReadings, selectedArea]);
 
-  const legalMap = engine()?.getLegalCharts?.() || {};
-  const legalCharts = (selectedReading ? legalMap[selectedReading?.shape] : null)
-    || ['area', 'bar', 'line', 'stat', 'gauge', 'funnel', 'table', 'feed', 'heatmap'];
-  const chartNames = engine()?.getChartNames?.() || {};
-
-  const currentVariants = useMemo(() => {
-    const e = engine();
-    if (!e || !selectedReading) return [['standard', 'Standard', true, '']];
-    try {
-      return e.getVariantsFor({ key: selectedReading.key, chart: draftChart,
-                                variant: draftVariant, extraKeys: [], period: draftPeriod });
-    } catch { return (e.getVariants?.()[draftChart] || [['standard', 'Standard']]).map(v => [v[0], v[1], true, '']); }
-  }, [selectedReading, draftChart, draftVariant, draftPeriod, engineReady]);
-
   const isReadingCard = categoryFolderIndex === 0;
   const isHubCard = categoryFolderIndex === 1;
-  const isShortcutCard = categoryFolderIndex === 2;
-  const hasDraft = !!draftCard;
-  const chartlessCat = draftCat === 'C1' || draftCat === 'C2';
-
-  const familyLabel = isReadingCard ? 'METRIC & CHART'
-    : isHubCard ? 'SMART PANEL' : 'SHORTCUT';
-
-  /* ── the simple size system ──────────────────────────────────────────────
-     Users never see categories, fits, columns or pixel floors. They see a
-     handful of named sizes — and the preview's corner, which drags through
-     every size the rules allow. The engine's legality tables still decide
-     everything; this is only a friendlier way to ask. */
-  const SIZE_LABELS = { C1:'Tiny', C2:'One-line', C3:'Compact', C4:'Standard', C5:'Large', C6:'Extra large' };
-  const SIZE_HINTS  = {
-    C1:'Just the number', C2:'Name and number on one line', C3:'Number with its trend',
-    C4:'Room for a small chart or list', C5:'A full chart', C6:'The biggest card there is',
-  };
-
-  const statFamily = isReadingCard && draftChart === 'stat';
-  const variantForCat = (cat) => {
-    if (!statFamily) return draftVariant;
-    if (cat === 'C1' || cat === 'C2') return 'number';
-    return draftVariant === 'number' ? 'spark' : draftVariant;
-  };
-
-  const sizeChips = useMemo(() => {
-    const e = engine();
-    if (!e || !draftCard) return [];
-    if (isShortcutCard){
-      return [
-        { cat:'C1', w:1, h:1, label:'Icon only', hint:'Glyph only — the name shows on hover' },
-        { cat:'C1', w:2, h:1, label:'Standard', hint:'Icon and name' },
-        { cat:'C1', w:3, h:2, label:'Roomy', hint:'Icon, name and where it goes' },
-      ];
-    }
-    const probeBase = { ...draftCard, variant: statFamily ? 'number' : draftVariant };
-    let cats = [];
-    try { cats = e.catsFor(probeBase); } catch { cats = ['C3']; }
-    const chips = [];
-    cats.forEach(cat => {
-      if (isReadingCard && cat === 'C1') return;      /* tiles belong to shortcuts */
-      const variant = variantForCat(cat);
-      const probe = { ...draftCard, cat, variant };
-      let pick = null;
-      try {
-        const T = e.fitsTable(probe);
-        const floor = e.minSizeFor(probe);
-        const list = e.presetsFor(cat, T).filter(s => s.w >= floor[0] && s.h >= floor[1]);
-        pick = list.find(s => s.isFit) || list[0];
-      } catch { pick = null; }
-      if (pick) chips.push({ cat, w: pick.w, h: pick.h, variant,
-                             label: SIZE_LABELS[cat] || cat, hint: SIZE_HINTS[cat] || '' });
-    });
-    return chips;
-  }, [draftCard, isShortcutCard, isReadingCard, statFamily, draftChart, draftVariant, engineReady]);
-
-  const pickChip = (chip) => {
-    setDraftCat(chip.cat);
-    if (chip.variant && chip.variant !== draftVariant) setDraftVariant(chip.variant);
-    setDraftW(chip.w); setDraftH(chip.h);
-  };
-
-  /* Drag the preview's corner: candidate rectangle → the richest interior the
-     rules will give it. Falls back to the nearest legal size in the current
-     interior, exactly like the board's own resize. */
-  const applyDragSize = (wRaw, hRaw) => {
-    const e = engine(); if (!e || !draftCard) return;
-    const catMaxTbl = e.getCatMax?.() || catMaxFromLaw(layoutLawProp);
-    const w = Math.max(1, Math.min(12, wRaw)), h = Math.max(1, Math.min(16, hRaw));
-    let cats = [];
-    try { cats = isShortcutCard ? ['C1'] : e.catsFor({ ...draftCard, variant: statFamily ? 'number' : draftVariant }); }
-    catch { cats = [draftCat]; }
-    if (isReadingCard) cats = cats.filter(c => c !== 'C1');
-    for (let i = cats.length - 1; i >= 0; i--){
-      const cat = cats[i];
-      const variant = variantForCat(cat);
-      const probe = { ...draftCard, cat, variant };
-      try {
-        const [MW, MH] = catMaxTbl[cat] || [12, 16];
-        if (w > MW || h > MH) continue;
-        const [fw, fh] = e.minSizeFor(probe);
-        if (w < fw || h < fh) continue;
-        if (!e.sizeLegal(cat, w, h, e.fitsTable(probe))) continue;
-        setDraftCat(cat);
-        if (variant !== draftVariant) setDraftVariant(variant);
-        setDraftW(w); setDraftH(h);
-        return;
-      } catch { /* try the next interior */ }
-    }
-    /* nothing takes the exact rectangle — snap inside the current interior */
-    try {
-      const probe = { ...draftCard, cat: draftCat };
-      const T = e.fitsTable(probe);
-      const [MW, MH] = catMaxTbl[draftCat] || [12, 16];
-      const [fw, fh] = e.minSizeFor(probe);
-      let w2 = Math.max(fw, Math.min(MW, w)), h2 = Math.max(fh, Math.min(MH, h));
-      if (!e.sizeLegal(draftCat, w2, h2, T)){
-        const needH = e.minHeightAt(draftCat, w2, T);
-        if (needH != null && needH <= MH) h2 = Math.max(h2, needH);
-        else {
-          const needW = e.minWidthAt(draftCat, h2, T);
-          if (needW != null && needW <= MW) w2 = Math.max(w2, needW);
-          else return;
-        }
-      }
-      setDraftW(w2); setDraftH(h2);
-    } catch { /* keep the current size */ }
-  };
-  const applyDragSizeRef = useRef(applyDragSize);
-  applyDragSizeRef.current = applyDragSize;
-
-  /* the drag itself — the handle lives outside the re-rendered preview */
-  const dragState = useRef(null);
-  const dragScaleRef = useRef(1);
-  dragScaleRef.current = Math.max(0.05, previewScale / 100);
-  const onHandleDown = (ev) => {
-    ev.preventDefault(); ev.stopPropagation();
-    dragState.current = { x: ev.clientX, y: ev.clientY, w: draftW, h: draftH, scale: dragScaleRef.current };
-    document.body.classList.add('is-reordering');
-    const move = (e2) => {
-      const st = dragState.current; if (!st) return;
-      const dw = Math.round(((e2.clientX - st.x) / st.scale) / (112 + 24));
-      const dh = Math.round(((e2.clientY - st.y) / st.scale) / (64 + 24));
-      applyDragSizeRef.current(st.w + dw, st.h + dh);
-    };
-    const up = () => {
-      dragState.current = null;
-      document.body.classList.remove('is-reordering');
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-      /* a drag that ends over the overlay must not read as a click on it —
-         that click is what used to close the whole modal mid-resize */
-      const squelch = (ce) => { ce.stopPropagation(); ce.preventDefault(); };
-      window.addEventListener('click', squelch, { capture: true, once: true });
-      setTimeout(() => window.removeEventListener('click', squelch, { capture: true }), 250);
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
 
   // The Quick Actions launcher — filtered strictly by user permissions
   const glassActionItems = [
@@ -5572,241 +5410,6 @@ export default function NewDashboard(props) {
     ]},
   ];
 
-  /* ── the shared styling panel — every family gets all of it ──────────── */
-  /* `hint` states what the geometry will do regardless of the switch. It is
-     amber only when it CONTRADICTS the switch — otherwise it is just a note. */
-  const SwitchRow = ({ on, set, title, sub, hint, warn }) => (
-    <button type="button" className="vq-v6-switch-wrapper" role="switch" aria-checked={on}
-            onClick={() => set(v => !v)}>
-      <span className="vq-v6-switch-label">
-        <span className="vq-v6-switch-title">{title}</span>
-        <span className="vq-v6-switch-sub">{sub}</span>
-        {hint && <span className={`vq-v6-switch-hint ${warn ? 'is-warn' : ''}`}>{hint}</span>}
-      </span>
-      <span className={`vq-v6-switch-track ${on ? 'is-on' : ''}`}>
-        <span className="vq-v6-switch-knob" />
-      </span>
-    </button>
-  );
-
-  const StylePanel = (
-    <>
-      {/* What this card is — stated, not typed. A card is named by what it
-          shows, so two boards of the same data read the same way. */}
-      <div className="vq-identity">
-        <span className="vq-identity-eyebrow">{familyLabel}</span>
-        <span className="vq-identity-name">{draftName}</span>
-        <span className="vq-identity-meta">
-          {isReadingCard && selectedReading?.desc ? <>{selectedReading.desc} </> : null}
-          <span className="vq-identity-opens">Opens {destLabel}.</span>
-        </span>
-      </div>
-
-      {/* ── Size: a few named sizes; the preview's corner does the rest ── */}
-      <div className="vq-form-group">
-        <label className="vq-form-label">
-          <span>Size</span>
-          <span className="vq-form-sublabel">or drag the corner of the preview</span>
-        </label>
-
-        <div className="vq-size-grid">
-          {sizeChips.map(s => (
-            <button key={`${s.cat}-${s.w}x${s.h}`} type="button"
-              className={`vq-size-card ${draftCat === s.cat && draftW === s.w && draftH === s.h ? 'is-active' : ''}`}
-              onClick={() => pickChip(s)}>
-              <SizeGlyph w={s.w} h={s.h} max={[12, 8]} />
-              <span className="vq-size-card-text">
-                <span className="vq-size-card-title">{s.label}</span>
-                <span className="vq-size-card-desc">{s.hint}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {draftW > boardColCount && (
-          <p className="vq-form-note is-warn">
-            Wider than this screen — here it fills the row, and spreads out fully on a bigger display.
-          </p>
-        )}
-      </div>
-
-      {/* ── Reading-only: chart type and variant ── */}
-      {isReadingCard && !chartlessCat && (
-        <>
-          <div className="vq-form-group">
-            <label className="vq-form-label">
-              <span>Chart type</span>
-              <span className="vq-form-sublabel">The size adjusts to fit</span>
-            </label>
-            <div className="vq-select-btn-group">
-              {legalCharts.map(ch => (
-                <button key={ch} type="button"
-                  className={`vq-choice-btn ${draftChart === ch ? 'is-active' : ''}`}
-                  onClick={() => handleChartSelect(ch)}>
-                  {chartNames[ch] || ch}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="vq-form-group">
-            <label className="vq-form-label">
-              <span>Style</span>
-              <span className="vq-form-sublabel">{chartNames[draftChart] || draftChart}</span>
-            </label>
-            <div className="vq-select-btn-group">
-              {currentVariants.map(([v, n, ok, why]) => (
-                <button key={v} type="button" disabled={ok === false} title={ok === false ? why : undefined}
-                  className={`vq-choice-btn ${draftVariant === v ? 'is-active' : ''} ${ok === false ? 'is-off' : ''}`}
-                  onClick={() => ok !== false && setDraftVariant(v)}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {isReadingCard && chartlessCat && (
-        <p className="vq-form-note">
-          This size shows the name and the number, nothing else — pick a bigger size to add a chart.
-        </p>
-      )}
-
-      {/* ── Shortcut-only: where it goes, and how it looks ── */}
-      {isShortcutCard && (
-        <>
-          <div className="vq-form-group">
-            <label className="vq-form-label">
-              <span>Where it goes</span>
-              <span className="vq-form-sublabel">The tile is named after its destination</span>
-            </label>
-            <div className="vq-dest-grid">
-              {SHORTCUT_TARGETS.map(t => {
-                const url = t.absolute ? t.path : storePath(t.path);
-                const on = draftLink === url;
-                return (
-                  <button key={t.path} type="button"
-                    className={`vq-dest-tile ${on ? 'is-active' : ''}`}
-                    onClick={() => {
-                      setCustomBtnTarget(t); setDraftLink(url);
-                      setDraftIcon(t.icon); setDraftColor(t.color);
-                    }}>
-                    <span className="vq-dest-glyph" style={{ background: t.color }}
-                          dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(t.icon, 16) || '' }} />
-                    <span className="vq-dest-name">{t.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="vq-form-group">
-            <label className="vq-form-label">
-              <span>Glyph</span>
-              <span className="vq-form-sublabel">Defaults to the destination's own</span>
-            </label>
-            <div className="vq-icon-grid">
-              {SHORTCUT_ICON_NAMES.map(n => (
-                <button key={n} type="button" aria-label={n}
-                  className={`vq-icon-swatch ${draftIcon === n ? 'is-active' : ''}`}
-                  onClick={() => setDraftIcon(n)}
-                  dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(n, 18) || '' }} />
-              ))}
-            </div>
-          </div>
-
-          <div className="vq-form-group">
-            <label className="vq-form-label">Glyph colour</label>
-            <div className="vq-color-grid">
-              {SHORTCUT_COLORS.map(col => (
-                <button key={col} type="button" aria-label={col}
-                  className={`vq-color-swatch ${draftColor === col ? 'is-active' : ''}`}
-                  style={{ background: col }} onClick={() => setDraftColor(col)} />
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── Tone: all four, all families ── */}
-      <div className="vq-form-group">
-        <label className="vq-form-label">
-          <span>Card background</span>
-          <span className="vq-form-sublabel">Readable on every page background</span>
-        </label>
-        <div className="vq-tone-grid">
-          {CARD_TONES.map(t => (
-            <button key={t.id} type="button"
-              className={`vq-tone-card ${draftTone === t.id ? 'is-active' : ''}`}
-              onClick={() => setDraftTone(t.id)}>
-              <span className="vq-tone-swatch" style={{ background: t.swatchBg }} />
-              <span className="vq-tone-info">
-                <span className="vq-tone-name">{t.name}</span>
-                <span className="vq-tone-desc">{t.desc}</span>
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Reading-only: which window the number covers ── */}
-      {isReadingCard && (
-        <div className="vq-form-group">
-          <label className="vq-form-label">
-            <span>Default timeframe</span>
-            <span className="vq-form-sublabel">What the card reads when it loads</span>
-          </label>
-          <div className="vq-select-btn-group">
-            {PERIOD_LABELS.map(p => (
-              <button key={p} type="button"
-                className={`vq-choice-btn ${draftPeriod === p ? 'is-active' : ''}`}
-                onClick={() => setDraftPeriod(p)}>{p}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── What the card face carries ── */}
-      <div className="vq-form-group">
-        <label className="vq-form-label">
-          <span>On the card face</span>
-          <span className="vq-form-sublabel">Each is hidden automatically when the card is too small</span>
-        </label>
-        <div className="vq-switch-stack">
-          <SwitchRow on={draftOpenArrow} set={setDraftOpenArrow}
-            title="Open arrow"
-            sub={`Jumps to ${destLabel}`}
-            hint="Appears on hover, in the card's top-right corner" />
-          {isReadingCard && (
-            <SwitchRow on={draftShowDelta} set={setDraftShowDelta}
-              title="Change pill"
-              sub="The ↗ 18.7% chip beside the number"
-              hint={draftW < 2 ? 'Needs 2 columns — hidden at this width' : null} warn />
-          )}
-          {isReadingCard && (
-            <SwitchRow on={draftShowWhen} set={setDraftShowWhen}
-              title="Timeframe caption"
-              sub="The “Month · Jul 30 – Aug 28” line under the number"
-              hint={draftH < 4 ? 'Needs 4 rows — hidden at this height' : null} warn />
-          )}
-          {isReadingCard && !chartlessCat && (
-            <SwitchRow on={draftShowPeriodPicker} set={setDraftShowPeriodPicker}
-              title="Timeframe picker"
-              sub="Readers can change the window without editing"
-              hint={draftW < 3 ? 'Needs 3 columns — hidden at this width' : null} warn />
-          )}
-          <SwitchRow on={draftStarBorder} set={setDraftStarBorder}
-            title="Animated star border"
-            sub="Marks a card as high priority" />
-          <SwitchRow on={draftGlare} set={setDraftGlare}
-            title="Glare reflex"
-            sub="Light sweeps the card on hover" />
-        </div>
-      </div>
-    </>
-  );
-
   return (
     <OneGlanceLayout activeMenu="Dashboard" noPadding={true} hideHeader={isNativeMobileApp}>
       <Head title="Dashboard" />
@@ -5845,7 +5448,7 @@ export default function NewDashboard(props) {
           <div className="vq-edit-banner">
             <span className="vq-edit-banner-text">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-              Drag any card to place it anywhere on the grid · drag the bottom-right corner to resize · the pencil opens the full editor.
+              Move a card with its six-dot handle · resize it from any edge or corner · Tidy up rearranges everything · the pencil opens the full editor.
             </span>
             <button type="button" className="vq-edit-banner-btn" onClick={() => setIsEditMode(false)}>Done</button>
           </div>
@@ -5860,6 +5463,18 @@ export default function NewDashboard(props) {
                     <FramePicker frames={frames} value={activeFrameKey} onChange={chooseFrame} />
                   </section>
                 )}
+                <div className="vq-board-bar" role="toolbar" aria-label="Arrange cards">
+                  {canUndoTidy && (
+                    <button type="button" className="vq-board-btn" onClick={() => { window.VenQoreCards?.undoTidy?.(); setCanUndoTidy(false); }}>
+                      Undo tidy
+                    </button>
+                  )}
+                  <button type="button" className="vq-board-btn" title="Close gaps and repack the cards, keeping their sizes"
+                    onClick={() => { if (window.VenQoreCards?.tidy?.()) setCanUndoTidy(true); }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                    Tidy up
+                  </button>
+                </div>
                 <div className="vq-grid" id="board" />
               </div>
 
@@ -5936,20 +5551,32 @@ export default function NewDashboard(props) {
         </div>
       ), document.body)}
 
-      {/* ── The wizard ──────────────────────────────────────────────────── */}
+      {/* ── The wizard: step 1 picks what, step 2 is the full editor ─────── */}
       {stepperModalOpen && typeof document !== 'undefined' && createPortal((
-        <div className="vq-modal-overlay" onClick={() => setStepperModalOpen(false)} role="dialog" aria-modal="true">
-          <div className="vq-modal-card" onClick={e => e.stopPropagation()}>
+        <div className="vq-modal-overlay" onClick={onWizardBackdrop} role="dialog" aria-modal="true"
+             aria-label={step === 1 ? 'Add a card' : 'Edit card'}>
+          <div className={`vq-modal-card ${step === 2 ? 'vq-modal-card--editor' : ''}`} onClick={e => e.stopPropagation()}>
+            {step === 2 && editorInit ? (
+              <CardEditor
+                key={`${editorInit.mode}-${editingCardId || 'new'}-${editorInit.initial?.key || editorInit.initial?.type || ''}`}
+                engine={engine()}
+                mode={editorInit.mode}
+                initial={editorInit.initial}
+                isNew={editorInit.isNew}
+                targetSlot={targetSlot}
+                catalog={editorInit.catalog}
+                onDirtyChange={(d) => { editorDirtyRef.current = d; }}
+                onSave={handleEditorSave}
+                onCancel={() => { if (editorInit.isNew && !editingCardId) { setStep(1); setEditorInit(null); } else closeWizard(); }}
+              />
+            ) : (
+            <>
             <div className="vq-modal-top-bar">
               <div>
-                <div className="vq-modal-step-sub">
-                  {editingCardId ? familyLabel : step === 1 ? 'ADD A CARD' : familyLabel}
-                </div>
-                <div className="vq-modal-heading">
-                  {step === 1 ? 'Add to your dashboard' : editingCardId ? 'Edit this card' : 'Make it yours'}
-                </div>
+                <div className="vq-modal-step-sub">ADD A CARD</div>
+                <div className="vq-modal-heading">Add to your dashboard</div>
               </div>
-              <button type="button" className="vq-modal-close-x" onClick={() => setStepperModalOpen(false)} aria-label="Close">
+              <button type="button" className="vq-modal-close-x" onClick={closeWizard} aria-label="Close">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </button>
             </div>
@@ -5989,8 +5616,8 @@ export default function NewDashboard(props) {
               </div>
             )}
 
-            <div className={`vq-modal-scroll-area ${step === 2 ? 'is-step2' : ''}`}>
-              {step === 1 ? (
+            <div className="vq-modal-scroll-area">
+              {(
                 isReadingCard ? (
                   Object.keys(groupedSections).length === 0 ? (
                     <p className="vq-modal-empty">Nothing matches “{searchQuery}”.</p>
@@ -6048,58 +5675,17 @@ export default function NewDashboard(props) {
                     </div>
                   </div>
                 )
-              ) : (
-                <div className="vq-step2-layout">
-                  <div className="vq-controls-pane">{StylePanel}</div>
-
-                  <div className="vq-preview-stage">
-                    <div className="vq-preview-bar">
-                      <span className="vq-preview-title">Live preview</span>
-                      <span className="vq-preview-meta">
-                        {draftGeo.w} × {draftGeo.h}
-                        {previewScale < 100 && <em className="vq-preview-scale"> · shown at {previewScale}%</em>}
-                      </span>
-                      <span className="vq-preview-zoom">
-                        <button type="button" className={previewZoom === 'fit' ? 'is-on' : ''}
-                                onClick={() => setPreviewZoom('fit')}>Fit</button>
-                        <button type="button" className={previewZoom === 'actual' ? 'is-on' : ''}
-                                onClick={() => setPreviewZoom('actual')}>100%</button>
-                      </span>
-                    </div>
-                    <div className="vq-preview-frame" ref={previewFrameRef}>
-                      <div className="vq-preview-card-host" ref={previewRef} />
-                      <button type="button" className="vq-preview-handle" ref={previewHandleRef}
-                              onPointerDown={onHandleDown}
-                              aria-label="Drag to resize" title="Drag to resize" />
-                    </div>
-                    <p className="vq-preview-foot">
-                      Drag the corner to resize — it snaps to sizes where everything always fits.
-                    </p>
-                  </div>
-                </div>
               )}
             </div>
 
             <div className="vq-modal-bottom-bar">
-              {step === 1 ? (
-                <span />
-              ) : (
-                <button type="button" className="vq-choice-btn"
-                        onClick={() => { if (editingCardId) { setStepperModalOpen(false); setEditingCardId(null); } else setStep(1); }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                  <span>{editingCardId ? 'Cancel' : 'Change card'}</span>
-                </button>
-              )}
-
+              <span className="vq-modal-foot-hint">{targetSlot ? `Filling a ${targetSlot.w} × ${targetSlot.h} slot` : 'Pick a reading — you will choose its chart and size next.'}</span>
               <div className="vq-modal-bottom-actions">
-                <button type="button" className="vq-modal-close-btn" onClick={() => setStepperModalOpen(false)}>Close</button>
-                {step === 2 && (
-                  <button type="button" className="vqb vqb--primary" onClick={handleAddCardConfirm}>
-                    {editingCardId ? 'Save changes' : 'Add to dashboard'}
-                  </button>
-                )}
+                <button type="button" className="vq-modal-close-btn" onClick={closeWizard}>Close</button>
               </div>
             </div>
+            </>
+            )}
           </div>
         </div>
       ), document.body)}

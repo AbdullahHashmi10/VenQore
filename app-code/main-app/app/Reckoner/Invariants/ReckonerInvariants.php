@@ -230,12 +230,19 @@ final class ReckonerInvariants
         $salesQuery = DB::table('sales')
             ->where('tenant_id', $tenant->id)
             ->whereBetween(DB::raw('DATE(COALESCE(posted_at, created_at))'), [$from, $to])
-            ->whereIn('status', ['posted', 'completed', 'active'])
+            // Returns are their own rows with status 'returned' (POS, legacy,
+            // import and SmartCapture all write them that way) and their
+            // refund posts DR 4000, so the ledger side is net of returns.
+            // Leaving them out compared gross sales to net revenue and made
+            // every period containing a return look like a broken ledger.
+            ->whereIn('status', ['posted', 'completed', 'active', 'partially_returned', 'returned'])
             ->whereNull('deleted_at');
 
-        $originalSales = (float) ((clone $salesQuery)->whereNull('original_sale_id')->sum('net_sales') ?? 0.0);
-        $returns = (float) ((clone $salesQuery)->whereNotNull('original_sale_id')->sum('net_sales') ?? 0.0);
-        $salesNetRevenue = round($originalSales - $returns, 2);
+        // A return reduces revenue whatever sign it was stored with.
+        $salesNetRevenue = round((float) ($salesQuery->selectRaw(
+            "COALESCE(SUM(CASE WHEN status = 'returned' OR original_sale_id IS NOT NULL
+                               THEN -ABS(net_sales) ELSE net_sales END), 0) AS net"
+        )->value('net') ?? 0.0), 2);
 
         // 2. Raw General Ledger query
         $ledgerRevenue = (float) DB::table('journal_items as ji')

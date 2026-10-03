@@ -17,7 +17,7 @@ export default function OnlineStoreIndex() {
  const tt = useTermText();
 
  return (
- <OneGlanceLayout title="Online Store" activeMenu="Marketing">
+ <OneGlanceLayout title="Online Store" activeMenu="Online Store">
  <Head title="Online Store Management" />
 
  <div className="space-y-6">

@@ -1,14 +1,41 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { MapPin, Clock, ShieldCheck } from 'lucide-react';
+import { MapPin, Clock, ShieldCheck, Minus, Plus } from 'lucide-react';
 import PublicShell, { shopToast } from '@/Components/Commerce/PublicShell';
 import { Alert, Badge, Btn, Field, Icon, Pager, initials, tone } from '@/Components/Commerce/shop';
 import { DAY_LABEL, cartStore, money, newKey } from '@/lib/commerce';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
-export default function Store({ preview, store, items, pagination, limits, categories = [], filters = {}, show_images = true, has_coupons = false }) {
+function format12Time(val) {
+    if (!val || !val.includes(':')) return '';
+    const [hStr, mStr] = val.split(':');
+    let h24 = parseInt(hStr, 10);
+    const m = (parseInt(mStr, 10) || 0).toString().padStart(2, '0');
+    if (isNaN(h24)) return val;
+    const period = h24 >= 12 ? 'PM' : 'AM';
+    let h12 = h24 % 12;
+    if (h12 === 0) h12 = 12;
+    return `${h12}:${m} ${period}`;
+}
+
+function formatHourRange(h) {
+    if (!h || !h.open || !h.close) return 'Closed';
+    if (h.open === h.close) return 'Open 24 hours';
+    const o = format12Time(h.open);
+    const c = format12Time(h.close);
+    const [oh, om] = h.open.split(':').map((n) => parseInt(n, 10) || 0);
+    const [ch, cm] = h.close.split(':').map((n) => parseInt(n, 10) || 0);
+    const isOvernight = (ch * 60 + cm) < (oh * 60 + om);
+    let str = isOvernight ? `${o} – ${c} (+1 Day)` : `${o} – ${c}`;
+    if (h.break_start && h.break_end) {
+        str += ` · Break: ${format12Time(h.break_start)} – ${format12Time(h.break_end)}`;
+    }
+    return str;
+}
+
+export default function Store({ preview, store, items, pagination, limits, categories = [], filters = {}, show_images = true, has_coupons = false, rating_summary, customer }) {
     const [search, setSearch] = useState(filters.q || '');
     const goCatalogue = (params) => router.get(`/shop/${store.slug}`, { q: filters.q || undefined, category: filters.category || undefined, ...params }, { preserveState: true, preserveScroll: true, only: ['items', 'pagination', 'filters', 'categories'] });
     const sym = store.currency_symbol;
@@ -49,11 +76,21 @@ export default function Store({ preview, store, items, pagination, limits, categ
     ) : null);
 
     useEffect(() => {
-        const open = cartOpen || detail;
-        document.body.style.overflow = open ? 'hidden' : '';
+        const open = Boolean(cartOpen || detail);
+        if (open) {
+            document.documentElement.setAttribute('data-vq-modal-open', 'true');
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.documentElement.removeAttribute('data-vq-modal-open');
+            document.body.style.overflow = '';
+        }
         const onKey = (e) => { if (e.key === 'Escape') { setCartOpen(false); setDetail(null); } };
         window.addEventListener('keydown', onKey);
-        return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.documentElement.removeAttribute('data-vq-modal-open');
+            document.body.style.overflow = '';
+        };
     }, [cartOpen, detail]);
 
     const persist = (next) => { cartStore.write(next); setCartRev((r) => r + 1); };
@@ -135,7 +172,13 @@ export default function Store({ preview, store, items, pagination, limits, categ
     const payLabel = [store.payments.cod && 'Cash on delivery', store.payments.pickup && 'Pay at pickup', store.payments.bank && 'Bank transfer'].filter(Boolean).join(' · ');
 
     return (
-        <PublicShell title={store.name} bag={{ count, total: quote?.total ?? 0, onClick: () => setCartOpen(true) }}>
+        <PublicShell
+            title={store.name}
+            storeSlug={store.slug}
+            ratingSummary={rating_summary}
+            customer={customer}
+            bag={{ count, total: quote?.total ?? 0, onClick: () => setCartOpen(true) }}
+        >
             <Head title={`${store.name}${store.city ? ` — ${store.city}` : ''}`}>
                 <meta name="description" content={store.description || `Order from ${store.name}${store.city ? ` in ${store.city}` : ''}.`} />
             </Head>
@@ -153,8 +196,27 @@ export default function Store({ preview, store, items, pagination, limits, categ
                             {store.description && <p className="vqs-muted" style={{ margin: 0, fontSize: 15, lineHeight: 1.5, maxWidth: '56ch' }}>{store.description}</p>}
                         </div>
                         <div className="vqs-meta">
-                            {store.open_now === true && <Badge kind="ok">Open now</Badge>}
-                            {store.open_now === false && <Badge>Closed now</Badge>}
+                            {store.hours_guidance?.is_on_break ? (
+                                <Badge kind="warn">
+                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', marginRight: 6 }} />
+                                    On break{store.hours_guidance?.opens_at ? ` · Resumes ${store.hours_guidance.opens_at}` : ''}
+                                </Badge>
+                            ) : store.open_now === true ? (
+                                <Badge kind="ok">
+                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#10b981', marginRight: 6 }} />
+                                    Open now{store.hours_guidance?.closes_at ? ` · Closes ${store.hours_guidance.closes_at}` : ''}
+                                </Badge>
+                            ) : store.open_now === false ? (
+                                <Badge>
+                                    <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#9ca3af', marginRight: 6 }} />
+                                    Closed now{store.hours_guidance?.opens_at ? ` · Opens ${store.hours_guidance.opens_at}` : ''}
+                                </Badge>
+                            ) : null}
+                            {rating_summary?.average && (
+                                <span className="vqs-row" style={{ gap: 4, color: '#F5B32E', fontWeight: 600 }}>
+                                    ★ {rating_summary.average.toFixed(1)} <span style={{ color: 'var(--vq-text-3)', fontWeight: 500 }}>({rating_summary.count || 0})</span>
+                                </span>
+                            )}
                             {(store.address || store.city) && <span className="vqs-row" style={{ gap: 6 }}>{Icon.pin}{[store.address, store.city].filter(Boolean).join(' · ')}</span>}
                             {store.phone && <a className="vqs-row vqs-num" style={{ gap: 6, color: 'inherit' }} href={`tel:${store.phone}`}>{Icon.phone}{store.phone}</a>}
                             {store.map_url && <a href={store.map_url} target="_blank" rel="noopener noreferrer">View on map</a>}
@@ -170,16 +232,50 @@ export default function Store({ preview, store, items, pagination, limits, categ
                 </div>
                 {hours && (
                     <details style={{ padding: '0 24px 20px', fontSize: 14 }}>
-                        <summary style={{ cursor: 'pointer', fontWeight: 600 }} className="vqs-row">{Icon.clock}<span style={{ marginLeft: 6 }}>Opening hours</span></summary>
-                        <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', maxWidth: 320 }}>
-                            {DAYS.map((d) => <li key={d} className="vqs-between" style={{ padding: '3px 0' }}><span>{DAY_LABEL[d]}</span><span className="vqs-faint vqs-num">{hours[d] ? `${hours[d].open}–${hours[d].close}` : 'Closed'}</span></li>)}
+                        <summary style={{ cursor: 'pointer', fontWeight: 600 }} className="vqs-row">
+                            {Icon.clock}<span style={{ marginLeft: 6 }}>Opening hours</span>
+                            {store.hours_guidance?.current_time && (
+                                <span className="vqs-faint" style={{ fontSize: 12, marginLeft: 'auto', fontWeight: 400 }}>
+                                    Store time: {store.hours_guidance.current_time}
+                                </span>
+                            )}
+                        </summary>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: '10px 0 0', maxWidth: 360 }}>
+                            {DAYS.map((d) => {
+                                const isToday = store.hours_guidance?.current_day_key === d;
+                                return (
+                                    <li key={d} className="vqs-between" style={{ padding: '4px 0', fontWeight: isToday ? 600 : 400 }}>
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            {DAY_LABEL[d]}
+                                            {isToday && (
+                                                <span style={{ fontSize: 10, background: 'rgba(11, 170, 143, 0.15)', color: '#0baa8f', padding: '1px 6px', borderRadius: 999, fontWeight: 700 }}>
+                                                    Today
+                                                </span>
+                                            )}
+                                        </span>
+                                        <span className="vqs-faint vqs-num" style={{ textAlign: 'right' }}>
+                                            {formatHourRange(hours[d])}
+                                        </span>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </details>
                 )}
             </section>
 
             {preview && <div style={{ marginTop: 16 }}><Alert kind="info">Preview: only you can see this page. Customers cannot see or order from your shop until you publish it.</Alert></div>}
-            {!preview && !store.accepting_orders && <div style={{ marginTop: 16 }}><Alert kind="warn">{store.closed_by_hours ? 'This business is closed right now and is not taking orders outside its opening hours. You can still look around and come back when it opens.' : 'This business is not taking online orders right now. You can still look around.'}</Alert></div>}
+            {!preview && !store.accepting_orders && (
+                <div style={{ marginTop: 16 }}>
+                    <Alert kind="warn">
+                        {store.hours_guidance?.is_on_break && !store.orders_during_break
+                            ? `This business is currently on break until ${store.hours_guidance.break_info?.resumes_at || store.hours_guidance.opens_at}. Orders will resume after the break.`
+                            : store.closed_by_hours
+                            ? 'This business is closed right now and is not taking orders outside its opening hours. You can still look around and come back when it opens.'
+                            : 'This business is not taking online orders right now. You can still look around.'}
+                    </Alert>
+                </div>
+            )}
             {pendingSwitch && (
                 <div style={{ marginTop: 16 }}><Alert kind="warn">
                     Your cart has items from another business. One shop per order — adding here will replace it.
@@ -233,9 +329,13 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                                 <span><span className="vqs-price">{money(it.price, sym)}</span>{it.was_price && <s className="vqs-was">{money(it.was_price, sym)}</s>}<br /><span className="vqs-unit">/ {it.unit}</span></span>
                                                 {inCart > 0 ? (
                                                     <span className="vqs-qty">
-                                                        <button type="button" aria-label={`Remove one ${it.name}`} onClick={() => setQty(it.id, inCart - 1)}>−</button>
+                                                        <button type="button" aria-label={`Remove one ${it.name}`} onClick={() => setQty(it.id, inCart - 1)}>
+                                                            <Minus size={13} strokeWidth={2.5} />
+                                                        </button>
                                                         <span>{inCart}</span>
-                                                        <button type="button" aria-label={`Add one ${it.name}`} onClick={() => add(it)}>+</button>
+                                                        <button type="button" aria-label={`Add one ${it.name}`} onClick={() => add(it)}>
+                                                            <Plus size={13} strokeWidth={2.5} />
+                                                        </button>
                                                     </span>
                                                 ) : (
                                                     <button type="button" className="vqs-btn vqs-btn--round" aria-label={`Add ${it.name} to cart`} disabled={!store.accepting_orders || it.stock === 'out'} onClick={() => add(it)}>+</button>
@@ -271,19 +371,53 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         <span style={{ display: 'block', marginTop: 8 }}><Btn variant="soft" onClick={removeProblems}>Remove them</Btn></span>
                                     </Alert>
                                 )}
-                                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                                     {cart.lines.map((l) => {
                                         const q = quote?.items?.find((x) => x.item_id === l.item_id);
+                                        const fullTitle = q?.title || l.name || 'Item';
+                                        const parts = fullTitle.split(' — ');
+                                        const mainTitle = parts[0];
+                                        const optionLabel = parts.length > 1 ? parts.slice(1).join(' — ') : null;
+
                                         return (
-                                            <li key={l.item_id} className="vqs-line">
-                                                <span style={{ minWidth: 0 }}><span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{q?.title || l.name || 'Item'}</span>
-                                                    {q && <span className="vqs-faint vqs-num" style={{ fontSize: 12 }}>{money(q.price, sym)} each</span>}</span>
-                                                <span className="vqs-qty vqs-qty--sm">
-                                                    <button type="button" aria-label="Decrease quantity" onClick={() => setQty(l.item_id, l.quantity - 1)}>−</button>
-                                                    <span>{l.quantity}</span>
-                                                    <button type="button" aria-label="Increase quantity" onClick={() => setQty(l.item_id, l.quantity + 1)}>+</button>
-                                                </span>
-                                                <span className="vqs-num" style={{ minWidth: 76, textAlign: 'right' }}>{q ? money(q.line_total, sym) : '…'}</span>
+                                            <li key={l.item_id} className="vqs-cart-item">
+                                                <div className="vqs-cart-item-header">
+                                                    <div className="vqs-cart-item-name-block">
+                                                        <span className="vqs-cart-item-name" title={mainTitle}>{mainTitle}</span>
+                                                        {optionLabel && (
+                                                            <span className="vqs-cart-item-badge">
+                                                                {optionLabel}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className="vqs-cart-item-total vqs-num">
+                                                        {q ? money(q.line_total, sym) : '…'}
+                                                    </span>
+                                                </div>
+                                                <div className="vqs-cart-item-footer">
+                                                    <span className="vqs-cart-item-rate vqs-num">
+                                                        {q ? `${money(q.price, sym)} each` : ''}
+                                                    </span>
+                                                    <div className="vqs-cart-item-stepper">
+                                                        <span className="vqs-qty vqs-qty--sm">
+                                                            <button
+                                                                type="button"
+                                                                aria-label={`Decrease quantity of ${mainTitle}`}
+                                                                onClick={() => setQty(l.item_id, l.quantity - 1)}
+                                                            >
+                                                                <Minus size={11} strokeWidth={2.5} />
+                                                            </button>
+                                                            <span>{l.quantity}</span>
+                                                            <button
+                                                                type="button"
+                                                                aria-label={`Increase quantity of ${mainTitle}`}
+                                                                onClick={() => setQty(l.item_id, l.quantity + 1)}
+                                                            >
+                                                                <Plus size={11} strokeWidth={2.5} />
+                                                            </button>
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </li>
                                         );
                                     })}
@@ -404,9 +538,13 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                     {dq > 0 ? (
                                         <>
                                             <span className="vqs-qty">
-                                                <button type="button" aria-label={`Remove one ${d.name}`} onClick={() => setQty(d.id, dq - 1)}>−</button>
+                                                <button type="button" aria-label={`Remove one ${d.name}`} onClick={() => setQty(d.id, dq - 1)}>
+                                                    <Minus size={13} strokeWidth={2.5} />
+                                                </button>
                                                 <span>{dq}</span>
-                                                <button type="button" aria-label={`Add one ${d.name}`} onClick={() => add(d)}>+</button>
+                                                <button type="button" aria-label={`Add one ${d.name}`} onClick={() => add(d)}>
+                                                    <Plus size={13} strokeWidth={2.5} />
+                                                </button>
                                             </span>
                                             <Btn size="lg" onClick={() => { setDetail(null); setCartOpen(true); }}>View cart</Btn>
                                         </>

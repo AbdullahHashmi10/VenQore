@@ -201,7 +201,7 @@ const SETTINGS_SECTIONS = [
         name: 'Features & Connections',
         icon: Sparkles,
         description: 'Turn on features and connect external services',
-        keywords: ['system builder', 'apps', 'modules', 'ai', 'gemini', 'openai', 'fbr', 'stripe', 'woocommerce']
+        keywords: ['system builder', 'apps', 'modules', 'ai', 'gemini', 'openai', 'fbr', 'stripe', 'woocommerce', 'online store', 'online shop', 'ecommerce', 'online orders']
     },
 
     // Access & Data

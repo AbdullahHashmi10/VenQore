@@ -49,7 +49,7 @@ class PromotionsController extends Controller
         return Inertia::render('OnlineStore/Promotions', [
             'store' => ['id' => $store->id, 'slug' => $store->slug, 'display_name' => $store->display_name, 'status' => $store->status, 'timezone' => $store->timezone, 'currency_symbol' => $store->currency_symbol],
             'promotions' => $rows, 'categories' => $cats,
-            'urls' => ['home' => $r('home'), 'settings' => $r('settings'), 'products' => $r('products'), 'orders' => $r('orders'), 'alerts' => $r('alerts'),
+            'urls' => ['home' => $r('home'), 'settings' => $r('settings'), 'products' => $r('products'), 'orders' => $r('orders'), 'alerts' => $r('alerts'), 'public' => url('/shop/' . $store->slug),
                 'promotions' => $r('promotions'), 'save' => $r('promotions.save'), 'toggle' => route('store.commerce.promotions.toggle', ['store_slug' => $slug, 'id' => '__ID__']),
                 'destroy' => route('store.commerce.promotions.destroy', ['store_slug' => $slug, 'id' => '__ID__'])],
         ]);

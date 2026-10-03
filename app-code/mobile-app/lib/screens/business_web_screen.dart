@@ -7,8 +7,11 @@ import '../theme/app_colors.dart';
 import 'about_app_screen.dart';
 import 'account_center_screen.dart';
 import 'activity_center_screen.dart';
+import 'business_menu_screen.dart';
 import 'help_screen.dart';
+import 'pos_center_screen.dart';
 import 'quick_actions_screen.dart';
+import 'sales_center_screen.dart';
 import 'welcome_screen.dart';
 import 'workspace_screen.dart';
 
@@ -225,6 +228,38 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.pine,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(
+                      Icons.grid_view_rounded,
+                      color: AppColors.tealBright,
+                    ),
+                    title: const Text(
+                      'All business tools',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    subtitle: const Text(
+                      'Sales, stock, money, reports, team, and settings',
+                      style: TextStyle(color: Color(0xFFB8D0CA)),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openNativePage(const BusinessMenuScreen());
+                    },
+                  ),
+                ),
                 ListTile(
                   leading: const Icon(Icons.bolt_rounded),
                   title: const Text('Quick actions'),
@@ -449,11 +484,9 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
                 final home = _storeHomeUri;
                 _controller.loadRequest(home ?? AppConfig.loginUri);
               case 1:
-                final sales = _storePath('/sales');
-                if (sales != null) _controller.loadRequest(sales);
+                _openNativePage(const SalesCenterScreen());
               case 2:
-                final pos = _storePath('/pos');
-                if (pos != null) _controller.loadRequest(pos);
+                _openNativePage(const PosCenterScreen());
               case 3:
                 _openMore();
             }

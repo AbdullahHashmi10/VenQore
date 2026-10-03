@@ -212,3 +212,78 @@ def sync_reset(b):
     indent = b[ls:i]
     return b[:ls] + indent + b"\\App\\Services\\Commerce\\HoldGuard::$offlineSale = false;" + nl + b[ls:]
 patch('app/Http/Controllers/Api/SyncController.php', sync_reset)
+
+# ---- navigation: sidebar entry + Settings card for the built-in Online Store ----
+def sidebar(b):
+    nl = b'\r\n' if b'\r\n' in b else b'\n'
+    if b"name: 'Online Store'" in b:
+        return b
+    anchor = b" {" + nl + b" name: 'VenSynQ'," + nl + b" icon: RefreshCcw,"
+    assert anchor in b, 'OneGlanceLayout VenSynQ anchor not found'
+    entry = (b" ...(store ? [{" + nl +
+             b" name: 'Online Store'," + nl +
+             b" icon: Store," + nl +
+             b" subs: [" + nl +
+             b" { group: 'Online Store', items: [" + nl +
+             b" { label: 'Store Overview', route: 'store.commerce.home' }," + nl +
+             b" { label: 'Online Orders', route: 'store.commerce.orders' }," + nl +
+             b" { label: 'Online Products', route: 'store.commerce.products' }," + nl +
+             b" { label: 'Offers & Coupons', route: 'store.commerce.promotions' }," + nl +
+             b" { label: 'Store Settings', route: 'store.commerce.settings' }," + nl +
+             b" ] }," + nl +
+             b" ]," + nl +
+             b" route: 'store.commerce.home'," + nl +
+             b" routeParams: { store_slug: store.slug }" + nl +
+             b" }] : []),")
+    b = b.replace(anchor, entry + nl + anchor, 1)
+    perm_anchor = b" 'VenSynQ': ['sales.create', 'inventory.adjust'],"
+    assert perm_anchor in b, 'MENU_PERMISSIONS anchor not found'
+    b = b.replace(perm_anchor, perm_anchor + nl + b" 'Online Store': ['sales.view', 'admin.settings_manage'],", 1)
+    return b
+patch('resources/js/Layouts/OneGlanceLayout.jsx', sidebar)
+
+def settings_card(b):
+    nl = b'\r\n' if b'\r\n' in b else b'\n'
+    if b"Online ordering (free)" in b:
+        return b
+    anchor = b"{/* WooCommerce Card */}"
+    assert anchor in b, 'Settings WooCommerce card anchor not found'
+    i = b.index(anchor)
+    ls = b.rfind(nl, 0, i) + len(nl)
+    ind = b[ls:i]
+    card = r'''{/* Built-in Online Store */}
+<div className="p-6 bg-surface rounded-2xl border border-brand-200 shadow-xs flex flex-col justify-between">
+    <div className="space-y-3">
+        <div className="flex items-center justify-between">
+            <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+                <ShoppingBag size={20} />
+            </div>
+            <span className="px-2 py-0.5 text-3xs font-bold uppercase tracking-wider rounded border bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">Free</span>
+        </div>
+        <div>
+            <h4 className="text-sm font-bold text-ink">Online ordering (free)</h4>
+            <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                Your own shop page with pickup, delivery, offers and a QR code. Orders use your existing stock and prices.
+            </p>
+        </div>
+    </div>
+    <div className="pt-4 mt-4 border-t border-line">
+        <a href={`/s/${store?.slug || 'store'}/online-store`} className="text-xs font-bold text-brand-600 hover:text-brand-500 inline-flex items-center gap-1">
+            <span>Set up your online store</span>
+            <ExternalLink size={12} />
+        </a>
+    </div>
+</div>
+
+'''
+    block = nl.join([(ind + ln.encode()) if ln else b'' for ln in card.split('\n')])
+    return b[:ls] + block + b[ls:]
+patch('resources/js/Components/Settings/FeaturesConnectionsSection.jsx', settings_card)
+
+def settings_keywords(b):
+    if b"'online store'" in b:
+        return b
+    anchor = b"'fbr', 'stripe', 'woocommerce']"
+    assert anchor in b, 'Settings keywords anchor not found'
+    return b.replace(anchor, b"'fbr', 'stripe', 'woocommerce', 'online store', 'online shop', 'ecommerce', 'online orders']", 1)
+patch('resources/js/Pages/Admin/Settings.jsx', settings_keywords)

@@ -9,6 +9,7 @@ class MobilePageAction {
     required this.icon,
     required this.path,
     this.emphasized = false,
+    this.badge,
   });
 
   final String title;
@@ -16,6 +17,7 @@ class MobilePageAction {
   final IconData icon;
   final String path;
   final bool emphasized;
+  final String? badge;
 }
 
 class MobileSectionPage extends StatelessWidget {
@@ -35,32 +37,22 @@ class MobileSectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.pine,
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.tealBright.withValues(alpha: .16),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Icon(icon, color: AppColors.tealBright),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Text(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: ListView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+              children: [
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final compact = constraints.maxWidth < 330;
+                    final message = Text(
                       introduction,
                       style: const TextStyle(
                         color: Color(0xFFD8E9E4),
@@ -68,14 +60,47 @@ class MobileSectionPage extends StatelessWidget {
                         height: 1.45,
                         fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  ),
-                ],
-              ),
+                    );
+                    final mark = Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.tealBright.withValues(alpha: .16),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Icon(icon, color: AppColors.tealBright),
+                    );
+                    return Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.pine,
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: compact
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                mark,
+                                const SizedBox(height: 14),
+                                message,
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                mark,
+                                const SizedBox(width: 15),
+                                Expanded(child: message),
+                              ],
+                            ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 18),
+                ...actions.map((action) => _ActionRow(action: action)),
+              ],
             ),
-            const SizedBox(height: 18),
-            ...actions.map((action) => _ActionRow(action: action)),
-          ],
+          ),
         ),
       ),
     );
@@ -127,6 +152,8 @@ class _ActionRow extends StatelessWidget {
                     children: [
                       Text(
                         action.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: color,
                           fontWeight: FontWeight.w700,
@@ -136,6 +163,8 @@ class _ActionRow extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         action.subtitle,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: AppColors.inkMuted,
                           fontSize: 13,
@@ -145,6 +174,27 @@ class _ActionRow extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (action.badge != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F8F2),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      action.badge!,
+                      style: const TextStyle(
+                        color: AppColors.teal,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
                 const Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.inkMuted,

@@ -16,7 +16,7 @@
  */
 import React, { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { usePage } from '@inertiajs/react';
-import { ArrowRight, ChevronDown, Menu, Moon, Sun, X } from 'lucide-react';
+import { ArrowRight, ChevronDown, Menu, Moon, Sun, X, ShoppingBag, Store } from 'lucide-react';
 import { useTheme } from '@/Contexts/ThemeContext';
 import useHeaderTone from './useHeaderTone';
 import { BUSINESS_TYPE_CLAIM } from './sectorCatalog';
@@ -102,7 +102,7 @@ function ThemeButton({ className = '' }) {
     );
 }
 
-export default function SiteHeader() {
+export default function SiteHeader({ bag, storeTitle, storeSlug } = {}) {
     const page = usePage();
     const path = (page?.url || (typeof window !== 'undefined' ? window.location.pathname : '/')).split('?')[0];
     const user = page?.props?.auth?.user || null;
@@ -171,7 +171,6 @@ export default function SiteHeader() {
 
     return (
         <>
-            <a className="vq-skip" href="#main">Skip to content</a>
             <header
                 ref={headerRef}
                 className={`vq-sh${scrolled ? ' is-scrolled' : ''}${open ? ' has-open' : ''}`}
@@ -180,10 +179,22 @@ export default function SiteHeader() {
             >
                 <div className="vq-sh__glass" aria-hidden="true" />
                 <div className="vq-sh__inner">
-                    <a className="vq-btn-plain vq-sh__brand" href="/" aria-label="VenQore home">
-                        <img src="/v6/assets/logo.png" alt="" width="30" height="30" />
-                        <span>VenQore</span>
-                    </a>
+                    <div className="vq-sh__brand-wrap">
+                        <a className="vq-btn-plain vq-sh__brand" href="/" aria-label="VenQore home">
+                            <img src="/v6/assets/logo.png" alt="" width="30" height="30" />
+                            <span>VenQore</span>
+                        </a>
+                        {storeTitle && (
+                            <a
+                                href={storeSlug ? `/shop/${storeSlug}` : '#'}
+                                className="vq-sh__store-pill"
+                                title={`Currently browsing ${storeTitle}`}
+                            >
+                                <Store size={13} aria-hidden="true" />
+                                <span>{storeTitle}</span>
+                            </a>
+                        )}
+                    </div>
 
                     <nav className="vq-sh__nav" aria-label="Main">
                         <ul className="vq-sh__list">
@@ -235,7 +246,24 @@ export default function SiteHeader() {
                     </nav>
 
                     <div className="vq-sh__actions">
+                        {bag && (
+                            <button
+                                type="button"
+                                className={`vq-sh-bagbtn ${bag.bump ? 'bump' : ''}`}
+                                onClick={bag.onClick}
+                                aria-label={`Open shopping cart, ${bag.count || 0} items`}
+                                title={`Shopping cart (${bag.count || 0} items)`}
+                            >
+                                <ShoppingBag size={18} aria-hidden="true" />
+                                {bag.count > 0 && (
+                                    <span className="vq-sh-bagbadge" key={bag.count}>
+                                        {bag.count}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                         <ThemeButton />
+                        <a className="vq-btn-plain vq-sh__link" href="/order-lookup" title="Track an existing order">Track Order</a>
                         <a className="vq-btn-plain vq-sh__link vq-sh__signin" href={accountLink.href}>{accountLink.label}</a>
                         <a className="vq-btn vq-btn--primary vq-sh__cta" href={PRIMARY_CTA.href}>
                             {PRIMARY_CTA.label}
@@ -244,6 +272,22 @@ export default function SiteHeader() {
                     </div>
 
                     <div className="vq-sh__mobile-actions">
+                        {bag && (
+                            <button
+                                type="button"
+                                className={`vq-sh-bagbtn ${bag.bump ? 'bump' : ''}`}
+                                onClick={bag.onClick}
+                                aria-label={`Open shopping cart, ${bag.count || 0} items`}
+                                title={`Shopping cart (${bag.count || 0} items)`}
+                            >
+                                <ShoppingBag size={18} aria-hidden="true" />
+                                {bag.count > 0 && (
+                                    <span className="vq-sh-bagbadge" key={bag.count}>
+                                        {bag.count}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                         <ThemeButton />
                         <button
                             type="button"
@@ -269,10 +313,18 @@ export default function SiteHeader() {
                 data-tone-ignore=""
             >
                 <div className="vq-sh-sheet__top">
-                    <a className="vq-btn-plain vq-sh__brand" href="/" aria-label="VenQore home">
-                        <img src="/v6/assets/logo.png" alt="" width="28" height="28" />
-                        <span>VenQore</span>
-                    </a>
+                    <div className="vq-sh__brand-wrap">
+                        <a className="vq-btn-plain vq-sh__brand" href="/" aria-label="VenQore home">
+                            <img src="/v6/assets/logo.png" alt="" width="28" height="28" />
+                            <span>VenQore</span>
+                        </a>
+                        {storeTitle && (
+                            <span className="vq-sh__store-pill">
+                                <Store size={12} aria-hidden="true" />
+                                <span>{storeTitle}</span>
+                            </span>
+                        )}
+                    </div>
                     <button type="button" className="vq-sh-icon" aria-label="Close menu" onClick={() => setMobile(false)}>
                         <X size={22} aria-hidden="true" />
                     </button>
@@ -310,8 +362,21 @@ export default function SiteHeader() {
                     })}
                     <a className="vq-btn-plain vq-sh-sheet__plain" href="/features">Features</a>
                     <a className="vq-btn-plain vq-sh-sheet__plain" href="/pricing">Pricing</a>
+                    <a className="vq-btn-plain vq-sh-sheet__plain" href="/shop">Browse All Shops</a>
+                    <a className="vq-btn-plain vq-sh-sheet__plain" href="/order-lookup">Track My Order</a>
                 </div>
                 <div className="vq-sh-sheet__actions">
+                    {bag && bag.count > 0 && (
+                        <button
+                            type="button"
+                            className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block"
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}
+                            onClick={() => { setMobile(false); bag.onClick(); }}
+                        >
+                            <ShoppingBag size={18} />
+                            <span>View Bag ({bag.count} items)</span>
+                        </button>
+                    )}
                     <a href={accountLink.href} className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">{accountLink.label}</a>
                     <a href={PRIMARY_CTA.href} className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">
                         {PRIMARY_CTA.label}

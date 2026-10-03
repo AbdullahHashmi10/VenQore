@@ -319,17 +319,20 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                         )}
 
                         {/* Header Band */}
-                        <div className="relative bg-gradient-to-r from-rose-600 to-red-600 px-6 py-5 overflow-hidden">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                            <div className="absolute bottom-0 left-10 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
-                            <div className="relative flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-                                    <ArrowUpCircle size={22} className="text-white" />
+                        <div className="relative bg-surface border-b border-line px-6 py-5">
+                            <div className="relative flex items-center justify-between">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-sm">
+                                        <ArrowUpCircle size={22} />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-ink tracking-tight">{approval_correction ? 'Resubmit Payment' : 'Record Payment Out'}</h1>
+                                        <p className="text-xs font-medium text-ink-secondary">{approval_correction ? 'Update returned details and resubmit' : 'Money paid out to a supplier, contact, or expense'}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h1 className="text-xl font-bold text-white tracking-tight">{approval_correction ? 'Resubmit Payment' : 'Record Payment Out'}</h1>
-                                    <p className="text-rose-100 text-sm">{approval_correction ? 'Update returned details and resubmit' : 'Money paid out to a contact'}</p>
-                                </div>
+                                <span className="text-xs font-bold px-3 py-1 rounded-full bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
+                                    Payment Out
+                                </span>
                             </div>
                         </div>
 

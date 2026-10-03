@@ -1940,15 +1940,29 @@ class MeasureEngine
             'data_version' => (int) ($tenant->reckoner_data_version ?? 0),
         ]);
 
+        // A cross-check that disagrees is a finding about the books, not a
+        // reason to hide the reading. The figure is the reading's own
+        // calculation, so it is returned, and the disagreement travels with it
+        // as `meta.verification` for the card to show as a clearly worded
+        // flag. Hiding a revenue figure behind an accounting audit left owners
+        // with a blank card for causes (imported history, web-shop orders that
+        // post straight to the ledger, a stray manual entry) they could not
+        // see or fix from the dashboard.
         if ($failedLedgerCheck) {
-            return ReckonerResult::failure(
-                id: $requestId,
-                key: $key,
-                code: 'books_disagree',
-                message: $failedLedgerCheck['message'],
-                checks: $checks,
-                meta: $meta
-            );
+            $meta['verification'] = [
+                'status'     => 'mismatch',
+                'check'      => $failedLedgerCheck['key'] ?? null,
+                'message'    => $failedLedgerCheck['message'] ?? '',
+                'expected'   => $failedLedgerCheck['expected'] ?? null,
+                'actual'     => $failedLedgerCheck['actual'] ?? null,
+                'difference' => $failedLedgerCheck['difference'] ?? null,
+            ];
+            \Illuminate\Support\Facades\Log::notice('[Reckoner] ledger cross-check disagrees', [
+                'tenant_id' => $tenantId,
+                'key'       => $key,
+                'check'     => $failedLedgerCheck['key'] ?? null,
+                'message'   => $failedLedgerCheck['message'] ?? '',
+            ]);
         }
 
         return ReckonerResult::success(

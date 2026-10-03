@@ -32,6 +32,15 @@ input::-ms-clear {
     display: none;
 }
 
+/* Ensure any skip links remain strictly offscreen unless focused */
+.vq-skip:not(:focus) {
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 
 /* ════════════════════════════════════════════════════════════════════════════
    CRITICAL CONTRAST SAFEGUARD FOR BUTTONS AND ACTION LINKS
@@ -230,7 +239,9 @@ button[class*="bg-neutral-900"][class*="text-white"] {
     html[data-vq-shell="marketing"],
     html[data-vq-shell="workspace-builder"],
     html[data-vq-shell="builder"],
-    html:has(.vq-site) {
+    html[data-vq-shell="commerce"],
+    html:has(.vq-site),
+    html:has(.vqs-shop) {
         height: auto;
         min-height: 100%;
         overflow-y: auto !important;
@@ -243,13 +254,24 @@ button[class*="bg-neutral-900"][class*="text-white"] {
     html[data-vq-shell="workspace-builder"] #app,
     html[data-vq-shell="builder"] body,
     html[data-vq-shell="builder"] #app,
+    html[data-vq-shell="commerce"] body,
+    html[data-vq-shell="commerce"] #app,
     html:has(.vq-site) body,
     html:has(.vq-site) #app,
+    html:has(.vqs-shop) body,
+    html:has(.vqs-shop) #app,
     body:has(.vq-site),
-    #app:has(.vq-site) {
+    body:has(.vqs-shop),
+    #app:has(.vq-site),
+    #app:has(.vqs-shop) {
         height: auto;
         min-height: 100%;
         overflow: visible !important;
+    }
+
+    html[data-vq-modal-open="true"],
+    html[data-vq-modal-open="true"] body {
+        overflow: hidden !important;
     }
 
     /* Webkit Browsers (Chrome, Safari, Edge) */

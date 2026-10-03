@@ -1049,9 +1049,18 @@ class SaleController extends Controller
             ]);
         }
 
-        return Inertia::render('Sales/Show', [
-            'sale' => $sale,
-            'bankAccounts' => $bankAccounts,
+        $tenantSlug = app('current.tenant')->slug ?? ($sale->tenant->slug ?? null);
+
+        if ($sale->source === 'pos') {
+            return redirect()->route('store.pos', [
+                'store_slug' => $tenantSlug,
+                'recall' => $sale->id,
+            ]);
+        }
+
+        return redirect()->route('store.sales.edit', [
+            'store_slug' => $tenantSlug,
+            'sale' => $sale->id,
         ]);
     }
 

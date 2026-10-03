@@ -342,6 +342,30 @@ export default function FeaturesConnectionsSection({
                     </div>
                 </div>
 
+                {/* Built-in Online Store */}
+                <div className="p-6 bg-surface rounded-2xl border border-brand-200 shadow-xs flex flex-col justify-between">
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
+                                <ShoppingBag size={20} />
+                            </div>
+                            <span className="px-2 py-0.5 text-3xs font-bold uppercase tracking-wider rounded border bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">Free</span>
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-ink">Online ordering (free)</h4>
+                            <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                                Your own shop page with pickup, delivery, offers and a QR code. Orders use your existing stock and prices.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="pt-4 mt-4 border-t border-line">
+                        <a href={`/s/${store?.slug || 'store'}/online-store`} className="text-xs font-bold text-brand-600 hover:text-brand-500 inline-flex items-center gap-1">
+                            <span>Set up your online store</span>
+                            <ExternalLink size={12} />
+                        </a>
+                    </div>
+                </div>
+
                 {/* WooCommerce Card */}
                 <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs flex flex-col justify-between">
                     <div className="space-y-3">

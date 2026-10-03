@@ -324,17 +324,20 @@ export default function PaymentIn({ parties = [], bankAccounts = [], selected_pa
                         )}
 
                         {/* Header Band */}
-                        <div className="relative bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-5 overflow-hidden">
-                            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                            <div className="absolute bottom-0 left-10 w-24 h-24 bg-white/5 rounded-full translate-y-1/2" />
-                            <div className="relative flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-                                    <ArrowDownCircle size={22} className="text-white" />
+                        <div className="relative bg-surface border-b border-line px-6 py-5">
+                            <div className="relative flex items-center justify-between">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
+                                        <ArrowDownCircle size={22} />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold text-ink tracking-tight">{approval_correction ? 'Resubmit Receipt' : 'Record Payment In'}</h1>
+                                        <p className="text-xs font-medium text-ink-secondary">{approval_correction ? 'Update returned details and resubmit' : 'Money received from a contact or customer'}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h1 className="text-xl font-bold text-white tracking-tight">{approval_correction ? 'Resubmit Receipt' : 'Record Payment In'}</h1>
-                                    <p className="text-emerald-100 text-sm">{approval_correction ? 'Update returned details and resubmit' : 'Money received from a contact'}</p>
-                                </div>
+                                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                                    Receipt In
+                                </span>
                             </div>
                         </div>
 

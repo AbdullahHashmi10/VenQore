@@ -28,6 +28,16 @@ More. Its WebView identifies itself with the `VenQoreMobile` user agent so the
 website's mobile navigation is suppressed inside the app while remaining
 available in normal mobile browsers.
 
+Sales and POS now open native V6 action centers before entering a business
+workflow. The native Business tools directory also groups inventory,
+purchases, customers, money, reports, activity, team, settings, and account
+destinations. These centers use the existing permission-protected web routes;
+the server still decides whether the signed-in user may open each destination.
+
+The shared native page layout is constrained for tablets, adapts its hero and
+tool grid on narrow phones, respects safe areas, supports enlarged text, and
+scrolls instead of allowing controls to overflow.
+
 Dashboard actions dispatch page events without reloading the WebView. More
 includes the full business navigation, and layout edits show saving, saved,
 or retry feedback. App-only card editing uses the full available viewport.

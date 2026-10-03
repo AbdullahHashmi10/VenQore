@@ -24,7 +24,11 @@ class Storefront extends Model
         'accept_cod' => 'boolean',
         'accept_pickup_payment' => 'boolean',
         'accept_bank_transfer' => 'boolean',
-        'intake_paused' => 'boolean', 'orders_outside_hours' => 'boolean', 'show_images' => 'boolean', 'delivery_zones' => 'array',
+        'intake_paused' => 'boolean',
+        'orders_outside_hours' => 'boolean',
+        'orders_during_break' => 'boolean',
+        'show_images' => 'boolean',
+        'delivery_zones' => 'array',
         'delivery_charge' => 'float',
         'min_order_amount' => 'float',
         'pricing_percent' => 'float',
@@ -36,13 +40,35 @@ class Storefront extends Model
         return $this->status === 'published' && ! $this->intake_paused && ! $this->isClosedByHours();
     }
 
-    /** Opening hours set, the business is closed right now (store timezone), and it has not opted in to advance orders. */
+    /**
+     * Opening hours check respecting granular intake settings:
+     * - If on a scheduled break: depends on `orders_during_break`.
+     * - If outside opening hours: depends on `orders_outside_hours`.
+     */
     public function isClosedByHours(?\Carbon\CarbonImmutable $now = null): bool
     {
-        if ($this->orders_outside_hours) {
+        $hours = $this->opening_hours;
+        if (empty($hours)) {
             return false;
         }
-        return \App\Services\Commerce\OpeningHours::isOpenNow($this->opening_hours, $this->timezone ?: 'UTC', $now) === false;
+        $tz = $this->timezone ?: 'UTC';
+
+        $onBreak = \App\Services\Commerce\OpeningHours::isOnBreak($hours, $tz, $now);
+        if ($onBreak !== null) {
+            return ! $this->orders_during_break;
+        }
+
+        $isOpen = \App\Services\Commerce\OpeningHours::isOpenNow($hours, $tz, $now);
+        if ($isOpen === false) {
+            return ! $this->orders_outside_hours;
+        }
+
+        return false;
+    }
+
+    public function isOnBreak(?\Carbon\CarbonImmutable $now = null): ?array
+    {
+        return \App\Services\Commerce\OpeningHours::isOnBreak($this->opening_hours, $this->timezone ?: 'UTC', $now);
     }
 
     public function isVisible(): bool

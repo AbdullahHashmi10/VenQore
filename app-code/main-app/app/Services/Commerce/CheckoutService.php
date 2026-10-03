@@ -96,7 +96,13 @@ class CheckoutService
             if ($store->warehouse_id) {
                 $svc = app(StockAvailability::class);
                 // orders still waiting for the business also claim units (they expire on their own, so this self-heals)
-                $left = $svc->available($store->tenant_id, $pid, $store->warehouse_id) - $svc->pendingDemand($store->tenant_id, $pid);
+                $rawAvailable = $svc->available($store->tenant_id, $pid, $store->warehouse_id);
+                $offline = (float) ($row->offline_reserve_qty ?? 0);
+                $onlineAvailable = max(0.0, $rawAvailable - $offline);
+                if ($row->online_stock_limit !== null) {
+                    $onlineAvailable = min($onlineAvailable, (float) $row->online_stock_limit);
+                }
+                $left = $onlineAvailable - $svc->pendingDemand($store->tenant_id, $pid);
                 $need = $this->baseNeed($pid, $qty, $row);
                 if ($left + 0.00001 < $need) {
                     $problems[] = ['item_id' => $row->id, 'product_id' => $pid, 'message' => $left <= 0 ? 'Sold out.' : 'Only ' . rtrim(rtrim(number_format($left, 2, '.', ''), '0'), '.') . ' left.'];
@@ -135,7 +141,7 @@ class CheckoutService
             $items[] = array_merge($price, $line, [
                 'product_id' => $pid,
                 'item_id' => $row->id,
-                'title' => $row->public_name ?: $row->p_name,
+                'title' => ($row->public_name ?: $row->p_name) . ($row->option_label ? " — {$row->option_label}" : ''),
                 'sku' => $row->sku,
                 'uom' => $row->base_unit ?: $row->unit,
                 'quantity' => $qty,
@@ -344,13 +350,16 @@ class CheckoutService
         }
     }
 
-    /** Accept deadline. An order placed while closed (advance orders) gets its window from the next opening time. */
+    /** Accept deadline. An order placed while closed or on break gets its window from the next opening/resume time. */
     public function acceptBy(Storefront $store): string
     {
         $mins = (int) $store->accept_deadline_minutes;
         $from = now('UTC');
-        if ($store->orders_outside_hours && OpeningHours::isOpenNow($store->opening_hours, $store->timezone ?: 'UTC') === false) {
-            $from = OpeningHours::nextOpening($store->opening_hours, $store->timezone ?: 'UTC') ?? $from;
+        $tz = $store->timezone ?: 'UTC';
+        if ($store->orders_outside_hours && OpeningHours::isOpenNow($store->opening_hours, $tz) === false) {
+            $from = OpeningHours::nextOpening($store->opening_hours, $tz) ?? $from;
+        } elseif ($store->orders_during_break && ($onBreak = OpeningHours::isOnBreak($store->opening_hours, $tz)) !== null) {
+            $from = $onBreak['resumes_utc'] ?? $from;
         }
         return $from->addMinutes($mins)->format('Y-m-d H:i:s');
     }
@@ -365,6 +374,10 @@ class CheckoutService
             throw new CommerceException('This business has paused online ordering for now.', 'intake_paused', [], 409);
         }
         if ($store->isClosedByHours()) {
+            $onBreak = $store->isOnBreak();
+            if ($onBreak !== null) {
+                throw new CommerceException('This business is on a break until ' . $onBreak['resumes_at'] . ' and is not taking orders during break hours.', 'closed_hours', [], 409);
+            }
             throw new CommerceException('This business is closed right now and is not taking orders outside its opening hours.', 'closed_hours', [], 409);
         }
         if (! $store->warehouse_id) {

@@ -120,12 +120,12 @@ class AdversarialInvariantGateTest extends TestCase
             $this->assertSame('fail', $corrupted['status'], "revenue_ties_to_ledger must FAIL when sales disagree with GL");
             $this->assertEqualsWithDelta(500.00, $corrupted['difference'], 0.05);
 
-            // 4. Card resolution must fail-closed with books_disagree
+            // 4. The card still shows its own figure; the disagreement travels with it
             $res = $engine->resolve([$req], $ctx);
             $cardResult = $res[$req->getCompositeId()];
-            $this->assertFalse($cardResult->ok, "Card must return ok=false when ledger control fails");
-            $this->assertSame('error', $cardResult->status);
-            $this->assertSame('books_disagree', $cardResult->errorCode);
+            $this->assertTrue($cardResult->ok, "A disagreeing ledger control is flagged, never a reason to hide the figure");
+            $this->assertSame('mismatch', $cardResult->meta['verification']['status'] ?? null);
+            $this->assertEqualsWithDelta(500.00, abs((float) ($cardResult->meta['verification']['difference'] ?? 0)), 0.05);
         } finally {
             // 5. Restore original value
             DB::table('sales')->where('id', $sale->id)->update(['net_sales' => $originalNetSales]);
@@ -166,12 +166,11 @@ class AdversarialInvariantGateTest extends TestCase
             $corrupted = ReckonerInvariants::check('stock_value_control', $this->tenant, $this->period);
             $this->assertSame('fail', $corrupted['status'], "stock_value_control must FAIL when batches disagree with GL 1100");
 
-            // 4. Card resolution must fail-closed with books_disagree
+            // 4. The card still shows its own figure; the disagreement travels with it
             $res = $engine->resolve([$req], $ctx);
             $cardResult = $res[$req->getCompositeId()];
-            $this->assertFalse($cardResult->ok);
-            $this->assertSame('error', $cardResult->status);
-            $this->assertSame('books_disagree', $cardResult->errorCode);
+            $this->assertTrue($cardResult->ok);
+            $this->assertSame('mismatch', $cardResult->meta['verification']['status'] ?? null);
         } finally {
             // 5. Restore original batch cost
             DB::table('inventory_batches')->where('id', $batch->id)->update(['unit_cost' => $originalUnitCost]);

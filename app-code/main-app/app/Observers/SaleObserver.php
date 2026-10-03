@@ -73,10 +73,30 @@ class SaleObserver
      */
     public function creating(Sale $sale): void
     {
+        $this->fillNetSales($sale);
+
         if ($sale->status === 'posted') {
             if (!CanonicalPostingScope::isActive()) {
                 abort(403, "Direct posted sale creation prohibited. Sales must be posted via SaleService or the Approval Engine.");
             }
         }
+    }
+
+    /**
+     * `net_sales` is the revenue figure (ex-tax) that the ledger credits to 4000.
+     * A sale saved with total and tax but a zero/empty net_sales reads as zero
+     * revenue everywhere and breaks the revenue-ties-to-ledger control, so it is
+     * derived here from the figures the sale already carries. Returns (negative
+     * totals) are left to their own services.
+     */
+    private function fillNetSales(Sale $sale): void
+    {
+        $net   = (float) ($sale->net_sales ?? 0);
+        $total = (float) ($sale->total ?? 0);
+        if (abs($net) > 0.00001 || $total <= 0 || $sale->status === 'returned') {
+            return;
+        }
+        $tax = (float) ($sale->tax ?: ($sale->total_tax ?? 0));
+        $sale->net_sales = round($total - $tax, 4);
     }
 }

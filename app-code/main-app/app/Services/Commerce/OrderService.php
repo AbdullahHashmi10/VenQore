@@ -224,16 +224,24 @@ class OrderService
         });
     }
 
-    /** Customer says they sent a transfer. NEVER marks the order paid. */
-    public function reportTransfer(string $orderId, int $tenantId, string $reference): CommerceOrder
+    /** Customer says they sent a transfer. NEVER marks the order paid. Compulsory receipt screenshot is attached. */
+    public function reportTransfer(string $orderId, int $tenantId, string $reference, ?string $receiptPath = null): CommerceOrder
     {
-        return DB::transaction(function () use ($orderId, $tenantId, $reference) {
+        return DB::transaction(function () use ($orderId, $tenantId, $reference, $receiptPath) {
             $o = $this->lock($orderId, $tenantId, null);
             if ($o->payment_method !== 'bank' || $o->payment_status !== 'unpaid' || in_array($o->status, ['rejected', 'cancelled', 'expired', 'completed'], true)) {
                 throw new CommerceException('A transfer cannot be reported for this order.', 'bad_state', [], 409);
             }
-            $o->forceFill(['payment_status' => 'transfer_reported', 'bank_reference' => mb_substr($reference, 0, 120), 'version' => $o->version + 1])->save();
-            $this->event($o, 'transfer_reported', null, null, 'guest', null, 'Customer reported a bank transfer (unverified)');
+            $fill = [
+                'payment_status' => 'transfer_reported',
+                'bank_reference' => mb_substr($reference, 0, 120),
+                'version' => $o->version + 1,
+            ];
+            if ($receiptPath) {
+                $fill['bank_receipt_path'] = $receiptPath;
+            }
+            $o->forceFill($fill)->save();
+            $this->event($o, 'transfer_reported', null, null, 'guest', null, 'Customer uploaded bank transfer receipt proof (Ref: ' . $reference . ')');
             return $o->fresh();
         });
     }
@@ -285,14 +293,14 @@ class OrderService
      * $collectNow: cash/bank handed over right now (posts a paid sale). Otherwise, unless the order was
      * already marked collected, the sale posts on credit (receivable) and the order stays unpaid.
      */
-    public function complete(string $orderId, int $tenantId, ?int $actor, bool $collectNow = false, ?int $expectedVersion = null, bool $approveBelowCost = false, ?string $partyId = null): CommerceOrder
+    public function complete(string $orderId, int $tenantId, ?int $actor, bool $collectNow = false, ?int $expectedVersion = null, bool $approveBelowCost = false, ?string $partyId = null, ?array $newCustomer = null): CommerceOrder
     {
         $tenant = Tenant::withoutGlobalScopes()->findOrFail($tenantId);
         $previous = app()->bound('current.tenant') ? app('current.tenant') : null;
         app()->instance('current.tenant', $tenant);
 
         try {
-            return DB::transaction(function () use ($orderId, $tenantId, $actor, $collectNow, $expectedVersion, $approveBelowCost, $partyId) {
+            return DB::transaction(function () use ($orderId, $tenantId, $actor, $collectNow, $expectedVersion, $approveBelowCost, $partyId, $newCustomer) {
                 $o = $this->lock($orderId, $tenantId, $expectedVersion);
                 if ($o->sale_id || $o->status === 'completed') {
                     return $o->fresh(['items']); // already posted: idempotent no-op
@@ -324,6 +332,23 @@ class OrderService
                 if ($partyId && ! DB::table('parties')->where('id', $partyId)->where('tenant_id', $tenantId)->whereNull('deleted_at')->exists()) {
                     throw new CommerceException('That customer record was not found.', 'bad_party', [], 422);
                 }
+
+                if (! $partyId && ! empty($newCustomer['name'])) {
+                    $partyId = (string) Str::uuid();
+                    DB::table('parties')->insert([
+                        'id' => $partyId,
+                        'tenant_id' => $tenantId,
+                        'name' => trim((string) $newCustomer['name']),
+                        'phone' => trim((string) ($newCustomer['phone'] ?? $o->customer_phone ?? '')),
+                        'address' => trim((string) ($newCustomer['address'] ?? $o->delivery_address ?? '')),
+                        'type' => 'customer',
+                        'notes' => 'Created from online order ' . $o->public_number,
+                        'is_active' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
                 $partyId = $o->party_id ?: ($partyId ?: $this->createParty($o));
                 $method = ! $paid ? 'credit' : ($o->payment_method === 'bank' ? 'bank' : 'cash');
                 $payload = [
@@ -489,10 +514,9 @@ class OrderService
 
     private function createParty(CommerceOrder $o): string
     {
-        // A NEW party per order: never merged with historical parties by phone/name (identity unverified).
         $id = (string) Str::uuid();
         DB::table('parties')->insert([
-            'id' => $id, 'tenant_id' => $o->tenant_id, 'name' => $o->customer_name . ' (online)', 'phone' => $o->customer_phone,
+            'id' => $id, 'tenant_id' => $o->tenant_id, 'name' => $o->customer_name ?: 'Online Customer', 'phone' => $o->customer_phone,
             'type' => 'customer', 'address' => $o->delivery_address, 'notes' => 'Created from online order ' . $o->public_number,
             'is_active' => 1, 'created_at' => now(), 'updated_at' => now(),
         ]);

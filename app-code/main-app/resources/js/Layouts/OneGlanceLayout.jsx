@@ -89,6 +89,7 @@ import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 import { useTermText } from '@/lib/terms';
 import BottomNavBar from '@/Components/BottomNavBar';
 import KitchenPrinterAlertModal from '@/Components/Pos/KitchenPrinterAlertModal';
+import OrderAlertWatcher from '@/Components/Commerce/OrderAlertWatcher';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
  const {
@@ -792,6 +793,21 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  	: (store ? 'store.approvals.my-submissions' : 'approvals.my-submissions'),
  	routeParams: store ? { store_slug: store.slug } : {}
  },
+ ...(store ? [{
+ name: 'Online Store',
+ icon: Store,
+ subs: [
+ { group: 'Online Store', items: [
+ { label: 'Store Overview', route: 'store.commerce.home' },
+ { label: 'Online Orders', route: 'store.commerce.orders' },
+ { label: 'Online Products', route: 'store.commerce.products' },
+ { label: 'Offers & Coupons', route: 'store.commerce.promotions' },
+ { label: 'Store Settings', route: 'store.commerce.settings' },
+ ] },
+ ],
+ route: 'store.commerce.home',
+ routeParams: { store_slug: store.slug }
+ }] : []),
  {
  name: 'VenSynQ',
  icon: RefreshCcw,
@@ -1186,6 +1202,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  // Money: anyone with finance access
  'Money': ['finance.balances', 'finance.transactions', 'finance.expenses'],
  'VenSynQ': ['sales.create', 'inventory.adjust'],
+ 'Online Store': ['sales.view', 'admin.settings_manage'],
  'Insights': ['reports'],
  'Activity Log': ['audit'],
  'Approvals': [],
@@ -1418,6 +1435,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  return (
  <>
+ <OrderAlertWatcher addToast={addToast} />
  <CommandPalette />
  {/* Phase 4.4 — Global plan limit upgrade modal (triggered by axios interceptor) */}
  <UpgradeModal />

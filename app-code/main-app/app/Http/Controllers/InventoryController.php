@@ -35,15 +35,28 @@ class InventoryController extends Controller
         $inventoryValue = app(FinancialReportingService::class)->getInventoryValue();
 
         $lowStockCount = DB::table('products as p')
-            ->leftJoin('inventory_batches as ib', 'p.id', '=', 'ib.product_id')
-            ->select('p.id', 'p.min_stock_alert', DB::raw('SUM(ib.remaining_qty) as total_qty'))
+            ->leftJoin('inventory_batches as ib', function($join) use ($tenantId) {
+                $join->on('p.id', '=', 'ib.product_id')
+                     ->where('ib.tenant_id', $tenantId)
+                     ->whereNull('ib.deleted_at');
+            })
+            ->leftJoin('stocks as s', function($join) use ($tenantId) {
+                $join->on('p.id', '=', 's.product_id')
+                     ->where('s.tenant_id', $tenantId);
+            })
+            ->select(
+                'p.id',
+                'p.min_stock_alert',
+                DB::raw('COALESCE(SUM(ib.remaining_qty), SUM(s.quantity), p.stock_quantity, 0) as total_qty')
+            )
             ->where('p.tenant_id', $tenantId)
             ->whereNull('p.deleted_at')
-            ->groupBy('p.id', 'p.min_stock_alert')
-            ->get()
-            ->filter(function ($p) {
-                return (float)$p->total_qty <= (float)$p->min_stock_alert;
+            ->where(function($q) {
+                $q->where('p.type', '!=', 'service')->orWhereNull('p.type');
             })
+            ->groupBy('p.id', 'p.min_stock_alert', 'p.stock_quantity')
+            ->get()
+            ->filter(fn($p) => (float)$p->total_qty > 0 && (float)$p->total_qty <= (float)$p->min_stock_alert)
             ->count();
 
         $totalProducts = DB::table('products')->where('tenant_id', $tenantId)->whereNull('deleted_at')->count();
@@ -305,14 +318,26 @@ class InventoryController extends Controller
                 'low_stock_count' => DB::table('products as p')
                     ->leftJoin('inventory_batches as ib', function($join) use ($tenantId) {
                         $join->on('p.id', '=', 'ib.product_id')
-                             ->where('ib.tenant_id', $tenantId);
+                             ->where('ib.tenant_id', $tenantId)
+                             ->whereNull('ib.deleted_at');
                     })
-                    ->select('p.id', 'p.min_stock_alert', DB::raw('SUM(ib.remaining_qty) as total_qty'))
+                    ->leftJoin('stocks as s', function($join) use ($tenantId) {
+                        $join->on('p.id', '=', 's.product_id')
+                             ->where('s.tenant_id', $tenantId);
+                    })
+                    ->select(
+                        'p.id',
+                        'p.min_stock_alert',
+                        DB::raw('COALESCE(SUM(ib.remaining_qty), SUM(s.quantity), p.stock_quantity, 0) as total_qty')
+                    )
                     ->where('p.tenant_id', $tenantId)
                     ->whereNull('p.deleted_at')
-                    ->groupBy('p.id', 'p.min_stock_alert')
+                    ->where(function($q) {
+                        $q->where('p.type', '!=', 'service')->orWhereNull('p.type');
+                    })
+                    ->groupBy('p.id', 'p.min_stock_alert', 'p.stock_quantity')
                     ->get()
-                    ->filter(fn($p) => (float)$p->total_qty <= (float)$p->min_stock_alert)
+                    ->filter(fn($p) => (float)$p->total_qty > 0 && (float)$p->total_qty <= (float)$p->min_stock_alert)
                     ->count(),
                 'inventory_value' => app(FinancialReportingService::class)->getInventoryValue(),
             ],

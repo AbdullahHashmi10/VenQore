@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { Moon, ShoppingBag, Sun, Check, Store } from 'lucide-react';
+import { Check } from 'lucide-react';
+import StorefrontHeader from '@/Components/Commerce/StorefrontHeader';
+import SiteHeader from '@/Components/Site/SiteHeader';
 import '../../../css/commerce-shop.css';
-import { SHOP_MARK } from '@/lib/shopMark';
 import { money } from '@/lib/commerce';
 
 const KEY = 'vqs-theme';
@@ -41,8 +42,48 @@ function Ambient({ theme }) {
     return <canvas ref={ref} className="vqs-ambient" aria-hidden="true" />;
 }
 
-/** Shopper shell (VenQore Shops design): no merchant navigation, no account chrome. Light + dark. */
-export default function PublicShell({ children, title, bag }) {
+/** The public commerce shell owns document scrolling; the app shell locks it. */
+export function useCommerceShell() {
+    useEffect(() => {
+        const html = document.documentElement;
+        const body = document.body;
+        const app = document.getElementById('app');
+        const prev = {
+            shell: html.getAttribute('data-vq-shell'),
+            htmlOverflowY: html.style.overflowY,
+            htmlOverflowX: html.style.overflowX,
+            bodyOverflow: body.style.overflow,
+            bodyHeight: body.style.height,
+            appHeight: app?.style.height,
+            appOverflow: app?.style.overflow,
+        };
+        html.setAttribute('data-vq-shell', 'commerce');
+        html.style.overflowY = 'auto';
+        html.style.overflowX = 'clip';
+        body.style.overflow = 'visible';
+        body.style.height = 'auto';
+        if (app) {
+            app.style.height = 'auto';
+            app.style.overflow = 'visible';
+        }
+        return () => {
+            if (prev.shell) html.setAttribute('data-vq-shell', prev.shell);
+            else html.removeAttribute('data-vq-shell');
+            html.style.overflowY = prev.htmlOverflowY;
+            html.style.overflowX = prev.htmlOverflowX;
+            body.style.overflow = prev.bodyOverflow;
+            body.style.height = prev.bodyHeight;
+            if (app) {
+                app.style.height = prev.appHeight;
+                app.style.overflow = prev.appOverflow;
+            }
+        };
+    }, []);
+}
+
+/** Shopper shell (VenQore Shops design): uses StorefrontHeader on storefronts, SiteHeader on generic pages. */
+export default function PublicShell({ children, title, bag, storeSlug, ratingSummary, customer }) {
+    useCommerceShell();
     const [theme, setTheme] = useState(() => read() || device());
     const [toasts, setToasts] = useState([]);
     const [bump, setBump] = useState(false);
@@ -74,34 +115,24 @@ export default function PublicShell({ children, title, bag }) {
         prev.current = c; return undefined;
     }, [bag?.count]);
 
-    const flip = () => { const n = theme === 'dark' ? 'light' : 'dark'; setTheme(n); try { localStorage.setItem(KEY, n); } catch { /* ignore */ } };
-
     return (
         <div className="vqs-shop" data-theme={theme}>
             <Ambient theme={theme} />
-            <div className="vqs-strip"><div className="vqs-wrap vqs-strip-in"><b><i className="dot" />VenQore Shops</b><span>Direct from independent businesses · guest checkout · no account needed</span></div></div>
-            <header className="vqs-topbar">
-                <div className="vqs-wrap vqs-topbar-in" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <Link href="/shop" className="vqs-brand" style={{ gap: 12 }}>
-                        <span className="vqs-brandmark"><span><img src={SHOP_MARK} alt="" /></span></span>
-                        <span className="vqs-brandtext">
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>VenQore <span className="vqs-tag">Storefronts</span></span>
-                            <span className="vqs-brandsub">Shop direct from local businesses</span>
-                        </span>
-                    </Link>
-                    <span className="vqs-spacer" />
-                    {title && <span className="vqs-crumbpill"><Store size={14} />{title}</span>}
-                    <button type="button" className="vqs-iconbtn" onClick={flip} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={theme === 'dark' ? 'Light theme' : 'Dark theme'}>
-                        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                    </button>
-                    {bag && (
-                        <button type="button" className={`vqs-bagbtn ${bump ? 'bump' : ''}`} onClick={bag.onClick} aria-label={`Open bag, ${bag.count} items`}>
-                            <span><ShoppingBag size={17} /><b className={`vqs-bagcount ${bump ? 'bump' : ''}`}>{bag.count}</b></span>
-                            <span>{money(bag.total)}</span>
-                        </button>
-                    )}
-                </div>
-            </header>
+            {storeSlug ? (
+                <StorefrontHeader
+                    bag={bag ? { ...bag, bump } : undefined}
+                    storeTitle={title}
+                    storeSlug={storeSlug}
+                    ratingSummary={ratingSummary}
+                    customer={customer}
+                />
+            ) : (
+                <SiteHeader
+                    bag={bag ? { ...bag, bump } : undefined}
+                    storeTitle={title}
+                    storeSlug={storeSlug}
+                />
+            )}
             <main className="vqs-wrap vqs-main" key={title || 'dir'}>{children}</main>
             <footer className="vqs-wrap vqs-foot">
                 Orders are requests to the business and are confirmed by them. Prices and availability are set by each business. <Link href="/order-lookup" style={{ textDecoration: 'underline' }}>Lost your order link?</Link>

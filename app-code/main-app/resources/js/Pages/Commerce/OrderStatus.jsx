@@ -4,10 +4,16 @@ import PublicShell from '@/Components/Commerce/PublicShell';
 import { Alert, Badge, Btn, Field, Icon } from '@/Components/Commerce/shop';
 import { METHOD_LABEL, PAYMENT_LABEL, STATUS_LABEL, cartStore, money } from '@/lib/commerce';
 
+/** wa.me needs the country code; a local Pakistani number (leading 0, prices in Rs) gets 92. */
+const waNumber = (phone, sym) => {
+    const d = String(phone || '').replace(/\D/g, '');
+    return d.startsWith('0') && sym === 'Rs' ? `92${d.slice(1)}` : d;
+};
+
 const STEPS_PICKUP = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
 const STEPS_DELIVERY = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'completed'];
 
-export default function OrderStatus({ order, store, events, transfer_url, cancel_url, reorder_url, history = [], prep_minutes, revision, revision_url }) {
+export default function OrderStatus({ order, store, events, transfer_url, cancel_url, reorder_url, history = [], prep_minutes, revision, revision_url, rating_summary, customer }) {
     const [reorderMsg, setReorderMsg] = useState(null);
     const reorder = async () => {
         setReorderMsg(null);
@@ -23,6 +29,52 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
     };
     const { flash, errors } = usePage().props;
     const [ref, setRef] = useState('');
+    const [receiptFile, setReceiptFile] = useState(null);
+    const [receiptPreview, setReceiptPreview] = useState(null);
+    const [fileErr, setFileErr] = useState('');
+    const [uploading, setUploading] = useState(false);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        setFileErr('');
+        if (!file) {
+            setReceiptFile(null);
+            setReceiptPreview(null);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            setFileErr('Screenshot file size must be less than 5 MB.');
+            return;
+        }
+        setReceiptFile(file);
+        if (file.type.startsWith('image/')) {
+            setReceiptPreview(URL.createObjectURL(file));
+        } else {
+            setReceiptPreview(null);
+        }
+    };
+
+    const submitTransfer = (e) => {
+        e.preventDefault();
+        if (!receiptFile) {
+            setFileErr('Payment screenshot / receipt is compulsory. Please upload proof of transfer.');
+            return;
+        }
+        if (!ref.trim()) {
+            return;
+        }
+        setUploading(true);
+        const form = new FormData();
+        form.append('reference', ref.trim());
+        form.append('receipt', receiptFile);
+        router.post(transfer_url, form, {
+            forceFormData: true,
+            preserveScroll: true,
+            onFinish: () => setUploading(false),
+            onError: () => setUploading(false),
+        });
+    };
+
     const sym = order.currency_symbol;
     const steps = order.fulfilment === 'delivery' ? STEPS_DELIVERY : STEPS_PICKUP;
     const closed = ['rejected', 'cancelled', 'expired'].includes(order.status);
@@ -32,7 +84,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
     const SHORT = { pending: 'Waiting', confirmed: 'Accepted', preparing: 'Preparing', ready: 'Ready', out_for_delivery: 'On the way', completed: 'Done' };
 
     return (
-        <PublicShell title={store.name}>
+        <PublicShell title={store.name} storeSlug={store.slug} ratingSummary={rating_summary} customer={customer}>
             <Head title={`Order ${order.number}`}>
                 <meta name="robots" content="noindex,nofollow,noarchive" />
             </Head>
@@ -43,7 +95,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
                 <h1 className="vqs-h1" style={{ fontSize: 'clamp(28px,4vw,40px)' }}>Order {order.number}</h1>
                 <Badge kind={kind}>{STATUS_LABEL[order.status]}</Badge>
             </div>
-            <p className="vqs-muted" style={{ fontSize: 14, margin: '8px 0 0' }}>Placed {order.placed_at}. Save this page&apos;s link — it is the only way to follow this order.</p>
+            <p className="vqs-muted" style={{ fontSize: 14, margin: '8px 0 0' }}>Placed {order.placed_at}. Bookmark this page. Lost it? Use “Find my order” with your order number and phone.</p>
 
             {flash?.success && <div style={{ marginTop: 16 }}><Alert kind="success">{flash.success}</Alert></div>}
             {revision?.status === 'proposed' && order.status === 'pending' && (
@@ -70,10 +122,10 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
             {errors?.cancel && <div style={{ marginTop: 16 }}><Alert kind="error">{errors.cancel}</Alert></div>}
             <div className="vqs-row" style={{ marginTop: 16, flexWrap: 'wrap' }}>
                 {store.phone && (
-                    <a className="vqs-btn vqs-btn--soft" href={`https://wa.me/${String(store.phone).replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hi, about my order ${order.number}`)}`} target="_blank" rel="noopener noreferrer">Message {store.name} on WhatsApp</a>
+                    <a className="vqs-btn vqs-btn--wa" href={`https://wa.me/${waNumber(store.phone, order.currency_symbol)}?text=${encodeURIComponent(`Hi, about my order ${order.number}`)}`} target="_blank" rel="noopener noreferrer">Message {store.name} on WhatsApp</a>
                 )}
                 {cancel_url && (
-                    <Btn variant="soft" onClick={() => { if (window.confirm('Cancel this order?')) router.post(cancel_url, {}, { preserveScroll: true }); }}>Cancel my order</Btn>
+                    <Btn variant="soft" className="vqs-btn--danger" onClick={() => { if (window.confirm('Cancel this order?')) router.post(cancel_url, {}, { preserveScroll: true }); }}>Cancel my order</Btn>
                 )}
             </div>
             {order.status === 'pending' && <div style={{ marginTop: 16 }}><Alert kind="info">Your order is a request. {store.name} must confirm that the items are available before it is accepted.</Alert></div>}
@@ -144,19 +196,131 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
 
             {store.bank_instructions && order.payment_method === 'bank' && !closed && (
                 <div className="vqs-card vqs-pad" style={{ marginTop: 20 }}>
-                    <h2 className="vqs-h2" style={{ fontSize: 20 }}>Bank transfer</h2>
-                    <p style={{ fontSize: 14, whiteSpace: 'pre-line' }}>{store.bank_instructions}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                        <h2 className="vqs-h2" style={{ fontSize: 20, margin: 0 }}>Bank transfer payment</h2>
+                        <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 999, background: order.payment_status === 'transfer_reported' ? '#fef3c7' : '#e0e7ff', color: order.payment_status === 'transfer_reported' ? '#92400e' : '#3730a3' }}>
+                            {order.payment_status === 'transfer_reported' ? 'Proof submitted · Under verification' : 'Payment required'}
+                        </span>
+                    </div>
+
+                    <div style={{ background: 'var(--vq-bg-muted, #f8fafc)', border: '1px solid var(--vq-line, #e2e8f0)', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--vq-text-muted, #64748b)', marginBottom: 6 }}>
+                            Account details & instructions
+                        </div>
+                        <p style={{ fontSize: 14, whiteSpace: 'pre-line', margin: 0, lineHeight: 1.6, color: 'var(--vq-text, #0f172a)' }}>
+                            {store.bank_instructions}
+                        </p>
+                    </div>
+
                     {order.payment_status === 'unpaid' ? (
-                        <form className="vqs-row" style={{ alignItems: 'flex-end', marginTop: 8 }} onSubmit={(e) => { e.preventDefault(); router.post(transfer_url, { reference: ref }, { preserveScroll: true }); }}>
-                            <div style={{ flex: '1 1 220px' }}>
-                                <Field label="Transfer reference" error={errors?.reference}>
-                                    <input className="vqs-input" value={ref} onChange={(e) => setRef(e.target.value)} placeholder="Transaction ID / reference" required minLength={3} maxLength={120} />
-                                </Field>
+                        <form onSubmit={submitTransfer} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+                                <div>
+                                    <Field label="Transaction reference / ID" error={errors?.reference}>
+                                        <input
+                                            className="vqs-input"
+                                            value={ref}
+                                            onChange={(e) => setRef(e.target.value)}
+                                            placeholder="e.g. TRX-9823412 or bank ref"
+                                            required
+                                            minLength={3}
+                                            maxLength={120}
+                                        />
+                                    </Field>
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--vq-text, #0f172a)' }}>
+                                        Payment screenshot / receipt <span style={{ color: '#ef4444' }}>* (Compulsory)</span>
+                                    </label>
+                                    <label
+                                        style={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: 6,
+                                            padding: '16px 12px',
+                                            border: '2px dashed ' + (fileErr || errors?.receipt ? '#ef4444' : 'var(--vq-line, #cbd5e1)'),
+                                            borderRadius: 12,
+                                            cursor: 'pointer',
+                                            background: receiptFile ? 'rgba(16, 185, 129, 0.04)' : 'var(--vq-bg-subtle, #ffffff)',
+                                            transition: 'border-color 0.2s',
+                                        }}
+                                    >
+                                        <input
+                                            type="file"
+                                            accept="image/png,image/jpeg,image/webp,application/pdf"
+                                            style={{ display: 'none' }}
+                                            onChange={handleFileChange}
+                                        />
+                                        {receiptPreview ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                <img src={receiptPreview} alt="Receipt preview" style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8, border: '1px solid #cbd5e1' }} />
+                                                <div style={{ textAlign: 'left' }}>
+                                                    <div style={{ fontSize: 13, fontWeight: 600, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{receiptFile.name}</div>
+                                                    <div style={{ fontSize: 11, color: '#10b981', fontWeight: 500 }}>Ready to upload · Click to change</div>
+                                                </div>
+                                            </div>
+                                        ) : receiptFile ? (
+                                            <div style={{ textAlign: 'center' }}>
+                                                <div style={{ fontSize: 13, fontWeight: 600 }}>{receiptFile.name}</div>
+                                                <div style={{ fontSize: 11, color: '#10b981' }}>PDF ready to upload · Click to change</div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--vq-brand, #4f46e5)' }}>
+                                                    Click to upload payment screenshot
+                                                </div>
+                                                <div style={{ fontSize: 11, color: 'var(--vq-text-muted, #64748b)' }}>
+                                                    JPG, PNG, WebP or PDF (max 5 MB)
+                                                </div>
+                                            </>
+                                        )}
+                                    </label>
+                                    {(fileErr || errors?.receipt) && (
+                                        <p style={{ color: '#ef4444', fontSize: 12, margin: '4px 0 0' }}>
+                                            {fileErr || errors?.receipt}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                            <Btn type="submit" onClick={() => {}}>I have sent the transfer</Btn>
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 4 }}>
+                                <Btn type="submit" disabled={uploading}>
+                                    {uploading ? 'Submitting receipt proof…' : 'Submit transfer proof'}
+                                </Btn>
+                            </div>
                         </form>
                     ) : (
-                        <p className="vqs-muted" style={{ fontSize: 14 }}>{order.payment_status === 'transfer_reported' ? `Reported with reference ${order.bank_reference}. The business will verify it — this does not mark the order paid.` : null}</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div style={{ fontSize: 14, color: 'var(--vq-text, #0f172a)' }}>
+                                Reference: <strong>{order.bank_reference}</strong>
+                            </div>
+                            <p className="vqs-muted" style={{ fontSize: 13, margin: 0 }}>
+                                Your transfer proof has been recorded. The store owner will verify the payment before fulfilling your order.
+                            </p>
+                            {order.bank_receipt_url && (
+                                <div style={{ marginTop: 6 }}>
+                                    <a
+                                        href={order.bank_receipt_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 6,
+                                            fontSize: 13,
+                                            fontWeight: 600,
+                                            color: 'var(--vq-brand, #4f46e5)',
+                                            textDecoration: 'underline',
+                                        }}
+                                    >
+                                        View submitted payment proof receipt ↗
+                                    </a>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

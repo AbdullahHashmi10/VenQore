@@ -2105,18 +2105,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   .vq-shell.is-native-app .vqc {
     box-shadow: 0 2px 10px rgb(13 32 27 / .07);
   }
-  .vq-shell.is-native-app.is-editing .vqc-resize {
-    opacity: 1;
-    width: 34px;
-    height: 34px;
-  }
-  .vq-shell.is-native-app.is-editing .vqc-resize::after {
-    right: 9px;
-    bottom: 9px;
-    width: 11px;
-    height: 11px;
-    border-width: 0 3px 3px 0;
-  }
+
 }
 
 .vq-sidebar {
@@ -3398,23 +3387,50 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 }
 .vqc--accent .vqc-nav-link:hover { background: var(--vq-on-accent-quiet-2); }
 
-/* the resize handle — present on every card, visible only in edit mode */
-.vqc-resize {
-  position: absolute; right: 3px; bottom: 3px;
-  width: 20px; height: 20px;
-  border: 0; background: transparent; padding: 0;
-  cursor: nwse-resize; opacity: 0; z-index: 6;
-  transition: opacity var(--vq-dur-2,180ms) var(--vq-ease-out);
+/* ── resize from any edge or corner, move by the six-dot handle ───────────
+   Always available — no edit mode. Edges are thin invisible hit areas; the
+   corners and the move handle appear when the card is hovered or focused. */
+.vqc-resize { position: absolute; z-index: 6; background: transparent; border: 0; padding: 0; touch-action: none; }
+.vqc-edge--n, .vqc-edge--s { left: 14px; right: 14px; height: 9px; cursor: ns-resize; }
+.vqc-edge--e, .vqc-edge--w { top: 14px; bottom: 14px; width: 9px; cursor: ew-resize; }
+.vqc-edge--n { top: -4px; } .vqc-edge--s { bottom: -4px; }
+.vqc-edge--e { right: -4px; } .vqc-edge--w { left: -4px; }
+.vqc-edge--ne, .vqc-edge--nw, .vqc-edge--se, .vqc-edge--sw { width: 18px; height: 18px; }
+.vqc-edge--ne { top: -4px; right: -4px; cursor: nesw-resize; }
+.vqc-edge--sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
+.vqc-edge--nw { top: -4px; left: -4px; cursor: nwse-resize; }
+.vqc-edge--se { bottom: -4px; right: -4px; cursor: nwse-resize; }
+.vqc-edge--se::after {
+  content: ''; position: absolute; right: 8px; bottom: 8px; width: 8px; height: 8px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; border-bottom-right-radius: 3px;
+  color: var(--vq-text-3); opacity: 0; transition: opacity var(--vq-dur-2, 180ms) var(--vq-ease-out);
 }
-.vqc-resize::after {
-  content: ''; position: absolute; right: 5px; bottom: 5px;
-  width: 8px; height: 8px;
-  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
-  border-bottom-right-radius: 3px; color: var(--vq-text-3); opacity: .8;
+.vqc:hover .vqc-edge--se::after, .vqc:focus-within .vqc-edge--se::after { opacity: .85; }
+.vqc.is-resizing .vqc-edge--se::after { opacity: 1; }
+@media (hover: none) { .vqc-edge--n, .vqc-edge--s, .vqc-edge--e, .vqc-edge--w, .vqc-edge--ne, .vqc-edge--nw, .vqc-edge--sw { display: none; }
+  .vqc-edge--se { width: 34px; height: 34px; } .vqc-edge--se::after { opacity: .7; } }
+
+/* the six-dot move handle, centred on the card's top edge */
+.vqc-move {
+  position: absolute; z-index: 7; top: 5px; left: 50%; transform: translateX(-50%);
+  width: 38px; height: 16px; border-radius: var(--vq-r-full, 999px); display: grid; place-items: center;
+  background: var(--vq-sunken, rgb(0 0 0 / .06)); color: var(--vq-text-3); cursor: grab; touch-action: none;
+  opacity: 0; transition: opacity var(--vq-dur-2, 180ms) var(--vq-ease-out), background var(--vq-dur-1, 120ms);
 }
-.vq-shell:not(.is-editing) .vqc-resize { display: none !important; }
-.vq-shell.is-editing .vqc:hover .vqc-resize,
-.vq-shell.is-editing .vqc:focus-within .vqc-resize { opacity: 1; }
+.vqc-move svg { display: block; }
+.vqc:hover .vqc-move, .vqc:focus-within .vqc-move, .vqc-move:focus-visible, .vqc.is-dragging .vqc-move { opacity: 1; }
+.vqc-move:hover { background: var(--vq-line-strong, rgb(0 0 0 / .14)); color: var(--vq-text); }
+.vqc-move:active { cursor: grabbing; }
+.vqc-move:focus-visible { outline: 2px solid var(--vq-focus, var(--vq-teal-500)); outline-offset: 2px; }
+@media (hover: none) { .vqc-move { opacity: .8; } }
+
+/* headings and numbers on dark tones must read at a glance */
+.vqc--tone-ink .vqc-eyebrow, .vqc--tone-accent .vqc-eyebrow { color: rgb(255 255 255 / .94); font-weight: 700; font-size: 12px; letter-spacing: .06em; }
+.vqc--tone-ink .vqc-when, .vqc--tone-accent .vqc-when { color: rgb(255 255 255 / .78); }
+.vqc--tone-ink .vqc-value, .vqc--tone-accent .vqc-value { color: #fff; }
+.vqc--tone-ink .vqc-per, .vqc--tone-accent .vqc-per { color: #fff; background: rgb(255 255 255 / .14); }
+.vqc--tone-ink .vqc-move, .vqc--tone-accent .vqc-move { background: rgb(255 255 255 / .14); color: rgb(255 255 255 / .85); }
+.vqc--tone-ink .vqc-edge--se::after, .vqc--tone-accent .vqc-edge--se::after { color: rgb(255 255 255 / .8); }
 
 .vqc-size-hint {
   position: absolute; right: 8px; bottom: 8px; z-index: 8;
@@ -5495,3 +5511,14 @@ html.dark .vq-rails--cockpit,
   color: var(--vq-accent, #0baa8f) !important;
   transform: scale(1.04);
 }
+
+/* board toolbar: Tidy up / Undo */
+.vq-board-bar { display: flex; justify-content: flex-end; gap: 8px; margin: 0 0 10px; }
+.vq-board-btn {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 13px;
+  border-radius: var(--vq-r-full, 999px); border: 1px solid var(--vq-line); background: var(--vq-surface); color: var(--vq-text-2);
+  font: 700 12.5px/1 var(--vq-font-sans);
+}
+.vq-board-btn:hover { color: var(--vq-text); border-color: var(--vq-teal-400, #3fc9b3); }
+.vq-board-btn:focus-visible { outline: 2px solid var(--vq-focus, var(--vq-teal-500)); outline-offset: 2px; }
+@media (max-width: 1023px) { .vq-board-bar { display: none; } }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Commerce;
 use App\Http\Controllers\Controller;
 use App\Models\Commerce\CommerceOrder;
 use App\Models\Commerce\Storefront;
+use App\Models\Commerce\StorefrontReview;
 use App\Services\Commerce\CheckoutService;
 use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OnlinePricing;
@@ -101,6 +102,7 @@ class PublicStoreController extends Controller
             }))
             ->orderByDesc('sp.is_featured')->orderBy('sp.sort_order')->orderBy('p.name')->orderBy('sp.id')
             ->select(['sp.is_featured', 'p.category_id', 'sp.id as listing_id', 'sp.public_name', 'sp.public_description', 'sp.override_price', 'sp.allow_below_cost', 'sp.product_id',
+                'sp.offline_reserve_qty', 'sp.online_stock_limit',
                 'sp.image_path as listing_image', 'sp.option_group', 'sp.option_label', 'p.id', 'p.tenant_id', 'p.name', 'p.description', 'p.image_path', 'p.price', 'p.cost_price', 'p.tax_rate', 'p.price_includes_tax',
                 'p.base_unit', 'p.unit', 'p.is_active', 'p.type', 'p.has_variants', 'p.is_weighted', 'p.track_serial'])
             ->paginate(24)->withQueryString();
@@ -126,10 +128,18 @@ class PublicStoreController extends Controller
                     $price = $d;
                 }
             }
-            $left = $store->warehouse_id ? $stockSvc->available($store->tenant_id, $r->id, $store->warehouse_id) : null;
-            if ($left !== null && $left > 0) {
-                // orders waiting for the business compete for the same units: show the honest remainder (never below 1 while any is free)
-                $left = max(1.0, $left - $stockSvc->pendingDemand($store->tenant_id, $r->id));
+            $rawLeft = $store->warehouse_id ? $stockSvc->available($store->tenant_id, $r->id, $store->warehouse_id) : null;
+            $left = null;
+            if ($rawLeft !== null) {
+                $offline = (float) ($r->offline_reserve_qty ?? 0);
+                $left = max(0.0, $rawLeft - $offline);
+                if ($r->online_stock_limit !== null) {
+                    $left = min($left, (float) $r->online_stock_limit);
+                }
+                if ($left > 0) {
+                    // orders waiting for the business compete for the same units: show the honest remainder (never below 1 while any is free)
+                    $left = max(1.0, $left - $stockSvc->pendingDemand($store->tenant_id, $r->id));
+                }
             }
             return [
                 'category' => $catNames[$r->category_id] ?? null,
@@ -147,6 +157,7 @@ class PublicStoreController extends Controller
             ];
         };
         $cols = ['sp.is_featured', 'p.category_id', 'sp.id as listing_id', 'sp.public_name', 'sp.public_description', 'sp.override_price', 'sp.allow_below_cost', 'sp.product_id',
+            'sp.offline_reserve_qty', 'sp.online_stock_limit',
             'sp.image_path as listing_image', 'sp.option_group', 'sp.option_label', 'p.id', 'p.tenant_id', 'p.name', 'p.description', 'p.image_path', 'p.price', 'p.cost_price', 'p.tax_rate', 'p.price_includes_tax',
             'p.base_unit', 'p.unit', 'p.is_active', 'p.type', 'p.has_variants', 'p.is_weighted', 'p.track_serial'];
         $groups = collect($rows->items())->pluck('option_group')->filter()->unique()->values()->all();
@@ -175,6 +186,67 @@ class PublicStoreController extends Controller
             return $item;
         })->filter()->values();
 
+        $avgRating = StorefrontReview::where('storefront_id', $store->id)->avg('rating');
+        $reviewCount = StorefrontReview::where('storefront_id', $store->id)->count();
+        $reviewsList = StorefrontReview::where('storefront_id', $store->id)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get(['id', 'customer_name', 'rating', 'review', 'is_verified_purchaser', 'created_at'])
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'customer_name' => $r->customer_name,
+                'rating' => (int) $r->rating,
+                'review' => $r->review,
+                'is_verified' => (bool) $r->is_verified_purchaser,
+                'created_at' => CommerceOrder::localTime($r->created_at, $store->timezone ?? 'UTC'),
+            ])->values();
+
+        $custSession = session('commerce_customer');
+        $customerData = null;
+        if ($custSession && ! empty($custSession['phone'])) {
+            $phone = $custSession['phone'];
+            $customerOrders = DB::table('commerce_orders')
+                ->where('storefront_id', $store->id)
+                ->where('customer_phone', $phone)
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
+                ->map(function ($o) use ($store) {
+                    $token = \Illuminate\Support\Str::random(48);
+                    DB::table('commerce_order_tokens')->insert([
+                        'order_id' => $o->id,
+                        'token_hash' => hash('sha256', $token),
+                        'created_at' => now(),
+                    ]);
+                    return [
+                        'id' => $o->id,
+                        'number' => $o->public_number,
+                        'status' => $o->status,
+                        'total' => (float) $o->total,
+                        'currency_symbol' => $o->currency_symbol,
+                        'fulfilment' => $o->fulfilment,
+                        'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
+                        'status_url' => url('/order-status/' . $token),
+                    ];
+                })->values();
+
+            $myReview = StorefrontReview::where('storefront_id', $store->id)
+                ->where('customer_phone', $phone)
+                ->first();
+
+            $customerData = [
+                'name' => $custSession['name'],
+                'phone' => $phone,
+                'email' => $custSession['email'] ?? null,
+                'orders' => $customerOrders,
+                'has_reviewed' => (bool) $myReview,
+                'review' => $myReview ? [
+                    'rating' => (int) $myReview->rating,
+                    'review' => $myReview->review,
+                ] : null,
+            ];
+        }
+
         return Inertia::render('Commerce/Store', [
             'store' => $preview ? array_merge(StorefrontPresenter::publicStore($store), ['accepting_orders' => false]) : StorefrontPresenter::publicStore($store),
             'preview' => $preview,
@@ -185,6 +257,12 @@ class PublicStoreController extends Controller
             'filters' => ['q' => $q, 'category' => $cat],
             'show_images' => (bool) $store->show_images,
             'has_coupons' => $promos->live($store)->contains(fn ($p) => $p->code !== null),
+            'rating_summary' => [
+                'average' => $avgRating ? round((float) $avgRating, 1) : null,
+                'count' => $reviewCount,
+                'reviews' => $reviewsList,
+            ],
+            'customer' => $customerData,
         ]);
     }
 
@@ -230,6 +308,12 @@ class PublicStoreController extends Controller
         } catch (CommerceException $e) {
             return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason] + ($e->reason === 'quote_changed' ? ['quote' => $this->publicQuote($e->payload['quote'])] : $e->payload), $e->httpStatus);
         }
+        session(['commerce_customer' => [
+            'phone' => preg_replace('/[^\d+]/', '', $data['customer_phone']),
+            'name' => $data['customer_name'],
+            'email' => $data['customer_email'] ?? null,
+        ]]);
+
         return response()->json([
             'order_number' => $r['order']->public_number,
             'status_url' => url('/order-status/' . $r['token']),
@@ -253,6 +337,7 @@ class PublicStoreController extends Controller
                 'subtotal' => $order->subtotal, 'tax_total' => $order->tax_total, 'delivery_fee' => $order->delivery_fee, 'total' => $order->total,
                 'currency_symbol' => $order->currency_symbol, 'placed_at' => CommerceOrder::localTime($order->created_at, $order->storefront?->timezone ?? 'UTC'),
                 'bank_reference' => $order->bank_reference, 'delivery_zone' => $order->delivery_zone,
+                'bank_receipt_url' => $order->bank_receipt_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($order->bank_receipt_path) : null,
                 'discount_total' => $order->discount_total, 'promo_name' => $order->promo_name, 'promo_code' => $order->promo_code,
                 'items' => $order->items()->get(['title', 'quantity', 'online_price', 'line_total'])->map(fn ($i) => $i->only(['title', 'quantity', 'online_price', 'line_total'])),
             ],
@@ -268,6 +353,17 @@ class PublicStoreController extends Controller
             'revision' => $order->revision_status ? ['status' => $order->revision_status, 'note' => $order->revision_note, 'summary' => $order->revision['summary'] ?? [], 'previous_total' => $order->revision['previous_total'] ?? null, 'total' => $order->revision['total'] ?? null] : null,
             'reorder_url' => $store->status === 'published' ? url('/order-status/' . $token . '/reorder') : null,
             'prep_minutes' => $store->prep_minutes,
+            'rating_summary' => [
+                'average' => ($avg = StorefrontReview::where('storefront_id', $store->id)->avg('rating')) ? round((float) $avg, 1) : null,
+                'count' => StorefrontReview::where('storefront_id', $store->id)->count(),
+                'reviews' => StorefrontReview::where('storefront_id', $store->id)->orderByDesc('created_at')->limit(10)->get()
+                    ->map(fn ($r) => ['id' => $r->id, 'customer_name' => $r->customer_name, 'rating' => (int) $r->rating, 'review' => $r->review, 'is_verified' => (bool) $r->is_verified_purchaser, 'created_at' => CommerceOrder::localTime($r->created_at, $store->timezone ?? 'UTC')])->values(),
+            ],
+            'customer' => [
+                'name' => $order->customer_name,
+                'phone' => $order->customer_phone,
+                'orders' => [],
+            ],
         ])->toResponse($request);
 
         // private, never indexed, never cached, never leaks the token via Referer
@@ -292,13 +388,19 @@ class PublicStoreController extends Controller
     public function reportTransfer(Request $request, string $token)
     {
         $order = $this->orderByToken($token);
-        $v = $request->validate(['reference' => ['required', 'string', 'min:3', 'max:120']]);
+        $v = $request->validate([
+            'reference' => ['required', 'string', 'min:3', 'max:120'],
+            'receipt' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+        ]);
+
+        $receiptPath = $request->file('receipt')->store('commerce/receipts', 'public');
+
         try {
-            $this->orders->reportTransfer($order->id, $order->tenant_id, $v['reference']);
+            $this->orders->reportTransfer($order->id, $order->tenant_id, $v['reference'], $receiptPath);
         } catch (CommerceException $e) {
             return redirect('/order-status/' . $token)->withErrors(['reference' => $e->getMessage()]);
         }
-        return redirect('/order-status/' . $token)->with('success', 'Thanks. The business will verify your transfer.');
+        return redirect('/order-status/' . $token)->with('success', 'Thanks. Receipt uploaded successfully. The business will verify your transfer.');
     }
 
     public function cancel(Request $request, string $token)
@@ -364,5 +466,182 @@ class PublicStoreController extends Controller
         $resp = response()->json(['slug' => $store->slug, 'lines' => $lines, 'skipped' => max(0, $order->items()->count() - $lines->count())]);
         $resp->headers->set('Cache-Control', 'no-store, private');
         return $resp;
+    }
+
+    public function customerLogin(Request $request, string $slug)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        $data = $request->validate([
+            'phone' => ['required', 'string', 'max:40'],
+            'name' => ['required', 'string', 'max:150'],
+            'email' => ['nullable', 'email', 'max:150'],
+        ]);
+        $phone = preg_replace('/[^\d+]/', '', $data['phone']);
+        session(['commerce_customer' => [
+            'phone' => $phone,
+            'name' => $data['name'],
+            'email' => $data['email'] ?? null,
+        ]]);
+
+        $customerOrders = DB::table('commerce_orders')
+            ->where('storefront_id', $store->id)
+            ->where('customer_phone', $phone)
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
+            ->map(function ($o) use ($store) {
+                $token = \Illuminate\Support\Str::random(48);
+                DB::table('commerce_order_tokens')->insert([
+                    'order_id' => $o->id,
+                    'token_hash' => hash('sha256', $token),
+                    'created_at' => now(),
+                ]);
+                return [
+                    'id' => $o->id,
+                    'number' => $o->public_number,
+                    'status' => $o->status,
+                    'total' => (float) $o->total,
+                    'currency_symbol' => $o->currency_symbol,
+                    'fulfilment' => $o->fulfilment,
+                    'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
+                    'status_url' => url('/order-status/' . $token),
+                ];
+            })->values();
+
+        $myReview = StorefrontReview::where('storefront_id', $store->id)
+            ->where('customer_phone', $phone)
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'customer' => [
+                'name' => $data['name'],
+                'phone' => $phone,
+                'email' => $data['email'] ?? null,
+                'orders' => $customerOrders,
+                'has_reviewed' => (bool) $myReview,
+                'review' => $myReview ? [
+                    'rating' => (int) $myReview->rating,
+                    'review' => $myReview->review,
+                ] : null,
+            ]
+        ]);
+    }
+
+    public function customerLogout(Request $request, string $slug)
+    {
+        session()->forget('commerce_customer');
+        return response()->json(['success' => true]);
+    }
+
+    public function submitRating(Request $request, string $slug)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        $custSession = session('commerce_customer');
+        $phone = $custSession['phone'] ?? preg_replace('/[^\d+]/', '', (string) $request->input('phone', ''));
+        $name = $custSession['name'] ?? trim((string) $request->input('name', ''));
+        $email = $custSession['email'] ?? $request->input('email');
+
+        if (empty($phone) || empty($name)) {
+            return response()->json([
+                'message' => 'Please sign in with your customer name and phone to rate this store.',
+            ], 401);
+        }
+
+        $data = $request->validate([
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'review' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $isVerified = DB::table('commerce_orders')
+            ->where('storefront_id', $store->id)
+            ->where('customer_phone', $phone)
+            ->exists();
+
+        $review = StorefrontReview::updateOrCreate(
+            [
+                'storefront_id' => $store->id,
+                'customer_phone' => $phone,
+            ],
+            [
+                'tenant_id' => $store->tenant_id,
+                'customer_name' => $name,
+                'customer_email' => $email,
+                'rating' => $data['rating'],
+                'review' => $data['review'] ?? null,
+                'is_verified_purchaser' => $isVerified,
+            ]
+        );
+
+        session(['commerce_customer' => [
+            'phone' => $phone,
+            'name' => $name,
+            'email' => $email,
+        ]]);
+
+        $avgRating = StorefrontReview::where('storefront_id', $store->id)->avg('rating');
+        $reviewCount = StorefrontReview::where('storefront_id', $store->id)->count();
+        $reviewsList = StorefrontReview::where('storefront_id', $store->id)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get(['id', 'customer_name', 'rating', 'review', 'is_verified_purchaser', 'created_at'])
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'customer_name' => $r->customer_name,
+                'rating' => (int) $r->rating,
+                'review' => $r->review,
+                'is_verified' => (bool) $r->is_verified_purchaser,
+                'created_at' => CommerceOrder::localTime($r->created_at, $store->timezone ?? 'UTC'),
+            ])->values();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thank you! Your rating has been submitted.',
+            'rating_summary' => [
+                'average' => $avgRating ? round((float) $avgRating, 1) : null,
+                'count' => $reviewCount,
+                'reviews' => $reviewsList,
+            ],
+            'my_review' => [
+                'rating' => (int) $review->rating,
+                'review' => $review->review,
+                'is_verified' => (bool) $review->is_verified_purchaser,
+            ],
+        ]);
+    }
+
+    public function customerOrders(Request $request, string $slug)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        $custSession = session('commerce_customer');
+        if (! $custSession || empty($custSession['phone'])) {
+            return response()->json(['orders' => []]);
+        }
+        $orders = DB::table('commerce_orders')
+            ->where('storefront_id', $store->id)
+            ->where('customer_phone', $custSession['phone'])
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
+            ->map(function ($o) use ($store) {
+                $token = \Illuminate\Support\Str::random(48);
+                DB::table('commerce_order_tokens')->insert([
+                    'order_id' => $o->id,
+                    'token_hash' => hash('sha256', $token),
+                    'created_at' => now(),
+                ]);
+                return [
+                    'id' => $o->id,
+                    'number' => $o->public_number,
+                    'status' => $o->status,
+                    'total' => (float) $o->total,
+                    'currency_symbol' => $o->currency_symbol,
+                    'fulfilment' => $o->fulfilment,
+                    'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
+                    'status_url' => url('/order-status/' . $token),
+                ];
+            })->values();
+
+        return response()->json(['orders' => $orders]);
     }
 }
