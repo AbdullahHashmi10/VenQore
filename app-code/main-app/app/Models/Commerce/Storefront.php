@@ -24,7 +24,7 @@ class Storefront extends Model
         'accept_cod' => 'boolean',
         'accept_pickup_payment' => 'boolean',
         'accept_bank_transfer' => 'boolean',
-        'intake_paused' => 'boolean',
+        'intake_paused' => 'boolean', 'orders_outside_hours' => 'boolean', 'show_images' => 'boolean', 'delivery_zones' => 'array',
         'delivery_charge' => 'float',
         'min_order_amount' => 'float',
         'pricing_percent' => 'float',
@@ -33,7 +33,16 @@ class Storefront extends Model
 
     public function isAcceptingOrders(): bool
     {
-        return $this->status === 'published' && ! $this->intake_paused;
+        return $this->status === 'published' && ! $this->intake_paused && ! $this->isClosedByHours();
+    }
+
+    /** Opening hours set, the business is closed right now (store timezone), and it has not opted in to advance orders. */
+    public function isClosedByHours(?\Carbon\CarbonImmutable $now = null): bool
+    {
+        if ($this->orders_outside_hours) {
+            return false;
+        }
+        return \App\Services\Commerce\OpeningHours::isOpenNow($this->opening_hours, $this->timezone ?: 'UTC', $now) === false;
     }
 
     public function isVisible(): bool

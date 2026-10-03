@@ -209,6 +209,15 @@ class SitemapController extends Controller
             ];
         }
 
+        // 6. Published online shops (public, indexable)
+        try {
+            foreach (\Illuminate\Support\Facades\DB::table('storefronts')->where('status', 'published')->orderBy('id')->limit(5000)->get(['slug', 'updated_at']) as $shop) {
+                $categorized['shops'][] = ['loc' => url('/shop/' . $shop->slug), 'changefreq' => 'weekly', 'priority' => '0.5'];
+            }
+        } catch (\Throwable $e) {
+            // storefronts table not migrated yet: skip
+        }
+
         return $categorized;
     }
 

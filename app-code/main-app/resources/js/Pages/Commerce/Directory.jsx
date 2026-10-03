@@ -1,10 +1,12 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { ShieldCheck, Truck, Store as StoreIcon } from 'lucide-react';
 import PublicShell from '@/Components/Commerce/PublicShell';
 import { Badge, Icon, Pager, initials, tone } from '@/Components/Commerce/shop';
 
+const go = (params) => router.get('/shop', params, { preserveScroll: true });
+
 export default function Directory({ countries, country, cities, city, stores }) {
-    const go = (params) => router.get('/shop', params, { preserveScroll: true });
     const open = stores?.data?.filter((s) => s.open_now === true).length || 0;
 
     return (
@@ -14,6 +16,8 @@ export default function Directory({ countries, country, cities, city, stores }) 
             </Head>
 
             <section className="vqs-hero">
+              <div className="vqs-herogrid">
+                <div>
                 <div className="vqs-eyebrow">{city ? `${city.name}${country ? ` · ${country.name}` : ''}${stores ? ` · ${open} open now` : ''}` : 'VenQore Shops'}</div>
                 <h1 className="vqs-h1" style={{ marginTop: 14, maxWidth: '14ch' }}>Shop local. <em>Order in a minute.</em></h1>
                 <p className="vqs-lede">Browse real businesses in your city, fill a cart, and pay on delivery or at pickup. No account needed.</p>
@@ -35,6 +39,13 @@ export default function Directory({ countries, country, cities, city, stores }) 
                         </li>
                     ))}
                 </ol>
+                </div>
+                <div className="vqs-stack vqs-herofeats" style={{ gap: 12 }}>
+                    {[[StoreIcon, 'Real local businesses', 'Every shop is run by an independent business in your city.'], [Truck, 'Delivery or pickup', 'Each shop sets its own areas, fees and prep time, shown before you order.'], [ShieldCheck, 'No account needed', 'Order as a guest. The business confirms your order before it is accepted.']].map(([I, h, t], i) => (
+                        <div key={h} className="vqs-feat vqs-rise" style={{ '--i': i + 2 }}><span className="ic"><I size={20} /></span><div><b>{h}</b><span className="t">{t}</span></div></div>
+                    ))}
+                </div>
+              </div>
             </section>
 
             <div style={{ marginTop: 32 }}>
@@ -61,10 +72,10 @@ export default function Directory({ countries, country, cities, city, stores }) 
                             <span className="vqs-eyebrow">{stores.total} business{stores.total === 1 ? '' : 'es'}</span>
                         </div>
                         <ul className="vqs-grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(270px,1fr))', listStyle: 'none', padding: 0, margin: 0 }}>
-                            {stores.data.map((s) => {
+                            {stores.data.map((s, idx) => {
                                 const t = tone(s.slug);
                                 return (
-                                    <li key={s.slug}>
+                                    <li key={s.slug} className="vqs-rise" style={{ '--i': Math.min(idx, 11) }}>
                                         <Link href={`/shop/${s.slug}`} className="vqs-card vqs-shopcard" style={{ height: '100%' }}>
                                             <div className="vqs-cover" style={{ background: t.bg }}>
                                                 {s.open_now === true && <Badge kind="ok">Open now</Badge>}

@@ -211,6 +211,7 @@ class SyncController extends Controller
         }
 
         try {
+            \App\Services\Commerce\HoldGuard::$offlineSale = true; // Commerce: an offline sale already happened; record it, then flag any short online order
             $syncedCount = 0;
             DB::transaction(function () use ($orders, $tenant, &$syncedCount) {
                 foreach ($orders as $orderData) {
@@ -254,8 +255,11 @@ class SyncController extends Controller
                     }
                 }
             });
+            \App\Services\Commerce\HoldGuard::$offlineSale = false;
+            try { \App\Services\Commerce\HoldGuard::reportConflicts((int) $tenant->id); } catch (\Throwable $e) { }
             return response()->json(['status' => 'synced', 'count' => $syncedCount]);
         } catch (\Throwable $e) {
+            \App\Services\Commerce\HoldGuard::$offlineSale = false;
             Log::error('Offline batch sync transaction failed: ' . $e->getMessage());
             return response()->json(['message' => 'Sync failed', 'error' => $e->getMessage()], 500);
         }

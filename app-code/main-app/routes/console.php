@@ -338,3 +338,6 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('commerce:expire-orders')->everyFiveMinutes();
 // Commerce MVP: email outbox for new online orders
 \Illuminate\Support\Facades\Schedule::command('commerce:send-notifications')->everyMinute();
+
+// Commerce: privacy retention for closed online orders
+\Illuminate\Support\Facades\Schedule::command('commerce:purge-customer-data')->dailyAt('03:30');

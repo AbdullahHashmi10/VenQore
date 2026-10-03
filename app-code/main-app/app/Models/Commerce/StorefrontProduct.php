@@ -13,7 +13,7 @@ class StorefrontProduct extends Model
     protected $guarded = [];
     protected $casts = [
         'is_published' => 'boolean',
-        'allow_below_cost' => 'boolean',
+        'allow_below_cost' => 'boolean', 'is_featured' => 'boolean',
         'override_price' => 'float',
     ];
 }

@@ -35,7 +35,8 @@ class FifoService
         string|int $productId,
         string|int $warehouseId,
         float $qty,
-        string $saleUom = 'PCS'
+        string $saleUom = 'PCS',
+        ?string $ownOrderId = null
     ): array {
         // If UOM conversion is needed, caller passes already-converted base qty.
         $type = DB::table('products')->where('tenant_id', $this->getTenantId())->where('id', $productId)->value('type');
@@ -43,7 +44,7 @@ class FifoService
             return [];
         }
 
-        return DB::transaction(function () use ($productId, $warehouseId, $qty) {
+        return DB::transaction(function () use ($productId, $warehouseId, $qty, $ownOrderId) {
 
             // Lock batches for this product+warehouse, oldest first
             $batches = DB::table('inventory_batches')
@@ -57,6 +58,7 @@ class FifoService
                 ->get();
 
             $totalAvailable = (float) $batches->sum('remaining_qty');
+            \App\Services\Commerce\HoldGuard::assertUnderLock((string) $productId, (string) $warehouseId, $qty, $totalAvailable, $ownOrderId);
                 
             $stopNegative = \App\Helpers\SettingsHelper::shouldStopNegativeStock();
 

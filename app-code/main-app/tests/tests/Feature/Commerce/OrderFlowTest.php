@@ -96,8 +96,9 @@ class OrderFlowTest extends CommerceTestCase
 
     public function test_confirm_rejects_when_stock_insufficient_and_holds_nothing(): void
     {
-        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 1, $this->store);
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 2, $this->store);
         $o = $this->place([['product_id' => $pid, 'quantity' => 2]])['order'];
+        DB::table('inventory_batches')->where('product_id', $pid)->update(['remaining_qty' => 1]); // stock dropped after the customer ordered
         try {
             app(OrderService::class)->confirm($o->id, $this->tenant->id, 1);
             $this->fail('expected insufficient stock');
@@ -110,9 +111,10 @@ class OrderFlowTest extends CommerceTestCase
 
     public function test_second_order_cannot_double_book_the_last_unit(): void
     {
-        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 1, $this->store);
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 2, $this->store);
         $a = $this->place([['product_id' => $pid, 'quantity' => 1]])['order'];
         $b = $this->place([['product_id' => $pid, 'quantity' => 1]])['order'];
+        DB::table('inventory_batches')->where('product_id', $pid)->update(['remaining_qty' => 1]); // a unit left the shelf after both ordered
         $svc = app(OrderService::class);
         $svc->confirm($a->id, $this->tenant->id, 1);
         $this->expectException(CommerceException::class);
@@ -122,6 +124,7 @@ class OrderFlowTest extends CommerceTestCase
     public function test_existing_presale_reservation_is_respected(): void
     {
         $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 5, $this->store);
+        $o = $this->place([['product_id' => $pid, 'quantity' => 2]])['order']; // ordered while all 5 were free
         $soId = (string) Str::uuid();
         $cols = DB::getSchemaBuilder()->getColumnListing('sales_orders');
         $row = ['id' => $soId, 'user_id' => $this->owner->id, 'tenant_id' => $this->tenant->id, 'status' => 'open', 'created_at' => now(), 'updated_at' => now()];
@@ -139,7 +142,6 @@ class OrderFlowTest extends CommerceTestCase
         }
         DB::table('sales_order_items')->insert($si);
 
-        $o = $this->place([['product_id' => $pid, 'quantity' => 2]])['order']; // only 1 truly free
         $this->expectException(CommerceException::class);
         app(OrderService::class)->confirm($o->id, $this->tenant->id, 1);
     }

@@ -1,0 +1,15 @@
+import {build} from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwind from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.dirname(fileURLToPath(import.meta.url));
+const result=await build({configFile:false,root,define:{'process.env.NODE_ENV':JSON.stringify('production')},plugins:[react()],resolve:{alias:{'@':path.join(root,'src')}},css:{postcss:{plugins:[tailwind({content:[path.join(root,'sales-studio/**/*.{jsx,js}'),path.join(root,'src/components/**/*.{tsx,ts}')],theme:{extend:{}},plugins:[]}),autoprefixer()]}},build:{write:false,minify:true,lib:{entry:path.join(root,'sales-studio/App.jsx'),name:'SalesStudio',formats:['iife']}}});
+const output=(Array.isArray(result)?result[0]:result).output;
+const js=output.filter(x=>x.type==='chunk').map(x=>x.code).join('\n').replace(/<\/script/gi,'<\\/script');
+const css=output.filter(x=>x.type==='asset'&&x.fileName.endsWith('.css')).map(x=>x.source).join('\n');
+const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VenQore Sales Card Studio</title><style>${css}</style></head><body><div id="root"></div><script>${js}</script></body></html>`;
+for(const name of ['sales-card-studio.html','sales-card-system.html'])fs.writeFileSync(path.join(root,'../mockups',name),html);
+console.log('Built standalone Sales Card Studio:',Buffer.byteLength(html),'bytes');

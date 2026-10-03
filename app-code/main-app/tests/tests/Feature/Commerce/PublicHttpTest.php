@@ -202,4 +202,111 @@ class PublicHttpTest extends CommerceTestCase
         $this->expectException(\App\Services\Commerce\CommerceException::class);
         $svc->place($this->store->fresh(), $this->checkoutInput([['item_id' => $listing, 'quantity' => 1]]));
     }
+
+    public function test_listing_photo_overrides_product_photo_and_store_can_hide_photos(): void
+    {
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Pic', 'image_path' => 'products/own.jpg'], 5, $this->store);
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Pic2', 'image_path' => 'products/own2.jpg'], 5, $this->store, ['image_path' => 'commerce/products/online.jpg']);
+        $urls = fn () => collect($this->get('/shop/' . $this->store->slug)->viewData('page')['props']['items'])->pluck('image_url', 'name');
+        $u = $urls();
+        $this->assertStringContainsString('products/own.jpg', $u['Pic']);
+        $this->assertStringContainsString('commerce/products/online.jpg', $u['Pic2']);
+        $this->store->update(['show_images' => false]);
+        $this->assertSame([null, null], $urls()->values()->all());
+    }
+
+    public function test_search_and_category_filters_only_use_published_products(): void
+    {
+        $cat = (string) Str::uuid();
+        DB::table('categories')->insert(['id' => $cat, 'tenant_id' => $this->tenant->id, 'name' => 'Drinks', 'created_at' => now(), 'updated_at' => now()]);
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Cola', 'category_id' => $cat], 5, $this->store);
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Colander'], 5, $this->store);
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Cola Secret', 'category_id' => $cat], 5, $this->store, ['is_published' => 0]);
+        $get = fn ($qs) => $this->get('/shop/' . $this->store->slug . $qs)->viewData('page')['props'];
+        $names = fn ($qs) => collect($get($qs)['items'])->pluck('name')->sort()->values()->all();
+        $this->assertSame(['Cola', 'Colander'], $names('?q=cola'));
+        $this->assertSame(['Cola'], $names('?category=' . $cat));
+        $this->assertSame([], $names('?q=%25'));
+        $this->assertSame([['id' => $cat, 'name' => 'Drinks', 'count' => 1]], $get('')['categories']);
+    }
+
+    public function test_featured_items_come_first_and_reorder_returns_only_live_lines(): void
+    {
+        $a = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Alpha'], 9, $this->store);
+        $z = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Zeta'], 9, $this->store, ['is_featured' => 1]);
+        $gone = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Gone'], 9, $this->store);
+        $names = collect($this->get('/shop/' . $this->store->slug)->viewData('page')['props']['items'])->pluck('name')->all();
+        $this->assertSame('Zeta', $names[0]);
+        $res = $this->postJson('/shop/' . $this->store->slug . '/checkout', $this->body([['item_id' => DB::table('storefront_products')->where('product_id', $a)->value('id'), 'quantity' => 2], ['item_id' => DB::table('storefront_products')->where('product_id', $gone)->value('id'), 'quantity' => 1]]))->assertCreated();
+        $token = basename($res->json('status_url'));
+        DB::table('storefront_products')->where('product_id', $gone)->update(['is_published' => 0]);
+        $r = $this->getJson('/order-status/' . $token . '/reorder')->assertOk();
+        $this->assertSame(1, count($r->json('lines')));
+        $this->assertSame(2, $r->json('lines.0.quantity'));
+        $this->assertSame(1, $r->json('skipped'));
+        $this->assertStringContainsString('no-store', $r->headers->get('Cache-Control'));
+        $this->getJson('/order-status/' . Str::random(48) . '/reorder')->assertNotFound();
+        $this->store->update(['status' => 'unpublished']);
+        $this->getJson('/order-status/' . $token . '/reorder')->assertNotFound();
+    }
+
+    public function test_quote_endpoint_applies_coupon_and_reports_invalid_code(): void
+    {
+        $a = $this->makeProduct($this->tenant, $this->warehouseId, [], 9, $this->store);
+        DB::table('commerce_promotions')->insert(['id' => (string) Str::uuid(), 'tenant_id' => $this->tenant->id, 'storefront_id' => $this->store->id, 'name' => 'C', 'code' => 'HI', 'percent' => 10,
+            'scope' => 'store', 'min_order' => 0, 'uses' => 0, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+        $lid = DB::table('storefront_products')->where('product_id', $a)->value('id');
+        $ok = $this->postJson('/shop/' . $this->store->slug . '/quote', ['items' => [['item_id' => $lid, 'quantity' => 1]], 'coupon' => 'hi'])->assertOk();
+        $this->assertEquals(900.0, $ok->json('total'));
+        $this->postJson('/shop/' . $this->store->slug . '/quote', ['items' => [['item_id' => $lid, 'quantity' => 1]], 'coupon' => 'zzz'])->assertStatus(422)->assertJsonPath('reason', 'invalid_coupon');
+    }
+
+    public function test_catalogue_shows_factual_low_and_sold_out_labels_without_leaking_counts(): void
+    {
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Plenty'], 40, $this->store);
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Few'], 3, $this->store);
+        $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'None'], 0, $this->store);
+        $by = collect($this->get('/shop/' . $this->store->slug)->viewData('page')['props']['items'])->keyBy('name');
+        $this->assertNull($by['Plenty']['stock']);
+        $this->assertNull($by['Plenty']['left']);
+        $this->assertSame('low', $by['Few']['stock']);
+        $this->assertSame(3, $by['Few']['left']);
+        $this->assertSame('out', $by['None']['stock']);
+    }
+
+    public function test_options_group_into_one_card_with_per_option_stock_and_price(): void
+    {
+        $s = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Tee Small'], 10, $this->store);
+        $l = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Tee Large', 'price' => 1200], 0, $this->store);
+        DB::table('storefront_products')->where('product_id', $s)->update(['option_group' => 'Cotton Tee', 'option_label' => 'Small']);
+        DB::table('storefront_products')->where('product_id', $l)->update(['option_group' => 'Cotton Tee', 'option_label' => 'Large']);
+        $props = $this->get('/shop/' . $this->store->slug)->viewData('page')['props'];
+        $tees = collect($props['items'])->filter(fn ($i) => ($i['name'] ?? '') === 'Cotton Tee')->values();
+        $this->assertCount(1, $tees, 'two options are one card');
+        $opts = collect($tees[0]['options']);
+        $this->assertCount(2, $opts);
+        $this->assertSame('out', $opts->firstWhere('label', 'Large')['stock']);
+        $this->assertNull($opts->firstWhere('label', 'Small')['stock']);
+        $this->assertGreaterThan($opts->firstWhere('label', 'Small')['price'], $opts->firstWhere('label', 'Large')['price']);
+        // each option is a real, separately orderable listing
+        $listing = $opts->firstWhere('label', 'Small')['id'];
+        $q = $this->postJson('/shop/' . $this->store->slug . '/quote', ['items' => [['item_id' => $listing, 'quantity' => 1]], 'fulfilment' => 'pickup'])->assertOk();
+        $this->assertSame($listing, $q->json('items.0.item_id'));
+    }
+
+    public function test_customer_answers_a_proposed_change_over_http(): void
+    {
+        $a = $this->makeProduct($this->tenant, $this->warehouseId, [], 10, $this->store);
+        $placed = app(\App\Services\Commerce\CheckoutService::class)->place($this->store->fresh(), $this->checkoutInput([['product_id' => $a, 'quantity' => 3]]));
+        $item = DB::table('commerce_order_items')->where('order_id', $placed['order']->id)->value('id');
+        app(\App\Services\Commerce\OrderRevisions::class)->propose($placed['order']->id, $this->tenant->id, $this->owner->id, [['item' => $item, 'action' => 'qty', 'quantity' => 1]], 'Only one left');
+        $page = $this->get('/order-status/' . $placed['token'])->viewData('page')['props'];
+        $this->assertSame('proposed', $page['revision']['status']);
+        $this->assertSame('Only one left', $page['revision']['note']);
+        $this->post('/order-status/' . $placed['token'] . '/revision', ['answer' => 'accept'])->assertRedirect();
+        $this->assertEquals(1000.0, (float) DB::table('commerce_orders')->where('id', $placed['order']->id)->value('total'));
+        // answering twice, or with a wrong token, does nothing
+        $this->post('/order-status/' . $placed['token'] . '/revision', ['answer' => 'decline'])->assertSessionHasErrors('revision');
+        $this->post('/order-status/' . str_repeat('a', 48) . '/revision', ['answer' => 'accept'])->assertNotFound();
+    }
 }

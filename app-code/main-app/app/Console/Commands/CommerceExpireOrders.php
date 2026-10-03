@@ -13,7 +13,9 @@ class CommerceExpireOrders extends Command
     public function handle(OrderService $orders): int
     {
         $n = $orders->expireDue();
-        $this->info("Expired {$n} online order(s).");
+        $orders->sweepUnavailable();
+        [$notified, $cancelled] = $orders->sweepStale();
+        $this->info("Expired {$n} online order(s); {$notified} stale reminder(s); {$cancelled} stale cancellation(s).");
         return self::SUCCESS;
     }
 }

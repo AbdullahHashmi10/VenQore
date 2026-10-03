@@ -93,4 +93,19 @@ class OnlinePricing
             'line_total' => round($lineNet + $tax, 2),
         ];
     }
+
+    /** Apply a percentage promotion to an already-resolved online price. Keeps the pre-discount price as list_price. */
+    public function discount(array $price, object $product, float $pct): array
+    {
+        $online = round($price['online_price'] * (1 - $pct / 100), 2);
+        $taxRate = $price['tax_rate'];
+        $net = $price['price_includes_tax'] ? round($online / (1 + $taxRate / 100), 4) : round($online, 4);
+        return array_merge($price, [
+            'list_price' => $price['online_price'],
+            'discount_percent' => $pct,
+            'online_price' => $online,
+            'net_unit_price' => $net,
+            'below_cost' => $net < round((float) ($product->cost_price ?? 0), 4),
+        ]);
+    }
 }

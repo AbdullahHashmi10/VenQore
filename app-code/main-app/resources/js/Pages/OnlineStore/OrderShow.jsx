@@ -4,10 +4,20 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Alert, Button, Card, StatusPill, inputCls } from '@/Components/Commerce/ui';
 import { METHOD_LABEL, PAYMENT_LABEL, STATUS_LABEL, money } from '@/lib/commerce';
 
-export default function OrderShow({ order, lines, events, sale, urls }) {
+/** wa.me needs the country code; a leading 0 is only expanded for Pakistan (Rs), otherwise the number is used as typed. */
+const waNumber = (phone, sym) => {
+    const d = String(phone || '').replace(/\D/g, '');
+    return d.startsWith('0') && sym === 'Rs' ? `92${d.slice(1)}` : d;
+};
+
+export default function OrderShow({ order, lines, events, sale, urls, substitutes = [], party_matches = [] }) {
     const { errors, flash } = usePage().props;
     const [reason, setReason] = useState('');
     const [busy, setBusy] = useState(false);
+    const [partyId, setPartyId] = useState('');
+    const [refunded, setRefunded] = useState(false);
+    const owes = ['collected', 'transfer_reported'].includes(order.payment_status);
+    const [rev, setRev] = useState(null); // { note, rows: { [lineId]: { action, quantity, listing_id } } }
     const sym = order.currency_symbol;
     const act = (url, data = {}) => { setBusy(true); router.post(url, { version: order.version, ...data }, { preserveScroll: true, onFinish: () => setBusy(false) }); };
     const handover = order.fulfilment === 'delivery' ? 'out_for_delivery' : 'ready';
@@ -54,12 +64,43 @@ export default function OrderShow({ order, lines, events, sale, urls }) {
                             <>
                                 {shortage && <Alert kind="warn">Stock looks short for at least one line. Accepting will re-check and may be refused.</Alert>}
                                 <p className="text-xs text-ink-muted">Accepting re-checks live stock and holds it for this order. {order.accept_by && `Accept by ${order.accept_by}.`}</p>
+                                {order.revision_status === 'proposed' && <Alert kind="info">You proposed changes. The customer must accept or decline them before you can accept this order.</Alert>}
+                                {order.revision_status === 'declined' && <Alert kind="warn">The customer declined your proposed changes. You can accept the original order or decline it.</Alert>}
+                                {order.revision_status === 'accepted' && <Alert kind="success">The customer accepted the changes. The lines above are the updated order.</Alert>}
                                 <div className="flex flex-wrap gap-2 items-end">
-                                    <Button disabled={busy} onClick={() => act(urls.accept)}>Accept order</Button>
+                                    <Button disabled={busy || order.revision_status === 'proposed'} onClick={() => act(urls.accept)}>Accept order</Button>
+                                    {order.revision_status !== 'proposed' && <Button variant="secondary" disabled={busy} onClick={() => setRev(rev ? null : { note: '', rows: {} })}>{rev ? 'Close changes' : 'Propose changes'}</Button>}
+                                    {owes && <label className="flex items-center gap-2 text-sm w-full"><input type="checkbox" checked={refunded} onChange={(e) => setRefunded(e.target.checked)} />Refund confirmed — the customer's money {order.payment_status === 'collected' ? 'was collected and has been returned' : 'transfer has been returned or never arrived'}</label>}
                                     <input className={inputCls + ' !w-64'} placeholder="Reason (to decline)" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Decline reason" />
-                                    <Button variant="danger" disabled={busy || !reason.trim()} onClick={() => act(urls.reject, { reason })}>Decline</Button>
+                                    <Button variant="secondary" disabled={busy} onClick={() => { if (window.confirm('Block this phone number from ordering?')) act(urls.block, {}); }}>Block number</Button>
+                                    <Button variant="danger" disabled={busy || !reason.trim()} onClick={() => act(urls.reject, { reason, refund_confirmed: refunded })}>Decline</Button>
                                 </div>
                             </>
+                        )}
+                        {order.status === 'pending' && rev && (
+                            <div className="rounded-xl border border-line p-3 space-y-3">
+                                <p className="text-xs text-ink-muted">Short on something? Lower a quantity, remove a line or offer a substitute. Nothing changes until the customer agrees on their status page. Kept lines keep their price; a substitute is priced at today&apos;s online price.</p>
+                                {lines.map((l) => {
+                                    const r = rev.rows[l.id] || { action: '' };
+                                    const setRow = (patch) => setRev({ ...rev, rows: { ...rev.rows, [l.id]: { ...r, ...patch } } });
+                                    return (
+                                        <div key={l.id} className="flex flex-wrap items-center gap-2 text-sm">
+                                            <span className="w-56 truncate">{l.quantity} × {l.title}</span>
+                                            <select className={inputCls + ' !w-44'} aria-label={`Change for ${l.title}`} value={r.action} onChange={(e) => setRow({ action: e.target.value, quantity: '', listing_id: '' })}>
+                                                <option value="">No change</option><option value="qty">Reduce quantity</option><option value="remove">Remove</option><option value="substitute">Substitute</option>
+                                            </select>
+                                            {(r.action === 'qty' || r.action === 'substitute') && <input type="number" min="0.0001" step="any" className={inputCls + ' !w-24'} aria-label="New quantity" placeholder={r.action === 'qty' ? 'New qty' : String(l.quantity)} value={r.quantity || ''} onChange={(e) => setRow({ quantity: e.target.value })} />}
+                                            {r.action === 'substitute' && (
+                                                <select className={inputCls + ' !w-56'} aria-label="Substitute item" value={r.listing_id || ''} onChange={(e) => setRow({ listing_id: e.target.value })}>
+                                                    <option value="">Choose item…</option>{substitutes.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+                                                </select>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                <input className={inputCls} placeholder="Note to the customer (optional)" maxLength={255} value={rev.note} onChange={(e) => setRev({ ...rev, note: e.target.value })} aria-label="Note to the customer" />
+                                <Button disabled={busy || !Object.values(rev.rows).some((x) => x.action)} onClick={() => act(urls.revise, { note: rev.note, changes: Object.entries(rev.rows).filter(([, x]) => x.action).map(([item, x]) => ({ item, action: x.action, quantity: x.quantity === '' ? undefined : x.quantity, listing_id: x.listing_id || undefined })) })}>Send to customer</Button>
+                            </div>
                         )}
                         {open && (
                             <div className="flex flex-wrap gap-2">
@@ -71,13 +112,22 @@ export default function OrderShow({ order, lines, events, sale, urls }) {
                         )}
                         {['ready', 'out_for_delivery'].includes(order.status) && (
                             <div className="border-t border-line pt-3 space-y-2">
+                                {(party_matches || []).length > 0 && (
+                                    <label className="block text-sm">
+                                        <span className="text-ink-secondary">Customer record for the sale</span>
+                                        <select className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2" value={partyId} onChange={(e) => setPartyId(e.target.value)}>
+                                            <option value="">Create a new online customer</option>
+                                            {party_matches.map((m) => <option key={m.id} value={m.id}>{m.name} ({m.phone})</option>)}
+                                        </select>
+                                    </label>
+                                )}
                                 <p className="text-sm">Hand over &amp; complete posts <strong>one sale</strong> and reduces stock.</p>
                                 <div className="flex flex-wrap gap-2">
                                     {order.payment_status === 'collected'
-                                        ? <Button disabled={busy} onClick={() => act(urls.complete, {})}>Complete (already paid)</Button>
+                                        ? <Button disabled={busy} onClick={() => act(urls.complete, { party_id: partyId || undefined })}>Complete (already paid)</Button>
                                         : <>
-                                            <Button disabled={busy} onClick={() => act(urls.complete, { collect_now: true })}>Complete — money received now</Button>
-                                            <Button disabled={busy} variant="secondary" onClick={() => act(urls.complete, { collect_now: false })}>Complete — customer owes (receivable)</Button>
+                                            <Button disabled={busy} onClick={() => act(urls.complete, { collect_now: true, party_id: partyId || undefined })}>Complete — money received now</Button>
+                                            <Button disabled={busy} variant="secondary" onClick={() => act(urls.complete, { collect_now: false, party_id: partyId || undefined })}>Complete — customer owes (receivable)</Button>
                                         </>}
                                 </div>
                                 {order.payment_status !== 'collected' && <p className="text-xs text-ink-muted">Cash on delivery is not income until collected. Choose “customer owes” to record it as a receivable and receive payment later in your normal receivables flow.</p>}
@@ -85,11 +135,13 @@ export default function OrderShow({ order, lines, events, sale, urls }) {
                         )}
                         {open && (
                             <div className="border-t border-line pt-3 flex flex-wrap gap-2 items-end">
+                                {owes && <label className="flex items-center gap-2 text-sm w-full"><input type="checkbox" checked={refunded} onChange={(e) => setRefunded(e.target.checked)} />Refund confirmed — the customer's money has been returned</label>}
                                 <input className={inputCls + ' !w-64'} placeholder="Reason to cancel" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Cancel reason" />
-                                <Button variant="danger" disabled={busy || !reason.trim()} onClick={() => act(urls.cancel, { reason })}>Cancel order (release stock)</Button>
+                                <Button variant="danger" disabled={busy || !reason.trim()} onClick={() => act(urls.cancel, { reason, refund_confirmed: refunded })}>Cancel order (release stock)</Button>
                             </div>
                         )}
                         {order.status === 'completed' && sale && <p className="text-sm">Posted as sale <strong>{sale.reference_number}</strong> ({money(sale.invoice_total, sym)}, {sale.payment_status}). {urls.sale && <a className="underline" href={urls.sale}>Open sale</a>}</p>}
+                        {order.status === 'completed' && urls.print_receipt && <p className="text-sm"><a className="underline font-semibold" href={urls.print_receipt} target="_blank" rel="noopener noreferrer">Print receipt</a> using your normal receipt settings.</p>}
                         {order.status === 'completed' && order.payment_status !== 'collected' && urls.receive_payment && <p className="text-sm">Money still owed. <a className="underline font-semibold" href={urls.receive_payment}>Receive payment</a> in Payments; this order shows Paid once the sale is settled.</p>}
                         {['rejected', 'cancelled', 'expired'].includes(order.status) && <p className="text-sm text-ink-muted">{STATUS_LABEL[order.status]}{order.reason ? `: ${order.reason}` : ''}. No sale was posted.</p>}
                     </Card>
@@ -99,7 +151,8 @@ export default function OrderShow({ order, lines, events, sale, urls }) {
                     <Card>
                         <h2 className="font-semibold mb-2">Customer</h2>
                         <p className="text-sm">{order.customer_name}</p>
-                        <p className="text-sm"><a className="underline" href={`tel:${order.customer_phone}`}>{order.customer_phone}</a></p>
+                        <p className="text-sm flex flex-wrap gap-3"><a className="underline" href={`tel:${order.customer_phone}`}>{order.customer_phone}</a>
+                            <a className="underline" target="_blank" rel="noopener noreferrer" href={`https://wa.me/${waNumber(order.customer_phone, order.currency_symbol)}?text=${encodeURIComponent(`Hi ${order.customer_name}, about your order ${order.public_number}: `)}`}>WhatsApp the customer</a></p>
                         <p className="text-sm text-ink-muted mt-2">{order.fulfilment === 'delivery' ? 'Delivery to:' : 'Pickup'}</p>
                         {order.delivery_address && <p className="text-sm whitespace-pre-line">{order.delivery_address}</p>}
                         {order.customer_note && <p className="text-sm mt-2 bg-sunken rounded-xl p-2">“{order.customer_note}”</p>}

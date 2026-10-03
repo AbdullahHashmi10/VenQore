@@ -57,7 +57,7 @@ class StoreManagerController extends Controller
         $r = fn ($n, $extra = []) => route('store.commerce.' . $n, array_merge(['store_slug' => $slug], $extra));
         return [
             'home' => $r('home'), 'settings' => $r('settings'), 'settings_save' => $r('settings.save'),
-            'products' => $r('products'), 'products_bulk' => $r('products.bulk'),
+            'promotions' => $r('promotions'), 'products' => $r('products'), 'products_bulk' => $r('products.bulk'), 'products_photo' => $r('products.photo', ['product' => '__ID__']),
             'publish' => $r('publish'), 'unpublish' => $r('unpublish'), 'intake' => $r('intake'),
             'orders' => $r('orders'), 'alerts' => $r('alerts'),
         ];
@@ -74,15 +74,41 @@ class StoreManagerController extends Controller
         $url = StorefrontPresenter::publicUrl($store);
 
         return Inertia::render('OnlineStore/Home', [
+            'insights' => $this->insights($t->id),
             'store' => $this->forManager($store),
             'problems' => $problems,
             'can_publish' => empty($problems) && $store->status !== 'suspended',
             'counts' => ['pending' => (int) $counts->pending, 'active' => (int) $counts->active, 'completed' => (int) $counts->completed, 'total' => (int) $counts->total],
             'published_products' => DB::table('storefront_products')->where('storefront_id', $store->id)->where('is_published', 1)->count(),
             'public_url' => $url,
+            'preview_url' => \Illuminate\Support\Facades\URL::temporarySignedRoute('commerce.store', now()->addHours(24), ['slug' => $store->slug, 'preview' => 1]),
             'qr_svg' => StorefrontPresenter::qrSvg($url),
             'urls' => $this->urls(),
         ]);
+    }
+
+    /** Read-only stage metrics over the last 30 days. Never writes or alters ledger totals. */
+    private function insights(int $tenantId): array
+    {
+        $since = now('UTC')->subDays(30)->format('Y-m-d H:i:s');
+        $base = fn () => DB::table('commerce_orders')->where('tenant_id', $tenantId)->where('created_at', '>=', $since);
+        $o = $base()->selectRaw("COUNT(*) as placed,
+            SUM(status IN ('rejected')) as rejected, SUM(status='expired') as expired, SUM(status='cancelled') as cancelled,
+            SUM(status='completed') as completed,
+            AVG(CASE WHEN confirmed_at IS NOT NULL THEN TIMESTAMPDIFF(MINUTE, created_at, confirmed_at) END) as avg_accept,
+            AVG(CASE WHEN completed_at IS NOT NULL THEN TIMESTAMPDIFF(MINUTE, created_at, completed_at) END) as avg_complete,
+            SUM(CASE WHEN status='completed' THEN total ELSE 0 END) as sales,
+            SUM(CASE WHEN status='completed' THEN discount_total ELSE 0 END) as discounts")->first();
+        $phones = $base()->select('customer_phone', DB::raw('COUNT(*) as n'))->groupBy('customer_phone')->get();
+        $repeat = $phones->where('n', '>', 1)->count();
+        return [
+            'days' => 30, 'placed' => (int) $o->placed, 'completed' => (int) $o->completed,
+            'rejected' => (int) $o->rejected, 'expired' => (int) $o->expired, 'cancelled' => (int) $o->cancelled,
+            'avg_accept_minutes' => $o->avg_accept !== null ? (int) round($o->avg_accept) : null,
+            'avg_complete_minutes' => $o->avg_complete !== null ? (int) round($o->avg_complete) : null,
+            'sales' => round((float) $o->sales, 2), 'discounts' => round((float) $o->discounts, 2),
+            'customers' => $phones->count(), 'repeat_customers' => $repeat,
+        ];
     }
 
     public function settings()
@@ -130,6 +156,15 @@ class StoreManagerController extends Controller
             'bank_instructions' => ['nullable', 'string', 'max:1000'],
             'accept_deadline_minutes' => ['nullable', 'integer', 'min:15', 'max:1440'],
             'logo' => ['nullable', 'image', 'max:2048'],
+            'show_images' => ['boolean'],
+            'announcement' => ['nullable', 'string', 'max:240'],
+            'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+            'prep_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
+            'orders_outside_hours' => ['boolean'],
+            'delivery_zones' => ['nullable', 'array', 'max:20'],
+            'delivery_zones.*.name' => ['required', 'string', 'max:60'],
+            'delivery_zones.*.fee' => ['required', 'numeric', 'min:0', 'max:1000000'],
+            'delivery_zones.*.min_order' => ['nullable', 'numeric', 'min:0', 'max:100000000'],
         ]);
 
         if (! empty($data['city_id']) && ! empty($data['country_id'])
@@ -157,8 +192,19 @@ class StoreManagerController extends Controller
         if ($request->hasFile('logo')) {
             $data['logo_path'] = $request->file('logo')->store('commerce/logos', 'public');
         }
-        unset($data['logo']);
+        unset($data['logo'], $data['banner']);
+        if ($request->hasFile('banner')) {
+            $data['banner_path'] = $request->file('banner')->store('commerce/banners', 'public');
+        }
+        $zones = collect($data['delivery_zones'] ?? [])->map(fn ($z) => ['name' => trim($z['name']), 'fee' => round((float) $z['fee'], 2), 'min_order' => round((float) ($z['min_order'] ?? 0), 2)])
+            ->filter(fn ($z) => $z['name'] !== '')->values();
+        if ($zones->pluck('name')->map(fn ($n) => mb_strtolower($n))->duplicates()->isNotEmpty()) {
+            return back()->withErrors(['delivery_zones' => 'Each delivery area needs a different name.']);
+        }
+        $data['delivery_zones'] = $zones->isEmpty() ? null : $zones->all();
+        $data['prep_minutes'] = $data['prep_minutes'] ?? null;
 
+        $oldSlug = $store->slug;
         $store->fill(array_merge($data, [
             'pricing_percent' => $pct,
             'opening_hours' => $hours,
@@ -170,6 +216,11 @@ class StoreManagerController extends Controller
             'currency_code' => $t->currency_code ?: $store->currency_code,
             'currency_symbol' => $t->currency_symbol ?: $store->currency_symbol,
         ]))->save();
+        if ($oldSlug && $oldSlug !== $store->slug) {
+            // keep the old link alive (301) so printed QR codes and shared links do not break
+            DB::table('storefront_slug_history')->updateOrInsert(['slug' => $oldSlug], ['storefront_id' => $store->id, 'created_at' => now()]);
+            DB::table('storefront_slug_history')->where('slug', $store->slug)->delete();
+        }
 
         // A published store that no longer meets the bar is pulled back to unpublished.
         if ($store->status === 'published' && StorefrontReadiness::problems($store)) {
@@ -230,7 +281,7 @@ class StoreManagerController extends Controller
 
         $page = $query->select(['p.id', 'p.tenant_id', 'p.name', 'p.sku', 'p.price', 'p.cost_price', 'p.tax_rate', 'p.price_includes_tax',
             'p.is_active', 'p.type', 'p.has_variants', 'p.is_weighted', 'p.track_serial', 'p.image_path', 'p.base_unit',
-            'sp.id as listing_id', 'sp.is_published', 'sp.override_price', 'sp.public_name', 'sp.public_description', 'sp.allow_below_cost'])
+            'sp.id as listing_id', 'sp.is_featured', 'sp.option_group', 'sp.option_label', 'sp.image_path as listing_image', 'sp.is_published', 'sp.override_price', 'sp.public_name', 'sp.public_description', 'sp.allow_below_cost'])
             ->paginate(25)->withQueryString();
 
         $pricing = app(OnlinePricing::class);
@@ -239,11 +290,11 @@ class StoreManagerController extends Controller
             $reason = ProductReadiness::reason($p);
             $price = $pricing->resolve($p, (object) ['override_price' => $p->override_price], $store);
             return [
-                'id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'has_image' => (bool) $p->image_path,
+                'id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'has_image' => (bool) ($p->listing_image ?: $p->image_path), 'image_url' => StorefrontPresenter::mediaUrl($p->listing_image ?: $p->image_path), 'featured' => (bool) $p->is_featured, 'has_custom_image' => (bool) $p->listing_image,
                 'regular_price' => (float) $p->price, 'online_price' => $price['online_price'], 'rule' => $price['rule'],
                 'below_cost' => $price['below_cost'], 'allow_below_cost' => (bool) $p->allow_below_cost,
                 'published' => (bool) $p->is_published, 'override_price' => $p->override_price !== null ? (float) $p->override_price : null,
-                'public_name' => $p->public_name, 'public_description' => $p->public_description,
+                'public_name' => $p->public_name, 'public_description' => $p->public_description, 'option_group' => $p->option_group, 'option_label' => $p->option_label,
                 'blocked_reason' => $reason,
                 'available' => $store->warehouse_id ? round($stock->available($t->id, $p->id, $store->warehouse_id), 2) : null,
             ];
@@ -259,6 +310,29 @@ class StoreManagerController extends Controller
         ]);
     }
 
+    public function productPhoto(Request $request, string $product)
+    {
+        $store = $this->store(true);
+        $t = $this->tenant();
+        abort_unless(DB::table('products')->where('tenant_id', $t->id)->where('id', $product)->whereNull('deleted_at')->exists(), 404);
+        $request->validate(['photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'], 'remove' => ['boolean']]);
+        $sp = DB::table('storefront_products')->where('storefront_id', $store->id)->where('product_id', $product)->first();
+        $path = null;
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('commerce/products', 'public');
+        } elseif (! $request->boolean('remove')) {
+            return back()->withErrors(['photo' => 'Choose a photo to upload.']);
+        }
+        $now = now();
+        if ($sp) {
+            DB::table('storefront_products')->where('id', $sp->id)->update(['image_path' => $path, 'updated_at' => $now]);
+        } else {
+            DB::table('storefront_products')->insert(['id' => (string) \Illuminate\Support\Str::uuid(), 'storefront_id' => $store->id, 'tenant_id' => $t->id,
+                'product_id' => $product, 'is_published' => 0, 'image_path' => $path, 'created_at' => $now, 'updated_at' => $now]);
+        }
+        return back()->with('success', $path ? 'Photo saved.' : 'Online photo removed.');
+    }
+
     public function bulkProducts(Request $request)
     {
         $store = $this->store(true);
@@ -266,12 +340,14 @@ class StoreManagerController extends Controller
         $v = $request->validate([
             'ids' => ['required', 'array', 'min:1', 'max:200'],
             'ids.*' => ['string'],
-            'action' => ['required', Rule::in(['publish', 'unpublish', 'update'])],
+            'action' => ['required', Rule::in(['publish', 'unpublish', 'update', 'feature', 'unfeature'])],
             'override_price' => ['nullable', 'numeric', 'min:0.01', 'max:100000000'],
             'clear_override' => ['boolean'],
             'public_name' => ['nullable', 'string', 'max:191'],
             'public_description' => ['nullable', 'string', 'max:2000'],
             'allow_below_cost' => ['nullable', 'boolean'],
+            'option_group' => ['nullable', 'string', 'max:60'],
+            'option_label' => ['nullable', 'string', 'max:60'],
         ]);
 
         $products = DB::table('products')->where('tenant_id', $t->id)->whereNull('deleted_at')->whereIn('id', $v['ids'])->get()->keyBy('id');
@@ -287,6 +363,22 @@ class StoreManagerController extends Controller
             }
             $sp = DB::table('storefront_products')->where('storefront_id', $store->id)->where('product_id', $id)->first();
             $now = now();
+
+            if (in_array($v['action'], ['feature', 'unfeature'], true)) {
+                if ($v['action'] === 'feature' && DB::table('storefront_products')->where('storefront_id', $store->id)->where('is_featured', 1)->count() >= 12) {
+                    $skipped[] = ['id' => $id, 'reason' => 'You can feature up to 12 products.'];
+                    continue;
+                }
+                $flag = $v['action'] === 'feature' ? 1 : 0;
+                if ($sp) {
+                    DB::table('storefront_products')->where('id', $sp->id)->update(['is_featured' => $flag, 'updated_at' => $now]);
+                } else {
+                    DB::table('storefront_products')->insert(['id' => (string) Str::uuid(), 'storefront_id' => $store->id, 'tenant_id' => $t->id, 'product_id' => $id,
+                        'is_published' => 0, 'is_featured' => $flag, 'created_at' => $now, 'updated_at' => $now]);
+                }
+                $done++;
+                continue;
+            }
 
             if ($v['action'] === 'unpublish') {
                 if ($sp) {
@@ -304,10 +396,17 @@ class StoreManagerController extends Controller
                 $fields['override_price'] = null;
             }
             if (count($v['ids']) === 1) {
-                foreach (['public_name', 'public_description'] as $f) {
+                foreach (['public_name', 'public_description', 'option_group', 'option_label'] as $f) {
                     if (array_key_exists($f, $v)) {
-                        $fields[$f] = $v[$f] === '' ? null : $v[$f];
+                        $fields[$f] = trim((string) $v[$f]) === '' ? null : trim($v[$f]);
                     }
+                }
+                if (array_key_exists('option_group', $fields) && $fields['option_group'] === null) {
+                    $fields['option_label'] = null;
+                }
+                if (! empty($fields['option_group']) && empty($fields['option_label'] ?? ($sp->option_label ?? null))) {
+                    $skipped[] = ['id' => $id, 'name' => $p->name, 'reason' => 'Give this option a label (for example "Large" or "Red").'];
+                    continue;
                 }
             }
             if (array_key_exists('allow_below_cost', $v) && $v['allow_below_cost'] !== null) {
@@ -364,8 +463,10 @@ class StoreManagerController extends Controller
             'warehouse_id' => $s->warehouse_id, 'pricing_mode' => $s->pricing_mode, 'pricing_percent' => $s->pricing_percent,
             'accept_cod' => $s->accept_cod, 'accept_pickup_payment' => $s->accept_pickup_payment,
             'accept_bank_transfer' => $s->accept_bank_transfer, 'bank_instructions' => $s->bank_instructions,
-            'accept_deadline_minutes' => $s->accept_deadline_minutes,
-            'intake_paused' => $s->intake_paused, 'status' => $s->status, 'suspended_reason' => $s->suspended_reason,
+            'accept_deadline_minutes' => $s->accept_deadline_minutes, 'show_images' => (bool) $s->show_images,
+            'announcement' => $s->announcement, 'banner_url' => StorefrontPresenter::mediaUrl($s->banner_path), 'prep_minutes' => $s->prep_minutes,
+            'delivery_zones' => collect($s->delivery_zones ?? [])->values(),
+            'intake_paused' => $s->intake_paused, 'orders_outside_hours' => (bool) $s->orders_outside_hours, 'status' => $s->status, 'suspended_reason' => $s->suspended_reason,
         ];
     }
 }

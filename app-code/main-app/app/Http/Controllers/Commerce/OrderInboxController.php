@@ -75,7 +75,7 @@ class OrderInboxController extends Controller
 
         $lines = $items->map(function ($it) use ($stock, $o, $tid) {
             return [
-                'title' => $it->title, 'sku' => $it->sku, 'quantity' => (float) $it->quantity, 'online_price' => (float) $it->online_price,
+                'id' => $it->id, 'title' => $it->title, 'sku' => $it->sku, 'quantity' => (float) $it->quantity, 'online_price' => (float) $it->online_price,
                 'base_price' => (float) $it->base_price, 'rule' => $it->price_rule, 'rule_percent' => $it->rule_percent !== null ? (float) $it->rule_percent : null,
                 'line_total' => (float) $it->line_total,
                 'available' => $o->warehouse_id ? round($stock->available($tid, $it->product_id, $o->warehouse_id, $o->id), 2) : null,
@@ -92,21 +92,37 @@ class OrderInboxController extends Controller
                 'customer_phone' => $o->customer_phone, 'delivery_address' => $o->delivery_address, 'customer_note' => $o->customer_note,
                 'subtotal' => $o->subtotal, 'tax_total' => $o->tax_total, 'delivery_fee' => $o->delivery_fee, 'total' => $o->total,
                 'currency_symbol' => $o->currency_symbol, 'bank_reference' => $o->bank_reference, 'reason' => $o->reason,
+                'revision_status' => $o->revision_status, 'revision_note' => $o->revision_note, 'revision_summary' => $o->revision['summary'] ?? [],
                 'version' => $o->version, 'created_at' => CommerceOrder::localTime($o->created_at, $this->tz()),
                 'accept_by' => CommerceOrder::localTime($o->accept_by, $this->tz()), 'completed_at' => CommerceOrder::localTime($o->completed_at, $this->tz()),
             ],
             'lines' => $lines,
             'events' => $o->events()->get(['type', 'from_status', 'to_status', 'actor_type', 'note', 'created_at'])->map(fn ($e) => ['type' => $e->type, 'from_status' => $e->from_status, 'to_status' => $e->to_status, 'actor_type' => $e->actor_type, 'note' => $e->note, 'created_at' => CommerceOrder::localTime($e->created_at, $this->tz())]),
+            'substitutes' => $o->status === 'pending' ? DB::table('storefront_products as sp')->join('products as p', 'p.id', '=', 'sp.product_id')->where('sp.storefront_id', $o->storefront_id)->where('sp.tenant_id', $tid)->where('sp.is_published', 1)->whereNull('p.deleted_at')->orderBy('p.name')->limit(300)->get(['sp.id', 'p.name', 'sp.public_name', 'sp.option_label'])->map(fn ($r) => ['id' => $r->id, 'name' => ($r->public_name ?: $r->name) . ($r->option_label ? ' — ' . $r->option_label : '')]) : [],
             'sale' => $sale ? (array) $sale : null,
+            'party_matches' => $o->party_id || $o->status === 'completed' ? [] : $this->partyMatches($tid, (string) $o->customer_phone),
             'urls' => [
                 'back' => $this->url('orders'),
                 'accept' => $this->url('orders.accept', ['id' => $o->id]), 'reject' => $this->url('orders.reject', ['id' => $o->id]),
-                'advance' => $this->url('orders.advance', ['id' => $o->id]), 'cancel' => $this->url('orders.cancel', ['id' => $o->id]),
+                'advance' => $this->url('orders.advance', ['id' => $o->id]), 'revise' => $this->url('orders.revise', ['id' => $o->id]), 'block' => $this->url('orders.block', ['id' => $o->id]), 'cancel' => $this->url('orders.cancel', ['id' => $o->id]),
                 'collect' => $this->url('orders.collect', ['id' => $o->id]), 'complete' => $this->url('orders.complete', ['id' => $o->id]),
                 'sale' => $sale ? url('/s/' . app('current.tenant')->slug . '/sales/' . $sale->id) : null,
+                'print_receipt' => $sale ? url('/s/' . app('current.tenant')->slug . '/sales/' . $o->sale_id . '/print') : null,
                 'receive_payment' => ($sale && $o->party_id) ? url('/s/' . app('current.tenant')->slug . '/payments/in?party_id=' . $o->party_id) : null,
             ],
         ]);
+    }
+
+    /** Existing customers with the same phone (last 9 digits), so staff can attach the sale instead of creating a duplicate. */
+    private function partyMatches(int $tid, string $phone): array
+    {
+        $d = substr(preg_replace('/\D/', '', $phone), -9);
+        if (strlen($d) < 7) {
+            return [];
+        }
+        return DB::table('parties')->where('tenant_id', $tid)->whereNull('deleted_at')->where('type', 'customer')
+            ->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(phone,' ',''),'-',''),'+',''),'(','') LIKE ?", ['%' . $d])
+            ->orderBy('name')->limit(5)->get(['id', 'name', 'phone'])->map(fn ($p) => ['id' => $p->id, 'name' => $p->name, 'phone' => $p->phone])->all();
     }
 
     private function run(callable $fn, string $ok)
@@ -129,10 +145,30 @@ class OrderInboxController extends Controller
         return $this->run(fn () => $this->orders->confirm($id, $this->tid(), $r->user()->id, $this->version($r)), 'Order accepted. Stock is held for it.');
     }
 
+    public function revise(Request $r, string $id)
+    {
+        $v = $r->validate([
+            'changes' => ['required', 'array', 'min:1', 'max:50'],
+            'changes.*.item' => ['required', 'string', 'max:36'],
+            'changes.*.action' => ['required', 'in:qty,remove,substitute'],
+            'changes.*.quantity' => ['nullable', 'numeric', 'min:0.0001', 'max:100000'],
+            'changes.*.listing_id' => ['nullable', 'string', 'max:36'],
+            'note' => ['nullable', 'string', 'max:255'],
+        ]);
+        return $this->run(fn () => app(\App\Services\Commerce\OrderRevisions::class)->propose($id, $this->tid(), $r->user()->id, $v['changes'], $v['note'] ?? null, $this->version($r)), 'Changes sent to the customer. The order stays pending until they answer.');
+    }
+
     public function reject(Request $r, string $id)
     {
-        $v = $r->validate(['reason' => ['required', 'string', 'max:255']]);
-        return $this->run(fn () => $this->orders->reject($id, $this->tid(), $r->user()->id, $v['reason'], $this->version($r)), 'Order rejected.');
+        $v = $r->validate(['reason' => ['required', 'string', 'max:255'], 'refund_confirmed' => ['boolean']]);
+        return $this->run(fn () => $this->orders->reject($id, $this->tid(), $r->user()->id, $v['reason'], $this->version($r), (bool) ($v['refund_confirmed'] ?? false)), 'Order rejected.');
+    }
+
+    public function blockPhone(Request $r, string $id)
+    {
+        $o = \App\Models\Commerce\CommerceOrder::where('id', $id)->where('tenant_id', $this->tid())->firstOrFail();
+        DB::table('commerce_blocked_phones')->updateOrInsert(['tenant_id' => $this->tid(), 'phone' => $o->customer_phone], ['reason' => 'Blocked from order ' . $o->public_number, 'created_at' => now()]);
+        return back()->with('success', 'That phone number can no longer place orders with you.');
     }
 
     public function advance(Request $r, string $id)
@@ -143,8 +179,8 @@ class OrderInboxController extends Controller
 
     public function cancel(Request $r, string $id)
     {
-        $v = $r->validate(['reason' => ['required', 'string', 'max:255']]);
-        return $this->run(fn () => $this->orders->cancel($id, $this->tid(), $r->user()->id, $v['reason'], $this->version($r)), 'Order cancelled. Held stock released.');
+        $v = $r->validate(['reason' => ['required', 'string', 'max:255'], 'refund_confirmed' => ['boolean']]);
+        return $this->run(fn () => $this->orders->cancel($id, $this->tid(), $r->user()->id, $v['reason'], $this->version($r), (bool) ($v['refund_confirmed'] ?? false)), 'Order cancelled. Held stock released.');
     }
 
     public function collect(Request $r, string $id)
@@ -154,10 +190,10 @@ class OrderInboxController extends Controller
 
     public function complete(Request $r, string $id)
     {
-        $v = $r->validate(['collect_now' => ['boolean'], 'approve_below_cost' => ['boolean']]);
+        $v = $r->validate(['collect_now' => ['boolean'], 'approve_below_cost' => ['boolean'], 'party_id' => ['nullable', 'string', 'max:36']]);
         // Recording that money was received needs the finance permission, not just permission to complete.
         abort_if(! empty($v['collect_now']) && ! $r->user()->hasPermission('finance.receive_payment'), 403, 'You do not have permission to record payments.');
-        return $this->run(fn () => $this->orders->complete($id, $this->tid(), $r->user()->id, (bool) ($v['collect_now'] ?? false), $this->version($r), (bool) ($v['approve_below_cost'] ?? false)), 'Order completed and sale posted.');
+        return $this->run(fn () => $this->orders->complete($id, $this->tid(), $r->user()->id, (bool) ($v['collect_now'] ?? false), $this->version($r), (bool) ($v['approve_below_cost'] ?? false), $v['party_id'] ?? null), 'Order completed and sale posted.');
     }
 
     /** In-app alert poll (JSON). */

@@ -2,12 +2,12 @@ import React from 'react';
 
 /** Deterministic pastel from the design system's playmate ramps, so every shop/product gets a stable tile colour. */
 const TONES = [
-    ['var(--vq-lime-100)', 'var(--vq-lime-700)'],
-    ['var(--vq-teal-50)', 'var(--vq-teal-700)'],
-    ['var(--vq-sky-100)', 'var(--vq-sky-700)'],
-    ['var(--vq-butter-100)', 'var(--vq-butter-700)'],
-    ['var(--vq-coral-100)', 'var(--vq-coral-700)'],
-    ['#F1E3F5', 'var(--vq-plum-700)'],
+    ['linear-gradient(135deg,#0F3B35 0%,#071F1C 100%)', '#59DBC0'],
+    ['linear-gradient(135deg,#123A2A 0%,#08190F 100%)', '#A9E34B'],
+    ['linear-gradient(135deg,#1F2D3F 0%,#0C1520 100%)', '#8FB8F0'],
+    ['linear-gradient(135deg,#2D2540 0%,#130F1D 100%)', '#C7A6F0'],
+    ['linear-gradient(135deg,#3B2A1C 0%,#1A110A 100%)', '#F2B97A'],
+    ['linear-gradient(135deg,#3A1F26 0%,#1A0C10 100%)', '#F29BAA'],
 ];
 export function tone(seed = '') {
     let h = 0;

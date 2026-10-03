@@ -38,6 +38,9 @@ class SubscriptionLifecycleMiddleware
                     'store.backup.export',
                     'store.backup.import',
                     'logout',
+                    // Commerce: a locked-out business can still close waiting online orders
+                    'store.commerce.orders.reject',
+                    'store.commerce.orders.cancel',
                 ];
 
                 $currentRouteName = $request->route() ? $request->route()->getName() : '';

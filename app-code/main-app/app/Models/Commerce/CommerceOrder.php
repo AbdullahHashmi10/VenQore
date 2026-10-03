@@ -21,6 +21,8 @@ class CommerceOrder extends Model
         'delivery_fee' => 'float',
         'total' => 'float',
         'amount_collected' => 'float',
+        'revision' => 'array',
+        'revision_at' => 'datetime',
     ];
 
     public function items()

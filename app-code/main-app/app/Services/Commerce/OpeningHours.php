@@ -43,6 +43,28 @@ class OpeningHours
         return false;
     }
 
+    /** Next opening instant (UTC) after now, or null when no day has hours. */
+    public static function nextOpening(?array $hours, string $tz, ?CarbonImmutable $now = null): ?CarbonImmutable
+    {
+        if (empty($hours)) {
+            return null;
+        }
+        $now = ($now ?? CarbonImmutable::now())->setTimezone($tz);
+        for ($i = 0; $i <= 7; $i++) {
+            $d = $now->addDays($i);
+            $h = $hours[self::DAYS[$d->dayOfWeekIso - 1]] ?? null;
+            if (! $h || empty($h['open']) || empty($h['close'])) {
+                continue;
+            }
+            $m = self::m($h['open']);
+            $at = $d->startOfDay()->addMinutes($m);
+            if ($at->gt($now)) {
+                return $at->setTimezone('UTC');
+            }
+        }
+        return null;
+    }
+
     private static function m(string $hhmm): int
     {
         [$h, $mm] = array_map('intval', explode(':', $hhmm) + [0, 0]);

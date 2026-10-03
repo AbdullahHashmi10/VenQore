@@ -15,7 +15,8 @@ export default function Settings({ store, countries, cities, warehouses, days, u
         delivery_charge: store.delivery_charge ?? 0, delivery_note: store.delivery_note || '', min_order_amount: store.min_order_amount ?? 0,
         warehouse_id: store.warehouse_id || '', pricing_mode: store.pricing_mode || 'same', pricing_percent: store.pricing_percent ?? 0,
         accept_cod: !!store.accept_cod, accept_pickup_payment: !!store.accept_pickup_payment, accept_bank_transfer: !!store.accept_bank_transfer,
-        bank_instructions: store.bank_instructions || '', accept_deadline_minutes: store.accept_deadline_minutes || 120, logo: null,
+        bank_instructions: store.bank_instructions || '', accept_deadline_minutes: store.accept_deadline_minutes || 120, logo: null, banner: null, show_images: store.show_images !== false,
+        orders_outside_hours: !!store.orders_outside_hours, announcement: store.announcement || '', prep_minutes: store.prep_minutes || '', delivery_zones: (store.delivery_zones || []).map((z) => ({ name: z.name, fee: z.fee, min_order: z.min_order || 0 })),
     });
     const cityOptions = cities.filter((c) => String(c.country_id) === String(data.country_id));
     const hour = (d, k, v) => setData('opening_hours', { ...data.opening_hours, [d]: { ...data.opening_hours[d], [k]: v } });
@@ -34,6 +35,9 @@ export default function Settings({ store, countries, cities, warehouses, days, u
                     <Field label="Store link" error={errors.slug} hint={`/shop/${data.slug || 'your-store'}`}><input className={inputCls} value={data.slug} onChange={(e) => setData('slug', e.target.value.toLowerCase())} required /></Field>
                     <Field label="Short description" error={errors.description}><textarea className={inputCls} rows={3} value={data.description} onChange={(e) => setData('description', e.target.value)} /></Field>
                     <Field label="Logo" error={errors.logo} hint={store.logo_url ? 'A logo is set. Choose a file to replace it.' : 'PNG or JPG, up to 2 MB.'}><input type="file" accept="image/*" onChange={(e) => setData('logo', e.target.files[0] || null)} /></Field>
+                    <Field label="Banner image" error={errors.banner} hint={store.banner_url ? 'A banner is set. Choose a file to replace it.' : 'Wide JPG, PNG or WebP, up to 3 MB. Shown across the top of your store.'}><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setData('banner', e.target.files[0] || null)} /></Field>
+                    <Field label="Announcement (shown above your catalogue)" error={errors.announcement} hint="e.g. Closed Friday for Eid. Leave empty for none."><input className={inputCls} maxLength={240} value={data.announcement} onChange={(e) => setData('announcement', e.target.value)} /></Field>
+                    <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={!!data.show_images} onChange={(e) => setData('show_images', e.target.checked)} />Show product photos in my catalogue (turn off for a compact text-only list)</label>
                 </Card>
 
                 <Card className="space-y-4">
@@ -68,6 +72,22 @@ export default function Settings({ store, countries, cities, warehouses, days, u
                     <div className="grid sm:grid-cols-2 gap-4">
                         <Field label="Flat delivery charge" error={errors.delivery_charge}><input type="number" min="0" step="0.01" className={inputCls} value={data.delivery_charge} onChange={(e) => setData('delivery_charge', e.target.value)} /></Field>
                         <Field label="Minimum order (0 = none)" error={errors.min_order_amount}><input type="number" min="0" step="0.01" className={inputCls} value={data.min_order_amount} onChange={(e) => setData('min_order_amount', e.target.value)} /></Field>
+                    </div>
+                    <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={!!data.orders_outside_hours} onChange={(e) => setData('orders_outside_hours', e.target.checked)} /><span><b>Accept advance orders when closed.</b> Off by default: once you set opening hours, customers cannot place orders outside them.</span></label>
+                    <Field label="Usual preparation time in minutes (optional)" error={errors.prep_minutes} hint="Shown to customers as an estimate, never a promise."><input type="number" min="1" max="1440" className={inputCls} value={data.prep_minutes} onChange={(e) => setData('prep_minutes', e.target.value)} /></Field>
+                    <div className="space-y-2">
+                        <div className="text-sm font-medium">Delivery areas (optional)</div>
+                        <p className="text-xs text-ink-muted">If you add areas, customers must pick one. Each area sets its own fee and minimum order, and addresses outside them are not accepted. Leave empty to use the flat charge above.</p>
+                        {errors.delivery_zones && <p className="text-xs text-red-600" role="alert">{errors.delivery_zones}</p>}
+                        {data.delivery_zones.map((z, i) => (
+                            <div key={i} className="grid grid-cols-[1fr_6rem_6rem_auto] gap-2 items-center">
+                                <input className={inputCls} placeholder="Area name" aria-label="Area name" maxLength={60} value={z.name} onChange={(e) => setData('delivery_zones', data.delivery_zones.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
+                                <input className={inputCls} type="number" min="0" step="0.01" placeholder="Fee" aria-label="Fee" value={z.fee} onChange={(e) => setData('delivery_zones', data.delivery_zones.map((x, j) => (j === i ? { ...x, fee: e.target.value } : x)))} />
+                                <input className={inputCls} type="number" min="0" step="0.01" placeholder="Min order" aria-label="Minimum order" value={z.min_order} onChange={(e) => setData('delivery_zones', data.delivery_zones.map((x, j) => (j === i ? { ...x, min_order: e.target.value } : x)))} />
+                                <button type="button" className="text-sm underline" onClick={() => setData('delivery_zones', data.delivery_zones.filter((_, j) => j !== i))}>Remove</button>
+                            </div>
+                        ))}
+                        {data.delivery_zones.length < 20 && <Button type="button" variant="secondary" onClick={() => setData('delivery_zones', [...data.delivery_zones, { name: '', fee: 0, min_order: 0 }])}>Add delivery area</Button>}
                     </div>
                     <Field label="Delivery instructions shown to customers" error={errors.delivery_note}><input className={inputCls} value={data.delivery_note} onChange={(e) => setData('delivery_note', e.target.value)} placeholder="e.g. We deliver within 5 km" /></Field>
                     <div className="flex flex-wrap gap-6">{chk('accept_cod', 'Cash on delivery')}{chk('accept_pickup_payment', 'Pay at pickup')}{chk('accept_bank_transfer', 'Bank transfer (you verify it)')}</div>

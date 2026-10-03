@@ -21,6 +21,7 @@ export default function Products({ store, products, pagination, filters, skipped
             ids: [edit.id], action: edit.published ? 'update' : 'update',
             override_price: edit.override_price === '' ? null : edit.override_price, clear_override: edit.override_price === '' || edit.override_price == null,
             public_name: edit.public_name || '', public_description: edit.public_description || '', allow_below_cost: !!edit.allow_below_cost,
+            option_group: edit.option_group || '', option_label: edit.option_group ? (edit.option_label || '') : '',
         }, { preserveScroll: true, onSuccess: () => setEdit(null) });
     };
 
@@ -51,6 +52,8 @@ export default function Products({ store, products, pagination, filters, skipped
                     <Button variant="secondary" onClick={() => setSel(sel.length ? [] : allIds)}>{sel.length ? 'Clear selection' : 'Select all publishable'}</Button>
                     <Button disabled={!sel.length} onClick={() => bulk('publish')}>Publish ({sel.length})</Button>
                     <Button variant="secondary" disabled={!sel.length} onClick={() => bulk('unpublish')}>Unpublish</Button>
+                    <Button variant="secondary" disabled={!sel.length} onClick={() => bulk('feature')}>Feature</Button>
+                    <Button variant="secondary" disabled={!sel.length} onClick={() => bulk('unfeature')}>Unfeature</Button>
                 </span>
             </Card>
 
@@ -58,14 +61,14 @@ export default function Products({ store, products, pagination, filters, skipped
                 <table className="w-full text-sm">
                     <thead><tr className="text-left text-ink-muted border-b border-line">
                         <th className="p-3 w-8"><span className="sr-only">Select</span></th><th className="p-3">Product</th><th className="p-3 text-right">Regular</th>
-                        <th className="p-3 text-right">Online price</th><th className="p-3 text-right">Available</th><th className="p-3">Status</th><th className="p-3" />
+                        <th className="p-3 text-right">Online price</th><th className="p-3 text-right">Available</th><th className="p-3">Status</th><th className="p-3"><span className="sr-only">Actions</span></th>
                     </tr></thead>
                     <tbody>
                         {products.length === 0 && <tr><td colSpan={7} className="p-6 text-center text-ink-muted">No products match.</td></tr>}
                         {products.map((p) => (
                             <tr key={p.id} className="border-b border-line last:border-0 align-top">
                                 <td className="p-3"><input type="checkbox" aria-label={`Select ${p.name}`} disabled={!!p.blocked_reason} checked={sel.includes(p.id)} onChange={() => toggle(p.id)} /></td>
-                                <td className="p-3"><div className="font-medium text-ink">{p.name}</div><div className="text-xs text-ink-muted">{p.sku}{!p.has_image && ' · no photo'}</div></td>
+                                <td className="p-3"><div className="flex items-center gap-3">{p.image_url ? <img src={p.image_url} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover" /> : <div className="w-10 h-10 rounded-lg bg-neutral-100" aria-hidden="true" />}<div><div className="font-medium text-ink">{p.name}{p.featured && <span className="ml-2 text-xs font-semibold text-amber-700" title="Shown first in your catalogue">★ Featured</span>}</div><div className="text-xs text-ink-muted">{p.sku}{!p.has_image && ' · no photo'}</div></div></div></td>
                                 <td className="p-3 text-right tabular-nums">{money(p.regular_price, sym)}</td>
                                 <td className="p-3 text-right tabular-nums">{money(p.online_price, sym)}
                                     <div className="text-xs text-ink-muted">{p.rule === 'fixed_override' ? 'fixed' : p.rule === 'percent' ? 'default rule' : 'regular'}</div>
@@ -81,17 +84,33 @@ export default function Products({ store, products, pagination, filters, skipped
             <Pager current={pagination.current} last={pagination.last} onGo={(p) => go({ page: p })} />
 
             {edit && (
-                <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Edit ${edit.name}`}>
-                    <div className="bg-surface rounded-2xl p-6 w-full max-w-md space-y-4">
+                <dialog open className="fixed inset-0 z-50 m-0 h-full w-full max-w-none max-h-none bg-black/40 flex items-center justify-center p-4 text-inherit" aria-modal="true" aria-label={`Edit ${edit.name}`}>
+                <div className="bg-surface rounded-2xl p-6 w-full max-w-md space-y-4">
                         <h2 className="font-bold text-lg">{edit.name}</h2>
+                        <div className="flex items-center gap-3">
+                            {edit.image_url ? <img src={edit.image_url} alt="" className="w-16 h-16 rounded-xl object-cover" /> : <div className="w-16 h-16 rounded-xl bg-neutral-100" aria-hidden="true" />}
+                            <div className="text-sm space-y-1">
+                                <div className="font-medium">Online photo</div>
+                                <input type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload online photo" onChange={(e) => { const f = e.target.files[0]; if (f) router.post(urls.products_photo.replace('__ID__', edit.id), { photo: f }, { forceFormData: true, preserveScroll: true, onSuccess: () => setEdit(null) }); }} />
+                                {edit.has_custom_image && <button type="button" className="text-xs underline" onClick={() => router.post(urls.products_photo.replace('__ID__', edit.id), { remove: true }, { preserveScroll: true, onSuccess: () => setEdit(null) })}>Remove online photo (use the product's own)</button>}
+                            </div>
+                        </div>
                         <label className="block text-sm">Public name (optional)<input className={inputCls} value={edit.public_name || ''} onChange={(e) => setEdit({ ...edit, public_name: e.target.value })} /></label>
                         <label className="block text-sm">Public description (optional)<textarea className={inputCls} rows={3} value={edit.public_description || ''} onChange={(e) => setEdit({ ...edit, public_description: e.target.value })} /></label>
+                        <div className="rounded-xl border border-line p-3 space-y-2">
+                            <div className="text-sm font-medium">Sizes, colours and other options</div>
+                            <p className="text-xs text-ink-muted">Give each size or colour its own product (its own stock and price), then put them in the same group with a label. Customers see one card with a picker.</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <label className="block text-sm">Group name<input className={inputCls} placeholder="e.g. Cotton T-shirt" maxLength={60} value={edit.option_group || ''} onChange={(e) => setEdit({ ...edit, option_group: e.target.value })} /></label>
+                                <label className="block text-sm">This option is called<input className={inputCls} placeholder="e.g. Large / Red" maxLength={60} disabled={!edit.option_group} value={edit.option_label || ''} onChange={(e) => setEdit({ ...edit, option_label: e.target.value })} /></label>
+                            </div>
+                        </div>
                         <label className="block text-sm">Fixed online price (leave empty to use the default rule)
                             <input type="number" min="0" step="0.01" className={inputCls} value={edit.override_price} onChange={(e) => setEdit({ ...edit, override_price: e.target.value })} /></label>
                         <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={!!edit.allow_below_cost} onChange={(e) => setEdit({ ...edit, allow_below_cost: e.target.checked })} />I approve selling this product online below cost</label>
                         <div className="flex justify-end gap-2"><Button variant="secondary" onClick={() => setEdit(null)}>Cancel</Button><Button onClick={saveEdit}>Save</Button></div>
                     </div>
-                </div>
+                </dialog>
             )}
         </OneGlanceLayout>
     );

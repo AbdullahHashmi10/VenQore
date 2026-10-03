@@ -81,6 +81,11 @@ class StorefrontPresenter
                 'bank_instructions' => $s->accept_bank_transfer ? $s->bank_instructions : null,
             ],
             'accepting_orders' => $s->isAcceptingOrders(),
+            'closed_by_hours' => $s->status === 'published' && ! $s->intake_paused && $s->isClosedByHours(),
+            'announcement' => $s->announcement,
+            'banner_url' => self::mediaUrl($s->banner_path),
+            'prep_minutes' => $s->prep_minutes,
+            'delivery_zones' => collect($s->delivery_zones ?? [])->map(fn ($z) => ['name' => $z['name'], 'fee' => (float) $z['fee'], 'min_order' => (float) ($z['min_order'] ?? 0)])->values(),
         ];
     }
 }

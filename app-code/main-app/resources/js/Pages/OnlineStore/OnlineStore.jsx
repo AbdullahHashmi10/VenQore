@@ -6,7 +6,6 @@ import {
  Globe,
  Settings,
  Package,
- BarChart,
  ExternalLink,
  ToggleLeft,
  ToggleRight
@@ -79,9 +78,9 @@ export default function OnlineStoreIndex() {
  </div>
  <h3 className="text-lg font-bold mb-2">My Public Store</h3>
  <p className="text-white/80 text-sm mb-4">Visit your live store as a customer sees it.</p>
- <a href="#" className="flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-600 rounded-lg hover:bg-white/90 transition-colors font-bold w-full">
+ <button type="button" className="flex items-center justify-center gap-2 px-4 py-2 bg-white text-brand-600 rounded-lg hover:bg-white/90 transition-colors font-bold w-full">
  Visit Store <ExternalLink size={16} />
- </a>
+ </button>
  </div>
  </div>
 

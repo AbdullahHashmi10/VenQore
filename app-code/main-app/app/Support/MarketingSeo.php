@@ -94,6 +94,24 @@ class MarketingSeo
             }
         }
 
+        // Public online shop pages: real title/description/preview image for crawlers and link previews (WhatsApp, Facebook).
+        if ($route->getName() === 'commerce.store' && ! request()->query('preview')) {
+            $shop = \App\Models\Commerce\Storefront::where('slug', (string) $route->parameter('slug'))->where('status', 'published')->first();
+            if ($shop) {
+                $name = $shop->display_name;
+                $title = $name . ' — order online';
+                $description = \Illuminate\Support\Str::limit(trim(strip_tags((string) ($shop->description ?: ''))) ?: ('Order directly from ' . $name . ' on VenQore.'), 155);
+                $image = $shop->banner_path ? \App\Services\Commerce\StorefrontPresenter::mediaUrl($shop->banner_path) : ($shop->logo_path ? \App\Services\Commerce\StorefrontPresenter::mediaUrl($shop->logo_path) : null);
+                return [
+                    'title' => $title,
+                    'description' => $description,
+                    'og_image' => $image ?: url('/images/logo.png'),
+                    'canonical' => url('/shop/' . $shop->slug),
+                    'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem"><h1>' . htmlspecialchars($name) . '</h1><p>' . htmlspecialchars($description) . '</p></main>',
+                ];
+            }
+        }
+
         // Help Centre articles (2026-09-10): these pages had no server-written
         // title or description, so all 20 shared "VenQore POS" in search results.
         if ($route->getName() === 'help.show') {

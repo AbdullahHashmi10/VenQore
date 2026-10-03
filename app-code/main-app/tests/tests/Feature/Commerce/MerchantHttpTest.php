@@ -191,8 +191,9 @@ class MerchantHttpTest extends CommerceTestCase
         $this->post($this->u('settings'), $this->settingsPayload())->assertSessionHasNoErrors();
         $store = Storefront::where('tenant_id', $this->tenant->id)->first();
         $store->update(['status' => 'published']);
-        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 1, $store);
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 3, $store);
         $order = app(CheckoutService::class)->place($store, $this->checkoutInput([['product_id' => $pid, 'quantity' => 3]]))['order'];
+        DB::table('inventory_batches')->where('product_id', $pid)->update(['remaining_qty' => 1]); // stock dropped after the customer ordered
         $this->post($this->u("orders/{$order->id}/accept"))->assertSessionHasErrors('order');
         $this->assertSame('pending', $order->fresh()->status);
     }
@@ -210,5 +211,70 @@ class MerchantHttpTest extends CommerceTestCase
     public function test_old_online_store_url_redirects_to_the_new_home(): void
     {
         $this->get($this->storeUrl($this->tenant, 'online-store-manager'))->assertRedirect(route('store.commerce.home', ['store_slug' => $this->tenant->slug]));
+    }
+
+    public function test_merchant_can_upload_and_remove_an_online_photo_and_toggle_photos(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Snap'], 5);
+        $file = \Illuminate\Http\UploadedFile::fake()->image('p.jpg', 300, 300);
+        $this->post($this->u("products/{$pid}/photo"), ['photo' => $file])->assertSessionHasNoErrors();
+        $path = DB::table('storefront_products')->where('product_id', $pid)->value('image_path');
+        $this->assertNotNull($path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($path);
+        $this->post($this->u("products/{$pid}/photo"), ['photo' => \Illuminate\Http\UploadedFile::fake()->create('x.pdf', 10, 'application/pdf')])->assertSessionHasErrors('photo');
+        $this->post($this->u("products/{$pid}/photo"), ['remove' => true]);
+        $this->assertNull(DB::table('storefront_products')->where('product_id', $pid)->value('image_path'));
+        $this->post($this->u("products/" . Str::uuid() . "/photo"), ['remove' => true])->assertNotFound();
+    }
+
+    public function test_settings_save_zones_announcement_and_reject_duplicate_zone_names(): void
+    {
+        $zones = [['name' => 'Gulberg', 'fee' => 120, 'min_order' => 500], ['name' => 'DHA', 'fee' => 250]];
+        $this->post($this->u('settings'), $this->settingsPayload(['announcement' => 'Eid hours: 10-6', 'prep_minutes' => 30, 'delivery_zones' => $zones]))->assertSessionHasNoErrors();
+        $st = Storefront::where('tenant_id', $this->tenant->id)->first();
+        $this->assertSame('Eid hours: 10-6', $st->announcement);
+        $this->assertSame(30, (int) $st->prep_minutes);
+        $this->assertSame(['Gulberg', 'DHA'], collect($st->delivery_zones)->pluck('name')->all());
+        $this->post($this->u('settings'), $this->settingsPayload(['delivery_zones' => [['name' => 'A', 'fee' => 1], ['name' => 'a', 'fee' => 2]]]))->assertSessionHasErrors('delivery_zones');
+        $this->post($this->u('settings'), $this->settingsPayload())->assertSessionHasNoErrors();
+        $this->assertNull(Storefront::where('tenant_id', $this->tenant->id)->first()->delivery_zones);
+    }
+
+    public function test_promotions_crud_timezone_conversion_and_isolation(): void
+    {
+        $this->get($this->u('/'))->assertOk(); // creates the draft store
+        $this->tenant->update(['timezone' => 'Asia/Karachi']);
+        Storefront::where('tenant_id', $this->tenant->id)->update(['timezone' => 'Asia/Karachi']);
+        $this->post($this->u('promotions'), ['name' => 'Eid', 'code' => ' eid 25 ', 'percent' => 25, 'scope' => 'store', 'starts_at' => '2026-10-10T09:00', 'ends_at' => '2026-10-12T09:00', 'max_uses' => 5])->assertSessionHasNoErrors();
+        $p = DB::table('commerce_promotions')->first();
+        $this->assertSame('EID25', $p->code);
+        $this->assertSame('2026-10-10 04:00:00', $p->starts_at); // 09:00 PKT = 04:00 UTC
+        $this->post($this->u('promotions'), ['name' => 'Dup', 'code' => 'eid25', 'percent' => 5, 'scope' => 'store'])->assertSessionHasErrors('code');
+        $this->post($this->u('promotions'), ['name' => 'Bad', 'percent' => 5, 'scope' => 'store', 'starts_at' => '2026-10-12T09:00', 'ends_at' => '2026-10-10T09:00'])->assertSessionHasErrors('ends_at');
+        $this->post($this->u('promotions'), ['name' => 'Cat', 'percent' => 5, 'scope' => 'category', 'category_id' => (string) Str::uuid()])->assertSessionHasErrors('category_id');
+        $this->get($this->u('promotions'))->assertOk()->assertInertia(function ($pg) {
+            $props = $pg->toArray()['props'];
+            $this->assertCount(1, $props['promotions']);
+            $this->assertSame(Storefront::where('tenant_id', $this->tenant->id)->value('slug'), $props['store']['slug']); // same shape as the other merchant pages (layout needs store.slug)
+        });
+        $this->post($this->u("promotions/{$p->id}/toggle"));
+        $this->assertSame(0, (int) DB::table('commerce_promotions')->where('id', $p->id)->value('is_active'));
+        // another tenant cannot touch it
+        $t2 = $this->createTenant('shop-' . Str::lower(Str::random(6)), 'growth', 'active');
+        $u2 = $this->createTenantUser($t2, 'owner');
+        $this->actingAsTenantUserModel($u2, $t2);
+        $this->get($this->storeUrl($t2, 'online-store/'))->assertOk();
+        $this->delete($this->storeUrl($t2, "online-store/promotions/{$p->id}"))->assertNotFound();
+        $this->assertSame(1, DB::table('commerce_promotions')->count());
+    }
+
+    public function test_featured_products_cap_and_home_insights(): void
+    {
+        $this->get($this->u('/'))->assertOk();
+        $ids = collect(range(1, 13))->map(fn () => $this->makeProduct($this->tenant, $this->warehouseId, [], 1))->all();
+        $this->post($this->u('products/bulk'), ['ids' => $ids, 'action' => 'feature']);
+        $this->assertSame(12, DB::table('storefront_products')->where('is_featured', 1)->count());
+        $this->get($this->u('/'))->assertInertia(fn ($pg) => $this->assertSame(0, $pg->toArray()['props']['insights']['placed']));
     }
 }

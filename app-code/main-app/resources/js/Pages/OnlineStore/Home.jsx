@@ -4,10 +4,11 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StoreTabs from '@/Components/Commerce/StoreTabs';
 import { Alert, Button, Card } from '@/Components/Commerce/ui';
 
-export default function Home({ store, problems, can_publish, counts, published_products, public_url, qr_svg, urls }) {
+const post = (url, data = {}) => router.post(url, data, { preserveScroll: true });
+
+export default function Home({ insights, store, problems, can_publish, counts, published_products, public_url, preview_url, qr_svg, urls }) {
     const { errors } = usePage().props;
     const live = store.status === 'published';
-    const post = (url, data = {}) => router.post(url, data, { preserveScroll: true });
 
     return (
         <OneGlanceLayout title="Online Store" activeMenu="Marketing">
@@ -61,17 +62,30 @@ export default function Home({ store, problems, can_publish, counts, published_p
 
                 <Card className="space-y-3 text-center">
                     <h2 className="font-semibold">Share your store</h2>
-                    <div className="mx-auto w-44 bg-white p-2 rounded-xl" dangerouslySetInnerHTML={{ __html: qr_svg }} aria-label="QR code for your store link" role="img" />
+                    <img className="mx-auto w-44 bg-white p-2 rounded-xl" alt="QR code for your store link" src={`data:image/svg+xml;utf8,${encodeURIComponent(qr_svg || '')}`} />
                     <p className="text-xs text-ink-muted break-all">{public_url}</p>
                     <div className="flex gap-2 justify-center">
                         <Button variant="secondary" onClick={() => navigator.clipboard?.writeText(public_url)}>Copy link</Button>
-                        <a className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-sunken border border-line text-ink" href={public_url} target="_blank" rel="noopener noreferrer">
+                        <a className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-sunken border border-line text-ink" href={live ? public_url : (preview_url || public_url)} target="_blank" rel="noopener noreferrer">
                             {live ? 'Open store' : 'Preview'}
                         </a>
                     </div>
-                    {!live && <p className="text-xs text-ink-muted">Only you can see the link until you publish.</p>}
+                    {!live && <p className="text-xs text-ink-muted">The preview link works for 24 hours and only you can use it until you publish.</p>}
                 </Card>
             </div>
+
+            {insights && (
+                <Card className="mt-4 space-y-3">
+                    <div><h2 className="font-semibold">Last {insights.days} days</h2><p className="text-xs text-ink-muted">Read-only. These numbers never change your books.</p></div>
+                    <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                        {[['Orders placed', insights.placed], ['Completed', insights.completed], ['Online sales', `${store.currency_symbol} ${Number(insights.sales).toLocaleString()}`], ['Discounts given', `${store.currency_symbol} ${Number(insights.discounts).toLocaleString()}`],
+                            ['Avg. time to accept', insights.avg_accept_minutes == null ? '—' : `${insights.avg_accept_minutes} min`], ['Avg. time to complete', insights.avg_complete_minutes == null ? '—' : `${insights.avg_complete_minutes} min`],
+                            ['Declined or expired', insights.rejected + insights.expired], ['Repeat customers', insights.customers ? `${insights.repeat_customers} of ${insights.customers}` : '—']].map(([l, v]) => (
+                            <div key={l} className="bg-sunken rounded-xl py-3 px-2"><dt className="text-xs text-ink-muted">{l}</dt><dd className="text-xl font-bold text-ink">{v}</dd></div>
+                        ))}
+                    </dl>
+                </Card>
+            )}
         </OneGlanceLayout>
     );
 }

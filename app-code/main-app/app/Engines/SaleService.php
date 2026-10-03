@@ -225,7 +225,8 @@ class SaleService
                             productId:   $item['product_id'],
                             warehouseId: $data['warehouse_id'],
                             qty:         $baseQty,
-                            saleUom:     $saleUom
+                            saleUom:     $saleUom,
+                            ownOrderId:  $data['source_order_id'] ?? null
                         );
                         $lineCogs = array_sum(array_column($deductions, 'total_cost'));
                     }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Commerce\OrderInboxController;
 use App\Http\Controllers\Commerce\PublicStoreController;
+use App\Http\Controllers\Commerce\PromotionsController;
 use App\Http\Controllers\Commerce\StoreManagerController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,11 @@ Route::get('/shop/{slug}', [PublicStoreController::class, 'show'])->where('slug'
 Route::post('/shop/{slug}/quote', [PublicStoreController::class, 'quote'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('commerce.quote');
 Route::post('/shop/{slug}/checkout', [PublicStoreController::class, 'placeOrder'])->where('slug', '[a-z0-9-]+')->middleware('throttle:10,1')->name('commerce.checkout');
 Route::get('/order-status/{token}', [PublicStoreController::class, 'status'])->middleware('throttle:60,1')->name('commerce.order-status');
+Route::get('/order-status/{token}/reorder', [PublicStoreController::class, 'reorder'])->middleware('throttle:30,1')->name('commerce.order-status.reorder');
+Route::post('/order-status/{token}/revision', [PublicStoreController::class, 'answerRevision'])->middleware('throttle:10,1')->name('commerce.order-status.revision');
+Route::post('/order-status/{token}/cancel', [PublicStoreController::class, 'cancel'])->middleware('throttle:10,1')->name('commerce.order-status.cancel');
+Route::get('/order-lookup', [PublicStoreController::class, 'lookupForm'])->name('commerce.order-lookup');
+Route::post('/order-lookup', [PublicStoreController::class, 'lookup'])->middleware('throttle:6,1')->name('commerce.order-lookup.find');
 Route::post('/order-status/{token}/transfer', [PublicStoreController::class, 'reportTransfer'])->middleware('throttle:10,1')->name('commerce.order-status.transfer');
 
 /*
@@ -34,13 +40,22 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/unpublish', [StoreManagerController::class, 'unpublish'])->middleware('permission:admin.settings_manage')->name('unpublish');
         Route::post('/intake', [StoreManagerController::class, 'intake'])->middleware('permission:admin.settings_manage')->name('intake');
         Route::get('/products', [StoreManagerController::class, 'products'])->middleware('permission:admin.settings_manage')->name('products');
+        Route::post('/products/{product}/photo', [StoreManagerController::class, 'productPhoto'])->middleware('permission:admin.settings_manage')->name('products.photo');
         Route::post('/products/bulk', [StoreManagerController::class, 'bulkProducts'])->middleware('permission:admin.settings_manage')->name('products.bulk');
+
+        Route::post('/orders/{id}/block-phone', [OrderInboxController::class, 'blockPhone'])->middleware('permission:sales.edit')->name('orders.block');
+
+        Route::get('/promotions', [PromotionsController::class, 'index'])->middleware('permission:admin.settings_manage')->name('promotions');
+        Route::post('/promotions', [PromotionsController::class, 'save'])->middleware('permission:admin.settings_manage')->name('promotions.save');
+        Route::post('/promotions/{id}/toggle', [PromotionsController::class, 'toggle'])->middleware('permission:admin.settings_manage')->name('promotions.toggle');
+        Route::delete('/promotions/{id}', [PromotionsController::class, 'destroy'])->middleware('permission:admin.settings_manage')->name('promotions.destroy');
 
         Route::get('/orders', [OrderInboxController::class, 'index'])->middleware('permission:sales.view')->name('orders');
         Route::get('/orders/alerts', [OrderInboxController::class, 'alerts'])->middleware('permission:sales.view')->name('alerts');
         Route::post('/orders/alerts', [OrderInboxController::class, 'alerts'])->middleware('permission:sales.view')->name('alerts.read');
         Route::get('/orders/{id}', [OrderInboxController::class, 'show'])->middleware('permission:sales.view')->name('orders.show');
         Route::post('/orders/{id}/accept', [OrderInboxController::class, 'accept'])->middleware('permission:sales.edit')->name('orders.accept');
+        Route::post('/orders/{id}/revise', [OrderInboxController::class, 'revise'])->middleware('permission:sales.edit')->name('orders.revise');
         Route::post('/orders/{id}/reject', [OrderInboxController::class, 'reject'])->middleware('permission:sales.edit')->name('orders.reject');
         Route::post('/orders/{id}/advance', [OrderInboxController::class, 'advance'])->middleware('permission:sales.edit')->name('orders.advance');
         Route::post('/orders/{id}/cancel', [OrderInboxController::class, 'cancel'])->middleware('permission:sales.void')->name('orders.cancel');

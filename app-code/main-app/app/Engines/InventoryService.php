@@ -226,6 +226,7 @@ class InventoryService
                 ->get();
 
             $totalAvailable = $batches->sum('remaining_qty');
+            \App\Services\Commerce\HoldGuard::assertUnderLock($productId, $fromWarehouseId, (float) $qty, (float) $totalAvailable);
 
             if ($totalAvailable < $qty) {
                 throw new \App\Exceptions\InsufficientStockException(
