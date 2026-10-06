@@ -22,7 +22,7 @@ import { approverOptions, describeApprovalLines } from '@/Domain/pos/approval';
  *   busy      — the resubmission is in flight
  *   money     — optional amount formatter
  */
-export default function ApprovalPinModal({ request, storeSlug, onSubmit, onClose, busy = false, money, zIndex = 'z-50' }) {
+export default function ApprovalPinModal({ request, storeSlug, onSubmit, onClose, busy = false, money, zIndex = 'z-[1100]' }) {
     const show = !!request;
     const [approvers, setApprovers] = useState([]);
     const [loading, setLoading] = useState(true);

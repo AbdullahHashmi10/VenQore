@@ -11,7 +11,7 @@ export default function Modal({
     maxWidth = '2xl',
     closeable = true,
     onClose = () => {},
-    zIndex = 'z-50',
+    zIndex = 'z-[1100]',
 }) {
     const close = () => {
         if (closeable) {

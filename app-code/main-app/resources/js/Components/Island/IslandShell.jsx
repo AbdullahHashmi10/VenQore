@@ -147,7 +147,7 @@ export default function IslandShell({
         onClick={onScrimClick}
         className="fixed inset-0 z-command-scrim"
         style={{
-          zIndex: 'calc(var(--vq-z-command, 1000) - 1)',
+          zIndex: isOpen ? 'calc(var(--vq-z-command, 1000) - 1)' : -1,
           background: 'rgb(13 20 18 / .40)',
           backdropFilter: 'blur(10px) saturate(120%)',
           WebkitBackdropFilter: 'blur(10px) saturate(120%)',
@@ -158,7 +158,7 @@ export default function IslandShell({
       <div
         className="fixed z-command"
         style={{
-          zIndex: 'var(--vq-z-command, 1000)',
+          zIndex: isOpen ? 'var(--vq-z-command, 1000)' : 'var(--vq-z-nav, 30)',
           left: anchor.cx,
           top: anchor.top,
           transform: 'translateX(-50%)',

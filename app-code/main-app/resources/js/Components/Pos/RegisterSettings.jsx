@@ -334,6 +334,7 @@ export default function RegisterSettings({
     catalogSort, setCatalogSort,
     showCatalogImages, setShowCatalogImages,
     showCatalogStock, setShowCatalogStock,
+    categoryOrientation, setCategoryOrientation,
     hideOutOfStock, setHideOutOfStock,
     isStockTracking = true,
 
@@ -725,6 +726,22 @@ export default function RegisterSettings({
 
                                 {catResident && (
                                     <>
+                                        <Field
+                                            title="Category bar layout"
+                                            hint="Display categories as a horizontal top strip or a vertical left sidebar list."
+                                            stacked
+                                        >
+                                            <Segmented
+                                                label="Category bar layout"
+                                                value={categoryOrientation || 'horizontal'}
+                                                onChange={v => setCategoryOrientation?.(v)}
+                                                options={[
+                                                    { value: 'horizontal', label: 'Horizontal Strip' },
+                                                    { value: 'vertical',   label: 'Vertical Sidebar' },
+                                                ]}
+                                            />
+                                        </Field>
+
                                         <Field
                                             title="Default catalog sort"
                                             hint="How items in 'All Items' and categories are ordered by default."

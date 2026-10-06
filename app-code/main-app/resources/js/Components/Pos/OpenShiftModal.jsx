@@ -57,7 +57,7 @@ export default function OpenShiftModal({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={onClose}>
             <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-900/60 to-purple-900/60 p-5 border-b border-slate-700 flex justify-between items-center">

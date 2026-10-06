@@ -54,7 +54,10 @@ import {
     AlertTriangle,
     Lock,
     Landmark,
-    Tv
+    Tv,
+    Columns,
+    Rows,
+    LayoutList
 } from 'lucide-react';
 import axios from 'axios';
 import { handleApprovalResponse } from '@/lib/approval-response';
@@ -636,6 +639,19 @@ const POSInterface = ({
     const setShowCatalogStock = (v) => {
         setShowCatalogStockState(v);
         try { localStorage.setItem('pos_catalog_show_stock', String(v)); } catch (_) {}
+    };
+
+    const [categoryOrientation, setCategoryOrientationState] = useState(() => {
+        try { return localStorage.getItem('pos_category_orientation') || 'horizontal'; }
+        catch (_) { return 'horizontal'; }
+    });
+    const setCategoryOrientation = (v) => {
+        setCategoryOrientationState(v);
+        try { localStorage.setItem('pos_category_orientation', v); } catch (_) {}
+    };
+    const toggleCategoryOrientation = (mode) => {
+        const next = mode || (categoryOrientation === 'horizontal' ? 'vertical' : 'horizontal');
+        setCategoryOrientation(next);
     };
 
     const [hideOutOfStock, setHideOutOfStockState] = useState(() => {
@@ -3694,15 +3710,15 @@ const POSInterface = ({
        the catalog pane when there is one, and at the head of the cart when
        there is not. It is never the thing that gets demoted. */
     const renderScan = () => (
-        <div className="vq-pane-fixed flex items-center gap-2.5 px-4 py-3 border-b border-line/80 bg-surface shadow-xs">
+        <div className="vq-pane-fixed flex items-center gap-2 px-3 py-2.5 border-b border-line/80 bg-surface shadow-xs">
             <button
                 type="button"
                 onClick={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
-                className="h-11 px-3.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300 border border-brand-200 dark:border-brand-800 flex items-center justify-center gap-1.5 font-bold text-xs transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 shrink-0 cursor-pointer"
-                title="Create a product without leaving the register"
+                className="w-10 h-10 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300 border border-brand-200 dark:border-brand-800 flex items-center justify-center font-bold text-xs transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 shrink-0 cursor-pointer"
+                title="Add Product"
+                aria-label="Add Product"
             >
-                <PackagePlus size={17} className="text-brand-600 dark:text-brand-400" />
-                <span className="hidden sm:inline">+ Item</span>
+                <PackagePlus size={19} className="text-brand-600 dark:text-brand-400" />
             </button>
             <div id="tour-pos-product" className="flex-1 relative min-w-0">
                 {(() => {
@@ -3716,7 +3732,7 @@ const POSInterface = ({
                                 onSelect={(product) => handleProductSelect(product)}
                                 placeholder={hasBarcodes ? "Scan barcode or search item by name / SKU… [F2]" : "Search item by name / SKU… [F2]"}
                                 onKeyDown={handleSearchInputKeyDown}
-                                inputClassName={`${hasBarcodes ? '!pl-12' : '!pl-4'} !pr-11 font-bold h-11 text-sm bg-sunken/60 focus:bg-surface rounded-xl border-line/90 focus:border-brand-500 shadow-none focus:ring-4 focus:ring-brand-500/15 transition-all`}
+                                inputClassName={`${hasBarcodes ? '!pl-12' : '!pl-4'} !pr-11 font-bold h-10 text-sm bg-sunken/60 focus:bg-surface rounded-xl border-line/90 focus:border-brand-500 shadow-none focus:ring-4 focus:ring-brand-500/15 transition-all`}
                                 onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
                                 hideCostAndMargin={true}
                                 hideSearchIcon={true}
@@ -3725,16 +3741,29 @@ const POSInterface = ({
                             />
                             {hasBarcodes && (
                                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10 flex items-center gap-1">
-                                    <ScanBarcode size={20} className="text-brand-600 dark:text-brand-400" />
+                                    <ScanBarcode size={19} className="text-brand-600 dark:text-brand-400" />
                                 </div>
                             )}
                         </>
                     );
                 })()}
                 <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10 flex items-center">
-                    <Search size={18} />
+                    <Search size={17} />
                 </div>
             </div>
+            <button
+                type="button"
+                onClick={() => toggleCategoryOrientation()}
+                className="w-10 h-10 rounded-xl bg-sunken/80 hover:bg-interactive-hover text-ink-muted hover:text-ink border border-line flex items-center justify-center font-bold text-xs transition-all shrink-0 cursor-pointer"
+                title={categoryOrientation === 'horizontal' ? "Switch to Vertical Categories" : "Switch to Horizontal Categories"}
+                aria-label="Toggle category layout"
+            >
+                {categoryOrientation === 'horizontal' ? (
+                    <Columns size={18} className="text-brand-600 dark:text-brand-400" />
+                ) : (
+                    <Rows size={18} className="text-brand-600 dark:text-brand-400" />
+                )}
+            </button>
         </div>
     );
 
@@ -3793,6 +3822,52 @@ const POSInterface = ({
             >
                 <ChevronRight size={15} />
             </button>
+        </div>
+    );
+
+    const renderCategorySidebar = () => (
+        <div className="w-44 sm:w-52 shrink-0 border-r border-line bg-surface overflow-y-auto p-2.5 space-y-1">
+            <div className="flex items-center justify-between px-2 py-1 mb-1 border-b border-line/50">
+                <span className="text-2xs font-extrabold text-ink-muted uppercase tracking-wider">Categories</span>
+                <span className="vq-num text-2xs font-bold text-ink-muted bg-sunken px-1.5 py-0.5 rounded-md">
+                    {categories.filter(c => (c.products_count > 0 || c.product_count > 0)).length + 1}
+                </span>
+            </div>
+            <button
+                type="button"
+                onClick={() => setSelectedCategory(null)}
+                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    selectedCategory === null
+                        ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                        : 'bg-app text-ink-secondary border-line hover:bg-interactive-hover hover:border-line-strong'
+                }`}
+            >
+                <span>All Items</span>
+                <span className={`vq-num text-2xs px-1.5 py-0.5 rounded-md font-bold ${
+                    selectedCategory === null ? 'bg-white/25 text-white' : 'bg-surface text-ink-muted border border-line/50'
+                }`}>
+                    {categoryProducts.length}
+                </span>
+            </button>
+            {categories.filter(cat => (cat.products_count > 0 || cat.product_count > 0)).map(cat => (
+                <button
+                    type="button"
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                        selectedCategory === cat.id
+                            ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                            : 'bg-app text-ink-secondary border-line hover:bg-interactive-hover hover:border-line-strong'
+                    }`}
+                >
+                    <span className="truncate pr-1">{cat.name}</span>
+                    <span className={`vq-num text-2xs px-1.5 py-0.5 rounded-md font-bold shrink-0 ${
+                        selectedCategory === cat.id ? 'bg-white/25 text-white' : 'bg-surface text-ink-muted border border-line/50'
+                    }`}>
+                        {cat.products_count ?? cat.product_count ?? 0}
+                    </span>
+                </button>
+            ))}
         </div>
     );
 
@@ -4301,24 +4376,43 @@ const POSInterface = ({
         const tilesH = rows * baseH + (rows - 1) * GUTTER;   // LAW.terminal.tile_h
         return (
             <section
-                className="vq-pane vq-catband bg-surface border border-line shrink-0"
+                className="vq-pane vq-catband bg-surface border border-line shrink-0 flex flex-col overflow-hidden"
                 data-pane="catalog-band"
                 style={{ height: tilesH + CAT_STRIP_H }}
             >
-                {renderCategoryStrip()}
-                <div className="vq-pane-body">
-                    <div
-                        className={(shape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
-                        data-rows={rows}
-                        data-shape={shape}
-                    >
-                        {sortedCategoryProducts.map(
-                            shape === 'pills' ? renderProductPill :
-                            isLarge ? renderProductLargeTile :
-                            renderProductTile
-                        )}
+                {categoryOrientation === 'horizontal' && renderCategoryStrip()}
+                {categoryOrientation === 'vertical' ? (
+                    <div className="flex flex-1 min-h-0 overflow-hidden">
+                        {renderCategorySidebar()}
+                        <div className="vq-pane-body flex-1 min-w-0 bg-app overflow-y-auto">
+                            <div
+                                className={(shape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
+                                data-rows={rows}
+                                data-shape={shape}
+                            >
+                                {sortedCategoryProducts.map(
+                                    shape === 'pills' ? renderProductPill :
+                                    isLarge ? renderProductLargeTile :
+                                    renderProductTile
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="vq-pane-body flex-1 min-h-0 overflow-y-auto">
+                        <div
+                            className={(shape === 'pills') ? 'vq-pills-band' : 'vq-tiles-band'}
+                            data-rows={rows}
+                            data-shape={shape}
+                        >
+                            {sortedCategoryProducts.map(
+                                shape === 'pills' ? renderProductPill :
+                                isLarge ? renderProductLargeTile :
+                                renderProductTile
+                            )}
+                        </div>
+                    </div>
+                )}
             </section>
         );
     };
@@ -4333,16 +4427,25 @@ const POSInterface = ({
     };
 
     const renderCatalogPane = (fit, tiles) => (
-        <section className="vq-pane bg-surface border border-line" data-pane="catalog">
-            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line flex items-center justify-between px-3">
+        <section className="vq-pane bg-surface border border-line flex flex-col h-full overflow-hidden" data-pane="catalog">
+            <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line flex items-center justify-between px-3 shrink-0">
                 <span>Catalog</span>
                 <span className="vq-num ml-auto text-2xs opacity-80 font-bold">{sortedCategoryProducts.length} items</span>
             </header>
             {catalogHostsScan && renderScan()}
-            {renderCategoryStrip()}
-            <div className="vq-pane-body bg-app">
-                {renderCatalogBody({ variant: fit, tiles: fit === 'list' ? 0 : tiles })}
-            </div>
+            {categoryOrientation === 'horizontal' && renderCategoryStrip()}
+            {categoryOrientation === 'vertical' ? (
+                <div className="flex flex-1 min-h-0 overflow-hidden">
+                    {renderCategorySidebar()}
+                    <div className="vq-pane-body flex-1 min-w-0 bg-app overflow-y-auto">
+                        {renderCatalogBody({ variant: fit, tiles: fit === 'list' ? 0 : tiles })}
+                    </div>
+                </div>
+            ) : (
+                <div className="vq-pane-body bg-app flex-1 min-h-0 overflow-y-auto">
+                    {renderCatalogBody({ variant: fit, tiles: fit === 'list' ? 0 : tiles })}
+                </div>
+            )}
         </section>
     );
 
@@ -4783,7 +4886,7 @@ const POSInterface = ({
        Column, bar or sheet — the same fields either way. */
     const renderTenderFields = () => (
         <>
-            <div id="tour-pos-customer" className="relative z-sticky">
+            <div id="tour-pos-customer" className="relative z-10">
                 {!customersOn ? (
                     <input
                         type="text"
@@ -6147,10 +6250,19 @@ const POSInterface = ({
                 >
                     {sheetHeader('Catalog', `${categoryProducts.length} items`)}
                     {renderScan()}
-                    {renderCategoryStrip()}
-                    <div className="vq-pane-body">
-                        {renderCatalogBody({ variant: 'grid-3up', tiles: layout.regime === 'phone' ? 2 : 4 })}
-                    </div>
+                    {categoryOrientation === 'horizontal' && renderCategoryStrip()}
+                    {categoryOrientation === 'vertical' ? (
+                        <div className="flex flex-1 min-h-0 overflow-hidden">
+                            {renderCategorySidebar()}
+                            <div className="vq-pane-body flex-1 min-w-0 bg-app overflow-y-auto">
+                                {renderCatalogBody({ variant: 'grid-3up', tiles: layout.regime === 'phone' ? 2 : 4 })}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="vq-pane-body flex-1 min-h-0 overflow-y-auto">
+                            {renderCatalogBody({ variant: 'grid-3up', tiles: layout.regime === 'phone' ? 2 : 4 })}
+                        </div>
+                    )}
                 </aside>
 
                 <aside
@@ -6703,7 +6815,7 @@ const POSInterface = ({
 
             {/* ── Item Discount Modal ────────────────────────────────────── */}
             {itemDiscountModal.show && typeof document !== 'undefined' && createPortal((
-                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' })}>
+                <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' })}>
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5" onClick={e => e.stopPropagation()}>
                         <div>
                             <h3 className="text-lg font-bold text-ink">Apply Item Discount</h3>
@@ -6780,7 +6892,7 @@ const POSInterface = ({
 
             {/* ── Converter Modal (Price / Qty / Total) ─────────────────── */}
             {converterModal.show && typeof document !== 'undefined' && createPortal((
-                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConverterModal({ show: false, item: null, mode: 'price', price: '', qty: '', total: '' })}>
+                <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConverterModal({ show: false, item: null, mode: 'price', price: '', qty: '', total: '' })}>
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5" onClick={e => e.stopPropagation()}>
                         <div>
                             <h3 className="text-lg font-bold text-ink">Edit Item Values</h3>
@@ -7249,6 +7361,8 @@ const POSInterface = ({
                     setShowCatalogImages={setShowCatalogImages}
                     showCatalogStock={showCatalogStock}
                     setShowCatalogStock={setShowCatalogStock}
+                    categoryOrientation={categoryOrientation}
+                    setCategoryOrientation={setCategoryOrientation}
                     hideOutOfStock={hideOutOfStock}
                     setHideOutOfStock={setHideOutOfStock}
                     isStockTracking={isStockMaintenanceEnabled(settings)}
