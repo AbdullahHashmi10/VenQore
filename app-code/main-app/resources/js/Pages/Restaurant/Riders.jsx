@@ -154,7 +154,7 @@ export default function RestaurantRiders({
         setSaving(true);
         setErrorMsg('');
         try {
-            await axios.patch(route('store.restaurant.riders.update', {
+            await axios.put(route('store.restaurant.riders.update', {
                 store_slug: storeSlug,
                 id: editRider.id,
             }), {
@@ -189,10 +189,11 @@ export default function RestaurantRiders({
     const handleQuickToggle = async (rider) => {
         const newStatus = rider.status === 'active' ? 'inactive' : 'active';
         try {
-            await axios.patch(route('store.restaurant.riders.update', {
+            await axios.put(route('store.restaurant.riders.update', {
                 store_slug: storeSlug,
                 id: rider.id,
             }), {
+                name: rider.name,
                 status: newStatus,
             });
 

@@ -188,7 +188,7 @@ final class PosSaleApprovalGuard
             $paidQty = (float) $line['paid_qty'];
             $allQty  = $paidQty + (float) $line['free_qty'];
 
-            if (!$stockEnabled || ($line['type'] ?? null) === 'service') {
+            if (!$stockEnabled || ($line['type'] ?? null) === 'service' || !empty($line['no_stock'])) {
                 // The controller books cost_price × qty for these (no batches).
                 $costs[$line['index']] = round((float) ($line['cost_price'] ?? 0) * $paidQty, 2);
                 continue;

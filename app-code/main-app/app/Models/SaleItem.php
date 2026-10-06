@@ -46,6 +46,9 @@ class SaleItem extends Model
         'line_total',
         'subtotal',
         'returned_quantity',
+        /* Add-ons picked on this line, as a snapshot (name + price_delta).
+           unit_price already includes them. */
+        'modifiers',
         /* Which line of the original sale a return line gives back. Without it
            on this list the column was never written, so the cap on how much
            could be returned had nothing to measure against and never fired. */
@@ -65,6 +68,7 @@ class SaleItem extends Model
         'line_total'      => 'decimal:4',
         'subtotal'        => 'decimal:4',
         'returned_quantity' => 'decimal:4',
+        'modifiers'       => 'array',
     ];
 
     // ─── Computed Attributes ──────────────────────────────────────────────────

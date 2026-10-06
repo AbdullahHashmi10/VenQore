@@ -1,0 +1,53 @@
+{
+  "case": "03 fixed discount on cart",
+  "shown_total_payable": "312.50",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 1,
+        "variant_id": null,
+        "quantity": 2,
+        "free_quantity": 0,
+        "price": 100,
+        "discount": 0,
+        "discount_type": "fixed"
+      },
+      {
+        "product_id": 2,
+        "variant_id": null,
+        "quantity": 3,
+        "free_quantity": 0,
+        "price": 50,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 312.5,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 312.5,
+    "tax": 0,
+    "tax_rate": 0,
+    "tax_inclusive": false,
+    "discount": 37.5,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

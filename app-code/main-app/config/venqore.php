@@ -47,6 +47,14 @@ return [
     'purchase_cutover' => env('VENQORE_PURCHASE_CUTOVER', false),
 
     /*
+    | FOH redirects. When true (default) the old restaurant URLs (/tables, /pos?view=floor,
+    | /pos?occupancy=ID, restaurant dispatch / dashboard / settings) send people to Front of
+    | House, and the retail till stops offering the table terminal. Set VQ_FOH_REDIRECTS=false
+    | to put every old screen back without a deploy of code.
+    */
+    'foh_redirects' => (bool) env('VQ_FOH_REDIRECTS', true),
+
+    /*
     | Comma-separated tenant slugs that get V3 purchases even while
     | `purchase_cutover` is false. Your pilot list.
     */

@@ -101,7 +101,7 @@ export function serverLineToCart(l, i) {
         id: l.id,
         name: l.name,
         price: base + delta,
-        original_price: base,
+        original_price: base + delta,
         basePrice: base,
         mods,
         qty,
@@ -153,6 +153,9 @@ export function useTableService({
     initialZones = [],
     initialKitchen = 0,
     lanes = { takeaway: false, delivery: false },
+    /* How often to re-read the floor. FOH polls faster while its Overview tab
+       is showing (8s) and keeps the old 15s everywhere else. */
+    pollMs = POLL_MS,
     onError,
     onNotice,
 } = {}) {
@@ -195,17 +198,32 @@ export function useTableService({
 
     /* ── reading ──────────────────────────────────────────────────────── */
 
+    /* A poll that changed nothing must not re-render the register. The floor
+       is polled every 15 seconds for the whole shift, and each answer used to
+       be a fresh array -- so React redrew the entire POS four times a minute
+       whether or not a single table had moved. Each slice is compared with
+       the last one it was set from, and only a real change is applied. */
+    const lastRaw = useRef({});
+    const changed = (key, value) => {
+        const raw = JSON.stringify(value);
+        if (lastRaw.current[key] === raw) return false;
+        lastRaw.current[key] = raw;
+        return true;
+    };
     const applyState = useCallback((d) => {
         if (!d) return;
-        if (Array.isArray(d.positions)) setPositions(d.positions);
-        if (Array.isArray(d.tickets)) setTickets(d.tickets);
-        if (Array.isArray(d.zones)) setZones(d.zones);
+        if (Array.isArray(d.positions) && changed('positions', d.positions)) setPositions(d.positions);
+        if (Array.isArray(d.tickets) && changed('tickets', d.tickets)) setTickets(d.tickets);
+        if (Array.isArray(d.zones) && changed('zones', d.zones)) setZones(d.zones);
         if (typeof d.kitchen === 'number') setKitchen(d.kitchen);
-        if (Array.isArray(d.eighty_six_ids)) setEightySixIds(d.eighty_six_ids);
-    }, []);
+        if (Array.isArray(d.eighty_six_ids) && changed('eighty', d.eighty_six_ids)) setEightySixIds(d.eighty_six_ids);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const refresh = useCallback(async () => {
         if (!enabled || inFlight.current) return;
+        /* A hidden tab does not need the floor. It catches up the moment it
+           is shown again (see the visibility listener below). */
+        if (typeof document !== 'undefined' && document.hidden) return;
         try {
             const { data } = await axios.get(r('store.tables.state'));
             applyState(data);
@@ -226,9 +244,11 @@ export function useTableService({
     useEffect(() => {
         if (!enabled) return undefined;
         refresh();
-        const id = setInterval(refresh, POLL_MS);
-        return () => clearInterval(id);
-    }, [enabled, refresh]);
+        const id = setInterval(refresh, pollMs);
+        const onVisible = () => { if (!document.hidden) refresh(); };
+        document.addEventListener('visibilitychange', onVisible);
+        return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
+    }, [enabled, refresh, pollMs]);
 
     useEffect(() => {
         if (!enabled) return undefined;
@@ -243,6 +263,10 @@ export function useTableService({
         inFlight.current = true;
         try {
             const { data } = await axios.post(r(name), body);
+            /* A write changed the lists outside the poll, so the poll's memory
+               of "what I last applied" is no longer the truth -- forget it and
+               let the next poll apply whatever the server says. */
+            lastRaw.current = {};
             if (data?.positions) setPositions(data.positions);
             if (data?.tickets) setTickets(data.tickets);
             if (data?.position) {
@@ -504,6 +528,26 @@ export function useTableService({
         post('store.tables.split.cancel', { occupancy_id: occupancyId },
             'The split could not be cancelled.'), [post]);
 
+    /* FOH: change what kind of order this is, keeping its lines and kitchen
+       tickets (dine-in -> takeaway frees the table). The server answers with
+       the card and the whole floor so every list is right at once. */
+    const convert = useCallback(async (occupancyId, to, extra = {}) => {
+        const data = await post('store.tables.convert', { occupancy_id: occupancyId, to, ...extra },
+            'That order could not be changed.');
+        if (data?.state) applyState(data.state);
+        if (data?.ticket) setSelectedId(data.ticket.id);
+        else if (data?.position) setSelectedId(data.position.id);
+        return data;
+    }, [post, applyState]);
+
+    /* FOH: the bag has been handed over; close the paid takeaway/delivery ticket. */
+    const collected = useCallback(async (occupancyId) => {
+        const data = await post('store.tables.collected', { occupancy_id: occupancyId },
+            'That order could not be marked collected.');
+        if (data) { applyState(data); setSelectedId(null); }
+        return data;
+    }, [post, applyState]);
+
     /* Called by the register once the money is banked. It is deliberately
        forgiving: the sale is already posted, so a table left showing as open
        is a nuisance to be reported, never a reason to fail a completed sale. */
@@ -533,7 +577,7 @@ export function useTableService({
         busy,
         eightySixIds,
         refresh,
-        openTable, openLane, updateDelivery, dropCheck, prime, pushOrder, flushOrder, sendToKitchen,
+        openTable, openLane, updateDelivery, dropCheck, convert, collected, prime, pushOrder, flushOrder, sendToKitchen,
         fireCourse, toggle86,
         transfer, merge, closeTable, setStatus,
         split, cancelSplit, markSettled,

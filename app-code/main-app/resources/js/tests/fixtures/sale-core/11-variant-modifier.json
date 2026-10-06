@@ -1,0 +1,56 @@
+{
+  "case": "11 variant + modifier line",
+  "shown_total_payable": "1,650.00",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 5,
+        "variant_id": 9,
+        "quantity": 1,
+        "free_quantity": 0,
+        "price": 1650,
+        "discount": 0,
+        "discount_type": "fixed",
+        "modifiers": [
+          {
+            "id": 31,
+            "name": "Extra cheese",
+            "price_delta": 100
+          },
+          {
+            "id": 32,
+            "name": "Olives",
+            "price_delta": 50
+          }
+        ]
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 1650,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 1650,
+    "tax": 0,
+    "tax_rate": 0,
+    "tax_inclusive": false,
+    "discount": 0,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

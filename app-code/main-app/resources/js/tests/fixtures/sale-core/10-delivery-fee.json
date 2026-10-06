@@ -1,0 +1,44 @@
+{
+  "case": "10 delivery fee as additional charge",
+  "shown_total_payable": "1,020.00",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 1,
+        "variant_id": null,
+        "quantity": 2,
+        "free_quantity": 0,
+        "price": 450,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 1020,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 1020,
+    "tax": 0,
+    "tax_rate": 0,
+    "tax_inclusive": false,
+    "discount": 0,
+    "delivery_charge": 120,
+    "extra_charge_value": 120,
+    "extra_charge_label": "Delivery fee",
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

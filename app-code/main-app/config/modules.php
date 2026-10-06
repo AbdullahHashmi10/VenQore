@@ -678,7 +678,7 @@ return [
     'table_service' => [
         'id'           => 14,
         'group'        => 'B',
-        'label'        => 'Table & Floor Service',
+        'label'        => 'Restaurant & café (FOH)',
         'description'  => 'Floor plan, table status and kitchen tickets for dine-in service.',
         'requires'     => ['pos', 'park_recall'],
         'requires_one' => [],
@@ -688,16 +688,20 @@ return [
         // in the FIRST one, so they DO carry the store. prefix.
         'routes'       => [
             'store.tables.*',
+            'store.foh',
+            'store.foh.*',
+            'store.addons.*',
             'store.restaurant.*',
             'store.api.occupancies',          // exact
             'store.api.occupancies.occupy',
             'store.api.occupancies.release',
         ],
-        'pages'        => ['Restaurant/Dashboard.jsx', 'Restaurant/Kitchen.jsx', 'Restaurant/CustomerQueue.jsx', 'Restaurant/Dispatch.jsx', 'Restaurant/Riders.jsx', 'Restaurant/Settings.jsx', 'TableService/FloorBuilder.jsx'],
-        'permissions'  => ['pos.checkout'],
+        'pages'        => ['Restaurant/Dashboard.jsx', 'Restaurant/Kitchen.jsx', 'Restaurant/CustomerQueue.jsx', 'Restaurant/Dispatch.jsx', 'Restaurant/Riders.jsx', 'Restaurant/Settings.jsx', 'TableService/FloorBuilder.jsx', 'Foh/Index.jsx', 'Foh/Settings.jsx', 'Inventory/AddOns.jsx'],
+        'permissions'  => ['pos.checkout', 'foh.access'],
         'cards'        => [],
         'terms'        => ['position', 'occupancy'],
         'nav'          => [
+            ['route' => 'store.foh', 'term' => 'position', 'icon' => 'Utensils', 'order' => 11],
             ['route' => 'store.restaurant.dashboard', 'term' => 'position', 'icon' => 'Utensils', 'order' => 12],
             ['route' => 'store.tables.plan', 'term' => 'position', 'icon' => 'LayoutGrid', 'order' => 13],
             ['route' => 'store.restaurant.kitchen', 'term' => 'position', 'icon' => 'ChefHat', 'order' => 14],
@@ -705,6 +709,7 @@ return [
             ['route' => 'store.restaurant.dispatch', 'term' => 'position', 'icon' => 'Bike', 'order' => 16],
             ['route' => 'store.restaurant.riders', 'term' => 'position', 'icon' => 'Users', 'order' => 17],
             ['route' => 'store.restaurant.settings', 'term' => 'position', 'icon' => 'Settings', 'order' => 18],
+            ['route' => 'store.foh.settings', 'term' => 'position', 'icon' => 'SlidersHorizontal', 'order' => 19],
         ],
         'aliases'      => ['tables', 'dine in', 'restaurant', 'cafe', 'seating', 'kot', 'kitchen order ticket', 'floor plan', 'waiter', 'dhaba', 'table service'],
         'billing'      => 'included',

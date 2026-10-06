@@ -12,7 +12,7 @@ import axios from 'axios';
 import {
     UtensilsCrossed, ChefHat, LayoutGrid, Rows3, Columns3, LayoutList, ShoppingBag, Bike,
     ExternalLink, Plus, Trash2, Printer, Search, X, Tv, Wand2, Combine, Split, Store,
-    Loader2,
+    Loader2, Map as MapIcon,
 } from 'lucide-react';
 import { useSettingsCtx } from '../context';
 import { Page, Section, Row, Switch, Segmented, Choices, Stepper, Field, Button, Callout, Tag, Pic } from '../primitives';
@@ -43,6 +43,8 @@ export function RestaurantPage() {
     };
 
     const viewOptions = [
+        { value: 'map', label: 'Room map', icon: MapIcon, desc: 'Your room drawn as it is: round, square and long tables with chairs. Managers can drag tables into place.',
+          pic: <Pic.Col>{[0, 1].map(r => <Pic.Row key={r}>{[0, 1, 2].map(c => <Pic.Box key={c} tone={(r + c) % 2 ? 'accent' : undefined} />)}</Pic.Row>)}</Pic.Col> },
         { value: 'cards', label: 'Smart cards', icon: LayoutGrid, desc: 'Tables that need someone jump to the front. Shows guests, time and money.',
           pic: <Pic.Col>{[0, 1].map(r => <Pic.Row key={r}><Pic.Box tone={r ? undefined : 'warm'} /><Pic.Box tone="accent" /><Pic.Box /></Pic.Row>)}</Pic.Col> },
         { value: 'sections', label: 'By area', icon: Rows3, desc: 'Tables grouped under each area — Main hall, Patio, Upstairs.',

@@ -1,0 +1,25 @@
+.foh-top-search{display:flex;align-items:center;gap:6px;padding:0 10px;border:1px solid var(--vq-line,#e5e7eb);border-radius:999px;background:var(--vq-sunken,#f5f5f5)}
+.foh-top-search input{border:0;outline:0;background:transparent;padding:8px 0;width:190px;font-size:14px}
+.foh-dot{width:8px;height:8px;border-radius:50%;background:#dc2626;display:inline-block}
+.foh-today{display:flex;flex-wrap:wrap;gap:6px 18px;font-weight:700;margin:0 0 12px}
+.foh-today [data-hot="1"]{color:#b91c1c}
+.foh-cols{display:grid;gap:14px;grid-template-columns:repeat(var(--n,3),minmax(0,1fr))}
+.foh-cols[data-n="1"]{--n:1}.foh-cols[data-n="2"]{--n:2}
+.foh-col .foh-h2{margin-top:0}.foh-col .foh-h2 b{margin-left:auto;font-size:12px;background:var(--vq-sunken,#eee);border-radius:999px;padding:1px 8px}
+.foh-late{color:#b91c1c;font-weight:800;font-size:13px;margin:0 0 6px}
+.foh-attn button[data-tone="warn"],.foh-tickets button[data-tone="warn"]{border-color:#f59e0b}
+.foh-attn button[data-tone="go"],.foh-tickets button[data-tone="go"]{border-color:#16a34a}
+.foh-with-rail{display:grid;grid-template-columns:120px minmax(0,1fr);height:100%;min-height:0}
+.foh-rail{display:flex;flex-direction:column;gap:6px;padding:10px;border-right:1px solid var(--vq-line,#e5e7eb);overflow:auto}
+.foh-rail button{display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--vq-line,#e5e7eb);border-radius:10px;background:var(--vq-surface,#fff);cursor:pointer;font-size:13px}
+.foh-rail button[data-busy="0"]{opacity:.6}.foh-rail button[data-on="1"]{background:var(--vq-accent,#2563eb);color:#fff;border-color:transparent}
+.foh-rail i{font-style:normal;font-size:11px}
+.foh-rail-body{min-width:0;min-height:0}
+@media (max-width:900px){
+  .foh-cols{grid-template-columns:1fr}
+  .foh-hide-sm,.foh-top-search{display:none}
+  .foh-with-rail{grid-template-columns:1fr}.foh-rail{flex-direction:row;border-right:0;border-bottom:1px solid var(--vq-line,#e5e7eb)}
+  .foh-top{flex-wrap:wrap}
+  .foh-tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--vq-surface,#fff);border-top:1px solid var(--vq-line,#e5e7eb);padding:6px;justify-content:space-around}
+  .foh-main{padding-bottom:64px}
+}

@@ -194,7 +194,7 @@
 
         @foreach($invoice->items as $item)
             <div class="item-row">
-                <span class="item-name">{{ $item->product->name }}</span>
+                <span class="item-name">{{ $item->product->name }}@if(!empty($item->modifiers))<br><small>{{ collect($item->modifiers)->pluck('name')->filter()->implode(', ') }}</small>@endif</span>
                 <span class="item-qty">{{ \App\Helpers\SettingsHelper::formatQuantity($item->quantity, $decimals) }}</span>
                 <span class="item-price">{{ $currencySymbol }}{{ number_format($item->unit_price, $decimals) }}</span>
                 <span class="item-total">{{ $currencySymbol }}{{ number_format($item->total, $decimals) }}</span>

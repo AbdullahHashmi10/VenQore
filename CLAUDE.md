@@ -49,6 +49,18 @@ Rank 3 never overrides rank 1 or 2 on a value.
 | Creating a store | `app/Services/StoreProvisioner.php` | Builder and `POST /new-store` both call it; `/register` and `/new-store` redirect to `/build-workspace` |
 | Store words (Clients, Jobs…) | `tenant_terminology`, shared as `props.terms` | Wrap visible text with `useTermText()` — see `app-code/main-app/docs/TERMINOLOGY_SWEEP.md` |
 
+## Front of House (FOH) — added 6 Oct 2026
+
+Restaurant work (tables, takeaway, delivery) lives at `/foh/{overview|tables|takeaway|delivery}`; the POS is the retail till. Plan and status: `FOH_IMPLEMENTATION_PLAN.md`.
+
+- **One reader for FOH settings:** `app/Support/FohSettings.php` (`all`, `enabledTabs`, `available`, `redirectsOn`, `stockMode`, `save`). Never read `foh_*`, `service_mode` or `lane_*` rows directly.
+- **Permission:** `foh.access` (waiters; "waiter" preset). Paying still needs `pos.checkout`; without it FOH shows "Print bill".
+- **Sale Core:** FOH pays through the same pure modules as the till (`Sell/core/cartMath.js`, `salePayload.js`) and `store.pos.sales.store`, tagged `channel: 'foh'`, `occupancy_id`, `order_type`. Do not fork the arithmetic.
+- **Stock:** `products.track_stock=false` or `foh_stock=never` (with `channel=foh`) skips FIFO deduction (`SaleController::skipsStock`).
+- **Add-ons:** shared library groups (`modifier_groups.is_library`, `category_modifier_group`); cart `original_price` includes add-ons, `basePrice` is the item alone.
+- **Old URLs** redirect to FOH unless `VQ_FOH_REDIRECTS=false`; `?legacy=1` reaches the old dispatch/dashboard/settings pages.
+- Table code in `Pos.jsx` is unreachable for FOH stores but not yet deleted (see plan deviations).
+
 ## Deliverable Format Preference
 
 - **Default to Markdown (`.md`) for written deliverables** (reports, plans, findings, summaries, audits, etc.). Do **not** produce `.docx` files by default.

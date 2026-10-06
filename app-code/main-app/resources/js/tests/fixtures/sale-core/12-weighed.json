@@ -1,0 +1,44 @@
+{
+  "case": "12 weighed (fractional qty)",
+  "shown_total_payable": "288.75",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 8,
+        "variant_id": null,
+        "quantity": 1.375,
+        "free_quantity": 0,
+        "price": 210,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 288.75,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 288.75,
+    "tax": 13.75,
+    "tax_rate": 5,
+    "tax_inclusive": true,
+    "discount": 0,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

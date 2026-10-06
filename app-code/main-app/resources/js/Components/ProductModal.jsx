@@ -95,6 +95,8 @@ export default function ProductModal({
         requires_visit: Boolean(product?.requires_visit),
         skill_tag: product?.skill_tag || '',
         modifier_groups: product?.modifier_groups || [],
+        library_group_ids: product?.library_group_ids || [],
+        track_stock: product?.track_stock ?? true,
         required_tools: product?.required_tools || [],
     });
 
@@ -140,6 +142,16 @@ export default function ProductModal({
         }
     }, [activeTab, product]);
 
+    const [libraryGroups, setLibraryGroups] = useState([]);
+    useEffect(() => {
+        if (activeTab !== 'add_ons' || !store?.slug) return;
+        let off = false;
+        axios.get(route('store.addons.index', { store_slug: store.slug }), { headers: { Accept: 'application/json' } })
+            .then((res) => { if (!off) setLibraryGroups(res.data?.groups || []); })
+            .catch(() => {});
+        return () => { off = true; };
+    }, [activeTab, store?.slug]);
+
     const fetchReservations = async () => {
         setLoadingReservations(true);
         try {
@@ -170,6 +182,8 @@ export default function ProductModal({
                 requires_visit: false,
                 skill_tag: '',
                 modifier_groups: [],
+                library_group_ids: [],
+                track_stock: true,
                 required_tools: [],
                 warehouse_id: warehouses?.[0]?.id || ''
             }));
@@ -210,6 +224,8 @@ export default function ProductModal({
                 requires_visit: Boolean(product.requires_visit),
                 skill_tag: product.skill_tag || '',
                 modifier_groups: product.modifier_groups || [],
+                library_group_ids: product.library_group_ids || [],
+                track_stock: product.track_stock ?? true,
                 required_tools: product.required_tools || [],
             });
             setIsStockUnlocked(false);
@@ -626,6 +642,14 @@ export default function ProductModal({
  )}
  </div>
  </div>
+
+ <label className="flex items-center gap-3 p-3 rounded-xl border border-line bg-sunken cursor-pointer">
+ <input type="checkbox" checked={data.track_stock !== false} onChange={(e) => setData('track_stock', e.target.checked)} disabled={!isEditable} />
+ <span>
+ <span className="block text-sm font-bold text-ink">Track stock for this item</span>
+ <span className="block text-xs text-ink-muted">Turn off for made-to-order dishes: selling it will not deduct or block on stock.</span>
+ </span>
+ </label>
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
  <div>
@@ -1717,6 +1741,28 @@ export default function ProductModal({
  </PremiumButton>
  )}
  </div>
+
+ {(libraryGroups.length > 0 || (product?.inherited_groups || []).length > 0) && (
+ <div className="p-4 rounded-2xl border border-line bg-sunken space-y-3">
+ <div className="text-sm font-bold text-ink">Shared add-ons</div>
+ {(product?.inherited_groups || []).length > 0 && (
+ <p className="text-xs text-ink-muted">From this item's category: {product.inherited_groups.map(g => g.name).join(', ')}</p>
+ )}
+ <div className="flex flex-wrap gap-2">
+ {libraryGroups.map(g => {
+ const on = (data.library_group_ids || []).includes(g.id);
+ return (
+ <button type="button" key={g.id} disabled={!isEditable}
+ onClick={() => setData('library_group_ids', on ? data.library_group_ids.filter(i => i !== g.id) : [...(data.library_group_ids || []), g.id])}
+ className={`px-3 py-1.5 rounded-full text-sm font-semibold border ${on ? 'bg-brand-600 text-white border-transparent' : 'bg-surface text-ink border-line'}`}>
+ {g.name}
+ </button>
+ );
+ })}
+ </div>
+ <p className="text-xs text-ink-muted">Manage these in Stock, then Add-ons. Anything shared here appears for this item at the till.</p>
+ </div>
+ )}
 
  {data.modifier_groups && data.modifier_groups.length > 0 ? (
  <div className="space-y-6">

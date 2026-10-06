@@ -1,0 +1,65 @@
+{
+  "case": "13 add-on line with line discount, 2 qty, exclusive tax 10%",
+  "shown_total_payable": "3,542.00",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 5,
+        "variant_id": 9,
+        "quantity": 2,
+        "free_quantity": 0,
+        "price": 1650,
+        "discount": 200,
+        "discount_type": "fixed",
+        "modifiers": [
+          {
+            "id": 31,
+            "name": "Extra cheese",
+            "price_delta": 100
+          },
+          {
+            "id": 32,
+            "name": "Olives",
+            "price_delta": 50
+          }
+        ]
+      },
+      {
+        "product_id": 2,
+        "variant_id": null,
+        "quantity": 3,
+        "free_quantity": 0,
+        "price": 40,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 3542,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 3542,
+    "tax": 322,
+    "tax_rate": 10,
+    "tax_inclusive": false,
+    "discount": 0,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

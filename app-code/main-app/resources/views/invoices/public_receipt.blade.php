@@ -203,6 +203,7 @@
                     <tr>
                         <td>
                             <div>{{ $item->product->name ?? $item->item_name ?? 'Item' }}</div>
+                            @if(!empty($item->modifiers))<div class="item-qty">{{ collect($item->modifiers)->pluck('name')->filter()->implode(', ') }}</div>@endif
                             <div class="item-qty">@ {{ number_format((float)($item->unit_price ?? 0), $decimals) }}</div>
                         </td>
                         <td style="text-align:center; font-weight:600;">{{ (float)($item->quantity ?? 1) }}</td>

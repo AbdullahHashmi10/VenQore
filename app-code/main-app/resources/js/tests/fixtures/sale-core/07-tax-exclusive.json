@@ -1,0 +1,53 @@
+{
+  "case": "07 exclusive tax 18% with discount",
+  "shown_total_payable": "392.35",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 1,
+        "variant_id": null,
+        "quantity": 2,
+        "free_quantity": 0,
+        "price": 100,
+        "discount": 0,
+        "discount_type": "fixed"
+      },
+      {
+        "product_id": 2,
+        "variant_id": null,
+        "quantity": 3,
+        "free_quantity": 0,
+        "price": 50,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 392.35,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 392.35,
+    "tax": 59.85,
+    "tax_rate": 18,
+    "tax_inclusive": false,
+    "discount": 17.5,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

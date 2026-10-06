@@ -49,7 +49,7 @@ return [
 
     'owner' => [
         // POS & Register
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         // Sales & Invoices
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         // Inventory & Warehouse
@@ -78,7 +78,7 @@ return [
 
     'admin' => [
         // POS & Register
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         // Sales & Invoices
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         // Inventory & Warehouse
@@ -107,7 +107,7 @@ return [
 
     'manager' => [
         // POS & Register
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         // Sales & Invoices
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         // Inventory & Warehouse
@@ -130,7 +130,7 @@ return [
 
     'cashier' => [
         // POS & Register (restricted checkout operations)
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.close_session',
         // Inventory View (check product availability at checkout)
         'inventory.view',
         // Approvals (Can view own submissions and resubmit/withdraw them)
@@ -181,7 +181,7 @@ return [
     | Owners can still override any member with custom checkboxes.
     */
     'franchise_admin' => [
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
         'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers',
@@ -197,7 +197,7 @@ return [
     ],
 
     'shift_supervisor' => [
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.returns',
         'inventory.view',
         'reports.summary',
@@ -222,17 +222,17 @@ return [
     ],
 
     'kitchen_manager' => [
-        'pos.checkout', 'sales.view', 'sales.edit', 'inventory.view', 'reports.summary',
+        'pos.checkout', 'foh.access', 'sales.view', 'sales.edit', 'inventory.view', 'reports.summary',
         'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'dispenser' => [
-        'pos.checkout', 'inventory.view',
+        'pos.checkout', 'foh.access', 'inventory.view',
         'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 
     'sales_executive' => [
-        'pos.checkout', 'sales.view', 'sales.create', 'sales.quotations', 'inventory.view', 'reports.summary',
+        'pos.checkout', 'foh.access', 'sales.view', 'sales.create', 'sales.quotations', 'inventory.view', 'reports.summary',
         'approvals.view_own', 'approvals.submit', 'approvals.withdraw', 'approvals.resubmit',
     ],
 

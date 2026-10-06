@@ -107,7 +107,7 @@ class InventoryController extends Controller
         $tenantId = app('current.tenant')->id;
         // V3 Logic: Products and Stock from inventory_batches
         $query = Product::query()
-            ->with(['category', 'brand', 'images', 'variants', 'barcodes', 'modifierGroups.modifiers', 'requiredTools'])
+            ->with(['category.modifierGroups', 'brand', 'images', 'variants', 'barcodes', 'modifierGroups.modifiers', 'requiredTools'])
             ->whereNull('deleted_at');
 
         if ($request->filled('category_id') && $request->category_id !== 'all') {
@@ -263,8 +263,13 @@ class InventoryController extends Controller
                 'default_duration' => $product->default_duration ?? 60,
                 'default_rate' => (float) ($product->default_rate ?? $product->price ?? 0),
                 'requires_visit' => (bool) $product->requires_visit,
+                'track_stock' => (bool) ($product->track_stock ?? true),
                 'skill_tag' => $product->skill_tag,
-                'modifier_groups' => $product->modifierGroups->map(fn($mg) => [
+                'library_group_ids' => $product->modifierGroups->where('is_library', true)->pluck('id')->values(),
+                'inherited_groups' => $product->category
+                    ? $product->category->modifierGroups->map(fn($mg) => ['id' => $mg->id, 'name' => $mg->name])->values()
+                    : [],
+                'modifier_groups' => $product->modifierGroups->where('is_library', false)->values()->map(fn($mg) => [
                     'id' => $mg->id,
                     'name' => $mg->name,
                     'min_select' => $mg->min_select,
@@ -424,6 +429,8 @@ class InventoryController extends Controller
             'default_duration' => 'nullable|integer',
             'default_rate' => 'nullable|numeric',
             'requires_visit' => 'nullable|boolean',
+            'track_stock' => 'nullable|boolean',
+            'library_group_ids' => 'nullable|array',
             'skill_tag' => 'nullable|string|max:64',
             'modifier_groups' => 'nullable|array',
             'required_tools' => 'nullable|array',
@@ -483,6 +490,7 @@ class InventoryController extends Controller
             'default_duration' => $validated['default_duration'] ?? 60,
             'default_rate' => $validated['default_rate'] ?? ($validated['price'] ?? 0),
             'requires_visit' => !empty($validated['requires_visit']),
+            'track_stock' => array_key_exists('track_stock', $validated) && $validated['track_stock'] !== null ? (bool) $validated['track_stock'] : true,
             'skill_tag' => $validated['skill_tag'] ?? null,
         ];
 
@@ -563,7 +571,9 @@ class InventoryController extends Controller
 
         // Handle Modifier Groups (Add-ons)
         if ($request->has('modifier_groups') && is_array($request->modifier_groups)) {
-            $this->syncModifierGroups($product, $request->modifier_groups, $tenantId);
+            $this->syncModifierGroups($product, $request->modifier_groups, $tenantId, $request->has('library_group_ids') ? (array) $request->input('library_group_ids') : null);
+        } elseif ($request->has('library_group_ids')) {
+            $this->syncLibraryGroups($product, (array) $request->input('library_group_ids'), $tenantId);
         }
 
         // Handle Required Tools
@@ -629,6 +639,8 @@ class InventoryController extends Controller
             'default_duration' => 'nullable|integer',
             'default_rate' => 'nullable|numeric',
             'requires_visit' => 'nullable|boolean',
+            'track_stock' => 'nullable|boolean',
+            'library_group_ids' => 'nullable|array',
             'skill_tag' => 'nullable|string|max:64',
             'modifier_groups' => 'nullable|array',
             'required_tools' => 'nullable|array',
@@ -676,6 +688,7 @@ class InventoryController extends Controller
             'default_duration' => $validated['default_duration'] ?? ($product->default_duration ?? 60),
             'default_rate' => $validated['default_rate'] ?? ($validated['price'] ?? $product->default_rate ?? 0),
             'requires_visit' => isset($validated['requires_visit']) ? (bool)$validated['requires_visit'] : (bool)$product->requires_visit,
+            'track_stock' => isset($validated['track_stock']) ? (bool) $validated['track_stock'] : (bool) ($product->track_stock ?? true),
             'skill_tag' => $validated['skill_tag'] ?? $product->skill_tag,
         ];
 
@@ -854,7 +867,9 @@ class InventoryController extends Controller
 
         // Handle Modifier Groups (Add-ons)
         if ($request->has('modifier_groups') && is_array($request->modifier_groups)) {
-            $this->syncModifierGroups($product, $request->modifier_groups, $tenantId);
+            $this->syncModifierGroups($product, $request->modifier_groups, $tenantId, $request->has('library_group_ids') ? (array) $request->input('library_group_ids') : null);
+        } elseif ($request->has('library_group_ids')) {
+            $this->syncLibraryGroups($product, (array) $request->input('library_group_ids'), $tenantId);
         }
 
         // Handle Required Tools
@@ -866,7 +881,21 @@ class InventoryController extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-    private function syncModifierGroups(Product $product, array $modifierGroups, $tenantId)
+    /**
+     * Attach / detach shared add-on groups from the Add-ons library on one product,
+     * leaving the product's own inline groups alone.
+     */
+    private function syncLibraryGroups(Product $product, array $libraryIds, $tenantId): void
+    {
+        $wanted = \App\Models\ModifierGroup::where('tenant_id', $tenantId)->where('is_library', true)
+            ->whereIn('id', array_filter($libraryIds, 'is_numeric'))->pluck('id')->all();
+        $keep = $product->modifierGroups()->where('modifier_groups.is_library', false)->pluck('modifier_groups.id')->all();
+        $sync = [];
+        foreach (array_merge($keep, $wanted) as $i => $id) $sync[$id] = ['sort_order' => $i];
+        $product->modifierGroups()->sync($sync);
+    }
+
+    private function syncModifierGroups(Product $product, array $modifierGroups, $tenantId, ?array $libraryIds = null)
     {
         $attachedGroupIds = [];
         foreach ($modifierGroups as $groupIndex => $groupData) {
@@ -928,6 +957,18 @@ class InventoryController extends Controller
                 }
                 $group->modifiers()->whereNotIn('id', $modifierIdsToKeep)->delete();
             }
+        }
+        // Shared add-on groups (library) are not typed on the product form, so they are
+        // never in $modifierGroups. Keep the ones already attached unless the form said
+        // exactly which library groups it wants.
+        if ($libraryIds === null) {
+            $libraryWanted = $product->modifierGroups()->where('modifier_groups.is_library', true)->pluck('modifier_groups.id')->all();
+        } else {
+            $libraryWanted = \App\Models\ModifierGroup::where('tenant_id', $tenantId)->where('is_library', true)
+                ->whereIn('id', array_filter($libraryIds, 'is_numeric'))->pluck('id')->all();
+        }
+        foreach ($libraryWanted as $i => $gid) {
+            if (!isset($attachedGroupIds[$gid])) $attachedGroupIds[$gid] = ['sort_order' => 1000 + $i];
         }
         $product->modifierGroups()->sync($attachedGroupIds);
     }

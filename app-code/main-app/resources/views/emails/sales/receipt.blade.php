@@ -17,7 +17,7 @@ this email.
     | Item | Qty | Price | Total |
     | :--- | :---: | :---: | :---: |
     @foreach($sale->items as $item)
-        | {{ str_replace(['|', "\n", "\r"], ' ', $item->product->name ?? $item->item_name ?? 'Item') }} | {{ number_format($item->quantity, $decimals) }} | {{ $currencySymbol }} {{ number_format($item->unit_price, $decimals) }} | {{ $currencySymbol }} {{ number_format($item->line_total ?? $item->subtotal ?? 0, $decimals) }} |
+        | {{ str_replace(['|', "\n", "\r"], ' ', ($item->product->name ?? $item->item_name ?? 'Item') . (!empty($item->modifiers) ? ' (' . collect($item->modifiers)->pluck('name')->filter()->implode(', ') . ')' : '')) }} | {{ number_format($item->quantity, $decimals) }} | {{ $currencySymbol }} {{ number_format($item->unit_price, $decimals) }} | {{ $currencySymbol }} {{ number_format($item->line_total ?? $item->subtotal ?? 0, $decimals) }} |
     @endforeach
     | **Total** | | | **{{ $currencySymbol }} {{ number_format($sale->invoice_total ?? $sale->total ?? 0, $decimals) }}** |
 </x-mail::table>

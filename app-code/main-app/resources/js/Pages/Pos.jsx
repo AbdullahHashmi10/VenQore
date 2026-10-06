@@ -65,7 +65,7 @@ import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
 import { printBrowserHtml } from '@/Utils/BrowserPrint';
-import { getProductPrice, shouldStopNegativeStock, roundTotal, isStockMaintenanceEnabled, isWholesalePricingEnabled } from '@/Utils/settings';
+import { getProductPrice, shouldStopNegativeStock, isStockMaintenanceEnabled, isWholesalePricingEnabled } from '@/Utils/settings';
 import { db } from '@/Utils/db';
 import { AMDStation, useAMDStation } from '@/Utils/AMDStation';
 
@@ -75,6 +75,9 @@ import InputModal from '@/Components/InputModal';
 import PaymentModal from '@/Components/Pos/PaymentModal';
 import ApprovalPinModal from '@/Components/Pos/ApprovalPinModal';
 import { parseApprovalRequired, withApproval } from '@/Domain/pos/approval';
+import { computeTotals } from '@/Sell/core/cartMath';
+import { buildSalePayload } from '@/Sell/core/salePayload';
+import useShift from '@/Sell/core/useShift';
 
 import OpenShiftModal from '@/Components/Pos/OpenShiftModal';
 import CashMovementModal from '@/Components/Pos/CashMovementModal';
@@ -98,9 +101,9 @@ import { useAppearance } from '@/Contexts/AppearanceContext';
    lives in these four modules and is mounted only when the terminal is
    `table`, so a counter till carries none of it -- not a mock floor, not a
    dead settings row, not eight hard-coded tables that wrote nowhere. */
-import useTableService, { serverLineToCart, cartLineToServer, ORDER_TYPES } from '@/Pos/Table/useTableService';
+import useTableService, { serverLineToCart, cartLineToServer } from '@/Pos/Table/useTableService';
 import { KitchenPrintService } from '@/Utils/KitchenPrintService';
-import FloorPane, { elapsed as tableElapsed, toneOf as tableTone } from '@/Pos/Table/FloorPane';
+import FloorPane, { elapsed as tableElapsed } from '@/Pos/Table/FloorPane';
 import TableBar, { SeatDialog, MoveSheet, NewTicketDialog } from '@/Pos/Table/TableBar';
 import { DeliveryPanel } from '@/Pos/Table/Delivery';
 import { QuickFloorModal } from '@/Pos/Table/QuickFloorSetup';
@@ -119,6 +122,7 @@ const POSInterface = ({
        same cart, same tender, same offline queue; the terminal decides which
        panes exist and which controls make sense. */
     terminal: initialTerminal = 'counter',
+    fohRedirect = false,
     positions: initialPositions = [],
     tickets: initialTickets = [],
     zones: initialZones = [],
@@ -214,6 +218,17 @@ const POSInterface = ({
             setTerminal('counter');
         }
     }, [setTerminal]);
+
+    /* One-time notice for a device that last ran the table terminal: tables now
+       live in Front of House. The stranded-till effect below clears the saved key. */
+    useEffect(() => {
+        if (!fohRedirect) return;
+        try {
+            if (localStorage.getItem('pos_terminal_v1') === 'table') {
+                window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message: 'Tables moved to Front of House. Use the FOH button.', type: 'info' } }));
+            }
+        } catch (_) { /* private mode */ }
+    }, [fohRedirect]);
 
     /* A store that turns table service OFF must not leave a till stranded on a
        floor it is no longer allowed to draw. */
@@ -352,42 +367,19 @@ const POSInterface = ({
     };
 
     // Register Shift & Cash Drawer State (R20) — restricted POS staff only
-    const [registerShift, setRegisterShift] = useState(null);
-    const [shiftMetrics, setShiftMetrics] = useState(null);
-    const [isShiftLoading, setIsShiftLoading] = useState(isPosStaff);
-    const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
-    const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
-    const [showCashMovementModal, setShowCashMovementModal] = useState(false);
-    const [showZReportModal, setShowZReportModal] = useState(false);
-    const [activeZReport, setActiveZReport] = useState(null);
-    const [shiftMenuOpen, setShiftMenuOpen] = useState(false);
-
-    const fetchCurrentShift = React.useCallback(async () => {
-        if (!isPosStaff) {
-            setIsShiftLoading(false);
-            setRegisterShift(null);
-            setShiftMetrics(null);
-            return;
-        }
-        try {
-            const res = await axios.get(route('store.shifts.current', { store_slug: store?.slug }));
-            if (res.data?.has_open_shift && res.data?.shift) {
-                setRegisterShift(res.data.shift);
-                setShiftMetrics(res.data.metrics);
-            } else {
-                setRegisterShift(null);
-                setShiftMetrics(null);
-            }
-        } catch (err) {
-            console.error('Error fetching register shift:', err);
-        } finally {
-            setIsShiftLoading(false);
-        }
-    }, [store?.slug, isPosStaff]);
-
-    useEffect(() => {
-        fetchCurrentShift();
-    }, [fetchCurrentShift]);
+    // (the state and the fetch live in Sell/core/useShift.js)
+    const {
+        registerShift, setRegisterShift,
+        shiftMetrics, setShiftMetrics,
+        isShiftLoading, setIsShiftLoading,
+        showOpenShiftModal, setShowOpenShiftModal,
+        showCloseShiftModal, setShowCloseShiftModal,
+        showCashMovementModal, setShowCashMovementModal,
+        showZReportModal, setShowZReportModal,
+        activeZReport, setActiveZReport,
+        shiftMenuOpen, setShiftMenuOpen,
+        fetchCurrentShift,
+    } = useShift({ storeSlug: store?.slug, isPosStaff });
 
     // Cart Clear with 10-Second Undo
     const handleClearCartWithUndo = () => {
@@ -445,8 +437,21 @@ const POSInterface = ({
         setSales(prev => prev.map(sale =>
             sale.id === activeSaleId ? { ...sale, ...updates } : sale
         ));
-        updatePosSession(activeSaleId, updates);
+        /* The workspace context is NOT written here any more. It sits above
+           the whole app shell, so every write re-rendered the sidebar, the
+           AI island and this page a second time -- on every keystroke. The
+           debounced sync below copies `sales` across once typing pauses. */
     };
+
+    /* THE SEARCH BOX IS LOCAL STATE.
+       It used to live on the sale object, which meant each character typed
+       rewrote the sale list, the workspace context and sessionStorage. Nothing
+       needs a half-typed search to survive a reload, so it is plain state now
+       and is cleared whenever the active tab changes. */
+    const [searchTerm, setSearchTerm] = useState('');
+    const pickProductRef = useRef(null);
+    const pickProductStable = React.useCallback((product) => pickProductRef.current?.(product), []);
+    useEffect(() => { setSearchTerm(''); }, [activeSaleId]);
 
     // Handle Recalled Sale (from Edit button)
     useEffect(() => {
@@ -463,6 +468,7 @@ const POSInterface = ({
                     name: item.product.name + (item.product_variant ? ` (${item.product_variant.sku})` : ''),
                     price: Math.max(0, unitPrice - unitDiscount), // Net price per unit
                     original_price: unitPrice, // Gross price per unit
+                    mods: Array.isArray(item.modifiers) ? item.modifiers : [], // add-ons the sale was rung with; unit_price already includes them
                     discount: unitDiscount, // Unit discount
                     qty: parseFloat(item.quantity),
                     freeQuantity: parseFloat(item.free_quantity || 0),
@@ -682,8 +688,20 @@ const POSInterface = ({
             return v !== null && (!allowed || allowed.includes(v)) ? v : fallback;
         } catch (_) { return fallback; }
     };
-    const [floorView, setFloorViewState] = useState(() => readLocal('pos_floor_view', 'cards', ['cards', 'sections', 'grid', 'list']));
+    const [floorView, setFloorViewState] = useState(() => readLocal('pos_floor_view', 'map', ['map', 'cards', 'sections', 'grid', 'list']));
     const setFloorView = (v) => { setFloorViewState(v); try { localStorage.setItem('pos_floor_view', v); } catch (_) {} };
+    /* The room drawing behind the Map view — store-wide, so every till sees
+       the same room. Held locally after a save so dragging never waits on an
+       Inertia reload. */
+    const [floorMap, setFloorMap] = useState(() => {
+        const raw = settings?.floor_map;
+        try { return raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null; } catch (_) { return null; }
+    });
+    const saveFloorMap = React.useCallback((tablesLayout) => {
+        const slug = store?.slug;
+        return axios.post(route('store.tables.plan.map', { store_slug: slug }), { tables: tablesLayout })
+            .then(r => { setFloorMap(r.data?.map || { tables: tablesLayout }); return r; });
+    }, [store?.slug]);
     const [floorSort, setFloorSortState] = useState(() => readLocal('pos_floor_sort', 'attention', ['attention', 'number']));
     const setFloorSort = (v) => { setFloorSortState(v); try { localStorage.setItem('pos_floor_sort', v); } catch (_) {} };
     const [floorSize, setFloorSizeState] = useState(() => readLocal('pos_floor_size', 'normal', ['compact', 'normal', 'large']));
@@ -1693,7 +1711,8 @@ const POSInterface = ({
                 if (latest) {
                     // PROTECT: If this is a recalled sale (historical), keep current prices
                     const shouldUpdatePrice = !activeSale.is_recall;
-                    const newPrice = shouldUpdatePrice ? parseFloat(latest.price || latest.selling_price || 0) : (item.original_price || item.price);
+                    const addOnDelta = (Array.isArray(item.mods) ? item.mods : []).reduce((a, m) => a + (Number(m.price_delta) || 0), 0);
+                    const newPrice = shouldUpdatePrice ? parseFloat(latest.price || latest.selling_price || 0) + addOnDelta : (item.original_price || item.price);
                     
                     return {
                         ...item,
@@ -1857,17 +1876,28 @@ const POSInterface = ({
     const paymentDropdownRef = useRef(null);
     const bankAccountDropdownRef = useRef(null);
 
-    // Sync local sales to context
+    /* Sync local sales to the workspace context -- debounced. The context
+       only feeds the sidebar's open-sales badge and the session restore, and
+       neither needs every keystroke; writing it synchronously doubled every
+       render of this page. Flushed on unmount and before the tab unloads so a
+       sale is never lost. */
+    const salesSyncTimer = useRef(null);
+    const latestSalesRef = useRef(sales);
+    latestSalesRef.current = sales;
+    const flushSalesToContext = React.useCallback(() => {
+        clearTimeout(salesSyncTimer.current);
+        salesSyncTimer.current = null;
+        latestSalesRef.current.forEach(sale => updatePosSession(sale.id, sale));
+    }, [updatePosSession]);
     useEffect(() => {
-        sales.forEach(sale => {
-            const existing = posSessions.find(s => s.id === sale.id);
-            if (existing) {
-                updatePosSession(sale.id, sale);
-            } else {
-                // This might happen if a new sale is created locally
-            }
-        });
-    }, [sales]);
+        clearTimeout(salesSyncTimer.current);
+        salesSyncTimer.current = setTimeout(flushSalesToContext, 450);
+    }, [sales]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        const onUnload = () => flushSalesToContext();
+        window.addEventListener('beforeunload', onUnload);
+        return () => { window.removeEventListener('beforeunload', onUnload); onUnload(); };
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (currentPosId && currentPosId !== activeSaleId) {
@@ -1983,6 +2013,7 @@ const POSInterface = ({
                 name: (item.product?.name || item.name || 'Item') + (item.product_variant?.sku ? ` (${item.product_variant.sku})` : ''),
                 price: Math.max(0, unitPrice - unitDiscount),
                 original_price: unitPrice,
+                mods: Array.isArray(item.modifiers) ? item.modifiers : [], // add-ons the sale was rung with; unit_price already includes them
                 discount: unitDiscount,
                 qty: parseFloat(item.quantity || 1),
                 freeQuantity: parseFloat(item.free_quantity || 0),
@@ -2089,21 +2120,26 @@ const POSInterface = ({
     // Search Logic
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (activeSale.searchTerm.length >= 2) {
-                performSearch(activeSale.searchTerm);
+            if (searchTerm.length >= 2) {
+                performSearch(searchTerm);
             } else {
+                searchSeqRef.current += 1;
                 setSearchResults([]);
             }
         }, 300);
         return () => clearTimeout(timer);
-    }, [activeSale.searchTerm]);
+    }, [searchTerm]);
 
+    const searchSeqRef = useRef(0);
     const performSearch = async (query) => {
+        /* Only the newest search may write results: a slow reply for "zin"
+           must not overwrite the answer for "zinger". */
+        const seq = ++searchSeqRef.current;
         setIsSearching(true);
         try {
             if (isOnline) {
                 const response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), { params: { q: query } });
-                setSearchResults(response.data.data || response.data || []);
+                seq === searchSeqRef.current && setSearchResults(response.data.data || response.data || []);
             } else {
                 const lowerQuery = query.toLowerCase();
                 const results = await db.products
@@ -2114,7 +2150,7 @@ const POSInterface = ({
                     )
                     .limit(50)
                     .toArray();
-                setSearchResults(results);
+                seq === searchSeqRef.current && setSearchResults(results);
             }
         } catch (error) {
             console.error("Search error:", error);
@@ -2128,7 +2164,7 @@ const POSInterface = ({
                     )
                     .limit(50)
                     .toArray();
-                setSearchResults(results);
+                seq === searchSeqRef.current && setSearchResults(results);
             } catch (localError) {
                 console.error("Local search failed:", localError);
             }
@@ -2150,7 +2186,7 @@ const POSInterface = ({
         const hasPreSales = !Array.isArray(modules) || modules.includes('pre_sales');
         if (isStockTracking && hasPreSales && (product.reserved_quantity > 0) && !isService && (product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
             if (!window.confirm(`Warning: ${product.reserved_quantity || 0} units are reserved for pre-orders. Available: ${product.available_stock || 0}. Selling this will put reservations into backorder. Continue?`)) {
-                updateActiveSale({ searchTerm: '' });
+                setSearchTerm('');
                 setSearchResults([]);
                 if (searchInputRef.current) searchInputRef.current.focus();
                 return;
@@ -2164,7 +2200,7 @@ const POSInterface = ({
         } else {
             addWithOptions(product);
         }
-        updateActiveSale({ searchTerm: '' });
+        setSearchTerm('');
         setSearchResults([]);
         if (searchInputRef.current) searchInputRef.current.focus();
     };
@@ -2265,7 +2301,11 @@ const POSInterface = ({
                 requires_visit: !!product.requires_visit,
                 skill_tag: product.skill_tag || null,
                 price: price + modDelta,
-                original_price: price,
+                /* original_price is the full list price of the line INCLUDING its
+                   add-ons -- every discount, price-override, total and sale-payload
+                   path reads it as the undiscounted unit price. basePrice is the
+                   item alone; the table service sends that and adds the deltas itself. */
+                original_price: price + modDelta,
                 basePrice: price,
                 mods: mods || [],
                 sent: false,
@@ -2289,7 +2329,7 @@ const POSInterface = ({
     const handleSearchInputKeyDown = async (e) => {
         if (e.key !== 'Enter') return;
 
-        const val = activeSale.searchTerm.trim();
+        const val = searchTerm.trim();
         if (!val) return;
 
         // If it looks like a barcode (no spaces, min 4 chars), try optimized exact barcode/SKU lookup first
@@ -2311,7 +2351,7 @@ const POSInterface = ({
                         } else {
                             await handleProductSelect(product);
                         }
-                        updateActiveSale({ searchTerm: '' });
+                        setSearchTerm('');
                         setIsSearching(false);
                         return;
                     }
@@ -2321,7 +2361,7 @@ const POSInterface = ({
                         .first();
                     if (exactMatch) {
                         handleProductSelect(exactMatch);
-                        updateActiveSale({ searchTerm: '' });
+                        setSearchTerm('');
                         setIsSearching(false);
                         return;
                     }
@@ -2494,71 +2534,26 @@ const POSInterface = ({
         }
     })();
 
-    const taxRate = enableTax ? (activeSale.taxRate !== undefined ? activeSale.taxRate : parseFloat(settings?.default_tax_rate || 0)) : 0;
-    const taxInclusive = enableTax ? (activeSale.taxInclusive !== undefined ? activeSale.taxInclusive : false) : false;
-
-    // Subtotal includes free items (gross sales value before line discounts)
-    const subtotal = activeSale.cart.reduce((acc, item) => {
-        const unitGross = Number(item.original_price ?? item.price ?? 0);
-        const qty = Number(item.qty || 0);
-        const freeQty = enableFreeQty ? Number(item.freeQuantity || 0) : 0;
-        return acc + (unitGross * (qty + freeQty));
-    }, 0);
-
-    // Calculate discounts
-    const freeItemDiscounts = enableFreeQty ? activeSale.cart.reduce((acc, item) => {
-        const unitGross = Number(item.original_price ?? item.price ?? 0);
-        return acc + (Number(item.freeQuantity || 0) * unitGross);
-    }, 0) : 0;
-
-    const itemDiscounts = activeSale.cart.reduce((acc, item) => {
-        const orig = Number(item.original_price ?? item.price ?? 0);
-        const cur = Number(item.price ?? 0);
-        const unitDiscount = Math.max(0, orig - cur) || Number(item.discount || 0);
-        const qty = Number(item.qty || 0);
-        return acc + (unitDiscount * qty);
-    }, 0);
-
-    // Global Discount Calculation (applied to net balance after line discounts)
-    const subtotalAfterLineDiscounts = Math.max(0, subtotal - (freeItemDiscounts + itemDiscounts));
-    let globalDiscount = 0;
-    if (activeSale.discountType === 'percentage') {
-        globalDiscount = (subtotalAfterLineDiscounts * (activeSale.discountValue || 0)) / 100;
-    } else {
-        globalDiscount = parseFloat(activeSale.discountValue !== undefined ? activeSale.discountValue : (activeSale.discount || 0)) || 0;
-    }
-
-    const totalDiscounts = freeItemDiscounts + itemDiscounts + globalDiscount;
-
-    const taxableAmount = Math.max(0, subtotal - totalDiscounts);
-    const taxAmount = enableTax
-        ? (taxInclusive 
-            ? taxableAmount - (taxableAmount / (1 + taxRate / 100))
-            : (taxableAmount * taxRate) / 100)
-        : 0;
-    const additionalCharges = parseFloat(activeSale.additionalCharges || 0);
-
-    /* SERVICE CHARGE is the house's, and it is a percentage of what was
-       actually eaten -- so it is taken on the discounted net, not on the gross
-       menu price. Counter tills never charge one, which is why it is gated on
-       the terminal rather than on a checkbox somebody would have to remember
-       to clear.
-
-       A TIP is not the house's money. It is typed per sale because it is the
-       customer's decision, it is never a percentage of anything by default,
-       and on the server it posts to a liability rather than to income. */
-    const serviceChargePct = tableMode ? (parseFloat(serviceChargeSetting) || 0) : 0;
-    const serviceCharge = serviceChargePct > 0
-        ? Math.round(((taxableAmount * serviceChargePct) / 100) * 100) / 100
-        : 0;
-    const tipAmount = tableMode && tipEnabled ? (parseFloat(activeSale.tipAmount || 0) || 0) : 0;
-
-    const rawCartTotal = (taxInclusive ? taxableAmount : taxableAmount + taxAmount)
-        + additionalCharges + serviceCharge + tipAmount;
-    /* The drawer's switch decides WHETHER to round; `settings` still decides
-       to what precision, so turning it on does not silently change a store
-       that rounds to two decimals into one that rounds to whole units. */
-    const cartTotal = roundOff ? roundTotal(rawCartTotal, settings) : parseFloat(rawCartTotal || 0);
+    /* THE MONEY ARITHMETIC lives in Sell/core/cartMath.js (pure, byte-for-byte the
+       maths that used to sit here; the golden fixtures in tests/fixtures/sale-core
+       prove it). Same names come out so every reader below is untouched. */
+    const {
+        taxRate, taxInclusive,
+        subtotal, freeItemDiscounts, itemDiscounts, subtotalAfterLineDiscounts,
+        globalDiscount, totalDiscounts, taxableAmount, taxAmount,
+        additionalCharges, serviceChargePct, serviceCharge, tipAmount,
+        rawCartTotal, cartTotal,
+    } = computeTotals({
+        cart: activeSale.cart,
+        sale: activeSale,
+        settings,
+        enableTax,
+        enableFreeQty,
+        tableMode,
+        serviceChargePct: serviceChargeSetting,
+        tipEnabled,
+        roundOff,
+    });
 
     const changeDue = activeSale.cashReceived ? parseFloat(activeSale.cashReceived) - cartTotal : 0;
 
@@ -2667,62 +2662,17 @@ const POSInterface = ({
     const processCheckout = async (paymentData, addToLedger = false, approval = null) => {
         setProcessingPayment(true);
 
-        // Clamp cash payment lines to avoid sending change excess to the backend,
-        // preventing journal imbalances for walk-in cash payments.
-        let remainingInvoiceTotal = cartTotal;
-        const adjustedPayments = (paymentData.payments || []).map(p => {
-            const isCash = p.method === 'cash';
-            const originalAmount = parseFloat(p.amount) || 0;
-            
-            if (isCash) {
-                // Cash payment cannot record a debit larger than the remaining invoice balance
-                const cashPortion = Math.min(originalAmount, remainingInvoiceTotal);
-                remainingInvoiceTotal = Math.max(0, remainingInvoiceTotal - cashPortion);
-                return { ...p, amount: cashPortion };
-            } else {
-                remainingInvoiceTotal = Math.max(0, remainingInvoiceTotal - originalAmount);
-                return p;
-            }
+        /* The request body is built by Sell/core/salePayload.js (pure; cash lines are
+           clamped to what is owed there). Approval stamping stays here. */
+        const basePayload = buildSalePayload({
+            sale: activeSale,
+            totals: { cartTotal, taxAmount, taxRate, taxInclusive, globalDiscount, additionalCharges, serviceCharge, tipAmount },
+            paymentData,
+            addToLedger,
+            registerShift,
+            settings,
+            warehouseId: selectedWarehouseId,
         });
-
-        const basePayload = {
-            items: activeSale.cart.map(item => {
-                const orig = Number(item.original_price ?? item.price ?? 0);
-                const cur = Number(item.price ?? 0);
-                const unitDiscount = Math.max(0, orig - cur) || Number(item.discount || 0);
-                const lineDiscount = unitDiscount * Number(item.qty || 0);
-                return {
-                    product_id: item.id,
-                    variant_id: item.variant_id,
-                    quantity: item.qty,
-                    free_quantity: item.freeQuantity || 0,
-                    price: orig,
-                    discount: lineDiscount,
-                    discount_type: 'fixed'
-                };
-            }),
-            customer_id: activeSale.customer?.id || null,
-            walk_in_name: activeSale.customer?.id ? null : ((activeSale.walkInName || '').trim() || null),
-            register_shift_id: registerShift?.id || null,
-            register_id: settings?.register_id || 'REG-1',
-            payment_method: 'split',
-            warehouse_id: selectedWarehouseId,
-            payments: adjustedPayments,
-            amount_paid: cartTotal, // Always count cartTotal as net paid internally
-            tax: taxAmount,
-            tax_rate: taxRate,
-            tax_inclusive: taxInclusive,
-            discount: globalDiscount,
-            delivery_charge: (activeSale.additionalChargesLabel?.toLowerCase().includes('delivery') ? additionalCharges : 0) || (activeSale.delivery_charge || 0),
-            extra_charge_value: additionalCharges,
-            extra_charge_label: additionalCharges > 0 ? (activeSale.additionalChargesLabel || 'Additional charge') : null,
-            service_charge: serviceCharge,
-            tip_amount: tipAmount,
-            notes: activeSale.remarks || activeSale.notes || paymentData.notes || '',
-            add_to_ledger: addToLedger,
-            source: 'pos',
-            is_dropship: activeSale.is_dropship || false,
-        };
         const payload = withApproval(basePayload, approval);
 
         try {
@@ -2803,6 +2753,7 @@ const POSInterface = ({
 
         // Clear current sale
         updateActiveSale({ cart: [], cashReceived: '', searchTerm: '', customer: null, walkInName: '' });
+        setSearchTerm('');
 
         // Refresh shift metrics
         fetchCurrentShift();
@@ -2914,10 +2865,10 @@ const POSInterface = ({
                         </div>
                     </div>
 
-                    {data.manufacturing_notifications && data.manufacturing_notifications.length > 0 && (
+                    {(data.notifications || data.manufacturing_notifications || []).length > 0 && (
                         <div className="mt-2 text-left bg-amber-500/15 p-3 rounded-xl border border-amber-500/30 text-xs text-amber-400 flex items-start gap-2">
                             <Package size={15} className="shrink-0 mt-0.5" />
-                            <span><span className="font-bold">Auto-Manufacturing:</span> {data.manufacturing_notifications.join('\n')}</span>
+                            <span><span className="font-bold">Auto-Manufacturing:</span> {(data.notifications || data.manufacturing_notifications).join('\n')}</span>
                         </div>
                     )}
                 </div>
@@ -3076,8 +3027,8 @@ const POSInterface = ({
                 if (itemDiscountModal?.show) { setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' }); return; }
                 if (globalDiscountModal?.show) { setGlobalDiscountModal({ show: false, type: 'fixed', value: '' }); return; }
                 if (converterModal?.show) { setConverterModal(prev => ({ ...prev, show: false })); return; }
-                if (activeSale?.searchTerm) {
-                    updateActiveSale({ searchTerm: '' });
+                if (searchTerm) {
+                    setSearchTerm('');
                     return;
                 }
                 setSearchResults([]);
@@ -3398,7 +3349,7 @@ const POSInterface = ({
         cartTotal, subtotal, totalDiscounts, taxableAmount, taxAmount, processingPayment,
         printOnComplete, settingsOpen, showSetupWizard, paymentModalOpen, showSyncHub,
         parkedDropdownOpen, showRecentInvoices, customerDropdownOpen, customersOn,
-        itemDiscountModal, globalDiscountModal, converterModal, parkingBill
+        itemDiscountModal, globalDiscountModal, converterModal, parkingBill, searchTerm
     ]);
 
     // Load parked sales from backend
@@ -3614,6 +3565,7 @@ const POSInterface = ({
                     tax_rate: parseFloat(item.tax_rate || 0),
                     discount: unitDiscount,
                     original_price: unitPrice,
+                    mods: Array.isArray(item.modifiers) ? item.modifiers : [], // add-ons the sale was rung with; unit_price already includes them
                 };
             });
             updateActiveSale({ cart: mappedCart, customer: sale.customer || null });
@@ -3888,7 +3840,7 @@ const POSInterface = ({
         <div className="vq-pane-fixed flex items-center gap-2 px-3 py-2.5 border-b border-line/80 bg-surface shadow-xs">
             <button
                 type="button"
-                onClick={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
+                onClick={() => { setSearchQueryForProduct(searchTerm); setShowProductModal(true); }}
                 className="w-10 h-10 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300 border border-brand-200 dark:border-brand-800 flex items-center justify-center font-bold text-xs transition-all shadow-xs hover:shadow-sm hover:-translate-y-0.5 shrink-0 cursor-pointer"
                 title="Add Product"
                 aria-label="Add Product"
@@ -3902,13 +3854,13 @@ const POSInterface = ({
                         <>
                             <AsyncProductCombobox
                                 defaultOptions={categoryProducts}
-                                value={activeSale.searchTerm}
-                                onQueryChange={(val) => updateActiveSale({ searchTerm: val })}
+                                value={searchTerm}
+                                onQueryChange={setSearchTerm}
                                 onSelect={(product) => handleProductSelect(product)}
                                 placeholder={hasBarcodes ? "Scan barcode or search item by name / SKU… [F2]" : "Search item by name / SKU… [F2]"}
                                 onKeyDown={handleSearchInputKeyDown}
                                 inputClassName={`${hasBarcodes ? '!pl-12' : '!pl-4'} !pr-11 font-bold h-10 text-sm bg-sunken/60 focus:bg-surface rounded-xl border-line/90 focus:border-brand-500 shadow-none focus:ring-4 focus:ring-brand-500/15 transition-all`}
-                                onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
+                                onCreateNew={() => { setSearchQueryForProduct(searchTerm); setShowProductModal(true); }}
                                 hideCostAndMargin={true}
                                 hideSearchIcon={true}
                                 settings={settings}
@@ -4053,64 +4005,54 @@ const POSInterface = ({
         }
         handleProductSelect(product);
     };
+    pickProductRef.current = pickProduct;
 
     /* Catalog rows — the `list` fit. Used in a narrow column and in the
        overlay, where width is plentiful but the row form is still the one
        that scans fastest. */
-    const renderProductRow = (product) => (
-        <button
-            key={product.id}
-            type="button"
-            onClick={() => pickProduct(product)}
-            className="w-full bg-surface rounded-xl border border-line hover:border-brand-500 transition-all shadow-sm text-left flex items-center justify-between p-2.5 gap-3 relative overflow-hidden cursor-pointer group"
-        >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+    /* ── THE ROW ─────────────────────────────────────────────────────────
+       Name first and given the width: stock moved under the name, price is
+       the only thing on the right. A narrow catalog column used to give the
+       name 40px and print "Zinge r…". */
+    const renderProductRow = (product) => {
+        const inCart = inCartQty.get(product.id) || 0;
+        const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const tracking = isStockMaintenanceEnabled(settings);
+        const stock = Number(product.stock_quantity || 0);
+        const out = tracking && !isService && stock <= 0;
+        return (
+            <button
+                key={product.id}
+                type="button"
+                onClick={() => pickProductStable(product)}
+                data-incart={inCart > 0 ? '1' : '0'}
+                data-out={out ? '1' : '0'}
+                className="vq-prow group"
+            >
                 {showCatalogImages && (
-                    <div className="w-10 h-10 rounded-lg bg-sunken flex items-center justify-center overflow-hidden shrink-0 border border-line/60">
+                    <span className="vq-prow-img">
                         {product.image_url || product.image_path
-                            ? <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
-                            : <Package className="text-ink-muted" size={19} />}
-                    </div>
-                )}
-                <div className="min-w-0 flex-1">
-                    <h4 className="vq-clip-2 font-bold text-ink leading-snug text-xs sm:text-sm group-hover:text-brand-600 transition-colors">
-                        {product.name}
-                    </h4>
-                    <span className="vq-clip text-3xs text-ink-muted font-bold uppercase tracking-wider block mt-0.5">
-                        {product.category?.name || product.category_name || 'General'}
+                            ? <img src={product.image_url || product.image_path} alt="" loading="lazy" decoding="async" />
+                            : <Package size={18} aria-hidden="true" />}
                     </span>
-                </div>
-            </div>
-            <div className="text-right shrink-0 flex items-center gap-3">
-                {showCatalogStock && (
-                    (product.type === 'service' || product.is_service || product.item_type === 'service') ? (
-                        <div>
-                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Type</span>
-                            <span className="vq-num text-xs font-bold leading-none text-brand-600 dark:text-brand-400">
-                                {tt('Service')}
-                            </span>
-                        </div>
-                    ) : isStockMaintenanceEnabled(settings) ? (
-                        <div>
-                            <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
-                            <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                                {formatNumber(product.stock_quantity || 0, 0)}
-                            </span>
-                        </div>
-                    ) : null
                 )}
-                <div>
-                    <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Price</span>
-                    <span className="vq-num font-bold text-brand-600 dark:text-brand-400 block leading-none text-xs sm:text-sm">
-                        {money(product.price || product.selling_price || 0)}
+                <span className="vq-prow-main">
+                    <span className="vq-prow-name vq-clip-2">{product.name}</span>
+                    <span className="vq-prow-sub">
+                        <span className="vq-clip">{product.category?.name || product.category_name || 'General'}</span>
+                        {showCatalogStock && (isService
+                            ? <span className="vq-prow-stock">{tt('Service')}</span>
+                            : tracking ? <span className="vq-prow-stock vq-num" data-out={out ? '1' : '0'}>{out ? 'Out' : `${formatNumber(stock, 0)} left`}</span> : null)}
                     </span>
-                </div>
-            </div>
-            {product.variants && product.variants.length > 0 && (
-                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-brand-500" />
-            )}
-        </button>
-    );
+                </span>
+                <span className="vq-prow-end">
+                    <span className="vq-prow-price vq-num">{money(product.price || product.selling_price || 0)}</span>
+                    {inCart > 0 && <span className="vq-prow-qty vq-num">×{inCart}</span>}
+                </span>
+                {product.variants && product.variants.length > 0 && <span className="vq-prow-var" aria-hidden="true" />}
+            </button>
+        );
+    };
 
     /* ── THE PILL ────────────────────────────────────────────────────────
        The third shape, and the one a short menu actually wants. */
@@ -4124,7 +4066,7 @@ const POSInterface = ({
             <button
                 key={product.id}
                 type="button"
-                onClick={() => pickProduct(product)}
+                onClick={() => pickProductStable(product)}
                 data-incart={inCart > 0 ? '1' : '0'}
                 data-out={out ? '1' : '0'}
                 className="vq-pill"
@@ -4165,7 +4107,7 @@ const POSInterface = ({
             <button
                 key={product.id}
                 type="button"
-                onClick={() => pickProduct(product)}
+                onClick={() => pickProductStable(product)}
                 data-incart={inCart > 0 ? '1' : '0'}
                 className="vq-tile-large group"
                 title={product.name}
@@ -4173,7 +4115,7 @@ const POSInterface = ({
                 {showCatalogImages && (
                     <div className="vq-tile-large-img">
                         {hasImage ? (
-                            <img src={product.image_url || product.image_path} alt="" loading="lazy" />
+                            <img src={product.image_url || product.image_path} alt="" loading="lazy" decoding="async" />
                         ) : (
                             <Package size={40} strokeWidth={1.5} className="opacity-40" />
                         )}
@@ -4228,7 +4170,7 @@ const POSInterface = ({
             <button
                 key={product.id}
                 type="button"
-                onClick={() => pickProduct(product)}
+                onClick={() => pickProductStable(product)}
                 data-incart={inCart > 0 ? '1' : '0'}
                 className="vq-tile group"
                 title={product.name}
@@ -4237,7 +4179,7 @@ const POSInterface = ({
                     {showCatalogImages && (
                         <span className="vq-tile-thumb">
                             {product.image_url || product.image_path
-                                ? <img src={product.image_url || product.image_path} alt="" loading="lazy" />
+                                ? <img src={product.image_url || product.image_path} alt="" loading="lazy" decoding="async" />
                                 : <Package size={16} strokeWidth={2} />}
                         </span>
                     )}
@@ -4272,7 +4214,28 @@ const POSInterface = ({
         );
     };
 
-    const renderCatalogBody = ({ variant = 'list', tiles = 0 } = {}) => {
+    /* THE CATALOG IS MEMOISED.
+       It is the largest subtree on the screen -- often hundreds of tiles --
+       and it used to be rebuilt on every keystroke, every cash-received digit
+       and every floor tick. Its output only depends on the values below, so
+       the same React elements are handed back until one of them changes, and
+       React skips the whole subtree. Tile clicks go through a ref so a cached
+       tile always calls the CURRENT pickProduct, never a stale one. */
+    const catalogCacheRef = useRef(new Map());
+    const renderCatalogBody = (opts = {}) => {
+        const key = `${opts.variant || 'list'}|${opts.tiles || 0}`;
+        const deps = [
+            composition?.catalogShape, isLoadingProducts, selectedCategory, sortedCategoryProducts,
+            showCatalogImages, showCatalogStock, settings, inCartQty, store, categoryOrientation,
+        ];
+        const hit = catalogCacheRef.current.get(key);
+        if (hit && hit.deps.every((d, n) => Object.is(d, deps[n]))) return hit.node;
+        const node = renderCatalogBodyRaw(opts);
+        catalogCacheRef.current.set(key, { deps, node });
+        return node;
+    };
+
+    const renderCatalogBodyRaw = ({ variant = 'list', tiles = 0 } = {}) => {
         const shape = composition?.catalogShape || 'auto';
         const asPills = shape === 'pills';
         const asLargeCards = shape === 'large_cards';
@@ -5059,7 +5022,78 @@ const POSInterface = ({
 
     /* ── the tender ──────────────────────────────────────────────────────
        Column, bar or sheet — the same fields either way. */
-    const renderTenderFields = () => (
+    /* The cash card: what was handed over, the change, quick amounts. In the
+       payment column it is pinned to the bottom beside the pay button, so the
+       two things a cashier touches on every sale never scroll away. */
+    const renderCashCard = () => (
+            <div id="tour-pos-paid" className="bg-surface p-4 rounded-2xl border border-line/80 shadow-xs">
+                <div className="flex justify-between items-baseline gap-2 mb-2">
+                    <span className="text-xs sm:text-sm uppercase font-bold text-ink-muted tracking-wider">
+                        {returnMode ? 'Amount to refund' : 'Amount tendered'}
+                    </span>
+                    {/* CHANGE lives on the same card as the cash it comes from.
+                        It used to be a card of its own, which pushed the pay
+                        button off a laptop screen. */}
+                    {!returnMode && activeSale.cashReceived !== '' && activeSale.cashReceived != null && (
+                        <span className="vq-tender-change" data-short={changeDue < 0 ? '1' : '0'}>
+                            <span>{changeDue >= 0 ? 'Change' : 'Short'}</span>
+                            <b className="vq-num">{money(Math.abs(changeDue))}</b>
+                        </span>
+                    )}
+                </div>
+                <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-secondary font-extrabold pointer-events-none text-lg sm:text-xl">
+                        {getCurrencySymbol(store || settings)}
+                    </span>
+                    <input
+                        ref={cashReceivedInputRef}
+                        type="number"
+                        value={activeSale.cashReceived}
+                        onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
+                        onKeyDown={handleTenderedKeyDown}
+                        placeholder="0.00"
+                        className="vq-num w-full bg-sunken/60 focus:bg-surface border border-line/90 rounded-xl pl-11 pr-24 font-extrabold text-ink focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 outline-none transition-all no-spinner h-14"
+                        style={{ fontSize: '1.45rem', fontWeight: 800 }}
+                        disabled={activeSale.cart.length === 0}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => updateActiveSale({ cashReceived: cartTotal })}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-xs sm:text-sm text-ink font-bold px-3.5 py-2 rounded-lg border border-line cursor-pointer transition-all shadow-xs"
+                    >
+                        Exact
+                    </button>
+                </div>
+
+                {paymentMethod === 'cash' && cartTotal > 0 && (
+                    <div className="vq-quick-cash">
+                        {[
+                            Math.ceil(cartTotal / 100) * 100,
+                            Math.ceil(cartTotal / 500) * 500,
+                            Math.ceil(cartTotal / 1000) * 1000,
+                            Math.ceil(cartTotal / 5000) * 5000,
+                        ]
+                            // cartTotal itself is deliberately excluded above -- the "Exact" button
+                            // already covers it, and repeating it as the first Quick chip was redundant.
+                            .filter((v, i, a) => v > cartTotal && a.indexOf(v) === i)
+                            .slice(0, 4)
+                            .map((amt) => (
+                                <button
+                                    key={amt}
+                                    type="button"
+                                    onClick={() => updateActiveSale({ cashReceived: amt })}
+                                    className="vq-num"
+                                    title={money(amt)}
+                                >
+                                    {money(amt)}
+                                </button>
+                            ))}
+                    </div>
+                )}
+            </div>
+    );
+
+    const renderTenderFields = (withCash = true) => (
         <>
             <div id="tour-pos-customer" className="relative z-10">
                 {!customersOn ? (
@@ -5326,7 +5360,7 @@ const POSInterface = ({
 
             {/* Financial Breakdown / Total Box */}
             {((enableTax && (taxRate > 0 || taxAmount > 0)) || totalDiscounts > 0 || enableFulfilment || additionalCharges > 0) ? (
-                <div className="bg-gradient-to-br from-[#062421] via-[#0A5049] to-[#076B5E] text-white rounded-2xl p-4 sm:p-5 border border-teal-700/50 shadow-lg space-y-3">
+                <div className="vq-total-card bg-gradient-to-br from-[#062421] via-[#0A5049] to-[#076B5E] text-white rounded-2xl p-4 sm:p-5 border border-teal-700/50 shadow-lg space-y-3">
                     <div className="flex justify-between items-center gap-2 text-teal-100 text-sm font-semibold">
                         <span>Subtotal</span>
                         <span className="vq-num text-white font-bold text-base">{money(subtotal)}</span>
@@ -5441,96 +5475,28 @@ const POSInterface = ({
                             />
                         </div>
                     )}
-                    <div className="h-px bg-teal-600/40 my-1" />
-                    <div className="flex justify-between items-center gap-2 pt-0.5">
-                        <span className="text-sm sm:text-base font-bold uppercase tracking-wider text-teal-200">Total Payable</span>
-                        <span className="vq-num font-bold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
-                            {money(cartTotal)}
-                        </span>
-                    </div>
+                    {withCash && (
+                        <>
+                            <div className="h-px bg-teal-600/40 my-1" />
+                            <div className="flex justify-between items-center gap-2 pt-0.5">
+                                <span className="text-sm sm:text-base font-bold uppercase tracking-wider text-teal-200">Total Payable</span>
+                                <span className="vq-num font-bold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
+                                    {money(cartTotal)}
+                                </span>
+                            </div>
+                        </>
+                    )}
                 </div>
-            ) : (
-                <div className="bg-gradient-to-br from-[#062421] via-[#0A5049] to-[#076B5E] text-white rounded-2xl p-4 sm:p-5 border border-teal-700/50 shadow-lg flex justify-between items-center gap-2">
+            ) : withCash ? (
+                <div className="vq-total-card bg-gradient-to-br from-[#062421] via-[#0A5049] to-[#076B5E] text-white rounded-2xl p-4 sm:p-5 border border-teal-700/50 shadow-lg flex justify-between items-center gap-2">
                     <span className="text-sm sm:text-base font-bold uppercase tracking-wider text-teal-200">Total Payable</span>
                     <span className="vq-num font-bold text-white tracking-tight drop-shadow-sm" style={{ fontSize: 'var(--vq-t-total)' }} title={money(cartTotal)}>
                         {money(cartTotal)}
                     </span>
                 </div>
-            )}
+            ) : null}
 
-            <div id="tour-pos-paid" className="bg-surface p-4 rounded-2xl border border-line/80 shadow-xs">
-                <div className="flex justify-between items-center gap-2 mb-2.5">
-                    <span className="text-xs sm:text-sm uppercase font-bold text-ink-muted tracking-wider">
-                        {returnMode ? 'Amount to refund' : 'Amount tendered'}
-                    </span>
-                    {/* Split payment now lives inside the Payment Method dropdown above
-                        (Cash / Credit / Bank / Card / Online), not as a separate button here. */}
-                </div>
-                <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-secondary font-extrabold pointer-events-none text-lg sm:text-xl">
-                        {getCurrencySymbol(store || settings)}
-                    </span>
-                    <input
-                        ref={cashReceivedInputRef}
-                        type="number"
-                        value={activeSale.cashReceived}
-                        onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
-                        onKeyDown={handleTenderedKeyDown}
-                        placeholder="0.00"
-                        className="vq-num w-full bg-sunken/60 focus:bg-surface border border-line/90 rounded-xl pl-11 pr-24 font-extrabold text-ink focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 outline-none transition-all no-spinner h-14"
-                        style={{ fontSize: '1.45rem', fontWeight: 800 }}
-                        disabled={activeSale.cart.length === 0}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => updateActiveSale({ cashReceived: cartTotal })}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-xs sm:text-sm text-ink font-bold px-3.5 py-2 rounded-lg border border-line cursor-pointer transition-all shadow-xs"
-                    >
-                        Exact
-                    </button>
-                </div>
-
-                {paymentMethod === 'cash' && cartTotal > 0 && (
-                    <div className="flex items-center gap-2 pt-3 flex-wrap">
-                        <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Quick:</span>
-                        {[
-                            Math.ceil(cartTotal / 100) * 100,
-                            Math.ceil(cartTotal / 500) * 500,
-                            Math.ceil(cartTotal / 1000) * 1000,
-                            Math.ceil(cartTotal / 5000) * 5000,
-                        ]
-                            // cartTotal itself is deliberately excluded above -- the "Exact" button
-                            // already covers it, and repeating it as the first Quick chip was redundant.
-                            .filter((v, i, a) => v > cartTotal && a.indexOf(v) === i)
-                            .slice(0, 4)
-                            .map((amt) => (
-                                <button
-                                    key={amt}
-                                    type="button"
-                                    onClick={() => updateActiveSale({ cashReceived: amt })}
-                                    className="vq-num text-sm font-bold px-3.5 py-1.5 bg-surface hover:bg-brand-50 hover:text-brand-700 hover:border-brand-300 text-ink border border-line/80 rounded-xl transition-all cursor-pointer shadow-xs hover:shadow-xs hover:-translate-y-0.5"
-                                >
-                                    {money(amt)}
-                                </button>
-                            ))}
-                    </div>
-                )}
-            </div>
-
-            {!returnMode && (
-                <div className={`px-4 py-3.5 sm:px-5 sm:py-3.5 rounded-2xl border transition-all shadow-xs ${
-                    changeDue >= 0 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'
-                }`}>
-                    <div className="flex justify-between items-center gap-2">
-                        <span className={`text-sm sm:text-base font-bold uppercase tracking-wider ${changeDue >= 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'}`}>
-                            {changeDue >= 0 ? 'Change due' : 'Shortage'}
-                        </span>
-                        <span className={`vq-num font-extrabold tracking-tight ${changeDue >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                            {money(Math.abs(changeDue))}
-                        </span>
-                    </div>
-                </div>
-            )}
+            {withCash && renderCashCard()}
         </>
     );
 
@@ -5620,15 +5586,19 @@ const POSInterface = ({
                     style={{
                         boxShadow: '0 6px 24px -4px rgba(11, 170, 143, 0.45)'
                     }}
-                    className={`w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 active:scale-[0.98] text-white rounded-2xl font-bold flex items-center justify-center gap-3 transition-all h-14 cursor-pointer text-lg sm:text-xl ${processingPayment || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`vq-pay-btn w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 active:scale-[0.98] text-white rounded-2xl font-bold transition-all cursor-pointer ${processingPayment || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {processingPayment
-                        ? <Loader2 size={22} className="shrink-0 animate-spin" />
-                        : printOnComplete ? <Printer size={22} className="shrink-0" /> : <Check size={22} className="shrink-0" />}
-                    <span className="vq-clip font-bold">{processingPayment ? 'Processing…' : (printOnComplete ? 'Complete & Print' : 'Complete Sale')}</span>
-                    <span className="vq-num px-3 py-1 rounded-xl font-bold bg-white/20 border border-white/20 shrink-0 text-base sm:text-lg backdrop-blur-sm">
-                        {money(cartTotal)}
+                        ? <Loader2 size={22} className="vq-pay-ic animate-spin" />
+                        : printOnComplete ? <Printer size={22} className="vq-pay-ic" /> : <Check size={22} className="vq-pay-ic" />}
+                    {/* The label never truncates: below ~380px the amount
+                        (already printed in Total payable above) steps aside,
+                        and the label shortens to the one word that matters. */}
+                    <span className="vq-pay-label">
+                        <span className="vq-pay-long">{processingPayment ? 'Processing…' : (printOnComplete ? 'Complete & Print' : 'Complete Sale')}</span>
+                        <span className="vq-pay-short">{processingPayment ? 'Wait…' : (printOnComplete ? 'Pay & Print' : 'Pay')}</span>
                     </span>
+                    <span className="vq-pay-amt vq-num">{money(cartTotal)}</span>
                 </button>
             )}
 
@@ -5680,7 +5650,7 @@ const POSInterface = ({
     );
 
     const renderTenderPane = () => (
-        <section className="vq-pane bg-surface border border-line/80 shadow-md" data-pane="tender">
+        <section className="vq-pane vq-tender-pane bg-surface border border-line/80 shadow-md" data-pane="tender">
             <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
                 <Receipt size={15} className="text-emerald-600 dark:text-emerald-400" />
                 <span>Payment</span>
@@ -5690,9 +5660,17 @@ const POSInterface = ({
                 {!showOrderPane && renderPaneTriggers()}
             </header>
             <div className="vq-pane-body p-3 space-y-2.5">
-                {renderTenderFields()}
+                {renderTenderFields(false)}
             </div>
             <footer className="vq-pane-actions bg-sunken/40 border-t border-line">
+                {/* THE MONEY ZONE, always on screen: what to collect, what
+                    was handed over, and the button. Everything above it
+                    (customer, discount, tax detail) may scroll. */}
+                <div className="vq-total-strip">
+                    <span>{returnMode ? 'Refund' : 'Total payable'}</span>
+                    <b className="vq-num" title={money(cartTotal)}>{money(cartTotal)}</b>
+                </div>
+                {renderCashCard()}
                 {renderTenderActions()}
             </footer>
         </section>
@@ -5886,6 +5864,15 @@ const POSInterface = ({
         >
             <React.Fragment>
                 <Head title="POS" />
+                {fohRedirect && (
+                    <Link
+                        href={route('store.foh', { store_slug: store?.slug })}
+                        className="fixed bottom-3 left-3 z-40 px-3 py-2 rounded-full bg-surface border border-line text-ink text-sm font-semibold shadow"
+                        title="Open Front of House (tables, takeaway, delivery)"
+                    >
+                        Front of House
+                    </Link>
+                )}
 
                 <div
                     ref={termRef}
@@ -6313,41 +6300,33 @@ const POSInterface = ({
                                     now={floorNow}
                                     storeSlug={store?.slug}
                                     variant={layout.floor.fit === 'map' ? 'map' : 'list'}
-                                    view={floorView} sort={floorSort} size={floorSize} show={floorShow}
+                                    view={floorView} setView={setFloorView} sort={floorSort} size={floorSize} show={floorShow}
+                                    floorMap={floorMap} onSaveFloorMap={saveFloorMap} canArrange={canManageStore}
                                 />
                             )}
 
                             {tableMode && floorIsStep && !selectedTable
                                 ? (
-                                    <section className="vq-pane bg-surface border border-line/80 shadow-md" data-pane="floor">
-                                        <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
-                                            <Users size={15} className="text-brand-500 dark:text-brand-400" />
-                                            <span>Pick a table</span>
-                                            <span className="vq-num ml-auto text-2xs opacity-80 font-bold">
-                                                {tables.counts.open} open · {tables.counts.free} free
-                                                {tables.counts.tickets > 0 ? ` · ${tables.counts.tickets} tickets` : ''}
-                                            </span>
-                                        </header>
-                                        <FloorPane
-                                            embedded
-                                            positions={tables.visible}
-                                            tabs={tables.tabs}
-                                            zone={tables.zone}
-                                            setZone={tables.setZone}
-                                            counts={tables.counts}
-                                            selectedId={tables.selectedId}
-                                            onPick={pickTable}
-                                            onNewTicket={(kind) => setNewTicketFor(kind)}
-                                            onUpdateDelivery={tables.updateDelivery}
-                                            onSetup={openFloorPlan}
-                                            onRefresh={tables.refresh}
-                                            money={money}
-                                            now={floorNow}
-                                            storeSlug={store?.slug}
-                                            variant={layout.cart && layout.cart.px >= 484 ? 'map' : 'list'}
-                                            view={floorView} sort={floorSort} size={floorSize} show={floorShow}
-                                        />
-                                    </section>
+                                    <FloorPane
+                                        title="Pick a table"
+                                        positions={tables.visible}
+                                        tabs={tables.tabs}
+                                        zone={tables.zone}
+                                        setZone={tables.setZone}
+                                        counts={tables.counts}
+                                        selectedId={tables.selectedId}
+                                        onPick={pickTable}
+                                        onNewTicket={(kind) => setNewTicketFor(kind)}
+                                        onUpdateDelivery={tables.updateDelivery}
+                                        onSetup={openFloorPlan}
+                                        onRefresh={tables.refresh}
+                                        money={money}
+                                        now={floorNow}
+                                        storeSlug={store?.slug}
+                                        variant={layout.cart && layout.cart.px >= 484 ? 'map' : 'list'}
+                                        view={floorView} setView={setFloorView} sort={floorSort} size={floorSize} show={floorShow}
+                                        floorMap={floorMap} onSaveFloorMap={saveFloorMap} canArrange={canManageStore}
+                                    />
                                 )
                                 : (showOrderPane && renderCartPane())}
                             {tenderIsColumn && tenderSide === 'right' && renderTenderPane()}
@@ -6633,22 +6612,20 @@ const POSInterface = ({
                 />
             )}
 
-            {tableMode && (
-                <ModifierSheet
-                    open={!!modifierFor}
-                    product={modifierFor}
-                    groups={modifierGroups}
-                    loading={modifierLoading}
-                    money={money}
-                    onCancel={() => { setModifierFor(null); setModifierGroups([]); }}
-                    onConfirm={(mods) => {
-                        const product = modifierFor;
-                        setModifierFor(null);
-                        setModifierGroups([]);
-                        addToCart(product, null, mods);
-                    }}
-                />
-            )}
+            <ModifierSheet
+                open={!!modifierFor}
+                product={modifierFor}
+                groups={modifierGroups}
+                loading={modifierLoading}
+                money={money}
+                onCancel={() => { setModifierFor(null); setModifierGroups([]); }}
+                onConfirm={(mods) => {
+                    const product = modifierFor;
+                    setModifierFor(null);
+                    setModifierGroups([]);
+                    addToCart(product, null, mods);
+                }}
+            />
 
             {/* Custom Global Discount Preset Modal */}
             {globalDiscountModal.show && typeof document !== 'undefined' && createPortal((

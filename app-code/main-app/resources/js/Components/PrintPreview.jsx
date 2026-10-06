@@ -5,6 +5,7 @@ import { formatCurrency, formatNumber, numberToWords } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
 import { vq } from '@/theme/runtime';
+import { withAddOns } from '@/Utils/addOnLabel';
 const getExtraChargesList = (calculations) => {
     try {
         if (calculations.extra_charge_label && typeof calculations.extra_charge_label === 'string' && calculations.extra_charge_label.startsWith('[')) {
@@ -129,7 +130,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
 
             return {
                 sno: idx + 1,
-                name: item.product?.name || item.name || 'Item',
+                name: withAddOns(item.product?.name || item.name || 'Item', item),
                 hsn: item.product?.hsn || item.hsn || '',
                 qty: qty,
                 free_qty: freeQty,

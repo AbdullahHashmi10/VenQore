@@ -1,0 +1,53 @@
+{
+  "case": "08 rounding on (whole units)",
+  "shown_total_payable": "219.00",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 1,
+        "variant_id": null,
+        "quantity": 3,
+        "free_quantity": 0,
+        "price": 33.33,
+        "discount": 0,
+        "discount_type": "fixed"
+      },
+      {
+        "product_id": 2,
+        "variant_id": null,
+        "quantity": 7,
+        "free_quantity": 0,
+        "price": 12.49,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 219,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 219,
+    "tax": 31.861400000000003,
+    "tax_rate": 17,
+    "tax_inclusive": false,
+    "discount": 0,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

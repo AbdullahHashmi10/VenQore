@@ -1653,7 +1653,7 @@ html.dark .nqp-docktotal .v,
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    transition: all var(--vq-dur-1) var(--vq-ease-out);
+    transition: var(--vq-dur-1) var(--vq-ease-out); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -1814,7 +1814,7 @@ html.dark .nqp-docktotal .v,
     display: flex;
     flex-direction: column;
     cursor: pointer;
-    transition: all var(--vq-dur-2) var(--vq-ease-out);
+    transition: var(--vq-dur-2) var(--vq-ease-out); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     position: relative;
     box-shadow: var(--vq-elev-1);
 }
@@ -2006,7 +2006,7 @@ html.dark .nqp-docktotal .v,
     font-size: 13.5px;
     font-weight: 700;
     cursor: pointer;
-    transition: all var(--vq-dur-1) var(--vq-ease-out);
+    transition: var(--vq-dur-1) var(--vq-ease-out); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     border: 1px solid transparent;
 }
 
@@ -2134,7 +2134,7 @@ html.dark .nqp-docktotal .v,
     background: var(--vq-surface);
     color: var(--vq-text-2);
     cursor: pointer;
-    transition: all var(--vq-dur-1);
+    transition: var(--vq-dur-1); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 
 .profile-chip:hover {
@@ -2170,7 +2170,7 @@ html.dark .nqp-docktotal .v,
     padding: var(--vq-space-3);
     text-align: left;
     cursor: pointer;
-    transition: all var(--vq-dur-1) var(--vq-ease-out);
+    transition: var(--vq-dur-1) var(--vq-ease-out); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 
 .nqp-preset-option-btn:hover {

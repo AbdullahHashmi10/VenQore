@@ -524,7 +524,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  entry it can never use is the kind of noise that makes people
  stop reading a menu. */
  ...(['tables', 'both'].includes(serviceMode)
- ? [{ label: 'Floor', href: 'store.tables.index', icon: <Armchair size={14} /> }]
+ ? [{ label: 'FOH', href: 'store.foh', icon: <Armchair size={14} /> }]
  : []),
  { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
  { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
@@ -762,12 +762,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		name: 'Restaurant',
 		icon: UtensilsCrossed,
 		subs: [
-			{ group: 'Floor & Dining', items: ['Floor', 'Floor Plan', 'Reservations (Coming Soon)'] },
+			{ group: 'Front of House', items: ['FOH'] },
 			{ group: 'Kitchen & Display', items: ['Kitchen', 'Order TV Screen'] },
-			{ group: 'Delivery & Dispatch', items: ['Dispatch', 'Riders'] },
-			{ group: 'Settings', items: ['Restaurant Settings'] },
+			{ group: 'Setup', items: ['Floor Plan', 'Riders', 'FOH Settings'] },
 		],
-		route: store ? 'store.restaurant.dashboard' : null,
+		route: store ? 'store.foh' : null,
 		routeParams: store ? { store_slug: store.slug } : {},
 	}] : []),
  {
@@ -784,7 +783,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  name: 'Stock',
  icon: Box,
  subs: [
- { group: 'Catalog', items: ['Products', 'Categories', 'Attributes', 'Labels'] },
+ { group: 'Catalog', items: ['Products', 'Categories', 'Attributes', 'Add-ons', 'Labels'] },
  { group: 'Operations', items: ['Stock Levels', 'Stock Operations', 'Stock Transfers', 'Stock Audit'] },
  { group: 'Tracking', items: ['Batch Tracking', 'Serial Tracking'] },
  { group: 'Manufacturing', items: ['Production', 'Cookbook'] }
@@ -902,6 +901,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
 		'Floor': 'table_service',
+		'FOH': 'table_service',
+		'FOH Settings': 'table_service',
+		'Add-ons': 'table_service',
 		'Floor Plan': 'table_service',
 		'Kitchen': 'table_service',
 		'Order TV Screen': 'table_service',
@@ -1017,6 +1019,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		   permanently unhighlighted. The floor IS the POS, so it matches
 		   the POS. */
 		'Floor': ['store.pos', 'store.tables.index', 'store.tables.plan'],
+		'FOH': ['store.foh'],
+		'FOH Settings': ['store.foh.settings'],
+		'Add-ons': ['store.addons.index'],
 		'Floor Plan': ['store.tables.plan', 'store.tables.index'],
 		'Kitchen': ['store.restaurant.kitchen', 'restaurant.kitchen'],
 		'Order TV Screen': ['store.restaurant.queue', 'restaurant.queue'],
@@ -1090,7 +1095,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		}
 
 		// Restaurant sub-items: visible if restaurant is active
-		const restaurantItems = ['Floor', 'Floor Plan', 'Kitchen', 'Order TV Screen', 'TV Screen', 'Dispatch', 'Riders', 'Restaurant Settings', 'Reservations', 'Reservations (Coming Soon)'];
+		const restaurantItems = ['FOH', 'FOH Settings', 'Add-ons', 'Floor', 'Floor Plan', 'Kitchen', 'Order TV Screen', 'TV Screen', 'Dispatch', 'Riders', 'Restaurant Settings', 'Reservations', 'Reservations (Coming Soon)'];
 		if (restaurantItems.includes(label)) {
 			return isRestaurantActive;
 		}
@@ -1348,6 +1353,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  // Custom mapping for Restaurant
  if (item.name === 'Restaurant' && (
   route().current('store.restaurant.*') ||
+  route().current('store.foh*') ||
   route().current('restaurant.*') ||
   route().current('store.tables.plan') ||
   route().current('store.reservations.*') ||

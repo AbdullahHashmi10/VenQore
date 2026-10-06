@@ -25,6 +25,7 @@ class ModifierGroup extends Model
         'max_select',
         'required',
         'sort_order',
+        'is_library',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class ModifierGroup extends Model
         'max_select' => 'integer',
         'required'   => 'boolean',
         'sort_order' => 'integer',
+        'is_library' => 'boolean',
     ];
 
     public function modifiers()
@@ -42,6 +44,13 @@ class ModifierGroup extends Model
     public function products()
     {
         return $this->belongsToMany(Product::class, 'product_modifier_group', 'modifier_group_id', 'product_id')
+            ->withPivot('sort_order');
+    }
+
+    /** Categories whose every product offers this group (add-ons library). */
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'category_modifier_group', 'modifier_group_id', 'category_id')
             ->withPivot('sort_order');
     }
 }

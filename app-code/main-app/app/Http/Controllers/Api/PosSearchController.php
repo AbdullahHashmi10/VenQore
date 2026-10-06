@@ -267,16 +267,30 @@ class PosSearchController extends Controller
             return response()->json(['groups' => []]);
         }
 
-        $product = Product::with(['modifierGroups' => function ($q) {
-            $q->with(['modifiers' => fn ($m) => $m->where('available', true)
-                ->orderBy('sort_order')->orderBy('id')]);
-        }])->find($productId);
+        $withModifiers = fn ($q) => $q->with(['modifiers' => fn ($m) => $m->where('available', true)
+            ->orderBy('sort_order')->orderBy('id')]);
+
+        $product = Product::with([
+            'modifierGroups' => $withModifiers,
+            'category.modifierGroups' => $withModifiers,
+        ])->find($productId);
 
         if (!$product) {
             return response()->json(['groups' => []]);
         }
 
-        $groups = $product->modifierGroups->map(fn ($g) => [
+        // The product's own groups first, then whatever its category offers
+        // (add-ons library). A group attached both ways is shown once.
+        $merged = $product->modifierGroups->values();
+        $seen = $merged->pluck('id')->all();
+        foreach (($product->category?->modifierGroups ?? []) as $cg) {
+            if (!in_array($cg->id, $seen, true)) {
+                $merged->push($cg);
+                $seen[] = $cg->id;
+            }
+        }
+
+        $groups = $merged->map(fn ($g) => [
             'id'         => $g->id,
             'name'       => $g->name,
             'min_select' => (int) $g->min_select,
@@ -292,6 +306,30 @@ class PosSearchController extends Controller
         ])->values();
 
         return response()->json(['groups' => $groups]);
+    }
+
+    /**
+     * Variants (sizes / flavours) of one product, fetched when it is tapped.
+     * Search and featured rows carry only `has_variants`; the list itself is
+     * not worth shipping for every tile on the grid.
+     *
+     * GET /pos/variants?product_id=
+     */
+    public function variants(Request $request): JsonResponse
+    {
+        $productId = $request->get('product_id');
+        $product = $productId ? Product::with('variants')->find($productId) : null;
+        if (!$product) {
+            return response()->json(['variants' => []]);
+        }
+
+        return response()->json(['variants' => $product->variants->map(fn ($v) => [
+            'id'    => $v->id,
+            'name'  => $v->variant_name,
+            'sku'   => $v->sku,
+            'price' => (float) $v->price,
+            'stock' => (float) $v->stock,
+        ])->values()]);
     }
 
     /**
@@ -329,19 +367,20 @@ class PosSearchController extends Controller
                 ->select([
                     'p.id', 'p.name', 'p.sku', 'p.type', 'p.service_pricing', 'p.default_duration', 'p.requires_visit', 'p.skill_tag',
                     'p.price', 'p.image_path',
-                    'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id',
+                    'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'p.track_stock',
                     'c.name as category_name',
                     DB::raw('COALESCE(SUM(s.quantity), 0) as stock_quantity'),
                     DB::raw('COALESCE(MAX(recent_sales.sold_qty), 0) as recent_sold'),
                 ])
                 ->groupBy('p.id', 'p.name', 'p.sku', 'p.type', 'p.service_pricing', 'p.default_duration', 'p.requires_visit', 'p.skill_tag',
                           'p.price', 'p.image_path',
-                          'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'c.name');
+                          'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'p.track_stock', 'c.name');
 
             // When stock maintenance is enabled, only show products with positive stock (or services).
             // When inventory tracking is OFF, all products are technically in stock and must appear in All Items.
             if ($isStockTracked) {
-                $query->havingRaw("COALESCE(SUM(s.quantity), 0) > 0 OR p.type = 'service'");
+                // A made-to-order item (track_stock off) is always sellable, whatever the shelf says.
+                $query->havingRaw("COALESCE(SUM(s.quantity), 0) > 0 OR p.type = 'service' OR p.track_stock = 0");
             }
 
             return $query->orderByDesc('recent_sold')

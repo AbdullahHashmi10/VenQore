@@ -181,6 +181,7 @@ class TenantUser extends Model
 
         if (in_array(self::CAP_TAKE_ORDERS, $caps, true)) {
             $perms[] = 'pos.browse';
+            $perms[] = 'foh.access';
             $perms[] = 'inventory.view';
             $perms[] = 'sales.create';
             $perms[] = 'sales.view';
@@ -188,6 +189,7 @@ class TenantUser extends Model
 
         if (in_array(self::CAP_TAKE_PAYMENTS, $caps, true)) {
             $perms[] = 'pos.checkout';
+            $perms[] = 'foh.access';
             $perms[] = 'sales.view';
             $perms[] = 'finance.receive_payment';
         }

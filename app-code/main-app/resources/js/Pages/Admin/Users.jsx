@@ -36,7 +36,7 @@ const ROLES = {
 
 const ROLE_PERMISSIONS = {
     owner: [
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
         'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
@@ -50,7 +50,7 @@ const ROLE_PERMISSIONS = {
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store', 'data.export', 'vensynq.manage'
     ],
     admin: [
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
         'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
@@ -64,7 +64,7 @@ const ROLE_PERMISSIONS = {
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'data.export', 'vensynq.manage'
     ],
     manager: [
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
         'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
         'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
         'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers', 'purchases.returns',
@@ -76,7 +76,7 @@ const ROLE_PERMISSIONS = {
         'admin.staff_view', 'admin.settings_view', 'admin.receipt_print'
     ],
     cashier: [
-        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.close_session',
+        'pos.open_session', 'pos.checkout', 'foh.access', 'pos.discounts', 'pos.close_session',
         'inventory.view',
         'approvals.view_own', 'approvals.submit'
     ],
@@ -116,6 +116,7 @@ const PERMISSION_CATEGORIES = [
         permissions: [
             { id: 'pos.open_session', name: 'Open Register Session', desc: 'Start POS shifts and record opening float balances' },
             { id: 'pos.checkout', name: 'Scan & Checkout', desc: 'Process sales and payments at the register' },
+            { id: 'foh.access', name: 'Restaurant Front of House', desc: 'Open the FOH screen: tables, takeaway and delivery orders' },
             { id: 'pos.discounts', name: 'Apply Cart Discounts', desc: 'Apply discounts to active shopping cart items' },
             { id: 'pos.void_item', name: 'Void Cart Items', desc: 'Void scanned items and clear active carts' },
             { id: 'pos.refund', name: 'Register Refunds', desc: 'Process customer returns & refunds directly at the POS' },

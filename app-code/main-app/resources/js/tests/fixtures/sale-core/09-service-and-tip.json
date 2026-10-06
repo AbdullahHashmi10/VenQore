@@ -1,0 +1,53 @@
+{
+  "case": "09 service charge 10% + tip (table terminal)",
+  "shown_total_payable": "2,619.60",
+  "request_body": {
+    "items": [
+      {
+        "product_id": 1,
+        "variant_id": null,
+        "quantity": 1,
+        "free_quantity": 0,
+        "price": 1800,
+        "discount": 0,
+        "discount_type": "fixed"
+      },
+      {
+        "product_id": 2,
+        "variant_id": null,
+        "quantity": 4,
+        "free_quantity": 0,
+        "price": 40,
+        "discount": 0,
+        "discount_type": "fixed"
+      }
+    ],
+    "customer_id": null,
+    "walk_in_name": null,
+    "register_shift_id": null,
+    "register_id": "REG-1",
+    "payment_method": "split",
+    "warehouse_id": null,
+    "payments": [
+      {
+        "method": "cash",
+        "amount": 2619.6,
+        "account_id": null
+      }
+    ],
+    "amount_paid": 2619.6,
+    "tax": 313.6,
+    "tax_rate": 16,
+    "tax_inclusive": false,
+    "discount": 0,
+    "delivery_charge": 0,
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
+    "service_charge": 196,
+    "tip_amount": 150,
+    "notes": "",
+    "add_to_ledger": false,
+    "source": "pos",
+    "is_dropship": false
+  }
+}

@@ -446,6 +446,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // than shipped with the catalog — same reason nothing else here is
         // pre-loaded: a 2,000-product menu's modifiers is a payload nobody reads.
         Route::get('/pos/modifiers',           [\App\Http\Controllers\Api\PosSearchController::class, 'modifiers'])->name('pos.modifiers');
+        Route::get('/pos/variants',            [\App\Http\Controllers\Api\PosSearchController::class, 'variants'])->name('pos.variants');
         // pos.open / pos.close removed 2026-08-02 — see PosController note above.
 
         // Staff management (within this store)
@@ -513,51 +514,64 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         });
 
         // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
-        Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->name('restaurant.dashboard');
-        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->middleware('permission:pos.checkout')->name('restaurant.kitchen');
+        Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.dashboard');
+
+        // ── FOH (front of house): tables, takeaway and delivery on one screen ──
+        // FOH plan 2.7. Reachable with the table_service module on (see
+        // config/modules.php store.foh*) and the foh.access permission.
+        Route::get('/foh/{tab?}', [\App\Http\Controllers\FohController::class, 'index'])
+            ->where('tab', 'overview|tables|takeaway|delivery')
+            ->middleware('permission:foh.access,pos.checkout')->name('foh');
+        Route::get('/foh-settings', [\App\Http\Controllers\FohController::class, 'settings'])
+            ->middleware('permission:admin.settings_manage')->name('foh.settings');
+        Route::post('/foh-settings', [\App\Http\Controllers\FohController::class, 'saveSettings'])
+            ->middleware('permission:admin.settings_manage')->name('foh.settings.save');
+        Route::post('/foh-settings/untrack-stock', [\App\Http\Controllers\FohController::class, 'untrackStock'])
+            ->middleware('permission:admin.settings_manage')->name('foh.settings.untrack');
+        Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.kitchen');
         // The same queue as JSON. A pass screen is left open all service, so it
         // polls rather than reloading an Inertia page every few seconds.
-        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->middleware('permission:pos.checkout')->name('restaurant.kitchen.state');
-        Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.table.status');
+        Route::get('/restaurant/kitchen/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenState'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.kitchen.state');
+        Route::post('/restaurant/table/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateTableStatus'])->middleware('permission:pos.checkout,sales.edit,foh.access')->name('restaurant.table.status');
 
         // Occupancy API endpoints
         Route::get('/api/occupancies', [\App\Http\Controllers\RestaurantDashboardController::class, 'getOccupancies'])->name('api.occupancies');
-        Route::post('/api/occupancies/occupy', [\App\Http\Controllers\RestaurantDashboardController::class, 'occupyPosition'])->middleware('permission:pos.checkout')->name('api.occupancies.occupy');
-        Route::post('/api/occupancies/release', [\App\Http\Controllers\RestaurantDashboardController::class, 'releasePosition'])->middleware('permission:pos.checkout')->name('api.occupancies.release');
-        Route::post('/restaurant/order/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateOrderStatus'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.status');
+        Route::post('/api/occupancies/occupy', [\App\Http\Controllers\RestaurantDashboardController::class, 'occupyPosition'])->middleware('permission:pos.checkout,foh.access')->name('api.occupancies.occupy');
+        Route::post('/api/occupancies/release', [\App\Http\Controllers\RestaurantDashboardController::class, 'releasePosition'])->middleware('permission:pos.checkout,foh.access')->name('api.occupancies.release');
+        Route::post('/restaurant/order/{id}/status', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateOrderStatus'])->middleware('permission:pos.checkout,sales.edit,foh.access')->name('restaurant.order.status');
         // Bump and recall, so the pass never has to name a status. One button
         // forward, one back — which is the whole vocabulary of a kitchen screen.
-        Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.bump');
-        Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.recall');
-        Route::post('/restaurant/order/{id}/dismiss', [\App\Http\Controllers\RestaurantDashboardController::class, 'dismissCancelled'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.dismiss');
-        Route::post('/restaurant/order/clear-all', [\App\Http\Controllers\RestaurantDashboardController::class, 'clearAll'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.clear-all');
-        Route::get('/restaurant/queue', [\App\Http\Controllers\RestaurantDashboardController::class, 'queue'])->name('restaurant.queue');
-        Route::get('/restaurant/queue/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'queueState'])->name('restaurant.queue.state');
+        Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->middleware('permission:pos.checkout,sales.edit,foh.access')->name('restaurant.order.bump');
+        Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->middleware('permission:pos.checkout,sales.edit,foh.access')->name('restaurant.order.recall');
+        Route::post('/restaurant/order/{id}/dismiss', [\App\Http\Controllers\RestaurantDashboardController::class, 'dismissCancelled'])->middleware('permission:pos.checkout,sales.edit,foh.access')->name('restaurant.order.dismiss');
+        Route::post('/restaurant/order/clear-all', [\App\Http\Controllers\RestaurantDashboardController::class, 'clearAll'])->middleware('permission:pos.checkout,sales.edit,foh.access')->name('restaurant.order.clear-all');
+        Route::get('/restaurant/queue', [\App\Http\Controllers\RestaurantDashboardController::class, 'queue'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.queue');
+        Route::get('/restaurant/queue/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'queueState'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.queue.state');
 
         // ── Dispatch & Rider Management (Phase 3) ─────────────────────────
-        Route::get('/restaurant/dispatch', [\App\Http\Controllers\DispatchController::class, 'index'])->middleware('permission:pos.checkout')->name('restaurant.dispatch');
-        Route::get('/restaurant/dispatch/state', [\App\Http\Controllers\DispatchController::class, 'state'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.state');
-        Route::get('/restaurant/dispatch/rider-cashup', [\App\Http\Controllers\DispatchController::class, 'riderCashUp'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.rider-cashup');
-        Route::post('/restaurant/dispatch/cash-up', [\App\Http\Controllers\DispatchController::class, 'markHandedIn'])->middleware('permission:pos.checkout')->name('restaurant.dispatch.cash-up');
+        Route::get('/restaurant/dispatch', [\App\Http\Controllers\DispatchController::class, 'index'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.dispatch');
+        Route::get('/restaurant/dispatch/state', [\App\Http\Controllers\DispatchController::class, 'state'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.dispatch.state');
+        Route::get('/restaurant/dispatch/rider-cashup', [\App\Http\Controllers\DispatchController::class, 'riderCashUp'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.dispatch.rider-cashup');
+        Route::post('/restaurant/dispatch/cash-up', [\App\Http\Controllers\DispatchController::class, 'markHandedIn'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.dispatch.cash-up');
 
-        Route::get('/riders', [\App\Http\Controllers\RiderController::class, 'list'])->middleware('permission:pos.checkout')->name('riders.list');
+        Route::get('/riders', [\App\Http\Controllers\RiderController::class, 'list'])->middleware('permission:pos.checkout,foh.access')->name('riders.list');
         Route::post('/riders/{id}/toggle-rider', [\App\Http\Controllers\RiderController::class, 'toggleRider'])->middleware('permission:admin.settings_manage')->name('riders.toggle');
 
-        Route::get('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'index'])->name('restaurant.riders');
+        Route::get('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'index'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.riders');
         Route::post('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'store'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.store');
         Route::put('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'update'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.update');
         Route::delete('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'destroy'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.destroy');
 
-        Route::get('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'settings'])->name('restaurant.settings');
+        Route::get('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'settings'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.settings');
         Route::post('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('restaurant.settings.update');
 
         // ── Phase 4: Reservations & Restaurant Analytics ───────────────────
-        Route::get('/restaurant/reports/kitchen-performance', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenPerformance'])->middleware('permission:pos.checkout')->name('restaurant.reports.kitchen-performance');
-        Route::get('/restaurant/reports/tips', [\App\Http\Controllers\RestaurantDashboardController::class, 'tipsReport'])->middleware('permission:pos.checkout')->name('restaurant.reports.tips');
+        Route::get('/restaurant/reports/kitchen-performance', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenPerformance'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.reports.kitchen-performance');
+        Route::get('/restaurant/reports/tips', [\App\Http\Controllers\RestaurantDashboardController::class, 'tipsReport'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.reports.tips');
 
-        Route::get('/reservations',               [\App\Http\Controllers\ReservationController::class, 'list'])->middleware('permission:pos.checkout')->name('reservations.list');
-        Route::post('/reservations',              [\App\Http\Controllers\ReservationController::class, 'store'])->middleware('permission:pos.checkout')->name('reservations.store');
-        Route::post('/reservations/{id}/seat',    [\App\Http\Controllers\ReservationController::class, 'seat'])->middleware('permission:pos.checkout')->name('reservations.seat');
+        Route::get('/reservations',               [\App\Http\Controllers\ReservationController::class, 'list'])->middleware('permission:pos.checkout,foh.access')->name('reservations.list');
+        Route::post('/reservations',              [\App\Http\Controllers\ReservationController::class, 'store'])->middleware('permission:pos.checkout,foh.access')->name('reservations.store');
+        Route::post('/reservations/{id}/seat',    [\App\Http\Controllers\ReservationController::class, 'seat'])->middleware('permission:pos.checkout,foh.access')->name('reservations.seat');
         Route::post('/reservations/{id}/cancel',  [\App\Http\Controllers\ReservationController::class, 'cancel'])->middleware('permission:pos.checkout')->name('reservations.cancel');
 
         // ── Register Shifts, Cash Drawer & Z-Reports (R20) ─────────────────
@@ -1295,7 +1309,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
        Backed by the `positions` and `occupancies` tables that already
        existed. The POS's old in-register floor ran on six hard-coded mock
        tables and wrote nowhere. */
-    Route::prefix('tables')->name('tables.')->middleware('permission:pos.checkout')->group(function () {
+    Route::prefix('tables')->name('tables.')->middleware('permission:pos.checkout,foh.access')->group(function () {
         Route::get('/',            [\App\Http\Controllers\TableServiceController::class, 'index'])->name('index');
         Route::get('/state',       [\App\Http\Controllers\TableServiceController::class, 'state'])->name('state');
         Route::post('/open',       [\App\Http\Controllers\TableServiceController::class, 'open'])->name('open');
@@ -1304,6 +1318,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/transfer',   [\App\Http\Controllers\TableServiceController::class, 'transfer'])->name('transfer');
         Route::post('/merge',      [\App\Http\Controllers\TableServiceController::class, 'merge'])->name('merge');
         Route::post('/close',      [\App\Http\Controllers\TableServiceController::class, 'close'])->name('close');
+        Route::post('/convert',    [\App\Http\Controllers\TableServiceController::class, 'convert'])->name('convert');
+        Route::post('/collected',  [\App\Http\Controllers\TableServiceController::class, 'collected'])->name('collected');
         Route::post('/status',     [\App\Http\Controllers\TableServiceController::class, 'setStatus'])->name('status');
         /* Splitting a bill. The split is a claim on part of the table's cart,
            held ON the table so a second device sees the lock -- it never becomes
@@ -1311,7 +1327,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
            other tender; tables.settled just learns to close half a bill. */
         Route::post('/split',        [\App\Http\Controllers\TableServiceController::class, 'split'])->name('split');
         Route::post('/split/cancel', [\App\Http\Controllers\TableServiceController::class, 'splitCancel'])->name('split.cancel');
-        Route::post('/settled',    [\App\Http\Controllers\TableServiceController::class, 'settled'])->name('settled');
+        // Taking payment stays behind pos.checkout: a waiter with only foh.access can print a bill, not settle it.
+        Route::post('/settled',    [\App\Http\Controllers\TableServiceController::class, 'settled'])->middleware('permission:pos.checkout')->name('settled');
         Route::post('/service-mode', [\App\Http\Controllers\TableServiceController::class, 'setServiceMode'])
             ->middleware('permission:admin.settings_manage')->name('service-mode');
         Route::post('/prepares-orders', [\App\Http\Controllers\TableServiceController::class, 'setPreparesOrders'])
@@ -1375,6 +1392,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::post('/plan/table/remove',  [\App\Http\Controllers\TableServiceController::class, 'planTableRemove'])->name('plan.table.remove');
             Route::post('/plan/reorder',       [\App\Http\Controllers\TableServiceController::class, 'planReorder'])->name('plan.reorder');
             Route::post('/plan/lanes',         [\App\Http\Controllers\TableServiceController::class, 'planLanes'])->name('plan.lanes');
+            /* Where each table sits in the room drawing on the register's Map view. */
+            Route::post('/plan/map',           [\App\Http\Controllers\TableServiceController::class, 'planMap'])->name('plan.map');
         });
     });
 
@@ -1664,6 +1683,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::delete('/attributes/{attribute}', [ProductAttributeController::class, 'destroy'])->middleware('permission:inventory.delete')->name('attributes.destroy');
 
     // Categories (Phase 1 - Unification)
+    // Add-ons library (restaurant): one place to define add-ons and map them to categories / products.
+    Route::get('/addons', [\App\Http\Controllers\AddOnLibraryController::class, 'index'])->middleware('permission:inventory.view')->name('addons.index');
+    Route::post('/addons', [\App\Http\Controllers\AddOnLibraryController::class, 'store'])->middleware('permission:inventory.create')->name('addons.store');
+    Route::put('/addons/{id}', [\App\Http\Controllers\AddOnLibraryController::class, 'update'])->middleware('permission:inventory.edit')->name('addons.update');
+    Route::delete('/addons/{id}', [\App\Http\Controllers\AddOnLibraryController::class, 'destroy'])->middleware('permission:inventory.delete')->name('addons.destroy');
     Route::get('/inventory/categories', [InventoryController::class, 'categories'])->middleware('permission:inventory.view')->name('categories.index');
     Route::post('/categories', [InventoryController::class, 'storeCategory'])->middleware('permission:inventory.create')->name('categories.store');
     Route::put('/categories/{category}', [InventoryController::class, 'updateCategory'])->middleware('permission:inventory.edit')->name('categories.update');

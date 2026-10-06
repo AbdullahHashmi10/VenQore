@@ -136,7 +136,7 @@
     border: 1px solid var(--vq-line, #d3dcd7);
     background: var(--vq-surface, #fff);
     box-shadow: 0 1px 3px rgb(13 20 18 / .05);
-    transition: all var(--vq-dur-1, 140ms) cubic-bezier(0.16, 1, 0.3, 1);
+    transition: var(--vq-dur-1, 140ms) cubic-bezier(0.16, 1, 0.3, 1); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 .vqt-table[data-variant='list'] {
     flex-direction: row;
@@ -435,7 +435,7 @@
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(11, 163, 133, 0.25);
-    transition: all 150ms ease-in-out;
+    transition: 150ms ease-in-out; transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 .vqt-new-ticket:hover {
     background: var(--vq-teal-600, #08876e);
@@ -481,7 +481,7 @@
     background: rgba(20, 184, 166, 0.16) !important;
     box-shadow: 0 0 0 3px rgba(35, 196, 166, 0.35), 0 6px 16px rgba(13, 148, 136, 0.20);
     transform: translateY(-2px);
-    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: 0.15s cubic-bezier(0.16, 1, 0.3, 1); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 .vqt-table[data-selected='1'] .vqt-table-code {
     background: #0d9488;
@@ -512,7 +512,7 @@
     font-weight: 700;
     border: 1px solid transparent;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: 0.15s ease; transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     user-select: none;
     white-space: nowrap;
 }
@@ -525,7 +525,7 @@
     border-radius: 999px;
     border: 1px solid transparent;
     overflow: hidden;
-    transition: all 0.15s ease;
+    transition: 0.15s ease; transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     user-select: none;
     white-space: nowrap;
 }
@@ -635,7 +635,7 @@
     border: none;
     cursor: pointer;
     box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
-    transition: all 0.12s ease;
+    transition: 0.12s ease; transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 .vqt-quick-dispatch:hover {
     background: #0f766e;
@@ -1517,3 +1517,45 @@
 .vqf-spin { animation: vqd-spin-plain 900ms linear infinite; }
 @keyframes vqd-spin-plain { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .vqf-spin { animation: none; } }
+
+/* ── DELIVERY, COMPACT (in the order panel) ─────────────────────────────
+   A summary, never a form: the order lines under it must stay visible.
+   Editing opens .vqd-modal, which scrolls and keeps Save on screen. */
+.vqd-panel-compact { gap: 8px; padding: 10px 12px; }
+.vqd-panel-compact .vqd-panel-h { gap: 7px; flex-wrap: wrap; }
+.vqd-panel-actions { margin-left: auto; display: inline-flex; gap: 6px; }
+.vqd-mini {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 30px; padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #fff);
+    color: var(--vq-text-2, #3c4a44);
+    font: 700 12.5px/1 var(--vq-font-sans);
+    cursor: pointer;
+}
+.vqd-mini:hover { border-color: var(--vq-line-strong, var(--vq-line)); color: var(--vq-text); }
+.vqd-mini-go { background: var(--vq-accent-fill, var(--vq-accent)); border-color: transparent; color: var(--vq-on-accent, #fff); }
+.vqd-mini-go:hover { color: var(--vq-on-accent, #fff); background: var(--vq-accent-fill-hover, var(--vq-accent)); }
+.vqd-ladder-compact { gap: 4px; }
+.vqd-ladder-compact .vqd-step { flex-direction: row; min-height: 34px; padding: 4px 6px; gap: 5px; border-radius: 999px; font-size: 12px; }
+.vqd-ladder-compact .vqd-step span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vqd-summary { display: flex; align-items: flex-start; gap: 7px; color: var(--vq-text-3); min-width: 0; }
+.vqd-summary svg { flex: 0 0 auto; margin-top: 2px; }
+.vqd-summary-t { display: flex; flex-direction: column; gap: 2px; min-width: 0; font: 500 12.5px/1.35 var(--vq-font-sans); }
+.vqd-summary-t b { font-weight: 700; color: var(--vq-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vqd-summary-t span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vqd-missing {
+    display: flex; align-items: center; gap: 7px;
+    width: 100%; min-height: 38px; padding: 0 12px;
+    border-radius: 12px;
+    border: 1px dashed var(--vq-warning, #b7791f);
+    background: var(--vq-warning-bg, #fdf3dc);
+    color: var(--vq-warning, #7a5308);
+    font: 700 13px/1.2 var(--vq-font-sans);
+    text-align: left; cursor: pointer;
+}
+.vqd-modal { max-height: min(90vh, 760px); }
+.vqd-row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+@media (max-width: 480px) { .vqd-row2 { grid-template-columns: minmax(0, 1fr); } }
+.vqd-quick-l { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }

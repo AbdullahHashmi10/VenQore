@@ -37,6 +37,7 @@ import { AMDStation, isAMDStationAvailable } from './AMDStation';
 import PrintPreview from '@/Components/PrintPreview';
 
 import { vq } from '@/theme/runtime';
+import { withAddOns } from '@/Utils/addOnLabel';
 // Browsers render at 96 DPI.  1 mm = 96/25.4 ≈ 3.7795 px.
 const PX_PER_MM = 96 / 25.4;
 
@@ -181,7 +182,7 @@ class PrintService {
             return {
                 ...item,
                 sno: idx + 1,
-                name: item.name || item.product?.name || 'Item',
+                name: withAddOns(item.name || item.product?.name || 'Item', item),
                 quantity: qty,
                 qty: qty,
                 unit_price: origPrice,
@@ -639,7 +640,7 @@ class PrintService {
                 const netPrice = Number(item.price ?? item.unit_price ?? price);
                 const discount = Number(item.discount_amount ?? (item.original_price && item.price && Number(item.original_price) > Number(item.price) ? (Number(item.original_price) - Number(item.price)) * qty : (item.discount ? Number(item.discount) * qty : 0)));
                 return {
-                    name: item.product?.name || item.name || item.description || 'Item',
+                    name: withAddOns(item.product?.name || item.name || item.description || 'Item', item),
                     qty, price: money(price),
                     total: money(item.net_amount ?? (item.line_total != null ? Number(item.line_total) - Number(item.tax_amount ?? 0) : qty * netPrice - discount)),
                 };

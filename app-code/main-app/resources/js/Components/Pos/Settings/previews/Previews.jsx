@@ -55,15 +55,17 @@ export function FloorPreview({ positions, view = 'cards', sort = 'attention', si
         return sorted;
     }, [positions, sort]);
 
-    const min = view === 'grid' ? ({ compact: 64, normal: 78, large: 96 }[size])
+    const min = (view === 'grid' || view === 'map') ? ({ compact: 64, normal: 78, large: 96 }[size])
         : view === 'list' ? 400 : ({ compact: 128, normal: 150, large: 190 }[size]);
     const h = { compact: 70, normal: 86, large: 108 }[size];
 
     const Card = ({ t }) => {
         const tone = toneOf(t);
-        if (view === 'grid') {
+        if (view === 'grid' || view === 'map') {
+            const cap = Number(t.capacity) || 2;
             return (
-                <div className="pvf-t" data-view="grid" data-tone={tone}>
+                <div className="pvf-t" data-view={view} data-tone={tone}
+                     data-shape={cap <= 2 ? 'round' : cap <= 4 ? 'square' : 'long'}>
                     <span className="pvf-code vqs-num">{t.code}</span>
                     <span className="pvf-state">{t.alert ? `${t.mins}m` : STATE_LABEL[t.state]}</span>
                 </div>
@@ -108,7 +110,7 @@ export function FloorPreview({ positions, view = 'cards', sort = 'attention', si
                     </div>
                 </div>
             )) : (
-                <div className="pvf-grid">
+                <div className={view === 'map' ? 'pvf-grid pvf-room' : 'pvf-grid'}>
                     {tables.map(t => <Card key={t.code} t={t} />)}
                 </div>
             )}

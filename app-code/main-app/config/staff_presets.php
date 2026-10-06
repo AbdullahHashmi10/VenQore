@@ -14,6 +14,7 @@ return [
         "permissions" => [
         "pos.open_session",
             "pos.checkout",
+            "foh.access",
             "pos.close_session",
             "inventory.view",
             "approvals.view_own",
@@ -37,6 +38,7 @@ return [
         "permissions" => [
         "pos.open_session",
             "pos.checkout",
+            "foh.access",
             "pos.close_session",
             "pos.discounts",
             "pos.void_item",
@@ -63,6 +65,7 @@ return [
         "permissions" => [
         "pos.open_session",
             "pos.checkout",
+            "foh.access",
             "pos.close_session",
             "pos.discounts",
             "pos.void_item",
@@ -683,13 +686,39 @@ return [
         "caution" => ""
     ],
     [
+        "id" => "waiter",
+        "name" => "Waiter / floor staff",
+        "group" => "Sales floor",
+        "purpose" => "Take table, takeaway and delivery orders in the FOH screen and print the bill. No payments by default.",
+        "permissions" => [
+            "pos.open_session",
+            "foh.access",
+            "sales.view",
+            "sales.create",
+            "inventory.view",
+            "approvals.view_own",
+            "approvals.submit",
+            "approvals.withdraw",
+            "approvals.resubmit"
+        ],
+        "modules" => [
+            "pos",
+            "park_recall",
+            "table_service",
+            "products",
+            "inventory"
+        ],
+        "caution" => "Cannot take payment: grant the 'Scan & Checkout' permission only to staff who handle money."
+    ],
+    [
         "id" => "owner",
         "name" => "Owner capability reference",
         "group" => "Leadership",
-        "purpose" => "Reference showing all 77 explicit capabilities; do not assign as an ordinary staff default.",
+        "purpose" => "Reference showing all 78 explicit capabilities; do not assign as an ordinary staff default.",
         "permissions" => [
         "pos.open_session",
             "pos.checkout",
+            "foh.access",
             "pos.discounts",
             "pos.void_item",
             "pos.refund",

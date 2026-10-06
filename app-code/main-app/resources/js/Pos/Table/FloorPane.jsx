@@ -1,40 +1,44 @@
 /* ==========================================================================
-   THE FLOOR — a rank-1 pane of the Table terminal
+   THE FLOOR — the pane a restaurant shift starts from
    ==========================================================================
-   Layout Law §10: "the unit of work is the table, not the sale". So the floor
-   is not a widget bolted to a till; it is the pane the whole shift starts
-   from, and it has exactly two fits the law measured:
+   One question drives every pixel here: "where should I walk next?"
 
-     map   >= 484px   cards, laid out as the room reads
-     list  >= 254px   rows: code, covers, elapsed, due
+   - The STATS BAR answers it for the room: tables in use, guests, money on
+     the floor, and how many tables need a person right now (tap it to see
+     only those).
+   - FILTER CHIPS answer it for a job: free tables when a party walks in,
+     paying tables when you are holding the card machine.
+   - FIVE VIEWS answer it for a screen:
+       map       the room as it really is — tables drawn as round, square or
+                 long tables with chairs, where the manager placed them
+       cards     smart cards, tables that need someone first
+       sections  the same cards, grouped by area
+       grid      seating chart — a big number per table
+       list      one line per table, for narrow screens
+   - Every table carries a NEXT ACTION ("Take the order", "Send 2 to
+     kitchen", "Collect payment") so a new waiter knows what the colour means.
 
-   Below that it is a STEP -- a full surface you come from, not a column you
-   squeeze in beside the order. That demotion is the engine's decision; this
-   component only knows how to be whichever one it was handed.
+   The engine still decides width: a column too narrow for cards gets the
+   list, and too narrow for a room gets the seating chart.
 
-   THE ONE IDEA WORTH DEFENDING HERE
-   ---------------------------------
-   A floor plan that only reports the past is wallpaper. Every card carries a
-   state derived from the bill itself -- free, seated, ordered, in kitchen,
-   served, check dropped -- and two of those states become ALARMS when they go
-   stale: a table seated with nobody taking its order, and a bill dropped that
-   nobody has paid. Those cards ring, and they sort to the front. The question
-   this screen answers is not "what happened" but "where should I walk".
+   Speed: cards are memoised and receive stable callbacks, so a 15-second
+   poll that changes one table repaints one table. Dragging in Arrange mode
+   moves the element directly and commits once, on release.
    ========================================================================== */
 
-import React, { useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Users, Clock, CircleDot, Plus, ShoppingBag, Bike, AlertTriangle, Phone, Calendar,
+    Users, Clock, Plus, ShoppingBag, Bike, AlertTriangle, Phone, Calendar, Map as MapIcon,
+    LayoutGrid, Rows3, Grid3x3, List, Move, RotateCw, Circle, Square,
+    RectangleHorizontal, Check, Undo2, CircleDot, Loader2, Hand,
 } from 'lucide-react';
 import { STATES, alertAge } from './useTableService';
 import { DeliveryChip, isLate } from './Delivery';
 import ReservationModal from './ReservationModal';
 import { useTermText } from '@/lib/terms';
-import './floor-views.css';
+import './floor.css';
 
-/* Minutes since something happened, said the way a person says it. A waiter
-   glancing at a floor needs "over an hour" to be instantly different from
-   "just sat down"; a timestamp makes them do the arithmetic themselves. */
+/* Minutes since something happened, said the way a person says it. */
 export function elapsed(iso) {
     if (!iso) return '';
     const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -45,266 +49,335 @@ export function elapsed(iso) {
     return m ? `${h}h ${m}m` : `${h}h`;
 }
 
-/* Kept for callers that only need the coarse answer. The real state comes off
-   the card now -- derived on the server from the bill, never from a status
-   column somebody has to remember to update. */
+/* Kept for callers that only need the coarse answer. */
 export function toneOf(card) {
     return STATES[card?.state]?.tone || (card?.occupancy_id ? 'ordered' : 'free');
 }
 
 const LANE_ICON = { takeaway: ShoppingBag, delivery: Bike };
 
-function StateChip({ card, alert }) {
-    const spec = STATES[card.state] || STATES.free;
-    return (
-        <span className="vqt-state" data-tone={spec.tone} data-alert={alert ? '1' : '0'}>
-            {alert ? <AlertTriangle size={10} aria-hidden="true" /> : null}
-            {spec.label}
-        </span>
-    );
+const minsSince = (iso, now) => (iso ? Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60000)) : 0);
+
+/* How long a party has been in, as a level: a table at 95 minutes is a
+   different conversation from one at 20. */
+function timerLevel(card, now) {
+    if (!card.opened_at) return 0;
+    const m = minsSince(card.opened_at, now);
+    return m >= 90 ? 2 : m >= 60 ? 1 : 0;
 }
 
-function Server({ server }) {
+/* The one thing to do next, in the words a shift lead would use. */
+export function nextAction(c) {
+    const unsent = Number(c.unsent) || 0;
+    const fromGuest = Number(c.customer_pending) || 0;
+    if (fromGuest > 0) return { text: `${fromGuest} new from guest`, tone: 'warn' };
+    switch (c.state) {
+        case 'free':          return { text: c.kind === 'ticket' ? 'Start order' : 'Seat guests', tone: 'quiet' };
+        case 'reserved':      return { text: 'Reserved', tone: 'quiet' };
+        case 'cleaning':      return { text: 'Clear & reset', tone: 'quiet' };
+        case 'seated':        return { text: 'Take the order', tone: 'warn' };
+        case 'check_dropped': return { text: 'Collect payment', tone: 'warn' };
+        default: break;
+    }
+    if (unsent > 0) return { text: `Send ${unsent} to kitchen`, tone: 'warn' };
+    if (c.state === 'in_kitchen') return { text: 'Cooking', tone: 'calm' };
+    if (c.state === 'served') return { text: 'Offer the bill', tone: 'calm' };
+    if (c.state === 'ordered') return { text: 'Ordered', tone: 'calm' };
+    return { text: (STATES[c.state] || STATES.free).label, tone: 'calm' };
+}
+
+const titleOf = (p) => {
+    const same = p.label && p.label.trim().toLowerCase() === String(p.code).trim().toLowerCase();
+    return (!p.label || same) ? `Table ${p.code}` : p.label;
+};
+
+function ariaFor(c, money, alert) {
+    return `${c.kind === 'ticket' ? `${c.order_type} ${c.code}` : titleOf(c)}, ${(STATES[c.state] || {}).label || ''}`
+        + `${Number(c.order_total) ? `, ${money(Number(c.order_total))} due` : ''}`
+        + `${alert ? `, waiting ${alert} minutes` : ''}`;
+}
+
+function Avatar({ server }) {
     if (!server) return null;
+    return <span className="vqf-avatar" title={`Opened by ${server.name}`} aria-label={`Server ${server.name}`}>{server.initials}</span>;
+}
+
+function Badges({ c }) {
+    const unsent = Number(c.unsent) || 0;
+    const fromGuest = Number(c.customer_pending) || 0;
+    if (!unsent && !fromGuest) return null;
     return (
-        <span className="vqt-server" title={`Opened by ${server.name}`} aria-label={`Server ${server.name}`}>
-            {server.initials}
+        <span className="vqf-badges">
+            {fromGuest > 0 && <span className="vqf-badge" data-tone="guest"><ShoppingBag size={10} aria-hidden="true" />{fromGuest} new</span>}
+            {unsent > 0 && <span className="vqf-badge"><CircleDot size={10} aria-hidden="true" />{unsent} unsent</span>}
         </span>
     );
 }
 
-/* ── A TABLE ─────────────────────────────────────────────────────────── */
-/* ── A TABLE ─────────────────────────────────────────────────────────── */
-function TableCard({ p, selected, onPick, money, variant, now, show = {} }) {
+/* ── A TABLE AS A CARD (cards, sections, list) ───────────────────────── */
+const TableCard = memo(function TableCard({ p, selected, onPick, money, variant, now, show, dim }) {
     const alert = alertAge(p, now);
+    const due = Number(p.order_total) || 0;
+    const busy = !!p.occupancy_id;
+    const act = nextAction(p);
+    const lvl = busy ? timerLevel(p, now) : 0;
     const showMoney = show.showMoney !== false;
     const showTime = show.showTime !== false;
     const showServer = show.showServer !== false;
-    const due = Number(p.order_total) || 0;
-    const unsent = Number(p.unsent) || 0;
-    const customerPending = Number(p.customer_pending) || 0;
-    const isList = variant === 'list';
-    const inAction = !!p.occupancy_id || (p.state && p.state !== 'free' && p.state !== 'cleaning');
-
-    const isCodeInLabel = p.label && p.label.trim().toLowerCase() === p.code.trim().toLowerCase();
-    const displayTitle = (!p.label || isCodeInLabel) ? `Table ${p.code}` : p.label;
-
-    /* SEATING CHART: a square per table, the number big enough to read from
-       across the room, colour for the state and nothing else. */
-    if (variant === 'grid') {
-        return (
-            <button
-                type="button"
-                onClick={() => onPick(p)}
-                className="vqt-table vqt-seat"
-                data-tone={toneOf(p)}
-                data-in-action={inAction ? '1' : '0'}
-                data-selected={selected ? '1' : '0'}
-                data-variant="grid"
-                data-alert={alert ? '1' : '0'}
-                aria-pressed={selected}
-                aria-label={`${displayTitle}, ${(STATES[p.state] || {}).label || ''}${due ? `, ${money(due)} due` : ''}${alert ? `, waiting ${alert} minutes` : ''}`}
-                title={displayTitle}
-            >
-                <span className="vqt-seat-code vq-num">{p.code}</span>
-                <span className="vqt-seat-sub">
-                    {alert ? `${alert}m` : inAction ? (showTime ? elapsed(p.opened_at) : (STATES[p.state] || {}).label) : `${p.capacity || 2} seats`}
-                </span>
-                {showMoney && inAction && due > 0 && <span className="vqt-seat-due vq-num">{money(due)}</span>}
-                {(unsent > 0 || customerPending > 0) && <span className="vqt-seat-badge" aria-hidden="true" />}
-            </button>
-        );
-    }
+    const title = titleOf(p);
+    const named = title !== `Table ${p.code}`;
 
     return (
-        <button
-            type="button"
-            onClick={() => onPick(p)}
-            className="vqt-table"
-            data-tone={toneOf(p)}
-            data-in-action={inAction ? '1' : '0'}
-            data-selected={selected ? '1' : '0'}
-            data-variant={variant}
-            data-alert={alert ? '1' : '0'}
-            aria-pressed={selected}
-            aria-label={`${displayTitle}, ${(STATES[p.state] || {}).label || ''}${due ? `, ${money(due)} due` : ''}${alert ? `, waiting ${alert} minutes` : ''}`}
-        >
-            <div className="vqt-card-header">
-                <span className="vqt-table-code">{p.code}</span>
-                <div className="vqt-card-title-col vq-clip">
-                    <span className="vqt-table-name vq-clip">{displayTitle}</span>
-                    <span className="vqt-table-sub vq-clip">
-                        {inAction ? (
-                            <>
-                                <Users size={11} aria-hidden="true" />
-                                <span>{p.covers || 1}</span>
-                                {showTime && (
-                                    <>
-                                        <span className="vqt-dot">·</span>
-                                        <Clock size={11} aria-hidden="true" />
-                                        <span>{elapsed(p.opened_at)}</span>
-                                    </>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <Users size={11} aria-hidden="true" />
-                                <span>seats {p.capacity || 2}</span>
-                            </>
+        <button type="button" onClick={() => onPick(p)} className="vqf-card" data-variant={variant}
+                data-tone={toneOf(p)} data-busy={busy ? '1' : '0'} data-selected={selected ? '1' : '0'}
+                data-alert={alert ? '1' : '0'} data-dim={dim ? '1' : '0'} aria-pressed={selected}
+                aria-label={ariaFor(p, money, alert)}>
+            <span className="vqf-rail" aria-hidden="true" />
+            <span className="vqf-card-top">
+                <span className="vqf-code vq-num">{p.code}</span>
+                <span className="vqf-card-name">
+                    <span className="vqf-name">{named ? title : (STATES[p.state] || STATES.free).label}</span>
+                    <span className="vqf-meta">
+                        <Users size={11} aria-hidden="true" />
+                        <span className="vq-num">{busy ? `${p.covers || 1}/${p.capacity || 2}` : `${p.capacity || 2} seats`}</span>
+                        {busy && showTime && (
+                            <span className="vqf-timer" data-level={lvl}>
+                                <Clock size={11} aria-hidden="true" />
+                                <span className="vq-num">{elapsed(p.opened_at)}</span>
+                            </span>
                         )}
                     </span>
-                </div>
-                {!isList && showServer && p.server && <Server server={p.server} />}
-            </div>
-
-            {(unsent > 0 || customerPending > 0) && (
-                <div className="vqt-card-mid-badges">
-                    {customerPending > 0 && (
-                        <span className="vqt-table-unsent" title={`${customerPending} new customer items`}>
-                            <ShoppingBag size={10} aria-hidden="true" />
-                            {customerPending} new
-                        </span>
-                    )}
-                    {unsent > 0 && (
-                        <span className="vqt-table-unsent" title={`${unsent} not yet sent to the kitchen`}>
-                            <CircleDot size={10} aria-hidden="true" />
-                            {unsent} unsent
-                        </span>
-                    )}
-                </div>
-            )}
-
-            <div className="vqt-table-footer">
-                <StateChip card={p} alert={alert} />
-                {showMoney && inAction && due > 0 && (
-                    <span className="vq-num vqt-table-due" title={money(due)}>
-                        {money(due)}
-                    </span>
-                )}
-            </div>
-
-            {alert > 0 && (
-                <span className="vqt-alert-age vq-num" aria-hidden="true">{alert}m</span>
-            )}
+                </span>
+                {showServer && variant !== 'list' && <Avatar server={p.server} />}
+            </span>
+            <Badges c={p} />
+            <span className="vqf-card-foot">
+                <span className="vqf-act" data-tone={alert ? 'alert' : act.tone}>
+                    {alert ? <AlertTriangle size={11} aria-hidden="true" /> : <span className="vqf-dot" aria-hidden="true" />}
+                    {alert ? `${act.text} · ${alert}m` : act.text}
+                </span>
+                {showMoney && busy && due > 0 && <span className="vqf-due vq-num">{money(due)}</span>}
+            </span>
         </button>
     );
-}
+});
 
-/* ── A LANE TICKET ───────────────────────────────────────────────────── */
-function TicketCard({ t, selected, onPick, money, variant, now, onUpdateDelivery }) {
+/* ── A LANE TICKET (takeaway / delivery) ─────────────────────────────── */
+const TicketCard = memo(function TicketCard({ t, selected, onPick, money, variant, now, onUpdateDelivery, dim }) {
     const alert = alertAge(t, now);
     const lateRun = isLate(t.delivery);
     const due = Number(t.order_total) || 0;
-    const unsent = Number(t.unsent) || 0;
-    const customerPending = Number(t.customer_pending) || 0;
     const Icon = LANE_ICON[t.order_type] || ShoppingBag;
-    const isList = variant === 'list';
     const isDelivery = t.order_type === 'delivery';
-    const inAction = true;
-    const isCodeInCustomer = t.customer_name && t.customer_name.trim().toLowerCase() === t.code.trim().toLowerCase();
-    const displayTitle = (!t.customer_name || isCodeInCustomer)
-        ? (isDelivery ? 'Delivery Order' : 'Takeaway Order')
-        : t.customer_name;
+    const same = t.customer_name && t.customer_name.trim().toLowerCase() === String(t.code).trim().toLowerCase();
+    const title = (!t.customer_name || same) ? (isDelivery ? 'Delivery' : 'Takeaway') : t.customer_name;
+    const act = nextAction(t);
 
     return (
-        <button
-            type="button"
-            onClick={() => onPick(t)}
-            className="vqt-table vqt-ticket"
-            data-tone={toneOf(t)}
-            data-in-action={inAction ? '1' : '0'}
-            data-selected={selected ? '1' : '0'}
-            data-variant={variant}
-            data-alert={(alert || lateRun) ? '1' : '0'}
-            aria-pressed={selected}
-            aria-label={`${t.order_type} ${t.code}${due ? `, ${money(due)} due` : ''}${
-                t.delivery ? `, ${t.delivery.status}${lateRun ? ', past its promised time' : ''}` : ''}`}
-        >
-            <div className="vqt-card-header">
-                <span className="vqt-table-code vqt-ticket-code">
-                    <Icon size={12} aria-hidden="true" />
-                    {t.code}
-                </span>
-                <div className="vqt-card-title-col vq-clip">
-                    <span className="vqt-table-name vq-clip">{displayTitle}</span>
-                    <span className="vqt-table-sub vq-clip">
+        <button type="button" onClick={() => onPick(t)} className="vqf-card vqf-ticket" data-variant={variant}
+                data-tone={toneOf(t)} data-busy="1" data-selected={selected ? '1' : '0'}
+                data-alert={(alert || lateRun) ? '1' : '0'} data-dim={dim ? '1' : '0'} data-lane={t.order_type}
+                aria-pressed={selected} aria-label={ariaFor(t, money, alert)}>
+            <span className="vqf-rail" aria-hidden="true" />
+            <span className="vqf-card-top">
+                <span className="vqf-code vqf-code-lane vq-num"><Icon size={13} aria-hidden="true" />{t.code}</span>
+                <span className="vqf-card-name">
+                    <span className="vqf-name">{title}</span>
+                    <span className="vqf-meta">
                         <Clock size={11} aria-hidden="true" />
-                        <span>{elapsed(t.opened_at)}</span>
-                        {t.phone && (
-                            <>
-                                <span className="vqt-dot">·</span>
-                                <Phone size={11} aria-hidden="true" />
-                                <span>{t.phone}</span>
-                            </>
-                        )}
+                        <span className="vq-num">{elapsed(t.opened_at)}</span>
+                        {t.phone && <><Phone size={11} aria-hidden="true" /><span className="vq-num">{t.phone}</span></>}
                     </span>
-                </div>
-                {!isList && t.server && <Server server={t.server} />}
-            </div>
-
-            {isDelivery && (t.address || t.delivery) && (
-                <div className="vqt-ticket-details">
-                    {t.address && <span className="vqt-ticket-addr vq-clip">{t.address}</span>}
-                    {t.delivery && (
-                        <div className="vqt-ticket-run">
-                            <DeliveryChip delivery={t.delivery} compact={isList} />
-                            {t.delivery.rider && (
-                                <span className="vqt-ticket-rider vq-clip">{t.delivery.rider}</span>
-                            )}
-                        </div>
-                    )}
-                </div>
+                </span>
+                {variant !== 'list' && <Avatar server={t.server} />}
+            </span>
+            {isDelivery && variant !== 'list' && (t.address || t.delivery) && (
+                <span className="vqf-ticket-run">
+                    {t.address && <span className="vqf-addr">{t.address}</span>}
+                    {t.delivery && <DeliveryChip delivery={t.delivery} compact />}
+                    {t.delivery?.rider && <span className="vqf-addr">{t.delivery.rider}</span>}
+                </span>
             )}
-
-            {isDelivery && t.delivery && t.delivery.status !== 'out' && t.delivery.status !== 'delivered' && onUpdateDelivery && (
-                <div className="vqt-dispatch-row">
-                    <button
-                        type="button"
-                        className="vqt-quick-dispatch"
-                        title="Mark this delivery as Out for Delivery"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onUpdateDelivery(t.occupancy_id, { status: 'out' });
-                        }}
-                    >
-                        <Bike size={11} aria-hidden="true" />
-                        <span>Out for Delivery</span>
-                    </button>
-                </div>
-            )}
-
-            {(unsent > 0 || customerPending > 0) && (
-                <div className="vqt-card-mid-badges">
-                    {customerPending > 0 && (
-                        <span className="vqt-table-unsent" title={`${customerPending} new customer items`}>
-                            <ShoppingBag size={10} aria-hidden="true" />
-                            {customerPending} new
-                        </span>
-                    )}
-                    {unsent > 0 && (
-                        <span className="vqt-table-unsent" title={`${unsent} not yet sent to the kitchen`}>
-                            <CircleDot size={10} aria-hidden="true" />
-                            {unsent} unsent
-                        </span>
-                    )}
-                </div>
-            )}
-
-            <div className="vqt-table-footer">
-                <StateChip card={t} alert={alert} />
-                {due > 0 && (
-                    <span className="vq-num vqt-table-due" title={money(due)}>
-                        {money(due)}
+            <Badges c={t} />
+            <span className="vqf-card-foot">
+                {isDelivery && t.delivery && !['out', 'delivered'].includes(t.delivery.status) && onUpdateDelivery ? (
+                    <span role="button" tabIndex={0} className="vqf-dispatch"
+                          onClick={(e) => { e.stopPropagation(); onUpdateDelivery(t.occupancy_id, { status: 'out' }); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onUpdateDelivery(t.occupancy_id, { status: 'out' }); } }}>
+                        <Bike size={11} aria-hidden="true" />Send out
+                    </span>
+                ) : (
+                    <span className="vqf-act" data-tone={(alert || lateRun) ? 'alert' : act.tone}>
+                        {(alert || lateRun) ? <AlertTriangle size={11} aria-hidden="true" /> : <span className="vqf-dot" aria-hidden="true" />}
+                        {lateRun ? 'Running late' : alert ? `${act.text} · ${alert}m` : act.text}
                     </span>
                 )}
-            </div>
-
-            {(alert || lateRun) > 0 && (
-                <span className="vqt-alert-age vq-num" aria-hidden="true">{alert}m</span>
-            )}
+                {due > 0 && <span className="vqf-due vq-num">{money(due)}</span>}
+            </span>
         </button>
     );
+});
+
+/* ── SEATING CHART SQUARE ───────────────────────────────────────────── */
+const SeatSquare = memo(function SeatSquare({ p, selected, onPick, money, now, show, dim }) {
+    const alert = alertAge(p, now);
+    const busy = !!p.occupancy_id;
+    const due = Number(p.order_total) || 0;
+    const badge = (Number(p.unsent) || 0) + (Number(p.customer_pending) || 0) > 0;
+    return (
+        <button type="button" onClick={() => onPick(p)} className="vqf-seat" data-tone={toneOf(p)}
+                data-selected={selected ? '1' : '0'} data-alert={alert ? '1' : '0'} data-dim={dim ? '1' : '0'}
+                aria-pressed={selected} aria-label={ariaFor(p, money, alert)} title={titleOf(p)}>
+            <span className="vqf-seat-code vq-num">{p.code}</span>
+            <span className="vqf-seat-sub vq-num">
+                {alert ? `${alert}m wait` : busy ? (show.showTime !== false ? elapsed(p.opened_at) : `${p.covers || 1} guests`) : `${p.capacity || 2} seats`}
+            </span>
+            {show.showMoney !== false && busy && due > 0 && <span className="vqf-seat-due vq-num">{money(due)}</span>}
+            {badge && <span className="vqf-pip" aria-hidden="true" />}
+        </button>
+    );
+});
+
+/* ── THE ROOM MAP ───────────────────────────────────────────────────── */
+
+/* Shape from size when the manager has not chosen one: two-tops are round,
+   four-tops square, anything bigger a long table. */
+export function shapeFor(p, saved) {
+    if (saved?.shape) return saved.shape;
+    const cap = Number(p.capacity) || 2;
+    return cap <= 2 ? 'round' : cap <= 4 ? 'square' : 'long';
 }
+
+function scaleFor(cap) {
+    return cap <= 2 ? 0.82 : cap <= 4 ? 1 : cap <= 6 ? 1.08 : cap <= 8 ? 1.18 : 1.28;
+}
+
+/* Chairs around a table, as % of the table's footprint. */
+function chairsFor(shape, n, rot) {
+    n = Math.max(1, Math.min(14, n));
+    const out = [];
+    if (shape === 'round') {
+        for (let i = 0; i < n; i++) {
+            const a = (i / n) * Math.PI * 2 - Math.PI / 2;
+            out.push({ x: 50 + 44 * Math.cos(a), y: 50 + 44 * Math.sin(a), a: (a * 180) / Math.PI + 90 });
+        }
+        return out;
+    }
+    const sides = { top: 0, bottom: 0, left: 0, right: 0 };
+    if (shape === 'square') {
+        const order = ['top', 'bottom', 'left', 'right'];
+        for (let i = 0; i < n; i++) sides[order[i % 4]]++;
+    } else {
+        const ends = n >= 5 ? 2 : 0;
+        sides.left = ends / 2; sides.right = ends / 2;
+        sides.top = Math.ceil((n - ends) / 2); sides.bottom = n - ends - sides.top;
+    }
+    const along = (k, m) => 18 + 64 * ((k + 1) / (m + 1));
+    for (let k = 0; k < sides.top; k++) out.push({ x: along(k, sides.top), y: 7, a: 0 });
+    for (let k = 0; k < sides.bottom; k++) out.push({ x: along(k, sides.bottom), y: 93, a: 180 });
+    for (let k = 0; k < sides.left; k++) out.push({ x: 7, y: along(k, sides.left), a: 270 });
+    for (let k = 0; k < sides.right; k++) out.push({ x: 93, y: along(k, sides.right), a: 90 });
+    return rot === 90 ? out.map(c => ({ x: 100 - c.y, y: c.x, a: c.a + 90 })) : out;
+}
+
+function roomGrid(n) {
+    const cols = n <= 2 ? 2 : Math.max(2, Math.min(8, Math.round(Math.sqrt(n * 2.2))));
+    const rows = Math.max(1, Math.ceil(n / cols));
+    return { cols, rows };
+}
+
+const MapTable = memo(function MapTable({
+    p, x, y, shape, rot, selected, onPick, money, now, show, dim, arranging, picked, onDragStart,
+}) {
+    const alert = alertAge(p, now);
+    const busy = !!p.occupancy_id;
+    const due = Number(p.order_total) || 0;
+    const cap = Number(p.capacity) || 2;
+    const covers = busy ? Math.min(cap, Number(p.covers) || 1) : 0;
+    const chairs = useMemo(() => chairsFor(shape, cap, rot), [shape, cap, rot]);
+    const long = shape === 'long';
+    const wide = long && rot !== 90;
+    const tall = long && rot === 90;
+    const lvl = busy ? timerLevel(p, now) : 0;
+    const badge = (Number(p.unsent) || 0) + (Number(p.customer_pending) || 0) > 0;
+
+    return (
+        <button type="button" className="vqf-mt" data-shape={shape} data-tone={toneOf(p)}
+                data-selected={selected ? '1' : '0'} data-alert={alert ? '1' : '0'} data-dim={dim ? '1' : '0'}
+                data-arranging={arranging ? '1' : '0'} data-picked={picked ? '1' : '0'}
+                data-id={p.id}
+                style={{
+                    left: `${x * 100}%`, top: `${y * 100}%`,
+                    '--s': scaleFor(cap), '--w': wide ? 1.62 : 1, '--h': tall ? 1.62 : 1,
+                }}
+                onClick={arranging ? undefined : () => onPick(p)}
+                onPointerDown={arranging ? (e) => onDragStart(e, p.id) : undefined}
+                aria-pressed={selected} aria-label={ariaFor(p, money, alert)}>
+            {chairs.map((c, i) => (
+                <span key={i} className="vqf-chair" data-on={i < covers ? '1' : '0'}
+                      style={{ left: `${c.x}%`, top: `${c.y}%`, transform: `translate(-50%,-50%) rotate(${c.a}deg)` }} />
+            ))}
+            <span className="vqf-top">
+                <span className="vqf-top-code vq-num">{p.code}</span>
+                <span className="vqf-top-sub vq-num" data-level={alert ? 3 : lvl}>
+                    {alert ? `${alert}m` : busy ? (show.showTime !== false ? elapsed(p.opened_at) : `${covers}/${cap}`) : `${cap}`}
+                </span>
+                {show.showServer !== false && p.server && <span className="vqf-top-srv">{p.server.initials}</span>}
+                {badge && <span className="vqf-pip" aria-hidden="true" />}
+            </span>
+            {show.showMoney !== false && busy && due > 0 && <span className="vqf-tag vq-num">{money(due)}</span>}
+        </button>
+    );
+});
+
+function Room({
+    title, tables, layout, selectedId, onPick, money, now, show, dimOf, arranging, pickedId,
+    onDragStart, showTitle,
+}) {
+    const sorted = useMemo(() => [...tables].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+        || String(a.code).localeCompare(String(b.code), undefined, { numeric: true })), [tables]);
+    const { cols, rows } = roomGrid(sorted.length);
+    const busy = sorted.filter(t => t.occupancy_id).length;
+    return (
+        <div className="vqf-room-wrap">
+            {showTitle && (
+                <div className="vqf-room-h">
+                    <span>{title}</span>
+                    <span className="vq-num">{busy}/{sorted.length} in use</span>
+                </div>
+            )}
+            <div className="vqf-room" data-arranging={arranging ? '1' : '0'}
+                 style={{ '--cols': cols, '--rows': rows, '--ar': (rows * 0.92 + 0.12) / cols }}>
+                {sorted.map((p, i) => {
+                    const saved = layout[p.id];
+                    const ax = ((i % cols) + 0.5) / cols;
+                    const ay = (Math.floor(i / cols) + 0.5) / rows;
+                    return (
+                        <MapTable key={p.id} p={p}
+                                  x={saved ? saved.x : ax} y={saved ? saved.y : ay}
+                                  shape={shapeFor(p, saved)} rot={saved?.rot || 0}
+                                  selected={p.id === selectedId} onPick={onPick} money={money} now={now}
+                                  show={show} dim={dimOf(p)} arranging={arranging}
+                                  picked={pickedId === p.id} onDragStart={onDragStart} />
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+/* ── VIEW + FILTER DEFINITIONS ───────────────────────────────────────── */
+const VIEWS = [
+    { id: 'map', label: 'Room map', icon: MapIcon },
+    { id: 'cards', label: 'Smart cards', icon: LayoutGrid },
+    { id: 'sections', label: 'By area', icon: Rows3 },
+    { id: 'grid', label: 'Seating chart', icon: Grid3x3 },
+    { id: 'list', label: 'List', icon: List },
+];
+const LEGEND = [
+    ['free', 'Free'], ['seated', 'Seated'], ['ordered', 'Ordered'], ['kitchen', 'Kitchen'],
+    ['served', 'Served'], ['check', 'Paying'], ['reserved', 'Reserved'],
+];
 
 export default function FloorPane({
     positions = [],
@@ -319,49 +392,60 @@ export default function FloorPane({
     onSetup,
     onRefresh,
     money,
-    /* 'map' | 'list' — the engine's decision, never this component's */
+    /* 'map' | 'list' — the engine's width decision */
     variant = 'map',
-    /* How THIS DEVICE wants the floor drawn (Settings → Tables & floor):
-       view  cards | sections | grid | list
-       sort  attention | number
-       size  compact | normal | large
-       show  { showMoney, showTime, showServer } */
     view = 'cards',
+    setView,
     sort = 'attention',
     size = 'normal',
     show = {},
     embedded = false,
+    title = 'Floor',
     storeSlug = null,
-    /* Passed in rather than read here so every card in one paint agrees on
-       what time it is, and so a parent tick re-sorts the whole floor at once. */
+    /* Room drawing: { tables: { id: {x,y,shape,rot} } } */
+    floorMap = null,
+    onSaveFloorMap,
+    canArrange = false,
     now = Date.now(),
 }) {
     const tt = useTermText();
     const [showReservations, setShowReservations] = useState(false);
-    const ordered = useMemo(() => {
-        /* SORT ORDER IS THE FEATURE.
+    /* No filter chips: the floor is one picture of the room. */
+    const filter = 'all';
 
-           Alarms first, oldest alarm at the very top -- the floor answers
-           "where do I walk" before it answers anything else. Then open bills,
-           then everything free. Sorting purely by table number makes the
-           waiter scan the whole room for the four cards that need them. */
+    /* Stable callbacks, so memoised cards only repaint when their table did. */
+    const pickRef = useRef(onPick); pickRef.current = onPick;
+    const moneyRef = useRef(money); moneyRef.current = money;
+    const pick = useCallback((c) => pickRef.current?.(c), []);
+    const fmt = useCallback((n) => moneyRef.current?.(n) ?? String(n), []);
+    const showKey = `${show.showMoney !== false}${show.showTime !== false}${show.showServer !== false}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const showStable = useMemo(() => show, [showKey]);
+
+    /* ── effective view ─────────────────────────────────────────────── */
+    const narrow = variant === 'list';
+    let eff = view;
+    if (narrow && (view === 'cards' || view === 'sections')) eff = 'list';
+    if (narrow && view === 'map') eff = 'grid';
+    const laneTab = tabs.find(t => t.id === zone && t.kind === 'lane');
+    if (laneTab && (eff === 'map' || eff === 'grid')) eff = narrow ? 'list' : 'cards';
+
+    const passes = useCallback(() => true, []);
+
+    /* ── order ──────────────────────────────────────────────────────── */
+    const ordered = useMemo(() => {
         const rank = (c) => {
-            if (alertAge(c, now)) return 0;      // somebody is waiting on a person
-            if (c.occupancy_id) return 1;        // money on it
-            if (c.state === 'cleaning') return 2; // blocks a seating RIGHT NOW
-            if (c.state === 'reserved') return 3; // a promise about later
-            return 4;                             // free, and quiet
+            if (alertAge(c, now)) return 0;
+            if ((Number(c.unsent) || 0) + (Number(c.customer_pending) || 0) > 0) return 1;
+            if (c.occupancy_id) return 2;
+            if (c.state === 'cleaning') return 3;
+            if (c.state === 'reserved') return 4;
+            return 5;
         };
         const byNumber = (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
             || String(a.code).localeCompare(String(b.code), undefined, { numeric: true });
-        /* "Table number" keeps every table where the room expects it -- a
-           waiter who knows T7 is bottom-right does not want it jumping to the
-           top. Lane tickets still come first: they have no fixed place. */
         if (sort === 'number') {
-            return [...positions].sort((a, b) => {
-                const ta = a.kind === 'ticket' ? 0 : 1; const tb = b.kind === 'ticket' ? 0 : 1;
-                return ta - tb || byNumber(a, b);
-            });
+            return [...positions].sort((a, b) => ((a.kind === 'ticket' ? 0 : 1) - (b.kind === 'ticket' ? 0 : 1)) || byNumber(a, b));
         }
         return [...positions].sort((a, b) => {
             const ra = rank(a); const rb = rank(b);
@@ -371,220 +455,334 @@ export default function FloorPane({
         });
     }, [positions, now, sort]);
 
-    /* The engine's word is final on width: a column too narrow for cards gets
-       rows -- except the seating chart, whose squares fit anywhere. */
-    const eff = variant === 'list' && view !== 'grid' ? 'list' : view;
-    const cardVariant = eff === 'list' ? 'list' : eff === 'grid' ? 'grid' : 'map';
+    const shown = useMemo(() => (filter === 'all' ? ordered : ordered.filter(passes)), [ordered, filter, passes]);
+
     const sections = useMemo(() => {
         if (eff !== 'sections') return null;
         const out = new Map();
-        for (const c of ordered) {
+        for (const c of shown) {
             const key = c.kind === 'ticket' ? (c.order_type === 'delivery' ? 'Delivery' : 'Takeaway') : (c.zone || 'Tables');
             if (!out.has(key)) out.set(key, []);
             out.get(key).push(c);
         }
         return [...out.entries()];
-    }, [ordered, eff]);
+    }, [shown, eff]);
 
-    const laneTab = tabs.find(t => t.id === zone && t.kind === 'lane');
+    /* ── room map: rooms per area + the lane rail ──────────────────── */
+    const zoneOrder = useMemo(() => tabs.filter(t => t.kind !== 'lane').map(t => t.id), [tabs]);
+    const rooms = useMemo(() => {
+        if (eff !== 'map') return null;
+        const out = new Map();
+        for (const c of positions) {
+            if (c.kind === 'ticket') continue;
+            const key = c.zone || 'Tables';
+            if (!out.has(key)) out.set(key, []);
+            out.get(key).push(c);
+        }
+        return [...out.entries()].sort((a, b) => {
+            const ia = zoneOrder.indexOf(a[0]); const ib = zoneOrder.indexOf(b[0]);
+            return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+        });
+    }, [positions, eff, zoneOrder]);
+    const laneRail = useMemo(() => (eff === 'map' ? ordered.filter(c => c.kind === 'ticket') : []), [ordered, eff]);
+
+    /* ── ARRANGE MODE ──────────────────────────────────────────────── */
+    const [arranging, setArranging] = useState(false);
+    const [layout, setLayout] = useState(() => floorMap?.tables || {});
+    const [pickedId, setPickedId] = useState(null);
+    const [saveState, setSaveState] = useState('idle');
+    const dirty = useRef(false);
+    const saveTimer = useRef(null);
+    const layoutRef = useRef(layout); layoutRef.current = layout;
+
+    useEffect(() => {
+        if (!dirty.current) setLayout(floorMap?.tables || {});
+    }, [floorMap]);
+
+    const flushSave = useCallback(() => {
+        clearTimeout(saveTimer.current);
+        if (!dirty.current || !onSaveFloorMap) return;
+        setSaveState('saving');
+        Promise.resolve(onSaveFloorMap(layoutRef.current))
+            .then(() => { dirty.current = false; setSaveState('saved'); })
+            .catch(() => setSaveState('error'));
+    }, [onSaveFloorMap]);
+
+    const commit = useCallback((updater) => {
+        setLayout(prev => {
+            const next = typeof updater === 'function' ? updater(prev) : updater;
+            layoutRef.current = next;
+            return next;
+        });
+        dirty.current = true;
+        setSaveState('pending');
+        clearTimeout(saveTimer.current);
+        saveTimer.current = setTimeout(flushSave, 700);
+    }, [flushSave]);
+
+    useEffect(() => () => { clearTimeout(saveTimer.current); }, []);
+    useEffect(() => { if (eff !== 'map' && arranging) { setArranging(false); flushSave(); } }, [eff, arranging, flushSave]);
+
+    const posOf = useCallback((id) => {
+        const el = document.querySelector(`.vqf-mt[data-id="${CSS.escape(String(id))}"]`);
+        if (!el) return null;
+        return { x: parseFloat(el.style.left) / 100, y: parseFloat(el.style.top) / 100 };
+    }, []);
+
+    const drag = useRef(null);
+    const SNAP = 0.025;
+    const clamp = (v) => Math.min(0.97, Math.max(0.03, v));
+    const snap = (v) => clamp(Math.round(v / SNAP) * SNAP);
+
+    const onDragStart = useCallback((e, id) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        const el = e.currentTarget;
+        const room = el.closest('.vqf-room');
+        if (!room) return;
+        e.preventDefault();
+        el.setPointerCapture?.(e.pointerId);
+        drag.current = {
+            id, el, rect: room.getBoundingClientRect(), sx: e.clientX, sy: e.clientY,
+            ox: parseFloat(el.style.left) / 100, oy: parseFloat(el.style.top) / 100, moved: false, nx: null, ny: null,
+        };
+        const move = (ev) => {
+            const d = drag.current; if (!d) return;
+            const dx = (ev.clientX - d.sx) / d.rect.width;
+            const dy = (ev.clientY - d.sy) / d.rect.height;
+            if (!d.moved && Math.abs(ev.clientX - d.sx) + Math.abs(ev.clientY - d.sy) < 4) return;
+            d.moved = true;
+            d.nx = snap(d.ox + dx); d.ny = snap(d.oy + dy);
+            d.el.style.left = `${d.nx * 100}%`; d.el.style.top = `${d.ny * 100}%`;
+            d.el.dataset.dragging = '1';
+        };
+        const up = () => {
+            const d = drag.current; drag.current = null;
+            window.removeEventListener('pointermove', move);
+            window.removeEventListener('pointerup', up);
+            window.removeEventListener('pointercancel', up);
+            if (!d) return;
+            delete d.el.dataset.dragging;
+            setPickedId(d.id);
+            if (d.moved && d.nx != null) {
+                commit(prev => ({ ...prev, [d.id]: { ...(prev[d.id] || {}), x: d.nx, y: d.ny, shape: prev[d.id]?.shape ?? null, rot: prev[d.id]?.rot ?? 0 } }));
+            }
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+        window.addEventListener('pointercancel', up);
+    }, [commit]);
+
+    const pickedTable = pickedId ? positions.find(p => p.id === pickedId) : null;
+    const editPicked = (patch) => {
+        if (!pickedTable) return;
+        const here = layout[pickedId] || posOf(pickedId) || { x: 0.5, y: 0.5 };
+        commit(prev => ({ ...prev, [pickedId]: { x: here.x, y: here.y, shape: shapeFor(pickedTable, prev[pickedId]), rot: prev[pickedId]?.rot || 0, ...patch } }));
+    };
+    const resetArea = () => {
+        const ids = new Set(positions.filter(p => p.kind !== 'ticket').map(p => String(p.id)));
+        commit(prev => Object.fromEntries(Object.entries(prev).filter(([k]) => !ids.has(String(k)))));
+        setPickedId(null);
+    };
+
+    /* Arrow keys nudge the picked table — exact placement without a mouse. */
+    useEffect(() => {
+        if (!arranging || !pickedId) return undefined;
+        const onKey = (e) => {
+            const map = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+            if (e.key === 'Escape') { setPickedId(null); return; }
+            const d = map[e.key]; if (!d) return;
+            e.preventDefault(); e.stopPropagation();
+            const here = layoutRef.current[pickedId] || posOf(pickedId); if (!here) return;
+            editPicked({ x: snap(here.x + d[0] * SNAP), y: snap(here.y + d[1] * SNAP) });
+        };
+        window.addEventListener('keydown', onKey, true);
+        return () => window.removeEventListener('keydown', onKey, true);
+    });
+
+    const finishArrange = () => { setArranging(false); setPickedId(null); flushSave(); };
+
+    /* ── lanes ─────────────────────────────────────────────────────── */
     const zoneTabs = useMemo(() => tabs.filter(t => t.kind !== 'lane'), [tabs]);
-    const takeawayTab = useMemo(() => tabs.find(t => t.id === 'takeaway'), [tabs]);
-    const deliveryTab = useMemo(() => tabs.find(t => t.id === 'delivery'), [tabs]);
-    const takeawayCount = takeawayTab ? (takeawayTab.count || 0) : (counts?.takeawayCount || 0);
-    const deliveryCount = deliveryTab ? (deliveryTab.count || 0) : (counts?.deliveryCount || 0);
+    const takeawayTab = tabs.find(t => t.id === 'takeaway');
+    const deliveryTab = tabs.find(t => t.id === 'delivery');
+    const laneBtn = (tab, kind, Icon, label) => {
+        if (tab === undefined) return null;
+        const n = tab ? (tab.count || 0) : (counts?.[`${kind}Count`] || 0);
+        return (
+            <span className="vqf-lane" data-on={zone === kind ? '1' : '0'} data-kind={kind}>
+                {n > 0 && (
+                    <button type="button" className="vqf-lane-filter" onClick={() => setZone(zone === kind ? 'all' : kind)}
+                            title={zone === kind ? `Showing ${label.toLowerCase()} (tap to show all)` : `Show ${label.toLowerCase()} orders`}>
+                        <Icon size={13} aria-hidden="true" /><span>{label}</span><b className="vq-num">{n}</b>
+                    </button>
+                )}
+                <button type="button" className="vqf-lane-add" onClick={() => onNewTicket?.(kind)}
+                        title={`New ${label.toLowerCase()} order`} aria-label={`New ${label.toLowerCase()} order`}>
+                    {n > 0 ? <Plus size={14} strokeWidth={2.5} /> : <><Icon size={13} aria-hidden="true" /><span>{label}</span><Plus size={13} strokeWidth={2.5} /></>}
+                </button>
+            </span>
+        );
+    };
+
+    const dimOf = useCallback((c) => filter !== 'all' && !passes(c), [filter, passes]);
+    const cardVariant = eff === 'list' ? 'list' : 'card';
+
+    const renderCard = (c) => (c.kind === 'ticket'
+        ? <TicketCard key={c.id} t={c} variant={eff === 'grid' ? 'list' : cardVariant} now={now} selected={c.id === selectedId}
+                      onPick={pick} money={fmt} onUpdateDelivery={onUpdateDelivery} />
+        : eff === 'grid'
+            ? <SeatSquare key={c.id} p={c} now={now} show={showStable} selected={c.id === selectedId} onPick={pick} money={fmt} />
+            : <TableCard key={c.id} p={c} variant={cardVariant} now={now} show={showStable}
+                         selected={c.id === selectedId} onPick={pick} money={fmt} />);
 
     return (
-        <section
-            className={embedded ? 'vqt-floor vqt-floor-embedded' : 'vq-pane vqt-floor bg-surface border border-line/80 shadow-md'}
-            data-pane="floor"
-        >
-            {!embedded && (
-                <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line" style={{ display: 'flex', alignItems: 'center' }}>
-                    <Users size={15} className="text-brand-500 dark:text-brand-400" />
-                    <span>Floor</span>
-                    {counts?.alerts > 0 && (
-                        <span className="vqt-h-alert" title={tt('Tables waiting on someone')}>
-                            <AlertTriangle size={11} aria-hidden="true" />
-                            {counts.alerts}
-                        </span>
-                    )}
-
-                    <button
-                        type="button"
-                        onClick={() => setShowReservations(true)}
-                        className="vqt-icon-btn"
-                        style={{
-                            marginLeft: '8px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '2px 8px',
-                            borderRadius: '6px',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            background: 'rgba(59,130,246,0.1)',
-                            color: '#2563eb',
-                            border: '1px solid rgba(59,130,246,0.2)',
-                            cursor: 'pointer',
-                        }}
-                        title="View reservations and waitlist"
-                    >
-                        <Calendar size={12} />
-                        <span>Bookings</span>
-                    </button>
-
-                    <span className="vq-num ml-auto text-2xs opacity-80 font-bold">
-                        {counts ? `${counts.open} open · ${counts.free} free` : ''}
+        <section className={`vqf ${embedded ? 'vqf-embedded' : 'vq-pane bg-surface border border-line/80 shadow-md'}`}
+                 data-pane="floor" data-view={eff}>
+            {/* ── HEADER ─────────────────────────────────────────────── */}
+            <header className="vqf-head vq-pane-fixed">
+                <span className="vqf-title">
+                    <span className="vqf-live" aria-hidden="true" />
+                    {title}
+                </span>
+                {setView && (
+                    <span className="vqf-views" role="radiogroup" aria-label="Floor view">
+                        {VIEWS.map(v => {
+                            const Icon = v.icon;
+                            const off = narrow && (v.id === 'cards' || v.id === 'sections' || v.id === 'map');
+                            return (
+                                <button key={v.id} type="button" role="radio" aria-checked={view === v.id}
+                                        data-on={eff === v.id ? '1' : '0'} disabled={off}
+                                        title={off ? `${v.label} needs a wider column` : v.label} aria-label={v.label}
+                                        onClick={() => setView(v.id)}>
+                                    <Icon size={15} aria-hidden="true" />
+                                </button>
+                            );
+                        })}
                     </span>
-                </header>
-            )}
-
-            {/* Unified Single Toolbar Row: Dining Area Tabs on Left + Channel Actions on Right */}
-            <div className="vqt-toolbar-row vq-pane-fixed">
-                <div className="vqt-zones" role="tablist" aria-label="Areas">
-                    <button
-                        type="button" role="tab" aria-selected={zone === 'all'}
-                        className="vqt-zone" data-on={zone === 'all' ? '1' : '0'}
-                        onClick={() => setZone('all')}
-                    >
-                        All
+                )}
+                <button type="button" className="vqf-hbtn" onClick={() => setShowReservations(true)} title="Bookings and waitlist">
+                    <Calendar size={15} aria-hidden="true" /><span>Bookings</span>
+                </button>
+                {eff === 'map' && canArrange && onSaveFloorMap && !arranging && (
+                    <button type="button" className="vqf-hbtn" onClick={() => setArranging(true)} title="Move tables to match your room">
+                        <Move size={14} aria-hidden="true" /><span>Arrange</span>
                     </button>
+                )}
+            </header>
+
+            {/* ── AREAS + LANES ──────────────────────────────────────── */}
+            <div className="vqf-bar vq-pane-fixed">
+                <div className="vqf-zones" role="tablist" aria-label="Areas">
+                    <button type="button" role="tab" aria-selected={zone === 'all'} data-on={zone === 'all' ? '1' : '0'}
+                            onClick={() => setZone('all')}>All areas</button>
                     {zoneTabs.map(t => (
-                        <button
-                            key={t.id} type="button" role="tab" aria-selected={zone === t.id}
-                            className="vqt-zone" data-on={zone === t.id ? '1' : '0'}
-                            onClick={() => setZone(t.id)}
-                        >
-                            <span>{t.label}</span>
-                        </button>
+                        <button key={t.id} type="button" role="tab" aria-selected={zone === t.id}
+                                data-on={zone === t.id ? '1' : '0'} onClick={() => setZone(t.id)}>{t.label}</button>
                     ))}
                 </div>
-
-                <div className="vqt-channel-actions">
-                    {takeawayTab !== undefined && (
-                        takeawayCount > 0 ? (
-                            <div className="vqt-channel-pill vqt-channel-takeaway" data-active={zone === 'takeaway' ? '1' : '0'}>
-                                <button
-                                    type="button"
-                                    className="vqt-channel-filter-btn"
-                                    onClick={() => setZone(zone === 'takeaway' ? 'all' : 'takeaway')}
-                                    title={zone === 'takeaway' ? "Showing Takeaway orders (click to show all)" : "Filter to Takeaway orders"}
-                                >
-                                    <ShoppingBag size={12} aria-hidden="true" />
-                                    <span>Takeaway</span>
-                                    <span className="vqt-channel-badge">{takeawayCount}</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className="vqt-channel-add-btn"
-                                    onClick={() => onNewTicket?.('takeaway')}
-                                    title="Start new Takeaway order"
-                                    aria-label="New Takeaway order"
-                                >
-                                    <Plus size={11} strokeWidth={2.5} />
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                type="button"
-                                className="vqt-channel-btn vqt-channel-takeaway"
-                                data-active={zone === 'takeaway' ? '1' : '0'}
-                                onClick={() => onNewTicket?.('takeaway')}
-                                title="Start a new Takeaway order (bag at counter, no table needed)"
-                            >
-                                <ShoppingBag size={12} aria-hidden="true" />
-                                <span>+ Takeaway</span>
-                            </button>
-                        )
-                    )}
-
-                    {deliveryTab !== undefined && (
-                        deliveryCount > 0 ? (
-                            <div className="vqt-channel-pill vqt-channel-delivery" data-active={zone === 'delivery' ? '1' : '0'}>
-                                <button
-                                    type="button"
-                                    className="vqt-channel-filter-btn"
-                                    onClick={() => setZone(zone === 'delivery' ? 'all' : 'delivery')}
-                                    title={zone === 'delivery' ? "Showing Delivery orders (click to show all)" : "Filter to Delivery orders"}
-                                >
-                                    <Bike size={12} aria-hidden="true" />
-                                    <span>Delivery</span>
-                                    <span className="vqt-channel-badge">{deliveryCount}</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className="vqt-channel-add-btn"
-                                    onClick={() => onNewTicket?.('delivery')}
-                                    title="Start new Delivery order"
-                                    aria-label="New Delivery order"
-                                >
-                                    <Plus size={11} strokeWidth={2.5} />
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                type="button"
-                                className="vqt-channel-btn vqt-channel-delivery"
-                                data-active={zone === 'delivery' ? '1' : '0'}
-                                onClick={() => onNewTicket?.('delivery')}
-                                title="Start a new Delivery order (courier / driver dispatch, no table needed)"
-                            >
-                                <Bike size={12} aria-hidden="true" />
-                                <span>+ Delivery</span>
-                            </button>
-                        )
-                    )}
+                <div className="vqf-lanes">
+                    {laneBtn(takeawayTab, 'takeaway', ShoppingBag, 'Takeaway')}
+                    {laneBtn(deliveryTab, 'delivery', Bike, 'Delivery')}
                 </div>
             </div>
 
-            <div className="vq-pane-body vqt-floor-body" data-variant={cardVariant} data-view={eff} data-size={size}>
-                {/* A lane's primary action is "start one", and it belongs at
-                    the top of the lane rather than in a menu: a counter with a
-                    queue takes a new bag every ninety seconds. */}
+            {/* ── FILTERS / ARRANGE BAR ──────────────────────────────── */}
+            {arranging ? (
+                <div className="vqf-arrange vq-pane-fixed" role="toolbar" aria-label="Arrange tables">
+                    <Hand size={14} aria-hidden="true" />
+                    <span className="vqf-arrange-hint">
+                        {pickedTable ? <>Table <b>{pickedTable.code}</b> — drag it, or use the arrow keys</> : 'Drag a table to where it stands in your room'}
+                    </span>
+                    {pickedTable && (
+                        <span className="vqf-seg" role="radiogroup" aria-label="Table shape">
+                            {[['round', Circle, 'Round'], ['square', Square, 'Square'], ['long', RectangleHorizontal, 'Long']].map(([s, Icon, label]) => (
+                                <button key={s} type="button" role="radio" aria-checked={shapeFor(pickedTable, layout[pickedId]) === s}
+                                        data-on={shapeFor(pickedTable, layout[pickedId]) === s ? '1' : '0'} title={label} aria-label={label}
+                                        onClick={() => editPicked({ shape: s })}>
+                                    <Icon size={14} aria-hidden="true" />
+                                </button>
+                            ))}
+                            <button type="button" title="Turn" aria-label="Turn table" disabled={shapeFor(pickedTable, layout[pickedId]) !== 'long'}
+                                    onClick={() => editPicked({ rot: (layout[pickedId]?.rot || 0) === 90 ? 0 : 90 })}>
+                                <RotateCw size={14} aria-hidden="true" />
+                            </button>
+                        </span>
+                    )}
+                    <span className="vqf-save" data-state={saveState}>
+                        {saveState === 'saving' || saveState === 'pending' ? <><Loader2 size={12} className="animate-spin" aria-hidden="true" />Saving</>
+                            : saveState === 'error' ? 'Not saved' : saveState === 'saved' ? <><Check size={12} aria-hidden="true" />Saved</> : null}
+                    </span>
+                    <button type="button" className="vqf-hbtn" onClick={resetArea} title="Put tables back in a tidy grid">
+                        <Undo2 size={14} aria-hidden="true" /><span>Tidy</span>
+                    </button>
+                    <button type="button" className="vqf-hbtn vqf-hbtn-primary" onClick={finishArrange}>
+                        <Check size={14} aria-hidden="true" /><span>Done</span>
+                    </button>
+                </div>
+            ) : null}
+
+            {/* ── BODY ───────────────────────────────────────────────── */}
+            <div className="vq-pane-body vqf-body" data-view={eff} data-size={size}>
                 {laneTab && (
-                    <button type="button" className="vqt-new-ticket" onClick={() => onNewTicket?.(zone)}>
-                        <Plus size={15} aria-hidden="true" />
-                        New {laneTab.label.toLowerCase()} ticket
+                    <button type="button" className="vqf-new" onClick={() => onNewTicket?.(zone)}>
+                        <Plus size={16} aria-hidden="true" />New {laneTab.label.toLowerCase()} order
                     </button>
                 )}
 
-                {(sections || [[null, ordered]]).map(([title, cards]) => (
-                    <React.Fragment key={title || 'all'}>
-                        {title && (
-                            <div className="vqt-section-h">
-                                <span>{title}</span>
-                                <span className="vq-num">{cards.filter(c => c.occupancy_id).length} busy · {cards.length}</span>
+                {eff === 'map' && rooms && (
+                    <>
+                        {laneRail.length > 0 && !arranging && (
+                            <div className="vqf-rail-strip" aria-label="Takeaway and delivery">
+                                {laneRail.map(c => (
+                                    <TicketCard key={c.id} t={c} variant="list" now={now} selected={c.id === selectedId}
+                                                onPick={pick} money={fmt} dim={dimOf(c)} />
+                                ))}
                             </div>
                         )}
-                        {cards.map(c => (
-                            c.kind === 'ticket'
-                                ? <TicketCard key={c.id} t={c} variant={cardVariant === 'grid' ? 'map' : cardVariant} now={now}
-                                              selected={c.id === selectedId} onPick={onPick} money={money}
-                                              onUpdateDelivery={onUpdateDelivery} />
-                                : <TableCard key={c.id} p={c} variant={cardVariant} now={now} show={show}
-                                             selected={c.id === selectedId} onPick={onPick} money={money} />
+                        {rooms.map(([z, list]) => (
+                            <Room key={z} title={z} tables={list} layout={layout} selectedId={selectedId}
+                                  onPick={pick} money={fmt} now={now} show={showStable} dimOf={dimOf}
+                                  arranging={arranging} pickedId={pickedId} onDragStart={onDragStart}
+                                  showTitle={rooms.length > 1 || zone === 'all'} />
                         ))}
-                    </React.Fragment>
-                ))}
+                        {!arranging && rooms.length > 0 && (
+                            <div className="vqf-legend" aria-hidden="true">
+                                {LEGEND.map(([tone, label]) => <span key={tone} data-tone={tone}><i />{label}</span>)}
+                                <span data-tone="alert"><i />Needs you</span>
+                            </div>
+                        )}
+                    </>
+                )}
 
-                {ordered.length === 0 && (
-                    <div className="vqt-floor-empty">
-                        <div className="w-14 h-14 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 mb-3 shadow-sm">
-                            <Plus size={26} strokeWidth={2} />
-                        </div>
-                        <p className="font-bold text-ink text-base">
-                            {laneTab ? `No ${laneTab.label.toLowerCase()} tickets open` : tt('No tables in this area')}
+                {eff !== 'map' && (
+                    <div className="vqf-grid" data-view={eff} data-size={size}>
+                        {(sections || [[null, shown]]).map(([sec, cards]) => (
+                            <React.Fragment key={sec || 'all'}>
+                                {sec && (
+                                    <div className="vqf-sec-h">
+                                        <span>{sec}</span>
+                                        <span className="vq-num">{cards.filter(c => c.occupancy_id).length} busy · {cards.length}</span>
+                                    </div>
+                                )}
+                                {cards.map(renderCard)}
+                            </React.Fragment>
+                        ))}
+                    </div>
+                )}
+
+                {positions.length === 0 && (
+                    <div className="vqf-empty">
+                        <span className="vqf-empty-ic"><Plus size={24} strokeWidth={2} /></span>
+                        <p className="vqf-empty-t">
+                            {laneTab ? `No ${laneTab.label.toLowerCase()} orders open` : tt('No tables in this area')}
                         </p>
                         {laneTab ? (
-                            <p className="text-xs text-ink-muted mt-1">Start one above.</p>
+                            <p className="vqf-empty-d">Start one above.</p>
                         ) : (
                             <>
-                                <p className="text-xs text-ink-muted mt-1 mb-4 max-w-sm">
-                                    {tt('Tables come from the floor plan. Build it once and this fills in.')}
-                                </p>
-                                <button type="button" className="vqt-new-ticket" onClick={onSetup}>
-                                    <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-                                    <span>Set up the floor plan</span>
+                                <p className="vqf-empty-d">{tt('Tables come from the floor plan. Build it once and this fills in.')}</p>
+                                <button type="button" className="vqf-new" onClick={onSetup}>
+                                    <Plus size={16} strokeWidth={2.5} aria-hidden="true" />Set up the floor plan
                                 </button>
                             </>
                         )}
@@ -592,31 +790,11 @@ export default function FloorPane({
                 )}
             </div>
 
-            {counts && (
-                /* The floor's own footing. Covers and money owed are what a
-                   manager walking past actually wants off this screen, and
-                   they are read-outs -- so they are typeset, not buttoned. */
-                <footer className="vqt-floor-foot">
-                    <span><b className="vq-num">{counts.covers}</b> covers</span>
-                    <span className="vqt-foot-sep" aria-hidden="true" />
-                    <span><b className="vq-num">{money(counts.due)}</b> due</span>
-                    {counts.unsent > 0 && (
-                        <>
-                            <span className="vqt-foot-sep" aria-hidden="true" />
-                            <span className="vqt-foot-warn"><b className="vq-num">{counts.unsent}</b> unsent</span>
-                        </>
-                    )}
-                </footer>
-            )}
-
             {showReservations && (
-                <ReservationModal
-                    storeSlug={storeSlug}
-                    positions={positions}
-                    onRefresh={onRefresh}
-                    onClose={() => setShowReservations(false)}
-                />
+                <ReservationModal storeSlug={storeSlug} positions={positions} onRefresh={onRefresh}
+                                  onClose={() => setShowReservations(false)} />
             )}
         </section>
     );
 }
+

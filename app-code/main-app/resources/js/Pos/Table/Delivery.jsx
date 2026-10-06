@@ -21,10 +21,11 @@
    ========================================================================== */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import {
     Bike, MapPin, Phone, User, StickyNote, Wallet, Timer,
-    Search, Check, ChefHat, PackageCheck, Loader2, Share2, Copy, CreditCard,
+    Search, Check, ChefHat, PackageCheck, Loader2, Share2, Copy, CreditCard, X, Pencil, AlertTriangle,
 } from 'lucide-react';
 
 /* The journey, in order. Four and not nine: every state a counter does not
@@ -360,6 +361,8 @@ export function DeliveryPanel({ ticket, onUpdate, onError, money, storeSlug }) {
     }, []);
 
     const [form, setForm] = useState(() => ({
+        customerName: ticket?.customer_name || '',
+        phone: ticket?.phone || '',
         address: ticket?.address || '',
         deliveryNote: delivery?.note || '',
         deliveryFee: delivery?.fee ? String(delivery.fee) : '',
@@ -376,6 +379,8 @@ export function DeliveryPanel({ ticket, onUpdate, onError, money, storeSlug }) {
         seededFor.current = ticket?.occupancy_id;
         setEditing(false);
         setForm({
+            customerName: ticket?.customer_name || '',
+            phone: ticket?.phone || '',
             address: ticket?.address || '',
             deliveryNote: ticket?.delivery?.note || '',
             deliveryFee: ticket?.delivery?.fee ? String(ticket.delivery.fee) : '',
@@ -415,36 +420,99 @@ export function DeliveryPanel({ ticket, onUpdate, onError, money, storeSlug }) {
     const late = isLate(delivery);
     const activeIdx = DELIVERY_STATES.indexOf(delivery.status);
 
+    const openEditor = () => {
+        /* Re-seed from the ticket so the form never shows a stale draft. */
+        setForm({
+            customerName: ticket?.customer_name || '',
+            phone: ticket?.phone || '',
+            address: ticket?.address || '',
+            deliveryNote: delivery?.note || '',
+            deliveryFee: delivery?.fee ? String(delivery.fee) : '',
+            etaMinutes: delivery?.eta_minutes ? String(delivery.eta_minutes) : '',
+            rider: delivery?.rider || '',
+            riderId: delivery?.rider_id || null,
+            paymentMethod: delivery?.payment_method || 'cash',
+            collectedAmount: delivery?.collected_amount ? String(delivery.collected_amount) : '',
+        });
+        setEditing(true);
+    };
+
+    const save = async () => {
+        await push({
+            customer_name: form.customerName,
+            phone: form.phone,
+            address: form.address,
+            note: form.deliveryNote,
+            fee: form.deliveryFee === '' ? 0 : Number(form.deliveryFee),
+            eta_minutes: form.etaMinutes === '' ? null : Number(form.etaMinutes),
+            rider: form.rider,
+            rider_id: form.riderId,
+            payment_method: form.paymentMethod,
+        });
+        setEditing(false);
+    };
+
+    const missingAddress = !ticket.address;
+    const bits = [
+        ticket.customer_name,
+        ticket.phone,
+        delivery.rider ? `Rider: ${delivery.rider}` : null,
+        Number(delivery.fee) > 0 ? `Fee ${money ? money(delivery.fee) : delivery.fee}` : null,
+    ].filter(Boolean);
+
+    /* IN THE ORDER PANEL: a short summary, never a form. The order lines
+       below it must always stay visible and reachable, so editing happens in
+       a popup with its own scroll and a Save button that is always on screen. */
     return (
-        <section className="vqd-panel" data-late={late ? '1' : '0'}>
+        <section className="vqd-panel vqd-panel-compact" data-late={late ? '1' : '0'}>
             <header className="vqd-panel-h">
-                <Bike size={14} aria-hidden="true" />
+                <Bike size={15} aria-hidden="true" />
                 <b>Delivery</b>
-                <span className="vq-num vqd-panel-code">{ticket.code}</span>
                 <DeliveryChip delivery={delivery} />
+                <span className="vqd-panel-actions">
+                    {delivery.tracking_token && (
+                        <button type="button" className="vqd-mini" onClick={copyTrackingLink}
+                                title="Copy the customer's tracking link">
+                            {copied ? <Check size={13} /> : <Copy size={13} />}
+                            <span>{copied ? 'Copied' : 'Link'}</span>
+                        </button>
+                    )}
+                    <button type="button" className="vqd-mini vqd-mini-go" onClick={openEditor}>
+                        <Pencil size={13} /><span>{missingAddress ? 'Add details' : 'Edit'}</span>
+                    </button>
+                </span>
             </header>
 
-            <div className="vqd-ladder" role="group" aria-label="Delivery status">
+            <div className="vqd-ladder vqd-ladder-compact" role="group" aria-label="Delivery status">
                 {DELIVERY_STATES.map((st, i) => {
                     const meta = DELIVERY_META[st];
                     const Icon = meta.icon;
                     return (
-                        <button
-                            key={st}
-                            type="button"
-                            className="vqd-step"
-                            data-on={st === delivery.status ? '1' : '0'}
-                            data-past={i < activeIdx ? '1' : '0'}
-                            disabled={saving}
-                            onClick={() => push({ status: st })}
-                            aria-pressed={st === delivery.status}
-                        >
-                            <Icon size={14} aria-hidden="true" />
+                        <button key={st} type="button" className="vqd-step"
+                                data-on={st === delivery.status ? '1' : '0'} data-past={i < activeIdx ? '1' : '0'}
+                                disabled={saving} onClick={() => push({ status: st })}
+                                aria-pressed={st === delivery.status}>
+                            <Icon size={13} aria-hidden="true" />
                             <span>{meta.label}</span>
                         </button>
                     );
                 })}
             </div>
+
+            {missingAddress ? (
+                <button type="button" className="vqd-missing" onClick={openEditor}>
+                    <AlertTriangle size={14} aria-hidden="true" />
+                    No address yet — tap to add where it is going
+                </button>
+            ) : (
+                <div className="vqd-summary">
+                    <MapPin size={13} aria-hidden="true" />
+                    <span className="vqd-summary-t">
+                        <b>{ticket.address}</b>
+                        {bits.length > 0 && <span>{bits.join(' · ')}</span>}
+                    </span>
+                </div>
+            )}
 
             {late && (
                 <p className="vqd-late">
@@ -453,77 +521,44 @@ export function DeliveryPanel({ ticket, onUpdate, onError, money, storeSlug }) {
                 </p>
             )}
 
-            {!editing ? (
-                <div className="vqd-read">
-                    <dl>
-                        {ticket.customer_name && (
-                            <div><dt><User size={11} /> Name</dt><dd>{ticket.customer_name}</dd></div>
-                        )}
-                        {ticket.phone && (
-                            <div><dt><Phone size={11} /> Phone</dt><dd className="vq-num">{ticket.phone}</dd></div>
-                        )}
-                        {ticket.address && (
-                            <div><dt><MapPin size={11} /> Address</dt><dd>{ticket.address}</dd></div>
-                        )}
-                        {delivery.note && (
-                            <div><dt><StickyNote size={11} /> Instructions</dt><dd>{delivery.note}</dd></div>
-                        )}
-                        {delivery.rider && (
-                            <div><dt><Bike size={11} /> Rider</dt><dd>{delivery.rider}</dd></div>
-                        )}
-                        {Number(delivery.fee) > 0 && (
-                            <div><dt><Wallet size={11} /> Fee</dt><dd className="vq-num">{money ? money(delivery.fee) : delivery.fee}</dd></div>
-                        )}
-                        <div>
-                            <dt><CreditCard size={11} /> Pay Method</dt>
-                            <dd style={{ textTransform: 'capitalize' }}>{delivery.payment_method || 'Cash'}</dd>
-                        </div>
-                    </dl>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                        <button type="button" className="vqt-btn" onClick={() => setEditing(true)}>
-                            Edit details
-                        </button>
-                        {delivery.tracking_token && (
-                            <button
-                                type="button"
-                                className="vqt-btn"
-                                onClick={copyTrackingLink}
-                                title="Copy public customer tracking link"
-                            >
-                                {copied ? <Check size={13} style={{ color: '#10b981' }} /> : <Copy size={13} />}
-                                {copied ? 'Link Copied!' : 'Tracking Link'}
+            {editing && createPortal(
+                <div className="vqt-modal-scrim" onMouseDown={() => setEditing(false)}>
+                    <div className="vqt-modal vqt-modal-wide vqd-modal bg-surface border border-line" role="dialog"
+                         aria-modal="true" aria-label="Delivery details" onMouseDown={e => e.stopPropagation()}
+                         onKeyDown={e => { if (e.key === 'Escape') setEditing(false); }}>
+                        <header className="vqt-modal-h">
+                            <Bike size={16} className="text-brand-600" aria-hidden="true" />
+                            <h2 className="font-bold text-ink" style={{ fontSize: 'var(--vq-t-lg)' }}>
+                                Delivery details <span className="vq-num text-ink-muted" style={{ fontWeight: 600 }}>· {ticket.code}</span>
+                            </h2>
+                            <button type="button" onClick={() => setEditing(false)} className="vqt-icon-btn" aria-label="Close">
+                                <X size={16} />
                             </button>
-                        )}
+                        </header>
+                        <div className="vqt-modal-b">
+                            <div className="vqd-row2">
+                                <label className="vqt-field vqt-field-stacked">
+                                    <span className="vqt-field-l"><User size={12} aria-hidden="true" /> Name</span>
+                                    <input className="vqt-input" value={form.customerName}
+                                           onChange={e => set('customerName', e.target.value)} placeholder="Who it is going to" />
+                                </label>
+                                <label className="vqt-field vqt-field-stacked">
+                                    <span className="vqt-field-l"><Phone size={12} aria-hidden="true" /> Phone</span>
+                                    <input className="vqt-input vq-num" value={form.phone} inputMode="tel"
+                                           onChange={e => set('phone', e.target.value)} placeholder="For the rider" />
+                                </label>
+                            </div>
+                            <DeliveryFields v={form} set={set} storeSlug={storeSlug} />
+                        </div>
+                        <footer className="vqt-modal-f">
+                            <button type="button" className="vqt-btn" onClick={() => setEditing(false)}>Cancel</button>
+                            <button type="button" className="vqt-btn vqt-btn-go" disabled={saving} onClick={save}>
+                                {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Save
+                            </button>
+                        </footer>
                     </div>
-                </div>
-            ) : (
-                <div className="vqd-edit">
-                    <DeliveryFields v={form} set={set} storeSlug={storeSlug} />
-                    <div className="vqd-edit-f">
-                        <button type="button" className="vqt-btn" onClick={() => setEditing(false)}>
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            className="vqt-btn vqt-btn-go"
-                            disabled={saving}
-                            onClick={async () => {
-                                await push({
-                                    address: form.address,
-                                    note: form.deliveryNote,
-                                    fee: form.deliveryFee === '' ? 0 : Number(form.deliveryFee),
-                                    eta_minutes: form.etaMinutes === '' ? null : Number(form.etaMinutes),
-                                    rider: form.rider,
-                                    rider_id: form.riderId,
-                                    payment_method: form.paymentMethod,
-                                });
-                                setEditing(false);
-                            }}
-                        >
-                            <Check size={15} /> Save
-                        </button>
-                    </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </section>
     );

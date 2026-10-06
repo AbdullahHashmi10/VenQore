@@ -24,6 +24,18 @@ class PosController extends Controller
         //   GET /api/pos/barcode/{code} → exact barcode scanner lookup
         // ──────────────────────────────────────────────────────────────────
 
+        // Restaurant work lives in Front of House now. Old links (?view=floor, ?occupancy=ID)
+        // follow it there; the till itself is retail-only for stores on FOH.
+        $fohTenant = app('current.tenant');
+        $fohOn = \App\Support\FohSettings::redirectsOn((int) $fohTenant->id);
+        if ($fohOn && ($request->input('view') === 'floor' || $request->filled('occupancy'))) {
+            return redirect()->route('store.foh', array_filter([
+                'store_slug' => $fohTenant->slug,
+                'tab'        => $request->filled('occupancy') ? null : 'tables',
+                'order'      => $request->filled('occupancy') ? (int) $request->input('occupancy') : null,
+            ]));
+        }
+
         // Only load the recalled sale if requested (inline bill recall)
         $recalledSale = null;
         if ($request->has('recall')) {
@@ -119,12 +131,13 @@ class PosController extends Controller
                used to ship Setting::all() verbatim, which put the hashed admin
                passcode and every saved API key into the page source of any
                cashier's browser. The register never reads any of them. */
+            'fohRedirect'  => $fohOn,
             'settings'     => \App\Models\Setting::all()->pluck('value', 'key')->except([
                 'admin_passcode', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key',
                 'stripe_secret_key', 'stripe_webhook_secret', 'woocommerce_consumer_key',
                 'woocommerce_consumer_secret', 'whatsapp_access_token', 'fbr_auth_token',
                 'sso_certificate',
-            ]),
+            ])->when($fohOn, fn ($c) => $c->put('service_mode', 'counter')),
         ]);
     }
 

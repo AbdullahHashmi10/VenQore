@@ -47,6 +47,9 @@ class SaleController extends Controller
             'customer_id'           => 'nullable|exists:parties,id',
             // Optional label for a walk-in sale (name to call out). Not a customer record.
             'walk_in_name'          => 'nullable|string|max:120',
+            // FOH (restaurant front of house): which table/ticket and channel this sale belongs to.
+            'occupancy_id'          => 'nullable|integer',
+            'order_type'            => 'nullable|string|in:dine_in,takeaway,delivery',
             'items'                 => 'required|array|min:1',
             'items.*.product_id'    => 'nullable|string',
             'items.*.description'   => 'required_without:items.*.product_id|nullable|string|max:255',
@@ -55,6 +58,10 @@ class SaleController extends Controller
             'items.*.free_quantity' => 'nullable|numeric|min:0',
             'items.*.price'         => 'required|numeric|min:0',
             'items.*.discount'      => 'nullable|numeric|min:0',
+            'items.*.modifiers'     => 'nullable|array|max:30',
+            'items.*.modifiers.*.id'          => 'nullable',
+            'items.*.modifiers.*.name'        => 'required|string|max:80',
+            'items.*.modifiers.*.price_delta' => 'nullable|numeric',
             'payment_method'        => 'required|string',
             'amount_paid'           => 'nullable|numeric|min:0',
             'discount'              => 'nullable|numeric|min:0',
@@ -198,6 +205,7 @@ class SaleController extends Controller
                     'tax_type'      => $item['tax_type'] ?? $request->input('tax_type', 'percentage'),
                     'tax_amt'       => 0.0, // filled in pass 2 below
                     'serials'       => $item['serials'] ?? [],
+                    'modifiers'     => self::cleanModifiers($item['modifiers'] ?? []),
                 ];
             }
 
@@ -365,6 +373,7 @@ class SaleController extends Controller
                     'product_id' => $ld['product_id'],
                     'name'       => $ld['product']->name,
                     'type'       => $ld['product']->type,
+                    'no_stock'   => self::skipsStock($ld['product'], $request),
                     'cost_price' => $ld['product']->cost_price,
                     'paid_qty'   => $ld['qty'],
                     'free_qty'   => $ld['free_qty'],
@@ -468,6 +477,8 @@ class SaleController extends Controller
                     'source'               => $request->source === 'pos' ? 'pos' : 'manual',
                     'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
                     'walk_in_name'         => $request->customer_id ? null : (trim((string) $request->input('walk_in_name')) ?: null),
+                    'occupancy_id'         => self::ownedOccupancyId($request->input('occupancy_id')),
+                    'order_type'           => in_array($request->input('order_type'), ['dine_in', 'takeaway', 'delivery'], true) ? $request->input('order_type') : null,
                     'user_id'              => Auth::id() ?? 1,
                     'order_taker_id'       => $request->input('order_taker_id', Auth::id()),
                     'warehouse_id'         => $request->warehouse_id ?? (\App\Models\Warehouse::first()?->id ?? 1),
@@ -524,7 +535,7 @@ class SaleController extends Controller
                 $product = $ld['product'];
                 $totalQty = $ld['qty'] + $ld['free_qty'];
 
-                if ($isStockEnabled && $product->type !== 'service' && !$sale->is_dropship) {
+                if ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request) && !$sale->is_dropship) {
                     $stock = \App\Models\Stock::where('product_id', $ld['product_id'])->where('warehouse_id', $sale->warehouse_id)->first();
                     $avail = $stock ? $stock->quantity : 0;
 
@@ -557,6 +568,7 @@ class SaleController extends Controller
                     'tax_amount' => $ld['tax_amt'],
                     'subtotal' => $ld['qty'] * $ld['unit_price'],
                     'line_total' => $ld['net'] + $ld['tax_amt'],
+                    'modifiers' => $ld['modifiers'] ?: null,
                 ]);
 
                 // Serial Number Recording
@@ -617,7 +629,7 @@ class SaleController extends Controller
                 // product's flat cost_price is when stock tracking is DISABLED for the
                 // product (service / non-inventory items that legitimately have no batches).
                 $itemCogs = 0;
-                if ($isStockEnabled && $product->type !== 'service') {
+                if ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request)) {
                     // Let InsufficientStockException propagate — the outer catch turns it
                     // into a clean 422 + full rollback. No fabrication, no partial post.
                     $deductions = app(\App\Engines\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
@@ -656,7 +668,7 @@ class SaleController extends Controller
                 );
 
                 // Legacy Stock Update
-                if ($isStockEnabled && $product->type !== 'service') {
+                if ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request)) {
                     if ($ld['variant_id']) {
                         ProductVariant::find($ld['variant_id'])?->decrement('stock', $totalQty);
                     } else {
@@ -1303,6 +1315,56 @@ class SaleController extends Controller
      * Returns true if the items list covers the full quantity of every sale item.
      * Empty $itemsToReturn means all items are being returned.
      */
+    /**
+     * Should this line leave stock alone? (FOH plan 2.5)
+     *
+     * Two independent reasons: the product itself is not stock-tracked
+     * (made-to-order menu items), or this is a FOH sale and the store chose
+     * "FOH sales never deduct stock". The second reads the store setting on the
+     * server - the client's `channel` only says WHERE the sale came from, it can
+     * never switch deduction off on its own.
+     */
+    private static function skipsStock($product, Request $request): bool
+    {
+        if (isset($product->track_stock) && !$product->track_stock) {
+            return true;
+        }
+        if ($request->input('channel') === 'foh') {
+            return \App\Support\FohSettings::stockMode((int) app('current.tenant')->id) === 'never';
+        }
+        return false;
+    }
+
+    /** A sale may only point at an occupancy of its own store; anything else is dropped, not trusted. */
+    private static function ownedOccupancyId($id): ?int
+    {
+        if ($id === null || $id === '' || !is_numeric($id)) return null;
+        $ok = \App\Models\Occupancy::where('tenant_id', app('current.tenant')->id)->whereKey((int) $id)->exists();
+        return $ok ? (int) $id : null;
+    }
+
+    /**
+     * Add-ons picked on a line, reduced to what is worth keeping: a name for the
+     * receipt and kitchen, and the price move they caused. The line's unit price
+     * already includes these; they explain it, they are never added again.
+     */
+    private static function cleanModifiers($mods): array
+    {
+        if (!is_array($mods)) return [];
+        $out = [];
+        foreach (array_slice($mods, 0, 30) as $m) {
+            if (!is_array($m)) continue;
+            $name = trim((string) ($m['name'] ?? ''));
+            if ($name === '') continue;
+            $out[] = [
+                'id'          => isset($m['id']) ? (string) $m['id'] : null,
+                'name'        => mb_substr($name, 0, 80),
+                'price_delta' => round((float) ($m['price_delta'] ?? 0), 4),
+            ];
+        }
+        return $out;
+    }
+
     private function isFullReturn(Sale $sale, array $itemsToReturn): bool
     {
         if (empty($itemsToReturn)) return true;
@@ -1607,6 +1669,7 @@ class SaleController extends Controller
                     'tax_rate'        => $lineTaxRate,
                     'tax_amount'      => $lineTaxAmount,
                     'line_total'      => $netAmount + $lineTaxAmount,
+                    'modifiers'       => self::cleanModifiers($item['modifiers'] ?? []) ?: null,
                 ];
             }
 

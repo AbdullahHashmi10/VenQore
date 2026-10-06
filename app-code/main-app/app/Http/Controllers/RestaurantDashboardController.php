@@ -37,10 +37,13 @@ class RestaurantDashboardController extends Controller
      * Display the Restaurant / Café Dashboard (Table Layout, Kitchen Display, Modifiers).
      * Deploy D: Legacy RestaurantTable is gone. All reads AND writes go through Position/Occupancy.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Illuminate\Http\RedirectResponse
     {
         $this->ensureRestaurantEnabled();
         $tenant = app('current.tenant');
+        if (!$request->boolean('legacy') && \App\Support\FohSettings::redirectsOn((int) $tenant->id)) {
+            return redirect()->route('store.foh', ['store_slug' => $tenant->slug, 'tab' => 'overview']);
+        }
 
         $positions = Position::with('activeOccupancy')
             ->where('tenant_id', $tenant->id)
@@ -153,9 +156,12 @@ class RestaurantDashboardController extends Controller
     /**
      * Restaurant operations and hospitality configuration hub.
      */
-    public function settings(Request $request): Response
+    public function settings(Request $request): Response|\Illuminate\Http\RedirectResponse
     {
         $tenant = app('current.tenant');
+        if (!$request->boolean('legacy') && config('venqore.foh_redirects', true)) {
+            return redirect()->route('store.foh.settings', ['store_slug' => $tenant->slug]);
+        }
         $settings = Setting::where('tenant_id', $tenant->id)->pluck('value', 'key');
 
         return Inertia::render('Restaurant/Settings', [
@@ -226,9 +232,18 @@ class RestaurantDashboardController extends Controller
             $order->status = $next;
             $order->bumped_at = now();
             $order->save();
+            $this->closePaidLaneIfDone($order);
         }
 
         return response()->json(['success' => true, 'order' => $this->ticketShape($order)]);
+    }
+
+    /** A paid takeaway whose last ticket was just served is collected: close it (FOH plan 2.9). */
+    private function closePaidLaneIfDone(WorkOrder $order): void
+    {
+        if ($order->status === 'served' && $order->occupancy_id) {
+            \App\Services\Foh\LaneCollection::closeIfDone((int) $order->tenant_id, (int) $order->occupancy_id);
+        }
     }
 
     /**
@@ -245,6 +260,7 @@ class RestaurantDashboardController extends Controller
                 'status'    => 'served',
                 'bumped_at' => now(),
             ]);
+        \App\Services\Foh\LaneCollection::sweep((int) $tenant->id);
 
         return response()->json([
             'success' => true,
@@ -339,6 +355,7 @@ class RestaurantDashboardController extends Controller
             'status'    => $status,
             'bumped_at' => $status === 'served' ? ($order->bumped_at ?? now()) : $order->bumped_at,
         ]);
+        $this->closePaidLaneIfDone($order->fresh());
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'order' => $order]);

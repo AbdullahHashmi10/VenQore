@@ -26,9 +26,14 @@ use Inertia\Response;
 class DispatchController extends Controller
 {
     /** Render the dispatch SPA page. */
-    public function index(Request $request): Response
+    public function index(Request $request): Response|\Illuminate\Http\RedirectResponse
     {
         $tenant = app('current.tenant');
+        // The board now lives in FOH -> Delivery. `?legacy=1` keeps the rider cash-up page reachable.
+        if (!$request->boolean('legacy') && \App\Support\FohSettings::redirectsOn((int) $tenant->id)
+            && in_array('delivery', \App\Support\FohSettings::enabledTabs((int) $tenant->id), true)) {
+            return redirect()->route('store.foh', ['store_slug' => $tenant->slug, 'tab' => 'delivery']);
+        }
         $preparesOrders = \App\Models\Setting::where('tenant_id', $tenant->id)->where('key', 'prepares_orders')->value('value');
         $deliveryEnabled = \App\Models\Setting::where('tenant_id', $tenant->id)->where('key', 'lane_delivery')->value('value');
 

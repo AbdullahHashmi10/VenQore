@@ -286,7 +286,7 @@
     border: 1px solid var(--vq-line, #e2e8e4);
     background: var(--vq-surface, #ffffff);
     box-shadow: 0 1px 3px rgba(13, 20, 18, 0.03), 0 3px 8px -2px rgba(13, 20, 18, 0.05);
-    transition: all 140ms cubic-bezier(.22, 1, .36, 1);
+    transition: 140ms cubic-bezier(.22, 1, .36, 1); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
     /* index | name | price | qty | total | bin */
     grid-template-columns: 30px minmax(160px, 1fr) auto auto auto auto;
 }
@@ -822,7 +822,7 @@
     font-weight: 700;
     font-size: var(--vq-t-md);
     white-space: nowrap;
-    transition: all var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1));
+    transition: var(--vq-dur-1, 120ms) var(--vq-ease-out, cubic-bezier(.22,1,.36,1)); transition-property: color, background-color, border-color, box-shadow, opacity, transform;
 }
 .vq-dock-btn[data-primary='1'] {
     flex: 1 1 auto;
@@ -1225,4 +1225,189 @@
     color: var(--vq-text-3, #6b7a73);
     font-size: 10px;
     font-weight: 800;
+}
+
+/* ==========================================================================
+   PERFORMANCE — the register must feel instant
+   ==========================================================================
+   1. `transition-all` (94 uses in the page) animates layout properties too:
+      any width or padding change on a tile became a 150ms re-layout. Inside
+      the register it is narrowed to the properties that paint cheaply.
+   2. Long catalogs and long carts skip rendering what is off screen
+      (content-visibility), so a 600-product category scrolls like a short one.
+   3. Big translucent scrims blur everything behind them on every frame; on a
+      register they are opaque enough without the blur.
+   ========================================================================== */
+.vq-term .transition-all {
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+}
+.vq-term .vq-tiles > button,
+.vq-term .vq-tiles-large > button,
+.vq-term .vq-pills > button {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 92px;
+}
+.vq-term .vq-tiles-large > button { contain-intrinsic-size: auto 260px; }
+.vq-term .vq-pills > button { contain-intrinsic-size: auto 44px; }
+.vq-term .backdrop-blur-sm { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (prefers-reduced-motion: reduce) {
+    .vq-term *, .vq-term *::before, .vq-term *::after { animation-duration: 1ms !important; transition-duration: 1ms !important; }
+}
+
+/* ── CATALOG ROW (V6) ─────────────────────────────────────────────────── */
+.vq-prow {
+    position: relative;
+    width: 100%;
+    display: flex; align-items: center; gap: 10px;
+    min-height: 60px;
+    padding: 9px 12px 9px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .1s;
+}
+.vq-prow:hover { border-color: var(--vq-accent); box-shadow: var(--vq-elev-1, 0 1px 3px rgb(0 0 0 / .06)); }
+.vq-prow:active { transform: scale(.99); }
+.vq-prow[data-incart='1'] { border-color: color-mix(in srgb, var(--vq-accent) 55%, var(--vq-line)); background: color-mix(in srgb, var(--vq-accent) 5%, var(--vq-surface)); }
+.vq-prow[data-out='1'] { opacity: .6; }
+.vq-prow-img {
+    flex: 0 0 auto; width: 40px; height: 40px;
+    display: grid; place-items: center; overflow: hidden;
+    border-radius: 10px; background: var(--vq-sunken); color: var(--vq-text-3);
+}
+.vq-prow-img img { width: 100%; height: 100%; object-fit: cover; }
+.vq-prow-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.vq-prow-name { font: 700 14px/1.25 var(--vq-font-sans); color: var(--vq-text); }
+.vq-prow-sub { display: flex; align-items: center; gap: 8px; min-width: 0; font: 600 11.5px/1.2 var(--vq-font-sans); color: var(--vq-text-3); }
+.vq-prow-stock { flex: 0 0 auto; color: var(--vq-success); font-weight: 700; }
+.vq-prow-stock[data-out='1'] { color: var(--vq-danger); }
+.vq-prow-end { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.vq-prow-price { font: 800 14px/1 var(--vq-font-numeric, var(--vq-font-sans)); color: var(--vq-accent-text, var(--vq-accent)); white-space: nowrap; }
+.vq-prow-qty {
+    min-width: 26px; height: 20px; padding: 0 6px;
+    display: inline-grid; place-items: center;
+    border-radius: 999px; background: var(--vq-accent-fill, var(--vq-accent)); color: var(--vq-on-accent, #fff);
+    font: 800 11px/1 var(--vq-font-numeric);
+}
+.vq-prow-var { position: absolute; top: 7px; right: 7px; width: 6px; height: 6px; border-radius: 999px; background: var(--vq-accent); }
+
+/* ── PAYMENT PANEL (V6) ───────────────────────────────────────────────────
+   The tender pane is a size container, so its contents respond to the
+   width the pane actually has, not to the window. */
+.vq-tender-pane { container-type: inline-size; container-name: tender; }
+
+.vq-pay-btn {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    height: 58px; padding: 0 14px 0 18px;
+    font-size: 19px; line-height: 1;
+    min-width: 0;
+    box-shadow: 0 6px 24px -4px rgba(11, 170, 143, 0.45);
+}
+.vq-pay-ic { flex: 0 0 auto; }
+.vq-pay-label { min-width: 0; white-space: nowrap; font-weight: 800; letter-spacing: -.01em; }
+.vq-pay-short { display: none; }
+.vq-pay-amt {
+    flex: 0 0 auto; margin-left: auto;
+    padding: 6px 12px; border-radius: 12px;
+    background: rgb(255 255 255 / .2); border: 1px solid rgb(255 255 255 / .22);
+    font-size: 16px; font-weight: 800;
+}
+.vq-pay-btn:has(.vq-pay-amt) .vq-pay-label { margin-right: auto; }
+
+@container tender (max-width: 400px) {
+    .vq-pay-btn { font-size: 17px; gap: 10px; padding: 0 12px 0 14px; }
+    .vq-pay-amt { font-size: 15px; padding: 5px 10px; }
+}
+@container tender (max-width: 350px) {
+    .vq-pay-long { display: none; }
+    .vq-pay-short { display: inline; }
+}
+@container tender (max-width: 290px) {
+    .vq-pay-amt { display: none; }
+    .vq-pay-btn .vq-pay-label { margin-right: 0; }
+}
+
+/* Change sits on the cash card, right of the label. */
+.vq-tender-change { display: inline-flex; align-items: baseline; gap: 6px; font: 700 12px/1 var(--vq-font-sans); text-transform: uppercase; letter-spacing: .06em; color: var(--vq-success); }
+.vq-tender-change b { font: 800 20px/1 var(--vq-font-numeric, var(--vq-font-sans)); letter-spacing: -.01em; text-transform: none; }
+.vq-tender-change[data-short='1'] { color: var(--vq-danger); }
+
+/* Quick cash: one tidy row of equal buttons, however many there are. */
+.vq-quick-cash { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; padding-top: 10px; }
+.vq-quick-cash button {
+    height: 36px; padding: 0 6px;
+    border-radius: 10px;
+    border: 1px solid var(--vq-line);
+    background: var(--vq-surface);
+    color: var(--vq-text);
+    font: 700 13px/1 var(--vq-font-numeric, var(--vq-font-sans));
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: background-color .15s, border-color .15s, color .15s;
+}
+.vq-quick-cash button:hover { border-color: var(--vq-accent); color: var(--vq-accent-text, var(--vq-accent)); background: var(--vq-accent-quiet, var(--vq-surface)); }
+
+/* A narrow payment column gets tighter cards so the whole panel fits
+   without scrolling on a laptop. */
+@container tender (max-width: 400px) {
+    .vq-tender-pane .vq-pane-body { padding: 10px; }
+    .vq-tender-pane .vq-pane-body > * + * { margin-top: 8px !important; }
+    .vq-tender-pane #tour-pos-paid { padding: 12px; }
+    .vq-tender-pane .vq-pane-actions { padding: 10px; gap: 8px; }
+    .vq-tender-pane .vq-pane-actions .h-12 { height: 44px; }
+    .vq-quick-cash button { font-size: 12px; height: 34px; }
+}
+
+/* The cash card pinned in the payment footer: tighter, no second shadow. */
+.vq-tender-pane .vq-pane-actions #tour-pos-paid { padding: 10px 12px; border-radius: 16px; box-shadow: none; }
+.vq-tender-pane .vq-pane-actions #tour-pos-paid input { height: 50px; }
+
+/* Totals card: labels never break mid-word, controls never squash. */
+.vq-total-card span, .vq-total-card label, .vq-total-card button { white-space: nowrap; }
+@container tender (max-width: 400px) {
+    .vq-total-card { padding: 12px 14px !important; }
+    .vq-total-card > * + * { margin-top: 8px !important; }
+    .vq-total-card > div { font-size: 13px; }
+    .vq-total-card .vq-num.text-base { font-size: 14px; }
+    .vq-total-card button { padding-left: 7px !important; padding-right: 7px !important; font-size: 11.5px !important; }
+    .vq-total-card #vq-tip { width: 84px; font-size: 14px; }
+    .vq-total-card [style*="--vq-t-total"] { font-size: 22px !important; }
+    .vq-total-card .tracking-wider { letter-spacing: .04em; font-size: 13px; }
+}
+@container tender (max-width: 320px) {
+    /* The tax switch (incl/excl) is a setup choice, not a per-sale one;
+       on a very narrow column the rate and the amount are what matter. */
+    .vq-total-card button[class*="uppercase"] { display: none; }
+}
+
+/* Total payable, pinned above the cash box in the payment footer. */
+.vq-total-strip {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    min-height: 54px; padding: 8px 16px;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #062421, #0A5049 55%, #076B5E);
+    color: #fff;
+    box-shadow: 0 8px 20px -10px rgb(6 36 33 / .6);
+}
+.vq-total-strip span { font: 800 13px/1.1 var(--vq-font-sans); letter-spacing: .08em; text-transform: uppercase; color: #99f6e4; white-space: nowrap; }
+.vq-total-strip b { font: 800 26px/1 var(--vq-font-numeric, var(--vq-font-sans)); letter-spacing: -.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@container tender (max-width: 400px) {
+    .vq-total-strip { min-height: 48px; padding: 6px 14px; }
+    .vq-total-strip b { font-size: 22px; }
+    .vq-total-strip span { font-size: 12px; }
+}
+@container tender (max-width: 300px) {
+    .vq-total-strip span { font-size: 11px; letter-spacing: .04em; }
+    .vq-total-strip b { font-size: 19px; }
+}
+/* The pay button repeats the amount only when the strip above is not
+   already saying it right next to it -- which, in the pane, it always is. */
+.vq-tender-pane .vq-pay-amt { display: none; }
+.vq-tender-pane .vq-pay-btn .vq-pay-label { margin-right: 0; }
+.vq-tender-pane .vq-pay-long { display: inline; }
+.vq-tender-pane .vq-pay-short { display: none; }
+@container tender (max-width: 260px) {
+    .vq-tender-pane .vq-pay-long { display: none; }
+    .vq-tender-pane .vq-pay-short { display: inline; }
 }

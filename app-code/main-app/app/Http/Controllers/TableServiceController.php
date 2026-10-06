@@ -114,8 +114,13 @@ class TableServiceController extends Controller
            It created twelve tables named after somebody else's dining room,
            which this file's own notes complain about; a register that reaches
            the floor with nothing on it now offers to build the real one. */
+        $tenant = app('current.tenant');
+        if (\App\Support\FohSettings::redirectsOn((int) $tenant->id)) {
+            return redirect()->route('store.foh', ['store_slug' => $tenant->slug, 'tab' => 'tables']);
+        }
+
         return redirect()->route('store.pos', [
-            'store_slug' => app('current.tenant')->slug,
+            'store_slug' => $tenant->slug,
             'view'       => 'floor',
         ]);
     }
@@ -413,6 +418,12 @@ class TableServiceController extends Controller
         // have all been paid off by splits owes nothing and closes on one tap.
         $total = $this->unpaidTotal($occ->session_data ?? []);
 
+        // Discarding an unpaid bill is a money decision: a waiter who only holds
+        // foh.access can close an empty or paid table, never throw a bill away.
+        if ($total > 0 && ($data['force'] ?? false) && $request->user() && !$request->user()->hasPermission('pos.checkout')) {
+            return response()->json(['message' => 'Only staff who can take payment may discard an unpaid order.'], 403);
+        }
+
         if ($total > 0 && !($data['force'] ?? false)) {
             return response()->json([
                 'message' => 'This table has an unsettled order. Settle it, or confirm to discard.',
@@ -619,7 +630,9 @@ class TableServiceController extends Controller
         $closed    = false;
         $remaining = 0.0;
 
-        DB::transaction(function () use ($occ, &$session, $pending, $saleId, $stamp, $isPart, &$closed, &$remaining) {
+        $awaiting = false;
+
+        DB::transaction(function () use ($occ, $tenant, &$session, $pending, $saleId, $stamp, $isPart, &$closed, &$remaining, &$awaiting) {
             $cart = $session['cart'] ?? [];
 
             if ($isPart) {
@@ -672,6 +685,19 @@ class TableServiceController extends Controller
                 $session['settled_sale_id'] = $saleId;
             }
 
+            /* FOH plan 2.9: a PAID takeaway/delivery bag whose food is still on
+               the pass stays open so the counter can see "Paid - cooking" and
+               "Ready to collect". Only for stores that opted in to FOH; everyone
+               else keeps close-on-pay. POST tables/collected (or the kitchen
+               bumping the last ticket) closes it. */
+            if ($closed && !$occ->position_id
+                && \App\Support\FohSettings::collectsTakeaway((int) $tenant->id)
+                && \App\Services\Foh\LaneCollection::hasOpenWork((int) $tenant->id, (int) $occ->id)) {
+                $closed   = false;
+                $awaiting = true;
+                $session['paid_at'] = now()->toIso8601String();
+            }
+
             $occ->session_data = $session;
             if ($closed) $occ->closed_at = now();
             $occ->save();
@@ -680,10 +706,135 @@ class TableServiceController extends Controller
         });
 
         return response()->json([
-            'ok'              => true,
-            'closed'          => $closed,
-            'remaining_total' => $remaining,
+            'ok'                  => true,
+            'closed'              => $closed,
+            'remaining_total'     => $remaining,
+            'awaiting_collection' => $awaiting,
         ]);
+    }
+
+    /**
+     * "Pack it to go" and friends: change what kind of order this is, keeping
+     * the cart, the sent quantities and the kitchen tickets. FOH plan 2.4.
+     *
+     *   dine_in  -> takeaway|delivery   frees the table, becomes a TA-/DL- ticket
+     *   takeaway <-> delivery           relabels; delivery gains its block
+     *   takeaway|delivery -> dine_in    needs a free table (`position_id`)
+     *
+     * Kitchen tickets already fired are untouched - they belong to the
+     * occupancy, not to the table - only later fires carry the new type.
+     */
+    public function convert(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate([
+            'occupancy_id'   => 'required|integer',
+            'to'             => 'required|string|in:dine_in,takeaway,delivery',
+            'position_id'    => 'nullable|integer',
+            'covers'         => 'nullable|integer|min:1|max:99',
+            'customer_name'  => 'nullable|string|max:120',
+            'phone'          => 'nullable|string|max:40',
+            'address'        => 'nullable|string|max:500',
+            'delivery_fee'   => 'nullable|numeric|min:0|max:9999999',
+        ]);
+
+        $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json(['message' => 'That order is already closed.'], 422);
+        }
+
+        $session = $occ->session_data ?? [];
+        $from    = $occ->position_id ? 'dine_in' : (($session['order_type'] ?? 'takeaway') === 'delivery' ? 'delivery' : 'takeaway');
+        $to      = $data['to'];
+
+        if ($from === $to) {
+            return response()->json($this->cardFor($occ));
+        }
+
+        if (!empty($session['pending_settle'])) {
+            return response()->json(['message' => 'A part of this bill is waiting at the till. Finish or cancel the split first.'], 422);
+        }
+
+        $freed = null;
+        $taken = null;
+
+        if ($to === 'dine_in') {
+            if (empty($data['position_id'])) {
+                return response()->json(['message' => 'Choose a table first.'], 422);
+            }
+            $taken = Position::where('tenant_id', $tenant->id)->find($data['position_id']);
+            if (!$taken) {
+                return response()->json(['message' => 'That table does not exist.'], 422);
+            }
+            if ($this->activeOccupancy($tenant->id, $taken->id)) {
+                return response()->json(['message' => 'That table is already open.'], 422);
+            }
+        }
+
+        DB::transaction(function () use ($occ, &$session, $from, $to, $data, $tenant, &$freed, $taken) {
+            if ($from === 'dine_in') {
+                $freed = $occ->position;
+            }
+
+            $session['order_type'] = $to;
+
+            if ($to === 'dine_in') {
+                $occ->position_id = $taken->id;
+                $occ->label       = $taken->label ?: $taken->code;
+                $session['covers'] = (int) ($data['covers'] ?? max(1, (int) ($session['covers'] ?? 1)));
+                unset($session['paid_at']);
+            } else {
+                $occ->position_id = null;
+                $occ->label       = $this->nextTicketNumber((int) $tenant->id, $to);
+                $session['covers'] = 0;
+                if (array_key_exists('customer_name', $data)) $session['customer_name'] = (string) $data['customer_name'];
+                if (array_key_exists('phone', $data))         $session['phone']         = (string) $data['phone'];
+                if (array_key_exists('address', $data))       $session['address']       = trim((string) $data['address']);
+                if ($to === 'delivery') {
+                    $given = $session['delivery'] ?? [];
+                    if (array_key_exists('delivery_fee', $data)) $given['fee'] = $data['delivery_fee'];
+                    $session['delivery'] = $this->freshDelivery($given);
+                }
+            }
+
+            $occ->session_data = $session;
+            $occ->save();
+
+            if ($freed) $freed->update(['status' => 'available']);
+            if ($taken) $taken->update(['status' => 'active']);
+        });
+
+        $occ = $occ->fresh(['position', 'user']);
+
+        return response()->json($this->cardFor($occ) + ['state' => $this->floorState($tenant->id)]);
+    }
+
+    /**
+     * The bag has been handed over: close a paid takeaway/delivery ticket.
+     * Refuses a ticket that still owes money - collecting is not a way to
+     * discard a bill (close() with force is).
+     */
+    public function collected(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate(['occupancy_id' => 'required|integer']);
+
+        $occ = Occupancy::where('tenant_id', $tenant->id)->whereNull('position_id')->find($data['occupancy_id']);
+        if (!$occ || $occ->closed_at !== null) {
+            return response()->json($this->floorState($tenant->id));
+        }
+
+        $session = $occ->session_data ?? [];
+        if ($this->unpaidTotal($session) > 0.004) {
+            return response()->json(['message' => 'This order is not fully paid yet.'], 422);
+        }
+
+        $session['collected_at'] = now()->toIso8601String();
+        $occ->session_data = $session;
+        $occ->closed_at = now();
+        $occ->save();
+
+        return response()->json($this->floorState($tenant->id));
     }
 
     /**
@@ -833,6 +984,48 @@ class TableServiceController extends Controller
         }
 
         return response()->json(['routing' => $routing]);
+    }
+
+    /**
+     * The room drawing behind the register's Map view.
+     *
+     * One settings row, `floor_map`: { tables: { <position id>: {x, y, shape, rot} } }.
+     * x and y are the table's centre as a fraction (0..1) of its area's room,
+     * so the same plan draws correctly on a phone and on a 27" screen. Tables
+     * with no entry are laid out automatically by the register, so a store
+     * that never opens Arrange still gets a sensible room.
+     */
+    public function planMap(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'tables'          => 'present|array|max:1000',
+            'tables.*.x'      => 'required|numeric|min:0|max:1',
+            'tables.*.y'      => 'required|numeric|min:0|max:1',
+            'tables.*.shape'  => 'nullable|string|in:round,square,long',
+            'tables.*.rot'    => 'nullable|integer|in:0,90',
+        ]);
+
+        $known = Position::query()->pluck('id')->map(fn ($id) => (string) $id)->flip();
+        $tables = [];
+        foreach ($data['tables'] as $id => $t) {
+            if (!$known->has((string) $id)) continue;
+            $tables[(string) $id] = [
+                'x'     => round((float) $t['x'], 4),
+                'y'     => round((float) $t['y'], 4),
+                'shape' => $t['shape'] ?? null,
+                'rot'   => (int) ($t['rot'] ?? 0),
+            ];
+        }
+
+        $map = ['tables' => (object) $tables];
+        Setting::updateOrCreate(['key' => 'floor_map'], ['value' => json_encode($map)]);
+
+        $tenant = app('current.tenant');
+        if ($tenant) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+        }
+
+        return response()->json(['map' => $map]);
     }
 
     /**
@@ -2066,6 +2259,7 @@ class TableServiceController extends Controller
             'cart'         => $cart,
 
             'check_dropped_at' => $s['check_dropped_at'] ?? null,
+            'kitchen_progress' => $this->kitchenProgress($occ, $kitchen),
         ];
     }
 
@@ -2279,7 +2473,33 @@ class TableServiceController extends Controller
 
             'check_dropped_at' => $s['check_dropped_at'] ?? null,
             'server'           => $this->serverOf($occ),
+
+            /* FOH additions. Purely additive keys: no existing client reads them. */
+            'kitchen_progress' => $this->kitchenProgress($occ, $kitchen),
+            'paid_at'          => $s['paid_at'] ?? null,
+            'collected_at'     => $s['collected_at'] ?? null,
         ];
+    }
+
+    /**
+     * How far the kitchen has got with what was fired: {fired, ready, served}.
+     * Counts WorkOrders, not lines, because a ticket is what the kitchen bumps.
+     * Cancelled tickets are not "fired" work.
+     */
+    private function kitchenProgress(?Occupancy $occ, ?array $kitchen): array
+    {
+        if (!$occ) return ['fired' => 0, 'ready' => 0, 'served' => 0];
+        if ($kitchen === null) {
+            $kitchen = $this->kitchenStatuses((int) $occ->tenant_id, [(int) $occ->id])[(int) $occ->id] ?? [];
+        }
+        $fired = $ready = $served = 0;
+        foreach ($kitchen as $st) {
+            if ($st === 'cancelled') continue;
+            $fired++;
+            if ($st === 'ready') $ready++;
+            if ($st === 'served') $served++;
+        }
+        return ['fired' => $fired, 'ready' => $ready, 'served' => $served];
     }
 
     /**

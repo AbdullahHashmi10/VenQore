@@ -921,3 +921,9 @@ body[data-vq-settings-open='1'] #tour-omnisearch {
 @media (prefers-reduced-motion: reduce) {
     .vqs-root, .vqs-shell, .vqs-switch > span, .vqs-btn, .vqs-chip, .vqs-choice, .vqs-result, .pvr, .pvp-row[data-new='1'] { animation: none !important; transition: none !important; }
 }
+.pvf-room { padding: 14px; border-radius: 14px; background-color: var(--vq-sunken); background-image: radial-gradient(color-mix(in srgb, var(--vq-text) 9%, transparent) 1px, transparent 1.2px); background-size: 16px 16px; gap: 16px; }
+.pvf-t[data-view='map'] { min-height: 0; aspect-ratio: 1; align-items: center; justify-content: center; text-align: center; gap: 3px; padding: 6px; border-width: 2px; margin: 8%; }
+.pvf-t[data-view='map'][data-shape='round'] { border-radius: 999px; }
+.pvf-t[data-view='map'][data-shape='long'] { aspect-ratio: 1.5; margin: 14% 0; }
+.pvf-t[data-view='map'] .pvf-code { font-size: 16px; height: 24px; background: none; }
+.pvf-t[data-view='map'] .pvf-state { height: 18px; padding: 0 6px; font-size: 10px; }

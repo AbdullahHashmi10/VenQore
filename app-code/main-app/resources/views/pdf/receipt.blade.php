@@ -207,6 +207,7 @@
                 <tr>
                     <td>
                         {{ $item->product->name ?? $item->item_name ?? 'Item' }}
+                        @if(!empty($item->modifiers))<br><small>{{ collect($item->modifiers)->pluck('name')->filter()->implode(', ') }}</small>@endif
                         @if($item->productVariant)
                             <br><small>({{ $item->productVariant->name }})</small>
                         @endif
