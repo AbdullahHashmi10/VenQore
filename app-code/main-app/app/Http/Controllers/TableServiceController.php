@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Occupancy;
 use App\Models\Party;
 use App\Models\Position;
+use App\Models\Product;
 use App\Models\Setting;
 use App\Models\WorkOrder;
 use App\Services\KitchenTicketService;
@@ -752,6 +753,86 @@ class TableServiceController extends Controller
         );
 
         return response()->json(['prepares_orders' => (string) $data['prepares_orders']]);
+    }
+
+    /**
+     * Kitchen routing: one ticket for everything, or one per station.
+     *
+     * Read by the register's Kitchen settings. Returns the saved routing, the
+     * store's categories (so a station can claim a whole category with one
+     * tap), the station names already typed on products (so an imported menu
+     * can be turned into stations instead of retyped) and the names of any
+     * individual products a station has claimed.
+     */
+    public function kitchenRouting(): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $routing = KitchenTicketService::routingFor((int) $tenant->id);
+
+        $categories = \App\Models\Category::withCount('products')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($c) => ['id' => (string) $c->id, 'name' => (string) $c->name, 'count' => (int) $c->products_count])
+            ->values();
+
+        $tags = Product::where('tenant_id', $tenant->id)
+            ->whereNotNull('kitchen_station')
+            ->where('kitchen_station', '!=', '')
+            ->whereRaw('LOWER(kitchen_station) <> ?', ['kitchen'])
+            ->select('kitchen_station', DB::raw('COUNT(*) as n'))
+            ->groupBy('kitchen_station')
+            ->orderByDesc('n')
+            ->limit(24)
+            ->get()
+            ->map(fn ($r) => ['name' => mb_substr(trim((string) $r->kitchen_station), 0, 32), 'count' => (int) $r->n])
+            ->filter(fn ($r) => $r['name'] !== '')
+            ->values();
+
+        $productIds = collect($routing['stations'])->pluck('products')->flatten()->unique()->values()->all();
+        $productNames = empty($productIds) ? (object) [] : Product::where('tenant_id', $tenant->id)
+            ->whereIn('id', $productIds)
+            ->pluck('name', 'id');
+
+        return response()->json([
+            'routing'       => $routing,
+            'categories'    => $categories,
+            'product_tags'  => $tags,
+            'product_names' => $productNames,
+        ]);
+    }
+
+    /** Save kitchen routing. Store-wide: every till and kitchen screen reads it. */
+    public function saveKitchenRouting(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'routing'                     => 'required|array',
+            'routing.mode'                => 'required|string|in:single,stations',
+            'routing.main_name'           => 'nullable|string|max:32',
+            'routing.main_printer'        => 'nullable|string|in:kitchen,bar,receipt,none',
+            'routing.use_product_tags'    => 'nullable|boolean',
+            'routing.stations'            => 'nullable|array|max:24',
+            'routing.stations.*.id'       => 'nullable|string|max:40',
+            'routing.stations.*.name'     => 'required|string|max:32',
+            'routing.stations.*.printer'  => 'nullable|string|in:kitchen,bar,receipt,none',
+            'routing.stations.*.categories'   => 'nullable|array|max:500',
+            'routing.stations.*.categories.*' => 'string|max:64',
+            'routing.stations.*.products'     => 'nullable|array|max:500',
+            'routing.stations.*.products.*'   => 'string|max:64',
+        ]);
+
+        $routing = KitchenTicketService::normaliseRouting($data['routing']);
+
+        Setting::updateOrCreate(
+            ['key' => 'kitchen_routing'],
+            ['value' => json_encode($routing)],
+        );
+
+        $tenant = app('current.tenant');
+        if ($tenant) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+        }
+
+        return response()->json(['routing' => $routing]);
     }
 
     /**

@@ -595,13 +595,19 @@ export default function RestaurantKitchen({ storeSlug, orders: initial = [], pre
         if (status === 'open') list = list.filter(o => o.status === 'pending' || o.status === 'preparing' || o.status === 'cancelled');
         else if (status === 'cancelled') list = list.filter(o => o.status === 'cancelled');
         else if (status !== 'all') list = list.filter(o => o.status === status);
-        if (station !== 'all') list = list.filter(o => (o.station || 'kitchen') === station);
+        /* A screen remembers its station filter. If that station no longer
+           exists (renamed, merged into one ticket in Kitchen settings), show
+           everything rather than an empty screen with no tab to get back. */
+        const want = String(station || 'all').toLowerCase();
+        if (want !== 'all' && stations.some(s => String(s).toLowerCase() === want)) {
+            list = list.filter(o => String(o.station || 'kitchen').toLowerCase() === want);
+        }
         return [...list].sort((a, b) => {
             if (a.status === 'cancelled' && b.status !== 'cancelled') return -1;
             if (b.status === 'cancelled' && a.status !== 'cancelled') return 1;
             return new Date(a.fired_at || a.created_at) - new Date(b.fired_at || b.created_at);
         });
-    }, [orders, status, station]);
+    }, [orders, status, station, stations]);
 
     const lateCount = shown.filter(o =>
         (o.status === 'pending' || o.status === 'preparing')

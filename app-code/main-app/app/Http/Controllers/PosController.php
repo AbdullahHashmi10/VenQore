@@ -115,7 +115,16 @@ class PosController extends Controller
             'bankAccounts' => $bankAccounts,
             'warehouses'   => \App\Models\Warehouse::all(['id', 'name', 'is_default']),
             'ecommerceChannels' => \App\Models\EcommerceChannel::where('tenant_id', app('current.tenant')->id)->get(['id', 'name', 'platform', 'default_fulfillment_type']),
-            'settings'     => \App\Models\Setting::all()->pluck('value', 'key'),
+            /* Every store setting the register reads -- minus the secrets. This
+               used to ship Setting::all() verbatim, which put the hashed admin
+               passcode and every saved API key into the page source of any
+               cashier's browser. The register never reads any of them. */
+            'settings'     => \App\Models\Setting::all()->pluck('value', 'key')->except([
+                'admin_passcode', 'openai_api_key', 'anthropic_api_key', 'gemini_api_key',
+                'stripe_secret_key', 'stripe_webhook_secret', 'woocommerce_consumer_key',
+                'woocommerce_consumer_secret', 'whatsapp_access_token', 'fbr_auth_token',
+                'sso_certificate',
+            ]),
         ]);
     }
 

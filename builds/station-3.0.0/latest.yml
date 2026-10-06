@@ -1,0 +1,8 @@
+version: 3.0.0
+files:
+  - url: VenQore-Station-Setup-3.0.0.exe
+    sha512: 2qqa/wmBkNuLhN3Ml2Poff2XVYug/xfhP5IXdryFqAlpeOvHizg55vs1VkYAE+pl7frsDKefZzb1AH0/GYGpIg==
+    size: 103035280
+path: VenQore-Station-Setup-3.0.0.exe
+sha512: 2qqa/wmBkNuLhN3Ml2Poff2XVYug/xfhP5IXdryFqAlpeOvHizg55vs1VkYAE+pl7frsDKefZzb1AH0/GYGpIg==
+releaseDate: '2026-10-05T23:39:57.927Z'

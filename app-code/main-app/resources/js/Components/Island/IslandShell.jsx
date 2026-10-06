@@ -145,6 +145,7 @@ export default function IslandShell({
         animate={{ opacity: isOpen ? 1 : 0 }}
         transition={{ duration: DUR.d3, ease: EASE_OUT }}
         onClick={onScrimClick}
+        data-vq-island=""
         className="fixed inset-0 z-command-scrim"
         style={{
           zIndex: isOpen ? 'calc(var(--vq-z-command, 1000) - 1)' : -1,
@@ -156,6 +157,7 @@ export default function IslandShell({
       />
 
       <div
+        data-vq-island=""
         className="fixed z-command"
         style={{
           zIndex: isOpen ? 'var(--vq-z-command, 1000)' : 'var(--vq-z-nav, 30)',

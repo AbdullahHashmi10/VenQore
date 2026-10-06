@@ -64,7 +64,8 @@ import { handleApprovalResponse } from '@/lib/approval-response';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
-import { getProductPrice, shouldStopNegativeStock, roundTotal, isStockMaintenanceEnabled } from '@/Utils/settings';
+import { printBrowserHtml } from '@/Utils/BrowserPrint';
+import { getProductPrice, shouldStopNegativeStock, roundTotal, isStockMaintenanceEnabled, isWholesalePricingEnabled } from '@/Utils/settings';
 import { db } from '@/Utils/db';
 import { AMDStation, useAMDStation } from '@/Utils/AMDStation';
 
@@ -90,6 +91,7 @@ import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
 import PosTourGuide from '@/Components/PosTourGuide';
 import SetupWizardModal from '@/NewPos/SetupWizardModal';
 import RegisterSettings, { DEFAULT_SURFACE } from '@/Components/Pos/RegisterSettings';
+import { useAppearance } from '@/Contexts/AppearanceContext';
 
 /* ── THE TABLE TERMINAL ───────────────────────────────────────────────────
    The register is one screen with two terminals. Everything restaurant-shaped
@@ -265,7 +267,10 @@ const POSInterface = ({
        list; nothing read it. A station with no printer attached now reads as
        "no printer", which is the thing the cashier actually needs to know
        before they promise someone a receipt. */
-    const { isConnected: isStationConnected, printers: stationPrinters = [], hardware: stationHardware, printerProblem, problemFor } = useAMDStation();
+    const {
+        isConnected: isStationConnected, printers: stationPrinters = [], hardware: stationHardware, printerProblem, problemFor,
+        defaultPrinter: stationDefaultPrinter, setDefaultPrinter: setStationDefaultPrinter, stationVersion,
+    } = useAMDStation();
     /* Station 3 reports the printer's real state (offline, out of paper, cover open). */
     const scaleLinked = !!(stationHardware?.serial?.scale?.connected);
     const printerCount = Array.isArray(stationPrinters) ? stationPrinters.length : 0;
@@ -292,6 +297,9 @@ const POSInterface = ({
        '?' lands on Keys, a demoted pane's "why?" lands on Layout. */
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [settingsTab, setSettingsTab] = useState('layout');
+    /* Light / dark lives in the account's appearance, not in the register;
+       the settings workspace only offers the same switch the header has. */
+    const { appearance, update: updateAppearance } = useAppearance();
     const openSettings = (tab = 'layout') => { setSettingsTab(tab); setSettingsOpen(true); };
     const [showSetupWizard, setShowSetupWizard] = useState(() => {
         try {
@@ -663,6 +671,33 @@ const POSInterface = ({
         try { localStorage.setItem('pos_catalog_hide_oos', String(v)); } catch (_) {}
     };
 
+    /* ── THE FLOOR, AS THIS DEVICE WANTS TO SEE IT ────────────────────────
+       Four views of the same tables (smart cards, by area, seating chart,
+       list), the order they sort in, how big each card is and which details
+       it carries. Device-level on purpose: the tablet on the floor and the
+       till at the pass are looking at the same room for different reasons. */
+    const readLocal = (key, fallback, allowed) => {
+        try {
+            const v = localStorage.getItem(key);
+            return v !== null && (!allowed || allowed.includes(v)) ? v : fallback;
+        } catch (_) { return fallback; }
+    };
+    const [floorView, setFloorViewState] = useState(() => readLocal('pos_floor_view', 'cards', ['cards', 'sections', 'grid', 'list']));
+    const setFloorView = (v) => { setFloorViewState(v); try { localStorage.setItem('pos_floor_view', v); } catch (_) {} };
+    const [floorSort, setFloorSortState] = useState(() => readLocal('pos_floor_sort', 'attention', ['attention', 'number']));
+    const setFloorSort = (v) => { setFloorSortState(v); try { localStorage.setItem('pos_floor_sort', v); } catch (_) {} };
+    const [floorSize, setFloorSizeState] = useState(() => readLocal('pos_floor_size', 'normal', ['compact', 'normal', 'large']));
+    const setFloorSize = (v) => { setFloorSizeState(v); try { localStorage.setItem('pos_floor_size', v); } catch (_) {} };
+    const [floorShow, setFloorShowState] = useState(() => {
+        try { return { showMoney: true, showTime: true, showServer: true, ...JSON.parse(localStorage.getItem('pos_floor_show') || '{}') }; }
+        catch (_) { return { showMoney: true, showTime: true, showServer: true }; }
+    });
+    const setFloorShow = (v) => { setFloorShowState(v); try { localStorage.setItem('pos_floor_show', JSON.stringify(v)); } catch (_) {} };
+    /* The tip box on a table's bill. On by default -- it was always shown --
+       and a till that never takes tips can now put it away. */
+    const [tipEnabled, setTipEnabledState] = useState(() => readLocal('pos_tip_enabled', 'true') !== 'false');
+    const setTipEnabled = (v) => { setTipEnabledState(v); try { localStorage.setItem('pos_tip_enabled', String(v)); } catch (_) {} };
+
     /* ── RANK-3 OPERATIONAL SETTINGS ──────────────────────────────────────
        Five values that the old page read straight out of `settings` (or, in
        two cases, out of localStorage inside the effect that used them) with no
@@ -922,7 +957,9 @@ const POSInterface = ({
         'pos_auto_fill_cash', 'pos_auto_print', 'pos_round_off', 'pos_show_margin',
         'pos_ui_scale', 'pos_open_drawer_on_cash', 'pos_show_top_till', 'pos_show_top_hardware',
         'pos_surface_buttons', 'pos_catalog_sort', 'pos_catalog_show_images',
-        'pos_catalog_show_stock', 'pos_catalog_hide_oos',
+        'pos_catalog_show_stock', 'pos_catalog_hide_oos', 'pos_category_orientation',
+        'pos_floor_view', 'pos_floor_sort', 'pos_floor_size', 'pos_floor_show', 'pos_tip_enabled',
+        'pos_show_item_converter', 'pos_composition_table_v1',
     ];
 
     const handleResetRegister = () => {
@@ -952,6 +989,13 @@ const POSInterface = ({
                 setShowCatalogImages(true);
                 setShowCatalogStock(true);
                 setHideOutOfStock(false);
+                setCategoryOrientation('horizontal');
+                setFloorView('cards');
+                setFloorSort('attention');
+                setFloorSize('normal');
+                setFloorShow({ showMoney: true, showTime: true, showServer: true });
+                setTipEnabled(true);
+                setShowItemConverter(true);
                 setSurfaceButtonsState({ ...DEFAULT_SURFACE });
                 setSettingsOpen(false);
                 addToast('Register reset to defaults', 'success');
@@ -2507,7 +2551,7 @@ const POSInterface = ({
     const serviceCharge = serviceChargePct > 0
         ? Math.round(((taxableAmount * serviceChargePct) / 100) * 100) / 100
         : 0;
-    const tipAmount = tableMode ? (parseFloat(activeSale.tipAmount || 0) || 0) : 0;
+    const tipAmount = tableMode && tipEnabled ? (parseFloat(activeSale.tipAmount || 0) || 0) : 0;
 
     const rawCartTotal = (taxInclusive ? taxableAmount : taxableAmount + taxAmount)
         + additionalCharges + serviceCharge + tipAmount;
@@ -3016,9 +3060,13 @@ const POSInterface = ({
             );
             const isSearchInput = activeElement === searchInputRef.current;
 
+            /* The settings workspace owns the keyboard while it is open: it
+               closes itself on Esc and, on its Keys page, only TESTS keys.
+               Without this, F4 pressed in settings removed a cart line. */
+            if (settingsOpen) return;
+
             // ESC: Close topmost open layer / modal or clear search
             if (e.key === 'Escape') {
-                if (settingsOpen) { setSettingsOpen(false); return; }
                 if (showSetupWizard) { setShowSetupWizard(false); return; }
                 if (paymentModalOpen) { setPaymentModalOpen(false); return; }
                 if (showSyncHub) { setShowSyncHub(false); return; }
@@ -3066,15 +3114,15 @@ const POSInterface = ({
                 return;
             }
 
-            // Ctrl+T: New sale tab
-            if (e.ctrlKey && e.key.toLowerCase() === 't') {
+            // Ctrl+T (Alt+T in a browser, which keeps Ctrl+T): New sale tab
+            if ((e.ctrlKey || (e.altKey && !e.metaKey)) && !e.shiftKey && e.key.toLowerCase() === 't') {
                 e.preventDefault();
                 createNewSale();
                 return;
             }
 
-            // Ctrl+W: Close current sale tab
-            if (e.ctrlKey && e.key.toLowerCase() === 'w') {
+            // Ctrl+W (Alt+W in a browser): Close current sale tab
+            if ((e.ctrlKey || (e.altKey && !e.metaKey)) && !e.shiftKey && e.key.toLowerCase() === 'w') {
                 e.preventDefault();
                 closeSale(e, activeSaleId);
                 return;
@@ -3119,8 +3167,8 @@ const POSInterface = ({
                 return;
             }
 
-            // Ctrl+N: Save and immediately create new tab
-            if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+            // Ctrl+N (Alt+N in a browser): Save and immediately create new tab
+            if ((e.ctrlKey || (e.altKey && !e.metaKey)) && !e.shiftKey && e.key.toLowerCase() === 'n') {
                 e.preventDefault();
                 if (activeSale?.cart?.length > 0 && !processingPayment) {
                     const paymentData = {
@@ -3159,12 +3207,15 @@ const POSInterface = ({
                 return;
             }
 
-            // Move to first/last row
-            if (e.ctrlKey && e.key === '1') {
+            // Ctrl+1…8 selects that line; Ctrl+9 the last one (the keymap
+            // promised "line n" while only 1 and 9 were ever wired).
+            if (e.ctrlKey && /^[1-8]$/.test(e.key)) {
                 e.preventDefault();
-                if (activeSale?.cart?.length > 0) {
-                    setLastAddedItemId(activeSale.cart[0].cartItemId);
-                    addToast(`Selected ${activeSale.cart[0].name}`, 'info');
+                const lines = activeSale?.cart || [];
+                if (lines.length > 0) {
+                    const idx = Math.min(lines.length - 1, Number(e.key) - 1);
+                    setLastAddedItemId(lines[idx].cartItemId);
+                    addToast(`Selected ${lines[idx].name}`, 'info');
                 }
                 return;
             }
@@ -3675,6 +3726,130 @@ const POSInterface = ({
        ══════════════════════════════════════════════════════════════════════ */
 
     const money = (v) => formatCurrency(v, store || settings);
+
+    /* Shared by the Layout page's preset cards and the Tables & floor page's
+       "This register shows" switch -- one path into the table terminal. */
+    const applyPresetFromSettings = (id) => {
+        const wants = LAYOUT_PRESETS.find(p => p.id === id)?.terminal === 'table'
+            ? 'table' : 'counter';
+
+        /* CHANGING THE TERMINAL IS NOT "APPLY A PRESET TOO".
+           Switching loads that terminal's OWN remembered
+           composition — and on a device that has never been on
+           the floor, `loadComposition` already falls back to
+           the Table preset. Calling applyPreset as well would
+           race it: the preset would land under the outgoing
+           terminal's storage key and then be overwritten the
+           moment the switch resolved. So: switch, or apply.
+           Never both in one gesture. */
+        if (wants !== terminal) {
+            if (wants === 'counter') {
+                setTerminal('counter');
+                addToast('Back to the counter', 'success');
+                return;
+            }
+
+            /* Choosing Table on a shop that has never run
+               tables turns table service ON as part of
+               choosing it — `both`, not `tables`, so the
+               counter this till was just using does not
+               disappear out from under it. */
+            if (!tablesAvailable) {
+                if (!canManageStore) {
+                    addToast('Table service is a store-wide setting — ask an owner or manager to turn it on.', 'error');
+                    return;
+                }
+                setTablesForced(true);
+                setTerminal('table');
+                axios.post(route('store.tables.service-mode', { store_slug: store?.slug }), { mode: 'both' })
+                    .then(() => {
+                        addToast('Table service on for this store — the floor is in the register now', 'success');
+                        router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
+                    })
+                    .catch(() => {
+                        /* Undo BOTH halves. A till left on a
+                           floor the store does not run is a
+                           screen whose tables can never load. */
+                        setTablesForced(false);
+                        setTerminal('counter');
+                        addToast('Table service could not be turned on for this store.', 'error');
+                    });
+                return;
+            }
+
+            setTerminal('table');
+            addToast('Table service on — the floor is in the register now', 'success');
+            return;
+        }
+
+        applyPreset(id);
+        addToast('Layout applied', 'success');
+    };
+
+    /* "This register shows: Counter / Restaurant screen" in settings. Going to
+       the floor reuses the Table preset's path (which also turns table
+       service on when the store has never run it); coming back is a switch. */
+    const switchTerminalFromSettings = (t) => {
+        if (t === terminal) return;
+        if (t === 'counter') {
+            setTerminal('counter');
+            addToast('This register now shows the counter', 'success');
+            return;
+        }
+        const tablePreset = LAYOUT_PRESETS.find(p => p.terminal === 'table');
+        if (tablePreset) applyPresetFromSettings(tablePreset.id);
+    };
+
+    const reloadStoreSettings = () => router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
+
+    /* Real test prints, for the Hardware and Kitchen pages. A test that only
+       pretended would be worse than no test: it is the first thing anyone
+       setting up a new till presses. */
+    const handleTestReceipt = async () => {
+        const name = settings?.business_name || store?.name || 'VenQore';
+        const paperWidth = settings?.thermal_page_size === '2inch' ? '58mm' : '80mm';
+        const when = new Date().toLocaleString();
+        try {
+            if (isStationConnected) {
+                const r = await AMDStation.print([
+                    { type: 'text', value: name, style: { fontWeight: '800', textAlign: 'center', fontSize: '18px' } },
+                    ...(settings?.business_address ? [{ type: 'text', value: settings.business_address, style: { textAlign: 'center', fontSize: '12px' } }] : []),
+                    { type: 'text', value: '-'.repeat(paperWidth === '58mm' ? 32 : 48), style: { textAlign: 'center' } },
+                    { type: 'text', value: 'TEST PRINT', style: { fontWeight: '900', textAlign: 'center', fontSize: '20px' } },
+                    { type: 'text', value: when, style: { textAlign: 'center', fontSize: '12px' } },
+                    { type: 'text', value: 'If you can read this, receipts print here.', style: { textAlign: 'center', fontSize: '12px', margin: '6px 0 12px 0' } },
+                ], { role: 'receipt', paperWidth, printerName: stationDefaultPrinter || undefined });
+                if (r?.success === false) throw new Error(r.error || 'The printer did not answer');
+            } else {
+                const esc = (v) => String(v || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+                await printBrowserHtml(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Test print</title>
+                    <style>@page{size:${paperWidth} auto;margin:0}body{width:${paperWidth === '58mm' ? '48mm' : '72mm'};margin:0 auto;padding:8px 2px;font-family:'Courier New',monospace;text-align:center;color:#000}</style></head>
+                    <body><div style="font-weight:800;font-size:18px">${esc(name)}</div><div style="font-size:12px">${esc(settings?.business_address)}</div>
+                    <hr style="border:0;border-top:1px dashed #000"><div style="font-weight:900;font-size:20px">TEST PRINT</div>
+                    <div style="font-size:12px">${esc(when)}</div><p style="font-size:12px">If you can read this, receipts print here.</p></body></html>`, paperWidth);
+            }
+            addToast('Test receipt sent to the printer', 'success');
+        } catch (e) {
+            addToast(`Test print failed: ${e?.message || 'unknown error'}`, 'error');
+        }
+    };
+
+    const handleTestKitchenTicket = async (stationName, printerRole) => {
+        const station = stationName || 'Kitchen';
+        const r = await KitchenPrintService.printKOT({
+            order_number: 'TEST',
+            table_number: 'TEST',
+            order_type: 'dine_in',
+            order_type_badge: 'TEST TICKET',
+            server_name: auth?.user?.name || 'Staff',
+            station,
+            printer_role: printerRole || 'kitchen',
+            fired_at_human: new Date().toLocaleTimeString(),
+            items: [{ name: `Test for ${station}`, qty: 1, notes: 'Nothing to cook', modifiers: [] }],
+        }, { forcePrint: true });
+        if (r?.success) addToast(`Test ticket for ${station} sent`, 'success');
+    };
+
 
     /* Scan is rank 1 and therefore resident in EVERY composition. It lives in
        the catalog pane when there is a catalog COLUMN to host it, and at the
@@ -5246,7 +5421,7 @@ const POSInterface = ({
                             <span className="vq-num text-white font-bold text-base">{money(serviceCharge)}</span>
                         </div>
                     )}
-                    {tableMode && (
+                    {tableMode && tipEnabled && (
                         /* The tip is typed on the bill, not chosen from three
                            preset percentages: a percentage prompt is a nudge,
                            and a till should not be nudging someone else's
@@ -6046,7 +6221,7 @@ const POSInterface = ({
                                 now holds every one of them, and the operator no
                                 longer has to guess which button owns which switch. */}
                             {/* ── KITCHEN DISPLAY & CUSTOMER TV SCREEN QUICK LAUNCH ── */}
-                            {preparesOrders && (
+                            {preparesOrders && surfaceButtons.kitchen !== false && (
                                 <a
                                     href={route('store.restaurant.kitchen', { store_slug: store?.slug })}
                                     target="_blank"
@@ -6058,7 +6233,7 @@ const POSInterface = ({
                                     <span className="text-xs font-bold hidden xl:inline">Kitchen</span>
                                 </a>
                             )}
-                            {preparesOrders && (
+                            {preparesOrders && surfaceButtons.queue !== false && (
                                 <a
                                     href={route('store.restaurant.queue', { store_slug: store?.slug })}
                                     target="_blank"
@@ -6138,6 +6313,7 @@ const POSInterface = ({
                                     now={floorNow}
                                     storeSlug={store?.slug}
                                     variant={layout.floor.fit === 'map' ? 'map' : 'list'}
+                                    view={floorView} sort={floorSort} size={floorSize} show={floorShow}
                                 />
                             )}
 
@@ -6169,6 +6345,7 @@ const POSInterface = ({
                                             now={floorNow}
                                             storeSlug={store?.slug}
                                             variant={layout.cart && layout.cart.px >= 484 ? 'map' : 'list'}
+                                            view={floorView} sort={floorSort} size={floorSize} show={floorShow}
                                         />
                                     </section>
                                 )
@@ -7260,62 +7437,7 @@ const POSInterface = ({
                        The order matters: the terminal is set first so the
                        layout hook reads the right stored composition and the
                        right localStorage key when the preset lands. */
-                    onApplyPreset={id => {
-                        const wants = LAYOUT_PRESETS.find(p => p.id === id)?.terminal === 'table'
-                            ? 'table' : 'counter';
-
-                        /* CHANGING THE TERMINAL IS NOT "APPLY A PRESET TOO".
-                           Switching loads that terminal's OWN remembered
-                           composition — and on a device that has never been on
-                           the floor, `loadComposition` already falls back to
-                           the Table preset. Calling applyPreset as well would
-                           race it: the preset would land under the outgoing
-                           terminal's storage key and then be overwritten the
-                           moment the switch resolved. So: switch, or apply.
-                           Never both in one gesture. */
-                        if (wants !== terminal) {
-                            if (wants === 'counter') {
-                                setTerminal('counter');
-                                addToast('Back to the counter', 'success');
-                                return;
-                            }
-
-                            /* Choosing Table on a shop that has never run
-                               tables turns table service ON as part of
-                               choosing it — `both`, not `tables`, so the
-                               counter this till was just using does not
-                               disappear out from under it. */
-                            if (!tablesAvailable) {
-                                if (!canManageStore) {
-                                    addToast('Table service is a store-wide setting — ask an owner or manager to turn it on.', 'error');
-                                    return;
-                                }
-                                setTablesForced(true);
-                                setTerminal('table');
-                                axios.post(route('store.tables.service-mode', { store_slug: store?.slug }), { mode: 'both' })
-                                    .then(() => {
-                                        addToast('Table service on for this store — the floor is in the register now', 'success');
-                                        router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
-                                    })
-                                    .catch(() => {
-                                        /* Undo BOTH halves. A till left on a
-                                           floor the store does not run is a
-                                           screen whose tables can never load. */
-                                        setTablesForced(false);
-                                        setTerminal('counter');
-                                        addToast('Table service could not be turned on for this store.', 'error');
-                                    });
-                                return;
-                            }
-
-                            setTerminal('table');
-                            addToast('Table service on — the floor is in the register now', 'success');
-                            return;
-                        }
-
-                        applyPreset(id);
-                        addToast(`${id.charAt(0).toUpperCase()}${id.slice(1)} layout applied`, 'success');
-                    }}
+                    onApplyPreset={applyPresetFromSettings}
                     tablesAvailable={tablesAvailable}
                     canManageStore={canManageStore}
                     onUpdateComposition={updateComposition}
@@ -7406,6 +7528,48 @@ const POSInterface = ({
 
                     onRunSetupWizard={() => { setSettingsOpen(false); setShowSetupWizard(true); }}
                     onResetAll={handleResetRegister}
+
+                    /* ── added with the settings workspace ── */
+                    /* The restaurant pages only exist for a store with the Table &
+                       Floor module (its routes are gated on it); a shop without it
+                       never sees them, per "irrelevant modules stay invisible". */
+                    restaurantAvailable={!modulesEnabled.size || modulesEnabled.has('table_service')}
+                    restaurantRelevant={(!modulesEnabled.size || modulesEnabled.has('table_service'))
+                        && (preparesOrders || storeRunsTables || tableMode || serviceMode !== 'counter')}
+                    storeSettings={settings}
+                    storeSlug={store?.slug}
+                    storeName={store?.name}
+                    reloadSettings={reloadStoreSettings}
+                    addToast={addToast}
+                    money={money}
+                    sampleProducts={sortedCategoryProducts}
+                    categories={categories}
+                    positions={tableMode ? tables.positions : initialPositions}
+                    lanes={lanes}
+                    onSwitchTerminal={switchTerminalFromSettings}
+                    floorView={floorView} setFloorView={setFloorView}
+                    floorSort={floorSort} setFloorSort={setFloorSort}
+                    floorSize={floorSize} setFloorSize={setFloorSize}
+                    floorShow={floorShow} setFloorShow={setFloorShow}
+                    tipEnabled={tipEnabled} setTipEnabled={setTipEnabled}
+                    appearanceMode={appearance?.mode}
+                    setAppearanceMode={(mode) => updateAppearance({ mode })}
+                    station={{
+                        connected: isStationConnected,
+                        version: stationVersion,
+                        printers: stationPrinters,
+                        defaultPrinter: stationDefaultPrinter,
+                        setDefaultPrinter: setStationDefaultPrinter,
+                        hardware: stationHardware,
+                        problemFor,
+                    }}
+                    onTestReceipt={handleTestReceipt}
+                    onTestKitchenTicket={handleTestKitchenTicket}
+                    isPosStaff={isPosStaff}
+                    registerShift={registerShift}
+                    onOpenShift={() => { setSettingsOpen(false); setShowOpenShiftModal(true); }}
+                    onCloseShift={() => { setSettingsOpen(false); setShowCloseShiftModal(true); }}
+                    onCashMovement={() => { setSettingsOpen(false); setShowCashMovementModal(true); }}
                 />
 
                 <SetupWizardModal

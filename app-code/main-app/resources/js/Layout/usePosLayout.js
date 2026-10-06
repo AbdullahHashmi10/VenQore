@@ -190,6 +190,28 @@ export function saveComposition(comp, terminal = 'counter') {
 }
 
 /* --------------------------------------------------------------------------
+   The same decision for a screen we are NOT standing on.
+   The settings preview draws a phone, a tablet and a desktop; it has to ask
+   the engine exactly the way the hook below does -- same senior factor, same
+   scale clamp, same floor rule for the restaurant screen -- or the picture and
+   the real register disagree, which is the one thing a preview must not do.
+   -------------------------------------------------------------------------- */
+export function composeFor(comp, vw, vh, { senior = false, scale = 1, terminal = 'counter', rail = false } = {}) {
+    const s = Math.max(0.9, Math.min(1.3, Number(scale) || 1));
+    const factor = (senior ? 0.86 : 1) / s;
+    const railPx = rail ? 76 : 0;
+    const base = normaliseComposition(comp);
+    const effective = terminal === 'table'
+        ? { ...base, floor: base.floor && base.floor !== 'off' ? base.floor : 'left' }
+        : { ...base, floor: 'off' };
+    try {
+        return composeTerminal(effective, Math.round(Math.max(LAW.minViewport, vw - railPx) * factor), Math.round(vh * factor));
+    } catch (e) {
+        return null;
+    }
+}
+
+/* --------------------------------------------------------------------------
    The hook
    -------------------------------------------------------------------------- */
 export function usePosLayout({ settings, senior = false, scale = 1, terminal = 'counter' } = {}) {

@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Floor views — the four ways a device can draw the same tables
+   ==========================================================================
+   Chosen per device in Settings → Tables & floor. `data-view` on the floor
+   body is the view the person picked (after the layout engine's width check),
+   `data-size` is the card size. Card internals stay in table.css; this file
+   only changes how the cards are laid out and adds the seating-chart square.
+   ========================================================================== */
+
+/* Card size → how wide the grid's columns may get. */
+.vqt-floor-body[data-variant='map'][data-size='compact'] { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.vqt-floor-body[data-variant='map'][data-size='normal']  { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.vqt-floor-body[data-variant='map'][data-size='large']   { grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 14px; }
+.vqt-floor-body[data-size='compact'] .vqt-table[data-variant='map'] { min-height: 92px; padding: 10px; }
+.vqt-floor-body[data-size='large'] .vqt-table[data-variant='map'] { min-height: 136px; padding: 14px; }
+.vqt-floor-body[data-size='large'] .vqt-table-code { font-size: 1.15em; }
+
+/* BY AREA: a header row across the grid before each area's tables. */
+.vqt-section-h {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 4px 2px 0;
+    border-top: 1px solid var(--vq-line-soft, var(--vq-line));
+    font: 700 11px/1.2 var(--vq-font-sans);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--vq-text-3);
+}
+.vqt-section-h:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+.vqt-section-h .vq-num { letter-spacing: 0; text-transform: none; font-weight: 600; }
+
+/* SEATING CHART: squares, big numbers, colour for state. */
+.vqt-floor-body[data-variant='grid'] {
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    grid-auto-rows: min-content;
+    gap: 8px;
+}
+.vqt-floor-body[data-variant='grid'][data-size='compact'] { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 6px; }
+.vqt-floor-body[data-variant='grid'][data-size='large'] { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+
+.vqt-seat {
+    aspect-ratio: 1;
+    min-height: 0 !important;
+    padding: 6px !important;
+    align-items: center;
+    justify-content: center !important;
+    text-align: center;
+    gap: 2px;
+}
+.vqt-seat-code {
+    font: 700 22px/1 var(--vq-font-numeric);
+    letter-spacing: -.02em;
+    color: var(--vq-text);
+}
+.vqt-floor-body[data-size='large'] .vqt-seat-code { font-size: 28px; }
+.vqt-floor-body[data-size='compact'] .vqt-seat-code { font-size: 18px; }
+.vqt-seat-sub {
+    font: 600 11px/1.2 var(--vq-font-sans);
+    color: var(--vq-text-3);
+    max-width: 100%;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.vqt-seat-due { font: 700 11.5px/1.2 var(--vq-font-numeric); color: var(--vq-text-2); }
+.vqt-seat-badge {
+    position: absolute; top: 6px; right: 6px;
+    width: 8px; height: 8px; border-radius: 999px;
+    background: var(--vq-warning);
+    box-shadow: 0 0 0 3px var(--vq-warning-bg);
+}
+.vqt-seat[data-tone='seated']  { background: color-mix(in srgb, var(--vq-info, #3b82f6) 9%, var(--vq-surface)); }
+.vqt-seat[data-tone='ordered'] { background: color-mix(in srgb, var(--vq-accent) 10%, var(--vq-surface)); }
+.vqt-seat[data-tone='kitchen'] { background: color-mix(in srgb, var(--vq-warning) 11%, var(--vq-surface)); }
+.vqt-seat[data-tone='served']  { background: color-mix(in srgb, var(--vq-success) 9%, var(--vq-surface)); }
+.vqt-seat[data-tone='check']   { background: color-mix(in srgb, var(--vq-danger) 7%, var(--vq-surface)); }
+.vqt-seat[data-alert='1']      { background: var(--vq-danger-bg); }

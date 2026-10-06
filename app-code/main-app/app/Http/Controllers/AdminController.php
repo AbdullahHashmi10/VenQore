@@ -888,7 +888,14 @@ class AdminController extends Controller
         }
         $settingsData = $filteredData;
 
+        /* A plain JSON caller (the register's settings panel, via axios) gets a
+           JSON answer. Inertia visits carry X-Inertia and keep the redirect. */
+        $plainJson = $request->wantsJson() && !$request->header('X-Inertia');
+
         if (empty($settingsData) && !$request->hasFile('print_logo_file')) {
+            if ($plainJson) {
+                return response()->json(['success' => false, 'message' => 'No valid settings were provided for saving.'], 422);
+            }
             return back()->withErrors(['settings' => 'No valid settings were provided for saving.']);
         }
 
@@ -1004,6 +1011,10 @@ class AdminController extends Controller
         }
         \Illuminate\Support\Facades\Cache::forget('settings:global');
         \App\Helpers\SettingsHelper::clearCache();
+
+        if ($plainJson) {
+            return response()->json(['success' => true, 'saved' => array_keys($settingsData)]);
+        }
 
         return redirect()->back()->with('success', 'Settings updated successfully');
     }

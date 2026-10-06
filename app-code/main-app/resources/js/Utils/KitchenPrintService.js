@@ -27,6 +27,13 @@ export const KitchenPrintService = {
             return { success: false, error: 'Empty ticket data' };
         }
 
+        /* A station set to "kitchen screen only" gets no paper at all. The
+           ticket still exists -- it is on the kitchen display -- so this is a
+           success, not a failure to report. */
+        if (!options.forcePrint && (options.role || kotData.printer_role) === 'none') {
+            return { success: true, method: 'screen-only' };
+        }
+
         const paperWidth = options.paperWidth || kotData.paper_width || '80mm';
         const isReprint = Boolean(options.isReprint || kotData.is_reprint);
         const isCancellation = Boolean(options.isCancellation || kotData.is_cancellation);
@@ -77,6 +84,11 @@ export const KitchenPrintService = {
      */
     /** Which printer role a ticket belongs to. */
     roleFor(kot) {
+        /* The owner's routing decides first: a station set to the bar printer
+           or the receipt printer always prints there. 'kitchen' falls through
+           to the old rules, so a takeaway still finds the takeaway printer. */
+        const chosen = String(kot?.printer_role || '').toLowerCase();
+        if (chosen === 'bar' || chosen === 'receipt') return chosen;
         const type = String(kot?.order_type_badge || kot?.order_type || '').toLowerCase();
         const station = String(kot?.station_name || kot?.station || kot?.printer_name || '').toLowerCase();
         if (/\bbar\b/.test(station)) return 'bar';
@@ -124,6 +136,15 @@ export const KitchenPrintService = {
             value: `[ ${orderType} ]`,
             style: { fontWeight: '900', textAlign: 'center', fontSize: '24px', margin: '4px 0' }
         });
+
+        // Station banner -- only worth printing when the kitchen has more than one
+        if (kot.station && String(kot.station).toLowerCase() !== 'kitchen') {
+            content.push({
+                type: 'text',
+                value: String(kot.station).toUpperCase(),
+                style: { fontWeight: '900', textAlign: 'center', fontSize: '16px' }
+            });
+        }
 
         // Table / Ticket #
         const locationStr = kot.table_number ? `TABLE: ${kot.table_number}` : `ORDER: ${kot.order_number}`;
@@ -280,6 +301,7 @@ export const KitchenPrintService = {
                         ` : ''}
 
                         <div class="banner">[ ${orderType} ]</div>
+                        ${kot.station && String(kot.station).toLowerCase() !== 'kitchen' ? `<div class="center bold" style="font-size: 16px;">${String(kot.station).toUpperCase()}</div>` : ''}
                         <div class="center" style="font-size: 20px; font-weight: 900;">
                             ${kot.table_number ? `TABLE: ${kot.table_number}` : `ORDER: ${kot.order_number}`}
                         </div>

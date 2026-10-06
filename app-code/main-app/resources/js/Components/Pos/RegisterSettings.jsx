@@ -1,1373 +1,553 @@
 /**
  * ╔═══════════════════════════════════════════════════════════════════════════╗
- * ║  RegisterSettingsDrawer — the register's ONE settings surface             ║
+ * ║  RegisterSettings — the register's settings workspace                     ║
  * ╚═══════════════════════════════════════════════════════════════════════════╝
  *
- * WHAT THIS REPLACES
- * ------------------
- * The register used to carry three settings entry points in its top bar and a
- * fourth behind a first-run modal:
+ * WHAT CHANGED (Oct 2026)
+ * -----------------------
+ * The 1240px modal with seven tabs became a full-screen workspace:
  *
- *   1. "Customize POS Layout & Look"  -> LayoutPickerModal   (presets only)
- *   2. "Quick settings"               -> a 5-row dropdown    (a subset)
- *   3. "Register settings"            -> a 720px modal       (a different subset)
- *   4. Setup wizard                   -> a fifth copy of 1
+ *   header   title · search every setting · "Saved" status · Done
+ *   left     categories, grouped by WHO the change affects: this register,
+ *            the restaurant (only for businesses that prepare orders or run
+ *            tables), the whole business, and devices & keys
+ *   middle   the settings, one plain sentence of explanation under each
+ *   right    a live preview that changes with the category: the register
+ *            itself, the floor, the kitchen tickets, the printed receipt, the
+ *            payment panel, the hardware or the keyboard
  *
- * Three of those wrote the same five values through three different code paths,
- * none of them exposed the composition knobs the Layout Law actually defines,
- * and the operator had to learn which of the three buttons held the switch they
- * wanted. There is now exactly one.
+ * Restaurant settings moved out of Layout into their own pages. The floor got
+ * four views (smart cards, by area, seating chart, list), and kitchen tickets
+ * got real routing: one ticket for everything, or one per station — with
+ * everything unassigned falling back to the main kitchen.
  *
- * WHY FULL SCREEN, WITH A PREVIEW
- * -------------------------------
- * Every control on the Layout tab changes the shape of the register, and a
- * change you cannot see while you make it is a change you have to make twice.
- * A panel beside the register would only ever show you THIS screen; the
- * preview shows the phone, the tablet and the counter terminal too -- which is
- * what matters, because the law demotes panes differently on each and that is
- * exactly the behaviour people are surprised by at the till. So the composer
- * takes the screen and carries the picture with it.
- *
- * The preview is not a drawing. It calls `composeTerminal`, the same function
- * the real register calls, so it cannot show a layout the law would not
- * produce -- including the demotions.
- *
- * WHAT IS DELIBERATELY NOT HERE
- * -----------------------------
- * Percentage sliders. The reference composer shipped "catalog width 20%",
- * "cart share 50%", "tender share 30%" as three range inputs, and a range
- * input is the wrong instrument for this: it asks the operator to think in
- * numbers about a thing they are looking at. The proportions are edited by
- * dragging the column edge in the register itself — pointer, or keyboard on a
- * focused divider — and this tab only says so and offers the reset.
- *
- * THE MODEL
- * ---------
- * Two kinds of setting, and they are not the same kind of thing:
- *
- *   comp   THE COMPOSITION. Geometry. Every value is a WISH — composeTerminal()
- *          clamps it against the measured floors, so nothing set here can
- *          produce an illegal layout. The Layout tab edits this.
- *   ops    THE OPERATIONAL SETTINGS. Rank 3 in the capability inventory: once
- *          per setup, shift or month. Their budget on the working surface is
- *          zero. Every other tab edits these.
- *
- * All of it is presentational — this file owns no state that outlives it. The
- * register hands down current values and setters, so there is one source of
- * truth and no second copy to drift.
+ * THE RULES THIS FILE KEEPS
+ * -------------------------
+ *  · It owns no register state. Values and setters come down from the
+ *    register (`Pages/Pos.jsx`), so there is still one source of truth.
+ *  · Whole-business settings are written through the same endpoint as
+ *    Settings in the main menu, one section at a time, and the register's
+ *    `settings` prop is reloaded after each save.
+ *  · Every change applies immediately. "Done" closes; it does not save,
+ *    because there is nothing left waiting to be saved.
+ *  · The Ask Vena island is hidden while this is open, and the register's
+ *    own shortcuts are paused, so F4 in here can never remove a cart line.
  */
 
-import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useTermText } from '@/lib/terms';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import axios from 'axios';
 import {
-    X, LayoutGrid, Monitor, Receipt, Printer, Keyboard, RotateCcw,
-    Check, Info, MoveHorizontal, Minus, Plus, Pause, History, Unlock,
-    Wifi, WifiOff, AlertTriangle, MousePointerClick, Maximize2, Undo2,
-    Utensils,
+    X, Search, Settings2, Check, Loader2, AlertTriangle, Unlock, Pause, History, Undo2, Wifi, Printer,
+    Keyboard, Maximize2, ChefHat, Tv, RotateCcw, Wand2, Eye, EyeOff, Lock,
 } from 'lucide-react';
-import RegisterPreview, { PREVIEW_DEVICES } from './RegisterPreview';
+import '@/Components/Pos/Settings/pos-settings.css';
+import { SettingsCtx } from '@/Components/Pos/Settings/context';
+import { CATEGORIES, GROUPS, TAB_ALIASES, searchSettings, SEARCH_INDEX } from '@/Components/Pos/Settings/catalog';
+import { Button } from '@/Components/Pos/Settings/primitives';
+import { LayoutPage, CatalogPage, ScreenPage, ButtonsPage } from '@/Components/Pos/Settings/sections/Register';
+import { CheckoutPage } from '@/Components/Pos/Settings/sections/Checkout';
+import { RestaurantPage, KitchenPage, useKitchenRouting } from '@/Components/Pos/Settings/sections/Restaurant';
+import { ReceiptsPage, StockPage, MoneyPage, CashPage } from '@/Components/Pos/Settings/sections/Business';
+import { HardwarePage, KeysPage } from '@/Components/Pos/Settings/sections/Devices';
+import RegisterLivePreview, { PREVIEW_DEVICES, plainNotes } from '@/Components/Pos/Settings/previews/RegisterLivePreview';
+import { FloorPreview, TicketsPreview, ReceiptPreview, PaymentPreview, HardwarePreview, KeysPreview } from '@/Components/Pos/Settings/previews/Previews';
+import { composeFor } from '@/Layout/usePosLayout';
 
 /* ══════════════════════════════════════════════════════════════════════════
-   THE KEYMAP — one map for the whole product.
-   Kept here rather than in the page because this is now the only place it is
-   rendered, and a map that lives beside its own renderer cannot fall out of
-   step with it.
+   THE KEYMAP — one map for the whole product, checked against the handler in
+   Pages/Pos.jsx key by key. If you add a shortcut there, add it here.
    ══════════════════════════════════════════════════════════════════════════ */
 export const POS_KEYMAP = [
-    ['F1', 'Focus scan / search'],
-    ['F2', 'Quantity on the active line'],
-    ['F3', 'Discount on the active line'],
-    ['F4', 'Remove the active line'],
-    ['F5', 'Rate on the active line'],
-    ['F7', 'Document tax'],
-    ['F8', 'Additional charges'],
-    ['F9', 'Document discount'],
-    ['F11', 'Customer / party'],
-    ['F12', 'Sale remarks'],
-    ['Ctrl + S', 'Hold the sale'],
-    ['Ctrl + T', 'New sale tab'],
-    ['Ctrl + W', 'Close this tab'],
-    ['Ctrl + D', 'Open cash drawer'],
-    ['Ctrl + F', 'Bill breakdown'],
-    ['Ctrl + 1…9', 'Select line n'],
-    ['Alt + L', 'Register settings'],
-    ['Alt + Z', 'Fullscreen'],
-    ['Esc', 'Close the top layer'],
-    ['?', 'Show this map'],
+    { group: 'Items on the sale', keys: ['F1'], does: 'Jump to the scan / search box' },
+    { group: 'Items on the sale', keys: ['F2'], does: 'Change the quantity of the selected line' },
+    { group: 'Items on the sale', keys: ['F3'], does: 'Give a discount on the selected line' },
+    { group: 'Items on the sale', keys: ['F4'], does: 'Remove the selected line' },
+    { group: 'Items on the sale', keys: ['F5'], does: 'Change the price of the selected line' },
+    { group: 'Items on the sale', keys: ['F6'], does: 'Quick price calculator for the selected line' },
+    { group: 'Items on the sale', keys: ['Ctrl + 1…8'], match: /^Ctrl \+ [1-8]$/, does: 'Select line 1 to 8' },
+    { group: 'Items on the sale', keys: ['Ctrl + 9'], does: 'Select the last line' },
+    { group: 'The bill', keys: ['F7'], does: 'Set the tax rate for this sale' },
+    { group: 'The bill', keys: ['F8'], does: 'Add an extra charge (delivery, packing…)' },
+    { group: 'The bill', keys: ['F9'], does: 'Discount on the whole bill' },
+    { group: 'The bill', keys: ['F10'], does: 'Take payment' },
+    { group: 'The bill', keys: ['F11'], does: 'Choose the customer' },
+    { group: 'The bill', keys: ['F12'], does: 'Add a note to the sale' },
+    { group: 'The bill', keys: ['Ctrl + F'], does: 'Show the bill breakdown' },
+    { group: 'The bill', keys: ['Ctrl + P'], does: 'Finish the sale as fully paid, and print' },
+    { group: 'The bill', keys: ['Ctrl + N', 'Alt + N'], does: 'Finish the sale as fully paid, and start a new one', note: 'Browser: Alt + N' },
+    { group: 'Sales tabs', keys: ['Ctrl + S'], does: 'Hold (park) this sale for later' },
+    { group: 'Sales tabs', keys: ['Ctrl + T', 'Alt + T'], does: 'Start a new sale in a new tab', note: 'Browser: Alt + T' },
+    { group: 'Sales tabs', keys: ['Ctrl + W', 'Alt + W'], does: 'Close this sale tab', note: 'Browser: Alt + W' },
+    { group: 'Sales tabs', keys: ['Ctrl + Tab'], does: 'Go to the next sale tab', note: 'Station app' },
+    { group: 'Sales tabs', keys: ['Ctrl + R'], does: 'Clear this sale (asks first)' },
+    { group: 'The register', keys: ['Ctrl + D'], does: 'Open the cash drawer' },
+    { group: 'The register', keys: ['Alt + L'], does: 'Open these settings' },
+    { group: 'The register', keys: ['Alt + Z'], does: 'Full screen on / off' },
+    { group: 'The register', keys: ['?'], does: 'Show this list of shortcuts' },
+    { group: 'The register', keys: ['Esc'], does: 'Close whatever is open on top' },
 ];
 
 /* ══════════════════════════════════════════════════════════════════════════
-   COUNTER BUTTONS
-   Which rank-2 controls appear on the register's own top bar.
-
-   The old page hard-coded this and got it wrong in both directions: the cash
-   drawer had no button anywhere despite AMDStation.openDrawer() and the
-   thermal_open_drawer setting both existing, parked sales and recent invoices
-   were three clicks deep inside a settings modal, and two localStorage keys
-   -- `pos_show_top_till` and `pos_show_top_hardware` -- were read on mount and
-   then used by nothing at all, which is somebody having meant to make this a
-   choice and never finishing the wiring.
-
-   Defaults are deliberately sparse. The law budgets the working surface at
-   seven rank-1 controls, and every button switched on here spends from what is
-   left of the operator's attention.
+   TOP BAR BUTTONS — which controls appear on the register's own bar.
    ══════════════════════════════════════════════════════════════════════════ */
 export const SURFACE_BUTTONS = [
     { id: 'drawer', label: 'Open cash drawer', icon: Unlock, dflt: true,
-      hint: 'Pulses the drawer without a sale. Ctrl + D does the same thing.' },
-    { id: 'parked', label: 'Parked sales', icon: Pause, dflt: true,
-      hint: 'Held sales, ready to recall. Carries a count when any are waiting.' },
-    { id: 'recent', label: 'Recent invoices', icon: History, dflt: false,
+      hint: 'Opens the drawer without a sale — for change or a float check. Ctrl + D does the same.' },
+    { id: 'parked', label: 'Held sales', icon: Pause, dflt: true,
+      hint: 'Sales you put on hold, ready to bring back. Shows a number when some are waiting.' },
+    { id: 'recent', label: 'Recent sales', icon: History, dflt: false,
       hint: 'The last sales from this till, with reprint.' },
     { id: 'returns', label: 'Return mode', icon: Undo2, dflt: false,
-      hint: 'Switches the register to refunds. Leave it off on a till that never takes them.' },
-    { id: 'online', label: 'Online status light', icon: Wifi, dflt: true,
-      hint: 'A bare dot: green when sales post immediately, red when they are queuing on this device. Deliberately not in a box \u2014 a status light inside a bordered pill reads as a button.' },
-    { id: 'printer', label: 'Printer status', icon: Printer, dflt: true,
-      hint: 'Reports what is actually attached: ready with a count, amber when the station is running but no printer answered, grey when there is no station at all. Tap it to open Hardware.' },
-    { id: 'keys', label: 'Keyboard shortcuts', icon: Keyboard, dflt: false,
-      hint: 'Opens the key map. \u201c?\u201d opens it whether or not the button is here.' },
-    { id: 'fullscreen', label: 'Fullscreen', icon: Maximize2, dflt: false,
-      hint: 'Hides the browser chrome. Alt + Z does the same thing.' },
+      hint: 'One tap to switch the till to refunds. Leave off on a till that never gives refunds.' },
+    { id: 'online', label: 'Online light', icon: Wifi, dflt: true,
+      hint: 'A small dot: green when sales save straight away, red when they are waiting on this device.' },
+    { id: 'printer', label: 'Printer light', icon: Printer, dflt: true,
+      hint: 'Shows whether the printer is ready, out of paper or missing. Tap it to open Hardware.' },
+    { id: 'keys', label: 'Shortcuts button', icon: Keyboard, dflt: false,
+      hint: 'Opens the list of keyboard shortcuts. The ? key opens it too.' },
+    { id: 'fullscreen', label: 'Full screen button', icon: Maximize2, dflt: false,
+      hint: 'Hides the browser bars so the till fills the screen. Alt + Z does the same.' },
+    { id: 'kitchen', label: 'Kitchen screen button', icon: ChefHat, dflt: true, restaurant: true,
+      hint: 'Opens the kitchen display in a new tab.' },
+    { id: 'queue', label: 'Customer TV screen button', icon: Tv, dflt: true, restaurant: true,
+      hint: 'Opens the "order ready" screen for customers in a new tab.' },
 ];
 
-export const DEFAULT_SURFACE = SURFACE_BUTTONS.reduce(
-    (a, b) => { a[b.id] = b.dflt; return a; }, {},
-);
+export const DEFAULT_SURFACE = SURFACE_BUTTONS.reduce((a, b) => { a[b.id] = b.dflt; return a; }, {});
 
-/* ══════════════════════════════════════════════════════════════════════════
-   PRIMITIVES
-   Built once here rather than repeated inline, because the old settings modal
-   hand-wrote the same toggle markup eleven times and three of them had drifted
-   to different sizes.
-   ══════════════════════════════════════════════════════════════════════════ */
+const toWire = v => (v === true ? '1' : v === false ? '0' : v);
 
-/** Section heading. v6 eyebrow: 11px, 700, .12em, muted. */
-function Eyebrow({ children, className = '' }) {
-    return (
-        <h4 className={`text-3xs font-bold uppercase tracking-[0.12em] text-ink-muted ${className}`}>
-            {children}
-        </h4>
-    );
+/** "Ctrl + S" from a keydown, in the same spelling as POS_KEYMAP. */
+function comboOf(e) {
+    const k = e.key;
+    if (['Control', 'Shift', 'Alt', 'Meta'].includes(k)) return null;
+    let key = k === 'Escape' ? 'Esc' : k === ' ' ? 'Space' : k.length === 1 ? k.toUpperCase() : k;
+    if (k === '?') return '?';
+    if (e.ctrlKey && /^[1-8]$/.test(k)) key = k;
+    const mods = [e.ctrlKey && 'Ctrl', e.altKey && 'Alt', e.shiftKey && k.length > 1 && 'Shift'].filter(Boolean);
+    return [...mods, key].join(' + ');
 }
 
-/** A labelled block. `title` is the control's name; `hint` is one line of why. */
-function Field({ title, hint, badge, children, stacked = false }) {
-    return (
-        <div className="rounded-xl border border-line/80 bg-surface shadow-xs p-3.5">
-            <div className={stacked ? 'space-y-2.5' : 'flex items-start justify-between gap-3'}>
-                <div className="min-w-0 space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-ink leading-tight">{title}</span>
-                        {badge}
-                    </div>
-                    {hint && (
-                        <p className="text-2xs text-ink-muted leading-relaxed max-w-[46ch]">{hint}</p>
-                    )}
-                </div>
-                {!stacked && <div className="shrink-0">{children}</div>}
-            </div>
-            {stacked && children}
-        </div>
-    );
+function pickDevice() {
+    if (typeof window === 'undefined') return 'desktop';
+    const w = window.innerWidth;
+    return w < 700 ? 'phone' : w < 1150 ? 'tablet' : w < 1600 ? 'laptop' : 'desktop';
 }
 
-/** Switch. One size, 44x24, everywhere. */
-function Toggle({ checked, onChange, label, tone = 'brand', disabled = false }) {
-    const on = tone === 'danger' ? 'bg-danger-600' : tone === 'success' ? 'bg-emerald-600' : 'bg-brand-600';
-    return (
-        <button
-            type="button"
-            role="switch"
-            aria-checked={!!checked}
-            aria-label={label}
-            disabled={disabled}
-            onClick={() => !disabled && onChange(!checked)}
-            className={`relative w-11 h-6 rounded-full transition-colors shrink-0 cursor-pointer
-                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
-                        disabled:opacity-40 disabled:cursor-not-allowed ${checked ? on : 'bg-line-strong'}`}
-        >
-            <span
-                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-xs
-                            transition-[left,right] duration-fast ${checked ? 'right-0.5' : 'left-0.5'}`}
-            />
-        </button>
-    );
-}
-
-/**
- * Segmented control. Wraps rather than scrolls, because a horizontally
- * scrolled segment hides options the operator does not know exist — which is
- * how "catalog on the right" stayed undiscovered in the old picker.
- */
-function Segmented({ value, options, onChange, label, disabled = false }) {
-    return (
-        <div
-            role="radiogroup"
-            aria-label={label}
-            className={`flex flex-wrap gap-1 p-1 rounded-xl bg-sunken/70 border border-line/70
-                        ${disabled ? 'opacity-40 pointer-events-none' : ''}`}
-        >
-            {options.map(opt => {
-                const active = value === opt.value;
-                return (
-                    <button
-                        key={String(opt.value)}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        title={opt.hint || opt.label}
-                        onClick={() => onChange(opt.value)}
-                        className={`flex-1 min-w-[68px] h-9 px-2.5 rounded-lg text-2xs font-bold
-                                    transition-all cursor-pointer whitespace-nowrap
-                                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
-                                    ${active
-                                        ? 'bg-surface text-brand-700 dark:text-brand-300 shadow-xs border border-brand-500/30'
-                                        : 'text-ink-muted hover:text-ink hover:bg-surface/70 border border-transparent'}`}
-                    >
-                        {opt.label}
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
-
-/**
- * Stepper. The replacement for a range input wherever a number really is the
- * control: it is exact, it is keyboard-native, and it never lands on 37%
- * because a finger slipped.
- */
-function Stepper({ value, min, max, step = 1, onChange, format, label, disabled = false }) {
-    const clamp = v => Math.max(min, Math.min(max, v));
-    const btn = 'w-9 h-9 rounded-lg flex items-center justify-center transition-colors shrink-0 cursor-pointer '
-              + 'text-ink-secondary hover:bg-interactive-hover hover:text-ink '
-              + 'disabled:opacity-30 disabled:cursor-not-allowed '
-              + 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
-    return (
-        <div
-            className={`flex items-center gap-1 p-1 rounded-xl bg-sunken/70 border border-line/70 ${disabled ? 'opacity-40 pointer-events-none' : ''}`}
-            role="group"
-            aria-label={label}
-        >
-            <button type="button" className={btn} onClick={() => onChange(clamp(value - step))}
-                    disabled={value <= min} aria-label={`Decrease ${label}`}>
-                <Minus size={15} strokeWidth={2.5} />
-            </button>
-            <span className="vq-num min-w-[64px] text-center text-xs font-bold text-ink tabular-nums select-none">
-                {format ? format(value) : value}
-            </span>
-            <button type="button" className={btn} onClick={() => onChange(clamp(value + step))}
-                    disabled={value >= max} aria-label={`Increase ${label}`}>
-                <Plus size={15} strokeWidth={2.5} />
-            </button>
-        </div>
-    );
-}
-
-/** A quiet explanatory strip. Never a colour that competes with a warning. */
-function Note({ tone = 'info', icon: Icon = Info, children }) {
-    const tones = {
-        info: 'bg-sunken/60 border-line/70 text-ink-secondary',
-        warn: 'bg-amber-50 dark:bg-amber-950/25 border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300',
-    };
-    return (
-        <div className={`flex items-start gap-2.5 rounded-xl border px-3 py-2.5 ${tones[tone]}`}>
-            <Icon size={14} className="shrink-0 mt-[1px] opacity-80" />
-            <p className="text-2xs leading-relaxed min-w-0">{children}</p>
-        </div>
-    );
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   THE DRAWER
-   ══════════════════════════════════════════════════════════════════════════ */
-
-const TABS = [
-    { id: 'layout',   label: 'Layout',   icon: LayoutGrid,        blurb: 'Where every pane goes' },
-    { id: 'counter',  label: 'Counter',  icon: MousePointerClick, blurb: 'Buttons on the register' },
-    { id: 'display',  label: 'Display',  icon: Monitor,           blurb: 'Type size and scale' },
-    { id: 'selling',  label: 'Selling',  icon: Receipt,           blurb: 'Fields, totals, returns' },
-    { id: 'service',  label: 'Service',  icon: Utensils,          blurb: 'Counter or table service' },
-    { id: 'hardware', label: 'Hardware', icon: Printer,           blurb: 'Printer, drawer, sync' },
-    { id: 'keys',     label: 'Keys',     icon: Keyboard,          blurb: 'The keyboard map' },
-];
-
-export default function RegisterSettings({
-    open,
-    onClose,
-    initialTab = 'layout',
-
-    /* geometry */
-    presets = [],
-    presetId,
-    /* Whether the business ALREADY runs table service. The Table preset is
-       shown either way — picking it is what turns it on — so this only
-       decides the wording under the grid. */
-    tablesAvailable = false,
-    canManageStore = false,
-    composition,
-    layout,
-    onApplyPreset,
-    onUpdateComposition,
-    onResetWidths,
-
-    /* store-wide */
-    serviceMode = 'counter', setServiceMode,
-    preparesOrders = false, setPreparesOrders,
-    serviceCharge = 0, setServiceCharge,
-    onOpenFloorPlan,
-
-    /* which terminal this register currently IS. The composer describes the
-       screen in front of the operator, so a counter till is never offered the
-       restaurant's controls and a restaurant is never offered Hold. */
-    terminal = 'counter',
-
-    /* which rank-2 buttons sit on the register's own bar */
-    surface = DEFAULT_SURFACE,
-    setSurface,
-
-    /* display & catalog */
-    seniorMode, setSeniorMode,
-    showRail, setShowRail,
-    uiScale, setUiScale,
-    catalogSort, setCatalogSort,
-    showCatalogImages, setShowCatalogImages,
-    showCatalogStock, setShowCatalogStock,
-    categoryOrientation, setCategoryOrientation,
-    hideOutOfStock, setHideOutOfStock,
-    isStockTracking = true,
-
-    /* selling */
-    enableTax, setEnableTax,
-    enableFulfilment, setEnableFulfilment,
-    enableFreeQty, setEnableFreeQty,
-    showItemConverter = true, setShowItemConverter,
-    roundOff, setRoundOff,
-    autoFillCash, setAutoFillCash,
-    returnMode, setReturnMode,
-    returnPolicyLabel,
-    discountPresets = [], setDiscountPresets,
-
-    /* hardware */
-    printOnComplete, setPrintOnComplete,
-    openDrawerOnCash, setOpenDrawerOnCash,
-    isStationConnected, isOnline,
-    pendingCount = 0,
-    onOpenCashDrawer,
-    onOpenParked, parkedCount = 0,
-    onOpenRecent,
-    onOpenSyncHub,
-
-    /* meta */
-    onRunSetupWizard,
-    onResetAll,
-}) {
-    const [tab, setTab] = useState(initialTab);
-    const [deviceId, setDeviceId] = useState('desktop');
-    const panelRef = useRef(null);
+export default function RegisterSettings(props) {
+    const p = props;
+    const { open, onClose, initialTab = 'layout' } = p;
     const titleId = useId();
-    const tt = useTermText();
+    const shellRef = useRef(null);
+    const mainRef = useRef(null);
 
-    /* The caller may open the drawer AT a tab — the '?' key opens it on Keys,
-       and the dock's "why is this a button?" affordance opens it on Layout. */
-    useEffect(() => { if (open) setTab(initialTab); }, [open, initialTab]);
+    const restaurantRelevant = !!p.restaurantRelevant;
+    const visible = useMemo(() => CATEGORIES.filter(c => !c.restaurant || restaurantRelevant), [restaurantRelevant]);
+    const visibleIds = useMemo(() => new Set(visible.map(c => c.id)), [visible]);
+    const resolveTab = useCallback(t => {
+        const id = TAB_ALIASES[t] || t;
+        return visibleIds.has(id) ? id : (id === 'restaurant' || id === 'kitchen') ? 'checkout' : 'layout';
+    }, [visibleIds]);
 
-    /* Esc closes the top layer. Scoped to the drawer and registered only while
-       it is open, so it can never swallow the register's own Esc. */
+    const [tab, setTab] = useState(() => resolveTab(initialTab));
+    const [query, setQuery] = useState('');
+    const [flash, setFlash] = useState(null);
+    const [deviceId, setDeviceId] = useState(pickDevice);
+    const [showPreview, setShowPreview] = useState(false);
+    const [status, setStatus] = useState({ state: 'saved', at: null, msg: '' });
+    const [overrides, setOverrides] = useState({});
+    const [passcode, setPasscode] = useState(null);       // remembered for this session once accepted
+    const [askPasscode, setAskPasscode] = useState(null); // { retry }
+    const [lastKey, setLastKey] = useState(null);
+    const inflight = useRef(0);
+
+    useEffect(() => { if (open) { setTab(resolveTab(initialTab)); setQuery(''); } }, [open, initialTab]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { if (!visibleIds.has(tab)) setTab(resolveTab(tab)); }, [visibleIds]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { setOverrides({}); }, [p.storeSettings]);
+
+    /* Body flags: hide the Ask Vena island, stop the page behind from scrolling. */
+    useEffect(() => {
+        if (!open || typeof document === 'undefined') return undefined;
+        const b = document.body;
+        const prevOverflow = b.style.overflow;
+        b.setAttribute('data-vq-settings-open', '1');
+        b.style.overflow = 'hidden';
+        return () => { b.removeAttribute('data-vq-settings-open'); b.style.overflow = prevOverflow; };
+    }, [open]);
+
+    /* Esc closes; Ctrl+K / '/' focuses search; on the Keys page every key is
+       only TESTED. Registered in the capture phase so the register never sees
+       a key while this is open. */
     useEffect(() => {
         if (!open) return undefined;
         const onKey = e => {
-            if (e.key === 'Escape') { e.stopPropagation(); onClose?.(); }
+            const typing = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT');
+            if (e.key === 'Escape') {
+                e.stopPropagation(); e.preventDefault();
+                if (askPasscode) { setAskPasscode(null); return; }
+                if (query) { setQuery(''); return; }
+                onClose?.();
+                return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault(); e.stopPropagation();
+                shellRef.current?.querySelector('.vqs-search input')?.focus();
+                return;
+            }
+            if (tab === 'keys' && !typing) {
+                const c = comboOf(e);
+                if (c) {
+                    e.preventDefault(); e.stopPropagation();
+                    setLastKey({ combo: c, at: Date.now() });
+                }
+            }
         };
         window.addEventListener('keydown', onKey, true);
         return () => window.removeEventListener('keydown', onKey, true);
-    }, [open, onClose]);
+    }, [open, onClose, tab, query, askPasscode]);
 
-    /* Move focus into the panel on open so the keyboard follows the eye, and
-       so Tab does not walk the register behind it first. */
     useEffect(() => {
-        if (open && panelRef.current) {
-            const t = setTimeout(() => panelRef.current?.focus?.(), 40);
+        if (open) {
+            const t = setTimeout(() => shellRef.current?.focus?.(), 40);
             return () => clearTimeout(t);
         }
         return undefined;
     }, [open]);
 
-    const comp = composition || { catalog: {}, split: {}, tender: 'column', floor: 'off' };
-    const catMode = comp.catalog?.mode ?? 'left';
-    const catIsStrip = catMode === 'top' || catMode === 'bottom';
-    const catIsColumn = catMode === 'left' || catMode === 'right';
-    const catResident = catIsStrip || catIsColumn;
+    /* ── saving ───────────────────────────────────────────────────────── */
+    const track = useCallback(promise => {
+        inflight.current += 1;
+        setStatus({ state: 'saving', at: null, msg: '' });
+        return Promise.resolve(promise).then(res => {
+            inflight.current -= 1;
+            if (inflight.current <= 0) setStatus({ state: 'saved', at: Date.now(), msg: '' });
+            return res;
+        }, err => {
+            inflight.current -= 1;
+            const msg = err?.response?.data?.message || 'That change could not be saved.';
+            setStatus({ state: 'error', at: Date.now(), msg });
+            p.addToast?.(err?.response?.status === 403 && !/passcode/i.test(msg) ? 'You do not have permission to change that.' : msg, 'error');
+            throw err;
+        });
+    }, [p.addToast]);
+
+    const storeVal = useCallback((k, d) => {
+        if (Object.prototype.hasOwnProperty.call(overrides, k)) return overrides[k];
+        const v = p.storeSettings?.[k];
+        return v === undefined || v === null ? d : v;
+    }, [overrides, p.storeSettings]);
+
+    const saveStore = useCallback((section, patch, challenge = passcode) => {
+        if (!p.canManageStore) {
+            p.addToast?.('Only an owner or manager can change business-wide settings.', 'error');
+            return Promise.resolve(false);
+        }
+        const wire = Object.fromEntries(Object.entries(patch).map(([k, v]) => [k, toWire(v)]));
+        const before = Object.fromEntries(Object.keys(patch).map(k => [k, storeVal(k, undefined)]));
+        setOverrides(o => ({ ...o, ...wire }));
+        let url;
+        try { url = route('store.settings.update', { store_slug: p.storeSlug }); } catch (_) { url = null; }
+        if (!url) return Promise.resolve(false);
+        const body = { _save_section: section, ...wire, ...(challenge ? { passcode_challenge: challenge } : {}) };
+        inflight.current += 1;
+        setStatus({ state: 'saving', at: null, msg: '' });
+        return axios.post(url, body, { headers: { Accept: 'application/json' } })
+            .then(() => {
+                inflight.current -= 1;
+                if (inflight.current <= 0) setStatus({ state: 'saved', at: Date.now(), msg: '' });
+                if (challenge) setPasscode(challenge);
+                p.reloadSettings?.();
+                return true;
+            })
+            .catch(err => {
+                inflight.current -= 1;
+                const msg = err?.response?.data?.message || 'That change could not be saved.';
+                if (err?.response?.status === 403 && /passcode/i.test(msg)) {
+                    setAskPasscode({ section, patch, wrong: !!challenge });
+                    setStatus({ state: 'error', at: Date.now(), msg: 'Passcode needed' });
+                } else {
+                    setOverrides(o => ({ ...o, ...before }));
+                    setStatus({ state: 'error', at: Date.now(), msg });
+                    p.addToast?.(msg, 'error');
+                }
+                return false;
+            });
+    }, [p.canManageStore, p.storeSlug, p.addToast, p.reloadSettings, passcode, storeVal]);
+
+    /* ── kitchen routing (shared by the Kitchen page and its preview) ── */
+    const [kitchen, setKitchen] = useKitchenRouting(p, open && restaurantRelevant && !!p.preparesOrders);
+
+    /* ── search ───────────────────────────────────────────────────────── */
+    const results = useMemo(() => searchSettings(query, visibleIds), [query, visibleIds]);
+    const goTo = (cat, sid) => {
+        setQuery('');
+        setTab(cat);
+        if (!sid) { mainRef.current?.scrollTo?.({ top: 0 }); return; }
+        setFlash(sid);
+        setTimeout(() => {
+            const el = document.getElementById(`vqs-set-${sid}`);
+            el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        }, 60);
+        setTimeout(() => setFlash(f => (f === sid ? null : f)), 2200);
+    };
+    useEffect(() => { mainRef.current?.scrollTo?.({ top: 0 }); }, [tab]);
+
+    const ctx = useMemo(() => ({ p: { ...p, restaurantRelevant }, flash, storeVal, saveStore, track }), [p, restaurantRelevant, flash, storeVal, saveStore, track]);
+
+    if (!open || typeof document === 'undefined') return null;
+
     const device = PREVIEW_DEVICES.find(d => d.id === deviceId) || PREVIEW_DEVICES[3];
+    const money = p.money || (v => (Number(v) || 0).toFixed(2));
 
-    /* What the ENGINE decided, as opposed to what was asked for. A composer
-       that only echoes the wish back is lying whenever a floor overrides it —
-       and "I set the catalog to a column and nothing happened" was the single
-       most reported confusion on the old picker. */
-    const resolved = useMemo(() => {
-        if (!layout) return null;
-        const rows = [];
-        const cat = layout.catalog;
-        rows.push(['Catalog', !cat ? 'Off'
-            : cat.mode === 'overlay' ? 'Full-screen button'
-            : cat.mode === 'left' ? `Column, left · ${Math.round(cat.px || 0)}px`
-            : cat.mode === 'right' ? `Column, right · ${Math.round(cat.px || 0)}px`
-            : `Strip · ${cat.rows} row${cat.rows === 1 ? '' : 's'}`]);
-        rows.push(['Cart', `${Math.round(layout.cart?.px || 0)}px · ${layout.cartLines || 0} lines visible`]);
-        rows.push(['Tender', layout.tender?.mode === 'column' ? `Column · ${Math.round(layout.tender.px || 0)}px`
-            : layout.tender?.mode === 'bar' ? 'Docked bar' : 'Full-screen sheet']);
-        if (layout.floor) rows.push(['Floor plan', layout.floor.mode === 'left' ? `Column · ${Math.round(layout.floor.px || 0)}px` : 'Step']);
-        rows.push(['Screen', `${Math.round(layout.avail || 0)}px usable · ${layout.regime}`]);
-        return rows;
-    }, [layout]);
+    /* ── pages ────────────────────────────────────────────────────────── */
+    const page = (() => {
+        switch (tab) {
+            case 'layout': return <LayoutPage />;
+            case 'catalog': return <CatalogPage />;
+            case 'screen': return <ScreenPage />;
+            case 'buttons': return <ButtonsPage SURFACE_BUTTONS={SURFACE_BUTTONS} />;
+            case 'checkout': return <CheckoutPage />;
+            case 'restaurant': return <RestaurantPage />;
+            case 'kitchen': return <KitchenPage kitchen={kitchen} setKitchen={setKitchen} />;
+            case 'receipts': return <ReceiptsPage />;
+            case 'stock': return <StockPage />;
+            case 'money': return <MoneyPage />;
+            case 'cash': return <CashPage />;
+            case 'hardware': return <HardwarePage />;
+            case 'keys': return <KeysPage keymap={POS_KEYMAP} lastKey={lastKey} />;
+            default: return <LayoutPage />;
+        }
+    })();
 
-    const notes = layout?.notes || [];
+    /* ── preview ──────────────────────────────────────────────────────── */
+    const registerPreview = (focus, opts = {}) => {
+        const layout = composeFor(p.composition, device.vw, device.vh, { senior: p.seniorMode, scale: p.uiScale, terminal: p.terminal, rail: p.showRail });
+        const notes = opts.sheet ? [] : plainNotes(p.composition, layout, device, p.terminal);
+        return (
+            <>
+                <div className="vqs-seg" role="radiogroup" aria-label="Preview screen" style={{ alignSelf: 'flex-start' }}>
+                    {PREVIEW_DEVICES.map(d => (
+                        <button key={d.id} type="button" role="radio" aria-checked={deviceId === d.id} onClick={() => setDeviceId(d.id)}>{d.label}</button>
+                    ))}
+                </div>
+                <RegisterLivePreview
+                    comp={p.composition} device={device} senior={p.seniorMode} scale={p.uiScale} rail={p.showRail}
+                    terminal={p.terminal} surface={p.surface} preparesOrders={p.preparesOrders} isOnline={p.isOnline}
+                    catalogShape={p.composition?.catalogShape || 'auto'} categoryOrientation={p.categoryOrientation}
+                    showImages={p.showCatalogImages !== false} showStock={p.showCatalogStock !== false}
+                    hideOutOfStock={!!p.hideOutOfStock} isStockTracking={p.isStockTracking}
+                    products={p.sampleProducts} categories={p.categories} money={money}
+                    enableTax={p.enableTax} taxRate={Number(storeVal('default_tax_rate', 0)) || 0}
+                    roundOff={p.roundOff && String(storeVal('round_off_total', 'none')) !== 'none'}
+                    serviceChargePct={p.serviceCharge} focus={focus} floorView={p.floorView}
+                    showCatalogSheet={!!opts.sheet}
+                />
+                {notes.map((n, i) => (
+                    <div key={i} className="vqs-preview-note"><AlertTriangle size={15} />{n}</div>
+                ))}
+            </>
+        );
+    };
 
-    const setCat = patch => onUpdateComposition?.(prev => ({ ...prev, catalog: { ...prev.catalog, ...patch } }));
-    const setBtn = (id, v) => setSurface?.({ ...surface, [id]: v });
+    const paymentPreview = (
+        <PaymentPreview
+            money={money} enableTax={p.enableTax} taxRate={Number(storeVal('default_tax_rate', 0)) || 0}
+            roundMode={String(storeVal('round_off_total', 'none'))} roundOffOnTill={!!p.roundOff}
+            autoFillCash={!!p.autoFillCash} cashDefault discountPresets={p.discountPresets || []}
+            serviceChargePct={p.serviceCharge} tip={p.terminal === 'table' && p.tipEnabled !== false}
+            restaurant={p.terminal === 'table'} freeQty={p.enableFreeQty} products={p.sampleProducts}
+        />
+    );
 
-    /* ── SHELL ────────────────────────────────────────────────────────────
-       Full screen, over a scrim, with three regions: the tab rail, the
-       controls, and the preview. The preview keeps its own column rather than
-       sitting above the controls, so it stays in view WHILE a control is
-       changed -- which is the only thing that makes it worth the width. Below
-       lg the three stack and the rail becomes a scrolling strip.
-       ────────────────────────────────────────────────────────────────────── */
-    if (!open) return null;
+    const preview = (() => {
+        switch (tab) {
+            case 'layout': return { title: 'Your register', cap: 'Drawn by the same rules as the real register. Pick a screen size to see how it adapts.', body: registerPreview(null) };
+            case 'catalog': return { title: 'Product buttons', cap: `${p.sampleProducts?.length ? 'Showing your own products.' : 'Your own products appear here once the catalog has loaded.'} Where products sit behind a button, they are shown opened.`, body: registerPreview('catalog', { sheet: true }) };
+            case 'screen': return { title: 'Your register', cap: p.seniorMode ? 'Easy-read mode: bigger text and buttons. Columns that no longer fit become buttons.' : 'Text and buttons at normal size.', body: registerPreview(null) };
+            case 'buttons': return { title: 'The top bar', cap: 'The buttons you switch on appear in the highlighted bar.', body: registerPreview('bar') };
+            case 'checkout':
+            case 'money':
+            case 'cash': return { title: 'The bill and payment', cap: 'How the total is worked out on a sample sale, with the settings on the left.', body: paymentPreview };
+            case 'stock': return { title: 'Product buttons', cap: storeVal('stock_maintenance', '1') === '0' ? 'Stock is not tracked, so every product is always available.' : (String(storeVal('stop_sale_negative_stock', '0')) === '1' ? 'A sold-out product cannot be sold — the register stops the sale and says why.' : 'Sold-out products can still be sold; the stock count goes below zero.'), body: registerPreview('catalog', { sheet: true }) };
+            case 'restaurant': return {
+                title: 'Your floor',
+                cap: p.positions?.length ? 'Showing your own tables.' : 'Sample tables. Your own appear once you add them in Edit tables.',
+                body: (
+                    <>
+                        <FloorPreview positions={p.positions} view={p.floorView} sort={p.floorSort} size={p.floorSize}
+                                      showMoney={p.floorShow?.showMoney !== false} showServer={p.floorShow?.showServer !== false}
+                                      showTime={p.floorShow?.showTime !== false} lanes={p.lanes} money={money} />
+                        {p.terminal === 'table' && registerPreview('floor')}
+                    </>
+                ),
+            };
+            case 'kitchen': return { title: 'Where an order goes', cap: 'A sample order, split exactly the way the kitchen will receive it.', body: <TicketsPreview routing={kitchen.routing} products={p.sampleProducts} categories={kitchen.categories} /> };
+            case 'receipts': return {
+                title: 'Printed receipt', cap: 'Uses your business name and details.',
+                body: <ReceiptPreview money={money} products={p.sampleProducts} autoPrint={p.printOnComplete}
+                                      s={new Proxy({}, { get: (_, k) => {
+                                          const v = storeVal(String(k), undefined);
+                                          const bools = ['thermal_use_bold', 'thermal_auto_cut', 'thermal_show_barcode', 'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units', 'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch', 'thermal_show_expiry'];
+                                          if (bools.includes(k)) return v === undefined ? ['thermal_use_bold', 'thermal_auto_cut', 'thermal_show_barcode'].includes(k) : (v === true || v === '1' || v === 1);
+                                          if (k === 'business_name') return v || storeVal('store_name', '') || p.storeName;
+                                          if (k === 'default_print_type') return v || 'regular';
+                                          if (k === 'thermal_extra_lines') return v === undefined ? 3 : v;
+                                          if (k === 'thermal_copies') return v === undefined ? 1 : v;
+                                          return v;
+                                      } })} />,
+            };
+            case 'hardware': return { title: 'This till’s devices', cap: 'What is connected right now.', body: <HardwarePreview station={p.station} isOnline={p.isOnline} pendingCount={p.pendingCount} /> };
+            case 'keys': return { title: 'Keyboard', cap: 'Press any key to see what it does.', body: <KeysPreview lastKey={lastKey} keymap={POS_KEYMAP} /> };
+            default: return null;
+        }
+    })();
 
-    return (
-        <div
-            className="fixed inset-0 z-modal bg-ink/60 backdrop-blur-sm p-0 sm:p-4 md:p-6
-                       flex items-stretch sm:items-center justify-center vq-anim-fade"
-            /* mousedown, not click: a drag that STARTS inside the panel and ends
-               on the scrim (letting go of a discount chip near the edge) must not
-               be read as a click outside and close everything. */
-            onMouseDown={e => { if (e.target === e.currentTarget) onClose?.(); }}
-        >
-            <div
-                ref={panelRef}
-                tabIndex={-1}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={titleId}
-                className="bg-app w-full h-full sm:h-auto sm:max-h-[94vh] sm:max-w-[1240px]
-                           sm:rounded-2xl border-0 sm:border border-line shadow-2xl
-                           flex flex-col overflow-hidden outline-none"
-            >
-                {/* ── HEADER ── */}
-                <header className="shrink-0 h-[60px] px-4 sm:px-5 border-b border-line bg-surface
-                                   flex items-center gap-3">
-                    <div className="min-w-0 flex-1">
-                        <h2 id={titleId} className="vq-clip text-base font-bold text-ink leading-tight">
-                            Register settings
-                        </h2>
-                        <p className="vq-clip text-2xs font-semibold text-ink-muted">
-                            Saved on this device · {tt(TABS.find(t => t.id === tab)?.blurb || '')}
-                        </p>
+    const statusEl = (
+        <span className="vqs-saved" data-state={status.state} role="status" aria-live="polite" title={status.msg || undefined}>
+            {status.state === 'saving' ? <Loader2 size={15} className="vqs-spin" />
+                : status.state === 'error' ? <AlertTriangle size={15} /> : <Check size={15} strokeWidth={3} />}
+            <span>{status.state === 'saving' ? 'Saving…' : status.state === 'error' ? (status.msg || 'Not saved') : 'All changes saved'}</span>
+        </span>
+    );
+
+    const ui = (
+        <div className="vqs-root" onMouseDown={e => { if (e.target === e.currentTarget) onClose?.(); }}>
+            <div ref={shellRef} className="vqs-shell" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}>
+                <header className="vqs-header">
+                    <span className="vqs-header-mark" aria-hidden="true"><Settings2 size={20} /></span>
+                    <div className="vqs-header-title">
+                        <h2 id={titleId}>Register settings</h2>
+                        <p>{p.terminal === 'table' ? 'Restaurant screen' : 'Counter screen'} · changes apply straight away</p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="w-10 h-10 rounded-xl border border-line bg-surface text-ink-muted
-                                   hover:bg-interactive-hover hover:text-ink flex items-center justify-center
-                                   transition-colors shrink-0 cursor-pointer
-                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                        aria-label="Close settings"
-                    >
-                        <X size={18} />
+                    <label className="vqs-search">
+                        <Search size={17} aria-hidden="true" />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={e => setQuery(e.target.value)}
+                            placeholder="Search settings — try “drawer”, “receipt” or “tables”"
+                            aria-label="Search settings"
+                        />
+                        {query ? (
+                            <button type="button" className="vqs-iconbtn" data-size="sm" style={{ width: 26, height: 26, boxShadow: 'none' }} onClick={() => setQuery('')} aria-label="Clear search"><X size={14} /></button>
+                        ) : <kbd>Ctrl K</kbd>}
+                    </label>
+                    {statusEl}
+                    <button type="button" className="vqs-iconbtn vqs-preview-toggle" onClick={() => setShowPreview(v => !v)}
+                            aria-pressed={showPreview} title={showPreview ? 'Hide preview' : 'Show preview'}>
+                        {showPreview ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
+                    <Button v="p" onClick={onClose}>Done</Button>
                 </header>
 
-                {/* ── BODY: rail · controls · preview ── */}
-                <div className="flex-1 min-h-0 flex flex-col lg:flex-row">
+                {askPasscode && (
+                    <PasscodeBar
+                        wrong={askPasscode.wrong}
+                        onCancel={() => setAskPasscode(null)}
+                        onSubmit={code => { const job = askPasscode; setAskPasscode(null); saveStore(job.section, job.patch, code); }}
+                    />
+                )}
 
-                    <nav
-                        role="tablist"
-                        aria-label="Settings sections"
-                        className="shrink-0 lg:w-[188px] border-b lg:border-b-0 lg:border-r border-line
-                                   bg-surface flex lg:flex-col gap-1 p-2
-                                   overflow-x-auto lg:overflow-x-visible lg:overflow-y-auto scrollbar-none"
-                    >
-                        {TABS.map(t => {
-                            const active = tab === t.id;
-                            const Icon = t.icon;
+                <div className="vqs-body" data-preview={showPreview ? 'on' : 'off-mobile'}>
+                    <nav className="vqs-nav" aria-label="Settings categories">
+                        {GROUPS.map(g => {
+                            const items = visible.filter(c => c.group === g.id);
+                            if (!items.length) return null;
                             return (
-                                <button
-                                    key={t.id}
-                                    role="tab"
-                                    type="button"
-                                    aria-selected={active}
-                                    onClick={() => setTab(t.id)}
-                                    className={`shrink-0 lg:w-full h-10 px-3 rounded-xl flex items-center gap-2
-                                                text-2xs font-bold transition-colors cursor-pointer whitespace-nowrap
-                                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
-                                                ${active
-                                                    ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300 border border-brand-500/30'
-                                                    : 'text-ink-muted hover:text-ink hover:bg-interactive-hover border border-transparent'}`}
-                                >
-                                    <Icon size={15} className="shrink-0" />
-                                    <span>{tt(t.label)}</span>
-                                </button>
-                            );
-                        })}
-                    </nav>
-
-                    {/* overscroll-contain stops a flick at the end of this list
-                        from scrolling the register underneath it. */}
-                    <div className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-5 space-y-5">
-
-                    {/* ═══════════ LAYOUT ═══════════ */}
-                    {tab === 'layout' && (
-                        <>
-                            <section className="space-y-2.5">
-                                <Eyebrow>Start from</Eyebrow>
-                                <p className="text-2xs text-ink-muted leading-relaxed">
-                                    Starting points, not fixed layouts. Pick the closest one,
-                                    then change anything below — you are still inside the law.
-                                </p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {presets
-                                        /* EVERY PRESET, ALWAYS — INCLUDING TABLE.
-                                           It used to be filtered by the terminal you happened
-                                           to be on, so the Table card was reachable only from
-                                           the page that had already applied it. Then it was
-                                           filtered by `service_mode`, which hid it from every
-                                           shop that had not already found and flipped a store
-                                           setting somewhere else. Both are the same mistake:
-                                           the register had a floor and no way to ask for one.
-                                           It is a shape like the other seven, and choosing it
-                                           is what turns table service on. */
-                                        .map(p => {
-                                        const active = presetId === p.id;
+                                <div key={g.id} className="vqs-nav-group">
+                                    <p className="vqs-eyebrow">{g.label}</p>
+                                    {items.map(c => {
+                                        const Icon = c.icon;
+                                        const count = query ? results.filter(r => r.cat === c.id).length : 0;
                                         return (
-                                            <button
-                                                key={p.id}
-                                                type="button"
-                                                onClick={() => onApplyPreset?.(p.id)}
-                                                className={`text-left p-3 rounded-xl border transition-all cursor-pointer
-                                                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
-                                                            ${active
-                                                                ? 'border-brand-500/50 bg-brand-50/70 dark:bg-brand-950/30 shadow-xs'
-                                                                : 'border-line/80 bg-surface hover:border-line-strong hover:shadow-xs'}`}
-                                                aria-pressed={active}
-                                            >
-                                                <span className="flex items-center gap-1.5">
-                                                    <span className="text-xs font-bold text-ink">{p.name}</span>
-                                                    {p.terminal === 'table' && (
-                                                        <span className="text-4xs font-bold uppercase tracking-wide px-1.5 py-0.5 rounded
-                                                                         bg-brand-50 dark:bg-brand-950/40 text-brand-700 dark:text-brand-300
-                                                                         border border-brand-200/70 dark:border-brand-900/60 shrink-0">
-                                                            Floor
-                                                        </span>
-                                                    )}
-                                                    {active && <Check size={13} className="text-brand-600 dark:text-brand-400 shrink-0" />}
+                                            <button key={c.id} type="button" className="vqs-nav-item"
+                                                    aria-current={!query && tab === c.id ? 'page' : undefined}
+                                                    onClick={() => goTo(c.id)}>
+                                                <span className="vqs-nav-icon"><Icon size={17} /></span>
+                                                <span className="vqs-nav-text">
+                                                    <span className="vqs-nav-label">{c.label}</span>
+                                                    <span className="vqs-nav-hint">{c.hint}</span>
                                                 </span>
-                                                <span className="mt-1 block text-3xs text-ink-muted leading-snug line-clamp-2">
-                                                    {p.tagline || p.for}
-                                                </span>
+                                                {count > 0 && <span className="vqs-nav-dot">{count}</span>}
                                             </button>
                                         );
                                     })}
                                 </div>
-                                <p className="text-2xs text-ink-muted leading-relaxed">
-                                    <b className="text-ink-secondary">Table</b> turns this register into the floor —
-                                    tables, tickets, splitting and transfers — without leaving the page or
-                                    losing what is in the cart. Switch back any time; each shape remembers
-                                    its own widths.
-                                    {!tablesAvailable && (canManageStore
-                                        ? ' Picking it also turns table service on for the store, alongside counter service.'
-                                        : ' Table service is a store-wide setting — an owner or manager has to turn it on.')}
-                                </p>
-                            </section>
+                            );
+                        })}
+                        <div className="vqs-nav-foot">
+                            <Button v="g" size="sm" icon={Wand2} onClick={p.onRunSetupWizard}>Run the setup guide</Button>
+                            <Button v="g" size="sm" icon={RotateCcw} onClick={p.onResetAll}>Reset this register</Button>
+                        </div>
+                    </nav>
 
-                            <section className="space-y-2.5">
-                                <Eyebrow>Panes</Eyebrow>
-
-                                <Field
-                                    title="Catalog"
-                                    hint="Off is scanner-only. Left or right is a column. Top or bottom is a tile strip. Button is one full-screen tap."
-                                    stacked
-                                >
-                                    <Segmented
-                                        label="Catalog placement"
-                                        value={catMode}
-                                        onChange={v => setCat({ mode: v })}
-                                        options={[
-                                            { value: 'off',     label: 'Off' },
-                                            { value: 'left',    label: 'Left' },
-                                            { value: 'right',   label: 'Right' },
-                                            { value: 'top',     label: 'Top' },
-                                            { value: 'bottom',  label: 'Bottom' },
-                                            { value: 'overlay', label: 'Button' },
-                                        ]}
-                                    />
-                                </Field>
-
-                                {catIsStrip && (
-                                    <Field
-                                        title="Strip rows"
-                                        hint="Rows the height cannot pay for are given back to the cart rather than held as empty band."
-                                    >
-                                        <Stepper
-                                            label="Strip rows"
-                                            value={comp.catalog?.rows ?? 1}
-                                            min={1} max={3}
-                                            onChange={v => setCat({ rows: v })}
-                                            format={v => `${v} row${v === 1 ? '' : 's'}`}
-                                        />
-                                    </Field>
-                                )}
-
-                                {catResident && (
-                                    <Field
-                                        title="Tiles per row"
-                                        hint="The category's real density control. Auto fills the column with as many as fit."
-                                    >
-                                        <Stepper
-                                            label="Tiles per row"
-                                            value={comp.catalog?.tiles ?? 0}
-                                            min={0} max={8}
-                                            onChange={v => setCat({ tiles: v === 0 ? null : v })}
-                                            format={v => (v === 0 ? 'Auto' : String(v))}
-                                        />
-                                    </Field>
-                                )}
-
-                                <Field
-                                    title="Tender"
-                                    hint="Column keeps the money detail always visible. Bar docks a total and a Pay button. Button opens the same panel full screen."
-                                    stacked
-                                >
-                                    <Segmented
-                                        label="Tender placement"
-                                        value={comp.tender}
-                                        onChange={v => onUpdateComposition?.(prev => ({
-                                            ...prev,
-                                            tender: v,
-                                            /* A tender column with a zero share is a column that
-                                               cannot be drawn. Give it back its default third the
-                                               moment it is asked to be a column again. */
-                                            split: { ...prev.split, tender: v === 'column' ? Math.max(0.22, prev.split?.tender || 0) : 0 },
-                                        }))}
-                                        options={[
-                                            { value: 'column', label: 'Column' },
-                                            { value: 'bar',    label: 'Bar' },
-                                            { value: 'sheet',  label: 'Button' },
-                                        ]}
-                                    />
-                                </Field>
-
-                                <Field
-                                    title="Payment sits on the"
-                                    hint="Right by default. Left suits a counter whose customer display is on the left, or a left-handed cashier. Bottom turns the column into a full-width row — the better shape on a wide, short screen."
-                                    stacked
-                                >
-                                    <Segmented
-                                        label="Payment side"
-                                        value={comp.tenderSide || 'right'}
-                                        onChange={v => onUpdateComposition?.(prev => ({ ...prev, tenderSide: v }))}
-                                        options={[
-                                            { value: 'right', label: 'Right' },
-                                            { value: 'left', label: 'Left' },
-                                            { value: 'bottom', label: 'Bottom' },
-                                        ]}
-                                    />
-                                </Field>
-
-                                <Field
-                                    title="Scan bar and Add item"
-                                    hint="Auto puts them wherever the catalog is not. Pin them to the order list to keep a catalog column beside a scan bar, or into the catalog for a browse-led counter."
-                                    stacked
-                                >
-                                    <Segmented
-                                        label="Scan bar placement"
-                                        value={comp.scanBar || 'auto'}
-                                        onChange={v => onUpdateComposition?.(prev => ({ ...prev, scanBar: v }))}
-                                        options={[
-                                            { value: 'auto', label: 'Auto' },
-                                            { value: 'order', label: 'On the order' },
-                                            { value: 'catalog', label: 'In the catalog' },
-                                        ]}
-                                    />
-                                </Field>
-
-                                <Field
-                                    title="Current order column"
-                                    hint="A catalog-led counter with a few SKUs can drop the standing order list: every tile carries its in-cart count and the payment panel carries the totals. It stays put when there is nowhere else for the sale to show."
-                                >
-                                    <Toggle
-                                        checked={comp.showOrder !== false}
-                                        onChange={v => onUpdateComposition?.(prev => ({ ...prev, showOrder: v }))}
-                                        label="Current order column"
-                                    />
-                                </Field>
-
-                                {/* CARDS, BIG CARDS, ROWS, PILLS. The engine picks a shape from the fit it
-                                    can afford, or follows the shop's explicit preference. */}
-                                <Field
-                                    title="Catalog item shape"
-                                    hint="Auto lets width decide. Big Cards feature a large top product photo with info below. Compact Cards show small thumbnail + info. Rows fit twice as many. Pills fit the most by far."
-                                    stacked
-                                >
-                                    <Segmented
-                                        label="Catalog item shape"
-                                        value={comp.catalogShape || 'auto'}
-                                        onChange={v => onUpdateComposition?.(prev => ({ ...prev, catalogShape: v }))}
-                                        options={[
-                                            { value: 'auto',        label: 'Auto' },
-                                            { value: 'large_cards', label: 'Big Cards' },
-                                            { value: 'cards',       label: 'Compact' },
-                                            { value: 'rows',        label: 'Rows' },
-                                            { value: 'pills',       label: 'Pills' },
-                                        ]}
-                                    />
-                                </Field>
-
-                                {catResident && (
-                                    <>
-                                        <Field
-                                            title="Category bar layout"
-                                            hint="Display categories as a horizontal top strip or a vertical left sidebar list."
-                                            stacked
-                                        >
-                                            <Segmented
-                                                label="Category bar layout"
-                                                value={categoryOrientation || 'horizontal'}
-                                                onChange={v => setCategoryOrientation?.(v)}
-                                                options={[
-                                                    { value: 'horizontal', label: 'Horizontal Strip' },
-                                                    { value: 'vertical',   label: 'Vertical Sidebar' },
-                                                ]}
-                                            />
-                                        </Field>
-
-                                        <Field
-                                            title="Default catalog sort"
-                                            hint="How items in 'All Items' and categories are ordered by default."
-                                            stacked
-                                        >
-                                            <Segmented
-                                                label="Catalog sorting"
-                                                value={catalogSort || 'top_selling'}
-                                                onChange={v => setCatalogSort?.(v)}
-                                                options={[
-                                                    { value: 'top_selling', label: 'Top Selling' },
-                                                    { value: 'name_asc',    label: 'A → Z' },
-                                                    { value: 'price_asc',   label: 'Price ↑' },
-                                                    { value: 'price_desc',  label: 'Price ↓' },
-                                                    { value: 'stock_desc',  label: 'Stock' },
-                                                    { value: 'newest',      label: 'Newest' },
-                                                ]}
-                                            />
-                                        </Field>
-
-                                        <Field
-                                            title="Show product pictures"
-                                            hint="Displays product images on cards and rows. Turn off for text-only fast scanning."
-                                        >
-                                            <Toggle
-                                                checked={showCatalogImages !== false}
-                                                onChange={v => setShowCatalogImages?.(v)}
-                                                label="Show product pictures"
-                                            />
-                                        </Field>
-
-                                        <Field
-                                            title="Show remaining stock badge"
-                                            hint="Shows remaining stock count (e.g. '12 left') on product tiles."
-                                        >
-                                            <Toggle
-                                                checked={showCatalogStock !== false}
-                                                onChange={v => setShowCatalogStock?.(v)}
-                                                label="Show remaining stock badge"
-                                            />
-                                        </Field>
-
-                                        {isStockTracking ? (
-                                            <Field
-                                                title="Hide out-of-stock products"
-                                                hint="Hides items with zero available stock from the catalog view."
-                                            >
-                                                <Toggle
-                                                    checked={!!hideOutOfStock}
-                                                    onChange={v => setHideOutOfStock?.(v)}
-                                                    label="Hide out-of-stock products"
-                                                />
-                                            </Field>
-                                        ) : (
-                                            <Field
-                                                title="Unlimited Selling Mode"
-                                                hint="Inventory tracking is disabled for this store. All products remain in stock and visible in All Items."
-                                            >
-                                                <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-800 inline-block">
-                                                    All items available
-                                                </span>
-                                            </Field>
-                                        )}
-                                    </>
-                                )}
-                            </section>
-
-                            {/* ── COLUMN WIDTHS ──
-                                No sliders. The proportions are edited on the thing
-                                itself; this block only teaches the gesture and offers
-                                the way back. */}
-                            <section className="space-y-2.5">
-                                <Eyebrow>Column widths</Eyebrow>
-                                <div className="rounded-xl border border-brand-500/25 bg-brand-50/50 dark:bg-brand-950/20 p-3.5 space-y-3">
-                                    <div className="flex items-start gap-2.5">
-                                        <MoveHorizontal size={15} className="shrink-0 mt-0.5 text-brand-600 dark:text-brand-400" />
-                                        <div className="min-w-0 space-y-1.5">
-                                            <p className="text-xs font-bold text-ink leading-snug">
-                                                Drag the divider between two columns.
-                                            </p>
-                                            <p className="text-2xs text-ink-secondary leading-relaxed">
-                                                Grab the handle on a column edge and pull. Or focus it with{' '}
-                                                <kbd className="px-1.5 py-0.5 rounded-md bg-surface border border-line text-3xs font-mono font-bold">Tab</kbd>{' '}
-                                                and use{' '}
-                                                <kbd className="px-1.5 py-0.5 rounded-md bg-surface border border-line text-3xs font-mono font-bold">←</kbd>{' '}
-                                                <kbd className="px-1.5 py-0.5 rounded-md bg-surface border border-line text-3xs font-mono font-bold">→</kbd>{' '}
-                                                — hold Shift for larger steps. Double-click a handle to
-                                                reset that one column.
-                                            </p>
-                                            <p className="text-2xs text-ink-muted leading-relaxed">
-                                                A divider stops where the pane beside it would stop fitting.
-                                                It never travels somewhere illegal and never snaps back.
-                                            </p>
+                    <main className="vqs-main" ref={mainRef}>
+                        <SettingsCtx.Provider value={ctx}>
+                            {query ? (
+                                <div className="vqs-page">
+                                    <header className="vqs-page-head">
+                                        <div>
+                                            <h3>{results.length ? `${results.length} setting${results.length === 1 ? '' : 's'} found` : 'Nothing found'}</h3>
+                                            <p>{results.length ? 'Pick one to jump straight to it.' : `No setting matches “${query}”. Try a simpler word, like “printer” or “discount”.`}</p>
                                         </div>
+                                    </header>
+                                    <div className="vqs-results">
+                                        {results.map(r => {
+                                            const c = CATEGORIES.find(x => x.id === r.cat);
+                                            const Icon = c?.icon || Search;
+                                            return (
+                                                <button key={r.sid} type="button" className="vqs-result" onClick={() => goTo(r.cat, r.sid)}>
+                                                    <span className="vqs-nav-icon"><Icon size={17} /></span>
+                                                    <span style={{ minWidth: 0 }}>
+                                                        <span className="vqs-result-title">{r.title}</span>
+                                                        <span className="vqs-result-desc" style={{ display: 'block' }}>{c?.label}</span>
+                                                    </span>
+                                                    <span className="vqs-result-where vqs-tag">Open</span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={onResetWidths}
-                                        className="w-full h-9 rounded-lg border border-line bg-surface text-ink
-                                                   hover:bg-interactive-hover text-2xs font-bold
-                                                   flex items-center justify-center gap-2 transition-colors cursor-pointer
-                                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                    >
-                                        <RotateCcw size={13} /> Reset every width to this preset
-                                    </button>
                                 </div>
-                            </section>
+                            ) : page}
+                        </SettingsCtx.Provider>
+                    </main>
 
-                        </>
-                    )}
-
-                    {/* ═══════════ COUNTER ═══════════ */}
-                    {tab === 'counter' && (
-                        <section className="space-y-2.5">
-                            <Eyebrow>Buttons on the register</Eyebrow>
-                            <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch]">
-                                What appears in the register&rsquo;s top bar. Everything switched off here is
-                                still reachable &mdash; from this panel, or from its keyboard shortcut. The bar
-                                has a budget, and a button nobody presses spends it.
-                            </p>
-                            {SURFACE_BUTTONS.map(b => {
-                                const Icon = b.icon;
-                                const on = !!surface[b.id];
-                                return (
-                                    <div
-                                        key={b.id}
-                                        className="rounded-xl border border-line/80 bg-surface shadow-xs p-3.5
-                                                   flex items-start justify-between gap-3"
-                                    >
-                                        <div className="flex items-start gap-3 min-w-0">
-                                            <span className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border
-                                                              ${on
-                                                                ? 'bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400 border-brand-300/60'
-                                                                : 'bg-sunken/70 text-ink-faint border-line/70'}`}>
-                                                <Icon size={16} />
-                                            </span>
-                                            <div className="min-w-0 space-y-1">
-                                                <span className="block text-sm font-bold text-ink leading-tight">{b.label}</span>
-                                                <p className="text-2xs text-ink-muted leading-relaxed max-w-[48ch]">{b.hint}</p>
-                                            </div>
-                                        </div>
-                                        <Toggle checked={on} onChange={v => setBtn(b.id, v)} label={b.label} />
-                                    </div>
-                                );
-                            })}
-                            <Note>
-                                Queued offline sales are the one exception: that button appears on its own
-                                the moment there is something to sync and hides again when there is not.
-                                A count of zero is not worth a permanent control.
-                            </Note>
-                        </section>
-                    )}
-
-                    {/* ═══════════ DISPLAY ═══════════ */}
-                    {tab === 'display' && (
-                        <section className="space-y-2.5">
-                            <Eyebrow>Display</Eyebrow>
-
-                            <Field
-                                title="Large text mode"
-                                hint="Raises every type ramp and touch target. Panes that can no longer stay legible at the larger size become buttons rather than being crushed."
-                            >
-                                <Toggle checked={seniorMode} onChange={setSeniorMode} label="Large text mode" />
-                            </Field>
-
-                            <Field
-                                title="Navigation rail"
-                                hint="Off by default. A register is the one screen where the 72px is worth more than the navigation — Leave the register is always in the top left either way."
-                            >
-                                <Toggle checked={showRail} onChange={setShowRail} label="Navigation rail" />
-                            </Field>
-
-                            {typeof uiScale === 'number' && (
-                                <Field
-                                    title="Interface scale"
-                                    hint="Scales the whole register. Distinct from large text: this moves everything, including the spacing between things."
-                                >
-                                    <Stepper
-                                        label="Interface scale"
-                                        value={Math.round(uiScale * 100)}
-                                        min={90} max={130} step={5}
-                                        onChange={v => setUiScale?.(v / 100)}
-                                        format={v => `${v}%`}
-                                    />
-                                </Field>
-                            )}
-
-                            {/* "Show margin" used to sit here. It is an invoice-editor
-                                concern, not a register one: margin is a costing decision
-                                made while pricing a document, not something a cashier
-                                toggles mid-queue -- and on a customer-facing till it
-                                prints your cost price on a screen the customer can read.
-                                Removed from the POS entirely. */}
-
-                            <div className="pt-1">
-                                <button
-                                    type="button"
-                                    onClick={onRunSetupWizard}
-                                    className="w-full h-10 rounded-xl border border-line bg-surface text-ink
-                                               hover:bg-interactive-hover text-xs font-bold transition-colors cursor-pointer
-                                               focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                >
-                                    Run the setup guide again
-                                </button>
+                    {preview && (
+                        <aside className="vqs-preview" aria-label="Live preview">
+                            <div className="vqs-preview-head">
+                                <h4>{preview.title}</h4>
+                                <span className="vqs-live" style={{ marginLeft: 'auto' }}><i /> Live</span>
                             </div>
-                        </section>
+                            {preview.cap && <p className="vqs-preview-cap">{preview.cap}</p>}
+                            {preview.body}
+                        </aside>
                     )}
-
-                    {/* ═══════════ SELLING ═══════════ */}
-                    {tab === 'selling' && (
-                        <>
-                            <section className="space-y-2.5">
-                                <Eyebrow>Fields on the sale</Eyebrow>
-
-                                <Field
-                                    title="Tax"
-                                    hint="Turns on rates, the inclusive / exclusive switch and the tax line in the breakdown."
-                                >
-                                    <Toggle checked={enableTax} onChange={setEnableTax} label="Tax" />
-                                </Field>
-
-                                <Field
-                                    title="Fulfilment"
-                                    hint="Adds the local-stock / dropship choice to the sale."
-                                >
-                                    <Toggle checked={enableFulfilment} onChange={setEnableFulfilment} label="Fulfilment" />
-                                </Field>
-
-                                <Field
-                                    title="Free / bonus quantity"
-                                    hint="Adds a free-quantity control to the line that needs it, not a column to every line."
-                                >
-                                    <Toggle checked={enableFreeQty} onChange={setEnableFreeQty} label="Free or bonus quantity" />
-                                </Field>
-
-                                <Field
-                                    title="Item Values Calculator (⇆)"
-                                    hint="Shows the button on cart items to open the quick value converter."
-                                >
-                                    <Toggle checked={showItemConverter} onChange={setShowItemConverter} label="Item Values Calculator" />
-                                </Field>
-                            </section>
-
-                            <section className="space-y-2.5">
-                                <Eyebrow>Totals</Eyebrow>
-
-                                <Field
-                                    title="Round off totals"
-                                    hint="Rounds the payable to the nearest whole unit and shows the adjustment in the breakdown."
-                                >
-                                    <Toggle checked={roundOff} onChange={setRoundOff} label="Round off totals" />
-                                </Field>
-
-                                <Field
-                                    title="Auto-fill exact cash"
-                                    hint="Pre-fills the tendered amount with the exact total, so a card or exact-cash sale is one tap."
-                                >
-                                    <Toggle checked={autoFillCash} onChange={setAutoFillCash} label="Auto-fill exact cash" />
-                                </Field>
-
-                                <Field
-                                    title="Discount presets"
-                                    hint="The quick percentages offered on the discount field. Tap one to remove it."
-                                    stacked
-                                >
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {discountPresets.map(p => (
-                                            <button
-                                                key={p}
-                                                type="button"
-                                                onClick={() => setDiscountPresets?.(discountPresets.filter(x => x !== p))}
-                                                className="h-8 px-3 rounded-lg border border-line bg-sunken/60 text-2xs font-bold
-                                                           text-ink hover:border-danger-400 hover:text-danger-600 transition-colors
-                                                           cursor-pointer flex items-center gap-1.5
-                                                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                                title={`Remove ${p}%`}
-                                            >
-                                                <span className="vq-num">{p}%</span>
-                                                <X size={11} className="opacity-50" />
-                                            </button>
-                                        ))}
-                                        {[5, 10, 15, 20, 25, 50].filter(v => !discountPresets.includes(v)).map(v => (
-                                            <button
-                                                key={`add-${v}`}
-                                                type="button"
-                                                onClick={() => setDiscountPresets?.([...discountPresets, v].sort((a, b) => a - b))}
-                                                className="h-8 px-3 rounded-lg border border-dashed border-line-strong text-2xs font-bold
-                                                           text-ink-muted hover:text-brand-600 hover:border-brand-400 transition-colors
-                                                           cursor-pointer flex items-center gap-1
-                                                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                                title={`Add ${v}%`}
-                                            >
-                                                <Plus size={11} /> <span className="vq-num">{v}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </Field>
-                            </section>
-
-                            <section className="space-y-2.5">
-                                <Eyebrow>Returns</Eyebrow>
-                                <Field
-                                    title="Return mode"
-                                    hint="Switches this register to processing returns and refunds. The next completed document is a credit, not a sale."
-                                    badge={
-                                        <span className="text-3xs font-bold px-2 py-0.5 rounded-md bg-sunken text-ink-secondary uppercase tracking-wide">
-                                            {returnPolicyLabel}
-                                        </span>
-                                    }
-                                >
-                                    <Toggle checked={returnMode} onChange={setReturnMode} label="Return mode" tone="danger" />
-                                </Field>
-                                <Note>
-                                    The policy itself is a store setting, not a register one — change it
-                                    in Settings → Point of sale so every till agrees.
-                                </Note>
-                            </section>
-                        </>
-                    )}
-
-                    {/* ═══════════ HARDWARE ═══════════ */}
-                    {tab === 'service' && (
-                        <section className="space-y-2.5">
-                            <Eyebrow>How this business serves</Eyebrow>
-
-                            <Field
-                                title={tt('This shop prepares orders before handing them over')}
-                                hint={tt('Turns on kitchen tickets. A restaurant, café or bakery wants this; a shop that sells what is already on the shelf does not.')}
-                            >
-                                <Toggle
-                                    checked={Boolean(preparesOrders)}
-                                    onChange={setPreparesOrders}
-                                    label={tt('Kitchen preparation')}
-                                    tone="brand"
-                                />
-                            </Field>
-
-                            <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch] pt-1">
-                                {tt('This is the one switch that changes what the register IS, rather than how it looks. A counter till sells to whoever is standing there. A table service register makes the TABLE the unit of work — the floor becomes the pane the shift starts from, an order belongs to a table rather than to a queue, and Hold disappears, because a table already is a held sale.')}
-                            </p>
-
-                            <Field title={tt('Service style')} hint={tt('Both keeps the counter register and adds the floor beside it, for a cafe that does takeaway and tables.')} stacked>
-                                <Segmented
-                                    label={tt('Service style')}
-                                    value={serviceMode}
-                                    onChange={setServiceMode}
-                                    options={[
-                                        { value: 'counter', label: 'Counter' },
-                                        { value: 'tables',  label: tt('Table service') },
-                                        { value: 'both',    label: 'Both' },
-                                    ]}
-                                />
-                            </Field>
-
-                            {serviceMode !== 'counter' && (
-                                <Field
-                                    title={tt('Service charge')}
-                                    hint={tt("Added to every table bill as a percentage of the food after discounts. It is the house's income and it is posted as such — a tip is not, and is typed per bill instead.")}
-                                >
-                                    <Stepper
-                                        label={tt('Service charge percent')}
-                                        value={Number(serviceCharge) || 0}
-                                        min={0}
-                                        max={25}
-                                        onChange={setServiceCharge}
-                                        format={v => (v ? `${v}%` : 'Off')}
-                                    />
-                                </Field>
-                            )}
-
-                            {serviceMode !== 'counter' && (
-                                <Field
-                                    title="Your floor"
-                                    hint={tt('Areas and tables. Nothing appears on the floor screen until it exists here — this is the only place tables come from.')}
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={onOpenFloorPlan}
-                                        className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-line
-                                                   bg-surface text-ink text-sm font-bold shadow-xs
-                                                   hover:border-brand-300 hover:text-brand-700 transition-colors cursor-pointer"
-                                    >
-                                        <LayoutGrid size={15} />
-                                        Set up the floor plan
-                                    </button>
-                                </Field>
-                            )}
-
-                            {serviceMode !== 'counter' && terminal === 'counter' && (
-                                <p className="text-2xs text-ink-muted leading-relaxed max-w-[60ch] pt-1">
-                                    {tt('You are on the counter register. The floor is at')}
-                                    <b className="text-ink"> {tt('Tables')}</b> {tt('in the sidebar.')}
-                                </p>
-                            )}
-                        </section>
-                    )}
-
-                    {tab === 'hardware' && (
-                        <>
-                            <section className="space-y-2.5">
-                                <Eyebrow>Status</Eyebrow>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="rounded-xl border border-line/80 bg-surface p-3 shadow-xs">
-                                        <div className="flex items-center gap-2">
-                                            {isOnline
-                                                ? <Wifi size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                                : <WifiOff size={14} className="text-danger-600 shrink-0" />}
-                                            <span className="text-2xs font-bold text-ink">
-                                                {isOnline ? 'Online' : 'Offline'}
-                                            </span>
-                                        </div>
-                                        <p className="mt-1 text-3xs text-ink-muted leading-snug">
-                                            {isOnline ? 'Sales post immediately.' : 'Sales are queued on this device.'}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-xl border border-line/80 bg-surface p-3 shadow-xs">
-                                        <div className="flex items-center gap-2">
-                                            <Printer size={14} className={isStationConnected ? 'text-emerald-600 dark:text-emerald-400 shrink-0' : 'text-ink-faint shrink-0'} />
-                                            <span className="text-2xs font-bold text-ink">
-                                                {isStationConnected ? 'Station ready' : 'No station'}
-                                            </span>
-                                        </div>
-                                        <p className="mt-1 text-3xs text-ink-muted leading-snug">
-                                            {isStationConnected ? 'Printer and drawer reachable.' : 'Receipts print through the browser.'}
-                                        </p>
-                                    </div>
-                                </div>
-                                {pendingCount > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={onOpenSyncHub}
-                                        className="w-full rounded-xl border border-amber-300 dark:border-amber-900/60
-                                                   bg-amber-50 dark:bg-amber-950/25 px-3.5 py-2.5 text-left
-                                                   hover:border-amber-400 transition-colors cursor-pointer
-                                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                    >
-                                        <span className="text-2xs font-bold text-amber-800 dark:text-amber-300">
-                                            <span className="vq-num">{pendingCount}</span> sale{pendingCount === 1 ? '' : 's'} waiting to sync
-                                        </span>
-                                        <span className="block text-3xs text-amber-700/80 dark:text-amber-400/70 mt-0.5">
-                                            Open the sync hub to retry, recall or discard them.
-                                        </span>
-                                    </button>
-                                )}
-                            </section>
-
-                            <section className="space-y-2.5">
-                                <Eyebrow>Printing &amp; drawer</Eyebrow>
-                                <Field
-                                    title="Auto-print receipt"
-                                    hint="Prints the customer receipt the moment a sale completes, without a second confirmation."
-                                >
-                                    <Toggle checked={printOnComplete} onChange={setPrintOnComplete} label="Auto-print receipt" tone="success" />
-                                </Field>
-                                <Field
-                                    title="Open drawer on a cash sale"
-                                    hint="Pulses the cash drawer automatically when the tender is cash."
-                                >
-                                    <Toggle checked={openDrawerOnCash} onChange={setOpenDrawerOnCash} label="Open drawer on a cash sale" tone="success" />
-                                </Field>
-                            </section>
-
-                            <section className="space-y-2.5">
-                                <Eyebrow>Run now</Eyebrow>
-                                {[
-                                    { icon: Unlock,  label: 'Open cash drawer', sub: 'Sends one pulse \u00b7 Ctrl + D', on: onOpenCashDrawer },
-                                    { icon: Pause,   label: 'Parked sales',     sub: `${parkedCount} on hold`, on: onOpenParked },
-                                    { icon: History, label: 'Recent invoices',  sub: 'View and reprint', on: onOpenRecent },
-                                ].map(a => {
-                                    const Icon = a.icon;
-                                    return (
-                                        <button
-                                            key={a.label}
-                                            type="button"
-                                            onClick={a.on}
-                                            className="w-full rounded-xl border border-line/80 bg-surface p-3
-                                                       hover:border-line-strong hover:shadow-xs transition-all cursor-pointer
-                                                       flex items-center gap-3 text-left
-                                                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                        >
-                                            <span className="w-9 h-9 rounded-lg bg-sunken/70 border border-line/70 text-ink-secondary
-                                                             flex items-center justify-center shrink-0">
-                                                <Icon size={15} />
-                                            </span>
-                                            <span className="min-w-0">
-                                                <span className="block vq-clip text-xs font-bold text-ink">{a.label}</span>
-                                                <span className="block vq-clip text-3xs text-ink-muted">{a.sub}</span>
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </section>
-                        </>
-                    )}
-
-                    {/* ═══════════ KEYS ═══════════ */}
-                    {tab === 'keys' && (
-                        <section className="space-y-2.5">
-                            <Eyebrow>Keyboard</Eyebrow>
-                            <Note>
-                                The map is scoped to the working surface and suspends itself while
-                                you are typing in a field or a sheet, so an F-key never fires from
-                                inside an input.
-                            </Note>
-                            <div className="rounded-xl border border-line/80 bg-surface divide-y divide-line/60 overflow-hidden">
-                                {POS_KEYMAP.map(([k, desc]) => (
-                                    <div key={k} className="flex items-center justify-between gap-3 px-3.5 py-2">
-                                        <kbd className="px-2 py-1 rounded-md bg-sunken border border-line text-3xs
-                                                        font-mono font-bold text-brand-700 dark:text-brand-300 shrink-0">
-                                            {k}
-                                        </kbd>
-                                        <span className="vq-clip text-2xs font-semibold text-ink-secondary text-right min-w-0">
-                                            {desc}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-                    )}
-                    </div>
-
-                    {/* ── THE PREVIEW ──
-                        Driven by composeTerminal, not by a switch over preset
-                        names, so it cannot draw a layout the law would refuse --
-                        and it shows the DEMOTIONS, which is the whole reason the
-                        old hand-drawn preview was worse than useless: it drew a
-                        catalog column on a screen that could never carry one. */}
-                    <aside className="shrink-0 lg:w-[356px] border-t lg:border-t-0 lg:border-l border-line
-                                      bg-surface overflow-y-auto overscroll-contain p-4 space-y-3">
-                        <div className="flex items-center justify-between gap-2">
-                            <Eyebrow>Preview</Eyebrow>
-                            <span className="vq-num text-3xs font-bold text-ink-muted">
-                                {device.vw}&times;{device.vh}
-                            </span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-sunken/70 border border-line/70">
-                            {PREVIEW_DEVICES.map(d => (
-                                <button
-                                    key={d.id}
-                                    type="button"
-                                    onClick={() => setDeviceId(d.id)}
-                                    aria-pressed={deviceId === d.id}
-                                    className={`flex-1 min-w-[64px] h-8 rounded-lg text-3xs font-bold transition-all
-                                                cursor-pointer whitespace-nowrap
-                                                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
-                                                ${deviceId === d.id
-                                                    ? 'bg-surface text-brand-700 dark:text-brand-300 shadow-xs border border-brand-500/30'
-                                                    : 'text-ink-muted hover:text-ink border border-transparent'}`}
-                                >
-                                    {d.label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <RegisterPreview
-                            comp={comp}
-                            device={device}
-                            senior={seniorMode}
-                            scale={uiScale}
-                            rail={showRail}
-                        />
-
-                        {/* A legend, so the blocks are readable without guessing. */}
-                        <div className="flex flex-wrap gap-x-3 gap-y-1">
-                            {[['Catalog', 'bg-sky-300 dark:bg-sky-700'],
-                              ['Cart', 'bg-emerald-300 dark:bg-emerald-700'],
-                              ['Payment', 'bg-amber-300 dark:bg-amber-700'],
-                              ...(terminal === 'table' ? [['Floor', 'bg-brand-300 dark:bg-brand-700']] : [])].map(([l, c]) => (
-                                <span key={l} className="flex items-center gap-1.5 text-3xs font-bold text-ink-muted">
-                                    <span className={`w-2.5 h-2.5 rounded-sm ${c}`} /> {l}
-                                </span>
-                            ))}
-                        </div>
-
-                        {/* The wish is in the controls; this is the result on the
-                            screen the register is actually standing on. */}
-                        {resolved && (
-                            <>
-                                <Eyebrow className="pt-1">On this screen, right now</Eyebrow>
-                                <div className="rounded-xl border border-line/80 bg-sunken/40 divide-y divide-line/60 overflow-hidden">
-                                    {resolved.map(([k, v]) => (
-                                        <div key={k} className="flex items-baseline justify-between gap-3 px-3 py-2">
-                                            <span className="text-3xs font-bold text-ink-muted shrink-0">{k}</span>
-                                            <span className="vq-num vq-clip text-3xs font-bold text-ink text-right">{v}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-
-                        {notes.map((n, i) => (
-                            <Note key={i} tone="warn" icon={AlertTriangle}>{n}</Note>
-                        ))}
-                    </aside>
                 </div>
-
-                {/* ── FOOTER ── */}
-                <footer className="shrink-0 border-t border-line bg-surface px-4 sm:px-5 py-3
-                                   flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={onResetAll}
-                        className="h-10 px-3.5 rounded-xl border border-line bg-surface text-ink-muted
-                                   hover:text-danger-600 hover:border-danger-300 text-2xs font-bold
-                                   transition-colors cursor-pointer shrink-0
-                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                    >
-                        Reset all
-                    </button>
-                    {/* Said out loud, because a Done button next to live controls
-                        implies the changes are waiting on it. They are not. */}
-                    <span className="hidden sm:block flex-1 text-3xs text-ink-muted">
-                        Every change here applies immediately. Nothing waits for Done.
-                    </span>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="ml-auto sm:ml-0 h-10 px-8 rounded-xl bg-brand-600 hover:bg-brand-700 text-white
-                                   text-xs font-bold transition-colors cursor-pointer shrink-0
-                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                    >
-                        Done
-                    </button>
-                </footer>
             </div>
         </div>
     );
+
+    return createPortal(ui, document.body);
 }
+
+function PasscodeBar({ onSubmit, onCancel, wrong }) {
+    const [code, setCode] = useState('');
+    return (
+        <div className="vqs-callout" data-tone="warn" style={{ margin: '10px 18px 0', borderRadius: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Lock size={18} />
+            <span style={{ flex: '1 1 260px' }}>
+                <b>{wrong ? 'That passcode was not right.' : 'This business uses a settings passcode.'}</b> Enter it to save the change.
+            </span>
+            <form style={{ display: 'flex', gap: 8 }} onSubmit={e => { e.preventDefault(); if (code) onSubmit(code); }}>
+                <label className="vqs-input" style={{ width: 160, height: 40 }}>
+                    <input type="password" inputMode="numeric" autoFocus value={code} onChange={e => setCode(e.target.value.replace(/\D/g, ''))} aria-label="Passcode" placeholder="Passcode" />
+                </label>
+                <Button v="p" size="sm" type="submit">Save</Button>
+                <Button v="g" size="sm" onClick={onCancel}>Cancel</Button>
+            </form>
+        </div>
+    );
+}
+
+export { SEARCH_INDEX };

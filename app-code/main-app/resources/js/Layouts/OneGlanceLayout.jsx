@@ -1922,7 +1922,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Fullscreen Floating Squeezed AI Island */}
   {(fullScreen || hideHeader) && (
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
+      <div data-vq-island="" className="fixed top-4 left-1/2 -translate-x-1/2 z-nav pointer-events-none flex items-center justify-center">
           <div className="pointer-events-auto">
               <AiIsland compact />
           </div>

@@ -12,10 +12,165 @@ use Illuminate\Support\Facades\DB;
 
 class KitchenTicketService
 {
+    /** Where a ticket can be printed. `none` = kitchen screen only, no paper. */
+    public const PRINTERS = ['kitchen', 'bar', 'receipt', 'none'];
+
+    /*
+    | KITCHEN ROUTING — ONE PLACE UNLESS THE SHOP SAYS OTHERWISE
+    | -----------------------------------------------------------
+    | Tickets used to split on whatever free text sat in products.kitchen_station,
+    | so a menu imported with "Grill", "Fryer", "Pasta Station" and "Beverage Bar"
+    | sprayed one order across five tickets nobody had asked for. The owner now
+    | decides, in the register's Kitchen settings:
+    |
+    |   single    every item on ONE ticket (the default, and the safe answer for
+    |             a kitchen that has not set anything up)
+    |   stations  items are split across the stations the owner created; an item
+    |             goes to the first station that claims it by product, then by
+    |             category, then (optionally) by the station name already typed
+    |             on the product. Anything unclaimed goes to the main kitchen.
+    |
+    | Stored as one JSON row, `kitchen_routing`, in settings.
+    */
+    public static function normaliseRouting($raw): array
+    {
+        if (is_string($raw)) {
+            $raw = json_decode($raw, true);
+        }
+        $raw = is_array($raw) ? $raw : [];
+
+        $mainName = mb_substr(trim((string) ($raw['main_name'] ?? '')), 0, 32);
+        if ($mainName === '') {
+            $mainName = 'Kitchen';
+        }
+
+        /* Product and category keys are UUIDs (older rows may be integers), so
+           they are kept as strings and only ever compared as strings. */
+        $ids = function ($list): array {
+            $out = [];
+            foreach ((array) $list as $v) {
+                if (!is_scalar($v)) {
+                    continue;
+                }
+                $v = trim((string) $v);
+                if ($v !== '' && strlen($v) <= 64 && preg_match('/^[A-Za-z0-9-]+$/', $v)) {
+                    $out[$v] = true;
+                }
+            }
+            return array_slice(array_map('strval', array_keys($out)), 0, 500);
+        };
+
+        $stations = [];
+        $seen = [mb_strtolower($mainName) => true];
+        foreach (array_slice((array) ($raw['stations'] ?? []), 0, 24) as $s) {
+            if (!is_array($s)) {
+                continue;
+            }
+            $name = mb_substr(trim((string) ($s['name'] ?? '')), 0, 32);
+            if ($name === '' || isset($seen[mb_strtolower($name)])) {
+                continue;
+            }
+            $seen[mb_strtolower($name)] = true;
+            $id = preg_replace('/[^a-zA-Z0-9_-]/', '', (string) ($s['id'] ?? ''));
+            $stations[] = [
+                'id'         => $id !== '' ? mb_substr($id, 0, 40) : ('st_' . substr(md5($name), 0, 10)),
+                'name'       => $name,
+                'printer'    => in_array($s['printer'] ?? null, self::PRINTERS, true) ? $s['printer'] : 'kitchen',
+                'categories' => $ids($s['categories'] ?? []),
+                'products'   => $ids($s['products'] ?? []),
+            ];
+        }
+
+        return [
+            'mode'             => ($raw['mode'] ?? 'single') === 'stations' ? 'stations' : 'single',
+            'main_name'        => $mainName,
+            'main_printer'     => in_array($raw['main_printer'] ?? null, self::PRINTERS, true) ? $raw['main_printer'] : 'kitchen',
+            'use_product_tags' => !array_key_exists('use_product_tags', $raw) || (bool) $raw['use_product_tags'],
+            'stations'         => $stations,
+        ];
+    }
+
+    public static function routingFor(int $tenantId): array
+    {
+        $value = Setting::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('key', 'kitchen_routing')
+            ->value('value');
+
+        return self::normaliseRouting($value);
+    }
+
+    /**
+     * Returns fn(array $line): ['name' => station, 'printer' => role].
+     * Products are looked up once per fire, never per line.
+     */
+    public function stationResolver(int $tenantId, array $lines): \Closure
+    {
+        $cfg = self::routingFor($tenantId);
+        $main = ['name' => $cfg['main_name'], 'printer' => $cfg['main_printer']];
+
+        if ($cfg['mode'] !== 'stations' || empty($cfg['stations'])) {
+            return fn (array $line) => $main;
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map(fn ($l) => (string) ($l['id'] ?? ''), $lines))));
+        $products = empty($ids) ? collect() : Product::where('tenant_id', $tenantId)
+            ->whereIn('id', $ids)
+            ->get(['id', 'category_id', 'kitchen_station'])
+            ->keyBy(fn ($p) => (string) $p->id);
+
+        $byProduct = [];
+        $byCategory = [];
+        $byName = [];
+        foreach ($cfg['stations'] as $st) {
+            $entry = ['name' => $st['name'], 'printer' => $st['printer']];
+            foreach ($st['products'] as $pid) {
+                $byProduct[(string) $pid] ??= $entry;
+            }
+            foreach ($st['categories'] as $cid) {
+                $byCategory[(string) $cid] ??= $entry;
+            }
+            $byName[mb_strtolower($st['name'])] = $entry;
+        }
+        $useTags = $cfg['use_product_tags'];
+
+        return function (array $line) use ($products, $byProduct, $byCategory, $byName, $main, $useTags) {
+            $pid = (string) ($line['id'] ?? '');
+            if ($pid !== '' && isset($byProduct[$pid])) {
+                return $byProduct[$pid];
+            }
+            $p = $pid !== '' ? $products->get($pid) : null;
+            $cid = $p && $p->category_id ? (string) $p->category_id : '';
+            if ($cid !== '' && isset($byCategory[$cid])) {
+                return $byCategory[$cid];
+            }
+            if ($useTags) {
+                $tag = mb_strtolower(trim((string) ($line['kitchen_station'] ?? ($p?->kitchen_station ?? ''))));
+                if ($tag !== '' && isset($byName[$tag])) {
+                    return $byName[$tag];
+                }
+            }
+            return $main;
+        };
+    }
+
+    /** The printer a station's tickets go to, for reprints of tickets fired earlier. */
+    public static function printerForStation(int $tenantId, ?string $station): string
+    {
+        $cfg = self::routingFor($tenantId);
+        $name = mb_strtolower(trim((string) $station));
+        foreach ($cfg['stations'] as $st) {
+            if (mb_strtolower($st['name']) === $name) {
+                return $st['printer'];
+            }
+        }
+        return $cfg['main_printer'];
+    }
+
     /**
      * Fire unsent lines from an open occupancy to the kitchen.
      * Supports:
-     * - Multi-station splitting (e.g. bar vs kitchen vs grill)
+     * - One ticket, or one ticket per station (see normaliseRouting)
      * - Coursing with hold & release
      */
     public function fireOccupancy(Occupancy $occ, ?array $cart = null, array $options = []): array
@@ -24,15 +179,7 @@ class KitchenTicketService
         $session = $occ->session_data ?? [];
         $currentCart = $cart ?? ($session['cart'] ?? []);
 
-        // Resolve product stations for products in cart
-        $productIds = array_filter(array_column($currentCart, 'id'));
-        $productStations = [];
-        if (!empty($productIds)) {
-            $productStations = Product::where('tenant_id', $tenantId)
-                ->whereIn('id', $productIds)
-                ->pluck('kitchen_station', 'id')
-                ->toArray();
-        }
+        $stationFor = $this->stationResolver((int) $tenantId, $currentCart);
 
         $targetCourse = isset($options['only_course']) && $options['only_course'] !== null
             ? (int) $options['only_course']
@@ -65,13 +212,12 @@ class KitchenTicketService
                 }
             }
 
-            $st = $line['kitchen_station']
-                ?? ($productStations[$line['id'] ?? 0] ?? 'kitchen')
-                ?: 'kitchen';
+            $st = $stationFor($line);
 
             $lineCopy = $line;
             $lineCopy['qty'] = $unsentDelta;
-            $lineCopy['resolved_station'] = $st;
+            $lineCopy['resolved_station'] = $st['name'];
+            $lineCopy['resolved_printer'] = $st['printer'];
             $lineCopy['resolved_course'] = $lineCourse;
 
             $eligibleIndices[] = $idx;
@@ -94,13 +240,19 @@ class KitchenTicketService
         $occLabel = $occ->label ?: ($occ->position?->code ?: ('#' . $occ->id));
         $serverName = $occ->user?->name ?? (auth()->user()?->name ?? 'Server');
 
-        // Group eligible lines by station and course
+        // Group eligible lines by station and course. Keyed by a hash rather
+        // than "station:course" because a station name is owner-typed text and
+        // may itself contain a colon.
         $groups = [];
         foreach ($eligibleLines as $line) {
-            $station = $line['resolved_station'];
-            $course = $line['resolved_course'];
-            $key = $station . ':' . $course;
-            $groups[$key][] = $line;
+            $key = md5($line['resolved_station'] . "\0" . $line['resolved_course']);
+            $groups[$key] ??= [
+                'station' => $line['resolved_station'],
+                'printer' => $line['resolved_printer'],
+                'course'  => $line['resolved_course'],
+                'lines'   => [],
+            ];
+            $groups[$key]['lines'][] = $line;
         }
 
         $workOrders = [];
@@ -110,9 +262,10 @@ class KitchenTicketService
             $tenantId, $occ, $orderType, $occLabel, $serverName, $groups,
             $eligibleIndices, &$session, &$currentCart, &$workOrders, &$kots
         ) {
-            foreach ($groups as $groupKey => $lines) {
-                [$station, $course] = explode(':', $groupKey);
-                $course = (int) $course;
+            foreach ($groups as $group) {
+                $station = $group['station'];
+                $course = (int) $group['course'];
+                $lines = $group['lines'];
 
                 $wo = WorkOrder::create([
                     'tenant_id'     => $tenantId,
@@ -139,6 +292,7 @@ class KitchenTicketService
                 $kots[] = $this->formatKot($wo, $occ, [
                     'server_name'   => $serverName,
                     'customer_name' => $session['customer_name'] ?? null,
+                    'printer_role'  => $group['printer'],
                 ]);
             }
 
@@ -248,6 +402,11 @@ class KitchenTicketService
             'server_name'     => $server,
             'station'         => $workOrder->station ?: 'kitchen',
             'printer_name'    => $options['printer_name'] ?? null,
+            /* Which of this till's printers the ticket belongs on: kitchen, bar,
+               receipt — or none, when the station works from the kitchen screen
+               only. Reprints look it up again from the station's name. */
+            'printer_role'    => $options['printer_role']
+                ?? self::printerForStation((int) $workOrder->tenant_id, $workOrder->station),
             'course'          => (int) ($workOrder->course ?? 1),
             'fired_at'        => $firedAt->toIso8601String(),
             'fired_at_human'  => $firedAt->format('h:i A · d M Y'),
@@ -297,7 +456,8 @@ class KitchenTicketService
             'order_type_badge'=> $typeBanner,
             'customer_name'   => $occ->session_data['customer_name'] ?? '',
             'server_name'     => auth()->user()?->name ?? 'Staff',
-            'station'         => 'kitchen',
+            'station'         => self::routingFor((int) $occ->tenant_id)['main_name'],
+            'printer_role'    => self::routingFor((int) $occ->tenant_id)['main_printer'],
             'course'          => 1,
             'fired_at'        => now()->toIso8601String(),
             'fired_at_human'  => now()->format('h:i A · d M Y'),

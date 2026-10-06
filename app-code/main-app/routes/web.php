@@ -1324,6 +1324,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             ->middleware('permission:pos.checkout')->name('kitchen.course-fire');
         Route::post('/kitchen/86', [\App\Http\Controllers\TableServiceController::class, 'toggle86'])
             ->middleware('permission:pos.checkout')->name('kitchen.86');
+        /* Kitchen routing — one ticket, or one per station. Read by every till
+           (pos.checkout); changed only by someone who manages the store. */
+        Route::get('/kitchen/routing', [\App\Http\Controllers\TableServiceController::class, 'kitchenRouting'])
+            ->middleware('permission:pos.checkout')->name('kitchen.routing');
+        Route::post('/kitchen/routing', [\App\Http\Controllers\TableServiceController::class, 'saveKitchenRouting'])
+            ->middleware('permission:admin.settings_manage')->name('kitchen.routing.save');
         // Store-wide, same as service-mode and gated the same way: what the house
         // charges is not a per-till decision.
         Route::post('/service-charge', [\App\Http\Controllers\TableServiceController::class, 'setServiceCharge'])

@@ -1,0 +1,77 @@
+{
+    "name": "venqore-station",
+    "version": "2.0.0",
+    "description": "VenQore Station — Hardware Bridge for VenQore Cloud POS",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "dev": "electron . --dev",
+        "build:win": "electron-builder --win",
+        "build:portable": "electron-builder --win portable",
+        "convert-icon": "node convert-icon.js"
+    },
+    "author": "VenQore Group",
+    "license": "UNLICENSED",
+    "private": true,
+    "devDependencies": {
+        "electron": "^44.3.0",
+        "electron-builder": "^26.15.3",
+        "png-to-ico": "^3.0.1",
+        "png2icons": "^2.0.1"
+    },
+    "dependencies": {
+        "electron-pos-printer": "^1.3.6",
+        "electron-updater": "^6.8.9",
+        "serialport": "^12.0.0"
+    },
+    "build": {
+        "appId": "com.venqore.station",
+        "productName": "VenQore Station",
+        "copyright": "Copyright © 2024 VenQore Group",
+        "publish": [
+            {
+                "provider": "generic",
+                "url": "https://updates.venqore.com/station/",
+                "channel": "latest"
+            }
+        ],
+        "win": {
+            "target": [
+                "nsis",
+                "portable"
+            ],
+            "icon": "assets/icon.ico",
+            "requestedExecutionLevel": "asInvoker"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "installerIcon": "assets/icon.ico",
+            "uninstallerIcon": "assets/icon.ico",
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "VenQore Station",
+            "deleteAppDataOnUninstall": false
+        },
+        "files": [
+            "main.js",
+            "print-payload.js",
+            "preload.js",
+            "shell.html",
+            "shell.css",
+            "shell-renderer.js",
+            "loading.html",
+            "error.html",
+            "assets/**/*",
+            "!assets/icon.png"
+        ],
+        "directories": {
+            "output": "dist"
+        },
+        "asar": true,
+        "asarUnpack": [
+            "node_modules/serialport/**/*",
+            "node_modules/@serialport/**/*"
+        ]
+    }
+}

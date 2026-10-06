@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VenQore | Smart Table QR Menu & Ordering System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js CDN for interactive 3D Hero Cloche / Dish showcase -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts: Inter, Playfair Display & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;800&family=Playfair+Display:ital,wght@0,600;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* Theme Font Assignments */
+    .font-sans-main { font-family: 'Inter', sans-serif; }
+    .font-serif-luxury { font-family: 'Playfair Display', serif; }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    .font-punchy { font-family: 'Outfit', sans-serif; }
+    .font-mono-receipt { font-family: 'JetBrains Mono', monospace; }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.45); }
+
+    /* Dot Leader for Michelin Editorial Ledger - Full-Width Panoramic */
+    .leader-line {
+      flex: 1;
+      border-bottom: 2px dotted rgba(212, 175, 55, 0.45);
+      margin: 0 16px 6px 16px;
+      min-width: 48px;
+    }
+
+    /* Editorial Vignette & Gold Frame Effects */
+    .editorial-plate-frame {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(212, 175, 55, 0.35);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .group:hover .editorial-plate-frame {
+      box-shadow: 0 14px 30px -4px rgba(212, 175, 55, 0.25), 0 0 0 2px rgba(212, 175, 55, 0.7);
+      transform: scale(1.02);
+    }
+    .gold-foil-chip {
+      background: linear-gradient(135deg, rgba(212,175,55,0.12) 0%, rgba(245,215,110,0.04) 100%);
+      border: 1px solid rgba(212,175,55,0.3);
+    }
+
+    /* ESC/POS Thermal Receipt styling */
+    .thermal-paper {
+      background: #fbfbf9;
+      background-image: repeating-linear-gradient(0deg, #fbfbf9, #fbfbf9 24px, #f4f4f0 25px);
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,0,0,0.06);
+      position: relative;
+    }
+    .thermal-paper::before {
+      content: "";
+      position: absolute;
+      top: -8px; left: 0; right: 0;
+      height: 8px;
+      background: radial-gradient(circle, transparent, transparent 50%, #fbfbf9 50%, #fbfbf9 100%);
+      background-size: 14px 16px;
+    }
+    .thermal-paper::after {
+      content: "";
+      position: absolute;
+      bottom: -8px; left: 0; right: 0;
+      height: 8px;
+      background: radial-gradient(circle, #fbfbf9, #fbfbf9 50%, transparent 50%, transparent 100%);
+      background-size: 14px 16px;
+    }
+
+    /* Template Themes Configurations */
+    body.layout-visual-grid {
+      --bg-primary: #fcfbfa;
+      --bg-card: #ffffff;
+      --border-color: #f0ece1;
+      --text-main: #1c1917;
+      --text-muted: #78716c;
+      --accent-color: #292524;
+      --accent-highlight: #d97706;
+      --badge-bg: #f5f5f4;
+    }
+    body.layout-editorial-ledger {
+      --bg-primary: #0f1015;
+      --bg-card: #151821;
+      --border-color: #2e3447;
+      --text-main: #f5f0e8;
+      --text-muted: #a6abb9;
+      --accent-color: #d4af37;
+      --accent-highlight: #e6c86e;
+      --badge-bg: #1f2433;
+    }
+    body.layout-express-rail {
+      --bg-primary: #0b0f17;
+      --bg-card: #131b28;
+      --border-color: #1f2c42;
+      --text-main: #f1f5f9;
+      --text-muted: #8493a8;
+      --accent-color: #f43f5e;
+      --accent-highlight: #38bdf8;
+      --badge-bg: #1c273a;
+    }
+
+    /* Glassmorphism helpers */
+    .glass-nav {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+  </style>
+</head>
+<body class="layout-visual-grid bg-[var(--bg-primary)] text-[var(--text-main)] font-sans-main antialiased selection:bg-amber-500 selection:text-white transition-colors duration-300 min-h-screen pb-24">
+  <!-- TOP NETWORK & SYSTEM STATUS BAR (VenQore Local Server Emulation) -->
+  <div class="w-full bg-slate-900 border-b border-slate-800 text-slate-300 text-xs px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2 z-50 sticky top-0 shadow-sm">
+    <div class="flex items-center gap-2">
+      <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+      <span class="font-mono text-emerald-400 font-semibold tracking-wider">VENQORE OFFLINE NODE</span>
+      <span class="hidden sm:inline text-slate-500">|</span>
+      <span class="hidden sm:inline font-mono text-slate-400">HOST: http://menu.local (192.168.1.100:8080)</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Active Table Indicator -->
+      <div class="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700">
+        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <span class="font-semibold text-slate-200">Table:</span>
+        <span id="currentTableBadge" class="text-amber-400 font-bold font-mono">#12</span>
+      </div>
+      <!-- Studio Admin Drawer Button -->
+    <button onclick="toggleStudioDrawer()" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-full font-medium transition shadow-sm hover:shadow">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+      <span>Customizer Studio</span>
+    </button>
+    <!-- KDS & Printer Logs Button -->
+    <button onclick="toggleKdsDrawer()" class="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded-full border border-slate-700 transition">
+      <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+      <span class="hidden md:inline">KDS / Thermal Log</span>
+      <span id="kdsCounterBadge" class="bg-sky-500/20 text-sky-400 text-[10px] px-1.5 py-0.2 rounded-full font-mono">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- MAIN APP CONTAINER (EXPANDED TO FULL 6XL CANVAS) -->
+<div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
+
+  <!-- BRAND HEADER WITH DYNAMIC TEMPLATE STYLING -->
+  <header id="brandHeader" class="relative rounded-3xl overflow-hidden mb-6 border transition-all duration-300 shadow-md">
+      <!-- Hero Background Banner -->
+      <div id="heroCoverContainer" class="h-44 sm:h-56 w-full relative overflow-hidden bg-gradient-to-r from-stone-900 via-amber-950 to-neutral-900">
+        <img id="heroCoverImg" src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80" alt="Restaurant Ambiance" class="w-full h-full object-cover object-center opacity-70 filter brightness-90">
+        <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-black/30"></div>
+
+        <!-- 3D Dish Showcase Canvas Overlay inside Hero -->
+        <div id="threeJsCanvasContainer" class="absolute right-2 sm:right-6 bottom-2 w-32 h-32 sm:w-44 sm:h-44 rounded-2xl overflow-hidden cursor-grab active:cursor-grabbing pointer-events-auto border border-white/10 shadow-2xl backdrop-blur-sm bg-black/20" title="Drag to rotate 3D Cloche/Platter">
+          <canvas id="threeCanvas" class="w-full h-full block"></canvas>
+          <div class="absolute bottom-1 right-2 text-[9px] font-mono text-white/60 uppercase tracking-wider bg-black/40 px-1 rounded">3D Orbit</div>
+        </div>
+      </div>
+
+      <!-- Brand Info Bar -->
+      <div class="bg-[var(--bg-card)] px-5 sm:px-8 pb-5 pt-3 relative">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <!-- Logo & Titles -->
+          <div class="flex items-center gap-4 -mt-10 sm:-mt-12">
+            <div id="brandLogoWrapper" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl p-1 bg-[var(--bg-card)] shadow-xl border-2 border-amber-500/30 overflow-hidden relative group">
+              <img id="brandLogoImg" src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=240&h=240&q=80" alt="VenQore Logo" class="w-full h-full object-cover rounded-xl">
+              <!-- Quick upload overlay on hover -->
+              <label for="quickLogoUpload" class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white text-[10px] cursor-pointer transition">
+                <svg class="w-5 h-5 mb-1 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span>Change</span>
+              </label>
+              <input type="file" id="quickLogoUpload" accept="image/*" class="hidden" onchange="handleFileLogoUpload(event)">
+            </div>
+
+            <div class="pt-4 sm:pt-6">
+              <div class="flex items-center gap-2">
+                <h1 id="brandNameText" class="text-2xl sm:text-3xl font-extrabold tracking-tight">VenQore Artisan Bistro</h1>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Kitchen Open</span>
+              </div>
+              <p id="brandTaglineText" class="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">Woodfired Artisanal Cuts & Craft Mocktails • Table Express Service</p>
+            </div>
+          </div>
+
+          <!-- Layout Switcher (Three Distinct Architectural Formats) -->
+          <div class="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 bg-[var(--badge-bg)] p-1.5 rounded-2xl border border-[var(--border-color)] self-end sm:self-center">
+            <span class="text-[11px] font-semibold text-[var(--text-muted)] px-2">Menu Format:</span>
+            <div class="flex items-center gap-1">
+              <button onclick="setLayout('visual-grid')" id="btnLayoutVisual" class="px-2.5 py-1 text-xs font-bold rounded-xl transition bg-amber-500 text-stone-950 shadow-sm flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span>Visual Grid</span>
+              </button>
+              <button onclick="setLayout('editorial-ledger')" id="btnLayoutEditorial" class="px-2.5 py-1 text-xs font-medium rounded-xl transition text-[var(--text-muted)] hover:text-amber-400 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                <span>Editorial Ledger</span>
+              </button>
+              <button onclick="setLayout('express-rail')" id="btnLayoutExpress" class="px-2.5 py-1 text-xs font-medium rounded-xl transition text-[var(--text-muted)] hover:text-sky-400 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                <span>Split-Rail Izakaya</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Info Chips -->
+        <div class="mt-4 pt-3 border-t border-[var(--border-color)] flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
+          <div class="flex items-center gap-4 flex-wrap">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 0% Wi-Fi Data Used (LAN Offline)</span>
+            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Avg Prep: 14 mins</span>
+            <span class="flex items-center gap-1"><svg class="w-3.5 h-3.5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> ESC/POS Ready</span>
+          </div>
+          <!-- Table selector test -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold">Simulate Table:</span>
+            <select id="tableSelector" onchange="changeTable(this.value)" class="bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-lg px-2 py-0.5 text-xs text-[var(--text-main)] font-mono font-bold focus:outline-none">
+              <option value="01">Table #01</option>
+              <option value="05">Table #05 (VIP Lounge)</option>
+              <option value="12" selected>Table #12 (Outdoor Patio)</option>
+              <option value="18">Table #18</option>
+              <option value="Takeaway">Takeaway #TK9</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CATEGORY TABS & SEARCH BAR -->
+    <div id="filterStickyBar" class="sticky top-11 z-30 py-2.5 bg-[var(--bg-primary)]/90 glass-nav transition-colors duration-300">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <!-- Horizontal Scrollable Category Pills -->
+        <div id="categoryContainer" class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+          <!-- Dynamically populated categories -->
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative min-w-[200px] sm:w-64">
+          <input type="text" id="menuSearchInput" oninput="handleSearch(this.value)" placeholder="Search burgers, steaks, drinks..." 
+            class="w-full bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-main)] placeholder-[var(--text-muted)] text-xs rounded-2xl pl-9 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition">
+          <svg class="w-4 h-4 absolute left-3 top-2.5 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- DYNAMIC MENU VIEWPORTS (Transforms across Grid, Editorial Ledger & Split-Rail) -->
+    <main class="mt-4" id="mainMenuContainer">
+      <!-- Layout 1: Visual Cards Grid Viewport -->
+      <div id="visualGridLayout" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected via renderVisualGrid() -->
+      </div>
+
+      <!-- Layout 2: Michelin Editorial Ledger Viewport -->
+      <div id="editorialLedgerLayout" class="hidden bg-[var(--bg-card)] rounded-3xl p-6 sm:p-10 border border-[var(--border-color)] shadow-2xl relative overflow-hidden">
+        <!-- Ledger Watermark & Header Ornament -->
+        <div class="text-center pb-8 border-b border-[var(--border-color)]">
+          <div class="inline-block text-[11px] uppercase tracking-[0.25em] text-amber-400 font-cinzel font-bold mb-1">~ Carte du Jour ~</div>
+          <h2 class="text-3xl sm:text-4xl font-serif-luxury font-bold text-amber-200 tracking-wide" id="ledgerTitle">Curated Gastronomic Ledger</h2>
+          <p class="text-xs text-[var(--text-muted)] max-w-md mx-auto mt-2 italic">Crafted with single-origin farm cuts, heirloom produce and artisanal woodfired techniques.</p>
+        </div>
+
+        <!-- Ledger Course Categories Container -->
+        <div id="editorialCoursesContainer" class="mt-8 space-y-12">
+          <!-- Injected via renderEditorialLedger() -->
+        </div>
+      </div>
+
+      <!-- Layout 3: Express Split-Rail (Izakaya / Delivery App Layout) -->
+      <div id="expressRailLayout" class="hidden flex flex-col md:flex-row gap-5 items-start">
+        <!-- Left Vertical Category Rail -->
+        <aside class="w-full md:w-56 shrink-0 md:sticky md:top-28 bg-[var(--bg-card)] p-3 rounded-2xl border border-[var(--border-color)] space-y-1 shadow-sm">
+          <div class="px-2 py-1.5 text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--text-muted)]">Category Rail</div>
+          <div id="railCategoryNav" class="space-y-1">
+            <!-- Injected via JS -->
+          </div>
+          <div class="pt-3 border-t border-[var(--border-color)] px-2">
+            <div class="text-[10px] text-emerald-400 font-mono flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Instant Stepper Active
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Dense Horizontal List Feed -->
+        <div class="flex-1 w-full space-y-4" id="railItemsFeed">
+          <!-- Injected via renderExpressRail() -->
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyMenuState" class="hidden text-center py-16 bg-[var(--bg-card)] rounded-3xl border border-[var(--border-color)] mt-4">
+        <svg class="w-12 h-12 mx-auto text-stone-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <h3 class="text-base font-bold text-[var(--text-main)]">No dishes found</h3>
+        <p class="text-xs text-[var(--text-muted)] mt-1">Try searching with a different term or clear the filter.</p>
+        <button onclick="clearSearch()" class="mt-3 px-4 py-1.5 text-xs rounded-xl bg-amber-500 text-white font-medium hover:bg-amber-600 transition">View Full Menu</button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- FLOATING BOTTOM ORDER BAR -->
+  <div id="floatingCartBar" class="fixed bottom-4 left-0 right-0 max-w-lg mx-auto px-4 z-40 transition-all duration-300 transform translate-y-32">
+    <div class="bg-stone-900/95 backdrop-blur-md text-white rounded-2xl shadow-2xl p-3 border border-amber-500/30 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="relative bg-amber-500 text-stone-950 font-extrabold w-10 h-10 rounded-xl flex items-center justify-center shadow-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          <span id="floatingCartBadge" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-mono border-2 border-stone-900">0</span>
+        </div>
+        <div>
+          <div class="text-[11px] text-stone-400 font-medium">Table <span id="cartBarTable" class="text-amber-400 font-bold">#12</span> Order</div>
+          <div class="text-sm font-extrabold text-white flex items-center gap-1">
+            <span id="currencySymbol">Rs.</span>
+            <span id="floatingCartTotal">0</span>
+          </div>
+        </div>
+      </div>
+      <button onclick="openCartDrawer()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition shadow-lg flex items-center gap-2">
+        <span>Review & Order</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CART SIDE DRAWER -->
+  <div id="cartDrawerBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden transition-opacity" onclick="closeCartDrawer()"></div>
+  <div id="cartDrawer" class="fixed inset-y-0 right-0 w-full sm:max-w-md bg-[var(--bg-card)] border-l border-[var(--border-color)] z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300">
+    <!-- Header -->
+    <div class="p-5 border-b border-[var(--border-color)] flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-[var(--text-main)]">Table Order Cart</h2>
+          <p class="text-xs text-[var(--text-muted)]">VenQore Direct LAN Dispatch</p>
+        </div>
+      </div>
+      <button onclick="closeCartDrawer()" class="p-2 rounded-xl text-[var(--text-muted)] hover:bg-[var(--badge-bg)] transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Items List -->
+    <div id="cartItemsList" class="flex-1 overflow-y-auto p-5 space-y-3.5">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Kitchen Special Notes -->
+    <div class="px-5 py-2">
+      <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Kitchen Instructions (Allergies, Dietary, Serving Order):</label>
+      <input type="text" id="orderOverallNotes" placeholder="e.g. Serve drinks immediately, bring food together..." class="w-full text-xs bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-1 focus:ring-amber-500">
+    </div>
+
+    <!-- Cart Summary & Checkout -->
+    <div class="p-5 border-t border-[var(--border-color)] bg-[var(--bg-primary)]/50">
+      <div class="space-y-1.5 text-xs text-[var(--text-muted)] mb-4">
+        <div class="flex justify-between">
+          <span>Subtotal</span>
+          <span class="font-mono font-medium text-[var(--text-main)]" id="cartSubtotalText">Rs. 0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>GST / Local Service (5%)</span>
+          <span class="font-mono font-medium text-[var(--text-main)]" id="cartTaxText">Rs. 0</span>
+        </div>
+        <div class="flex justify-between text-sm font-bold text-[var(--text-main)] pt-2 border-t border-[var(--border-color)]">
+          <span>Total Payable</span>
+          <span class="font-mono text-base text-amber-500 font-extrabold" id="cartTotalPayableText">Rs. 0</span>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button id="btnSubmitOrder" onclick="dispatchVenqoreOrder()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm rounded-2xl shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 transition active:scale-[0.98]">
+        <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span>Confirm & Send to Kitchen</span>
+      </button>
+      <p class="text-[10px] text-center text-[var(--text-muted)] mt-2">Instant local print & KDS ping via 192.168.1.100</p>
+    </div>
+  </div>
+
+  <!-- ITEM CUSTOMIZER / MODIFIER MODAL -->
+  <div id="itemModalBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4" onclick="closeItemModal(event)">
+    <div class="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-scaleUp" onclick="event.stopPropagation()">
+      <div class="relative h-48 w-full overflow-hidden bg-stone-900">
+        <img id="modalItemImg" src="" alt="Dish" class="w-full h-full object-cover">
+        <button onclick="closeItemModal()" class="absolute top-3 right-3 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        <div class="absolute bottom-2 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-xs font-mono font-bold" id="modalItemPriceTag">Rs. 0</div>
+      </div>
+      <div class="p-6">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h3 id="modalItemTitle" class="text-xl font-bold text-[var(--text-main)]">Item Title</h3>
+            <p id="modalItemDesc" class="text-xs text-[var(--text-muted)] mt-1">Item detailed description...</p>
+          </div>
+        </div>
+
+        <!-- Modifiers Selection -->
+        <div class="mt-4 space-y-4">
+          <!-- Spice Preference -->
+          <div>
+            <label class="block text-xs font-bold text-[var(--text-main)] mb-1.5">Spice Level</label>
+            <div class="grid grid-cols-3 gap-2" id="modalSpiceLevelGroup">
+              <label class="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-[var(--border-color)] text-xs cursor-pointer hover:bg-[var(--badge-bg)] has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 font-medium">
+                <input type="radio" name="spice_level" value="Mild" class="hidden"> <span>🟢 Mild</span>
+              </label>
+              <label class="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-[var(--border-color)] text-xs cursor-pointer hover:bg-[var(--badge-bg)] has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 font-medium">
+                <input type="radio" name="spice_level" value="Chef Signature" checked class="hidden"> <span>🔥 Classic</span>
+              </label>
+              <label class="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-[var(--border-color)] text-xs cursor-pointer hover:bg-[var(--badge-bg)] has-[:checked]:border-amber-500 has-[:checked]:bg-amber-500/10 font-medium">
+                <input type="radio" name="spice_level" value="Extra Fiery" class="hidden"> <span>🌶️ Fiery</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Addons / Extras -->
+          <div>
+            <label class="block text-xs font-bold text-[var(--text-main)] mb-1.5">Add Extras / Toppings</label>
+            <div class="space-y-2" id="modalAddonsGroup">
+              <label class="flex items-center justify-between p-2 rounded-xl border border-[var(--border-color)] text-xs cursor-pointer hover:bg-[var(--badge-bg)]">
+                <span class="flex items-center gap-2 text-[var(--text-main)]">
+                  <input type="checkbox" data-name="Truffle Mayo Dip" data-price="90" class="rounded text-amber-500 focus:ring-0 addon-checkbox">
+                  <span>Truffle Aioli Dip</span>
+                </span>
+                <span class="font-mono text-xs font-semibold text-[var(--text-muted)]">+Rs. 90</span>
+              </label>
+              <label class="flex items-center justify-between p-2 rounded-xl border border-[var(--border-color)] text-xs cursor-pointer hover:bg-[var(--badge-bg)]">
+                <span class="flex items-center gap-2 text-[var(--text-main)]">
+                  <input type="checkbox" data-name="Extra Melted Cheddar" data-price="120" class="rounded text-amber-500 focus:ring-0 addon-checkbox">
+                  <span>Extra Smoked Cheddar</span>
+                </span>
+                <span class="font-mono text-xs font-semibold text-[var(--text-muted)]">+Rs. 120</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Special Note for this item -->
+          <div>
+            <label class="block text-xs font-bold text-[var(--text-main)] mb-1">Item Note (e.g., No onions):</label>
+            <input type="text" id="modalItemNote" placeholder="Specific kitchen instructions for this dish..." class="w-full text-xs bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl px-3 py-2 text-[var(--text-main)] focus:outline-none focus:ring-1 focus:ring-amber-500">
+          </div>
+        </div>
+
+        <!-- Quantity & Add to Cart -->
+        <div class="mt-6 pt-4 border-t border-[var(--border-color)] flex items-center justify-between gap-4">
+          <div class="flex items-center border border-[var(--border-color)] rounded-2xl bg-[var(--bg-primary)] p-1">
+            <button onclick="alterModalQty(-1)" class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-stone-500 hover:bg-[var(--badge-bg)] text-sm">-</button>
+            <span id="modalQtyDisplay" class="w-8 text-center font-bold text-xs font-mono">1</span>
+            <button onclick="alterModalQty(1)" class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-stone-500 hover:bg-[var(--badge-bg)] text-sm">+</button>
+          </div>
+          <button onclick="confirmItemAddToCart()" class="flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+            <span>Add to Order</span>
+            <span id="modalAddTotalBtnPrice" class="font-mono font-extrabold">• Rs. 0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER SUCCESS / ESC-POS THERMAL PRINTER PREVIEW MODAL -->
+  <div id="orderSuccessModal" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="max-w-xl w-full my-auto space-y-4">
+      <!-- Success Header Alert -->
+      <div class="bg-emerald-950/90 border border-emerald-500/40 rounded-2xl p-4 text-emerald-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-500 text-emerald-950 flex items-center justify-center font-black">✓</div>
+          <div>
+            <div class="text-sm font-bold text-white">Order Successfully Dispatched!</div>
+            <div class="text-xs text-emerald-300">VenQore KDS Terminal Chime Triggered & Ticket Queued.</div>
+          </div>
+        </div>
+        <button onclick="closeSuccessModal()" class="text-emerald-400 hover:text-white text-xs underline font-semibold">Done</button>
+      </div>
+
+      <!-- Realistic 80mm ESC/POS Monospace Thermal Receipt Card -->
+      <div class="thermal-paper text-stone-900 font-mono-receipt p-6 rounded-sm text-xs leading-relaxed max-w-sm mx-auto shadow-2xl">
+        <div class="text-center pb-3 border-b-2 border-dashed border-stone-800">
+          <div class="text-base font-extrabold tracking-wider uppercase" id="receiptBrandName">VENQORE ARTISAN BISTRO</div>
+          <div class="text-[10px] text-stone-600">OFFLINE ESC/POS KITCHEN RECEIPT</div>
+          <div class="text-[10px] mt-1 font-bold">192.168.1.100:8080 • KITCHEN LINE 1</div>
+        </div>
+
+        <div class="py-2.5 border-b border-stone-300 flex justify-between items-center text-[11px]">
+          <div>
+            <div>TBL: <span class="font-bold text-sm bg-stone-900 text-white px-1.5 py-0.5 rounded" id="receiptTableNum">T-12</span></div>
+            <div class="text-[10px] text-stone-500" id="receiptTimestamp">2026-10-03 15:30:12</div>
+          </div>
+          <div class="text-right">
+            <div>ORD: <span class="font-bold font-mono" id="receiptOrderId">#VQ-8921</span></div>
+            <div class="text-[10px] text-emerald-800 font-bold">STATUS: PENDING</div>
+          </div>
+        </div>
+
+        <!-- Line items -->
+        <div class="py-3 border-b-2 border-dashed border-stone-800 space-y-2" id="receiptLineItems">
+          <!-- Dynamic -->
+        </div>
+
+        <!-- Receipt Totals -->
+        <div class="py-2 space-y-1 text-right text-[11px]">
+          <div class="flex justify-between">
+            <span>SUBTOTAL:</span>
+            <span class="font-bold" id="receiptSubtotal">Rs. 0</span>
+          </div>
+          <div class="flex justify-between">
+            <span>TAX / SERVICE:</span>
+            <span class="font-bold" id="receiptTax">Rs. 0</span>
+          </div>
+          <div class="flex justify-between text-sm font-extrabold pt-1 border-t border-stone-400">
+            <span>GRAND TOTAL:</span>
+            <span id="receiptGrandTotal">Rs. 0</span>
+          </div>
+        </div>
+
+        <!-- Kitchen Barcode Simulation -->
+        <div class="text-center pt-3 border-t border-dashed border-stone-400">
+          <div class="tracking-[6px] text-base font-extrabold opacity-80 select-none">||| | |||| | | ||| |||| | ||</div>
+          <div class="text-[9px] text-stone-500 mt-1">ESC/POS LAN AUTO-CUT CODE: 0x1D 0x56 0x00</div>
+        </div>
+      </div>
+
+      <!-- Payload Inspector Accordion (Shows match to the VenQore blueprint) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-xs font-mono text-slate-300">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span class="font-bold text-sky-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-sky-400"></span> POST /api/v1/orders/table Payload
+          </span>
+          <span class="text-[10px] text-slate-500">VenQore JSON Spec</span>
+        </div>
+        <pre id="receiptRawPayload" class="bg-slate-950 p-3 rounded-xl overflow-x-auto text-[11px] text-emerald-400 border border-slate-800/80 max-h-40"></pre>
+        <div class="mt-3 flex justify-end gap-2">
+          <button onclick="printThermalTicket()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-sans font-semibold flex items-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Print Thermal Ticket</span>
+          </button>
+          <button onclick="closeSuccessModal()" class="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs font-sans font-bold transition">
+            Close & Start Next Order
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMIZER STUDIO DRAWER (Upload Logo, Banner, Dish Photos, Theme Colors) -->
+  <div id="studioDrawer" class="fixed inset-y-0 left-0 w-full sm:max-w-md bg-stone-900 text-stone-100 z-50 shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300 border-r border-stone-800">
+    <div class="p-5 border-b border-stone-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-white">Brand & Template Studio</h2>
+          <p class="text-[11px] text-stone-400">Configure logo, banners & dish media</p>
+        </div>
+      </div>
+      <button onclick="toggleStudioDrawer()" class="p-2 rounded-xl text-stone-400 hover:bg-stone-800 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
+      <!-- 1. Template Selector -->
+      <div class="bg-stone-800/60 p-3.5 rounded-2xl border border-stone-700">
+        <label class="block font-bold text-stone-200 mb-2">1. Select Visual Menu Layout</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setLayout('visual-grid')" class="p-2 rounded-xl border border-stone-600 hover:border-amber-400 text-center transition bg-white text-stone-900 font-semibold">
+            <div class="text-[11px]">Visual Grid</div>
+            <div class="text-[9px] text-stone-500">Casual Cards</div>
+          </button>
+          <button onclick="setLayout('editorial-ledger')" class="p-2 rounded-xl border border-stone-600 hover:border-amber-400 text-center transition bg-slate-950 text-amber-400 font-semibold">
+            <div class="text-[11px]">Editorial</div>
+            <div class="text-[9px] text-stone-400">Dot-Leader Book</div>
+          </button>
+          <button onclick="setLayout('express-rail')" class="p-2 rounded-xl border border-stone-600 hover:border-sky-400 text-center transition bg-slate-900 text-sky-400 font-semibold">
+            <div class="text-[11px]">Split-Rail</div>
+            <div class="text-[9px] text-stone-400">Izakaya Speed</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Logo Upload -->
+      <div class="bg-stone-800/60 p-3.5 rounded-2xl border border-stone-700 space-y-2">
+        <label class="block font-bold text-stone-200">2. Restaurant Logo Upload</label>
+        <p class="text-[11px] text-stone-400">Upload your emblem or logo png. Updates header & thermal prints.</p>
+        <input type="file" id="studioLogoFileInput" accept="image/*" class="w-full text-xs text-stone-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-stone-950 hover:file:bg-amber-400 cursor-pointer" onchange="handleFileLogoUpload(event)">
+        <div class="pt-1 flex items-center gap-2">
+          <input type="text" id="customLogoUrlInput" placeholder="Or paste image URL..." class="flex-1 bg-stone-900 border border-stone-700 rounded-xl px-2.5 py-1.5 text-xs text-stone-200 focus:outline-none">
+          <button onclick="applyLogoUrl()" class="px-3 py-1.5 rounded-xl bg-stone-700 hover:bg-stone-600 text-stone-200 font-medium">Apply</button>
+        </div>
+      </div>
+
+      <!-- 3. Cover Hero Image Upload -->
+      <div class="bg-stone-800/60 p-3.5 rounded-2xl border border-stone-700 space-y-2">
+        <label class="block font-bold text-stone-200">3. Hero Cover Ambiance Image</label>
+        <input type="file" id="studioCoverFileInput" accept="image/*" class="w-full text-xs text-stone-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer" onchange="handleCoverUpload(event)">
+      </div>
+
+      <!-- 4. Brand Name & Currency -->
+      <div class="bg-stone-800/60 p-3.5 rounded-2xl border border-stone-700 space-y-2.5">
+        <label class="block font-bold text-stone-200">4. Brand Information</label>
+        <div>
+          <span class="text-[10px] text-stone-400 block mb-1">Restaurant Name</span>
+          <input type="text" id="studioBrandNameInput" value="VenQore Artisan Bistro" oninput="updateBrandName(this.value)" class="w-full bg-stone-900 border border-stone-700 rounded-xl px-3 py-1.5 text-xs text-stone-100">
+        </div>
+        <div>
+          <span class="text-[10px] text-stone-400 block mb-1">Tagline</span>
+          <input type="text" id="studioTaglineInput" value="Woodfired Artisanal Cuts & Craft Mocktails • Table Express Service" oninput="updateTagline(this.value)" class="w-full bg-stone-900 border border-stone-700 rounded-xl px-3 py-1.5 text-xs text-stone-100">
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex-1">
+            <span class="text-[10px] text-stone-400 block mb-1">Currency Symbol</span>
+            <input type="text" id="studioCurrencyInput" value="Rs." oninput="updateCurrency(this.value)" class="w-full bg-stone-900 border border-stone-700 rounded-xl px-3 py-1.5 text-xs text-stone-100 font-mono">
+          </div>
+          <div class="flex-1">
+            <span class="text-[10px] text-stone-400 block mb-1">3D Dish Showcase</span>
+            <button onclick="toggleThreeJsShowcase()" id="toggleThreeBtn" class="w-full py-1.5 rounded-xl bg-amber-500/20 text-amber-400 font-semibold border border-amber-500/30">Active</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Replace Dish Image Trigger -->
+      <div class="bg-stone-800/60 p-3.5 rounded-2xl border border-stone-700 space-y-2">
+        <label class="block font-bold text-stone-200">5. Quick Dish Photo Customizer</label>
+        <p class="text-[11px] text-stone-400">Select any dish from the dropdown to instantly replace its menu photo:</p>
+        <select id="dishSelectorForUpload" class="w-full bg-stone-900 border border-stone-700 rounded-xl px-3 py-1.5 text-xs text-stone-100">
+          <!-- Populated in JS -->
+        </select>
+        <input type="file" id="dishImageUploaderInput" accept="image/*" class="w-full text-xs text-stone-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer" onchange="handleDishImageCustomUpload(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- KDS / DISPATCH LOG INSPECTOR DRAWER -->
+  <div id="kdsDrawer" class="fixed inset-y-0 right-0 w-full sm:max-w-md bg-slate-950 text-slate-100 z-50 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 border-l border-slate-800">
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></div>
+        <div>
+          <h2 class="text-sm font-bold text-white">VenQore KDS Terminal</h2>
+          <p class="text-[11px] text-slate-400">Local WebSocket Live Ingestion Hub</p>
+        </div>
+      </div>
+      <button onclick="toggleKdsDrawer()" class="p-2 rounded-xl text-slate-400 hover:bg-slate-800 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Active Orders list in KDS -->
+    <div id="kdsOrdersList" class="flex-1 overflow-y-auto p-4 space-y-3">
+      <div id="kdsEmptyMsg" class="text-center py-12 text-slate-500 text-xs">
+        No active table tickets in queue yet.<br>Place an order to see live kitchen dispatch.
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom In-App Notification Toast (Never alert()) -->
+  <div id="toastNotification" class="fixed top-14 right-4 z-50 bg-stone-900 text-white px-4 py-3 rounded-2xl shadow-2xl border border-stone-700 flex items-center gap-3 transform translate-x-72 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastIcon" class="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">✓</div>
+    <div>
+      <div id="toastTitle" class="text-xs font-bold">Notification</div>
+      <div id="toastMsg" class="text-[11px] text-stone-400">Message description</div>
+    </div>
+  </div>
+
+  <script>
+    // Default Menu Items aligned with VenQore blueprint
+    const DEFAULT_MENU_ITEMS = [
+      {
+        id: "prod_101",
+        name: "Artisan Zinger Royal Burger",
+        category: "burgers",
+        price: 450,
+        desc: "Double crispy fried chicken fillet, melted smoked gouda, pickled jalapeño slaw, house chili glaze on buttered brioche.",
+        image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80",
+        badge: "Chef Best Seller",
+        calories: "680 kcal",
+        isSpicy: true,
+        pairing: "Pairing: Smoked Peach & Hibiscus Spritz",
+        origin: "Corn-fed Poultry • Aged Dutch Gouda",
+        prepTime: "12m"
+      },
+      {
+        id: "prod_107",
+        name: "Black Truffle Wagyu Brioche Burger",
+        category: "burgers",
+        price: 890,
+        desc: "200g smashed Wagyu patty, black winter truffle aioli, balsamic caramelized shallots, French Gruyère on toasted charcoal brioche.",
+        image: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=800&q=80",
+        badge: "Gourmet Reserve",
+        calories: "780 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Oak-Aged Bordeaux Blend",
+        origin: "Miyazaki A4 Wagyu • Perigord Truffle",
+        prepTime: "15m"
+      },
+      {
+        id: "prod_102",
+        name: "Prime Dry-Aged Wagyu Ribeye",
+        category: "grills",
+        price: 1850,
+        desc: "300g charcoal-grilled cut, roasted bone marrow butter, blistered rosemary vine tomatoes & black truffle jus.",
+        image: "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=800&q=80",
+        badge: "Woodfired Grill",
+        calories: "820 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Reserve Cabernet Sauvignon 2019",
+        origin: "Kobe Wagyu A5 • 35-Day Dry Aged",
+        prepTime: "22m"
+      },
+      {
+        id: "prod_108",
+        name: "Smoked Rosemary Herb Lamb Chops",
+        category: "grills",
+        price: 1650,
+        desc: "Triple cut New Zealand lamb rack crusted in wild thyme, mint chimichurri reduction, confit garlic pomme purée.",
+        image: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+        badge: "Chef's Cut",
+        calories: "740 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Rhone Valley Syrah 2020",
+        origin: "Grass-Fed New Zealand Lamb",
+        prepTime: "20m"
+      },
+      {
+        id: "prod_103",
+        name: "Truffle & Wild Porcini Pizza",
+        category: "pizza",
+        price: 980,
+        desc: "48-hr fermented sourdough base, fior di latte mozzarella, roasted forest porcini mushrooms, fresh black truffle drizzle.",
+        image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+        badge: "Stone Oven",
+        calories: "740 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Cold-Pressed Sicilian Blood Orange",
+        origin: "48h Sourdough • San Marzano DOP",
+        prepTime: "14m"
+      },
+      {
+        id: "prod_109",
+        name: "Burrata Pugliese & San Daniele Pizza",
+        category: "pizza",
+        price: 1150,
+        desc: "Whole torn Pugliese burrata, 24-month aged Prosciutto di San Daniele, wild organic baby arugula and aged Modena balsamic pearls.",
+        image: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=80",
+        badge: "Napoli Gold",
+        calories: "710 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Sparkling Prosecco Superiore",
+        origin: "Imported Burrata di Puglia • Prosciutto di Parma",
+        prepTime: "15m"
+      },
+      {
+        id: "prod_104",
+        name: "Crispy Salt & Pepper Calamari",
+        category: "starters",
+        price: 520,
+        desc: "Tender flash-fried squid rings, cracked Sichuan peppercorn, lime zest, spring onions, with citrus yuzu emulsion.",
+        image: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=800&q=80",
+        badge: "Crispy Tapas",
+        calories: "380 kcal",
+        isSpicy: true,
+        pairing: "Pairing: Sparkling Yuzu & Mint Tonic",
+        origin: "Wild Atlantic Squid • Hand-Cut",
+        prepTime: "8m"
+      },
+      {
+        id: "prod_110",
+        name: "Pan-Seared Hokkaido King Scallops",
+        category: "starters",
+        price: 780,
+        desc: "Jumbo scallops seared in cultured butter, cauliflower silk purée, crispy pancetta lardons and brown butter caper glaze.",
+        image: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=800&q=80",
+        badge: "Crudo & Tapas",
+        calories: "340 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Chablis Premier Cru 2021",
+        origin: "Sashimi-Grade Hokkaido Scallops",
+        prepTime: "10m"
+      },
+      {
+        id: "prod_105",
+        name: "Smoked Ember Peach & Hibiscus Mocktail",
+        category: "drinks",
+        price: 320,
+        desc: "Cold-pressed white peach, wild hibiscus botanical infusion, smoked rosemary sprig, sparkling elderflower splash.",
+        image: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80",
+        badge: "Signature Sip",
+        calories: "140 kcal",
+        isSpicy: false,
+        pairing: "Tasting: Cold-smoked table-side with cedar wood",
+        origin: "Organic Floral Tisane • Zero Refined Sugar",
+        prepTime: "4m"
+      },
+      {
+        id: "prod_106",
+        name: "Molten Valrhona Chocolate Lava Dome",
+        category: "desserts",
+        price: 490,
+        desc: "Warm 70% dark chocolate core, Tahitian vanilla bean gelato, salted butter caramel crisp and crushed pistachio praline.",
+        image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=800&q=80",
+        badge: "Decadent Dolci",
+        calories: "510 kcal",
+        isSpicy: false,
+        pairing: "Sommelier: Roasted Double Espresso Macchiato",
+        origin: "70% Grand Cru Valrhona Chocolate",
+        prepTime: "10m"
+      }
+    ];
+
+    const CATEGORIES = [
+      { id: "all", name: "Full Menu", icon: "🍽️" },
+      { id: "burgers", name: "Burgers & Sandwiches", icon: "🍔" },
+      { id: "grills", name: "Steaks & Grills", icon: "🥩" },
+      { id: "pizza", name: "Woodfired Pizza", icon: "🍕" },
+      { id: "starters", name: "Tapas & Starters", icon: "🍤" },
+      { id: "drinks", name: "Artisan Drinks", icon: "🍸" },
+      { id: "desserts", name: "Sweets & Gelato", icon: "🍰" }
+    ];
+
+    // App State
+    let menuItems = JSON.parse(localStorage.getItem("venqore_menu_items")) || DEFAULT_MENU_ITEMS;
+    let currentCategory = "all";
+    let searchQuery = "";
+    let currentLayout = localStorage.getItem("venqore_layout") || "visual-grid";
+    let currentTable = "12";
+    let currency = "Rs.";
+    let cart = [];
+    let kdsOrders = [];
+    let modalActiveItem = null;
+    let modalQty = 1;
+
+    // Web Audio Synthesizer (No external sound files required)
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) this.ctx = new AudioContextClass();
+        }
+      },
+      playChime() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          
+          const now = this.ctx.currentTime;
+          // Ding 1
+          const osc1 = this.ctx.createOscillator();
+          const gain1 = this.ctx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(880, now); // A5
+          gain1.gain.setValueAtTime(0.3, now);
+          gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+          osc1.connect(gain1);
+          gain1.connect(this.ctx.destination);
+          osc1.start(now);
+          osc1.stop(now + 0.8);
+
+          // Ding 2 (High harmonic)
+          const osc2 = this.ctx.createOscillator();
+          const gain2 = this.ctx.createGain();
+          osc2.type = "sine";
+          osc2.frequency.setValueAtTime(1320, now + 0.15); // E6
+          gain2.gain.setValueAtTime(0.35, now + 0.15);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+          osc2.connect(gain2);
+          gain2.connect(this.ctx.destination);
+          osc2.start(now + 0.15);
+          osc2.stop(now + 1.2);
+        } catch (e) {
+          console.debug("Audio play skipped:", e);
+        }
+      },
+      playPop() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(740, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.09);
+        } catch (e) {}
+      }
+    };
+
+    function initializeTableFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tableParam = urlParams.get('table');
+      if (tableParam) {
+        currentTable = tableParam;
+      }
+      document.getElementById('currentTableBadge').textContent = `#${currentTable}`;
+      document.getElementById('cartBarTable').textContent = `#${currentTable}`;
+      const selector = document.getElementById('tableSelector');
+      if (selector) selector.value = currentTable;
+    }
+
+    function changeTable(newTable) {
+      currentTable = newTable;
+      document.getElementById('currentTableBadge').textContent = `#${currentTable}`;
+      document.getElementById('cartBarTable').textContent = `#${currentTable}`;
+      showToast("Table Updated", `Now ordering for Table #${newTable}`);
+    }
+
+    function setLayout(layoutId) {
+      currentLayout = layoutId;
+      localStorage.setItem("venqore_layout", layoutId);
+      document.body.className = `layout-${layoutId} bg-[var(--bg-primary)] text-[var(--text-main)] font-sans-main antialiased selection:bg-amber-500 selection:text-white transition-colors duration-300 min-h-screen pb-24`;
+
+      // Update Top Switcher Buttons State
+      const buttons = {
+        'visual-grid': document.getElementById('btnLayoutVisual'),
+        'editorial-ledger': document.getElementById('btnLayoutEditorial'),
+        'express-rail': document.getElementById('btnLayoutExpress')
+      };
+
+      Object.keys(buttons).forEach(key => {
+        if (!buttons[key]) return;
+        if (key === layoutId) {
+          buttons[key].className = "px-2.5 py-1 text-xs font-bold rounded-xl transition bg-amber-500 text-stone-950 shadow-sm flex items-center gap-1";
+        } else {
+          buttons[key].className = "px-2.5 py-1 text-xs font-medium rounded-xl transition text-[var(--text-muted)] hover:text-amber-400 flex items-center gap-1";
+        }
+      });
+
+      // Show/Hide specific layout containers
+      const visualContainer = document.getElementById('visualGridLayout');
+      const editorialContainer = document.getElementById('editorialLedgerLayout');
+      const expressContainer = document.getElementById('expressRailLayout');
+      const filterBar = document.getElementById('filterStickyBar');
+
+      visualContainer.classList.add('hidden');
+      editorialContainer.classList.add('hidden');
+      expressContainer.classList.add('hidden');
+
+      if (layoutId === 'visual-grid') {
+        visualContainer.classList.remove('hidden');
+        filterBar.classList.remove('hidden');
+        document.getElementById('brandNameText').className = "text-2xl sm:text-3xl font-sans-main font-extrabold tracking-tight";
+      } else if (layoutId === 'editorial-ledger') {
+        editorialContainer.classList.remove('hidden');
+        filterBar.classList.remove('hidden');
+        document.getElementById('brandNameText').className = "text-2xl sm:text-3xl font-serif-luxury font-bold tracking-wide text-amber-300";
+      } else if (layoutId === 'express-rail') {
+        expressContainer.classList.remove('hidden');
+        filterBar.classList.add('hidden'); // rail takes over navigation!
+        document.getElementById('brandNameText').className = "text-2xl sm:text-3xl font-punchy font-black uppercase tracking-tight text-sky-400";
+      }
+
+      renderMenu();
+      showToast("Layout Activated", `Switched to ${layoutId.replace('-', ' ').toUpperCase()} format`);
+    }
+
+    function renderCategories() {
+      const container = document.getElementById('categoryContainer');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const isActive = cat.id === currentCategory;
+        const activeClasses = isActive 
+          ? "bg-amber-500 text-stone-950 font-bold shadow-md shadow-amber-500/20" 
+          : "bg-[var(--bg-card)] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-color)]";
+        return `
+          <button onclick="selectCategory('${cat.id}')" 
+            class="px-3.5 py-1.5 rounded-2xl text-xs whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 ${activeClasses}">
+            <span>${cat.icon}</span>
+            <span>${cat.name}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCategory(catId) {
+      currentCategory = catId;
+      renderCategories();
+      renderMenu();
+      AudioEngine.playPop();
+    }
+
+    function renderMenu() {
+      const filtered = menuItems.filter(item => {
+        const matchesCategory = currentCategory === "all" || item.category === currentCategory;
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                              item.desc.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      const emptyState = document.getElementById('emptyMenuState');
+      if (filtered.length === 0) {
+        document.getElementById('visualGridLayout').innerHTML = "";
+        document.getElementById('editorialCoursesContainer').innerHTML = "";
+        document.getElementById('railItemsFeed').innerHTML = "";
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      if (currentLayout === 'visual-grid') {
+        renderVisualGrid(filtered);
+      } else if (currentLayout === 'editorial-ledger') {
+        renderEditorialLedger(filtered);
+      } else if (currentLayout === 'express-rail') {
+        renderExpressRail(filtered);
+      }
+    }
+
+    /* ==========================================================================
+       LAYOUT 1: VISUAL SHOWCASE CARDS (Contemporary Casual / Bistro)
+       ========================================================================== */
+    function renderVisualGrid(items) {
+      const grid = document.getElementById('visualGridLayout');
+      grid.innerHTML = items.map(item => `
+        <div class="group bg-[var(--bg-card)] rounded-3xl overflow-hidden border border-[var(--border-color)] hover:border-amber-500/40 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1">
+          <div class="relative h-48 w-full overflow-hidden bg-stone-900 cursor-pointer" onclick="openItemCustomizer('${item.id}')">
+            <img src="${item.image}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+
+            ${item.badge ? `
+    <!-- Layout 1: Visual Cards Grid Viewport -->
+    <div id="visualGridLayout" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <!-- Injected via renderVisualGrid() -->
+    </div>
+            ` : ''}
+
+            <div class="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
+              <span class="text-[10px] text-stone-200 font-mono bg-black/50 px-2 py-0.5 rounded-md backdrop-blur-sm">
+                🔥 ${item.calories}
+              </span>
+              ${item.prepTime ? `
+                <span class="text-[10px] text-stone-300 font-mono bg-black/50 px-2 py-0.5 rounded-md backdrop-blur-sm">
+                  ⏱️ ${item.prepTime}
+                </span>
+              ` : ''}
+              ${item.isSpicy ? `
+                <span class="text-[10px] text-rose-300 font-mono bg-rose-950/80 px-2 py-0.5 rounded-md backdrop-blur-sm border border-rose-500/40">
+                  🌶️ Spicy
+                </span>
+              ` : ''}
+            </div>
+
+            <button onclick="event.stopPropagation(); triggerPhotoSwap('${item.id}')" title="Upload new photo" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black/90 text-white p-1.5 rounded-xl opacity-0 group-hover:opacity-100 transition shadow">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            </button>
+          </div>
+
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <h3 class="text-base font-bold text-[var(--text-main)] group-hover:text-amber-500 transition-colors">
+                  ${item.name}
+                </h3>
+              </div>
+              <p class="text-xs text-[var(--text-muted)] mt-1.5 line-clamp-2 leading-relaxed">
+                ${item.desc}
+              </p>
+              ${item.pairing ? `
+                <div class="mt-2.5 py-1 px-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-500 truncate flex items-center gap-1">
+                  <span>🍷</span> <span class="truncate">${item.pairing}</span>
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-[var(--border-color)] flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-[var(--text-muted)] block">Price</span>
+                <span class="text-base font-extrabold font-mono text-[var(--text-main)]">
+                  ${currency} ${item.price}
+                </span>
+              </div>
+              <button onclick="openItemCustomizer('${item.id}')" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs shadow-sm transition active:scale-95 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span>Select</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ==========================================================================
+       LAYOUT 2: MICHELIN EDITORIAL LEDGER (FULL-WIDTH PANORAMIC SPREAD)
+       ========================================================================== */
+    function renderEditorialLedger(items) {
+      const container = document.getElementById('editorialCoursesContainer');
+      
+      // Group items into formal gastronomic course sections
+      const courseGroups = {};
+      items.forEach(item => {
+        const cat = item.category || 'specialties';
+        if (!courseGroups[cat]) courseGroups[cat] = [];
+        courseGroups[cat].push(item);
+      });
+
+      const categoryLabels = {
+        burgers: { roman: "I", title: "Handcrafted Brioche & Cuts", subtitle: "Artisanal ground chuck, brioche and signature glazes" },
+        grills: { roman: "II", title: "Prime Robata & Woodfired Grills", subtitle: "Charcoal seared prime cuts with herb-infused marrow jus" },
+        pizza: { roman: "III", title: "Stone Hearth Fermented Pizza", subtitle: "48-hour fermented sourdough with San Marzano tomatoes" },
+        starters: { roman: "IV", title: "Amuse-Bouche & Tapas", subtitle: "Delicate seafood, crudo, and crispy starters" },
+        drinks: { roman: "V", title: "Botanical Infusions & Mocktails", subtitle: "Cold-pressed elixirs and smoked garden herbs" },
+        desserts: { roman: "VI", title: "Pâtisserie & Dolci", subtitle: "Grand cru chocolates, vanilla bean gelato and crisps" }
+      };
+
+      container.innerHTML = Object.keys(courseGroups).map(catKey => {
+        const meta = categoryLabels[catKey] || { roman: "•", title: catKey.toUpperCase(), subtitle: "Signature selections" };
+        const courseItems = courseGroups[catKey];
+
+        return `
+          <div class="space-y-6">
+            <!-- Full-Width Course Header with Ornate Framing -->
+            <div class="border-b-2 border-amber-500/30 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-amber-500 font-cinzel font-bold text-sm tracking-[0.2em]">COURSE ${meta.roman}</span>
+                  <span class="text-stone-600">•</span>
+                  <span class="text-[11px] font-mono text-amber-400/80 uppercase tracking-widest">${courseItems.length} Offerings</span>
+                </div>
+                <h3 class="text-2xl sm:text-3xl font-serif-luxury font-bold text-amber-100 tracking-wide mt-1">${meta.title}</h3>
+                <p class="text-xs text-[var(--text-muted)] italic font-serif mt-1">${meta.subtitle}</p>
+              </div>
+              <div class="text-[10px] text-amber-500/90 font-cinzel font-bold tracking-widest uppercase border border-amber-500/30 px-3 py-1 rounded-full self-start sm:self-auto bg-amber-500/5">
+                VenQore Reserve
+              </div>
+            </div>
+
+            <!-- Full-Width Expansive Dish Entries List -->
+            <div class="space-y-6">
+              ${courseItems.map(item => `
+                <div class="group relative w-full bg-stone-900/60 hover:bg-stone-900/95 border border-amber-500/20 hover:border-amber-500/60 p-5 sm:p-7 rounded-3xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-amber-950/30">
+                  
+                  <!-- Full-Width Top Header: Dish Title, Panoramic Dot-Leader & Price -->
+                  <div class="flex items-baseline justify-between gap-3 mb-4 w-full">
+                    <div class="flex items-center gap-3 min-w-0">
+                      <span class="text-amber-500 font-cinzel text-xs font-bold tracking-widest uppercase shrink-0">✦ Selection</span>
+                      <h4 class="font-serif-luxury font-bold text-lg sm:text-2xl text-amber-50 group-hover:text-amber-300 transition-colors cursor-pointer truncate" onclick="openItemCustomizer('${item.id}')">
+                        ${item.name}
+                      </h4>
+                      ${item.isSpicy ? `
+                        <span class="text-[10px] bg-red-950/80 text-rose-300 px-2 py-0.5 rounded-full font-mono border border-rose-500/40 shrink-0">🌶️ Fiery</span>
+                      ` : ''}
+                    </div>
+
+                    <!-- Majestic Full-Width Golden Dot Leader -->
+                    <span class="leader-line"></span>
+
+                    <!-- Price Tag -->
+                    <span class="font-mono font-extrabold text-xl sm:text-2xl text-amber-300 shrink-0">
+                      ${currency} ${item.price}
+                    </span>
+                  </div>
+
+                  <!-- Full-Width 12-Column Balanced Magazine Content -->
+                  <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Left Photo Showcase (4 Columns) with Gold Frame & Quick Replace Tool -->
+                    <div class="md:col-span-4 relative h-48 sm:h-56 w-full rounded-2xl overflow-hidden editorial-plate-frame bg-stone-950 cursor-pointer group/img" onclick="openItemCustomizer('${item.id}')">
+                      <img src="${item.image}" alt="${item.name}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105">
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
+
+                      <!-- Terroir Stamp Pill -->
+                      ${item.origin ? `
+                        <div class="absolute top-2.5 left-2.5 bg-black/75 backdrop-blur-md text-amber-300 text-[10px] font-mono px-2.5 py-1 rounded-full border border-amber-500/30 max-w-[85%] truncate">
+                          ✦ ${item.origin}
+                        </div>
+                      ` : ''}
+
+                      <!-- Quick Photo Swap Button Overlay -->
+                      <button onclick="event.stopPropagation(); triggerPhotoSwap('${item.id}')" title="Upload dish photo" class="absolute bottom-2.5 right-2.5 bg-black/80 hover:bg-amber-500 hover:text-stone-950 text-white px-3 py-1.5 rounded-xl text-xs font-medium opacity-0 group-hover:opacity-100 transition shadow-lg flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                        <span>Replace Photo</span>
+                      </button>
+
+                      <div class="absolute bottom-2.5 left-3 text-[10px] font-mono text-stone-300">
+                        Tap photo to customize
+                      </div>
+                    </div>
+
+                    <!-- Right Gastronomic Detail & Sommelier Experience (8 Columns) -->
+                    <div class="md:col-span-8 flex flex-col justify-between h-full space-y-4">
+                      <div>
+                        <!-- Description -->
+                        <p class="text-sm text-stone-300 font-serif leading-relaxed">
+                          ${item.desc}
+                        </p>
+
+                        <!-- Sommelier & Cellar Recommendation Bar -->
+                        ${item.pairing ? `
+                          <div class="mt-3.5 p-3 rounded-2xl gold-foil-chip flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm shrink-0">🍷</div>
+                            <div class="min-w-0">
+                              <div class="text-[10px] uppercase tracking-wider font-cinzel font-bold text-amber-400">Sommelier Cellar Recommendation</div>
+                              <div class="text-xs text-amber-100/90 font-serif italic truncate">${item.pairing}</div>
+                            </div>
+                          </div>
+                        ` : ''}
+                      </div>
+
+                      <!-- Footer Bar: Nutritional Stats, Prep Time & Grand Order Button -->
+                      <div class="pt-4 border-t border-stone-800/80 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-4 text-xs font-mono text-stone-400">
+                          <span class="flex items-center gap-1.5">🔥 <span class="text-stone-300 font-semibold">${item.calories}</span></span>
+                          ${item.prepTime ? `
+                            <span class="flex items-center gap-1.5">⏱️ <span class="text-stone-300 font-semibold">${item.prepTime} Prep</span></span>
+                          ` : ''}
+                          <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Live Kitchen Queue
+                          </span>
+                        </div>
+
+                        <!-- Add to Order Button -->
+                        <button onclick="openItemCustomizer('${item.id}')" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-serif font-bold text-xs shadow-lg transition active:scale-95 flex items-center gap-2">
+                          <span>Add to Table Order</span>
+                          <span class="font-mono text-stone-900 font-extrabold">• ${currency} ${item.price}</span>
+                          <span>⟶</span>
+                        </button>
+                      </div>
+
+                    </div>
+
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* ==========================================================================
+       LAYOUT 3: EXPRESS SPLIT-RAIL (Asian Izakaya / High-Speed Table Ordering)
+       ========================================================================== */
+    function renderExpressRail(items) {
+      const navContainer = document.getElementById('railCategoryNav');
+      const feedContainer = document.getElementById('railItemsFeed');
+
+      // Populate Vertical Category Rail
+      navContainer.innerHTML = CATEGORIES.map(cat => {
+        const isActive = cat.id === currentCategory;
+        const count = cat.id === 'all' 
+          ? menuItems.length 
+          : menuItems.filter(m => m.category === cat.id).length;
+
+        const activeClass = isActive 
+          ? "bg-sky-500 text-slate-950 font-extrabold shadow-md" 
+          : "text-slate-400 hover:text-white hover:bg-slate-800/60";
+
+        return `
+          <button onclick="selectCategory('${cat.id}')" class="w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between transition ${activeClass}">
+            <span class="flex items-center gap-2 truncate">
+              <span>${cat.icon}</span>
+              <span class="truncate">${cat.name}</span>
+            </span>
+            <span class="text-[10px] font-mono px-1.5 py-0.2 rounded-full ${isActive ? 'bg-slate-950/20 text-slate-950 font-black' : 'bg-slate-800 text-slate-400'}">${count}</span>
+          </button>
+        `;
+      }).join('');
+
+      // Populate Dense Horizontal Row Cards
+      feedContainer.innerHTML = items.map(item => {
+        const cartEntry = cart.find(ci => ci.product_id === item.id);
+        const qtyInCart = cartEntry ? cartEntry.qty : 0;
+
+        return `
+          <div class="bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-sky-500/40 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 transition-all duration-200">
+            <!-- Compact Image with photo swap trigger -->
+            <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden bg-slate-900 shrink-0 cursor-pointer" onclick="openItemCustomizer('${item.id}')">
+              <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+              <button onclick="event.stopPropagation(); triggerPhotoSwap('${item.id}')" title="Change photo" class="absolute bottom-1 right-1 bg-black/70 text-white p-1 rounded-md text-[9px] hover:bg-sky-500 hover:text-slate-950 transition">
+                📷
+              </button>
+            </div>
+
+            <!-- Details -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-1">
+                <div>
+                  <h4 class="text-sm font-bold text-[var(--text-main)] truncate cursor-pointer hover:text-sky-400" onclick="openItemCustomizer('${item.id}')">${item.name}</h4>
+                  <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <span class="text-xs font-mono font-extrabold text-sky-400">${currency} ${item.price}</span>
+                    <span class="text-[10px] text-slate-400">• ${item.calories}</span>
+                    ${item.prepTime ? `<span class="text-[10px] text-slate-400">• ⏱️ ${item.prepTime}</span>` : ''}
+                    ${item.isSpicy ? '<span class="text-[10px] text-rose-400 font-bold">🌶️ Fiery</span>' : ''}
+                  </div>
+                </div>
+              </div>
+
+              <p class="text-[11px] text-[var(--text-muted)] line-clamp-1 mt-1">${item.desc}</p>
+              ${item.origin ? `<div class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">✦ ${item.origin}</div>` : ''}
+
+              <!-- Inline Stepper Bar for High-Speed Ordering -->
+              <div class="mt-2.5 flex items-center justify-between">
+                <button onclick="openItemCustomizer('${item.id}')" class="text-[11px] text-slate-400 hover:text-sky-300 underline font-medium">
+                  + Customize & Notes
+                </button>
+
+                <div class="flex items-center gap-2 bg-slate-900/80 border border-slate-700/80 rounded-xl p-1">
+                  <button onclick="inlineQuickCartDelta('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center font-bold text-xs">-</button>
+                  <span class="font-mono text-xs font-bold text-sky-400 w-5 text-center">${qtyInCart}</span>
+                  <button onclick="inlineQuickCartDelta('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-sky-500 text-slate-950 hover:bg-sky-400 flex items-center justify-center font-bold text-xs">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // High-speed instant 1-tap cart addition without opening modals
+    function inlineQuickCartDelta(productId, delta) {
+      const targetItem = menuItems.find(i => i.id === productId);
+      if (!targetItem) return;
+
+      const existingCartItem = cart.find(ci => ci.product_id === productId);
+
+      if (delta > 0) {
+        if (existingCartItem) {
+          existingCartItem.qty += 1;
+        } else {
+          cart.push({
+            cartItemId: "ci_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+            product_id: targetItem.id,
+            name: targetItem.name,
+            price: targetItem.price,
+            basePrice: targetItem.price,
+            qty: 1,
+            spice_level: "Classic",
+            addons: [],
+            notes: "",
+            image: targetItem.image
+          });
+        }
+        showToast("Added to Table Order", `1x ${targetItem.name}`);
+      } else {
+        if (existingCartItem) {
+          existingCartItem.qty -= 1;
+          if (existingCartItem.qty <= 0) {
+            cart = cart.filter(ci => ci !== existingCartItem);
+          }
+        }
+      }
+
+      AudioEngine.playPop();
+      updateCartUI();
+      if (currentLayout === 'express-rail') {
+        renderExpressRail(menuItems.filter(i => currentCategory === 'all' || i.category === currentCategory));
+      }
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.trim();
+      renderMenu();
+    }
+
+    function clearSearch() {
+      searchQuery = "";
+      document.getElementById('menuSearchInput').value = "";
+      currentCategory = "all";
+      renderCategories();
+      renderMenu();
+    }
+
+    function openItemCustomizer(itemId) {
+      const item = menuItems.find(i => i.id === itemId);
+      if (!item) return;
+      modalActiveItem = item;
+      modalQty = 1;
+
+      document.getElementById('modalItemTitle').textContent = item.name;
+      document.getElementById('modalItemDesc').textContent = item.desc;
+      document.getElementById('modalItemImg').src = item.image;
+      document.getElementById('modalItemPriceTag').textContent = `${currency} ${item.price}`;
+      document.getElementById('modalQtyDisplay').textContent = modalQty;
+      document.getElementById('modalItemNote').value = "";
+
+      // Uncheck checkboxes
+      document.querySelectorAll('.addon-checkbox').forEach(cb => cb.checked = false);
+
+      updateModalPriceCalculation();
+      document.getElementById('itemModalBackdrop').classList.remove('hidden');
+      AudioEngine.playPop();
+    }
+
+    function closeItemModal() {
+      document.getElementById('itemModalBackdrop').classList.add('hidden');
+      modalActiveItem = null;
+    }
+
+    function alterModalQty(delta) {
+      modalQty = Math.max(1, modalQty + delta);
+      document.getElementById('modalQtyDisplay').textContent = modalQty;
+      updateModalPriceCalculation();
+      AudioEngine.playPop();
+    }
+
+    function updateModalPriceCalculation() {
+      if (!modalActiveItem) return;
+      let unitPrice = modalActiveItem.price;
+
+      document.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
+        unitPrice += parseFloat(cb.dataset.price || 0);
+      });
+
+      const total = unitPrice * modalQty;
+      document.getElementById('modalAddTotalBtnPrice').textContent = `• ${currency} ${total}`;
+    }
+
+    // Attach listener to checkboxes for price auto-recalculation
+    document.addEventListener('change', function(e) {
+      if (e.target && e.target.classList.contains('addon-checkbox')) {
+        updateModalPriceCalculation();
+      }
+    });
+
+    function confirmItemAddToCart() {
+      if (!modalActiveItem) return;
+
+      const spiceChecked = document.querySelector('input[name="spice_level"]:checked');
+      const spice = spiceChecked ? spiceChecked.value : "Standard";
+
+      const selectedAddons = [];
+      let extraCost = 0;
+      document.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
+        selectedAddons.push(cb.dataset.name);
+        extraCost += parseFloat(cb.dataset.price || 0);
+      });
+
+      const note = document.getElementById('modalItemNote').value.trim();
+
+      const cartItem = {
+        cartItemId: "ci_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+        product_id: modalActiveItem.id,
+        name: modalActiveItem.name,
+        price: modalActiveItem.price + extraCost,
+        basePrice: modalActiveItem.price,
+        qty: modalQty,
+        spice_level: spice,
+        addons: selectedAddons,
+        notes: note,
+        image: modalActiveItem.image
+      };
+
+      cart.push(cartItem);
+      closeItemModal();
+      updateCartUI();
+      AudioEngine.playPop();
+      showToast("Added to Cart", `${cartItem.qty}x ${cartItem.name}`);
+    }
+
+    function updateCartUI() {
+      const count = cart.reduce((acc, item) => acc + item.qty, 0);
+      const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+      const tax = Math.round(subtotal * 0.05); // 5% Local tax
+      const total = subtotal + tax;
+
+      // Update Floating Bar
+      document.getElementById('floatingCartBadge').textContent = count;
+      document.getElementById('floatingCartTotal').textContent = total.toLocaleString();
+
+      const floatingBar = document.getElementById('floatingCartBar');
+      if (count > 0) {
+        floatingBar.classList.remove('translate-y-32');
+      } else {
+        floatingBar.classList.add('translate-y-32');
+      }
+
+      // Update Cart Drawer Items
+      const cartList = document.getElementById('cartItemsList');
+      if (cart.length === 0) {
+        cartList.innerHTML = `
+          <div class="text-center py-16 text-[var(--text-muted)]">
+            <svg class="w-12 h-12 mx-auto text-stone-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            <p class="text-xs font-semibold">Your table order is empty</p>
+            <p class="text-[11px] mt-0.5">Explore the menu and add delicious dishes.</p>
+          </div>
+        `;
+      } else {
+        cartList.innerHTML = cart.map(item => `
+          <div class="bg-[var(--bg-primary)] p-3 rounded-2xl border border-[var(--border-color)] flex items-start gap-3">
+            <img src="${item.image}" alt="${item.name}" class="w-14 h-14 object-cover rounded-xl border border-[var(--border-color)]">
+            <div class="flex-1">
+              <div class="flex items-start justify-between">
+                <h4 class="text-xs font-bold text-[var(--text-main)]">${item.name}</h4>
+                <button onclick="removeCartItem('${item.cartItemId}')" class="text-stone-400 hover:text-red-500 p-0.5">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+              <div class="text-[10px] text-[var(--text-muted)] mt-0.5">
+                ${item.spice_level ? `<span class="text-amber-500 font-semibold">• ${item.spice_level}</span>` : ''}
+                ${item.addons.length > 0 ? `<span>• +${item.addons.join(', ')}</span>` : ''}
+                ${item.notes ? `<div class="italic text-stone-400">Note: "${item.notes}"</div>` : ''}
+              </div>
+              <div class="flex items-center justify-between mt-2 pt-1 border-t border-[var(--border-color)]">
+                <span class="text-xs font-mono font-bold text-[var(--text-main)]">${currency} ${(item.price * item.qty).toLocaleString()}</span>
+                <div class="flex items-center gap-1.5 border border-[var(--border-color)] rounded-lg px-1.5 py-0.5 bg-[var(--bg-card)]">
+                  <button onclick="changeCartItemQty('${item.cartItemId}', -1)" class="text-xs font-bold text-stone-500 hover:text-stone-900 px-1">-</button>
+                  <span class="text-xs font-mono font-bold px-1">${item.qty}</span>
+                  <button onclick="changeCartItemQty('${item.cartItemId}', 1)" class="text-xs font-bold text-stone-500 hover:text-stone-900 px-1">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Update Subtotals & Totals
+      document.getElementById('cartSubtotalText').textContent = `${currency} ${subtotal.toLocaleString()}`;
+      document.getElementById('cartTaxText').textContent = `${currency} ${tax.toLocaleString()}`;
+      document.getElementById('cartTotalPayableText').textContent = `${currency} ${total.toLocaleString()}`;
+    }
+
+    function changeCartItemQty(cartItemId, delta) {
+      const item = cart.find(i => i.cartItemId === cartItemId);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) {
+        cart = cart.filter(i => i.cartItemId !== cartItemId);
+      }
+      updateCartUI();
+      AudioEngine.playPop();
+    }
+
+    function removeCartItem(cartItemId) {
+      cart = cart.filter(i => i.cartItemId !== cartItemId);
+      updateCartUI();
+      AudioEngine.playPop();
+    }
+
+    function openCartDrawer() {
+      document.getElementById('cartDrawer').classList.remove('translate-x-full');
+      document.getElementById('cartDrawerBackdrop').classList.remove('hidden');
+    }
+
+    function closeCartDrawer() {
+      document.getElementById('cartDrawer').classList.add('translate-x-full');
+      document.getElementById('cartDrawerBackdrop').classList.add('hidden');
+    }
+
+    function dispatchVenqoreOrder() {
+      if (cart.length === 0) {
+        showToast("Cart Empty", "Please add items to your table order first.");
+        return;
+      }
+
+      // Prepare exact VenQore JSON Payload specified in user architecture:
+      const subtotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+      const tax = Math.round(subtotal * 0.05);
+      const totalAmount = subtotal + tax;
+
+      const orderPayload = {
+        table_number: isNaN(parseInt(currentTable)) ? currentTable : parseInt(currentTable),
+        timestamp: new Date().toISOString(),
+        items: cart.map(ci => ({
+          product_id: ci.product_id,
+          name: ci.name,
+          qty: ci.qty,
+          price: ci.price,
+          notes: [ci.spice_level, ...ci.addons, ci.notes].filter(Boolean).join(" | ")
+        })),
+        general_notes: document.getElementById('orderOverallNotes').value.trim() || undefined,
+        total_amount: totalAmount,
+        order_id: "VQ-" + Math.floor(1000 + Math.random() * 9000),
+        status: "Pending_KDS"
+      };
+
+      // Play synthesized kitchen alert bell (Chime)
+      AudioEngine.playChime();
+
+      // Add to simulated KDS terminal
+      kdsOrders.unshift(orderPayload);
+      updateKdsView();
+
+      // Display Thermal Receipt Preview & JSON inspector
+      renderThermalReceipt(orderPayload);
+
+      // Close cart and clear
+      closeCartDrawer();
+      cart = [];
+      document.getElementById('orderOverallNotes').value = "";
+      updateCartUI();
+
+      showToast("Order Dispatched", `Sent to Kitchen for Table #${currentTable}`);
+    }
+
+    function renderThermalReceipt(order) {
+      document.getElementById('receiptBrandName').textContent = document.getElementById('brandNameText').textContent;
+      document.getElementById('receiptTableNum').textContent = `T-${order.table_number}`;
+      document.getElementById('receiptOrderId').textContent = `#${order.order_id}`;
+      document.getElementById('receiptTimestamp').textContent = new Date().toLocaleString();
+
+      const lineItemsContainer = document.getElementById('receiptLineItems');
+      lineItemsContainer.innerHTML = order.items.map(item => `
+        <div>
+          <div class="flex justify-between font-bold">
+            <span>${item.qty}x ${item.name}</span>
+            <span>${currency} ${(item.price * item.qty).toLocaleString()}</span>
+          </div>
+          ${item.notes ? `<div class="text-[9px] text-stone-600 pl-2">>> ${item.notes}</div>` : ''}
+        </div>
+      `).join('');
+
+      const subtotal = order.items.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      const tax = Math.round(subtotal * 0.05);
+
+      document.getElementById('receiptSubtotal').textContent = `${currency} ${subtotal.toLocaleString()}`;
+      document.getElementById('receiptTax').textContent = `${currency} ${tax.toLocaleString()}`;
+      document.getElementById('receiptGrandTotal').textContent = `${currency} ${order.total_amount.toLocaleString()}`;
+
+      // Populate raw JSON Payload for developer review
+      document.getElementById('receiptRawPayload').textContent = JSON.stringify(order, null, 2);
+
+      // Show Modal
+      document.getElementById('orderSuccessModal').classList.remove('hidden');
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('orderSuccessModal').classList.add('hidden');
+    }
+
+    function printThermalTicket() {
+      window.print();
+    }
+
+    function updateKdsView() {
+      const container = document.getElementById('kdsOrdersList');
+      const counter = document.getElementById('kdsCounterBadge');
+      counter.textContent = kdsOrders.length;
+
+      if (kdsOrders.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-500 text-xs">
+            No active table tickets in queue yet.<br>Place an order to see live kitchen dispatch.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = kdsOrders.map(ord => `
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="bg-red-500/20 text-red-400 font-bold px-2 py-0.5 rounded font-mono">TABLE #${ord.table_number}</span>
+            <span class="text-slate-400 text-[10px] font-mono">${ord.order_id}</span>
+          </div>
+          <div class="text-xs text-slate-300 divide-y divide-slate-800/60 font-mono">
+            ${ord.items.map(i => `
+              <div class="py-1 flex justify-between">
+                <span>${i.qty}x ${i.name}</span>
+                <span class="text-slate-500">${i.notes ? `(${i.notes.slice(0, 18)}...)` : ''}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+            <span class="text-emerald-400 font-bold">TOTAL: ${currency} ${ord.total_amount}</span>
+            <span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">TCP/IP PRINTED</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleKdsDrawer() {
+      const drawer = document.getElementById('kdsDrawer');
+      drawer.classList.toggle('translate-x-full');
+    }
+
+    function toggleStudioDrawer() {
+      const drawer = document.getElementById('studioDrawer');
+      drawer.classList.toggle('-translate-x-full');
+    }
+
+    function handleFileLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Url = e.target.result;
+        document.getElementById('brandLogoImg').src = base64Url;
+        showToast("Logo Updated", "New restaurant logo applied successfully.");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function applyLogoUrl() {
+      const url = document.getElementById('customLogoUrlInput').value.trim();
+      if (!url) return;
+      document.getElementById('brandLogoImg').src = url;
+      showToast("Logo Applied", "Logo loaded from URL.");
+    }
+
+    function handleCoverUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('heroCoverImg').src = e.target.result;
+        showToast("Hero Cover Updated", "New restaurant ambiance background set.");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function triggerPhotoSwap(itemId) {
+      toggleStudioDrawer();
+      const selector = document.getElementById('dishSelectorForUpload');
+      selector.value = itemId;
+      document.getElementById('dishImageUploaderInput').click();
+    }
+
+    function handleDishImageCustomUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const targetDishId = document.getElementById('dishSelectorForUpload').value;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const item = menuItems.find(i => i.id === targetDishId);
+        if (item) {
+          item.image = e.target.result;
+          localStorage.setItem("venqore_menu_items", JSON.stringify(menuItems));
+          renderMenu();
+          showToast("Dish Image Saved", `Updated photo for ${item.name}`);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateBrandName(name) {
+      document.getElementById('brandNameText').textContent = name || "VenQore Artisan Bistro";
+      document.getElementById('receiptBrandName').textContent = name || "VENQORE ARTISAN BISTRO";
+    }
+
+    function updateTagline(tag) {
+      document.getElementById('brandTaglineText').textContent = tag;
+    }
+
+    function updateCurrency(c) {
+      currency = c || "Rs.";
+      document.getElementById('currencySymbol').textContent = currency;
+      renderMenu();
+      updateCartUI();
+    }
+
+    function populateDishSelector() {
+      const selector = document.getElementById('dishSelectorForUpload');
+      selector.innerHTML = menuItems.map(i => `
+        <option value="${i.id}">${i.name}</option>
+      `).join('');
+    }
+
+    let threeScene, threeCamera, threeRenderer, clocheGroup;
+    let threeAnimationId;
+    let isThreeActive = true;
+
+    function initThreeJsShowcase() {
+      const container = document.getElementById('threeJsCanvasContainer');
+      const canvas = document.getElementById('threeCanvas');
+      if (!container || !canvas || typeof THREE === 'undefined') return;
+
+      const width = container.clientWidth || 160;
+      const height = container.clientHeight || 160;
+
+      threeScene = new THREE.Scene();
+      threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+      threeCamera.position.set(0, 2.2, 4.2);
+
+      threeRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+      threeRenderer.setSize(width, height);
+      threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+      threeScene.add(ambientLight);
+
+      const goldLight = new THREE.PointLight(0xf59e0b, 2.5, 10);
+      goldLight.position.set(2, 4, 3);
+      threeScene.add(goldLight);
+
+      const rimLight = new THREE.PointLight(0x06b6d4, 1.5, 10);
+      rimLight.position.set(-3, -1, -2);
+      threeScene.add(rimLight);
+
+      // 3D Dish Platter & Dome (Cloche) Assembly
+      clocheGroup = new THREE.Group();
+
+      // Silver / Gold Platter Base
+      const platterGeo = new THREE.CylinderGeometry(1.6, 1.4, 0.1, 32);
+      const platterMat = new THREE.MeshStandardMaterial({
+        color: 0x27272a,
+        metalness: 0.85,
+        roughness: 0.25
+      });
+      const platter = new THREE.Mesh(platterGeo, platterMat);
+      clocheGroup.add(platter);
+
+      // Glass Cloche Dome
+      const domeGeo = new THREE.SphereGeometry(1.25, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+      const domeMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 0.1,
+        roughness: 0.1,
+        transparent: true,
+        opacity: 0.45
+      });
+      const dome = new THREE.Mesh(domeGeo, domeMat);
+      dome.position.y = 0.05;
+      clocheGroup.add(dome);
+
+      // Cloche Knob Handle
+      const knobGeo = new THREE.SphereGeometry(0.2, 16, 16);
+      const knobMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.1 });
+      const knob = new THREE.Mesh(knobGeo, knobMat);
+      knob.position.y = 1.35;
+      clocheGroup.add(knob);
+
+      // Floating Garnish Particles inside Dome
+      const particleCount = 14;
+      const particleGeo = new THREE.TetrahedronGeometry(0.08, 0);
+      const particleMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.4 });
+      for (let i = 0; i < particleCount; i++) {
+        const p = new THREE.Mesh(particleGeo, particleMat);
+        p.position.set(
+          (Math.random() - 0.5) * 1.4,
+          0.2 + Math.random() * 0.8,
+          (Math.random() - 0.5) * 1.4
+        );
+        p.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+        clocheGroup.add(p);
+      }
+
+      threeScene.add(clocheGroup);
+
+      // Orbit interaction on drag / touch
+      let isDragging = false;
+      let previousMousePosition = { x: 0, y: 0 };
+
+      const onStart = (clientX, clientY) => {
+        isDragging = true;
+        previousMousePosition = { x: clientX, y: clientY };
+      };
+
+      const onMove = (clientX, clientY) => {
+        if (!isDragging) return;
+        const deltaX = clientX - previousMousePosition.x;
+        const deltaY = clientY - previousMousePosition.y;
+        clocheGroup.rotation.y += deltaX * 0.015;
+        clocheGroup.rotation.x = Math.max(-0.4, Math.min(0.6, clocheGroup.rotation.x + deltaY * 0.01));
+        previousMousePosition = { x: clientX, y: clientY };
+      };
+
+      const onEnd = () => { isDragging = false; };
+
+      canvas.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+      window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+      window.addEventListener('mouseup', onEnd);
+
+      canvas.addEventListener('touchstart', e => {
+        if (e.touches.length === 1) onStart(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      window.addEventListener('touchmove', e => {
+        if (e.touches.length === 1) onMove(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+      window.addEventListener('touchend', onEnd);
+
+      // Animation Loop
+      function animate() {
+        threeAnimationId = requestAnimationFrame(animate);
+        if (!isDragging) {
+          clocheGroup.rotation.y += 0.008;
+        }
+        threeRenderer.render(threeScene, threeCamera);
+      }
+      animate();
+
+      // Window resize adaptation
+      window.addEventListener('resize', () => {
+        const newW = container.clientWidth || 160;
+        const newH = container.clientHeight || 160;
+        threeCamera.aspect = newW / newH;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(newW, newH);
+      });
+    }
+
+    function toggleThreeJsShowcase() {
+      const container = document.getElementById('threeJsCanvasContainer');
+      const btn = document.getElementById('toggleThreeBtn');
+      if (isThreeActive) {
+        container.style.display = 'none';
+        isThreeActive = false;
+        btn.textContent = "Disabled";
+        btn.className = "w-full py-1.5 rounded-xl bg-stone-800 text-stone-400 font-semibold border border-stone-700";
+      } else {
+        container.style.display = 'block';
+        isThreeActive = true;
+        btn.textContent = "Active";
+        btn.className = "w-full py-1.5 rounded-xl bg-amber-500/20 text-amber-400 font-semibold border border-amber-500/30";
+      }
+    }
+
+    let toastTimeout;
+    function showToast(title, msg) {
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastMsg').textContent = msg;
+
+      clearTimeout(toastTimeout);
+      toast.classList.remove('translate-x-72', 'opacity-0');
+      toast.classList.add('translate-x-0', 'opacity-100');
+
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-x-0', 'opacity-100');
+        toast.classList.add('translate-x-72', 'opacity-0');
+      }, 3500);
+    }
+
+    window.onload = function() {
+      initializeTableFromUrl();
+      renderCategories();
+      setLayout(currentLayout);
+      populateDishSelector();
+      initThreeJsShowcase();
+      updateCartUI();
+    };
+  </script>
+</body>
+</html>

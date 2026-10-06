@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'">
+  <title>VenQore — Customer display</title>
+  <link rel="stylesheet" href="assets/v6.css">
+  <style>
+    body { cursor: none; background: var(--vq-grad-spot), var(--vq-bg); }
+    .wrap { height: 100vh; display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--vq-space-8); padding: var(--vq-space-10); }
+    .panel { background: var(--vq-surface); border: 1px solid var(--vq-line-soft); border-radius: var(--vq-r-md); box-shadow: var(--vq-elev-2); display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+    .head { display: flex; align-items: center; gap: var(--vq-space-3); padding: var(--vq-space-6); border-bottom: 1px solid var(--vq-line-soft); }
+    .head img { width: 40px; height: 40px; object-fit: contain; }
+    .head h1 { margin: 0; font-size: var(--vq-fs-h3); }
+    .items { overflow: hidden; padding: var(--vq-space-2) var(--vq-space-6) var(--vq-space-6); display: flex; flex-direction: column; justify-content: flex-end; }
+    .item { display: grid; grid-template-columns: 1fr auto; gap: var(--vq-space-1) var(--vq-space-4); padding: var(--vq-space-4) 0; border-bottom: 1px solid var(--vq-line-soft); animation: vq-rise var(--vq-dur-3) var(--vq-ease-spring-soft); }
+    .item .n { font-size: var(--vq-fs-lede); font-weight: var(--vq-fw-semi); }
+    .item .t { font-size: var(--vq-fs-lede); font-weight: var(--vq-fw-semi); text-align: right; }
+    .item .q { color: var(--vq-text-2); font-size: var(--vq-fs-body); }
+    .item:last-child { border-bottom: 0; }
+    .item.new { background: linear-gradient(90deg, var(--vq-accent-quiet), transparent); margin: 0 calc(-1 * var(--vq-space-6)); padding-left: var(--vq-space-6); padding-right: var(--vq-space-6); }
+    .sum { display: grid; align-content: end; gap: var(--vq-space-4); }
+    .rows { background: var(--vq-surface); border: 1px solid var(--vq-line-soft); border-radius: var(--vq-r-md); padding: var(--vq-space-6); display: grid; gap: var(--vq-space-3); font-size: var(--vq-fs-body); }
+    .rows div { display: flex; justify-content: space-between; color: var(--vq-text-2); }
+    .total { background: var(--vq-accent-fill); color: var(--vq-on-accent); border-radius: var(--vq-r-md); padding: var(--vq-space-8); box-shadow: var(--vq-glow-accent); }
+    .total .eyebrow { color: inherit; opacity: .8; }
+    .total .big { font-family: var(--vq-font-numeric); font-size: 88px; line-height: 1; font-weight: var(--vq-fw-bold); letter-spacing: -0.03em; margin-top: var(--vq-space-2); font-variant-numeric: tabular-nums; }
+    .idle { height: 100vh; display: grid; place-items: center; text-align: center; }
+    .idle img { width: 120px; height: 120px; margin-bottom: var(--vq-space-6); object-fit: contain; }
+    .idle h1 { font-size: 64px; margin: 0; }
+    .idle p { font-size: var(--vq-fs-lede); color: var(--vq-text-2); margin: var(--vq-space-3) 0 0; }
+    .clock { font-family: var(--vq-font-numeric); font-size: var(--vq-fs-h2); color: var(--vq-text-3); margin-top: var(--vq-space-8); }
+    .paid { height: 100vh; display: grid; place-items: center; text-align: center; }
+    .paid .badge { width: 120px; height: 120px; border-radius: var(--vq-r-md); display: grid; place-items: center; background: var(--vq-success-bg); color: var(--vq-success); margin: 0 auto var(--vq-space-6); animation: vq-rise var(--vq-dur-4) var(--vq-ease-spring); }
+    .paid h1 { font-size: 64px; margin: 0; }
+    .paid .change { font-family: var(--vq-font-numeric); font-size: 72px; font-weight: var(--vq-fw-bold); color: var(--vq-accent); margin-top: var(--vq-space-4); }
+    .powered { position: fixed; bottom: var(--vq-space-4); right: var(--vq-space-6); font-size: 12px; color: var(--vq-text-3); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div class="powered">Powered by VenQore</div>
+  <script src="customer-display.js"></script>
+</body>
+</html>
