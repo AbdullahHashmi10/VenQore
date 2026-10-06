@@ -98,12 +98,23 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         const saleItems = sale.items || sale.cart || [];
         items = saleItems.map((item, idx) => {
             const qty = parseFloat(item.quantity ?? item.qty ?? 1);
-            const rate = parseFloat(item.unit_price ?? item.price ?? 0);
+            const rate = parseFloat(item.original_price ?? item.unit_price ?? item.price ?? 0);
             const grossAmt = qty * rate;
             
             // Reconstruct discount amount and percentage
             const mrpVal = parseFloat(item.mrp || item.product?.mrp || rate || 0);
-            let discountAmt = parseFloat(item.discount_amount || (item.discount_type === 'fixed' ? item.discount : 0) || 0);
+            let discountAmt = 0;
+            if (item.discount_amount !== undefined && item.discount_amount !== null && !isNaN(parseFloat(item.discount_amount))) {
+                discountAmt = parseFloat(item.discount_amount);
+            } else if (item.original_price && item.price && Number(item.original_price) > Number(item.price)) {
+                discountAmt = (Number(item.original_price) - Number(item.price)) * qty;
+            } else if (item.discount) {
+                if (item.discount_type === 'percent' || item.discount_type === 'percentage') {
+                    discountAmt = (rate * (parseFloat(item.discount) / 100)) * qty;
+                } else {
+                    discountAmt = parseFloat(item.discount) * qty;
+                }
+            }
             let discountPercent = parseFloat(item.discount_percent || 0);
             if (discountPercent === 0) {
                 if (item.discount_type === 'percent') {
@@ -1127,6 +1138,17 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
             </div>
 
+            {/* Order Token / Queue Tracking Code */}
+            {Boolean(sale?.ticket_code || sale?.token_no || sale?.order_number || sale?.table || sale?.is_bill) && (
+                <div className="border-2 border-black border-dashed py-1.5 px-2 my-2 text-center rounded">
+                    <div className="text-[0.7em] font-bold uppercase tracking-widest text-neutral-600">ORDER / TOKEN #</div>
+                    <div className="text-xl font-black font-mono tracking-tight leading-tight">
+                        {sale.ticket_code || sale.token_no || sale.order_number || (sale.table ? (sale.table.name || sale.table.code || 'Table ' + sale.table.id) : (sale.reference_number || sale.invoice_no || '#1'))}
+                    </div>
+                    <div className="text-[0.65em] text-neutral-500 mt-0.5">Please watch order display for this number</div>
+                </div>
+            )}
+
             {/* Meta Info */}
             <div className="border-y border-dashed border-black py-2 mb-3 text-[0.85em]">
                 <div className="flex justify-between mb-1">
@@ -1439,6 +1461,16 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                 {data.tax_number && <div>Tax/NTN: {data.tax_number}</div>}
             </div>
 
+            {/* Order Token / Queue Tracking Code */}
+            {Boolean(sale?.ticket_code || sale?.token_no || sale?.order_number || sale?.table || sale?.is_bill) && (
+                <div className="border-2 border-black border-dashed py-1.5 px-2 my-2 text-center">
+                    <div className="text-[0.7em] font-bold uppercase tracking-wider">ORDER / TOKEN #</div>
+                    <div className="text-lg font-black font-mono tracking-tight leading-tight">
+                        {sale.ticket_code || sale.token_no || sale.order_number || (sale.table ? (sale.table.name || sale.table.code || 'Table ' + sale.table.id) : (sale.reference_number || sale.invoice_no || '#1'))}
+                    </div>
+                </div>
+            )}
+
             {/* Meta Info */}
             <div className="mb-2 pb-2 border-b border-black border-dashed">
                 <div className="flex justify-between">
@@ -1723,6 +1755,16 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                 {data.business_email && <div className="text-xs font-normal opacity-90">{data.business_email}</div>}
                 {data.tax_number && <div className="text-xs font-normal opacity-90">Tax/NTN: {data.tax_number}</div>}
             </div>
+
+            {/* Order Token / Queue Tracking Code */}
+            {Boolean(sale?.ticket_code || sale?.token_no || sale?.order_number || sale?.table || sale?.is_bill) && (
+                <div className="border-4 border-black py-1.5 px-2 my-2 text-center bg-black text-white">
+                    <div className="text-[0.7em] font-extrabold uppercase tracking-widest text-neutral-300">ORDER / TOKEN #</div>
+                    <div className="text-xl font-black font-mono tracking-tight leading-tight">
+                        {sale.ticket_code || sale.token_no || sale.order_number || (sale.table ? (sale.table.name || sale.table.code || 'Table ' + sale.table.id) : (sale.reference_number || sale.invoice_no || '#1'))}
+                    </div>
+                </div>
+            )}
 
             {/* Meta */}
             <div className="flex justify-between text-xs mb-4 px-1 border-b-4 border-black pb-2">

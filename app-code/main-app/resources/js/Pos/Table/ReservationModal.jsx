@@ -5,7 +5,7 @@ import {
     Plus, AlertCircle, ArrowRight, UserCheck, XCircle,
 } from 'lucide-react';
 
-export default function ReservationModal({ storeSlug, positions = [], onClose }) {
+export default function ReservationModal({ storeSlug, positions = [], onClose, onRefresh }) {
     const [reservations, setReservations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState('list'); // 'list' | 'new'
@@ -64,6 +64,7 @@ export default function ReservationModal({ storeSlug, positions = [], onClose })
                 notes: '',
             });
             await loadReservations();
+            onRefresh?.();
         } catch (err) {
             console.error('Failed to create reservation:', err);
         } finally {
@@ -75,6 +76,7 @@ export default function ReservationModal({ storeSlug, positions = [], onClose })
         try {
             await axios.post(r('store.reservations.seat', { id }), { position_id: positionId });
             await loadReservations();
+            onRefresh?.();
         } catch (err) {
             console.error('Failed to seat reservation:', err);
         }
@@ -84,6 +86,7 @@ export default function ReservationModal({ storeSlug, positions = [], onClose })
         try {
             await axios.post(r('store.reservations.cancel', { id }), { status: 'cancelled' });
             await loadReservations();
+            onRefresh?.();
         } catch (err) {
             console.error('Failed to cancel reservation:', err);
         }

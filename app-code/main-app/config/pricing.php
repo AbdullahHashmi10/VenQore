@@ -29,7 +29,8 @@ return [
             'price_annual'           => null,
             'sku_limit'              => 500,
             'staff_limit'            => 1, // Full seats
-            'till_logins'            => 2,
+            'pos_staff_limit'        => 0,
+            'till_logins'            => 0,
             'locations'              => 1,
             'location_limit'         => 1,
             'registers'              => 1,
@@ -51,8 +52,9 @@ return [
             'price_monthly'          => 49.00,
             'price_annual'           => 490.00,
             'sku_limit'              => 5000,
-            'staff_limit'            => 1, // Full seats (till logins unlimited & free)
-            'till_logins'            => null,
+            'staff_limit'            => 1, // Full seats
+            'pos_staff_limit'        => 1, // POS staff seats
+            'till_logins'            => 1,
             'locations'              => 1,
             'location_limit'         => 1,
             'registers'              => 2,
@@ -75,7 +77,8 @@ return [
             'price_annual'           => 990.00,
             'sku_limit'              => 25000,
             'staff_limit'            => 5,
-            'till_logins'            => null,
+            'pos_staff_limit'        => 5,
+            'till_logins'            => 5,
             'locations'              => 1,
             'location_limit'         => 1,
             'registers'              => 6,
@@ -98,7 +101,8 @@ return [
             'price_annual'           => 2990.00,
             'sku_limit'              => 250000,
             'staff_limit'            => 25,
-            'till_logins'            => null,
+            'pos_staff_limit'        => 25,
+            'till_logins'            => 25,
             'locations'              => 1,
             'location_limit'         => 1,
             'registers'              => 20,
@@ -151,8 +155,15 @@ return [
             'name'           => 'Extra Full Staff Seat',
             'price_monthly'  => 15.00,
             'purchasable_on' => ['starter', 'core', 'scale'],
-            'variant_id'     => null,
-            'purchasable'    => false,
+            'variant_id'     => env('LEMON_SQUEEZY_EXTRA_SEAT_VARIANT_ID'),
+            'purchasable'    => true,
+        ],
+        'extra_pos_seat' => [
+            'name'           => 'Extra POS Staff Seat',
+            'price_monthly'  => 5.00,
+            'purchasable_on' => ['starter', 'core', 'scale'],
+            'variant_id'     => env('LEMON_SQUEEZY_EXTRA_POS_SEAT_VARIANT_ID'),
+            'purchasable'    => true,
         ],
         'extra_register' => [
             'name'           => 'Extra Register (POS Device)',
@@ -262,6 +273,7 @@ return [
     'quantity_addons' => [
         'extra_location' => 45.00,
         'extra_seat'     => 15.00,
+        'extra_pos_seat' => 5.00,
         'extra_register' => 20.00,
         'extra_catalogue'=> 25.00,
     ],
@@ -269,6 +281,7 @@ return [
     'addons' => [
         'extra_location' => 45.00,
         'extra_seat'     => 15.00,
+        'extra_pos_seat' => 5.00,
         'extra_register' => 20.00,
         'extra_catalogue'=> 25.00,
         'channel_sync'   => 19.00,

@@ -376,6 +376,8 @@ class AdminController extends Controller
             'users' => $users,
             'attendance' => $attendance,
             'staffData' => $staffData,
+            'seat_capacity' => \App\Services\SeatAllocationService::getUsageSummary($tenant),
+            'locations' => \App\Models\Warehouse::where('tenant_id', $tenant?->id)->select('id', 'name', 'code')->get(),
         ]);
     }
 
@@ -992,6 +994,9 @@ class AdminController extends Controller
         // Clear settings and reckoner cache
         if ($tenant) {
             \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+            \Illuminate\Support\Facades\Cache::forget("pos.featured.{$tenant->id}.tracked");
+            \Illuminate\Support\Facades\Cache::forget("pos.featured.{$tenant->id}.untracked");
+            \Illuminate\Support\Facades\Cache::forget("pos.featured.{$tenant->id}");
             \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.heavy_discount_pct");
             \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.expiry_warning_days");
             \Illuminate\Support\Facades\Cache::forget("vq_reckoner_setting:{$tenant->id}:reckoner.carrying_cost_pct");
@@ -1069,6 +1074,10 @@ class AdminController extends Controller
     public function storeUser(\Illuminate\Http\Request $request)
     {
         $validated = $request->validate([
+            'membership_type' => ['nullable', 'string', 'in:full,pos'],
+            'pos_capabilities' => ['nullable', 'array'],
+            'pos_capabilities.*' => ['string', 'in:take_orders,take_payments,process_returns'],
+            'assigned_location_id' => ['nullable', 'integer'],
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
@@ -1104,25 +1113,28 @@ class AdminController extends Controller
             ],
         ]);
 
-        // ── Phase 4.3: Staff Limit Gate ────────────────────────────────────
-        // Count all non-platform_admin staff for this tenant before creating
-        if (app()->bound('current.tenant')) {
-            // SEC-01: count THIS store's members, not every user on the platform.
-            $staffCount = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)->count();
-            PlanGate::enforce('staff_limit', $staffCount);
-        }
-
-        $permissions = $validated['permissions'] ?? [];
-        $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
-        if (!$isOwner) {
-            $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
+        $membershipType = $validated['membership_type'] ?? 'full';
+        $posCaps = $validated['pos_capabilities'] ?? [];
+        if ($membershipType === 'pos') {
+            if (empty($posCaps)) {
+                $posCaps = ['take_orders', 'take_payments'];
+            }
+            $permissions = \App\Models\TenantUser::capabilitiesToPermissions($posCaps);
+            $newRole = 'cashier';
+        } else {
+            $permissions = $validated['permissions'] ?? [];
+            $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+            if (!$isOwner) {
+                $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
+            }
+            $newRole = $validated['role'] ?? 'cashier';
         }
 
         $user = \App\Models\User::create([
             'name'          => $validated['name'],
             'email'         => $validated['email'],
             'password'      => bcrypt($validated['password']),
-            'role'          => $validated['role'] ?? 'cashier',
+            'role'          => $newRole,
             'permissions'   => $permissions,
             'passcode'      => $validated['passcode'] ?? null,
             'last_store_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
@@ -1130,16 +1142,18 @@ class AdminController extends Controller
 
         if (app()->bound('current.tenant')) {
             $tenant  = app('current.tenant');
-            $newRole = $validated['role'] ?? 'cashier';
             \App\Models\TenantUser::create([
-                'tenant_id'    => $tenant->id,
-                'user_id'      => $user->id,
-                'role'         => $newRole,
-                'status'       => 'active',
-                'display_name' => $user->name,
-                'joined_at'    => now(),
-                'pos_pin'      => $user->passcode,
-                'permissions'  => $permissions,
+                'tenant_id'            => $tenant->id,
+                'user_id'              => $user->id,
+                'membership_type'      => $membershipType,
+                'pos_capabilities'     => $membershipType === 'pos' ? $posCaps : null,
+                'assigned_location_id' => $validated['assigned_location_id'] ?? null,
+                'role'                 => $newRole,
+                'status'               => 'active',
+                'display_name'         => $user->name,
+                'joined_at'            => now(),
+                'pos_pin'              => $user->passcode,
+                'permissions'          => $permissions,
             ]);
         }
 
@@ -1323,6 +1337,12 @@ class AdminController extends Controller
             $isOwner = $myMembership->role === 'owner';
             $isAdmin = in_array($myMembership->role, ['owner', 'admin'], true);
 
+            // Membership conversion (Full <-> POS)
+            if ($request->has('membership_type') && $request->input('membership_type') !== ($member->membership_type ?? 'full')) {
+                \App\Services\SeatAllocationService::convertMembership($member, $request->input('membership_type'), $request->all());
+                $member->refresh();
+            }
+
             // Non-owners (admins) cannot promote users to owner, franchise_admin, or admin
             if (!$isOwner && $request->has('role')) {
                 $requestedRole = $request->input('role');
@@ -1332,6 +1352,26 @@ class AdminController extends Controller
             }
 
             $updateData = $request->only(['role', 'custom_role_name', 'display_name', 'status']);
+
+            // Constrain POS staff updating to location, display name, and the 3 capabilities
+            if ($member->isPosStaff()) {
+                if ($request->has('pos_capabilities')) {
+                    $caps = (array) $request->input('pos_capabilities');
+                    if (empty($caps)) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'pos_capabilities' => ['At least one capability must be selected for POS staff.'],
+                        ]);
+                    }
+                    $validCaps = array_values(array_intersect($caps, TenantUser::POS_CAPABILITIES));
+                    $updateData['pos_capabilities'] = $validCaps;
+                    $member->pos_capabilities = $validCaps;
+                    $updateData['permissions'] = $member->getDerivedPosPermissions();
+                }
+                if ($request->has('assigned_location_id')) {
+                    $updateData['assigned_location_id'] = $request->input('assigned_location_id');
+                }
+                unset($updateData['role'], $updateData['custom_role_name']);
+            }
             \Log::info('updateMember data: ' . json_encode($updateData));
 
             if ($request->has('transaction_approval_mode')) {
@@ -1423,8 +1463,9 @@ class AdminController extends Controller
             $wasActive = $member->status === 'active';
             $member->update($updateData);
 
-            // SEC-11: suspending someone who knows the join code → rotate it.
+            // SEC-11: suspending someone who knows the join code → rotate it and release active shift/responsibility.
             if ($wasActive && ($updateData['status'] ?? null) === 'suspended') {
+                \App\Services\SeatAllocationService::releaseOnSuspension($member);
                 app('current.tenant')->rotateJoinCode();
             }
 

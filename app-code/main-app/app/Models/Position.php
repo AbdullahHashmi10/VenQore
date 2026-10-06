@@ -21,7 +21,11 @@ class Position extends Model
         'sort_order',
         'source_type',
         'source_id',
+        'customer_order_token',
+        'customer_ordering_enabled',
     ];
+
+    protected $casts = ['customer_ordering_enabled' => 'boolean'];
 
     public function occupancies()
     {

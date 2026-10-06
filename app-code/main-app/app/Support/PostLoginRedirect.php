@@ -40,12 +40,19 @@ class PostLoginRedirect
         }
 
         if ($memberships->count() === 1) {
-            return redirect()->route('store.dashboard', ['store_slug' => $memberships->first()->tenant->slug]);
+            $m = $memberships->first();
+            if ($m->isPosStaff()) {
+                return redirect()->route('store.pos', ['store_slug' => $m->tenant->slug]);
+            }
+            return redirect()->route('store.dashboard', ['store_slug' => $m->tenant->slug]);
         }
 
         if ($user->last_store_id) {
             $last = $memberships->firstWhere('tenant_id', $user->last_store_id);
             if ($last && $last->tenant) {
+                if ($last->isPosStaff()) {
+                    return redirect()->route('store.pos', ['store_slug' => $last->tenant->slug]);
+                }
                 return redirect()->route('store.dashboard', ['store_slug' => $last->tenant->slug]);
             }
         }

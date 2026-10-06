@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -211,25 +212,30 @@ class TableServiceController extends Controller
         $cancelledItems = [];
         $newCart = array_values($data['cart']);
         foreach ($oldCart as $oldLine) {
-            if (!empty($oldLine['sent'])) {
+            $oldSentQty = (float) ($oldLine['sent_qty'] ?? (!empty($oldLine['sent']) ? ($oldLine['qty'] ?? 1) : 0));
+            if ($oldSentQty > 0) {
                 $newLine = null;
-                foreach ($newCart as $nl) {
+                $newLineIdx = null;
+                foreach ($newCart as $nIdx => $nl) {
                     $oldIdent = $oldLine['line_id'] ?? $oldLine['id'] ?? null;
                     $newIdent = $nl['line_id'] ?? $nl['id'] ?? null;
                     if ($oldIdent !== null && $newIdent !== null && (string)$oldIdent === (string)$newIdent) {
                         $newLine = $nl;
+                        $newLineIdx = $nIdx;
                         break;
                     }
                 }
-                $oldQty = (float)($oldLine['qty'] ?? 1);
                 $newQty = $newLine ? (float)($newLine['qty'] ?? 0) : 0;
-                if ($newQty < $oldQty) {
+                if ($newQty < $oldSentQty) {
                     $cancelledItems[] = [
                         'name'      => $oldLine['name'],
-                        'qty'       => $oldQty - $newQty,
+                        'qty'       => $oldSentQty - $newQty,
                         'notes'     => $oldLine['notes'] ?? '',
                         'modifiers' => array_map(fn ($m) => (string) ($m['name'] ?? ''), array_values($oldLine['mods'] ?? [])),
                     ];
+                    if ($newLineIdx !== null) {
+                        $newCart[$newLineIdx]['sent_qty'] = $newQty;
+                    }
                 }
             }
         }
@@ -252,6 +258,30 @@ class TableServiceController extends Controller
         $cancellationKot = null;
         if (!empty($cancelledItems)) {
             $cancellationKot = app(KitchenTicketService::class)->formatCancellation($occ, $cancelledItems);
+            try {
+                WorkOrder::create([
+                    'tenant_id'     => $tenant->id,
+                    'order_type'    => $session['order_type'] ?? ($occ->position_id ? 'dine_in' : 'takeaway'),
+                    'occupancy_id'  => $occ->id,
+                    'position_code' => $occ->position?->code ?? ($occ->label ?: ('#' . $occ->id)),
+                    'station'       => 'kitchen',
+                    'course'        => 1,
+                    'order_number'  => $occ->label ?: ('#' . $occ->id),
+                    'items'         => array_map(fn ($it) => [
+                        'name'         => $it['name'] ?? 'Item',
+                        'qty'          => (float) ($it['qty'] ?? 1),
+                        'notes'        => 'CANCELLED / VOID',
+                        'course'       => 1,
+                        'mods'         => [],
+                        'modifiers'    => $it['modifiers'] ?? [],
+                        'is_cancelled' => true,
+                    ], $cancelledItems),
+                    'status'        => 'cancelled',
+                    'fired_at'      => now(),
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Could not create cancellation WorkOrder: ' . $e->getMessage());
+            }
         }
 
         return response()->json($this->cardFor($occ) + [
@@ -274,7 +304,11 @@ class TableServiceController extends Controller
         $session = $occ->session_data ?? [];
         $cart = $session['cart'] ?? [];
 
-        $unsent = array_values(array_filter($cart, fn ($l) => empty($l['sent'])));
+        $unsent = array_values(array_filter($cart, function ($l) {
+            $qty = (float) ($l['qty'] ?? 1);
+            $sentQty = (float) ($l['sent_qty'] ?? (!empty($l['sent']) ? $qty : 0));
+            return empty($l['sent']) || $qty > $sentQty;
+        }));
         if (!count($unsent)) {
             return response()->json(['message' => 'Nothing new to send.'], 422);
         }
@@ -1388,6 +1422,7 @@ class TableServiceController extends Controller
                     'capacity'   => $cap,
                     'status'     => 'available',
                     'sort_order' => $sort,
+                    'customer_order_token' => Str::random(40),
                 ]);
 
                 $taken[mb_strtolower($code)] = true;
@@ -1437,6 +1472,7 @@ class TableServiceController extends Controller
             'capacity'   => (int) $data['capacity'],
             'status'     => 'available',
             'sort_order' => $this->nextSortOrder($tenant->id),
+            'customer_order_token' => Str::random(40),
         ]);
 
         $this->declareZone($tenant->id, $zone);
@@ -1454,6 +1490,7 @@ class TableServiceController extends Controller
             'label'    => 'nullable|string|max:80',
             'capacity' => 'nullable|integer|min:1|max:99',
             'zone'     => 'nullable|string|max:48',
+            'customer_ordering_enabled' => 'nullable|boolean',
         ]);
 
         $pos   = Position::where('tenant_id', $tenant->id)->findOrFail($data['id']);
@@ -1472,6 +1509,9 @@ class TableServiceController extends Controller
 
         if (($data['label'] ?? null) !== null)    $patch['label']    = trim($data['label']);
         if (($data['capacity'] ?? null) !== null) $patch['capacity'] = (int) $data['capacity'];
+        if (array_key_exists('customer_ordering_enabled', $data)) {
+            $patch['customer_ordering_enabled'] = (bool) $data['customer_ordering_enabled'];
+        }
 
         if (($data['zone'] ?? null) !== null) {
             $zone = trim($data['zone']);
@@ -1486,6 +1526,33 @@ class TableServiceController extends Controller
             if (isset($patch['zone'])) $this->declareZone($tenant->id, $patch['zone']);
         }
 
+        return response()->json($this->planPayload($tenant->id));
+    }
+
+    public function planTableQr(Request $request, int $position)
+    {
+        $tenant = app('current.tenant');
+        $table = Position::where('tenant_id', $tenant->id)->findOrFail($position);
+        if (! $table->customer_order_token) {
+            $table->update(['customer_order_token' => Str::random(40)]);
+        }
+        $store = \App\Models\Commerce\Storefront::where('tenant_id', $tenant->id)->firstOrFail();
+        $base = rtrim($store->onsite_lan_url ?: (string) config('app.customer_url', config('app.url')), '/');
+        $url = $base . '/catalogue/' . $store->slug . '/table/' . $table->customer_order_token;
+        $svg = \App\Services\Commerce\StorefrontPresenter::qrSvg($url);
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'inline; filename="' . preg_replace('/[^A-Za-z0-9_-]/', '-', $table->code) . '-qr.svg"',
+            'Cache-Control' => 'no-store, private',
+        ]);
+    }
+
+    public function regenerateTableQr(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate(['id' => 'required|integer']);
+        Position::where('tenant_id', $tenant->id)->findOrFail($data['id'])
+            ->update(['customer_order_token' => Str::random(40)]);
         return response()->json($this->planPayload($tenant->id));
     }
 
@@ -1855,13 +1922,19 @@ class TableServiceController extends Controller
     {
         if (!$pos) return [];
         $s = $occ?->session_data ?? [];
+        $cart = $s['cart'] ?? [];
 
         $status = $occ ? 'open'
             : (in_array($pos->status, ['reserved', 'cleaning'], true) ? $pos->status : 'available');
 
-        $cart = $s['cart'] ?? [];
         $unsent = 0;
-        foreach ($cart as $l) if (empty($l['sent'])) $unsent++;
+        $customerPending = 0;
+        foreach ($cart as $l) {
+            $qty = (float) ($l['qty'] ?? 1);
+            $sentQty = (float) ($l['sent_qty'] ?? (!empty($l['sent']) ? $qty : 0));
+            if (empty($l['sent']) || $qty > $sentQty) $unsent++;
+            if ((empty($l['sent']) || $qty > $sentQty) && ! empty($l['customer_pending'])) $customerPending++;
+        }
 
         $unpaid = $this->unpaidTotal($s);
         $paid   = round($this->cartTotal($this->paidLines($cart)) + $this->offLinePaid($s), 2);
@@ -1907,6 +1980,7 @@ class TableServiceController extends Controller
 
             'lines'        => count($cart),
             'unsent'       => $unsent,
+            'customer_pending' => $customerPending,
             'note'         => $s['note'] ?? '',
             'cart'         => $cart,
 
@@ -2074,7 +2148,13 @@ class TableServiceController extends Controller
         $cart = $s['cart'] ?? [];
 
         $unsent = 0;
-        foreach ($cart as $l) if (empty($l['sent'])) $unsent++;
+        $customerPending = 0;
+        foreach ($cart as $l) {
+            $qty = (float) ($l['qty'] ?? 1);
+            $sentQty = (float) ($l['sent_qty'] ?? (!empty($l['sent']) ? $qty : 0));
+            if (empty($l['sent']) || $qty > $sentQty) $unsent++;
+            if ((empty($l['sent']) || $qty > $sentQty) && ! empty($l['customer_pending'])) $customerPending++;
+        }
 
         $unpaid = $this->unpaidTotal($s);
         $paid   = round($this->cartTotal($this->paidLines($cart)) + $this->offLinePaid($s), 2);
@@ -2102,6 +2182,7 @@ class TableServiceController extends Controller
 
             'lines'  => count($cart),
             'unsent' => $unsent,
+            'customer_pending' => $customerPending,
             'note'   => $s['note'] ?? '',
             'cart'   => $cart,
 
@@ -2249,6 +2330,9 @@ class TableServiceController extends Controller
             $open[(int) $pid] = true;
         }
 
+        $catalogueStore = \App\Models\Commerce\Storefront::where('tenant_id', $tenantId)->first(['slug', 'onsite_lan_url']);
+        $storeSlug = $catalogueStore?->slug;
+        $catalogueBase = rtrim($catalogueStore?->onsite_lan_url ?: (string) config('app.customer_url', config('app.url')), '/');
         $out = Position::where('tenant_id', $tenantId)
             ->where('zone', '!=', self::RESERVED_ZONE)
             ->orderBy('zone')->orderBy('sort_order')->orderBy('id')
@@ -2262,6 +2346,9 @@ class TableServiceController extends Controller
                 'sort_order'    => (int) $p->sort_order,
                 'status'        => $p->status,
                 'has_open_bill' => isset($open[(int) $p->id]),
+                'customer_ordering_enabled' => (bool) $p->customer_ordering_enabled,
+                'onsite_url' => $p->customer_order_token && $storeSlug ? $catalogueBase . '/catalogue/' . $storeSlug . '/table/' . $p->customer_order_token : null,
+                'qr_url' => route('store.tables.plan.table.qr', ['store_slug' => app('current.tenant')->slug, 'position' => $p->id]),
             ])
             ->values()->all();
 

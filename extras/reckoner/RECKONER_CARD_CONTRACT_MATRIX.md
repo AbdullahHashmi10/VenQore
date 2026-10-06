@@ -45,7 +45,7 @@ This file is a *specification to encode*, not a second source. In Phase 2 its co
 
 Cards whose `unit` in cards.json is wrong: **58**.
 
-## qore (32)
+## qore (34)
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
@@ -81,6 +81,8 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 30 | `core.document_sequence_ok` · status | FAKE: success 0 when any sale exists, else empty | = | ok when no duplicate and no gap in sales.reference_number per register/prefix (transaction_sequences) in window. | Check | READY | SH,MR | — |
 | 31 | `core.user_activity` · stat | FAKE: success 0 when any sale exists, else empty | = | Distinct user_id active in window from store_activity_log ∪ sales.user_id (non-additive: compute from raw). | Flow | READY | MR,SH | — |
 | 32 | `core.plan_usage` · breakdown | FAKE: success 0 when any sale exists, else empty | days → **percent** | Breakdown: each plan limit → used ÷ limit × 100 via PlanRepository (no cross-tenant User counts). | Live | READY | MR | — |
+| 368 | `core.recent_sales` · list | EMPTY if there is no matching activity | = | Newest 10 completed sales in window. | On-demand | READY | GL | — |
+| 369 | `core.gross_profit_trend` · trend | Plots GROSS profit, labelled net | = | Revenue minus cost of goods, per day. | Flow | READY | GL | trend_sums_to_stat |
 
 ## products (10)
 
@@ -367,7 +369,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 196 | `uom.missing_conversion` · stat | EMPTY always (no table mapped) → "No activity recorded" | currency → **count** | Products with secondary_unit set but conversion_rate null/0 (unit was 'currency'). | Live | READY | MR | — |
 | 197 | `uom.bulk_vs_retail` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | Needs selling unit on sale_items. | Flow | COLUMN | SL | — |
 
-## purchases (9)
+## purchases (10)
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
@@ -380,6 +382,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 204 | `purchases.by_supplier` · breakdown | FAKE: success, value 0, no segments | = | purchases.spend grouped by party. | Flow | READY | PH | breakdown_sums_to_parent |
 | 205 | `purchases.by_category` · breakdown | FAKE: success, value 0, no segments | = | Σ purchase_items.line_total grouped by product category. | Flow | READY | PL | — |
 | 206 | `purchases.price_increases` · list | FAKE: success, value 0, no rows | = | Products whose latest unit_cost > previous purchase unit_cost, with % change. | On-demand | READY | PL | — |
+| 366 | `purchases.recent` · list | EMPTY if there is no matching activity | = | Newest 10 purchase bills in window, by date. | On-demand | READY | PL | — |
 
 ## purchase_orders (6)
 
@@ -460,7 +463,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 249 | `khata.collection_trend` · trend | EMPTY always (no table mapped) → "No activity recorded" | = | Series of khata.collected. | Flow | READY | GL | — |
 | 250 | `khata.over_limit` · list | EMPTY always (no table mapped) → "No activity recorded" | count → **currency** | Parties with AR balance > credit_limit > 0. | On-demand | READY | PB,MR | — |
 
-## payments (8)
+## payments (9)
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
@@ -472,8 +475,9 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 256 | `payments.cash_vs_digital` · gauge | FAKE: success, value 0 | = | cash-method receipts ÷ all receipts (payments, type = 'in'). | Derived | READY | PE | — |
 | 257 | `payments.unallocated` · list | FAKE: success, value 0, no rows | = | Payment journal entries whose amount > Σ active payment_allocations. | On-demand | READY | PE,GL | — |
 | 258 | `payments.bounced` · stat | COUNT(*) of payments rows (not the measure) — EMPTY if store has no payments rows | = | payments has no status. Needs status + bounced_at and a bounce flow. | Flow | COLUMN | PE | — |
+| 367 | `payments.recent` · list | EMPTY if there is no matching activity | = | Newest 10 payments in window, by date. | On-demand | READY | PE,GL | — |
 
-## expenses (9)
+## expenses (10)
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
@@ -486,6 +490,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 265 | `expenses.recurring_total` · stat | COUNT(*) of expenses rows (not the measure) — EMPTY if store has no expenses rows | = | No recurring flag/template on expenses. | Live | FEATURE | EE | — |
 | 266 | `expenses.per_day` · stat | COUNT(*) of expenses rows (not the measure) — EMPTY if store has no expenses rows | = | expense total ÷ calendar days in window (elapsed days for current periods). | Derived | READY | EE | — |
 | 267 | `expenses.vs_prev` · stat | COUNT(*) of expenses rows (not the measure) — EMPTY if store has no expenses rows | = | expense total − previous window total. | Derived | READY | EE | — |
+| 365 | `expenses.recent` · list | EMPTY if there is no matching activity | count → **currency** | Newest 10 expenses in window, by date. | On-demand | READY | EE | — |
 
 ## cash_register (7)
 
@@ -605,7 +610,7 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 334 | `loyalty.liability` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ balance × point value — needs the point-value setting. | Live | COLUMN | MR | — |
 | 335 | `loyalty.gift_card_balance` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Σ gift_cards.current_balance where status active and not expired. | Live | READY | MR | — |
 
-## marketplace_sync (6)
+## marketplace_sync (11)
 
 | # | Key · shape | Today | Unit | Target definition | Tier | Status | Streams | Check |
 |---|---|---|---|---|---|---|---|---|
@@ -615,6 +620,11 @@ Cards whose `unit` in cards.json is wrong: **58**.
 | 339 | `marketplace.sync_errors` · stat | EMPTY always (no table mapped) → "No activity recorded" | = | Count woo_sync_queue failed + channels with sync_status error. | Live | READY | DS | — |
 | 340 | `marketplace.stock_mismatch` · list | EMPTY always (no table mapped) → "No activity recorded" | = | woo_product_links sync_status = 'conflict' or conflict_data not null, joined to woo_connections.tenant_id. | On-demand | READY | DS | — |
 | 341 | `marketplace.channel_margin` · breakdown | EMPTY always (no table mapped) → "No activity recorded" | = | (net revenue − FIFO cogs − gross_platform_fee) ÷ net revenue per channel. | Flow | READY | SH,SL | — |
+| 370 | `marketplace.online_revenue` · stat | EMPTY if there is no matching activity | = | Σ revenue (4000) of web-shop orders in window. | Flow | READY | DS | — |
+| 371 | `marketplace.online_orders` · stat | EMPTY if there is no matching activity | = | Count of web-shop orders in window. | Flow | READY | DS | — |
+| 372 | `marketplace.online_aov` · stat | EMPTY if there is no matching activity | = | Online revenue ÷ online orders. | Flow | READY | DS | — |
+| 373 | `marketplace.online_trend` · trend | EMPTY if there is no matching activity | = | Web-shop revenue per day. | Flow | READY | EE,GL | — |
+| 374 | `marketplace.recent_orders` · list | EMPTY if there is no matching activity | count → **currency** | Newest 10 web-shop orders in window. | On-demand | READY | EE | — |
 
 ## staff_attendance (8)
 

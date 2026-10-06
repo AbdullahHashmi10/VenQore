@@ -1793,7 +1793,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 
 /* ══ on-card period picker ════════════════════════════════════════════════ */
 .vqc-hd-r{ display:flex; align-items:center; gap: var(--vq-space-2); flex-shrink:0; }
-.vqc-per{ position:relative; }
+.vqc-per{ position:relative; border-radius:var(--vq-r-full, 9999px); background:transparent; }
 .vqc-per-b{ display:inline-flex; align-items:center; gap:3px;
   font-family: var(--vq-font-sans); font-size: var(--vq-fs-caption);
   font-weight: var(--vq-fw-medium); color: var(--vq-text-2);
@@ -1809,7 +1809,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   border-radius: var(--vq-r-md); box-shadow: var(--vq-elev-3); overflow:hidden;
   animation: perIn 200ms var(--vq-ease-out); }
 @keyframes perIn{ from{ opacity:0; transform:translateY(-5px) scale(.97) } to{ opacity:1; transform:none } }
-.vqc-per-m[hidden]{ display:none; }
+.vqc-per-m[hidden]{ display:none !important; }
 .vqc-per-i{ text-align:left; border:0; background:none; cursor:pointer;
   font-family: var(--vq-font-sans); font-size: var(--vq-fs-caption);
   color: var(--vq-text); padding: var(--vq-space-2) var(--vq-space-3); }
@@ -1818,16 +1818,7 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
   background: var(--vq-accent-quiet); }
 .vqc-host.is-swapping{ opacity:.25; transition: opacity 160ms var(--vq-ease-out); }
 
-/* ══ resize handle ════════════════════════════════════════════════════════ */
-.vqc-resize{ position:absolute; right:3px; bottom:3px; width:18px; height:18px;
-  border:0; background:none; cursor:nwse-resize; opacity:0; padding:0; z-index:6;
-  transition: opacity var(--vq-dur-2) var(--vq-ease-out); }
-.vqc-resize::after{ content:''; position:absolute; right:4px; bottom:4px;
-  width:9px; height:9px; border-right:2px solid var(--vq-text-2);
-  border-bottom:2px solid var(--vq-text-2); border-radius:0 0 3px 0; }
-.vqc:hover .vqc-resize, .vqc:focus-within .vqc-resize{ opacity:.75; }
-.vqc-resize:hover{ opacity:1 !important; }
-.vqc--accent .vqc-resize::after{ border-color: var(--vq-on-accent-text); }
+/* ══ resize handle — see "resize from any edge or corner" further down ═══ */
 .vqc.is-resizing{ box-shadow:0 0 0 2px var(--vq-accent-quiet-line), var(--vq-elev-3); z-index:8; }
 .vqc-size-hint{ position:absolute; right:8px; bottom:24px; z-index:9;
   background: var(--vq-text); color: var(--vq-bg); font-family: var(--vq-font-numeric);
@@ -3390,47 +3381,76 @@ polygon.ck-rgrid{ stroke-dasharray:3 5; }
 /* ── resize from any edge or corner, move by the six-dot handle ───────────
    Always available — no edit mode. Edges are thin invisible hit areas; the
    corners and the move handle appear when the card is hovered or focused. */
-.vqc-resize { position: absolute; z-index: 6; background: transparent; border: 0; padding: 0; touch-action: none; }
-.vqc-edge--n, .vqc-edge--s { left: 14px; right: 14px; height: 9px; cursor: ns-resize; }
-.vqc-edge--e, .vqc-edge--w { top: 14px; bottom: 14px; width: 9px; cursor: ew-resize; }
-.vqc-edge--n { top: -4px; } .vqc-edge--s { bottom: -4px; }
-.vqc-edge--e { right: -4px; } .vqc-edge--w { left: -4px; }
-.vqc-edge--ne, .vqc-edge--nw, .vqc-edge--se, .vqc-edge--sw { width: 18px; height: 18px; }
-.vqc-edge--ne { top: -4px; right: -4px; cursor: nesw-resize; }
-.vqc-edge--sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
-.vqc-edge--nw { top: -4px; left: -4px; cursor: nwse-resize; }
-.vqc-edge--se { bottom: -4px; right: -4px; cursor: nwse-resize; }
-.vqc-edge--se::after {
-  content: ''; position: absolute; right: 8px; bottom: 8px; width: 8px; height: 8px;
-  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; border-bottom-right-radius: 3px;
-  color: var(--vq-text-3); opacity: 0; transition: opacity var(--vq-dur-2, 180ms) var(--vq-ease-out);
-}
-.vqc:hover .vqc-edge--se::after, .vqc:focus-within .vqc-edge--se::after { opacity: .85; }
-.vqc.is-resizing .vqc-edge--se::after { opacity: 1; }
-@media (hover: none) { .vqc-edge--n, .vqc-edge--s, .vqc-edge--e, .vqc-edge--w, .vqc-edge--ne, .vqc-edge--nw, .vqc-edge--sw { display: none; }
-  .vqc-edge--se { width: 34px; height: 34px; } .vqc-edge--se::after { opacity: .7; } }
+.vqc-resize { position: absolute; z-index: 6; background: transparent; border: 0; padding: 0; touch-action: none; opacity: 1; }
+.vqc-resize::after { content: none; }
+.vqc-edge--n, .vqc-edge--s { left: 22px; right: 22px; height: 10px; cursor: ns-resize; }
+.vqc-edge--e, .vqc-edge--w { top: 22px; bottom: 22px; width: 10px; cursor: ew-resize; }
+.vqc-edge--n { top: -5px; } .vqc-edge--s { bottom: -5px; }
+.vqc-edge--e { right: -5px; } .vqc-edge--w { left: -5px; }
+.vqc-edge--ne, .vqc-edge--nw, .vqc-edge--se, .vqc-edge--sw { width: 24px; height: 24px; z-index: 7; }
+.vqc-edge--ne { top: -5px; right: -5px; cursor: nesw-resize; }
+.vqc-edge--sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.vqc-edge--nw { top: -5px; left: -5px; cursor: nwse-resize; }
+.vqc-edge--se { bottom: -5px; right: -5px; cursor: nwse-resize; }
 
-/* the six-dot move handle, centred on the card's top edge */
-.vqc-move {
-  position: absolute; z-index: 7; top: 5px; left: 50%; transform: translateX(-50%);
-  width: 38px; height: 16px; border-radius: var(--vq-r-full, 999px); display: grid; place-items: center;
-  background: var(--vq-sunken, rgb(0 0 0 / .06)); color: var(--vq-text-3); cursor: grab; touch-action: none;
-  opacity: 0; transition: opacity var(--vq-dur-2, 180ms) var(--vq-ease-out), background var(--vq-dur-1, 120ms);
+/* Nothing shows until the pointer is actually over a corner or an edge. A corner
+   draws one tidy rounded bracket tucked inside that corner; an edge draws a short
+   rounded bar. Both fade in under the pointer and out again when it leaves. */
+.vqc-edge--ne::after, .vqc-edge--nw::after, .vqc-edge--se::after, .vqc-edge--sw::after {
+  content: ''; position: absolute; width: 11px; height: 11px; pointer-events: none;
+  border: 0 solid var(--vq-accent, #0baa8f); opacity: 0; transform: scale(.7);
+  transition: opacity 140ms var(--vq-ease-out), transform 140ms var(--vq-ease-out);
 }
+.vqc-edge--se::after { right: 9px; bottom: 9px; border-right-width: 2.5px; border-bottom-width: 2.5px; border-bottom-right-radius: 6px; transform-origin: 100% 100%; }
+.vqc-edge--sw::after { left: 9px;  bottom: 9px; border-left-width: 2.5px;  border-bottom-width: 2.5px; border-bottom-left-radius: 6px;  transform-origin: 0 100%; }
+.vqc-edge--ne::after { right: 9px; top: 9px;    border-right-width: 2.5px; border-top-width: 2.5px;    border-top-right-radius: 6px;    transform-origin: 100% 0; }
+.vqc-edge--nw::after { left: 9px;  top: 9px;    border-left-width: 2.5px;  border-top-width: 2.5px;    border-top-left-radius: 6px;     transform-origin: 0 0; }
+.vqc-edge--ne:hover::after, .vqc-edge--nw:hover::after, .vqc-edge--se:hover::after, .vqc-edge--sw:hover::after,
+.vqc.is-resizing .vqc-edge--se::after { opacity: 1; transform: scale(1); }
+
+.vqc-edge--n::after, .vqc-edge--s::after, .vqc-edge--e::after, .vqc-edge--w::after {
+  content: ''; position: absolute; border-radius: 999px; pointer-events: none;
+  background: var(--vq-accent, #0baa8f); opacity: 0; transition: opacity 140ms var(--vq-ease-out);
+}
+.vqc-edge--n::after, .vqc-edge--s::after { left: 50%; width: 34px; height: 3px; margin-left: -17px; }
+.vqc-edge--n::after { top: 6px; } .vqc-edge--s::after { bottom: 6px; }
+.vqc-edge--e::after, .vqc-edge--w::after { top: 50%; height: 34px; width: 3px; margin-top: -17px; }
+.vqc-edge--e::after { right: 6px; } .vqc-edge--w::after { left: 6px; }
+.vqc-edge--n:hover::after, .vqc-edge--s:hover::after, .vqc-edge--e:hover::after, .vqc-edge--w:hover::after { opacity: .9; }
+
+/* touch has no hover: only the bottom-right corner is offered, always visible */
+@media (hover: none) {
+  .vqc-edge--n, .vqc-edge--s, .vqc-edge--e, .vqc-edge--w, .vqc-edge--ne, .vqc-edge--nw, .vqc-edge--sw { display: none; }
+  .vqc-edge--se { width: 34px; height: 34px; }
+  .vqc-edge--se::after { opacity: .75; transform: none; right: 12px; bottom: 12px; }
+}
+
+/* the six-dot move handle, centred on the card's top edge. It stays out of sight
+   until the pointer is at (or just around) that spot — an invisible halo around
+   the pill is what the pointer has to reach. */
+.vqc-move {
+  position: absolute; z-index: 7; top: 6px; left: 50%; transform: translateX(-50%) scale(.92);
+  width: 40px; height: 16px; border-radius: var(--vq-r-full, 999px); display: grid; place-items: center;
+  background: var(--vq-sunken, rgb(0 0 0 / .06)); color: var(--vq-text-3); cursor: grab; touch-action: none;
+  opacity: 0; transition: opacity 150ms var(--vq-ease-out), transform 150ms var(--vq-ease-out), background var(--vq-dur-1, 120ms);
+}
+.vqc-move::before { content: ''; position: absolute; inset: -6px -18px -8px; border-radius: 12px; }
 .vqc-move svg { display: block; }
-.vqc:hover .vqc-move, .vqc:focus-within .vqc-move, .vqc-move:focus-visible, .vqc.is-dragging .vqc-move { opacity: 1; }
+.vqc-move:hover, .vqc-move:focus-visible, .vqc.is-dragging .vqc-move { opacity: 1; transform: translateX(-50%) scale(1); }
 .vqc-move:hover { background: var(--vq-line-strong, rgb(0 0 0 / .14)); color: var(--vq-text); }
 .vqc-move:active { cursor: grabbing; }
 .vqc-move:focus-visible { outline: 2px solid var(--vq-focus, var(--vq-teal-500)); outline-offset: 2px; }
-@media (hover: none) { .vqc-move { opacity: .8; } }
+@media (hover: none) { .vqc-move { opacity: .8; transform: translateX(-50%); } }
 
 /* headings and numbers on dark tones must read at a glance */
 .vqc--tone-ink .vqc-eyebrow, .vqc--tone-accent .vqc-eyebrow { color: rgb(255 255 255 / .94); font-weight: 700; font-size: 12px; letter-spacing: .06em; }
 .vqc--tone-ink .vqc-when, .vqc--tone-accent .vqc-when { color: rgb(255 255 255 / .78); }
 .vqc--tone-ink .vqc-value, .vqc--tone-accent .vqc-value { color: #fff; }
-.vqc--tone-ink .vqc-per, .vqc--tone-accent .vqc-per { color: #fff; background: rgb(255 255 255 / .14); }
+.vqc--tone-ink .vqc-per, .vqc--tone-accent .vqc-per { background: transparent; }
+.vqc--tone-ink .vqc-per-b, .vqc--tone-accent .vqc-per-b { color: #fff; background: rgb(255 255 255 / .14); }
 .vqc--tone-ink .vqc-move, .vqc--tone-accent .vqc-move { background: rgb(255 255 255 / .14); color: rgb(255 255 255 / .85); }
-.vqc--tone-ink .vqc-edge--se::after, .vqc--tone-accent .vqc-edge--se::after { color: rgb(255 255 255 / .8); }
+.vqc--tone-ink .vqc-edge::after, .vqc--tone-accent .vqc-edge::after { border-color: rgb(255 255 255 / .9); }
+.vqc--tone-ink .vqc-edge--n::after, .vqc--tone-ink .vqc-edge--s::after, .vqc--tone-ink .vqc-edge--e::after, .vqc--tone-ink .vqc-edge--w::after, .vqc--tone-accent .vqc-edge--n::after, .vqc--tone-accent .vqc-edge--s::after, .vqc--tone-accent .vqc-edge--e::after, .vqc--tone-accent .vqc-edge--w::after { background: rgb(255 255 255 / .9); }
 
 .vqc-size-hint {
   position: absolute; right: 8px; bottom: 8px; z-index: 8;
@@ -5513,12 +5533,100 @@ html.dark .vq-rails--cockpit,
 }
 
 /* board toolbar: Tidy up / Undo */
-.vq-board-bar { display: flex; justify-content: flex-end; gap: 8px; margin: 0 0 10px; }
-.vq-board-btn {
-  display: inline-flex; align-items: center; gap: 7px; cursor: pointer; padding: 7px 13px;
-  border-radius: var(--vq-r-full, 999px); border: 1px solid var(--vq-line); background: var(--vq-surface); color: var(--vq-text-2);
-  font: 700 12.5px/1 var(--vq-font-sans);
+/* ── board footer: add / suggest / tidy ───────────────────────────────── */
+.vq-board-foot{
+  display:grid; grid-template-columns: minmax(260px, 1.4fr) repeat(2, minmax(200px, 1fr)); gap:16px;
+  margin: 28px 0 12px; align-items:stretch;
 }
-.vq-board-btn:hover { color: var(--vq-text); border-color: var(--vq-teal-400, #3fc9b3); }
-.vq-board-btn:focus-visible { outline: 2px solid var(--vq-focus, var(--vq-teal-500)); outline-offset: 2px; }
-@media (max-width: 1023px) { .vq-board-bar { display: none; } }
+.vq-board-foot button{
+  appearance:none; -webkit-appearance:none; font:inherit; cursor:pointer; text-align:left;
+  display:flex; flex-direction:row; align-items:center; gap:14px;
+  min-height:84px; padding:16px 20px; margin:0;
+  color: var(--vq-text, #0f1f1a);
+  border-radius: var(--vq-r-lg, 16px);
+  transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
+}
+.vq-board-foot button > span:last-child{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.vq-board-foot b{ display:block; font-size:15px; font-weight:600; line-height:1.25; }
+.vq-board-foot small{ display:block; font-size:12.5px; line-height:1.35; color: var(--vq-text-2, #5b6b64); font-weight:400; }
+.vq-foot-add{
+  border:1.5px dashed var(--vq-teal-400, #3fc9b3);
+  background: color-mix(in srgb, var(--vq-teal-400, #3fc9b3) 7%, var(--vq-surface, #fff));
+}
+.vq-foot-add:hover{
+  background: color-mix(in srgb, var(--vq-teal-400, #3fc9b3) 14%, var(--vq-surface, #fff));
+  transform: translateY(-2px); box-shadow: 0 12px 28px -14px rgba(11,170,143,.45);
+}
+.vq-foot-plus{
+  display:grid; place-items:center; flex:0 0 auto; width:42px; height:42px; border-radius:50%;
+  background: var(--vq-accent, #0baa8f); color:#fff;
+  box-shadow: 0 6px 14px -6px rgba(11,170,143,.6);
+}
+.vq-foot-act{
+  border:1px solid var(--vq-line, rgba(15,23,42,.1));
+  background: var(--vq-surface, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,.03);
+}
+.vq-foot-act > svg{
+  flex:0 0 auto; box-sizing:content-box; width:18px; height:18px; padding:11px; border-radius:12px;
+  background: var(--vq-accent-quiet, #e6f7f3); color: var(--vq-accent-text, #076b5e);
+}
+.vq-foot-act:hover{
+  border-color: var(--vq-teal-400, #3fc9b3); transform: translateY(-2px);
+  box-shadow: 0 12px 28px -16px rgba(15,23,42,.28);
+}
+.vq-foot-undo{
+  grid-column: 1 / -1; justify-self:end; min-height:0 !important; padding:6px 10px !important;
+  background:none !important; border:0 !important; text-decoration:underline; font-size:13px;
+  color: var(--vq-text-2, #5b6b64) !important;
+}
+.vq-board-foot button:focus-visible{ outline:2px solid var(--vq-focus, var(--vq-teal-500, #0baa8f)); outline-offset:2px; }
+[data-theme="dark"] .vq-foot-act{ background:#151d18; border-color:#24332c; }
+[data-theme="dark"] .vq-foot-act > svg{ background: rgba(35,196,166,.14); color:#59DBC0; }
+@media (max-width: 1100px){ .vq-board-foot{ grid-template-columns: 1fr 1fr; } .vq-foot-add{ grid-column: 1 / -1; } }
+@media (max-width: 1023px){ .vq-board-foot{ display:none; } }
+.vq-board-bar{ display:none; }
+
+/* ── latest entries under a chart ─────────────────────────────────────── */
+.vqc-recent{ flex:0 0 auto; margin-top: var(--vq-space-3); padding-top: var(--vq-space-2);
+  border-top: 1px solid var(--vq-line, rgba(15,23,42,.08)); min-width:0; }
+.vqc-recent-t{ margin:0 0 4px; font-size: var(--vq-fs-eyebrow, 11px); letter-spacing:.08em;
+  text-transform:uppercase; font-weight:600; opacity:.7; }
+.vqc-recent ul{ list-style:none; margin:0; padding:0; }
+.vqc-recent-row{ display:flex; align-items:baseline; gap:10px; min-height:26px; font-size: var(--vq-fs-caption, 12px);
+  border-bottom: 1px dashed var(--vq-line, rgba(15,23,42,.06)); }
+.vqc-recent-row:last-child{ border-bottom:0; }
+.vqc-recent-l{ flex:1 1 auto; min-width:0; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.vqc-recent-s{ flex:0 0 auto; opacity:.6; font-variant-numeric: tabular-nums; }
+.vqc-recent-v{ flex:0 0 auto; font-family: var(--vq-font-numeric); font-variant-numeric: tabular-nums; font-weight:600; }
+.vqc--tone-ink .vqc-recent, .vqc--tone-accent .vqc-recent{ border-top-color: rgba(255,255,255,.14); }
+.vqc--tone-ink .vqc-recent-row, .vqc--tone-accent .vqc-recent-row{ border-bottom-color: rgba(255,255,255,.1); color:#E8F0EC; }
+.vqc--tone-ink .vqc-recent-t, .vqc--tone-accent .vqc-recent-t{ color:#59DBC0; opacity:1; }
+.vqc[data-h="1"] .vqc-recent, .vqc[data-h="2"] .vqc-recent, .vqc[data-h="3"] .vqc-recent, .vqc[data-h="4"] .vqc-recent{ display:none; }
+
+/* ── light cards: one soft, blurred colour spot + a gentle lift on hover ───
+   Behind the content (z-index -1 inside the card's own stacking context), so
+   it can never cover a number. Dark, accent, ink and mesh cards already carry
+   colour and are left alone. */
+.vqc--tone-surface::before{
+  content:""; position:absolute; z-index:-1; pointer-events:none;
+  width:58%; aspect-ratio:1; right:-14%; top:-34%; border-radius:50%;
+  background: radial-gradient(circle, var(--vqc-glow, rgba(11,170,143,.26)) 0%, transparent 68%);
+  filter: blur(26px); opacity:.85;
+  transition: transform .7s var(--vq-ease-out, ease), opacity .4s;
+}
+.vq-grid > .vqc--tone-surface:nth-child(4n+2){ --vqc-glow: rgba(56,160,240,.24); }
+.vq-grid > .vqc--tone-surface:nth-child(4n+3){ --vqc-glow: rgba(245,158,66,.22); }
+.vq-grid > .vqc--tone-surface:nth-child(4n+4){ --vqc-glow: rgba(139,108,240,.20); }
+.vq-grid > .vqc--tone-surface:nth-child(4n+3)::before,
+.vq-grid > .vqc--tone-surface:nth-child(4n+1)::before{ right:auto; left:-16%; top:auto; bottom:-40%; }
+.vqc--tone-surface:hover::before{ transform: scale(1.22) translate(-6%, 8%); opacity:1; }
+.vqc--tone-surface{ transition: transform .25s var(--vq-ease-out, ease), box-shadow .25s; }
+.vqc--tone-surface:hover:not(.is-dragging):not(.is-resizing){ transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(15,23,42,.04), 0 14px 30px -10px rgba(15,23,42,.16); }
+[data-theme="dark"] .vqc--tone-surface::before{ opacity:.5; }
+:root[data-bg="mesh"] .vqc--tone-surface::before{ display:none; }
+@media (prefers-reduced-motion: reduce){
+  .vqc--tone-surface::before, .vqc--tone-surface{ transition:none; }
+  .vqc--tone-surface:hover::before, .vqc--tone-surface:hover:not(.is-dragging):not(.is-resizing){ transform:none; }
+}

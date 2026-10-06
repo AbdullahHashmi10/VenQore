@@ -108,6 +108,10 @@ class HandleInertiaRequests extends Middleware
                             return $user->hasPermission('approvals.inbox') || $user->hasPermission('approvals.review');
                         })(),
                         'transaction_approval_mode' => $user ? ($user->getActiveMembership()?->transaction_approval_mode ?? 'inherit') : 'inherit',
+                        'membership_type'   => $user ? ($user->getActiveMembership()?->membership_type ?? 'full') : 'full',
+                        'is_pos_staff'      => $user ? (bool) ($user->getActiveMembership()?->isPosStaff() ?? false) : false,
+                        'is_owner'          => $user ? ($user->role === 'owner') : false,
+                        'pos_capabilities'  => $user ? ($user->getActiveMembership()?->pos_capabilities ?? []) : [],
                         'has_password'      => !empty($user->attributes['password'] ?? null),
                     ]
                 ) : null,

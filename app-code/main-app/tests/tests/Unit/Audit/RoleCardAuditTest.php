@@ -50,7 +50,7 @@ class RoleCardAuditTest extends VenQoreTestCase
         $presetsJson = json_decode(file_get_contents(base_path('resources/data/reckoner/presets.json')), true);
 
         $this->assertCount(412, $allRegistryKeys, 'ReckonerRegistry must define 412 keys (397 baseline + 8 approval cards + 7 cheque cards).');
-        $this->assertCount(364, $allCardsJson, 'cards.json must define 364 card definitions (349 baseline + 8 approval cards + 7 cheque cards).');
+        $this->assertCount(374, $allCardsJson, 'cards.json must define 374 card definitions (349 baseline + 8 approval + 7 cheque + 10 recent-entry, gross-trend and online-store cards).');
 
         $roles = [
             'owner'              => ['route' => '/dashboard', 'expected_component' => 'NewDashboard'],

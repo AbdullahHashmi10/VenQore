@@ -371,7 +371,7 @@ class Tenant extends Model
         }
 
         $numericKeys = [
-            'sku_limit', 'staff_limit', 'locations', 'location_limit', 'registers',
+            'sku_limit', 'staff_limit', 'pos_staff_limit', 'till_logins', 'locations', 'location_limit', 'registers',
             'devices_per_seat', 'visible_history_days', 'transactions_per_month',
             'service_jobs_per_month', 'ai_credits_monthly', 'ai_scans_monthly',
             'ai_credits_annual', 'free_trial_days', 'cart_tabs_limit',
@@ -407,12 +407,35 @@ class Tenant extends Model
     }
 
     /**
-     * Count active and invited staff who occupy a full seat (excludes cashiers).
+     * Count active and invited staff who occupy a full seat.
      */
     public function fullSeatsCount(): int
     {
         return $this->memberships()
-            ->where('role', '!=', 'cashier')
+            ->where(function ($q) {
+                $q->where('membership_type', 'full')
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('membership_type')
+                          ->where('role', '!=', 'cashier');
+                  });
+            })
+            ->whereIn('status', ['active', 'invited'])
+            ->count();
+    }
+
+    /**
+     * Count active and invited staff who occupy a POS seat.
+     */
+    public function posSeatsCount(): int
+    {
+        return $this->memberships()
+            ->where(function ($q) {
+                $q->where('membership_type', 'pos')
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('membership_type')
+                          ->where('role', 'cashier');
+                  });
+            })
             ->whereIn('status', ['active', 'invited'])
             ->count();
     }

@@ -2,6 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/PlatformShell';
 import {
+    useT, PageHeader, Panel, Badge, StatusBadge, Button,
+    Input, Field, Select, EmptyState
+} from '@/Platform/ui';
+import { BRAND } from '@/Platform/theme';
+import {
     ArrowLeft, Zap, RotateCcw, Clock, CheckCircle, Edit2, X,
     Save, Info, User, Mail, Building2, Calendar, Globe, DollarSign,
     Package, Users, ShoppingCart, Shield, ChevronDown, AlertTriangle,
@@ -11,18 +16,35 @@ import {
 
 // ── V6 Inline Toggle ──────────────────────────────────────────────────────────
 function Toggle({ value, onChange }) {
+    const t = useT();
     return (
         <button
             type="button"
             onClick={() => onChange(!value)}
-            className={`w-11 h-6 rounded-full p-0.5 transition-all duration-200 focus:outline-none ${
-                value ? 'bg-[#0BAA8F]' : 'bg-neutral-700'
-            }`}
+            style={{
+                width: 44,
+                height: 24,
+                borderRadius: 999,
+                padding: 2,
+                border: 'none',
+                background: value ? BRAND.indigo : t.inputBg,
+                outline: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                display: 'inline-flex',
+                alignItems: 'center',
+            }}
         >
             <div
-                className={`w-5 h-5 bg-white rounded-full shadow-md transition-all duration-200 ${
-                    value ? 'translate-x-5' : 'translate-x-0'
-                }`}
+                style={{
+                    width: 20,
+                    height: 20,
+                    background: '#fff',
+                    borderRadius: '50%',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                    transform: value ? 'translateX(20px)' : 'translateX(0)',
+                    transition: 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                }}
             />
         </button>
     );
@@ -30,42 +52,52 @@ function Toggle({ value, onChange }) {
 
 // ── Field Row (label + editable value) ─────────────────────────────────────────
 function FieldRow({ label, icon: Icon, children }) {
+    const t = useT();
     return (
-        <div className="flex items-start gap-4 py-3.5 border-b border-white/[0.05] last:border-0">
-            <div className="flex items-center gap-2 w-48 shrink-0 pt-1">
-                {Icon && <Icon size={14} className="text-neutral-400 shrink-0" />}
-                <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider">{label}</span>
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            padding: '12px 0',
+            borderBottom: `1px solid ${t.rowBorder}`,
+        }}>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: 190,
+                flexShrink: 0,
+            }}>
+                {Icon && <Icon size={14} style={{ color: t.muted, flexShrink: 0 }} />}
+                <span style={{ fontSize: 11.5, fontWeight: 800, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {label}
+                </span>
             </div>
-            <div className="flex-1">{children}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                {children}
+            </div>
         </div>
     );
 }
 
 function EditableText({ value, onChange, placeholder, type = 'text' }) {
     return (
-        <input
+        <Input
             type={type}
             value={value ?? ''}
-            onChange={e => onChange(e.target.value)}
+            onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
-            className="w-full bg-neutral-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F] focus:border-[#0BAA8F] transition-all placeholder:text-neutral-600"
         />
     );
 }
 
 function EditableSelect({ value, onChange, options }) {
     return (
-        <select
+        <Select
             value={value ?? ''}
-            onChange={e => onChange(e.target.value)}
-            className="w-full bg-neutral-900/80 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F] transition-all"
-        >
-            {options.map(o => (
-                <option key={o.value} value={o.value} className="bg-neutral-900 text-white">
-                    {o.label}
-                </option>
-            ))}
-        </select>
+            onChange={(e) => onChange(e.target.value)}
+            options={options}
+        />
     );
 }
 
@@ -93,6 +125,7 @@ function checkIsBelowPlan(overrideVal, planDef) {
 
 // ── Limit Card with Steppers & Real-time Warnings ─────────────────────────────
 function LimitCard({ limitKey, info, tenant }) {
+    const t = useT();
     const [editing, setEditing] = useState(false);
     const { data, setData, post, processing, reset } = useForm({
         override_key: limitKey,
@@ -143,163 +176,171 @@ function LimitCard({ limitKey, info, tenant }) {
     };
 
     return (
-        <div className={`rounded-2xl border p-4 transition-all ${
-            hasOverride
-                ? (isCurrentlyBelow ? 'bg-amber-500/10 border-amber-500/40' : 'bg-[#0BAA8F]/5 border-[#0BAA8F]/30')
-                : 'bg-neutral-900/90 border-white/[0.08] hover:border-white/20'
-        }`}>
+        <div style={{
+            borderRadius: 16,
+            padding: 16,
+            border: hasOverride
+                ? (isCurrentlyBelow ? `1px solid ${BRAND.amber}66` : `1px solid ${BRAND.indigo}66`)
+                : `1px solid ${t.border}`,
+            background: hasOverride
+                ? (isCurrentlyBelow ? `${BRAND.amber}10` : `${BRAND.indigo}0c`)
+                : t.panel,
+            boxShadow: t.isDark ? 'none' : 'var(--vq-elev-1)',
+            transition: 'all 0.2s',
+        }}>
             {/* Header & Badges */}
-            <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="font-mono text-xs text-neutral-300 font-bold uppercase tracking-wider truncate" title={limitKey}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                <span style={{
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    color: t.ink,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                }} title={limitKey}>
                     {limitKey}
                 </span>
-                <div className="flex items-center gap-1.5 shrink-0">
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                     {hasOverride ? (
                         <>
                             {isCurrentlyBelow ? (
-                                <span className="flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-full uppercase" title="This override restricts tenant below plan default!">
-                                    <AlertTriangle size={10} className="text-amber-400" /> Below Plan
-                                </span>
+                                <Badge color={BRAND.amber} tone="soft">
+                                    <AlertTriangle size={10} style={{ marginRight: 3 }} /> Below Plan
+                                </Badge>
                             ) : (
-                                <span className="flex items-center gap-1 text-[10px] font-bold text-[#0BAA8F] bg-[#0BAA8F]/15 border border-[#0BAA8F]/30 px-2 py-0.5 rounded-full uppercase">
-                                    <Zap size={10} /> Override
-                                </span>
+                                <Badge color={BRAND.indigo} tone="soft">
+                                    <Zap size={10} style={{ marginRight: 3 }} /> Override
+                                </Badge>
                             )}
                             <button
+                                type="button"
                                 onClick={removeOverride}
-                                className="p-1 text-red-400/80 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: BRAND.rose,
+                                    cursor: 'pointer',
+                                    padding: 4,
+                                    borderRadius: 6,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                }}
                                 title="Revert to plan default"
                             >
                                 <RotateCcw size={12} />
                             </button>
                         </>
                     ) : (
-                        <span className="flex items-center gap-1 text-[10px] font-bold text-neutral-400 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full uppercase">
-                            <CheckCircle size={10} /> Plan Default
-                        </span>
+                        <Badge color={BRAND.slate} tone="soft">
+                            <CheckCircle size={10} style={{ marginRight: 3 }} /> Plan Default
+                        </Badge>
                     )}
                 </div>
             </div>
 
             {!editing ? (
-                <div className="flex items-end justify-between mt-1">
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 }}>
                     <div>
-                        <div className="text-2xl font-bold font-mono tracking-tight text-white">{displayValue}</div>
+                        <div style={{ fontSize: 24, fontWeight: 900, fontFamily: 'monospace', color: t.ink, letterSpacing: '-0.02em' }}>
+                            {displayValue}
+                        </div>
                         {hasOverride && (
-                            <div className="text-xs text-neutral-400 mt-1 flex items-center gap-1.5">
+                            <div style={{ fontSize: 11.5, color: t.muted, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <span>Base default:</span>
-                                <span className="font-mono text-neutral-200 font-bold">
+                                <span style={{ fontFamily: 'monospace', color: t.sub, fontWeight: 700 }}>
                                     {info.plan_default === null ? '∞' : String(info.plan_default)}
                                 </span>
                             </div>
                         )}
-                        {info.reason && <p className="text-xs text-neutral-400 mt-1 italic">{info.reason}</p>}
+                        {info.reason && <p style={{ margin: '4px 0 0', fontSize: 11.5, color: t.muted, fontStyle: 'italic' }}>{info.reason}</p>}
                         {info.expires_at && (
-                            <div className="flex items-center gap-1 text-xs text-amber-400 mt-1 font-medium">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: BRAND.amber, marginTop: 4, fontWeight: 600 }}>
                                 <Clock size={11} /> Expires {new Date(info.expires_at).toLocaleDateString()}
                             </div>
                         )}
                     </div>
-                    <button
+                    <Button
+                        size="sm"
+                        variant="secondary"
+                        icon={Edit2}
                         onClick={() => {
                             setData('override_value', info.override !== null && info.override !== undefined ? String(info.override) : (info.plan_default !== null ? String(info.plan_default) : ''));
                             setEditing(true);
                         }}
-                        className="p-2 text-neutral-400 hover:text-[#0BAA8F] hover:bg-[#0BAA8F]/10 rounded-xl transition-all"
-                        title="Adjust value"
                     >
-                        <Edit2 size={14} />
-                    </button>
+                        Adjust
+                    </Button>
                 </div>
             ) : (
-                <form onSubmit={submit} className="space-y-3 mt-3 pt-3 border-t border-white/10">
+                <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12, paddingTop: 12, borderTop: `1px solid ${t.border}` }}>
                     {/* Stepper & Input */}
                     <div>
-                        <div className="flex items-center justify-between text-xs text-neutral-400 mb-1">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 11.5, color: t.muted, marginBottom: 4 }}>
                             <span>Override Value (blank = unlimited)</span>
-                            <span className="font-mono text-neutral-500">
+                            <span style={{ fontFamily: 'monospace' }}>
                                 Base: {info.plan_default === null ? '∞' : String(info.plan_default)}
                             </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => adjustValue(-10)}
-                                className="px-2 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-neutral-300"
-                                title="Decrease by 10"
-                            >
-                                -10
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => adjustValue(-1)}
-                                className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-neutral-300"
-                                title="Decrease by 1"
-                            >
-                                -1
-                            </button>
-                            <input
-                                type="text"
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Button type="button" size="sm" variant="secondary" onClick={() => adjustValue(-10)}>-10</Button>
+                            <Button type="button" size="sm" variant="secondary" onClick={() => adjustValue(-1)}>-1</Button>
+                            <Input
                                 value={data.override_value}
-                                onChange={e => setData('override_value', e.target.value)}
+                                onChange={(e) => setData('override_value', e.target.value)}
                                 placeholder="Value (blank = ∞)"
-                                className="flex-1 bg-neutral-950 border border-white/20 rounded-xl px-3 py-2 text-sm font-mono text-white text-center focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
+                                style={{ flex: 1, textAlign: 'center', fontFamily: 'monospace' }}
                             />
-                            <button
-                                type="button"
-                                onClick={() => adjustValue(1)}
-                                className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-[#0BAA8F]"
-                                title="Increase by 1"
-                            >
-                                +1
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => adjustValue(10)}
-                                className="px-2 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-[#0BAA8F]"
-                                title="Increase by 10"
-                            >
-                                +10
-                            </button>
+                            <Button type="button" size="sm" variant="secondary" onClick={() => adjustValue(1)}>+1</Button>
+                            <Button type="button" size="sm" variant="secondary" onClick={() => adjustValue(10)}>+10</Button>
                         </div>
                     </div>
 
                     {/* Quick Boolean buttons if key represents a boolean feature */}
                     {(info.plan_default === '0' || info.plan_default === '1' || info.plan_default === false || info.plan_default === true) && (
-                        <div className="flex gap-2">
-                            <button
+                        <div style={{ display: 'flex', gap: 8 }}>
+                            <Button
                                 type="button"
+                                size="sm"
+                                variant={data.override_value === '1' ? 'success' : 'secondary'}
                                 onClick={() => setData('override_value', '1')}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all ${
-                                    data.override_value === '1'
-                                        ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                                        : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
-                                }`}
+                                style={{ flex: 1 }}
                             >
                                 ✓ Enabled (1)
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
+                                size="sm"
+                                variant={data.override_value === '0' ? 'danger' : 'secondary'}
                                 onClick={() => setData('override_value', '0')}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all ${
-                                    data.override_value === '0'
-                                        ? 'bg-rose-500/20 border-rose-500/50 text-rose-300'
-                                        : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
-                                }`}
+                                style={{ flex: 1 }}
                             >
                                 ✕ Disabled (0)
-                            </button>
+                            </Button>
                         </div>
                     )}
 
                     {/* Real-time Below Plan Level Warning Banner */}
                     {isBelowWarning && (
-                        <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs flex items-start gap-2.5 animate-pulse">
-                            <AlertTriangle size={16} className="shrink-0 mt-0.5 text-amber-400" />
+                        <div style={{
+                            padding: '10px 12px',
+                            borderRadius: 12,
+                            background: 'rgba(245, 158, 11, 0.12)',
+                            border: '1px solid rgba(245, 158, 11, 0.35)',
+                            color: t.ink,
+                            fontSize: 12,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 8,
+                        }}>
+                            <AlertTriangle size={15} style={{ color: BRAND.amber, flexShrink: 0, marginTop: 1 }} />
                             <div>
-                                <span className="font-bold">⚠️ Warning: Below Base Plan Level!</span>
-                                <p className="mt-0.5 text-amber-300/90 leading-relaxed">
-                                    You entered <strong className="text-white font-mono">{data.override_value}</strong>, which is <strong>LOWER</strong> than the tenant's base plan default (<strong className="text-white font-mono">{info.plan_default ?? '∞'}</strong>). This restricts the tenant below their purchased plan tier.
+                                <strong style={{ color: BRAND.amber }}>Warning: Below Base Plan Level!</strong>
+                                <p style={{ margin: '3px 0 0', color: t.sub }}>
+                                    You entered <strong style={{ color: t.ink, fontFamily: 'monospace' }}>{data.override_value}</strong>, which is lower than the tenant's base plan default (<strong style={{ color: t.ink, fontFamily: 'monospace' }}>{info.plan_default ?? '∞'}</strong>).
                                 </p>
                             </div>
                         </div>
@@ -307,48 +348,59 @@ function LimitCard({ limitKey, info, tenant }) {
 
                     {/* LTD Warning Banner (F15) */}
                     {isLtdSkuWarning && (
-                        <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/40 text-purple-200 text-xs flex items-start gap-2">
-                            <AlertCircle size={15} className="shrink-0 mt-0.5 text-purple-400" />
+                        <div style={{
+                            padding: '10px 12px',
+                            borderRadius: 12,
+                            background: `${BRAND.indigo}12`,
+                            border: `1px solid ${BRAND.indigo}33`,
+                            color: t.ink,
+                            fontSize: 12,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 8,
+                        }}>
+                            <AlertCircle size={15} style={{ color: BRAND.indigo, flexShrink: 0, marginTop: 1 }} />
                             <div>
-                                <span className="font-bold">LTD Tier Notice:</span> SKU limit is an anchor for LTD classification. Overriding it may shift tier calculation if snapshots are incomplete.
+                                <strong style={{ color: BRAND.indigo }}>LTD Tier Notice:</strong> SKU limit is an anchor for LTD classification.
                             </div>
                         </div>
                     )}
 
-                    <input
-                        type="text"
+                    <Input
                         value={data.reason}
-                        onChange={e => setData('reason', e.target.value)}
+                        onChange={(e) => setData('reason', e.target.value)}
                         placeholder="Reason (e.g. VIP loyalty upgrade, promo, support ticket)"
-                        className="w-full bg-neutral-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
                     />
 
-                    <div className="flex items-center gap-2">
-                        <Calendar size={13} className="text-neutral-500 shrink-0" />
-                        <input
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <Calendar size={13} style={{ color: t.muted, flexShrink: 0 }} />
+                        <Input
                             type="datetime-local"
                             value={data.expires_at}
-                            onChange={e => setData('expires_at', e.target.value)}
-                            className="w-full bg-neutral-950 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
+                            onChange={(e) => setData('expires_at', e.target.value)}
                             title="Optional Expiry Date"
                         />
                     </div>
 
-                    <div className="flex gap-2 pt-1">
-                        <button
+                    <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+                        <Button
                             type="submit"
+                            size="sm"
+                            variant="primary"
+                            icon={Save}
                             disabled={processing}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#0BAA8F] hover:bg-[#09927b] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#0BAA8F]/20 disabled:opacity-50"
+                            style={{ flex: 1 }}
                         >
-                            <Save size={12} /> {processing ? 'Saving…' : 'Save Override'}
-                        </button>
-                        <button
+                            {processing ? 'Saving…' : 'Save Override'}
+                        </Button>
+                        <Button
                             type="button"
+                            size="sm"
+                            variant="secondary"
                             onClick={() => { setEditing(false); reset(); }}
-                            className="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-xs font-bold transition-all"
                         >
-                            <X size={12} />
-                        </button>
+                            <X size={14} />
+                        </Button>
                     </div>
                 </form>
             )}
@@ -367,6 +419,7 @@ export default function OverrideDetail({
     addons_catalogue,
     active_addons
 }) {
+    const t = useT();
     const { flash } = usePage().props;
 
     // Tenant Profile Form
@@ -405,7 +458,7 @@ export default function OverrideDetail({
     const filteredAvailableKeys = useMemo(() => {
         if (!keySearch.trim()) return (available_keys || []).slice(0, 30);
         const q = keySearch.toLowerCase();
-        return (available_keys || []).filter(k => k.toLowerCase().includes(q)).slice(0, 30);
+        return (available_keys || []).filter((k) => k.toLowerCase().includes(q)).slice(0, 30);
     }, [available_keys, keySearch]);
 
     // Selected key metadata
@@ -499,12 +552,11 @@ export default function OverrideDetail({
 
     // Dynamic Plan Options (F1)
     const planOptions = useMemo(() => {
-        const list = (plans || []).map(p => ({
+        const list = (plans || []).map((p) => ({
             value: p.slug,
             label: p.display_name || p.name || p.slug,
         }));
-        // Retain legacy options if the tenant currently has one
-        const hasCurrent = list.some(o => o.value === tenant.plan);
+        const hasCurrent = list.some((o) => o.value === tenant.plan);
         if (!hasCurrent && tenant.plan) {
             list.unshift({
                 value: tenant.plan,
@@ -521,135 +573,140 @@ export default function OverrideDetail({
         { value: 'cancelled', label: 'Cancelled' },
     ];
 
-    const statusColor = {
-        active: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-        trial:  'bg-sky-500/10 text-sky-400 border-sky-500/20',
-        suspended: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-        cancelled: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    };
-
-    const activeOverrides = (override_history || []).filter(
-        o => !o.expires_at || new Date(o.expires_at) > new Date()
-    );
-
     // Count below plan overrides
-    const belowPlanCount = Object.values(effective_limits || {}).filter(info => info.is_below).length;
+    const belowPlanCount = Object.values(effective_limits || {}).filter((info) => info.is_below).length;
 
     return (
         <OneGlanceLayout title={`Store — ${tenant.name}`} mode="admin" activeMenu="Tenant Overrides">
-            <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-
-                {/* Breadcrumb & Title */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 text-xs font-semibold text-neutral-400 mb-2">
-                            <Link
-                                href={route('platform.tenants.overrides')}
-                                className="hover:text-[#0BAA8F] transition-colors flex items-center gap-1"
-                            >
-                                <ArrowLeft size={14} /> Tenant Overrides
-                            </Link>
-                            <span>/</span>
-                            <span className="text-white font-mono">{tenant.slug}</span>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-                            <span>{tenant.name}</span>
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold border uppercase ${statusColor[tenant.status] || 'bg-neutral-800 text-neutral-300'}`}>
-                                {tenant.status}
-                            </span>
-                        </h1>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {/* Header with back link */}
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: t.muted, marginBottom: 8 }}>
+                        <Link
+                            href={route('platform.tenants.overrides')}
+                            style={{ color: BRAND.indigo, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}
+                        >
+                            <ArrowLeft size={14} /> Tenant Overrides
+                        </Link>
+                        <span>/</span>
+                        <span style={{ fontFamily: 'monospace', color: t.sub }}>{tenant.slug}</span>
                     </div>
 
-                    {/* Overall Below-Plan Notice Badge */}
-                    {belowPlanCount > 0 && (
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-300 text-xs font-bold">
-                            <AlertTriangle size={16} className="text-amber-400 shrink-0" />
-                            <span>{belowPlanCount} limit{belowPlanCount > 1 ? 's are' : ' is'} set BELOW base plan level!</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <h1 style={{ margin: 0, fontSize: 26, fontWeight: 900, color: t.ink, letterSpacing: '-0.025em' }}>
+                                {tenant.name}
+                            </h1>
+                            <StatusBadge status={tenant.status || 'trial'} />
+                            <Badge color={BRAND.indigo} tone="soft">{tenant.plan || 'trial'}</Badge>
                         </div>
-                    )}
+
+                        {belowPlanCount > 0 && (
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                padding: '8px 14px',
+                                borderRadius: 12,
+                                background: 'rgba(245, 158, 11, 0.12)',
+                                border: '1px solid rgba(245, 158, 11, 0.35)',
+                                color: BRAND.amber,
+                                fontSize: 12.5,
+                                fontWeight: 800,
+                            }}>
+                                <AlertTriangle size={16} />
+                                <span>{belowPlanCount} limit{belowPlanCount > 1 ? 's are' : ' is'} set BELOW base plan!</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Flash Notice */}
+                {/* Alerts */}
                 {flash?.success && (
-                    <div className="flex items-center gap-3 p-4 bg-[#0BAA8F]/15 border border-[#0BAA8F]/30 rounded-2xl text-[#0BAA8F] text-sm font-semibold">
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: 14,
+                        borderRadius: 14, background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)', color: BRAND.emerald,
+                        fontSize: 13, fontWeight: 700,
+                    }}>
                         <CheckCircle size={18} /> {flash.success}
                     </div>
                 )}
-                {flash?.error && (
-                    <div className="flex items-center gap-3 p-4 bg-rose-500/15 border border-rose-500/30 rounded-2xl text-rose-300 text-sm font-semibold">
-                        <AlertTriangle size={18} /> {flash.error}
-                    </div>
-                )}
 
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-
-                    {/* ── LEFT COLUMN: Profile & Add-on Management (7 cols) ── */}
-                    <div className="xl:col-span-7 space-y-8">
-
-                        {/* 1. Add-on Grant & Management Panel (F8) */}
-                        <div className="bg-[#0D1322]/90 rounded-2xl border border-white/[0.08] p-6 shadow-xl backdrop-blur-sm">
-                            <div className="flex items-center justify-between mb-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-[#0BAA8F]/15 border border-[#0BAA8F]/30 flex items-center justify-center text-[#0BAA8F]">
+                {/* Main 2-column layout */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.25fr) minmax(360px, 1fr)', gap: 24, alignItems: 'start' }}>
+                    {/* LEFT COLUMN: Profile & Add-on Management */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                        {/* 1. Add-on Packs Panel */}
+                        <Panel pad={20}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                    <div style={{
+                                        width: 36, height: 36, borderRadius: 10,
+                                        background: `${BRAND.indigo}18`, color: BRAND.indigo,
+                                        display: 'grid', placeItems: 'center',
+                                    }}>
                                         <Gift size={18} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-white text-base">Add-on Packs & Entitlements</h3>
-                                        <p className="text-xs text-neutral-400 mt-0.5">Grant official add-on packages with grouped limits in one click</p>
+                                        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: t.ink }}>Add-on Packs & Entitlements</h3>
+                                        <p style={{ margin: '2px 0 0', fontSize: 12, color: t.muted }}>Grant bundled feature packages in one click</p>
                                     </div>
                                 </div>
-                                <span className="text-xs font-mono font-bold text-[#0BAA8F] bg-[#0BAA8F]/10 border border-[#0BAA8F]/20 px-2.5 py-1 rounded-full">
-                                    F8 Universal Add-ons
-                                </span>
+                                <Badge color={BRAND.indigo} tone="soft">Universal Add-ons</Badge>
                             </div>
 
-                            {/* Grant Add-on Form */}
-                            <form onSubmit={handleGrantAddon} className="space-y-4 bg-neutral-900/60 p-4 rounded-xl border border-white/[0.05]">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="sm:col-span-2">
-                                        <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                                            Select Add-on Product
-                                        </label>
-                                        <select
+                            {/* Grant form */}
+                            <form onSubmit={handleGrantAddon} style={{ display: 'flex', flexDirection: 'column', gap: 12, background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: 14 }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 10 }}>
+                                    <Field label="Add-on Product">
+                                        <Select
                                             value={addonSlug}
-                                            onChange={e => setAddonSlug(e.target.value)}
-                                            className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
-                                        >
-                                            <option value="">-- Choose Add-on Package --</option>
-                                            {Object.entries(addons_catalogue || {}).map(([slug, details]) => (
-                                                <option key={slug} value={slug}>
-                                                    {details.name} ({details.price_formatted || `$${details.price}/mo`})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-                                            Quantity
-                                        </label>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                max="20"
-                                                value={addonQty}
-                                                onChange={e => setAddonQty(Math.max(1, parseInt(e.target.value) || 1))}
-                                                className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2 text-sm font-mono text-center text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
-                                            />
-                                        </div>
-                                    </div>
+                                            onChange={(e) => setAddonSlug(e.target.value)}
+                                            options={[
+                                                { value: '', label: '-- Choose Add-on Package --' },
+                                                ...Object.entries(addons_catalogue || {}).map(([slug, details]) => ({
+                                                    value: slug,
+                                                    label: `${details.name} (${details.price_formatted || `$${details.price}/mo`})`,
+                                                })),
+                                            ]}
+                                        />
+                                    </Field>
+                                    <Field label="Quantity">
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            max="20"
+                                            value={addonQty}
+                                            onChange={(e) => setAddonQty(Math.max(1, parseInt(e.target.value) || 1))}
+                                            style={{ textAlign: 'center', fontFamily: 'monospace' }}
+                                        />
+                                    </Field>
                                 </div>
 
-                                {/* Add-on Details Preview */}
                                 {selectedAddonDetails && (
-                                    <div className="p-3 bg-[#0BAA8F]/10 border border-[#0BAA8F]/25 rounded-xl text-xs space-y-1.5">
-                                        <div className="flex items-center justify-between text-[#0BAA8F] font-bold">
+                                    <div style={{
+                                        padding: 10,
+                                        borderRadius: 10,
+                                        background: `${BRAND.indigo}0f`,
+                                        border: `1px solid ${BRAND.indigo}22`,
+                                        fontSize: 12,
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', color: BRAND.indigo, fontWeight: 800 }}>
                                             <span>{selectedAddonDetails.name} × {addonQty}</span>
                                             <span>Unlocks {Object.keys(selectedAddonDetails.entitlements || {}).length} entitlement(s)</span>
                                         </div>
-                                        <div className="flex flex-wrap gap-1.5 pt-1">
+                                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
                                             {Object.entries(selectedAddonDetails.entitlements || {}).map(([k, v]) => (
-                                                <span key={k} className="font-mono text-[11px] bg-neutral-950/80 text-neutral-300 px-2 py-0.5 rounded border border-white/10">
+                                                <span key={k} style={{
+                                                    fontFamily: 'monospace',
+                                                    fontSize: 11,
+                                                    background: t.panelSolid,
+                                                    color: t.ink,
+                                                    padding: '2px 8px',
+                                                    borderRadius: 6,
+                                                    border: `1px solid ${t.border}`,
+                                                }}>
                                                     {k.startsWith('+') ? `${k} (+${Number(v) * addonQty})` : `${k} = ${v}`}
                                                 </span>
                                             ))}
@@ -657,241 +714,255 @@ export default function OverrideDetail({
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs font-bold text-neutral-400 mb-1">
-                                            Optional Expiry Date
-                                        </label>
-                                        <input
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                    <Field label="Optional Expiry">
+                                        <Input
                                             type="datetime-local"
                                             value={addonExpiry}
-                                            onChange={e => setAddonExpiry(e.target.value)}
-                                            className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
+                                            onChange={(e) => setAddonExpiry(e.target.value)}
                                         />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-neutral-400 mb-1">
-                                            Custom Note / Reason
-                                        </label>
-                                        <input
-                                            type="text"
+                                    </Field>
+                                    <Field label="Custom Note">
+                                        <Input
                                             value={addonReason}
-                                            onChange={e => setAddonReason(e.target.value)}
+                                            onChange={(e) => setAddonReason(e.target.value)}
                                             placeholder={`Default: add-on: ${addonSlug || '...'} x${addonQty}`}
-                                            className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
                                         />
-                                    </div>
+                                    </Field>
                                 </div>
 
-                                <button
+                                <Button
                                     type="submit"
+                                    variant="primary"
+                                    icon={Plus}
                                     disabled={!addonSlug || submittingAddon}
-                                    className="w-full py-2.5 bg-[#0BAA8F] hover:bg-[#09927b] disabled:opacity-40 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
                                 >
-                                    <Plus size={14} /> {submittingAddon ? 'Applying Add-on…' : `Grant ${selectedAddonDetails ? selectedAddonDetails.name : 'Add-on'} Pack`}
-                                </button>
+                                    {submittingAddon ? 'Applying Add-on…' : `Grant ${selectedAddonDetails ? selectedAddonDetails.name : 'Add-on'} Pack`}
+                                </Button>
                             </form>
 
-                            {/* Active Add-on Packs List */}
-                            <div className="mt-5 pt-5 border-t border-white/[0.08]">
-                                <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">
+                            {/* Active Add-on packs */}
+                            <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${t.border}` }}>
+                                <div style={{ fontSize: 11.5, fontWeight: 800, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>
                                     Active Add-on Packages ({active_addons?.length || 0})
-                                </h4>
+                                </div>
                                 {(!active_addons || active_addons.length === 0) ? (
-                                    <p className="text-xs text-neutral-500 italic">No add-on packs currently assigned to this store.</p>
+                                    <div style={{ fontSize: 12.5, color: t.muted, fontStyle: 'italic' }}>
+                                        No add-on packs currently assigned to this store.
+                                    </div>
                                 ) : (
-                                    <div className="space-y-2.5">
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                         {active_addons.map((pack) => (
                                             <div
                                                 key={pack.reason}
-                                                className="flex items-center justify-between p-3 rounded-xl bg-neutral-900/90 border border-white/10"
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    padding: '10px 14px',
+                                                    borderRadius: 12,
+                                                    background: t.panel2,
+                                                    border: `1px solid ${t.border}`,
+                                                }}
                                             >
                                                 <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-bold font-mono text-[#0BAA8F]">{pack.reason}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                        <span style={{ fontSize: 12.5, fontWeight: 800, fontFamily: 'monospace', color: BRAND.indigo }}>
+                                                            {pack.reason}
+                                                        </span>
                                                         {pack.expires_at && (
-                                                            <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.2 rounded-full">
+                                                            <Badge color={BRAND.amber} tone="soft">
                                                                 Expires {new Date(pack.expires_at).toLocaleDateString()}
-                                                            </span>
+                                                            </Badge>
                                                         )}
                                                     </div>
-                                                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                                                        {pack.keys.map(k => (
-                                                            <span key={k.id} className="text-[11px] font-mono text-neutral-300 bg-white/5 px-2 py-0.5 rounded">
-                                                                {k.key}: <strong className="text-white">{k.value ?? '∞'}</strong>
+                                                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+                                                        {pack.keys.map((k) => (
+                                                            <span key={k.id} style={{ fontSize: 11, fontFamily: 'monospace', color: t.sub }}>
+                                                                {k.key}: <strong style={{ color: t.ink }}>{k.value ?? '∞'}</strong>
                                                             </span>
                                                         ))}
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleRevokeAddon(pack.reason)}
+
+                                                <Button
+                                                    size="sm"
+                                                    variant="danger"
                                                     disabled={revokingReason === pack.reason}
-                                                    className="px-3 py-1.5 rounded-lg bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-bold transition-all shrink-0 ml-3"
+                                                    onClick={() => handleRevokeAddon(pack.reason)}
                                                 >
-                                                    {revokingReason === pack.reason ? 'Revoking…' : 'Revoke Pack'}
-                                                </button>
+                                                    {revokingReason === pack.reason ? 'Revoking…' : 'Revoke'}
+                                                </Button>
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </Panel>
 
-                        {/* 2. Store Profile & Plan Identity Form */}
-                        <div className="bg-[#0D1322]/90 rounded-2xl border border-white/[0.08] p-6 shadow-xl backdrop-blur-sm">
-                            <div className="flex items-center gap-3 pb-4 mb-4 border-b border-white/[0.08]">
-                                <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+                        {/* 2. Store Profile & Configuration */}
+                        <Panel pad={20}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 14, marginBottom: 14, borderBottom: `1px solid ${t.border}` }}>
+                                <div style={{
+                                    width: 36, height: 36, borderRadius: 10,
+                                    background: `${BRAND.sky}18`, color: BRAND.sky,
+                                    display: 'grid', placeItems: 'center',
+                                }}>
                                     <Building2 size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-white text-base">Store Profile & Plan Assignment</h3>
-                                    <p className="text-xs text-neutral-400 mt-0.5">Switch plans, adjust subscription dates, and toggle store configurations</p>
+                                    <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: t.ink }}>Store Profile & Plan Assignment</h3>
+                                    <p style={{ margin: '2px 0 0', fontSize: 12, color: t.muted }}>Switch plans, adjust subscription dates, and toggle store capabilities</p>
                                 </div>
                             </div>
 
-                            <form onSubmit={saveProfile} className="space-y-1">
+                            <form onSubmit={saveProfile}>
                                 <FieldRow label="Store Name" icon={Building2}>
-                                    <EditableText value={data.name} onChange={v => setData('name', v)} placeholder="Store name" />
+                                    <EditableText value={data.name} onChange={(v) => setData('name', v)} placeholder="Store name" />
                                 </FieldRow>
-                                <FieldRow label="Owner" icon={User}>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm text-white font-semibold">{tenant.owner_name}</span>
-                                        <span className="text-xs text-neutral-400">{tenant.owner_email}</span>
+                                <FieldRow label="Store Owner" icon={User}>
+                                    <div>
+                                        <div style={{ fontWeight: 800, color: t.ink, fontSize: 13.5 }}>{tenant.owner_name}</div>
+                                        <div style={{ fontSize: 12, color: t.muted }}>{tenant.owner_email}</div>
                                     </div>
                                 </FieldRow>
-                                <FieldRow label="Store ID / Slug" icon={Tag}>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs font-mono text-[#0BAA8F]">#{tenant.id}</span>
-                                        <span className="text-xs font-mono text-neutral-400">{tenant.slug}</span>
+                                <FieldRow label="Store Slug" icon={Tag}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, fontFamily: 'monospace' }}>
+                                        <span style={{ color: BRAND.indigo, fontWeight: 800 }}>#{tenant.id}</span>
+                                        <span style={{ color: t.sub }}>{tenant.slug}</span>
                                     </div>
                                 </FieldRow>
                                 <FieldRow label="Industry" icon={Package}>
-                                    <EditableText value={data.industry} onChange={v => setData('industry', v)} placeholder="e.g. Retail, Fashion, Cafe" />
+                                    <EditableText value={data.industry} onChange={(v) => setData('industry', v)} placeholder="e.g. Retail, Fashion, Cafe" />
                                 </FieldRow>
 
                                 {/* Plan & Billing */}
-                                <div className="pt-4 pb-2 border-t border-white/[0.08] flex items-center gap-2">
-                                    <Shield size={14} className="text-[#0BAA8F]" />
-                                    <span className="text-xs font-bold text-[#0BAA8F] uppercase tracking-wider">Plan & Subscription</span>
+                                <div style={{ padding: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <Shield size={14} style={{ color: BRAND.indigo }} />
+                                    <span style={{ fontSize: 11.5, fontWeight: 800, color: BRAND.indigo, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                        Plan & Billing Tier
+                                    </span>
                                 </div>
                                 <FieldRow label="Assigned Plan" icon={Shield}>
-                                    <EditableSelect value={data.plan} onChange={v => setData('plan', v)} options={planOptions} />
+                                    <EditableSelect value={data.plan} onChange={(v) => setData('plan', v)} options={planOptions} />
                                 </FieldRow>
                                 <FieldRow label="Account Status" icon={CheckCircle}>
-                                    <EditableSelect value={data.status} onChange={v => setData('status', v)} options={statusOptions} />
+                                    <EditableSelect value={data.status} onChange={(v) => setData('status', v)} options={statusOptions} />
                                 </FieldRow>
                                 <FieldRow label="Trial End Date" icon={Calendar}>
-                                    <EditableText type="date" value={data.trial_ends_at} onChange={v => setData('trial_ends_at', v)} />
+                                    <EditableText type="date" value={data.trial_ends_at} onChange={(v) => setData('trial_ends_at', v)} />
                                 </FieldRow>
                                 <FieldRow label="Subscription End" icon={Calendar}>
-                                    <EditableText type="date" value={data.subscription_ends_at} onChange={v => setData('subscription_ends_at', v)} />
-                                </FieldRow>
-
-                                {/* Locale */}
-                                <div className="pt-4 pb-2 border-t border-white/[0.08] flex items-center gap-2">
-                                    <Globe size={14} className="text-sky-400" />
-                                    <span className="text-xs font-bold text-sky-400 uppercase tracking-wider">Localization</span>
-                                </div>
-                                <FieldRow label="Timezone" icon={Globe}>
-                                    <EditableText value={data.timezone} onChange={v => setData('timezone', v)} placeholder="e.g. Asia/Karachi, UTC" />
-                                </FieldRow>
-                                <FieldRow label="Currency Code" icon={DollarSign}>
-                                    <EditableText value={data.currency_code} onChange={v => setData('currency_code', v)} placeholder="PKR, USD" />
-                                </FieldRow>
-                                <FieldRow label="Currency Symbol" icon={DollarSign}>
-                                    <EditableText value={data.currency_symbol} onChange={v => setData('currency_symbol', v)} placeholder="Rs, $" />
+                                    <EditableText type="date" value={data.subscription_ends_at} onChange={(v) => setData('subscription_ends_at', v)} />
                                 </FieldRow>
 
                                 {/* Feature Toggles */}
-                                <div className="pt-4 pb-2 border-t border-white/[0.08] flex items-center gap-2">
-                                    <Zap size={14} className="text-amber-400" />
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Inventory Modules</span>
+                                <div style={{ padding: '16px 0 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <Zap size={14} style={{ color: BRAND.amber }} />
+                                    <span style={{ fontSize: 11.5, fontWeight: 800, color: BRAND.amber, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                        Inventory Modules
+                                    </span>
                                 </div>
                                 {[
-                                    { key: 'feature_variants',      label: 'Product Variants' },
-                                    { key: 'feature_serials',       label: 'Serial Number Tracking' },
-                                    { key: 'feature_batches',       label: 'Batch & Expiry Tracking' },
+                                    { key: 'feature_variants', label: 'Product Variants' },
+                                    { key: 'feature_serials', label: 'Serial Number Tracking' },
+                                    { key: 'feature_batches', label: 'Batch & Expiry Tracking' },
                                     { key: 'feature_manufacturing', label: 'Manufacturing & Recipes' },
                                 ].map(({ key, label }) => (
                                     <FieldRow key={key} label={label}>
-                                        <div className="flex items-center gap-3">
-                                            <Toggle value={data[key]} onChange={v => setData(key, v)} />
-                                            <span className={`text-xs font-bold ${data[key] ? 'text-emerald-400' : 'text-neutral-500'}`}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                            <Toggle value={data[key]} onChange={(v) => setData(key, v)} />
+                                            <span style={{ fontSize: 12.5, fontWeight: 700, color: data[key] ? BRAND.emerald : t.muted }}>
                                                 {data[key] ? 'Enabled' : 'Disabled'}
                                             </span>
                                         </div>
                                     </FieldRow>
                                 ))}
 
-                                <div className="pt-6 border-t border-white/[0.08] flex justify-end">
-                                    <button
+                                <div style={{ paddingTop: 18, marginTop: 14, borderTop: `1px solid ${t.border}`, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Button
                                         type="submit"
+                                        variant="primary"
+                                        icon={Save}
                                         disabled={processing}
-                                        className="px-6 py-2.5 bg-[#0BAA8F] hover:bg-[#09927b] text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
                                     >
-                                        <Save size={14} /> {processing ? 'Saving Changes…' : 'Save Store Profile'}
-                                    </button>
+                                        {processing ? 'Saving Changes…' : 'Save Store Profile'}
+                                    </Button>
                                 </div>
                             </form>
-                        </div>
+                        </Panel>
 
-                        {/* 3. Override History Audit Table */}
-                        <div className="bg-[#0D1322]/90 rounded-2xl border border-white/[0.08] p-6 shadow-xl backdrop-blur-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <Clock size={16} className="text-neutral-400" />
-                                    <h3 className="font-bold text-white text-sm uppercase tracking-wider">Override History & Audit Log</h3>
+                        {/* 3. Override History & Audit Log */}
+                        <Panel pad={20}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Clock size={16} style={{ color: t.muted }} />
+                                    <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: t.ink, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Override History & Audit Log
+                                    </h3>
                                 </div>
-                                <span className="text-xs text-neutral-400 font-mono">
-                                    {override_history?.length || 0} event{override_history?.length !== 1 ? 's' : ''}
+                                <span style={{ fontSize: 12, fontFamily: 'monospace', color: t.muted }}>
+                                    {override_history?.length || 0} events
                                 </span>
                             </div>
 
                             {(!override_history || override_history.length === 0) ? (
-                                <p className="text-xs text-neutral-500 italic py-4 text-center">No overrides recorded yet.</p>
+                                <div style={{ fontSize: 12.5, color: t.muted, fontStyle: 'italic', padding: '16px 0', textAlign: 'center' }}>
+                                    No overrides recorded yet.
+                                </div>
                             ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-xs">
+                                <div className="vq-scroll" style={{ overflowX: 'auto' }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                         <thead>
-                                            <tr className="border-b border-white/[0.08] text-neutral-400 font-bold uppercase tracking-wider text-left">
-                                                <th className="py-2 px-3">Key</th>
-                                                <th className="py-2 px-3">Value</th>
-                                                <th className="py-2 px-3">Original</th>
-                                                <th className="py-2 px-3">Reason</th>
-                                                <th className="py-2 px-3">Status</th>
-                                                <th className="py-2 px-3 text-right">Action</th>
+                                            <tr style={{ borderBottom: `1px solid ${t.border}`, textAlign: 'left', color: t.muted, fontWeight: 800 }}>
+                                                <th style={{ padding: '8px 10px' }}>Key</th>
+                                                <th style={{ padding: '8px 10px' }}>Value</th>
+                                                <th style={{ padding: '8px 10px' }}>Original</th>
+                                                <th style={{ padding: '8px 10px' }}>Reason</th>
+                                                <th style={{ padding: '8px 10px' }}>Status</th>
+                                                <th style={{ padding: '8px 10px', textAlign: 'right' }}>Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-white/[0.05]">
+                                        <tbody>
                                             {override_history.map((o) => {
                                                 const isExpired = o.expires_at && new Date(o.expires_at) < new Date();
                                                 return (
-                                                    <tr key={o.id} className={isExpired ? 'opacity-40' : 'hover:bg-white/[0.02]'}>
-                                                        <td className="py-2.5 px-3 font-mono font-bold text-[#0BAA8F]">{o.override_key}</td>
-                                                        <td className="py-2.5 px-3 font-mono font-bold text-white">{o.override_value ?? '∞'}</td>
-                                                        <td className="py-2.5 px-3 font-mono text-neutral-400">{o.original_value ?? '—'}</td>
-                                                        <td className="py-2.5 px-3 text-neutral-300 max-w-[140px] truncate">{o.reason || '—'}</td>
-                                                        <td className="py-2.5 px-3">
+                                                    <tr key={o.id} style={{ borderBottom: `1px solid ${t.rowBorder}`, opacity: isExpired ? 0.5 : 1 }}>
+                                                        <td style={{ padding: '10px 10px', fontFamily: 'monospace', fontWeight: 800, color: BRAND.indigo }}>
+                                                            {o.override_key}
+                                                        </td>
+                                                        <td style={{ padding: '10px 10px', fontFamily: 'monospace', fontWeight: 800, color: t.ink }}>
+                                                            {o.override_value ?? '∞'}
+                                                        </td>
+                                                        <td style={{ padding: '10px 10px', fontFamily: 'monospace', color: t.muted }}>
+                                                            {o.original_value ?? '—'}
+                                                        </td>
+                                                        <td style={{ padding: '10px 10px', color: t.sub }}>
+                                                            {o.reason || '—'}
+                                                        </td>
+                                                        <td style={{ padding: '10px 10px' }}>
                                                             {isExpired ? (
-                                                                <span className="text-rose-400 font-medium">Expired</span>
+                                                                <Badge color={BRAND.rose} tone="soft">Expired</Badge>
                                                             ) : o.expires_at ? (
-                                                                <span className="text-amber-400 font-medium">Till {new Date(o.expires_at).toLocaleDateString()}</span>
+                                                                <Badge color={BRAND.amber} tone="soft">Till {new Date(o.expires_at).toLocaleDateString()}</Badge>
                                                             ) : (
-                                                                <span className="text-emerald-400 font-medium">Active</span>
+                                                                <Badge color={BRAND.emerald} tone="soft">Active</Badge>
                                                             )}
                                                         </td>
-                                                        <td className="py-2.5 px-3 text-right">
+                                                        <td style={{ padding: '10px 10px', textAlign: 'right' }}>
                                                             {!isExpired && (
-                                                                <button
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
                                                                     onClick={() => {
                                                                         if (confirm(`Revert ${o.override_key} override?`)) {
                                                                             router.delete(route('platform.tenants.overrides.remove', { tenant: tenant.id, override: o.id }));
                                                                         }
                                                                     }}
-                                                                    className="px-2 py-1 rounded bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-[11px] font-bold transition-all"
+                                                                    style={{ color: BRAND.rose }}
                                                                 >
                                                                     Revert
-                                                                </button>
+                                                                </Button>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -901,205 +972,190 @@ export default function OverrideDetail({
                                     </table>
                                 </div>
                             )}
-                        </div>
-
+                        </Panel>
                     </div>
 
-                    {/* ── RIGHT COLUMN: Quick Override & Limit Matrix (5 cols) ── */}
-                    <div className="xl:col-span-5 space-y-6">
-
+                    {/* RIGHT COLUMN: Quick Override & Limit Matrix */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                         {/* Live Metrics Summary */}
-                        <div className="bg-[#0D1322]/90 rounded-2xl border border-white/[0.08] p-5 shadow-xl backdrop-blur-sm">
-                            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">Live Tenant Usage</h3>
-                            <div className="grid grid-cols-3 gap-3">
+                        <Panel pad={16}>
+                            <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.muted, marginBottom: 12 }}>
+                                Live Store Metrics
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                                 {[
-                                    { label: 'Staff', value: tenant.staff_count, icon: Users, color: 'text-sky-400' },
-                                    { label: 'Products', value: tenant.product_count, icon: Package, color: 'text-emerald-400' },
-                                    { label: 'Sales', value: tenant.sales_count, icon: ShoppingCart, color: 'text-amber-400' },
+                                    { label: 'Staff', value: tenant.staff_count ?? 0, icon: Users, color: BRAND.sky },
+                                    { label: 'Products', value: tenant.product_count ?? 0, icon: Package, color: BRAND.emerald },
+                                    { label: 'Sales', value: tenant.sales_count ?? 0, icon: ShoppingCart, color: BRAND.amber },
                                 ].map(({ label, value, icon: Icon, color }) => (
-                                    <div key={label} className="bg-neutral-900/80 rounded-xl p-3 text-center border border-white/[0.05]">
-                                        <Icon size={16} className={`${color} mx-auto mb-1`} />
-                                        <div className="text-xl font-bold font-mono text-white">{value}</div>
-                                        <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">{label}</div>
+                                    <div key={label} style={{
+                                        background: t.panel2,
+                                        borderRadius: 12,
+                                        padding: 12,
+                                        textAlign: 'center',
+                                        border: `1px solid ${t.border}`,
+                                    }}>
+                                        <Icon size={16} style={{ color, margin: '0 auto 4px' }} />
+                                        <div style={{ fontSize: 18, fontWeight: 900, fontFamily: 'monospace', color: t.ink }}>
+                                            {value}
+                                        </div>
+                                        <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.muted, marginTop: 2 }}>
+                                            {label}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </Panel>
 
-                        {/* Quick Arbitrary Key Override Creator (F12, F13) */}
-                        <div className="bg-[#0D1322]/90 rounded-2xl border border-white/[0.08] p-5 shadow-xl backdrop-blur-sm">
-                            <div className="flex items-center gap-2 mb-3">
-                                <Sparkles size={16} className="text-[#0BAA8F]" />
-                                <h3 className="font-bold text-white text-sm uppercase tracking-wider">Grant Any Feature / Override</h3>
+                        {/* Quick Arbitrary Key Override Creator */}
+                        <Panel pad={20}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                <Sparkles size={16} style={{ color: BRAND.indigo }} />
+                                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: t.ink, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                    Grant Capability Override
+                                </h3>
                             </div>
-                            <p className="text-xs text-neutral-400 mb-4">
-                                Grant any of the 227 canonical capabilities or custom limits to this store.
+                            <p style={{ margin: '0 0 14px', fontSize: 12, color: t.muted }}>
+                                Grant any canonical feature or system limit directly to this store.
                             </p>
 
-                            <form onSubmit={handleApplyCustomOverride} className="space-y-3">
-                                {/* Searchable Key Filter */}
-                                <div>
-                                    <label className="block text-xs font-bold text-neutral-300 mb-1">
-                                        Select Capability / Limit Key
-                                    </label>
-                                    <div className="relative">
-                                        <Search size={14} className="absolute left-3 top-2.5 text-neutral-500" />
-                                        <input
-                                            type="text"
-                                            value={keySearch}
-                                            onChange={e => setKeySearch(e.target.value)}
-                                            placeholder="Search all 227 canonical keys (e.g. multi_branch, locations)..."
-                                            className="w-full bg-neutral-950 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
-                                        />
-                                    </div>
-                                    <select
-                                        value={selectedKey}
-                                        onChange={e => {
-                                            const k = e.target.value;
-                                            setSelectedKey(k);
-                                            const meta = available_keys_metadata?.[k];
-                                            if (meta && meta.plan_default !== null) {
-                                                setCustomValue(String(meta.plan_default));
-                                            } else {
-                                                setCustomValue('');
-                                            }
-                                        }}
-                                        className="w-full mt-1.5 bg-neutral-950 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
-                                    >
-                                        <option value="">-- Choose Key to Override ({filteredAvailableKeys.length} matching) --</option>
-                                        {filteredAvailableKeys.map(k => {
-                                            const meta = available_keys_metadata?.[k];
-                                            const defStr = meta?.plan_default === null ? '∞' : (meta?.plan_default ?? 'not in plan');
-                                            return (
-                                                <option key={k} value={k}>
-                                                    {k} (Base: {defStr})
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
+                            <form onSubmit={handleApplyCustomOverride} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                <div style={{ position: 'relative' }}>
+                                    <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: t.muted, pointerEvents: 'none' }} />
+                                    <Input
+                                        value={keySearch}
+                                        onChange={(e) => setKeySearch(e.target.value)}
+                                        placeholder="Search canonical keys (e.g. multi_branch, sku_limit)…"
+                                        style={{ paddingLeft: 34, fontSize: 12.5 }}
+                                    />
                                 </div>
 
+                                <Select
+                                    value={selectedKey}
+                                    onChange={(e) => {
+                                        const k = e.target.value;
+                                        setSelectedKey(k);
+                                        const meta = available_keys_metadata?.[k];
+                                        if (meta && meta.plan_default !== null) {
+                                            setCustomValue(String(meta.plan_default));
+                                        } else {
+                                            setCustomValue('');
+                                        }
+                                    }}
+                                    options={[
+                                        { value: '', label: `-- Choose Key (${filteredAvailableKeys.length} matching) --` },
+                                        ...filteredAvailableKeys.map((k) => {
+                                            const meta = available_keys_metadata?.[k];
+                                            const defStr = meta?.plan_default === null ? '∞' : (meta?.plan_default ?? 'not in plan');
+                                            return { value: k, label: `${k} (Base: ${defStr})` };
+                                        }),
+                                    ]}
+                                />
+
                                 {selectedKey && (
-                                    <div className="p-3 bg-neutral-900/90 rounded-xl border border-white/10 space-y-3">
-                                        <div className="flex items-center justify-between text-xs">
-                                            <span className="font-mono font-bold text-[#0BAA8F]">{selectedKey}</span>
-                                            <span className="text-neutral-400">
-                                                Base default: <strong className="text-white font-mono">{selectedKeyMeta?.plan_default ?? 'None'}</strong>
+                                    <div style={{
+                                        padding: 12,
+                                        borderRadius: 12,
+                                        background: t.panel2,
+                                        border: `1px solid ${t.border}`,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: 10,
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                                            <span style={{ fontFamily: 'monospace', fontWeight: 800, color: BRAND.indigo }}>{selectedKey}</span>
+                                            <span style={{ color: t.muted }}>
+                                                Base default: <strong style={{ color: t.ink, fontFamily: 'monospace' }}>{selectedKeyMeta?.plan_default ?? 'None'}</strong>
                                             </span>
                                         </div>
 
-                                        {/* Steppers & Value */}
-                                        <div>
-                                            <div className="flex items-center gap-1.5">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const cur = Number(customValue) || 0;
-                                                        setCustomValue(String(Math.max(0, cur - 1)));
-                                                    }}
-                                                    className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-neutral-300"
-                                                >
-                                                    -1
-                                                </button>
-                                                <input
-                                                    type="text"
-                                                    value={customValue}
-                                                    onChange={e => setCustomValue(e.target.value)}
-                                                    placeholder="Value (blank = ∞)"
-                                                    className="flex-1 bg-neutral-950 border border-white/20 rounded-xl px-3 py-1.5 text-xs font-mono text-white text-center focus:outline-none focus:ring-2 focus:ring-[#0BAA8F]"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const cur = Number(customValue) || 0;
-                                                        setCustomValue(String(cur + 1));
-                                                    }}
-                                                    className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-[#0BAA8F]"
-                                                >
-                                                    +1
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const cur = Number(customValue) || 0;
-                                                        setCustomValue(String(cur + 10));
-                                                    }}
-                                                    className="px-2 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-mono font-bold text-[#0BAA8F]"
-                                                >
-                                                    +10
-                                                </button>
-                                            </div>
+                                        {/* Steppers */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <Button type="button" size="sm" variant="secondary" onClick={() => setCustomValue(String(Math.max(0, (Number(customValue) || 0) - 1)))}>-1</Button>
+                                            <Input
+                                                value={customValue}
+                                                onChange={(e) => setCustomValue(e.target.value)}
+                                                placeholder="Value (blank = ∞)"
+                                                style={{ flex: 1, textAlign: 'center', fontFamily: 'monospace' }}
+                                            />
+                                            <Button type="button" size="sm" variant="secondary" onClick={() => setCustomValue(String((Number(customValue) || 0) + 1))}>+1</Button>
+                                            <Button type="button" size="sm" variant="secondary" onClick={() => setCustomValue(String((Number(customValue) || 0) + 10))}>+10</Button>
                                         </div>
 
-                                        {/* Boolean quick buttons */}
-                                        <div className="flex gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => setCustomValue('1')}
-                                                className="flex-1 py-1 text-xs font-bold rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
-                                            >
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                            <Button type="button" size="sm" variant="success" onClick={() => setCustomValue('1')} style={{ flex: 1 }}>
                                                 ✓ Enable (1)
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setCustomValue('0')}
-                                                className="flex-1 py-1 text-xs font-bold rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30"
-                                            >
+                                            </Button>
+                                            <Button type="button" size="sm" variant="danger" onClick={() => setCustomValue('0')} style={{ flex: 1 }}>
                                                 ✕ Disable (0)
-                                            </button>
+                                            </Button>
                                         </div>
 
-                                        {/* Real-time Warning Banner */}
                                         {customIsBelowWarning && (
-                                            <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-200 text-xs flex items-start gap-2">
-                                                <AlertTriangle size={15} className="shrink-0 mt-0.5 text-amber-400" />
-                                                <div>
-                                                    <span className="font-bold">Below Base Plan Warning:</span> The value <strong>{customValue}</strong> is lower than the base plan level (<strong>{selectedKeyMeta?.plan_default ?? '∞'}</strong>).
-                                                </div>
+                                            <div style={{
+                                                padding: '8px 10px',
+                                                borderRadius: 10,
+                                                background: 'rgba(245, 158, 11, 0.12)',
+                                                border: '1px solid rgba(245, 158, 11, 0.35)',
+                                                color: t.ink,
+                                                fontSize: 11.5,
+                                                display: 'flex',
+                                                alignItems: 'flex-start',
+                                                gap: 6,
+                                            }}>
+                                                <AlertTriangle size={14} style={{ color: BRAND.amber, flexShrink: 0, marginTop: 1 }} />
+                                                <span>Value <strong>{customValue}</strong> is lower than base plan default ({selectedKeyMeta?.plan_default ?? '∞'}).</span>
                                             </div>
                                         )}
 
-                                        <input
-                                            type="text"
+                                        <Input
                                             value={customReason}
-                                            onChange={e => setCustomReason(e.target.value)}
+                                            onChange={(e) => setCustomReason(e.target.value)}
                                             placeholder="Reason for granting this override"
-                                            className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white"
                                         />
 
-                                        <input
+                                        <Input
                                             type="datetime-local"
                                             value={customExpiry}
-                                            onChange={e => setCustomExpiry(e.target.value)}
-                                            className="w-full bg-neutral-950 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white"
-                                            title="Optional Expiry"
+                                            onChange={(e) => setCustomExpiry(e.target.value)}
+                                            title="Optional Expiry Date"
                                         />
 
-                                        <button
+                                        <Button
                                             type="submit"
+                                            variant="primary"
+                                            icon={Zap}
                                             disabled={submittingCustom}
-                                            className="w-full py-2 bg-[#0BAA8F] hover:bg-[#09927b] text-white rounded-xl text-xs font-bold transition-all shadow-md"
                                         >
                                             {submittingCustom ? 'Applying…' : `Apply Override for ${selectedKey}`}
-                                        </button>
+                                        </Button>
                                     </div>
                                 )}
                             </form>
-                        </div>
+                        </Panel>
 
-                        {/* Limit Cards Matrix */}
-                        <div className="bg-[#0D1322]/90 rounded-2xl border border-white/[0.08] overflow-hidden shadow-xl backdrop-blur-sm">
-                            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
-                                <div className="flex items-center gap-2.5">
-                                    <Zap size={16} className="text-[#0BAA8F]" />
-                                    <h3 className="font-bold text-white text-sm uppercase tracking-wider">Effective Plan Limits</h3>
+                        {/* Effective Limits Cards Matrix */}
+                        <Panel pad={0} style={{ overflow: 'hidden' }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '14px 18px',
+                                borderBottom: `1px solid ${t.border}`,
+                                background: t.panel2,
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Zap size={16} style={{ color: BRAND.indigo }} />
+                                    <h3 style={{ margin: 0, fontSize: 13, fontWeight: 800, color: t.ink, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                        Effective Plan Limits
+                                    </h3>
                                 </div>
-                                <span className="text-xs font-mono text-neutral-400">
-                                    {Object.keys(effective_limits || {}).length} configured
+                                <span style={{ fontSize: 11.5, fontFamily: 'monospace', color: t.muted }}>
+                                    {Object.keys(effective_limits || {}).length} rules
                                 </span>
                             </div>
 
-                            <div className="p-4 space-y-3 max-h-[750px] overflow-y-auto">
+                            <div className="vq-scroll" style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 800, overflowY: 'auto' }}>
                                 {Object.entries(effective_limits || {}).map(([key, info]) => (
                                     <LimitCard
                                         key={key}
@@ -1109,12 +1165,9 @@ export default function OverrideDetail({
                                     />
                                 ))}
                             </div>
-                        </div>
-
+                        </Panel>
                     </div>
-
                 </div>
-
             </div>
         </OneGlanceLayout>
     );

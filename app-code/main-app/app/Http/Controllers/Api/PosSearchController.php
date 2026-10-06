@@ -295,17 +295,19 @@ class PosSearchController extends Controller
     }
 
     /**
-     * Initial 50 products for POS grid on open (no search term).
+     * Initial products for POS grid on open (no search term).
      * Sorted by most-sold recent for better UX.
+     * When inventory tracking is off, displays all products regardless of stock.
      *
      * GET /api/pos/featured
      */
     public function featured(): JsonResponse
     {
         $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
-        $cacheKey = "pos.featured.{$tenantId}";
+        $isStockTracked = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
+        $cacheKey = "pos.featured.{$tenantId}." . ($isStockTracked ? 'tracked' : 'untracked');
 
-        $products = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($tenantId) {
+        $products = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($tenantId, $isStockTracked) {
             $driver = DB::connection()->getDriverName();
             if ($driver === 'sqlite') {
                 $dateFilter = "created_at >= date('now', '-30 days')";
@@ -313,7 +315,7 @@ class PosSearchController extends Controller
                 $dateFilter = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
             }
 
-            return DB::table('products as p')
+            $query = DB::table('products as p')
                 ->leftJoin('categories as c', 'p.category_id', '=', 'c.id')
                 ->leftJoin('stocks as s', 's.product_id', '=', 'p.id')
                 ->leftJoin(DB::raw(
@@ -334,11 +336,17 @@ class PosSearchController extends Controller
                 ])
                 ->groupBy('p.id', 'p.name', 'p.sku', 'p.type', 'p.service_pricing', 'p.default_duration', 'p.requires_visit', 'p.skill_tag',
                           'p.price', 'p.image_path',
-                          'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'c.name')
-                ->havingRaw("COALESCE(SUM(s.quantity), 0) > 0 OR p.type = 'service'")
-                ->orderByDesc('recent_sold')
+                          'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'c.name');
+
+            // When stock maintenance is enabled, only show products with positive stock (or services).
+            // When inventory tracking is OFF, all products are technically in stock and must appear in All Items.
+            if ($isStockTracked) {
+                $query->havingRaw("COALESCE(SUM(s.quantity), 0) > 0 OR p.type = 'service'");
+            }
+
+            return $query->orderByDesc('recent_sold')
                 ->orderBy('p.name')
-                ->limit(50)
+                ->limit(100)
                 ->get()
                 ->map(function ($p) {
                     $p->price = (float) $p->price;
@@ -365,7 +373,7 @@ class PosSearchController extends Controller
         abort_unless($tenant, 400, 'No store context.');
 
         $sales = Sale::where('tenant_id', $tenant->id)
-            ->with(['items', 'customer'])
+            ->with(['items.product', 'items.productVariant', 'customer'])
             ->latest()
             ->take(50)
             ->get();

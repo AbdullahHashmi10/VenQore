@@ -1075,5 +1075,36 @@
     ],
     "staff.revenue_per_staff": [
         "gl.sales_revenue"
+    ],
+    "expenses.recent": [
+        "expenses.grand_total"
+    ],
+    "purchases.recent": [
+        "purchases.spend"
+    ],
+    "payments.recent": [
+        "payments.receipts_total"
+    ],
+    "core.recent_sales": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.online_revenue": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.online_orders": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.online_aov": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.online_trend": [
+        "gl.sales_revenue"
+    ],
+    "marketplace.recent_orders": [
+        "gl.sales_revenue"
+    ],
+    "core.gross_profit_trend": [
+        "gl.sales_revenue",
+        "gl.cogs"
     ]
 }

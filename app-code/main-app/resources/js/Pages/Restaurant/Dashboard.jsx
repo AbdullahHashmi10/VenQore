@@ -59,15 +59,22 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
 
         <div className="flex items-center gap-3">
           <Link
-            href={`/${storeSlug}/restaurant/kitchen`}
+            href={route('store.restaurant.kitchen', { store_slug: storeSlug })}
             className="relative px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm transition-all shadow-lg flex items-center gap-2"
           >
-            <span>🍳 Kitchen Display System</span>
+            <span>🍳 Kitchen Display (KDS)</span>
             {kitchenQueueCount > 0 && (
               <span className="px-2 py-0.5 text-xs bg-rose-500 text-white font-bold rounded-full animate-pulse">
                 {kitchenQueueCount}
               </span>
             )}
+          </Link>
+          <Link
+            href={route('store.restaurant.queue', { store_slug: storeSlug })}
+            target="_blank"
+            className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-emerald-400 border border-neutral-700 font-medium text-sm transition-all shadow-lg flex items-center gap-2"
+          >
+            <span>📺 Customer Screen</span>
           </Link>
         </div>
       </div>

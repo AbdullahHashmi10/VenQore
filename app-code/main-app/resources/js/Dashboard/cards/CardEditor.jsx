@@ -333,6 +333,17 @@ export default function CardEditor({
 
           {tab === 'data' && isReading && (
             <>
+              <QuickCompare engine={engine} card={card}
+                onPick={(p) => {
+                  const fam = Fam.FAMILIES.composed;
+                  const variant = (fam.variants.find(v => v.enabled !== false) || fam.variants[0]).id;
+                  const [mw, mh] = Geo.minSize('composed', variant, { legend: true, seriesCount: 2 });
+                  const w = geo.authoredW ?? geo.w, h = geo.authoredH ?? geo.h;
+                  setNotice(`Comparing ${p.label.toLowerCase()} — drawn as bars and a line.`);
+                  patch({ key: p.a, extraKeys: [p.b], chart: 'composed', variant, title: undefined,
+                          w: Math.max(w, mw), h: Math.max(h, mh), goal: undefined });
+                }} />
+
               <Section title="Timeframe" sub="What the card reads when it loads">
                 <div className="vqe-pills">
                   {PERIODS.map(p => (
@@ -394,6 +405,11 @@ export default function CardEditor({
                     <Switch on={card.showPeriodPicker !== false} set={(v) => patch({ showPeriodPicker: v })}
                       title="Timeframe picker" sub="Change Today / Week / Month from the card"
                       hint={geo.w < 3 || geo.h < 2 ? 'Needs 3 × 2' : ''} />
+                  )}
+                  {isReading && engine.capCtx(card).recentKey && card.chart !== 'records' && (
+                    <Switch on={card.showRecent !== false} set={(v) => patch({ showRecent: v })}
+                      title="Latest entries" sub="List the newest items under the chart"
+                      hint={geo.h < 5 ? 'Needs 5 rows' : ''} />
                   )}
                   {isReading && ['pie', 'ring', 'area', 'line', 'composed'].includes(card.chart) && (
                     <Switch on={card.legend !== false} set={(v) => patch({ legend: v })}
@@ -625,6 +641,41 @@ function GoalSection({ reading, card, goalText, setGoalText, goalError, currency
   );
 }
 
+/* One-click comparisons people actually ask for. A pair is offered only when
+   both readings exist for this store and both can draw a history. */
+const COMPARE_PAIRS = [
+  { label: 'Revenue vs Net profit',   a: 'core.revenue',        b: 'core.net_profit' },
+  { label: 'Gross profit vs Net profit', a: 'core.gross_profit', b: 'core.net_profit' },
+  { label: 'Revenue vs Expenses',     a: 'core.revenue',        b: 'core.expenses_total' },
+  { label: 'Revenue vs Cost of goods', a: 'core.revenue',       b: 'core.cogs' },
+  { label: 'Sales vs Purchases',      a: 'core.revenue',        b: 'purchases.spend' },
+  { label: 'Money in vs Money out',   a: 'payments.received',   b: 'payments.paid' },
+  { label: 'Online vs Counter sales', a: 'marketplace.online_revenue', b: 'pos.revenue' },
+];
+
+function QuickCompare({ engine, card, onPick }) {
+  const keys = useMemo(() => new Set((engine.getAvailableReadings ? engine.getAvailableReadings() : [])
+    .filter(r => r && r.contract_state !== 'unimplemented').map(r => r.key)), [engine]);
+  const hasSeries = (k) => {
+    const r = engine.getReadingOf?.(k);
+    if (!r || !keys.has(k)) return false;
+    return Fam.kindOf(r) === 'series' || !!engine.trendCompanionKey?.(k);
+  };
+  const pairs = COMPARE_PAIRS.filter(p => hasSeries(p.a) && hasSeries(p.b));
+  if (!pairs.length) return null;
+  const active = (p) => card.key === p.a && (card.extraKeys || [])[0] === p.b;
+  return (
+    <Section title="Compare two things" sub="One tap draws both as bars and a line">
+      <div className="vqe-pairs">
+        {pairs.map(p => (
+          <button key={p.label} type="button" className={`vqe-pair ${active(p) ? 'is-on' : ''}`}
+            aria-pressed={active(p)} onClick={() => onPick(p)}>{p.label}</button>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 function CompareSection({ engine, card, reading, query, setQuery, onAdd, onRemove }) {
   const all = engine.getAvailableReadings ? engine.getAvailableReadings() : [];
   const extra = card.extraKeys || [];
@@ -675,20 +726,25 @@ function ShortcutSection({ catalog, engine, draft, patch }) {
   return (
     <>
       <Section title="Where it goes" sub="The tile is named after its destination">
-        <div className="vqe-dests">
-          {targets.map(t => {
-            const url = t.absolute ? t.path : storePath(t.path);
-            const on = draft.targetUrl === url;
-            return (
-              <button key={t.path} type="button" className={`vqe-dest ${on ? 'is-on' : ''}`} aria-pressed={on}
-                onClick={() => patch({ targetUrl: url, title: t.label, icon: t.icon, btnColor: t.color })}>
-                <span className="vqe-dest-glyph" style={{ background: t.color }}
-                  dangerouslySetInnerHTML={{ __html: engine.iconMarkup?.(t.icon, 15) || '' }} />
-                <span>{t.label}</span>
-              </button>
-            );
-          })}
-        </div>
+        {Object.entries(targets.reduce((m, t) => { (m[t.group || 'More'] ||= []).push(t); return m; }, {})).map(([group, list]) => (
+          <div key={group} className="vqe-dest-group">
+            <p className="vqe-dest-gt">{group}</p>
+            <div className="vqe-dests">
+              {list.map(t => {
+                const url = t.absolute ? t.path : storePath(t.path);
+                const on = draft.targetUrl === url;
+                return (
+                  <button key={t.path} type="button" className={`vqe-dest ${on ? 'is-on' : ''}`} aria-pressed={on}
+                    onClick={() => patch({ targetUrl: url, title: t.label, icon: t.icon, btnColor: t.color })}>
+                    <span className="vqe-dest-glyph" style={{ background: t.color }}
+                      dangerouslySetInnerHTML={{ __html: engine.iconMarkup?.(t.icon, 15) || '' }} />
+                    <span>{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </Section>
       <Section title="Glyph">
         <div className="vqe-icons">

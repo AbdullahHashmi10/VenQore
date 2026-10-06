@@ -26,6 +26,7 @@ export default function StorefrontHeader({
     bag,
     ratingSummary: initialRatingSummary,
     customer: initialCustomer,
+    onsite = false,
 }) {
     const [scrolled, setScrolled] = useState(false);
     const [ratingSummary, setRatingSummary] = useState(initialRatingSummary || { average: null, count: 0, reviews: [] });
@@ -198,7 +199,7 @@ export default function StorefrontHeader({
                 <div className="vq-sh__inner">
                     {/* LEFT: Logo & Storefront identity */}
                     <div className="vq-sh__brand-wrap">
-                        <a className="vq-btn-plain vq-sh__brand" href="/shop" title="Explore all shops on VenQore">
+                        <a className="vq-btn-plain vq-sh__brand" href={onsite ? `/catalogue/${storeSlug}` : '/shop'} title={onsite ? 'Onsite catalogue home' : 'Explore all shops on VenQore'}>
                             <img src="/v6/assets/logo.png" alt="VenQore" width="28" height="28" />
                             <span>VenQore</span>
                         </a>
@@ -209,7 +210,7 @@ export default function StorefrontHeader({
                         <div className="vq-sh__store-name" title={storeTitle}>
                             {storeTitle || 'Online Store'}
                         </div>
-                        <button
+                        {!onsite && <button
                             type="button"
                             className="vq-sh__rate-pill"
                             onClick={() => setShowRatingModal(true)}
@@ -222,27 +223,29 @@ export default function StorefrontHeader({
                             <span className="vq-sh__rate-count">
                                 {ratingSummary?.count > 0 ? `(${ratingSummary.count})` : '· Rate Store'}
                             </span>
-                        </button>
+                        </button>}
                     </div>
 
                     {/* RIGHT: Actions (Track Order, Shopping Bag, Theme Toggle, Customer Account) */}
                     <div className="vq-sh__store-actions">
-                        {/* Track Order */}
-                        <button
-                            type="button"
-                            className="vq-sh__track-btn"
-                            onClick={() => {
-                                if (customer && customer.orders?.length > 0) {
-                                    setShowCustomerModal(true);
-                                } else {
-                                    setShowTrackModal(true);
-                                }
-                            }}
-                            title="Track an existing order"
-                        >
-                            <Package size={15} />
-                            <span>Track Order</span>
-                        </button>
+                        {/* Track Order — only shown on storefronts when customer is logged in */}
+                        {!onsite && customer && (
+                            <button
+                                type="button"
+                                className="vq-sh__track-btn"
+                                onClick={() => {
+                                    if (customer && customer.orders?.length > 0) {
+                                        setShowCustomerModal(true);
+                                    } else {
+                                        setShowTrackModal(true);
+                                    }
+                                }}
+                                title="Track an existing order"
+                            >
+                                <Package size={15} />
+                                <span>Track Order</span>
+                            </button>
+                        )}
 
                         {/* Shopping Cart Bag */}
                         {bag && (
@@ -263,10 +266,10 @@ export default function StorefrontHeader({
                         )}
 
                         {/* Theme Toggle (Light / Dark) */}
-                        <ThemeButton />
+                        {!onsite && <ThemeButton />}
 
                         {/* Customer Account Button */}
-                        {customer ? (
+                        {!onsite && (customer ? (
                             <button
                                 type="button"
                                 className="vq-sh__cust-btn vq-sh__cust-btn--active"
@@ -288,7 +291,7 @@ export default function StorefrontHeader({
                                 <User size={15} />
                                 <span>Sign In</span>
                             </button>
-                        )}
+                        ))}
                     </div>
                 </div>
             </header>

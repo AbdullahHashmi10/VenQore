@@ -12,13 +12,18 @@ export default function OpenShiftModal({
     onSuccess,
     registerId = 'REG-1',
 }) {
-    const { store } = usePage().props;
-    const [openingFloat, setOpeningFloat] = useState('1000');
+    const { store, auth } = usePage().props;
+    const user = auth?.user;
+    const isPosStaff = Boolean(!user?.is_owner && user?.role !== 'owner' && (user?.is_pos_staff || user?.membership_type === 'pos' || user?.role === 'pos_staff'));
+    const canTakePayments = user?.pos_capabilities ? user.pos_capabilities.includes('take_payments') : true;
+    const isOrdersOnly = isPosStaff && !canTakePayments;
+
+    const [openingFloat, setOpeningFloat] = useState(isOrdersOnly ? '0' : '1000');
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    if (!isOpen) return null;
+    if (!isOpen || !isPosStaff) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -26,8 +31,8 @@ export default function OpenShiftModal({
         setLoading(true);
 
         try {
-            const floatVal = parseFloat(openingFloat);
-            if (isNaN(floatVal) || floatVal < 0) {
+            const floatVal = isOrdersOnly ? 0 : parseFloat(openingFloat);
+            if (!isOrdersOnly && (isNaN(floatVal) || floatVal < 0)) {
                 setError('Please enter a valid opening float amount.');
                 setLoading(false);
                 return;
@@ -52,8 +57,8 @@ export default function OpenShiftModal({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4" onClick={onClose}>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-indigo-900/60 to-purple-900/60 p-5 border-b border-slate-700 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
@@ -82,45 +87,52 @@ export default function OpenShiftModal({
                         </div>
                     )}
 
-                    <div>
-                        <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                            Opening Cash Float
-                        </label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <span className="text-indigo-400 font-bold text-sm">{getCurrencySymbol(store)}</span>
+                    {isOrdersOnly ? (
+                        <div className="p-4 bg-indigo-950/40 border border-indigo-800/60 rounded-xl text-indigo-200 text-xs leading-relaxed">
+                            <span className="font-semibold block mb-1">Orders-Only Shift Mode</span>
+                            You are signed in as order taking staff. No cash drawer or opening float is required to start your work shift.
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                                Opening Cash Float
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <span className="text-indigo-400 font-bold text-sm">{getCurrencySymbol(store)}</span>
+                                </div>
+                                <input
+                                    type="number"
+                                    step="any"
+                                    min="0"
+                                    required
+                                    autoFocus
+                                    value={openingFloat}
+                                    onChange={(e) => setOpeningFloat(e.target.value)}
+                                    placeholder="0.00"
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-lg font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                />
                             </div>
-                            <input
-                                type="number"
-                                step="any"
-                                min="0"
-                                required
-                                autoFocus
-                                value={openingFloat}
-                                onChange={(e) => setOpeningFloat(e.target.value)}
-                                placeholder="0.00"
-                                className="w-full pl-12 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-lg font-mono font-bold focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                            />
-                        </div>
 
-                        {/* Quick Presets */}
-                        <div className="flex flex-wrap gap-2 mt-3">
-                            {PRESET_FLOATS.map((val) => (
-                                <button
-                                    key={val}
-                                    type="button"
-                                    onClick={() => setOpeningFloat(val.toString())}
-                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
-                                        parseFloat(openingFloat) === val
-                                            ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm'
-                                            : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
-                                    }`}
-                                >
-                                    {formatCurrency(val)}
-                                </button>
-                            ))}
+                            {/* Quick Presets */}
+                            <div className="flex flex-wrap gap-2 mt-3">
+                                {PRESET_FLOATS.map((val) => (
+                                    <button
+                                        key={val}
+                                        type="button"
+                                        onClick={() => setOpeningFloat(val.toString())}
+                                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                                            parseFloat(openingFloat) === val
+                                                ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm'
+                                                : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                                        }`}
+                                    >
+                                        {formatCurrency(val)}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div>
                         <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { router, usePage } from '@inertiajs/react';
 import { Printer, Trash2, TrendingUp, CheckCircle2, Wallet, Coins, Plus, X } from 'lucide-react';
 
-import { shouldStopNegativeStock } from '@/Utils/settings';
+import { shouldStopNegativeStock, isStockMaintenanceEnabled } from '@/Utils/settings';
 import { formatCurrency } from '@/Utils/format';
 import { useAlert } from '@/Contexts/AlertContext';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -392,7 +392,7 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                         : route('store.sales.store', { store_slug: store?.slug })))}
                 /* ── what a sale will not let you do ─────────────────────── */
                 validate={({ d, items }) => {
-                    if (shouldStopNegativeStock(settings)) {
+                    if (isStockMaintenanceEnabled(settings) && shouldStopNegativeStock(settings)) {
                         for (const i of items.filter((x) => x.product)) {
                             /* Free goods leave the shelf too — the server
                                deducts quantity PLUS free, and checking only the

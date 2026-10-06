@@ -166,6 +166,16 @@ class MeasureEngine
                     $measureData = ['points' => $points];
                     break;
 
+                case 'core.gross_profit_trend':
+                    $rev  = $this->ledgerStream->dailyFlow('gl.sales_revenue', $from, $to, $tenantId);
+                    $cogs = $this->ledgerStream->dailyFlow('gl.cogs', $from, $to, $tenantId);
+                    $points = [];
+                    foreach ($rev as $d => $v) {
+                        $points[$d] = round((float) $v - (float) ($cogs[$d] ?? 0.0), 2);
+                    }
+                    $measureData = ['points' => $points];
+                    break;
+
                 case 'core.cogs':
                     $flows = $this->ledgerStream->flows(['gl.cogs'], ['w' => ['from' => $from, 'to' => $to]], [], $tenantId)['w'];
                     $measureData = ['value' => $flows['gl.cogs']];
@@ -363,6 +373,10 @@ class MeasureEngine
                         $segments = ['Usage' => 0.0];
                     }
                     $measureData = $segments;
+                    break;
+
+                case 'core.recent_sales':
+                    $measureData = ['rows' => $this->salesHeadersStream->recent($from, $to, $tenantId, 10)];
                     break;
 
                 case 'core.transaction_count':
@@ -682,6 +696,10 @@ class MeasureEngine
                 case 'payments.bounced':
                     $measureData = ['value' => 0.0];
                     break;
+
+                case 'payments.recent':
+                    $measureData = ['rows' => $this->paymentsStream->recent($from, $to, $tenantId, 10)];
+                    break;
             }
         }
 
@@ -720,6 +738,10 @@ class MeasureEngine
                 case 'expenses.largest':
                     $largest = $this->expensesStream->largest($from, $to, $tenantId, 10);
                     $measureData = ['rows' => $largest];
+                    break;
+
+                case 'expenses.recent':
+                    $measureData = ['rows' => $this->expensesStream->recent($from, $to, $tenantId, 10)];
                     break;
 
                 case 'expenses.recurring_total':
@@ -1321,6 +1343,21 @@ class MeasureEngine
                 case 'marketplace.channel_margin':
                     $measureData = ['rows' => $channelSummary['channel_margin']];
                     break;
+                case 'marketplace.online_revenue':
+                    $measureData = ['value' => $this->channelLocationStream->onlineStore($from, $to, $tenantId)['revenue']];
+                    break;
+                case 'marketplace.online_orders':
+                    $measureData = ['value' => (float) $this->channelLocationStream->onlineStore($from, $to, $tenantId)['orders']];
+                    break;
+                case 'marketplace.online_aov':
+                    $measureData = ['value' => $this->channelLocationStream->onlineStore($from, $to, $tenantId)['aov']];
+                    break;
+                case 'marketplace.online_trend':
+                    $measureData = ['points' => $this->channelLocationStream->onlineStore($from, $to, $tenantId)['daily']];
+                    break;
+                case 'marketplace.recent_orders':
+                    $measureData = ['rows' => $this->channelLocationStream->onlineStore($from, $to, $tenantId)['recent']];
+                    break;
             }
         }
 
@@ -1523,6 +1560,9 @@ class MeasureEngine
                     break;
                 case 'purchases.price_increases':
                     $measureData = ['rows' => []];
+                    break;
+                case 'purchases.recent':
+                    $measureData = ['rows' => $this->purchaseHeadersStream->recent($from, $to, $tenantId, 10)];
                     break;
             }
         }

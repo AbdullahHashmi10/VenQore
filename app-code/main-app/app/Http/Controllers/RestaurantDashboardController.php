@@ -67,12 +67,15 @@ class RestaurantDashboardController extends Controller
      */
     public function kitchen(Request $request): Response
     {
-        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
+        $preparesOrders = Setting::where('tenant_id', $tenant->id)
+            ->where('key', 'prepares_orders')
+            ->value('value');
 
         return Inertia::render('Restaurant/Kitchen', [
-            'storeSlug' => $tenant->slug,
-            'orders'    => $this->kitchenQueue($tenant->id),
+            'storeSlug'             => $tenant->slug,
+            'orders'                => (string) $preparesOrders === '0' ? [] : $this->kitchenQueue($tenant->id),
+            'preparesOrdersEnabled' => (string) $preparesOrders !== '0',
         ]);
     }
 
@@ -81,13 +84,124 @@ class RestaurantDashboardController extends Controller
      */
     public function kitchenState(Request $request): JsonResponse
     {
-        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
+        $preparesOrders = Setting::where('tenant_id', $tenant->id)
+            ->where('key', 'prepares_orders')
+            ->value('value');
+
+        if ((string) $preparesOrders === '0') {
+            return response()->json([
+                'orders'         => [],
+                'eighty_six_ids' => [],
+                'enabled'        => false,
+            ]);
+        }
 
         return response()->json([
             'orders'         => $this->kitchenQueue($tenant->id),
             'eighty_six_ids' => json_decode(Setting::where('key', 'pos_86_products')->value('value') ?? '[]', true) ?: [],
+            'enabled'        => true,
         ]);
+    }
+
+    /**
+     * Acknowledge/dismiss a cancelled ticket from the KDS board so chefs don't keep seeing it.
+     */
+    public function dismissCancelled(Request $request, $id): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $order  = WorkOrder::where('tenant_id', $tenant->id)->findOrFail($id);
+
+        if ($order->status === 'cancelled') {
+            $order->status = 'dismissed';
+            $order->save();
+        }
+
+        return response()->json(['success' => true, 'order' => $this->ticketShape($order)]);
+    }
+
+    /**
+     * Customer-facing Order Queue Status Display (Pickup Screen).
+     */
+    public function queue(Request $request): Response
+    {
+        $tenant = app('current.tenant');
+        $preparesOrders = Setting::where('tenant_id', $tenant->id)
+            ->where('key', 'prepares_orders')
+            ->value('value');
+
+        return Inertia::render('Restaurant/CustomerQueue', [
+            'storeSlug'             => $tenant->slug,
+            'businessName'          => Setting::where('key', 'business_name')->value('value') ?? $tenant->name ?? 'Order Status',
+            'orders'                => $this->customerQueue($tenant->id),
+            'preparesOrdersEnabled' => (string) $preparesOrders !== '0',
+        ]);
+    }
+
+    /**
+     * Customer queue state polling endpoint.
+     */
+    public function queueState(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+
+        return response()->json([
+            'orders' => $this->customerQueue($tenant->id),
+        ]);
+    }
+
+    /**
+     * Restaurant operations and hospitality configuration hub.
+     */
+    public function settings(Request $request): Response
+    {
+        $tenant = app('current.tenant');
+        $settings = Setting::where('tenant_id', $tenant->id)->pluck('value', 'key');
+
+        return Inertia::render('Restaurant/Settings', [
+            'storeSlug' => $tenant->slug,
+            'settings'  => [
+                'service_mode'           => $settings['service_mode'] ?? 'both',
+                'prepares_orders'        => $settings['prepares_orders'] ?? '1',
+                'lane_takeaway'          => $settings['lane_takeaway'] ?? '1',
+                'lane_delivery'          => $settings['lane_delivery'] ?? '1',
+                'service_charge_percent' => (float) ($settings['service_charge_percent'] ?? 0),
+                'kds_auto_print'         => $settings['kds_auto_print'] ?? '0',
+                'kot_enabled'            => $settings['kot_enabled'] ?? '1',
+                'kot_show_prices'        => $settings['kot_show_prices'] ?? '0',
+                'pos_sound_alert'        => $settings['pos_sound_alert'] ?? '1',
+            ],
+        ]);
+    }
+
+    /**
+     * Update restaurant settings.
+     */
+    public function updateSettings(Request $request): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate([
+            'service_mode'           => 'nullable|string|in:counter,tables,both',
+            'prepares_orders'        => 'nullable|in:0,1',
+            'lane_takeaway'          => 'nullable|in:0,1',
+            'lane_delivery'          => 'nullable|in:0,1',
+            'service_charge_percent' => 'nullable|numeric|min:0|max:100',
+            'kds_auto_print'         => 'nullable|in:0,1',
+            'kot_enabled'            => 'nullable|in:0,1',
+            'kot_show_prices'        => 'nullable|in:0,1',
+            'pos_sound_alert'        => 'nullable|in:0,1',
+        ]);
+
+        foreach ($data as $key => $value) {
+            if ($value !== null) {
+                Setting::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'key' => $key],
+                    ['value' => (string) $value]
+                );
+            }
+        }
+
+        return response()->json(['success' => true, 'updated' => $data]);
     }
 
     /**
@@ -110,13 +224,32 @@ class RestaurantDashboardController extends Controller
         $next = $this->nextStage($order->status, 1);
         if ($next !== null) {
             $order->status = $next;
-            // The only honest ticket time is bumped_at − fired_at, so the clock
-            // stops when it leaves the pass and not a stage earlier.
-            if ($next === 'served') $order->bumped_at = now();
+            $order->bumped_at = now();
             $order->save();
         }
 
         return response()->json(['success' => true, 'order' => $this->ticketShape($order)]);
+    }
+
+    /**
+     * Mark all active kitchen tickets as served (end of day / clear pass).
+     */
+    public function clearAll(Request $request): JsonResponse
+    {
+        $this->ensurePreparesOrders();
+        $tenant = app('current.tenant');
+
+        WorkOrder::where('tenant_id', $tenant->id)
+            ->whereIn('status', ['pending', 'preparing', 'ready'])
+            ->update([
+                'status'    => 'served',
+                'bumped_at' => now(),
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'orders'  => $this->kitchenQueue($tenant->id),
+        ]);
     }
 
     /**
@@ -294,19 +427,58 @@ class RestaurantDashboardController extends Controller
     private function kitchenQueue(int $tenantId): array
     {
         $cutoff = now()->subHours(4);
+        $cancelCutoff = now()->subMinutes(30);
+        $servedCutoff = now()->subMinutes(15);
 
         return WorkOrder::where('tenant_id', $tenantId)
-            ->where(function ($q) use ($cutoff) {
-                $q->whereIn('status', ['pending', 'preparing', 'ready'])
-                  ->orWhere(function ($q2) use ($cutoff) {
-                      $q2->where('status', 'served')
-                         ->where('fired_at', '>=', $cutoff);
-                  });
+            ->where(function ($q) use ($cutoff, $cancelCutoff, $servedCutoff) {
+                $q->where(function ($q1) use ($cutoff) {
+                    $q1->whereIn('status', ['pending', 'preparing', 'ready'])
+                       ->where('fired_at', '>=', $cutoff);
+                })
+                ->orWhere(function ($q2) use ($servedCutoff) {
+                    $q2->where('status', 'served')
+                       ->where('bumped_at', '>=', $servedCutoff);
+                })
+                ->orWhere(function ($q3) use ($cancelCutoff) {
+                    $q3->where('status', 'cancelled')
+                       ->where('created_at', '>=', $cancelCutoff);
+                });
             })
             ->orderBy('id', 'desc')
             ->limit(200)
             ->get()
             ->map(fn (WorkOrder $o) => $this->ticketShape($o))
+            ->values()->all();
+    }
+
+    private function customerQueue(int $tenantId): array
+    {
+        $cutoff = now()->subHours(2);
+        $readyCutoff = now()->subMinutes(30);
+
+        return WorkOrder::where('tenant_id', $tenantId)
+            ->where(function ($q) use ($cutoff, $readyCutoff) {
+                $q->where(function ($q1) use ($cutoff) {
+                    $q1->whereIn('status', ['pending', 'preparing'])
+                       ->where('fired_at', '>=', $cutoff);
+                })
+                ->orWhere(function ($q2) use ($readyCutoff) {
+                    $q2->where('status', 'ready')
+                       ->where('bumped_at', '>=', $readyCutoff);
+                });
+            })
+            ->orderBy('id', 'asc')
+            ->limit(100)
+            ->get()
+            ->map(fn (WorkOrder $o) => [
+                'id'           => $o->id,
+                'order_number' => $o->order_number ?: ($o->position_code ?: ('#' . $o->id)),
+                'status'       => $o->status,
+                'order_type'   => $o->order_type ?? 'dine_in',
+                'fired_at'     => $o->fired_at?->toIso8601String(),
+                'bumped_at'    => $o->bumped_at?->toIso8601String(),
+            ])
             ->values()->all();
     }
 
@@ -505,7 +677,7 @@ class RestaurantDashboardController extends Controller
     }
 
     /**
-     * Abort 404 if the store does not have kitchen order preparation enabled.
+     * Abort 404 only if kitchen order preparation has been explicitly disabled.
      */
     private function ensurePreparesOrders(): void
     {
@@ -514,28 +686,24 @@ class RestaurantDashboardController extends Controller
             ->where('key', 'prepares_orders')
             ->value('value');
 
-        if ((string) $preparesOrders !== '1') {
-            abort(404, 'Page not found.');
+        if ($preparesOrders === '0') {
+            abort(404, 'Kitchen order preparation is disabled.');
         }
     }
 
     /**
-     * Abort 404 if the store is not configured for restaurant / hospitality operations.
+     * Abort 404 if the store has explicitly disabled restaurant / hospitality operations.
      */
     private function ensureRestaurantEnabled(): void
     {
         $tenant = app('current.tenant');
-        $preparesOrders = Setting::where('tenant_id', $tenant->id)
-            ->where('key', 'prepares_orders')
-            ->value('value');
+        $isModuleEnabled = \App\Services\ModuleService::enabled($tenant, 'table_service');
         $serviceMode = Setting::where('tenant_id', $tenant->id)
-            ->where('key', 'pos_service_mode')
+            ->whereIn('key', ['service_mode', 'pos_service_mode'])
             ->value('value');
 
-        $isRestaurant = ((string) $preparesOrders === '1') || in_array($serviceMode, ['tables', 'both'], true);
-
-        if (!$isRestaurant) {
-            abort(404, 'Page not found.');
+        if (!$isModuleEnabled && !in_array($serviceMode, ['tables', 'both'], true)) {
+            abort(404, 'Restaurant module is disabled.');
         }
     }
 }

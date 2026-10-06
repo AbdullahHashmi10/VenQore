@@ -12,7 +12,7 @@ import { AMDStation } from '@/Utils/AMDStation';
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import axios from 'axios';
 
 import '@/NewPos/newpos.css';
@@ -115,6 +115,7 @@ function newTab(seq = 1, ops = {}, defaultParty = null, defaultWarehouse = 1, de
         overpay: 'change',
         isReturn: false,
         returnRef: null,
+        walkInName: '',
         idem: idemKey(),
         docNo: `POS-${seq}`,
     };
@@ -131,6 +132,12 @@ export default function NewPos({
     auth = {},
 }) {
     const tt = useTermText();
+    // The POS never depends on the Customers module. When it is off there is
+    // no customer picker at all: every sale is a walk-in with an optional name.
+    const { modules: sharedModules } = usePage().props;
+    const customersOn = Array.isArray(sharedModules) && sharedModules.length
+        ? sharedModules.includes('customers')
+        : true;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '') || '';
     const userId = auth?.user?.id ? `u_${auth.user.id}` : 'default';
 
@@ -633,6 +640,7 @@ export default function NewPos({
         // Prepare live sale payload for backend SaleController::store
         const payload = {
             customer_id: tab.party?.id && !tab.party.walkin ? tab.party.id : null,
+            walk_in_name: (!tab.party?.id || tab.party.walkin) ? ((tab.walkInName || '').trim() || null) : null,
             sale_date: new Date().toISOString().slice(0, 10),
             items: tab.lines.map((l) => ({
                 product_id: l.product_id || l.id,
@@ -703,7 +711,9 @@ export default function NewPos({
                     amount_paid: tab.tendered || m.total,
                     change: ch > 0 ? ch : 0,
                     payment_method: tab.method || 'Cash',
-                    customer: tab.party,
+                    customer: (tab.party?.walkin && (tab.walkInName || '').trim())
+                        ? { ...tab.party, name: tab.walkInName.trim() }
+                        : tab.party,
                     items: tab.lines,
                 };
 
@@ -868,7 +878,7 @@ export default function NewPos({
                 const k = e.key.toLowerCase();
                 if (k === 's' || k === 'p') { e.preventDefault(); complete(); }
                 else if (k === 'n') { e.preventDefault(); if (complete()) addTab(); }
-                else if (k === 'd') { e.preventDefault(); setSheet('party'); }
+                else if (k === 'd' && customersOn) { e.preventDefault(); setSheet('party'); }
                 else if (k === 't') { e.preventDefault(); addTab(); }
                 else if (k === 'w') { e.preventDefault(); closeTab(active); }
                 else if (k === 'f') { e.preventDefault(); setSheet('breakup'); }
@@ -882,7 +892,7 @@ export default function NewPos({
                 case 'F7': e.preventDefault(); setSheet('tax'); break;
                 case 'F8': e.preventDefault(); setSheet('charges'); break;
                 case 'F9': e.preventDefault(); setSheet('discount'); break;
-                case 'F11': e.preventDefault(); setSheet('party'); break;
+                case 'F11': e.preventDefault(); if (customersOn) setSheet('party'); break;
                 case 'F12': e.preventDefault(); setSheet('notes'); break;
                 case '?': if (!typing()) { e.preventDefault(); setSheet('keys'); } break;
                 default: break;
@@ -1024,17 +1034,31 @@ export default function NewPos({
         const avail = Math.max(90, w - 40 - 110);
         return (
             <>
-                <button type="button" className="nqp-party" data-rank="1" onClick={() => setSheet('party')}>
-                    <span className="nqp-avatar">{tab.party?.name ? tab.party.name[0].toUpperCase() : 'W'}</span>
-                    <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                        <span className="nqp-line-name" style={{ display: 'block' }}>{tab.party?.name || 'Walk-in Customer'}</span>
-                        <span className="nqp-line-sub">
-                            {tab.party?.walkin ? 'Walk-in cash customer'
-                                : `${tab.party?.phone || 'No phone'} · Balance: PKR ${n0(tab.party?.balance || 0)}${tab.party?.discount ? ` · ${tab.party.discount}% discount` : ''}`}
+                {customersOn ? (
+                    <button type="button" className="nqp-party" data-rank="1" onClick={() => setSheet('party')}>
+                        <span className="nqp-avatar">{tab.party?.name ? tab.party.name[0].toUpperCase() : 'W'}</span>
+                        <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                            <span className="nqp-line-name" style={{ display: 'block' }}>{tab.party?.name || 'Walk-in Customer'}</span>
+                            <span className="nqp-line-sub">
+                                {tab.party?.walkin ? 'Walk-in cash customer'
+                                    : `${tab.party?.phone || 'No phone'} · Balance: PKR ${n0(tab.party?.balance || 0)}${tab.party?.discount ? ` · ${tab.party.discount}% discount` : ''}`}
+                            </span>
                         </span>
-                    </span>
-                    {w > 300 ? <Kbd>F11</Kbd> : null}
-                </button>
+                        {w > 300 ? <Kbd>F11</Kbd> : null}
+                    </button>
+                ) : null}
+                {(!customersOn || tab.party?.walkin) ? (
+                    <input
+                        type="text"
+                        className="nqp-walkin-name"
+                        maxLength={120}
+                        value={tab.walkInName || ''}
+                        onChange={(e) => patchTab({ walkInName: e.target.value })}
+                        placeholder="Name for this order (optional)"
+                        aria-label="Name for this order (optional)"
+                        style={{ width: '100%', boxSizing: 'border-box', margin: '6px 0', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--vq-border, #d4d4d8)', background: 'transparent', color: 'inherit', font: 'inherit' }}
+                    />
+                ) : null}
 
                 {[
                     ['Subtotal', m.sub],
@@ -1288,7 +1312,7 @@ export default function NewPos({
         { label: 'Document discount', key: 'F9', run: () => setSheet('discount') },
         { label: 'Additional charges', key: 'F8', run: () => setSheet('charges') },
         { label: 'Sale remarks', key: 'F12', run: () => setSheet('notes') },
-        { label: 'New customer', key: 'Ctrl+D', run: () => setSheet('party') },
+        ...(customersOn ? [{ label: 'New customer', key: 'Ctrl+D', run: () => setSheet('party') }] : []),
         { label: 'Offline queue', run: () => setSheet('offline') },
         { label: 'Keyboard map', key: '?', run: () => setSheet('keys') },
         { label: 'Register settings', run: () => setSettingsOpen(true) },

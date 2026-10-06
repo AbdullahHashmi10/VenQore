@@ -219,8 +219,21 @@ export default function SidebarItem({
                             'Subscription': 'store.billing',
                             'POS': 'store.pos',
                             'Tables': 'store.tables.index',
+                            'Floor': 'store.tables.index',
                             'Floor Plan': 'store.tables.plan',
                             'Kitchen': 'store.restaurant.kitchen',
+                            'Order TV Screen': 'store.restaurant.queue',
+                            'TV Screen': 'store.restaurant.queue',
+                            'Dispatch': 'store.restaurant.dispatch',
+                            'Riders': 'store.restaurant.riders',
+                            'Restaurant Settings': 'store.restaurant.settings',
+                            'Reservations': 'store.reservations.list',
+                            'Reservations (Coming Soon)': 'store.reservations.list',
+                            'Store Overview': 'store.commerce.home',
+                            'Online Orders': 'store.commerce.orders',
+                            'Online Products': 'store.commerce.products',
+                            'Offers & Coupons': 'store.commerce.promotions',
+                            'Onsite Catalogue': 'store.commerce.catalogue',
                             'Analytics': 'store.sales.analytics',
                             'Orders': 'store.sales.index',
                             'Invoices': 'store.sales.invoice.create',
@@ -351,7 +364,7 @@ export default function SidebarItem({
                                     return (
                                         <FeatureLockBadge key={sIdx} isLocked={isPlanLocked} feature={itemName.toLowerCase().replace(' ', '_').replace('/', '_')} showBadge={false}>
                                             {isComingSoon ? (
-                                                <span className="block pl-4 py-1.5 text-xs font-medium text-ink-muted dark:text-ink-secondary cursor-pointer">
+                                                <span className="block pl-4 py-1.5 text-xs font-medium text-ink-muted/70 dark:text-ink-secondary/70 cursor-not-allowed select-none">
                                                     {navLabel(itemName)}
                                                 </span>
                                             ) : isPlanLocked ? (

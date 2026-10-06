@@ -33,8 +33,38 @@ class PosReturnController extends Controller
         ]);
 
         $tenant = app('current.tenant');
+        $user = Auth::user();
         $idempotencyKey = $request->input('idempotency_key');
         $warehouseId = $request->input('warehouse_id');
+        $refundMethod = $request->input('refund_method', 'cash');
+
+        $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $isPosStaff = $membership?->isPosStaff() ?? false;
+        if ($isPosStaff && !$membership->hasPosCapability(\App\Models\TenantUser::CAP_PROCESS_RETURNS)) {
+            return response()->json([
+                'error' => 'Your POS staff role does not have permission to process returns or refunds.',
+            ], 403);
+        }
+
+        // Cash refunds require an assigned reconciled cash session or manager execution.
+        // Never silently allow untracked cash to leave a drawer.
+        if ($refundMethod === 'cash') {
+            $isManager = ($membership && in_array($membership->role, ['owner', 'admin', 'manager'], true)) || $user->isPlatformAdmin();
+            $hasActiveDrawer = \App\Models\RegisterShift::where('tenant_id', $tenant->id)
+                ->where('status', 'open')
+                ->where('shift_mode', 'cash_drawer')
+                ->where('opened_by', $user->id)
+                ->exists();
+
+            if (!$hasActiveDrawer && !$isManager) {
+                return response()->json([
+                    'error' => 'Cash refunds require an active assigned cash drawer session or manager execution.',
+                ], 422);
+            }
+        }
 
         // exists:products,id / exists:warehouses,id are not store-scoped: the
         // goods and the shelf they go back on must be this store's own.

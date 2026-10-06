@@ -206,7 +206,30 @@ class InventoryController extends Controller
         
         $preSaleTotals = $reservedTotals; // Using pluck results instead of get()+group for performance since variant_id is missing anyway
 
-        $products->through(function ($product) use ($stockTotals, $preSaleTotals, $parkedProductQtys) {
+        $isStockEnabled = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
+
+        // Calculate Units Sold for products on current page
+        $productIds = $products->pluck('id');
+        $soldTotals = DB::table('sale_items')
+            ->where('tenant_id', $tenantId)
+            ->whereNull('deleted_at')
+            ->whereIn('product_id', $productIds)
+            ->groupBy('product_id')
+            ->select('product_id', DB::raw('SUM(quantity) as total_sold'))
+            ->pluck('total_sold', 'product_id');
+
+        $variantIds = $products->flatMap(fn($p) => $p->variants->pluck('id'))->filter();
+        $variantSoldTotals = $variantIds->isNotEmpty()
+            ? DB::table('sale_items')
+                ->where('tenant_id', $tenantId)
+                ->whereNull('deleted_at')
+                ->whereIn('product_variant_id', $variantIds)
+                ->groupBy('product_variant_id')
+                ->select('product_variant_id', DB::raw('SUM(quantity) as total_sold'))
+                ->pluck('total_sold', 'product_variant_id')
+            : collect();
+
+        $products->through(function ($product) use ($stockTotals, $preSaleTotals, $parkedProductQtys, $soldTotals, $variantSoldTotals, $isStockEnabled) {
             $totalStock = (float)($stockTotals->get($product->id)?->sum('total_on_hand') ?? 0);
             
             // Total Reserved for product (sum all variants if any)
@@ -223,6 +246,8 @@ class InventoryController extends Controller
             $status = 'In Stock';
             if ($isService) {
                 $status = 'Available';
+            } elseif (!$isStockEnabled) {
+                $status = 'Active';
             } elseif ($totalStock == 0) {
                 $status = 'Out of Stock';
             } elseif ($totalStock <= $product->min_stock_alert) {
@@ -263,6 +288,8 @@ class InventoryController extends Controller
                 'stock' => $isService ? null : $totalStock,
                 'reserved_stock' => $isService ? 0 : $reservedStock,
                 'available_stock' => $isService ? null : ($totalStock - $reservedStock),
+                'units_sold' => (float)($soldTotals->get($product->id) ?? 0),
+                'is_stock_tracked' => (bool)$isStockEnabled,
                 'price' => (float) $product->price,
                 'cost_price' => (float) $product->cost_price,
                 'image' => $product->image_path ? \Illuminate\Support\Facades\Storage::url($product->image_path) : null,
@@ -273,7 +300,7 @@ class InventoryController extends Controller
                 'unit' => $product->base_unit ?? $product->unit ?? ($isService ? 'service' : 'pcs'),
                 'history' => [], // Fetched via AJAX getHistory, or could be pre-loaded
                 'images' => $product->images->map(fn($img) => ['id' => $img->id, 'url' => Storage::url($img->file_path), 'type' => $img->file_type]),
-                'variants' => $product->variants->map(function ($v) use ($stockTotals, $preSaleTotals, $parkedProductQtys, $product) {
+                'variants' => $product->variants->map(function ($v) use ($stockTotals, $preSaleTotals, $parkedProductQtys, $product, $variantSoldTotals, $isStockEnabled) {
                     $vStock = (float)($stockTotals->get($product->id)?->where('variant_id', $v->id)->first()?->total_on_hand ?? 0);
                     
                     // Since sales_order_items doesn't have variant_id, we can't accurately track per-variant pre-sale reservations
@@ -290,6 +317,8 @@ class InventoryController extends Controller
                         'price' => (float)$v->price,
                         'cost_price' => (float)$v->cost_price,
                         'stock' => $vStock,
+                        'units_sold' => (float)($variantSoldTotals->get($v->id) ?? 0),
+                        'is_stock_tracked' => (bool)$isStockEnabled,
                         'reserved_stock' => $vReservedQty,
                         'available_stock' => $vStock - $vReservedQty,
                         'barcode' => $v->barcode,
@@ -315,7 +344,8 @@ class InventoryController extends Controller
             'filters' => $request->only(['search', 'category_id']),
             'stats' => [
                 'total_products' => $products->total(),
-                'low_stock_count' => DB::table('products as p')
+                'stock_maintenance' => (bool)$isStockEnabled,
+                'low_stock_count' => $isStockEnabled ? DB::table('products as p')
                     ->leftJoin('inventory_batches as ib', function($join) use ($tenantId) {
                         $join->on('p.id', '=', 'ib.product_id')
                              ->where('ib.tenant_id', $tenantId)
@@ -338,7 +368,8 @@ class InventoryController extends Controller
                     ->groupBy('p.id', 'p.min_stock_alert', 'p.stock_quantity')
                     ->get()
                     ->filter(fn($p) => (float)$p->total_qty > 0 && (float)$p->total_qty <= (float)$p->min_stock_alert)
-                    ->count(),
+                    ->count() : 0,
+                'total_units_sold' => (float) DB::table('sale_items')->where('tenant_id', $tenantId)->whereNull('deleted_at')->sum('quantity'),
                 'inventory_value' => app(FinancialReportingService::class)->getInventoryValue(),
             ],
             'warehouses' => Warehouse::query()->get(),

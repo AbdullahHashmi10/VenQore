@@ -24,6 +24,23 @@ export function isAMDStationAvailable() {
 }
 
 /**
+ * What is wrong with a printer, in words a cashier can act on — or null if it is fine / unknown.
+ * `hw` is the Station hardware status. `role` is 'receipt' | 'kitchen' | 'bar' | 'takeaway' | 'label' | 'document'.
+ */
+export function describePrinterProblem(hw, role = 'receipt') {
+    if (!hw || !Array.isArray(hw.printers)) return null;
+    const roles = Array.isArray(hw.printRoles) ? hw.printRoles : [];
+    const cfg = roles.find(r => r.role === role);
+    const name = (cfg && cfg.printer) || (role === 'receipt' ? hw.defaultPrinter : null) || hw.defaultPrinter
+        || (hw.printers.find(p => p.thermal) || {}).name;
+    if (!name) return role === 'receipt' ? 'No receipt printer is set up in Station.' : null;
+    const p = hw.printers.find(x => x.name === name);
+    if (!p) return `Printer "${name}" is not connected.`;
+    if (p.state === 'offline' || p.state === 'error') return `${p.displayName || p.name}: ${p.status || 'offline'}`;
+    return null;
+}
+
+/**
  * VenQore Station API wrapper (SaaS Edition)
  */
 export const AMDStation = {
@@ -84,6 +101,62 @@ export const AMDStation = {
     },
 
     /**
+     * Station 3+: live hardware status — printers (with online / paper state),
+     * serial scanner / scale / pole display, customer display.
+     */
+    async getHardwareStatus() {
+        if (!isAMDStationAvailable() || !window.amdAPI.getHardwareStatus) return null;
+        try { return await window.amdAPI.getHardwareStatus(); }
+        catch (e) { return null; }
+    },
+
+    /** Subscribe to hardware status changes. Returns an unsubscribe function. */
+    onHardwareStatus(cb) {
+        if (!isAMDStationAvailable() || !window.amdAPI.onHardwareStatus) return () => {};
+        return window.amdAPI.onHardwareStatus(cb);
+    },
+
+    /**
+     * Station 3+: silent A4 / Letter document print through the Windows driver
+     * (no print dialog). Falls back to { success:false } on older Stations.
+     */
+    async printHtml(html, { printerName, role, pageSize = 'A4', copies = 1, landscape = false } = {}) {
+        if (!isAMDStationAvailable() || !window.amdAPI.printHtml) return { success: false, error: 'Silent document printing needs VenQore Station 3 or newer.' };
+        try { return await window.amdAPI.printHtml({ html, printerName, role, pageSize, copies, landscape }); }
+        catch (e) { return { success: false, error: e.message }; }
+    },
+
+    /** Station 3+: silent A4 document (invoice, statement, Z-report) to the printer set for "A4 documents". */
+    printDocument(html, options = {}) { return this.printHtml(html, { role: 'document', ...options }); },
+
+    /** Station 3+: shelf / barcode label to the label printer. size: { widthMm, heightMm }. */
+    printLabel(html, { widthMm = 50, heightMm = 30, copies = 1, printerName } = {}) {
+        return this.printHtml(html, { role: 'label', printerName, pageSize: { widthMm, heightMm }, copies });
+    },
+
+    /** Station 3+: which printer each kind of job goes to on this till. */
+    async getPrintRoles() {
+        if (!isAMDStationAvailable() || !window.amdAPI.getPrintRoles) return [];
+        try { return await window.amdAPI.getPrintRoles(); } catch (e) { return []; }
+    },
+
+    /** Station 3+: latest reading from the scale ({ weight, unit, stable, ... }) or null. */
+    async getWeight() {
+        if (!isAMDStationAvailable() || !window.amdAPI.getWeight) return null;
+        try { return await window.amdAPI.getWeight(); } catch (e) { return null; }
+    },
+
+    /**
+     * Station 3+: customer-facing second screen (and 2x20 pole display, mirrored).
+     * state: { mode:'idle'|'cart'|'paid', storeName, currency, items:[{name,qty,price,total}], subtotal, discount, tax, total, paid, change, message }
+     */
+    customerDisplay: {
+        open: () => (isAMDStationAvailable() && window.amdAPI.openCustomerDisplay ? window.amdAPI.openCustomerDisplay() : Promise.resolve({ success: false })),
+        close: () => (isAMDStationAvailable() && window.amdAPI.closeCustomerDisplay ? window.amdAPI.closeCustomerDisplay() : Promise.resolve({ success: false })),
+        update: (state) => (isAMDStationAvailable() && window.amdAPI.updateCustomerDisplay ? window.amdAPI.updateCustomerDisplay(state) : Promise.resolve({ success: false })),
+    },
+
+    /**
      * Send a raw thermal job to VenQore Station.
      * Raw ESC/POS data must never be sent to the browser's page-print dialog.
      */
@@ -93,6 +166,7 @@ export const AMDStation = {
             const printData = {
                 content: this.formatReceiptData(data),
                 printerName: options.printerName,
+                role: options.role,
                 copies: options.copies || 1,
                 paperWidth: options.paperWidth || '80mm',
                 autoCut: options.autoCut !== undefined ? options.autoCut : true,
@@ -112,6 +186,9 @@ export const AMDStation = {
             };
         }
     },
+
+    /** Kitchen / bar / takeaway ticket: goes to the printer set for that job on this till. */
+    printTicket(data, options = {}) { return this.print(data, { role: 'kitchen', ...options }); },
 
     /**
      * Open cash drawer
@@ -350,12 +427,15 @@ export function useAMDStation() {
     const [isConnected, setIsConnected] = useState(false);
     const [printers, setPrinters] = useState([]);
     const [defaultPrinter, setDefaultPrinter] = useState(null);
+    const [hardware, setHardware] = useState(null);
+    const [stationVersion, setStationVersion] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function init() {
             const status = await AMDStation.check();
             setIsConnected(status.isAMDStation);
+            setStationVersion(status.version || null);
 
             if (status.isAMDStation) {
                 const printerList = await AMDStation.getPrinters();
@@ -365,6 +445,7 @@ export function useAMDStation() {
                 // Never silently replace it with a system PDF printer.
                 const prefs = await AMDStation.getPrefs();
                 setDefaultPrinter(prefs.defaultPrinter || null);
+                setHardware(await AMDStation.getHardwareStatus());
             }
 
             setLoading(false);
@@ -379,8 +460,16 @@ export function useAMDStation() {
         };
         window.addEventListener('amd-station-ready', handleReady);
 
+        // Station 3+: printers plugged in / unplugged while the POS is open.
+        const offHardware = AMDStation.onHardwareStatus((hw) => {
+            if (hw) setHardware(hw);
+            if (Array.isArray(hw?.printers)) setPrinters(hw.printers);
+            if (hw && 'defaultPrinter' in hw) setDefaultPrinter(hw.defaultPrinter || null);
+        });
+
         return () => {
             window.removeEventListener('amd-station-ready', handleReady);
+            offHardware();
         };
     }, []);
 
@@ -388,13 +477,18 @@ export function useAMDStation() {
         isConnected,
         loading,
         printers,
+        hardware,
+        stationVersion,
+        /* Real state of the bills printer: "Out of paper", "Offline"… — null when fine or unknown. */
+        printerProblem: describePrinterProblem(hardware, 'receipt'),
+        problemFor: (role) => describePrinterProblem(hardware, role),
         defaultPrinter,
         setDefaultPrinter: async (name) => {
             const result = await AMDStation.setDefaultPrinter(name);
             if (result?.success) setDefaultPrinter(name);
             return result;
         },
-        print: (data, options) => AMDStation.print(data, { ...options, printerName: options?.printerName || defaultPrinter }),
+        print: (data, options) => AMDStation.print(data, { ...options, printerName: options?.printerName || (options?.role && options.role !== 'receipt' ? undefined : defaultPrinter) }),
         openDrawer: () => AMDStation.openDrawer(defaultPrinter),
         printAndOpenDrawer: (data, options) => AMDStation.printAndOpenDrawer(data, { ...options, printerName: options?.printerName || defaultPrinter }),
     };

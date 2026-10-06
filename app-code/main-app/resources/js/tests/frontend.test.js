@@ -49,6 +49,7 @@ import {
     getProductPrice,
     isSettingEnabled,
     shouldStopNegativeStock,
+    isStockMaintenanceEnabled,
     getDefaultTaxRate,
 } from '../Utils/settings.js';
 
@@ -99,26 +100,38 @@ function computeCartTotals(cart, activeSale, settings) {
         ? activeSale.taxRate
         : parseFloat(settings?.default_tax_rate || 0);
 
-    const subtotal = cart.reduce(
-        (acc, item) => acc + ((item.key_price || item.price) * (item.qty + (item.freeQuantity || 0))),
-        0
-    );
+    // Subtotal includes free items (gross sales value before line discounts)
+    const subtotal = cart.reduce((acc, item) => {
+        const unitGross = Number(item.original_price ?? item.price ?? 0);
+        const qty = Number(item.qty || 0);
+        const freeQty = Number(item.freeQuantity || 0);
+        return acc + (unitGross * (qty + freeQty));
+    }, 0);
 
-    const freeItemDiscounts = cart.reduce(
-        (acc, item) => acc + ((item.freeQuantity || 0) * (item.key_price || item.price)),
-        0
-    );
-    const itemDiscounts = cart.reduce((acc, item) => acc + (item.discount || 0), 0);
+    const freeItemDiscounts = cart.reduce((acc, item) => {
+        const unitGross = Number(item.original_price ?? item.price ?? 0);
+        return acc + (Number(item.freeQuantity || 0) * unitGross);
+    }, 0);
 
+    const itemDiscounts = cart.reduce((acc, item) => {
+        const orig = Number(item.original_price ?? item.price ?? 0);
+        const cur = Number(item.price ?? 0);
+        const unitDiscount = Math.max(0, orig - cur) || Number(item.discount || 0);
+        const qty = Number(item.qty || 0);
+        return acc + (unitDiscount * qty);
+    }, 0);
+
+    // Global Discount Calculation (applied to net balance after line discounts)
+    const subtotalAfterLineDiscounts = Math.max(0, subtotal - (freeItemDiscounts + itemDiscounts));
     let globalDiscount = 0;
     if (activeSale.discountType === 'percentage') {
-        globalDiscount = (subtotal * (activeSale.discountValue || 0)) / 100;
+        globalDiscount = (subtotalAfterLineDiscounts * (activeSale.discountValue || 0)) / 100;
     } else {
         globalDiscount = parseFloat(
             activeSale.discountValue !== undefined
                 ? activeSale.discountValue
                 : (activeSale.discount || 0)
-        );
+        ) || 0;
     }
 
     const totalDiscounts  = freeItemDiscounts + itemDiscounts + globalDiscount;
@@ -420,6 +433,33 @@ describe('POS Cart Math Engine (from Pos.jsx)', () => {
         const { cartTotal } = computeCartTotals(cart, sale, { ...DEFAULT_SETTINGS, round_off_total: '1' });
         expect(cartTotal).toBe(1235);
     });
+
+    // ── Multi-quantity unit discount (e.g. 32 reduced to 12 on qty=2) ──
+    it('[P-13] Multi-quantity item discount: original $32, price $12, qty 2 → subtotal $64, discount $40, total $24', () => {
+        const cart = [{ original_price: 32, price: 12, discount: 20, qty: 2 }];
+        const sale = { cart, taxRate: 0, discountType: 'fixed', discountValue: 0 };
+        const { subtotal, itemDiscounts, totalDiscounts, cartTotal } = computeCartTotals(cart, sale, DEFAULT_SETTINGS);
+        expect(subtotal).toBe(64);
+        expect(itemDiscounts).toBe(40);
+        expect(totalDiscounts).toBe(40);
+        expect(cartTotal).toBe(24);
+    });
+
+    it('[P-14] Mixed cart with discounted multi-qty item matches line totals sum', () => {
+        const cart = [
+            { original_price: 32, price: 12, discount: 20, qty: 2 }, // 24
+            { price: 12, qty: 1 },                                    // 12
+            { price: 10, qty: 2 },                                    // 20
+            { price: 24.5, qty: 1 },                                  // 24.5
+            { price: 18, qty: 1 },                                    // 18
+        ];
+        const sale = { cart, taxRate: 0, discountType: 'fixed', discountValue: 0 };
+        const { subtotal, itemDiscounts, totalDiscounts, cartTotal } = computeCartTotals(cart, sale, DEFAULT_SETTINGS);
+        expect(subtotal).toBe(138.5);
+        expect(itemDiscounts).toBe(40);
+        expect(totalDiscounts).toBe(40);
+        expect(cartTotal).toBe(98.5);
+    });
 });
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -524,5 +564,26 @@ describe('Manifest Cross-Checks (JS arithmetic vs Golden Company manifest)', () 
     it('[MC-05] settings.js formatCurrency produces 0-decimal output with decimal_places="0"', () => {
         const formatted = formatCurrency(MANIFEST.annual_revenue, { currency: 'PKR', decimal_places: '0' });
         expect(formatted).toBe('Rs. 1,578,430');
+    });
+
+    it('[STOCK-01] isStockMaintenanceEnabled defaults to true when setting is absent or undefined', () => {
+        expect(isStockMaintenanceEnabled({})).toBe(true);
+        expect(isStockMaintenanceEnabled(null)).toBe(true);
+        expect(isStockMaintenanceEnabled(undefined)).toBe(true);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: undefined })).toBe(true);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: null })).toBe(true);
+    });
+
+    it('[STOCK-02] isStockMaintenanceEnabled returns false when explicitly disabled', () => {
+        expect(isStockMaintenanceEnabled({ stock_maintenance: '0' })).toBe(false);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: false })).toBe(false);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: 0 })).toBe(false);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: 'false' })).toBe(false);
+    });
+
+    it('[STOCK-03] isStockMaintenanceEnabled returns true when explicitly enabled', () => {
+        expect(isStockMaintenanceEnabled({ stock_maintenance: '1' })).toBe(true);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: true })).toBe(true);
+        expect(isStockMaintenanceEnabled({ stock_maintenance: 1 })).toBe(true);
     });
 });

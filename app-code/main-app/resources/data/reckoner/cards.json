@@ -21173,5 +21173,588 @@
       "status_reason": null,
       "definition_version": 1
     }
+  },
+  "expenses.recent": {
+    "key": "expenses.recent",
+    "title": "Latest Expenses",
+    "viz": "list",
+    "shape": "list",
+    "module": "expenses",
+    "period": true,
+    "weight": 74,
+    "topic": "expenses",
+    "insight": "The newest entries, in the order they were recorded.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "finance.expenses",
+      "reports.financial"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "On-demand",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 365,
+      "section": "expenses",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "count → **currency**",
+      "target": "Newest 10 expenses in window, by date.",
+      "streams": "EE"
+    },
+    "contract": {
+      "measures": [
+        "expenses.grand_total"
+      ],
+      "projection": "list",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "as_of",
+      "dims": [],
+      "tier": "On-demand",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "purchases.recent": {
+    "key": "purchases.recent",
+    "title": "Latest Purchases",
+    "viz": "list",
+    "shape": "list",
+    "module": "purchases",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "The newest supplier bills, in the order they came in.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "purchases.view"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "On-demand",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 366,
+      "section": "purchases",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Newest 10 purchase bills in window, by date.",
+      "streams": "PL"
+    },
+    "contract": {
+      "measures": [
+        "purchases.spend"
+      ],
+      "projection": "list",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "as_of",
+      "dims": [],
+      "tier": "On-demand",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "payments.recent": {
+    "key": "payments.recent",
+    "title": "Latest Payments",
+    "viz": "list",
+    "shape": "list",
+    "module": "payments",
+    "period": true,
+    "weight": 72,
+    "topic": null,
+    "insight": "The newest money in and out, one line each.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "payment.entries"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "finance.balances",
+      "reports.financial"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "On-demand",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 367,
+      "section": "payments",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Newest 10 payments in window, by date.",
+      "streams": "PE,GL"
+    },
+    "contract": {
+      "measures": [
+        "payments.receipts_total"
+      ],
+      "projection": "list",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "as_of",
+      "dims": [],
+      "tier": "On-demand",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "core.recent_sales": {
+    "key": "core.recent_sales",
+    "title": "Latest Sales",
+    "viz": "list",
+    "shape": "list",
+    "module": null,
+    "period": true,
+    "weight": 78,
+    "topic": "revenue",
+    "insight": "The newest completed sales, from every channel.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "sales.headers"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "On-demand",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 368,
+      "section": "qore",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Newest 10 completed sales in window.",
+      "streams": "GL"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue"
+      ],
+      "projection": "list",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "as_of",
+      "dims": [],
+      "tier": "On-demand",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "marketplace.online_revenue": {
+    "key": "marketplace.online_revenue",
+    "title": "Online Store Revenue",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 82,
+    "topic": "online store",
+    "insight": "What your web shop brought in. Read from the ledger, where each paid order is recorded.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 370,
+      "section": "marketplace_sync",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Σ revenue (4000) of web-shop orders in window.",
+      "streams": "DS"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue"
+      ],
+      "projection": "stat",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "marketplace.online_orders": {
+    "key": "marketplace.online_orders",
+    "title": "Online Orders",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 80,
+    "topic": "online store",
+    "insight": "How many paid web-shop orders were recorded.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 371,
+      "section": "marketplace_sync",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Count of web-shop orders in window.",
+      "streams": "DS"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue"
+      ],
+      "projection": "stat",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "marketplace.online_aov": {
+    "key": "marketplace.online_aov",
+    "title": "Average Online Order",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 78,
+    "topic": "online store",
+    "insight": "What a typical web-shop order is worth.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 372,
+      "section": "marketplace_sync",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Online revenue ÷ online orders.",
+      "streams": "DS"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue"
+      ],
+      "projection": "stat",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "marketplace.online_trend": {
+    "key": "marketplace.online_trend",
+    "title": "Online Revenue Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 80,
+    "topic": "online store",
+    "insight": "Web-shop revenue plotted day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 373,
+      "section": "marketplace_sync",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Web-shop revenue per day.",
+      "streams": "EE,GL"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue"
+      ],
+      "projection": "trend",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "marketplace.recent_orders": {
+    "key": "marketplace.recent_orders",
+    "title": "Latest Online Orders",
+    "viz": "list",
+    "shape": "list",
+    "module": "marketplace_sync",
+    "period": true,
+    "weight": 76,
+    "topic": "online store",
+    "insight": "The newest paid orders from your web shop.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "On-demand",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 374,
+      "section": "marketplace_sync",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "count → **currency**",
+      "target": "Newest 10 web-shop orders in window.",
+      "streams": "EE"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue"
+      ],
+      "projection": "list",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "as_of",
+      "dims": [],
+      "tier": "On-demand",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "core.gross_profit_trend": {
+    "key": "core.gross_profit_trend",
+    "title": "Gross Profit Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 93,
+    "topic": "profit",
+    "insight": "Gross profit (sales minus cost of goods) plotted day by day.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 369,
+      "section": "qore",
+      "today": "Plots GROSS profit, labelled net",
+      "unit_col": "=",
+      "target": "Revenue minus cost of goods, per day.",
+      "streams": "GL"
+    },
+    "contract": {
+      "measures": [
+        "gl.sales_revenue",
+        "gl.cogs"
+      ],
+      "projection": "trend",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [
+        "trend_sums_to_stat"
+      ],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
   }
 }

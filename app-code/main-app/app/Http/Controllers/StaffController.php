@@ -117,11 +117,7 @@ class StaffController extends Controller
         }
 
         // ── Plan Limit Check ───────────────────────────────────────────────
-        // Count active + invited members (pending invites hold a seat)
-        $currentCount = TenantUser::where('tenant_id', $tenant->id)
-            ->whereIn('status', ['active', 'invited'])
-            ->count();
-        \App\Services\PlanGate::enforce('staff_limit', $currentCount);
+        \App\Services\SeatAllocationService::enforceCanAllocate($tenant, 'full');
 
         // Cannot invite an owner (only one owner per store)
         if ($request->role === 'owner') {
@@ -201,7 +197,8 @@ class StaffController extends Controller
             ->where('expires_at', '>', now())
             ->firstOrFail();
 
-        DB::transaction(function () use ($invitation, $request) {
+        $membership = null;
+        DB::transaction(function () use ($invitation, $request, &$membership) {
             // Find or create the user account
             $user = User::firstOrCreate(
                 ['email' => $invitation->email],
@@ -211,23 +208,18 @@ class StaffController extends Controller
                 ]
             );
 
-            // Create the membership
-            TenantUser::create([
-                'tenant_id'                 => $invitation->tenant_id,
-                'user_id'                   => $user->id,
-                'role'                      => $invitation->role,
-                'transaction_approval_mode' => $invitation->transaction_approval_mode ?? 'inherit',
-                'status'                    => 'active',
-                'joined_at'                 => now(),
-            ]);
-
-            // Mark invitation as accepted
-            $invitation->update(['accepted_at' => now()]);
+            // Create/activate the membership and consume invitation atomically
+            $membership = \App\Services\SeatAllocationService::consumeInvitation($invitation, $user);
 
             $user->update(['last_store_id' => $invitation->tenant_id]);
 
             Auth::login($user);
         });
+
+        if ($membership && $membership->isPosStaff()) {
+            return redirect()->route('pos', ['store_slug' => $invitation->tenant->slug])
+                             ->with('success', 'Welcome to the team!');
+        }
 
         return redirect()->route('store.dashboard', ['store_slug' => $invitation->tenant->slug])
                          ->with('success', 'Welcome to the team!');

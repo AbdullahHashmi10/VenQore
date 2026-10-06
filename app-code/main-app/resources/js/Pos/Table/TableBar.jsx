@@ -32,8 +32,9 @@ const TYPE_LABEL = { dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delive
 export function SeatDialog({ position, onCancel, onConfirm, busy }) {
     const tt = useTermText();
     const [covers, setCovers] = useState(Math.max(1, Number(position?.capacity) || 2));
-    const [orderType, setOrderType] = useState('dine_in');
     if (!position) return null;
+
+    const quickCovers = [1, 2, 3, 4, 6, 8];
 
     return (
         <div className="vqt-modal-scrim" onMouseDown={onCancel}>
@@ -41,59 +42,83 @@ export function SeatDialog({ position, onCancel, onConfirm, busy }) {
                 className="vqt-modal bg-surface border border-line"
                 role="dialog"
                 aria-modal="true"
-                aria-label={`Open ${position.label || position.code}`}
+                aria-label={`Seat ${position.label || position.code}`}
                 onMouseDown={e => e.stopPropagation()}
             >
                 <header className="vqt-modal-h">
-                    <h2 className="font-bold text-ink" style={{ fontSize: 'var(--vq-t-lg)' }}>
-                        Open {position.label || position.code}
-                    </h2>
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 border border-teal-200/60 dark:border-teal-800/60 flex items-center justify-center text-teal-600 dark:text-teal-400">
+                            <Utensils size={16} />
+                        </div>
+                        <div>
+                            <h2 className="font-bold text-ink" style={{ fontSize: 'var(--vq-t-lg)' }}>
+                                Seat {position.label || position.code}
+                            </h2>
+                            <span className="text-3xs uppercase tracking-wider font-extrabold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50 border border-teal-200/60 dark:border-teal-800/60 px-2 py-0.5 rounded-full inline-block">
+                                Dine-In Seating
+                            </span>
+                        </div>
+                    </div>
                     <button type="button" onClick={onCancel} className="vqt-icon-btn" aria-label="Cancel">
                         <X size={16} />
                     </button>
                 </header>
 
-                <div className="vqt-modal-b">
-                    <label className="vqt-field">
-                        <span className="vqt-field-l">Covers</span>
-                        <span className="vqt-stepper">
-                            <button type="button" onClick={() => setCovers(c => Math.max(1, c - 1))} aria-label="One fewer cover">
+                <div className="vqt-modal-b space-y-4">
+                    <div className="vqt-field vqt-field-stacked">
+                        <span className="vqt-field-l flex items-center justify-between">
+                            <span>Number of Guests (Covers)</span>
+                            <span className="text-2xs text-ink-muted">Table capacity: {position.capacity || 2}</span>
+                        </span>
+
+                        {/* Quick covers presets */}
+                        <div className="flex items-center gap-1.5 flex-wrap my-1">
+                            {quickCovers.map(n => (
+                                <button
+                                    key={n}
+                                    type="button"
+                                    onClick={() => setCovers(n)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                        covers === n
+                                            ? 'bg-teal-600 text-white shadow-xs ring-2 ring-teal-500/30'
+                                            : 'bg-surface border border-line text-ink hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    }`}
+                                >
+                                    {n} {n === 1 ? 'Guest' : 'Guests'}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Covers Stepper */}
+                        <div className="vqt-stepper mt-2 w-full justify-between">
+                            <button
+                                type="button"
+                                onClick={() => setCovers(c => Math.max(1, c - 1))}
+                                aria-label="One fewer cover"
+                                className="h-10 w-12 flex items-center justify-center rounded-lg bg-surface border border-line hover:bg-slate-100 dark:hover:bg-slate-800 text-ink cursor-pointer"
+                            >
                                 <Minus size={16} />
                             </button>
-                            <input
-                                type="number"
-                                className="vq-num"
-                                value={covers}
-                                min={1}
-                                max={99}
-                                onChange={e => setCovers(Math.max(1, Math.min(99, Number(e.target.value) || 1)))}
-                                aria-label="Covers"
-                            />
-                            <button type="button" onClick={() => setCovers(c => Math.min(99, c + 1))} aria-label="One more cover">
+                            <div className="flex items-center gap-2">
+                                <Users size={16} className="text-teal-600 dark:text-teal-400" />
+                                <input
+                                    type="number"
+                                    className="vq-num text-center font-extrabold text-lg w-20 py-1 border border-line rounded-lg bg-surface text-ink"
+                                    value={covers}
+                                    min={1}
+                                    max={99}
+                                    onChange={e => setCovers(Math.max(1, Math.min(99, Number(e.target.value) || 1)))}
+                                    aria-label="Covers"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setCovers(c => Math.min(99, c + 1))}
+                                aria-label="One more cover"
+                                className="h-10 w-12 flex items-center justify-center rounded-lg bg-surface border border-line hover:bg-slate-100 dark:hover:bg-slate-800 text-ink cursor-pointer"
+                            >
                                 <Plus size={16} />
                             </button>
-                        </span>
-                    </label>
-
-                    <div className="vqt-field vqt-field-stacked">
-                        <span className="vqt-field-l">{tt('Order type')}</span>
-                        <div className="vqt-seg" role="radiogroup" aria-label={tt('Order type')}>
-                            {ORDER_TYPES.map(t => {
-                                const Icon = TYPE_ICON[t.value];
-                                return (
-                                    <button
-                                        key={t.value}
-                                        type="button"
-                                        role="radio"
-                                        aria-checked={orderType === t.value}
-                                        data-on={orderType === t.value ? '1' : '0'}
-                                        onClick={() => setOrderType(t.value)}
-                                    >
-                                        <Icon size={14} aria-hidden="true" />
-                                        {t.label}
-                                    </button>
-                                );
-                            })}
                         </div>
                     </div>
                 </div>
@@ -102,12 +127,12 @@ export function SeatDialog({ position, onCancel, onConfirm, busy }) {
                     <button type="button" className="vqt-btn" onClick={onCancel}>Cancel</button>
                     <button
                         type="button"
-                        className="vqt-btn vqt-btn-go"
+                        className="vqt-btn vqt-btn-go bg-teal-600 hover:bg-teal-700 text-white font-bold"
                         disabled={busy}
-                        onClick={() => onConfirm({ covers, orderType })}
+                        onClick={() => onConfirm({ covers, orderType: 'dine_in' })}
                     >
                         <Check size={16} />
-                        {tt('Open table')}
+                        {tt('Seat Guests & Open Table')}
                     </button>
                 </footer>
             </div>

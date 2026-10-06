@@ -24,6 +24,9 @@ class StaffInvitation extends Model
         'invitee_name',
         'invitee_email',
         'invitee_phone',
+        'membership_type',
+        'pos_capabilities',
+        'assigned_location_id',
         'roles',
         'token',
         'short_code',
@@ -40,12 +43,13 @@ class StaffInvitation extends Model
     ];
 
     protected $casts = [
-        'roles'       => 'array',
-        'metadata'    => 'array',
-        'expires_at'  => 'datetime',
-        'accepted_at' => 'datetime',
-        'approved_at' => 'datetime',
-        'permissions' => 'array',
+        'roles'            => 'array',
+        'pos_capabilities' => 'array',
+        'metadata'         => 'array',
+        'expires_at'       => 'datetime',
+        'accepted_at'      => 'datetime',
+        'approved_at'      => 'datetime',
+        'permissions'      => 'array',
     ];
 
     // ─── Relationships ─────────────────────────────────────────────────
@@ -53,6 +57,11 @@ class StaffInvitation extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function assignedLocation(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class, 'assigned_location_id');
     }
 
     public function inviter(): BelongsTo
@@ -103,6 +112,22 @@ class StaffInvitation extends Model
     public function isExpired(): bool
     {
         return $this->expires_at?->isPast() ?? true;
+    }
+
+    /**
+     * Check if this invite is for POS staff.
+     */
+    public function isPosStaff(): bool
+    {
+        return $this->membership_type === 'pos';
+    }
+
+    /**
+     * Check if this invite is for full staff.
+     */
+    public function isFullStaff(): bool
+    {
+        return $this->membership_type === 'full' || ($this->membership_type === null && ($this->roles[0] ?? $this->role) !== 'cashier');
     }
 
     /**

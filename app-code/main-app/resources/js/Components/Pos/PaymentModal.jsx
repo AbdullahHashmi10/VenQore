@@ -130,8 +130,15 @@ const PaymentModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
-            <div className="bg-surface w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal" onClick={onClose}>
+            <div
+                className="bg-surface w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveMethodDropdownIndex(null);
+                    setActiveAccountDropdownIndex(null);
+                }}
+            >
 
                 {/* Header */}
                 <div className="p-6 border-b border-line flex justify-between items-center bg-sunken/50 dark:bg-surface">
@@ -171,7 +178,11 @@ const PaymentModal = ({
                                     <div className="relative">
                                         <button
                                             type="button"
-                                            onClick={() => setActiveMethodDropdownIndex(activeMethodDropdownIndex === index ? null : index)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setActiveMethodDropdownIndex(activeMethodDropdownIndex === index ? null : index);
+                                                setActiveAccountDropdownIndex(null);
+                                            }}
                                             className="w-full h-12 pl-10 pr-8 bg-app border border-line rounded-xl outline-none focus:ring-2 ring-brand-500/20 font-medium text-ink-secondary dark:text-ink flex items-center justify-between cursor-pointer"
                                         >
                                             <span className="truncate">
@@ -224,7 +235,11 @@ const PaymentModal = ({
                                          <div className="mt-1.5 animate-in slide-in-from-top-1 duration-normal relative">
                                              <button
                                                  type="button"
-                                                 onClick={() => setActiveAccountDropdownIndex(activeAccountDropdownIndex === index ? null : index)}
+                                                 onClick={(e) => {
+                                                     e.stopPropagation();
+                                                     setActiveAccountDropdownIndex(activeAccountDropdownIndex === index ? null : index);
+                                                     setActiveMethodDropdownIndex(null);
+                                                 }}
                                                  className="w-full bg-sunken rounded-lg py-1.5 px-3 text-2xs font-bold text-ink-secondary focus:ring-1 focus:ring-brand-500/50 outline-none flex items-center justify-between cursor-pointer transition-all"
                                              >
                                                  <span>

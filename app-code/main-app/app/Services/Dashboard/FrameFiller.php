@@ -203,6 +203,9 @@ final class FrameFiller
             unset($card);
         }
 
+        $cards = self::applyColourRhythm($cards);
+        $cards = self::applyChartRhythm($cards);
+
         return DashboardSanitizer::sanitize(LayoutLaw::enforceAccentBudget($cards), $availableKeys);
     }
 
@@ -238,5 +241,61 @@ final class FrameFiller
         }
 
         return $businessPool['default'] ?? [];
+    }
+
+    /**
+     * A first dashboard should not be a wall of white. Besides the one mint
+     * accent card, one roomy card is Obsidian and one is Aurora Mesh; the rest
+     * stay on the page surface. Only the first board is seeded this way — every
+     * card stays editable, and a saved choice is never touched again.
+     */
+    private static function applyColourRhythm(array $cards): array
+    {
+        $candidates = [];
+        foreach ($cards as $i => $card) {
+            if (! empty($card['style']['accent'])) {
+                continue;
+            }
+            if (((int) ($card['w'] ?? 0)) * ((int) ($card['h'] ?? 0)) >= 6) {
+                $candidates[] = $i;
+            }
+        }
+        if (count($candidates) >= 2) {
+            $cards[$candidates[1]]['style']['tone'] = 'ink';
+        }
+        if (count($candidates) >= 4) {
+            $cards[$candidates[min(4, count($candidates) - 1)]]['style']['tone'] = 'mesh';
+        }
+
+        return $cards;
+    }
+
+    /**
+     * A first dashboard should not be a wall of numbers. A roomy card whose
+     * reading keeps a day-by-day history opens as a chart — an area, then
+     * columns, alternating — instead of a bare figure. Only readings that
+     * really have a history are drawn this way, so nothing is invented.
+     */
+    private static function applyChartRhythm(array $cards): array
+    {
+        $n = 0;
+        foreach ($cards as $i => $card) {
+            if (! empty($card['style']['family'])) {
+                continue;
+            }
+            $w = (int) ($card['w'] ?? 0);
+            $h = (int) ($card['h'] ?? 0);
+            if ($w < 4 || $h < 3) {
+                continue;
+            }
+            $def = ReckonerRegistry::find($card['reading_key']);
+            $isScalar = $def !== null && ($def['shape']->value ?? null) === 'scalar';
+            if (! $isScalar || CardRegistry::find($card['reading_key'].'_trend') === null) {
+                continue;
+            }
+            $cards[$i]['style']['family'] = ($n++ % 2 === 0) ? 'area' : 'bar';
+        }
+
+        return $cards;
     }
 }

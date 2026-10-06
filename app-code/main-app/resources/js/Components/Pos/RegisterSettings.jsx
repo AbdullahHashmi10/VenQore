@@ -335,11 +335,13 @@ export default function RegisterSettings({
     showCatalogImages, setShowCatalogImages,
     showCatalogStock, setShowCatalogStock,
     hideOutOfStock, setHideOutOfStock,
+    isStockTracking = true,
 
     /* selling */
     enableTax, setEnableTax,
     enableFulfilment, setEnableFulfilment,
     enableFreeQty, setEnableFreeQty,
+    showItemConverter = true, setShowItemConverter,
     roundOff, setRoundOff,
     autoFillCash, setAutoFillCash,
     returnMode, setReturnMode,
@@ -765,16 +767,27 @@ export default function RegisterSettings({
                                             />
                                         </Field>
 
-                                        <Field
-                                            title="Hide out-of-stock products"
-                                            hint="Hides items with zero available stock from the catalog view."
-                                        >
-                                            <Toggle
-                                                checked={!!hideOutOfStock}
-                                                onChange={v => setHideOutOfStock?.(v)}
-                                                label="Hide out-of-stock products"
-                                            />
-                                        </Field>
+                                        {isStockTracking ? (
+                                            <Field
+                                                title="Hide out-of-stock products"
+                                                hint="Hides items with zero available stock from the catalog view."
+                                            >
+                                                <Toggle
+                                                    checked={!!hideOutOfStock}
+                                                    onChange={v => setHideOutOfStock?.(v)}
+                                                    label="Hide out-of-stock products"
+                                                />
+                                            </Field>
+                                        ) : (
+                                            <Field
+                                                title="Unlimited Selling Mode"
+                                                hint="Inventory tracking is disabled for this store. All products remain in stock and visible in All Items."
+                                            >
+                                                <span className="text-2xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-1 rounded-md border border-emerald-200 dark:border-emerald-800 inline-block">
+                                                    All items available
+                                                </span>
+                                            </Field>
+                                        )}
                                     </>
                                 )}
                             </section>
@@ -945,6 +958,13 @@ export default function RegisterSettings({
                                     hint="Adds a free-quantity control to the line that needs it, not a column to every line."
                                 >
                                     <Toggle checked={enableFreeQty} onChange={setEnableFreeQty} label="Free or bonus quantity" />
+                                </Field>
+
+                                <Field
+                                    title="Item Values Calculator (⇆)"
+                                    hint="Shows the button on cart items to open the quick value converter."
+                                >
+                                    <Toggle checked={showItemConverter} onChange={setShowItemConverter} label="Item Values Calculator" />
                                 </Field>
                             </section>
 

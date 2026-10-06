@@ -1405,7 +1405,8 @@
       "purchases.paid_to_suppliers",
       "purchases.by_supplier",
       "purchases.by_category",
-      "purchases.price_increases"
+      "purchases.price_increases",
+      "purchases.recent"
     ],
     "businesses": [
       "appliance_repair",
@@ -1929,7 +1930,8 @@
       "payments.by_method",
       "payments.cash_vs_digital",
       "payments.unallocated",
-      "payments.bounced"
+      "payments.bounced",
+      "payments.recent"
     ],
     "businesses": [
       "appliance_repair",
@@ -2016,7 +2018,8 @@
       "expenses.largest",
       "expenses.recurring_total",
       "expenses.per_day",
-      "expenses.vs_prev"
+      "expenses.vs_prev",
+      "expenses.recent"
     ],
     "businesses": [
       "phone_repair",
@@ -2480,7 +2483,12 @@
       "marketplace.online_vs_offline",
       "marketplace.sync_errors",
       "marketplace.stock_mismatch",
-      "marketplace.channel_margin"
+      "marketplace.channel_margin",
+      "marketplace.online_revenue",
+      "marketplace.online_orders",
+      "marketplace.online_aov",
+      "marketplace.online_trend",
+      "marketplace.recent_orders"
     ],
     "businesses": [],
     "neverOfferTo": [

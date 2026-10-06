@@ -38,6 +38,8 @@ export const KitchenPrintService = {
                     paperWidth,
                     copies: options.copies || 1,
                     printerName: options.printerName,
+                    // Station routes by job: this till's kitchen / bar / takeaway printer, with a backup if it is down.
+                    role: options.role || this.roleFor(kotData),
                 });
 
                 if (result && result.success !== false) {
@@ -73,6 +75,15 @@ export const KitchenPrintService = {
     /**
      * Format structured docket for electron-pos-printer / AMDStation ESC/POS
      */
+    /** Which printer role a ticket belongs to. */
+    roleFor(kot) {
+        const type = String(kot?.order_type_badge || kot?.order_type || '').toLowerCase();
+        const station = String(kot?.station_name || kot?.station || kot?.printer_name || '').toLowerCase();
+        if (/\bbar\b/.test(station)) return 'bar';
+        if (/take\s*-?away|takeout|pickup|pick-up/.test(type)) return 'takeaway';
+        return 'kitchen';
+    },
+
     formatEscPos(kot, { paperWidth, isReprint, isCancellation }) {
         const is58 = paperWidth === '58mm';
         const widthChars = is58 ? 32 : 48;

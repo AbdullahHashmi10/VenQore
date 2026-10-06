@@ -230,4 +230,63 @@ class ChannelLocationStream
             'channel_margin'    => $channelMargin,
         ];
     }
+
+    // ── Online store (WooCommerce orders) ─────────────────────────────────────
+
+    /**
+     * Online-store figures. Web-shop orders are posted straight to the ledger
+     * (one journal entry per order, idempotency key `woo-order-…`, revenue
+     * credited to account 4000), so that is where they are read from — never
+     * from a column that the order poster does not write.
+     *
+     * @return array{revenue: float, orders: int, aov: float, daily: array<string,float>, recent: array}
+     */
+    public function onlineStore(string $from, string $to, int|string $tenantId): array
+    {
+        $tenantId = (string) $tenantId;
+        $base = fn () => DB::table('journal_entries as je')
+            ->join('journal_items as ji', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'a.id', '=', 'ji.account_id')
+            ->where('je.tenant_id', $tenantId)
+            ->where('ji.tenant_id', $tenantId)
+            ->where('a.tenant_id', $tenantId)
+            ->where('a.code', '4000')
+            ->where('je.is_reversed', 0)
+            ->where('je.idempotency_key', 'like', 'woo-order-%')
+            ->whereBetween('je.date', [$from, $to]);
+
+        $tot = $base()->selectRaw('COALESCE(SUM(ji.credit - ji.debit), 0) as revenue, COUNT(DISTINCT je.id) as orders')->first();
+        $revenue = round((float) ($tot->revenue ?? 0), 2);
+        $orders  = (int) ($tot->orders ?? 0);
+
+        $byDay = $base()->selectRaw('je.date as d, SUM(ji.credit - ji.debit) as v')->groupBy('je.date')->pluck('v', 'd')->all();
+        $daily = [];
+        foreach (\Carbon\CarbonPeriod::create($from, $to) as $day) {
+            $k = $day->toDateString();
+            $daily[$k] = round((float) ($byDay[$k] ?? 0), 2);
+        }
+
+        $recent = $base()
+            ->selectRaw('je.id as id, je.reference as reference, je.date as d, SUM(ji.credit - ji.debit) as v')
+            ->groupBy('je.id', 'je.reference', 'je.date')
+            ->orderByDesc('je.date')
+            ->orderByDesc('je.id')
+            ->limit(10)
+            ->get()
+            ->map(fn ($r) => [
+                'id'     => $r->id,
+                'date'   => $r->d,
+                'title'  => 'Order ' . $r->reference,
+                'amount' => round((float) $r->v, 2),
+            ])
+            ->all();
+
+        return [
+            'revenue' => $revenue,
+            'orders'  => $orders,
+            'aov'     => $orders > 0 ? round($revenue / $orders, 2) : 0.0,
+            'daily'   => $daily,
+            'recent'  => $recent,
+        ];
+    }
 }

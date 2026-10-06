@@ -77,4 +77,28 @@ class ExpensesStream
             ])
             ->all();
     }
+
+    /**
+     * The newest expense entries in the window (date, then entry time).
+     */
+    public function recent(string $from, string $to, int|string $tenantId, int $limit = 10): array
+    {
+        return DB::table('expenses as e')
+            ->leftJoin('expense_categories as ec', 'e.expense_category_id', '=', 'ec.id')
+            ->where('e.tenant_id', $tenantId)
+            ->whereBetween('e.date', [$from, $to])
+            ->select('e.id', 'e.date', 'e.description', 'e.reference', 'e.amount', 'ec.name as category')
+            ->orderByDesc('e.date')
+            ->orderByDesc('e.created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($item) => [
+                'id'       => $item->id,
+                'date'     => $item->date,
+                'title'    => $item->description ?: ($item->reference ?: 'Expense'),
+                'amount'   => round((float) $item->amount, 2),
+                'category' => $item->category ?: 'Uncategorised',
+            ])
+            ->all();
+    }
 }

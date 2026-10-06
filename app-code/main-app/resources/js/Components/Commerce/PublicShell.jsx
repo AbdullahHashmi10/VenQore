@@ -82,7 +82,7 @@ export function useCommerceShell() {
 }
 
 /** Shopper shell (VenQore Shops design): uses StorefrontHeader on storefronts, SiteHeader on generic pages. */
-export default function PublicShell({ children, title, bag, storeSlug, ratingSummary, customer }) {
+export default function PublicShell({ children, title, bag, storeSlug, ratingSummary, customer, catalogueTheme = 'visual-grid', catalogueOnly = false, onsite = false }) {
     useCommerceShell();
     const [theme, setTheme] = useState(() => read() || device());
     const [toasts, setToasts] = useState([]);
@@ -116,8 +116,8 @@ export default function PublicShell({ children, title, bag, storeSlug, ratingSum
     }, [bag?.count]);
 
     return (
-        <div className="vqs-shop" data-theme={theme}>
-            <Ambient theme={theme} />
+        <div className={`vqs-shop vqs-template--${catalogueTheme} ${onsite ? 'vqs-catalogue-studio' : ''}`} data-theme={theme} data-customer-mode={catalogueOnly ? 'catalogue' : 'ordering'}>
+            {!onsite && <Ambient theme={theme} />}
             {storeSlug ? (
                 <StorefrontHeader
                     bag={bag ? { ...bag, bump } : undefined}
@@ -125,6 +125,7 @@ export default function PublicShell({ children, title, bag, storeSlug, ratingSum
                     storeSlug={storeSlug}
                     ratingSummary={ratingSummary}
                     customer={customer}
+                    onsite={onsite}
                 />
             ) : (
                 <SiteHeader
@@ -135,7 +136,7 @@ export default function PublicShell({ children, title, bag, storeSlug, ratingSum
             )}
             <main className="vqs-wrap vqs-main" key={title || 'dir'}>{children}</main>
             <footer className="vqs-wrap vqs-foot">
-                Orders are requests to the business and are confirmed by them. Prices and availability are set by each business. <Link href="/order-lookup" style={{ textDecoration: 'underline' }}>Lost your order link?</Link>
+                {onsite ? 'Local catalogue · Orders are sent directly to this business’s POS over its local network.' : catalogueOnly ? 'Prices and availability are set by this business. Contact them to buy or ask about an item.' : <>Orders are requests to the business and are confirmed by them. Prices and availability are set by each business. <Link href="/order-lookup" style={{ textDecoration: 'underline' }}>Lost your order link?</Link></>}
             </footer>
             <div className="vqs-toasts" aria-live="polite">
                 {toasts.map((t) => <div key={t.id} className={`vqs-toast ${t.out ? 'out' : ''}`}><span className="ic"><Check size={16} /></span>{t.text}</div>)}

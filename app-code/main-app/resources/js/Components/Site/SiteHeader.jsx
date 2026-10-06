@@ -263,7 +263,6 @@ export default function SiteHeader({ bag, storeTitle, storeSlug } = {}) {
                             </button>
                         )}
                         <ThemeButton />
-                        <a className="vq-btn-plain vq-sh__link" href="/order-lookup" title="Track an existing order">Track Order</a>
                         <a className="vq-btn-plain vq-sh__link vq-sh__signin" href={accountLink.href}>{accountLink.label}</a>
                         <a className="vq-btn vq-btn--primary vq-sh__cta" href={PRIMARY_CTA.href}>
                             {PRIMARY_CTA.label}

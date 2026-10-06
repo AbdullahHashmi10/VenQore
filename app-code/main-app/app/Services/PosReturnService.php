@@ -98,13 +98,20 @@ class PosReturnService
                 $returnRef   = 'RET-' . strtoupper(uniqid());
                 $tenantId    = $tenant->id;
 
+                $activeShiftId = \App\Models\RegisterShift::where('tenant_id', $tenantId)
+                    ->where('status', 'open')
+                    ->where('opened_by', $user->id)
+                    ->latest('id')
+                    ->value('id');
+
                 $sale = Sale::create([
-                    'tenant_id'        => $tenantId,
-                    'user_id'          => $user->id,
-                    'reference_number' => $returnRef,
-                    'status'           => 'returned',
-                    'payment_status'   => 'paid',
-                    'payment_method'   => $refundMethod,
+                    'tenant_id'         => $tenantId,
+                    'user_id'           => $user->id,
+                    'register_shift_id' => $activeShiftId,
+                    'reference_number'  => $returnRef,
+                    'status'            => 'returned',
+                    'payment_status'    => 'paid',
+                    'payment_method'    => $refundMethod,
                     'subtotal'         => -$returnTotal,
                     'subtotal_gross'   => -$returnTotal,
                     'tax'              => 0,

@@ -35,7 +35,7 @@ class SalesExport implements FromCollection, WithHeadings, WithMapping
             $sale->id,
             $sale->invoice_number,
             $sale->created_at->format('Y-m-d H:i:s'),
-            $sale->party ? $sale->party->name : 'Walk-in Customer',
+            $sale->walk_in_name ?: ($sale->party ? $sale->party->name : 'Walk-in Customer'),
             $sale->total_amount,
             $sale->paid_amount,
             $sale->total_amount - $sale->paid_amount,

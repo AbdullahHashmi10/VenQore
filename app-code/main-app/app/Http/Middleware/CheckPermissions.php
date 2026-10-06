@@ -61,6 +61,17 @@ class CheckPermissions
                 ->with('info', 'You do not have permission to access that area.');
         }
 
+        // If the user is POS staff, redirect them to /pos instead of showing a raw abort
+        if ($membership->isPosStaff()) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'error' => 'Access Denied: POS staff cannot access business management routes.',
+                ], 403);
+            }
+            return redirect()->route('pos', ['store_slug' => $membership->tenant->slug])
+                ->with('error', 'You are restricted to the POS terminal.');
+        }
+
         abort(403, 'Access Denied: You do not have the required permission (' . implode(' or ', $permissions) . ').');
     }
 }

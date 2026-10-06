@@ -1,85 +1,90 @@
+'use strict';
 /**
- * VenQore Station - Preload Bridge (SaaS Edition)
- * Exposes ONLY hardware APIs to the cloud web page.
- * The cloud URL is sealed in main.js — this script does not expose it.
+ * VenQore Station — bridge for the cloud POS page (window.amdAPI).
+ * Every v2 method keeps its name and return shape; v3 adds hardware status,
+ * silent document printing, the customer display and the pole display.
+ * Runs sandboxed: only contextBridge + ipcRenderer, no Node.
  */
-
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('amdAPI', {
+const listen = (channel) => (cb) => {
+    if (typeof cb !== 'function') return () => {};
+    const fn = (_e, v) => { try { cb(v); } catch (err) { console.error('[amdAPI]', channel, err); } };
+    ipcRenderer.on(channel, fn);
+    return () => ipcRenderer.removeListener(channel, fn);
+};
 
-    // ── Identity ───────────────────────────────────────────
-    /** Returns { isAMDStation, version, deviceId, terminalId, platform } */
+const api = {
+    // ── Identity ─────────────────────────────────────────────
     check: () => ipcRenderer.invoke('amd:check'),
-
-    /** Register this terminal's ID (sent by the cloud after login) */
     registerTerminal: (terminalId) => ipcRenderer.send('amd:register-terminal', { terminalId }),
-
-    // ── Preferences (NOT the cloud URL) ───────────────────
-    getPrefs:  ()        => ipcRenderer.invoke('amd:get-prefs'),
+    getPrefs: () => ipcRenderer.invoke('amd:get-prefs'),
     savePrefs: (updates) => ipcRenderer.invoke('amd:save-prefs', updates),
 
-    // ── Printing ───────────────────────────────────────────
-    print:           (data)        => ipcRenderer.invoke('amd:print', data),
-    openDrawer:      (printerName) => ipcRenderer.invoke('amd:drawer', printerName),
-    getPrinters:     ()            => ipcRenderer.invoke('amd:printers'),
-    setDefaultPrinter: (name)      => ipcRenderer.invoke('amd:set-printer', name),
-    testPrint:       ()            => ipcRenderer.invoke('amd:test-print'),
+    // ── Printing ─────────────────────────────────────────────
+    /** { content, printerName?, copies?, paperWidth?, autoCut?, openDrawer? } → { success, error?, mode } */
+    print: (data) => ipcRenderer.invoke('amd:print', data),
+    /** Silent A4/Letter document print: { html, printerName?, pageSize?, copies?, landscape? } */
+    printHtml: (data) => ipcRenderer.invoke('amd:print-html', data),
+    openDrawer: (printerName) => ipcRenderer.invoke('amd:drawer', printerName || null),
+    getPrinters: () => ipcRenderer.invoke('amd:printers'),
+    setDefaultPrinter: (name) => ipcRenderer.invoke('amd:set-printer', name),
+    testPrint: (printerName) => ipcRenderer.invoke('amd:test-print', printerName || null),
+    getPrintHistory: () => ipcRenderer.invoke('amd:print-history'),
+    getPrintRoles: () => ipcRenderer.invoke('amd:print-roles'),
 
-    // ── File Browser (for hardware setup) ──────────────────
-    browseFile: (opts) => ipcRenderer.invoke('amd:browse-file', opts),
+    // ── Live hardware status ─────────────────────────────────
+    getHardwareStatus: () => ipcRenderer.invoke('amd:hardware-status'),
+    onHardwareStatus: listen('amd:hardware-status'),
+    onConnectionChange: listen('amd:connection'),
 
-    // ── Window Controls ────────────────────────────────────
-    close:      () => ipcRenderer.send('amd:window-close'),
+    // ── Window ───────────────────────────────────────────────
+    close: () => ipcRenderer.send('amd:window-close'),
     forceClose: () => ipcRenderer.send('amd:force-close'),
-    reload:     () => ipcRenderer.send('amd:window-reload'),
+    reload: () => ipcRenderer.send('amd:window-reload'),
+    openStationSettings: () => ipcRenderer.send('amd:open-settings'),
+    openExternal: (url) => ipcRenderer.invoke('amd:open-external', url),
+    onExitRequest: listen('amd:request-exit-auth'),
 
-    // ── Exit gate (web app sends back auth result) ─────────
-    onExitRequest: (cb) => {
-        const fn = (_e, v) => cb(v);
-        ipcRenderer.on('amd:request-exit-auth', fn);
-        return () => ipcRenderer.removeListener('amd:request-exit-auth', fn);
-    },
+    // ── COM devices ──────────────────────────────────────────
+    listSerialPorts: () => ipcRenderer.invoke('amd:serial-list'),
+    openScanner: (portPath, baudRate = 9600) => ipcRenderer.invoke('amd:serial-open-scanner', { portPath, baudRate }),
+    openScale: (portPath, baudRate = 9600) => ipcRenderer.invoke('amd:serial-open-scale', { portPath, baudRate }),
+    closeSerial: (device) => ipcRenderer.invoke('amd:serial-close', device),
+    onBarcodeScan: listen('amd:barcode-scan'),
+    /** { weight (kg), value, unit, stable, raw } */
+    onScaleReading: listen('amd:scale-reading'),
+    getWeight: () => ipcRenderer.invoke('amd:scale-weight'),
 
-    // ── COM Port: Scanner ──────────────────────────────────
-    listSerialPorts: ()                        => ipcRenderer.invoke('amd:serial-list'),
-    openScanner:     (portPath, baudRate=9600) => ipcRenderer.invoke('amd:serial-open-scanner', { portPath, baudRate }),
-    openScale:       (portPath, baudRate=9600) => ipcRenderer.invoke('amd:serial-open-scale',   { portPath, baudRate }),
-    closeSerial:     (device)                  => ipcRenderer.invoke('amd:serial-close', device),
+    // ── Customer-facing displays ─────────────────────────────
+    openCustomerDisplay: () => ipcRenderer.invoke('amd:customer-display-open'),
+    closeCustomerDisplay: () => ipcRenderer.invoke('amd:customer-display-close'),
+    /** { mode:'idle'|'cart'|'paid'|'message', storeName, currency, items:[{name,qty,price,total}], subtotal, discount, tax, total, paid, change, message } */
+    updateCustomerDisplay: (state) => ipcRenderer.invoke('amd:customer-display-update', state),
+    poleDisplay: (line1, line2) => ipcRenderer.invoke('amd:pole-display', { line1, line2 }),
 
-    onBarcodeScan: (cb) => {
-        const fn = (_e, b) => cb(b);
-        ipcRenderer.on('amd:barcode-scan', fn);
-        return () => ipcRenderer.removeListener('amd:barcode-scan', fn);
-    },
-
-    onScaleReading: (cb) => {
-        const fn = (_e, d) => cb(d);
-        ipcRenderer.on('amd:scale-reading', fn);
-        return () => ipcRenderer.removeListener('amd:scale-reading', fn);
-    },
-
-    // ── Auto-Updater ───────────────────────────────────────
-    onUpdateAvailable: (cb) => {
-        const fn = (_e, i) => cb(i);
-        ipcRenderer.on('amd:update-available', fn);
-        return () => ipcRenderer.removeListener('amd:update-available', fn);
-    },
-    onUpdateProgress: (cb) => {
-        const fn = (_e, p) => cb(p);
-        ipcRenderer.on('amd:update-progress', fn);
-        return () => ipcRenderer.removeListener('amd:update-progress', fn);
-    },
-    onUpdateReady: (cb) => {
-        const fn = (_e, i) => cb(i);
-        ipcRenderer.on('amd:update-ready', fn);
-        return () => ipcRenderer.removeListener('amd:update-ready', fn);
-    },
+    // ── Updates ──────────────────────────────────────────────
+    onUpdateAvailable: listen('amd:update-available'),
+    onUpdateProgress: listen('amd:update-progress'),
+    onUpdateReady: listen('amd:update-ready'),
     downloadUpdate: () => ipcRenderer.send('amd:download-update'),
-    installUpdate:  () => ipcRenderer.send('amd:install-update'),
+    installUpdate: () => ipcRenderer.send('amd:install-update'),
+};
+
+contextBridge.exposeInMainWorld('amdAPI', Object.freeze(api));
+
+// Serial scanner in "event" mode (keyboard-wedge off): also raise a DOM event
+// so code that listens on window (useBarcodeScannerPort) gets it.
+ipcRenderer.on('amd:barcode-scan', (_e, code) => {
+    window.dispatchEvent(new CustomEvent('amd:barcode-scan', { detail: code }));
+});
+ipcRenderer.on('amd:request-exit-auth', () => {
+    window.dispatchEvent(new CustomEvent('amd:request-exit-auth'));
 });
 
-window.addEventListener('DOMContentLoaded', () => {
-    console.log('[VenQore Station] Hardware bridge ready.');
-    window.dispatchEvent(new CustomEvent('amd-station-ready', { detail: { version: '2.0.0' } }));
+window.addEventListener('DOMContentLoaded', async () => {
+    if (location.protocol === 'about:') return;
+    let detail = { version: null };
+    try { detail = await ipcRenderer.invoke('amd:check'); } catch {}
+    window.dispatchEvent(new CustomEvent('amd-station-ready', { detail }));
 });

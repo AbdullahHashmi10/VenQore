@@ -9,6 +9,7 @@ import {
 import { useDebounce } from 'use-debounce';
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import { isStockMaintenanceEnabled } from '@/Utils/settings';
 
 const SmartCombobox = ({
  items = [],
@@ -41,9 +42,13 @@ const SmartCombobox = ({
  disableLocalFiltering = false,
  hideCostAndMargin = false,
  hideSearchIcon = false,
+ settings: propSettings,
+ isStockTracking: isStockTrackingProp,
  id
 }) => {
- const { store, settings } = usePage().props;
+ const { store, settings: pageSettings } = usePage().props;
+ const settings = propSettings || pageSettings;
+ const isStockTracking = isStockTrackingProp !== undefined ? isStockTrackingProp : isStockMaintenanceEnabled(settings);
  const tt = useTermText();
  const [isOpen, setIsOpen] = useState(false);
  const [internalQuery, setInternalQuery] = useState('');
@@ -349,6 +354,11 @@ const SmartCombobox = ({
                     <Sparkles size={10} /> {duration ? `${duration} min` : tt('Service')}
                 </span>
             );
+        }
+
+        // When inventory tracking is turned off (Unlimited Selling Mode), products never show OUT OF STOCK
+        if (!isStockTracking) {
+            return null;
         }
 
         if (item.stock_quantity === undefined) return null;

@@ -270,7 +270,7 @@ return [
         'store.terminals.*', 'store.devices.*',
         'store.session.eviction-status',
         'store.root', 'store.new-dashboard', 'store.new-dashboard.legacy',
-        'store.api.heartbeat', 'store.api.check-connection',
+        'store.api.heartbeat', 'store.api.check-connection', 'store.api.sync.*',
         'store.backups.*',
         'store.v3.dashboard', 'store.v3.settings.*', 'store.v3.users.*',
         'store.v3.store.*', 'store.v3.error.*',

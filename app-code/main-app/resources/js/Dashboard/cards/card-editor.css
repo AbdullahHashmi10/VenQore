@@ -318,3 +318,13 @@
 @media (prefers-reduced-motion: reduce) {
   .vqe-family, .vqe-handle, .vqe-switch-track i { transition: none; }
 }
+
+/* quick comparisons */
+.vqe-pairs{ display:flex; flex-wrap:wrap; gap:8px; }
+.vqe-pair{ font:inherit; font-size:13px; font-weight:600; cursor:pointer; padding:8px 14px; border-radius:999px;
+  border:1px solid var(--vq-line, rgba(15,23,42,.14)); background: var(--vq-surface, #fff); color: var(--vq-text); transition: all .15s; }
+.vqe-pair:hover{ border-color: var(--vq-teal-400, #3fc9b3); }
+.vqe-pair.is-on{ background: var(--vq-accent-quiet, #e6f7f3); border-color: var(--vq-teal-500, #0baa8f); color: var(--vq-accent-text, #076b5e); }
+
+.vqe-dest-group + .vqe-dest-group{ margin-top:14px; }
+.vqe-dest-gt{ margin:0 0 6px; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; opacity:.6; }

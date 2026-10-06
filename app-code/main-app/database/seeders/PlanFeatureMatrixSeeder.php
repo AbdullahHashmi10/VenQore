@@ -121,6 +121,7 @@ class PlanFeatureMatrixSeeder extends Seeder
         if ($slug === 'ltd_1') {
             if ($key === 'sku_limit') $val = '5000';
             if ($key === 'staff_limit') $val = '1';
+            if ($key === 'pos_staff_limit' || $key === 'till_logins') $val = '1';
             if ($key === 'locations' || $key === 'location_limit') $val = '1';
             if ($key === 'registers') $val = '2';
             if ($key === 'devices_per_seat') $val = '3';
@@ -130,6 +131,7 @@ class PlanFeatureMatrixSeeder extends Seeder
         } elseif ($slug === 'ltd_2') {
             if ($key === 'sku_limit') $val = '25000';
             if ($key === 'staff_limit') $val = '2';
+            if ($key === 'pos_staff_limit' || $key === 'till_logins') $val = '2';
             if ($key === 'locations' || $key === 'location_limit') $val = '2';
             if ($key === 'registers') $val = '4';
             if ($key === 'devices_per_seat') $val = '3';
@@ -139,6 +141,7 @@ class PlanFeatureMatrixSeeder extends Seeder
         } elseif ($slug === 'ltd_3') {
             if ($key === 'sku_limit') $val = '50000';
             if ($key === 'staff_limit') $val = '5';
+            if ($key === 'pos_staff_limit' || $key === 'till_logins') $val = '5';
             if ($key === 'locations' || $key === 'location_limit') $val = '5';
             if ($key === 'registers') $val = '10';
             if ($key === 'devices_per_seat') $val = '3';
@@ -321,7 +324,8 @@ class PlanFeatureMatrixSeeder extends Seeder
             // Core Limits (V11 §1 Table)
             'sku_limit'                  => ['solo' => '500', 'starter' => '5000', 'core' => '25000', 'scale' => '250000'],
             'staff_limit'                => ['solo' => '1', 'starter' => '1', 'core' => '5', 'scale' => '25'],
-            'till_logins'                => ['solo' => '2', 'starter' => null, 'core' => null, 'scale' => null],
+            'pos_staff_limit'            => ['solo' => '0', 'starter' => '1', 'core' => '5', 'scale' => '25'],
+            'till_logins'                => ['solo' => '0', 'starter' => '1', 'core' => '5', 'scale' => '25'],
             'registers'                  => ['solo' => '1', 'starter' => '2', 'core' => '6', 'scale' => '20'],
             'devices_per_seat'           => ['solo' => '2', 'starter' => '3', 'core' => '3', 'scale' => '5'],
             'visible_history_days'       => ['solo' => '30', 'starter' => null, 'core' => null, 'scale' => null],

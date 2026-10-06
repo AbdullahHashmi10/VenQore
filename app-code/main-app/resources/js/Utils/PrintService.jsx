@@ -167,6 +167,46 @@ class PrintService {
         return await this.printInvoice(sale, settings, type);
     }
 
+    /**
+     * Print guest check / pre-bill for a table.
+     */
+    static async printBill({ sale, total, table } = {}, settings = null, type = null) {
+        const resolvedSettings = settings || this.getSettings();
+        const rawItems = sale?.cart || sale?.items || [];
+        const items = rawItems.map((item, idx) => {
+            const qty = Number(item.qty ?? item.quantity ?? 1);
+            const origPrice = Number(item.original_price ?? item.price ?? item.unit_price ?? 0);
+            const unitDisc = Number(item.discount ?? 0);
+            const netPrice = Math.max(0, origPrice - unitDisc);
+            return {
+                ...item,
+                sno: idx + 1,
+                name: item.name || item.product?.name || 'Item',
+                quantity: qty,
+                qty: qty,
+                unit_price: origPrice,
+                price: netPrice,
+                discount_amount: unitDisc * qty,
+                line_total: qty * netPrice,
+            };
+        });
+
+        const billSale = {
+            ...sale,
+            items,
+            cart: items,
+            invoice_no: sale?.invoice_no || sale?.reference_number || (table ? `BILL - ${table.name || table.table_number || ('Table #' + table.id)}` : 'GUEST CHECK'),
+            reference_number: sale?.reference_number || (table ? `Table ${table.name || table.table_number || table.id}` : 'Guest Check'),
+            created_at: sale?.created_at || new Date().toISOString(),
+            subtotal_gross: items.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0),
+            total_item_discounts: items.reduce((sum, i) => sum + (i.discount_amount || 0), 0),
+            total: total !== undefined ? total : (sale?.total || items.reduce((sum, i) => sum + (i.line_total || 0), 0)),
+            is_bill: true,
+        };
+
+        return await this.printInvoice(billSale, resolvedSettings, type);
+    }
+
     static async resolvePrintTarget(settings, requestedType = null, options = {}) {
         let printerName = options.printerName;
         let receiptPrinter = Boolean(printerName);
@@ -590,15 +630,18 @@ class PrintService {
             businessPhone: settings.business_phone,
             currencySymbol: getCurrencySymbol(settings) + ' ',
             invoiceNumber: sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id,
+            ticketCode: sale.ticket_code || sale.token_no || sale.order_number || (sale.table ? (sale.table.name || sale.table.code || 'Table ' + sale.table.id) : (sale.reference_number || sale.invoice_no || null)),
             date: sale.created_at || new Date().toLocaleString(),
             customerName: sale.customer?.name || 'Walk-in Customer',
             items: items.map(item => {
                 const qty = Number(item.quantity ?? item.qty ?? 1);
-                const price = Number(item.unit_price ?? item.price ?? 0);
+                const price = Number(item.original_price ?? item.unit_price ?? item.price ?? 0);
+                const netPrice = Number(item.price ?? item.unit_price ?? price);
+                const discount = Number(item.discount_amount ?? (item.original_price && item.price && Number(item.original_price) > Number(item.price) ? (Number(item.original_price) - Number(item.price)) * qty : (item.discount ? Number(item.discount) * qty : 0)));
                 return {
                     name: item.product?.name || item.name || item.description || 'Item',
                     qty, price: money(price),
-                    total: money(item.net_amount ?? (item.line_total != null ? Number(item.line_total) - Number(item.tax_amount ?? 0) : qty * price - Number(item.discount_amount ?? 0))),
+                    total: money(item.net_amount ?? (item.line_total != null ? Number(item.line_total) - Number(item.tax_amount ?? 0) : qty * netPrice - discount)),
                 };
             }),
             subtotal: money(sale.subtotal_gross ?? sale.subtotal ?? items.reduce((sum, item) => sum + Number(item.quantity ?? item.qty ?? 1) * Number(item.unit_price ?? item.price ?? 0), 0)),

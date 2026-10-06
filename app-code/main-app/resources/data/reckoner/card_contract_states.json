@@ -293,7 +293,17 @@
         "staff.hours_worked",
         "staff.attendance_rate",
         "staff.sales_by_staff",
-        "staff.revenue_per_staff"
+        "staff.revenue_per_staff",
+        "expenses.recent",
+        "purchases.recent",
+        "payments.recent",
+        "core.recent_sales",
+        "marketplace.online_revenue",
+        "marketplace.online_orders",
+        "marketplace.online_aov",
+        "marketplace.online_trend",
+        "marketplace.recent_orders",
+        "core.gross_profit_trend"
     ],
     "unimplemented": [
         "park.recalled_count",

@@ -17,23 +17,45 @@ class PosSaleController extends Controller
         $tenant = app('current.tenant');
         $user = auth()->user();
 
-        // 1. Server-Side Shift Verification (Never trust client claims)
+        // 1. Server-Side Shift & Capability Verification (Never trust client claims)
+        $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $isPosStaff = $membership?->isPosStaff() ?? false;
+        $isOwner = ($membership?->role === 'owner') || $user->isPlatformAdmin();
+
+        if ($isPosStaff && !$membership->hasPosCapability(\App\Models\TenantUser::CAP_TAKE_PAYMENTS)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your POS staff role does not have permission to take payments and complete checkout.',
+            ], 403);
+        }
+
         $registerId = $request->input('register_id');
         $shiftQuery = RegisterShift::where('tenant_id', $tenant->id)
-            ->where('status', 'open')
-            ->where('opened_by', $user->id);
+            ->where('status', 'open');
 
-        if ($registerId) {
-            $shiftQuery->where('register_id', $registerId);
+        if ($isOwner) {
+            // Owners have no mandatory personal shift; they can use an open station shift or owner session
+            if ($registerId) {
+                $shiftQuery->where('register_id', $registerId);
+            }
+        } else {
+            // POS staff must have their own open shift
+            $shiftQuery->where('opened_by', $user->id);
+            if ($registerId) {
+                $shiftQuery->where('register_id', $registerId);
+            }
         }
 
         $openShift = $shiftQuery->latest('id')->first();
-        $isTrustedPos = ($openShift !== null);
+        $isTrustedPos = ($openShift !== null || $isOwner);
 
-        if (!$isTrustedPos) {
+        if (!$isOwner && !$openShift) {
             return response()->json([
                 'success' => false,
-                'message' => 'POS Checkout requires an active, open cash register shift for the current cashier.',
+                'message' => 'POS Checkout requires an active, open shift for the current cashier.',
                 'errors'  => [
                     'register_shift' => ['No open register shift found for this cashier in the current store. Please open a shift before checkout.'],
                 ],
@@ -49,12 +71,21 @@ class PosSaleController extends Controller
             return $item;
         })->all();
 
-        $request->merge([
+        $mergeData = [
             'items' => $items,
-            'register_shift_id' => $openShift->id,
-            'register_id' => $openShift->register_id,
             'source' => 'pos',
-        ]);
+        ];
+
+        if ($openShift) {
+            $mergeData['register_shift_id'] = $openShift->id;
+            $mergeData['register_id'] = $openShift->register_id;
+        }
+
+        if ($request->filled('order_taker_id')) {
+            $mergeData['order_taker_id'] = $request->input('order_taker_id');
+        }
+
+        $request->merge($mergeData);
         $request->attributes->set('trusted_pos_verified', true);
 
         $response = app(SaleController::class)->store($request);

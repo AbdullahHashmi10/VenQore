@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { BadgePercent, Bell, ChevronDown, ChevronRight, ExternalLink, Eye, LayoutDashboard, Package, Settings2, ShoppingBag, Store } from 'lucide-react';
+import { BadgePercent, Bell, ChevronDown, ChevronRight, ExternalLink, Eye, LayoutDashboard, Package, QrCode, Settings2, ShoppingBag, Store } from 'lucide-react';
 import { ORDER_ALERT_EVENT } from '@/Components/Commerce/OrderAlertWatcher';
 
 
 /** Online Store sub-navigation + the alert state supplied by the global watcher. */
 export default function StoreTabs({ active, urls, status, action }) {
     const [open, setOpen] = useState(false);
-    const { flash } = usePage().props;
+    const page = usePage();
+    const { flash } = page.props;
+    const storePrefix = page.url?.match(/^\/s\/[^/?#]+/)?.[0];
+    const catalogueHref = urls?.catalogue || (storePrefix ? `${storePrefix}/online-store/catalogue` : null);
     const [alerts, setAlerts] = useState({ unread: 0, latest: [] });
 
     useEffect(() => {
@@ -21,6 +24,7 @@ export default function StoreTabs({ active, urls, status, action }) {
         ['orders', 'Orders', urls?.orders, ShoppingBag],
         ['products', 'Products', urls?.products, Package],
         ['promotions', 'Offers', urls?.promotions, BadgePercent],
+        ['catalogue', 'Onsite Catalogue', catalogueHref, QrCode],
         ['settings', 'Settings', urls?.settings, Settings2],
     ].filter(([, , href]) => !!href);
     const live = status === 'published';

@@ -17,6 +17,7 @@ import {
     ShoppingCart,
     Receipt,
     Printer,
+    Scale as ScaleIcon,
     Package,
     Plus,
     X,
@@ -51,18 +52,19 @@ import {
     Maximize2,
     Minimize2,
     AlertTriangle,
-    Lock
+    Lock,
+    Landmark,
+    Tv
 } from 'lucide-react';
 import axios from 'axios';
 import { handleApprovalResponse } from '@/lib/approval-response';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
-import { getProductPrice, shouldStopNegativeStock, roundTotal } from '@/Utils/settings';
+import { getProductPrice, shouldStopNegativeStock, roundTotal, isStockMaintenanceEnabled } from '@/Utils/settings';
 import { db } from '@/Utils/db';
 import { AMDStation, useAMDStation } from '@/Utils/AMDStation';
 
-import Toast from '@/Components/Toast';
 import AlertModal from '@/Components/AlertModal';
 import ConfirmModal from '@/Components/ConfirmModal';
 import InputModal from '@/Components/InputModal';
@@ -118,6 +120,7 @@ const POSInterface = ({
     kitchen: initialKitchen = 0,
 }) => {
     const { auth, store, modules = [] } = usePage().props;
+    const isPosStaff = Boolean(!auth?.user?.is_owner && auth?.user?.role !== 'owner' && (auth?.user?.is_pos_staff || auth?.user?.membership_type === 'pos'));
 
     /* ── WHICH TERMINAL THIS IS ───────────────────────────────────────────
        This used to be whichever URL you arrived on: /pos was a counter and
@@ -161,19 +164,22 @@ const POSInterface = ({
        moment between that POST and the `settings` prop coming back, so the
        "stranded till" effect below does not yank the operator to the counter
        in the half-second before the server's answer arrives. */
-    const [tablesForced, setTablesForced] = useState(false);
+    const [tablesForced, setTablesForced] = useState(() => {
+        try {
+            const want = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('view') : null;
+            if (want === 'floor') return true;
+        } catch (_) {}
+        return initialTerminal === 'table';
+    });
     const tablesAvailable = storeRunsTables || tablesForced;
 
     const [terminal, setTerminalState] = useState(() => {
-        if (!tablesAvailable) return 'counter';
-        /* An explicit ?view= wins over the remembered choice: it is how the
-           Tables nav entry and the setup wizard say "open on the floor", and a
-           request made this second outranks one made last week. */
         try {
-            const want = new URLSearchParams(window.location.search).get('view');
+            const want = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('view') : null;
             if (want === 'floor') return 'table';
             if (want === 'counter') return 'counter';
         } catch (_) { /* no window, or a URL we cannot parse */ }
+        if (!tablesAvailable) return 'counter';
         try {
             const saved = localStorage.getItem('pos_terminal_v1');
             if (saved === 'table' || saved === 'counter') return saved;
@@ -196,7 +202,12 @@ const POSInterface = ({
         let want = null;
         try { want = new URLSearchParams(window.location.search).get('view'); } catch (_) { return; }
         if (want !== 'floor' && want !== 'counter') return;
-        setTerminal(want === 'floor' ? 'table' : 'counter');
+        if (want === 'floor') {
+            setTablesForced(true);
+            setTerminal('table');
+        } else {
+            setTerminal('counter');
+        }
     }, [setTerminal]);
 
     /* A store that turns table service OFF must not leave a till stranded on a
@@ -213,6 +224,11 @@ const POSInterface = ({
     // this only ever REMOVES a control whose owning module the tenant
     // switched off; it never adds a permission check that wasn't there.
     const modulesEnabled = new Set(Array.isArray(modules) ? modules : []);
+    // The POS never depends on the Customers module. With it off there is no
+    // customer search at all (and no call to the customers API, which the module
+    // gate would answer with a redirect to the builder): every sale is a walk-in
+    // with an optional name to call out.
+    const customersOn = Array.isArray(modules) && modules.length ? modules.includes('customers') : true;
     const userRole = auth.user?.role;
     const userPerms = auth.user?.permissions || [];
     const hasDiscountPerm = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userPerms.some(p => p === 'pos.discounts' || p.startsWith('pos.discounts.'));
@@ -240,22 +256,25 @@ const POSInterface = ({
         removePosSession
     } = useWorkspace();
     // [VOT] UI State & Standard Hooks
-    const [toasts, setToasts] = useState([]);
     /* The printer indicator claimed "hardware connected" from `isConnected`
        alone -- which only says the AMD Station bridge is running, not that a
        printer exists behind it. The hook has always returned the real printer
        list; nothing read it. A station with no printer attached now reads as
        "no printer", which is the thing the cashier actually needs to know
        before they promise someone a receipt. */
-    const { isConnected: isStationConnected, printers: stationPrinters = [] } = useAMDStation();
+    const { isConnected: isStationConnected, printers: stationPrinters = [], hardware: stationHardware, printerProblem, problemFor } = useAMDStation();
+    /* Station 3 reports the printer's real state (offline, out of paper, cover open). */
+    const scaleLinked = !!(stationHardware?.serial?.scale?.connected);
     const printerCount = Array.isArray(stationPrinters) ? stationPrinters.length : 0;
-    const printerReady = isStationConnected && printerCount > 0;
-    const printerState = !isStationConnected ? 'no-station' : printerCount === 0 ? 'no-printer' : 'ready';
+    const printerReady = isStationConnected && printerCount > 0 && !printerProblem;
+    const printerState = !isStationConnected ? 'no-station' : printerCount === 0 ? 'no-printer' : printerProblem ? 'problem' : 'ready';
     const printerLabel = printerState === 'ready'
         ? `${printerCount} printer${printerCount === 1 ? '' : 's'} ready`
-        : printerState === 'no-printer'
-            ? 'Station running, no printer found'
-            : 'No station — receipts print through the browser';
+        : printerState === 'problem'
+            ? printerProblem
+            : printerState === 'no-printer'
+                ? 'Station running, no printer found'
+                : 'No station — receipts print through the browser';
     const [alertState, setAlertState] = useState({ show: false, title: '', message: '', type: 'info' });
     const [confirmState, setConfirmState] = useState({ show: false, title: '', message: '', onConfirm: () => { } });
     const [inputState, setInputState] = useState({ show: false, title: '', placeholder: '', onSubmit: () => { } });
@@ -301,14 +320,11 @@ const POSInterface = ({
 
     // UI Helpers
     const addToast = (message, type = 'info') => {
-        const id = Date.now();
-        setToasts(prev => [...prev, { id, message, type }]);
+        if (!message) return;
+        window.dispatchEvent(new CustomEvent('amd:toast', {
+            detail: { message, type }
+        }));
     };
-    useEffect(() => {
-        const handler = event => setToasts(prev => [...prev, { id: Date.now(), message: event.detail.message, type: event.detail.type || 'error' }]);
-        window.addEventListener('amd:toast', handler);
-        return () => window.removeEventListener('amd:toast', handler);
-    }, []);
     const showAlert = (title, message, type = 'error') => setAlertState({ show: true, title, message, type });
     const showConfirm = (title, message, onConfirm, isDangerous = false) => setConfirmState({ show: true, title, message, onConfirm, isDangerous });
     const showInput = (title, placeholder, onSubmit) => setInputState({ show: true, title, placeholder, onSubmit });
@@ -324,10 +340,10 @@ const POSInterface = ({
         }
     };
 
-    // Register Shift & Cash Drawer State (R20)
+    // Register Shift & Cash Drawer State (R20) — restricted POS staff only
     const [registerShift, setRegisterShift] = useState(null);
     const [shiftMetrics, setShiftMetrics] = useState(null);
-    const [isShiftLoading, setIsShiftLoading] = useState(true);
+    const [isShiftLoading, setIsShiftLoading] = useState(isPosStaff);
     const [showOpenShiftModal, setShowOpenShiftModal] = useState(false);
     const [showCloseShiftModal, setShowCloseShiftModal] = useState(false);
     const [showCashMovementModal, setShowCashMovementModal] = useState(false);
@@ -336,6 +352,12 @@ const POSInterface = ({
     const [shiftMenuOpen, setShiftMenuOpen] = useState(false);
 
     const fetchCurrentShift = React.useCallback(async () => {
+        if (!isPosStaff) {
+            setIsShiftLoading(false);
+            setRegisterShift(null);
+            setShiftMetrics(null);
+            return;
+        }
         try {
             const res = await axios.get(route('store.shifts.current', { store_slug: store?.slug }));
             if (res.data?.has_open_shift && res.data?.shift) {
@@ -350,7 +372,7 @@ const POSInterface = ({
         } finally {
             setIsShiftLoading(false);
         }
-    }, [store?.slug]);
+    }, [store?.slug, isPosStaff]);
 
     useEffect(() => {
         fetchCurrentShift();
@@ -419,16 +441,18 @@ const POSInterface = ({
     useEffect(() => {
         if (recalledSale) {
             const mappedCart = recalledSale.items.map(item => {
-                const itemDiscount = parseFloat(item.discount_amount || item.discount || 0);
+                const qty = parseFloat(item.quantity) || 1;
+                const rowDiscount = parseFloat(item.discount_amount || item.discount || 0);
+                const unitDiscount = qty > 0 ? (rowDiscount / qty) : rowDiscount;
                 const unitPrice = parseFloat(item.unit_price || 0);
                 return {
                     cartItemId: `${item.product_id}-${item.product_variant_id || ''}`,
                     id: item.product_id,
                     variant_id: item.product_variant_id,
                     name: item.product.name + (item.product_variant ? ` (${item.product_variant.sku})` : ''),
-                    price: unitPrice - itemDiscount, // Net price
-                    original_price: unitPrice, // Gross price
-                    discount: itemDiscount, // Row discount
+                    price: Math.max(0, unitPrice - unitDiscount), // Net price per unit
+                    original_price: unitPrice, // Gross price per unit
+                    discount: unitDiscount, // Unit discount
                     qty: parseFloat(item.quantity),
                     freeQuantity: parseFloat(item.free_quantity || 0),
                     stock: 9999,
@@ -469,6 +493,16 @@ const POSInterface = ({
     const [approvalRequest, setApprovalRequest] = useState(null);
     const [lastSale, setLastSale] = useState(null); // For receipt
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    /* Tell the cashier about a printer problem BEFORE the customer has paid, once per problem —
+       not as a failed print after the sale. The sale itself is never blocked. */
+    const warnedPrinterRef = useRef(null);
+    useEffect(() => {
+        if (!paymentModalOpen) { warnedPrinterRef.current = null; return; }
+        if (printerProblem && warnedPrinterRef.current !== printerProblem) {
+            warnedPrinterRef.current = printerProblem;
+            addToast(`Receipt printer: ${printerProblem}. The sale will still save.`, 'warning');
+        }
+    }, [paymentModalOpen, printerProblem]);
 
     // Recent Invoices feature state
     const [recentInvoices, setRecentInvoices] = useState([]);
@@ -670,6 +704,12 @@ const POSInterface = ({
         try { localStorage.setItem('pos_open_drawer_on_cash', String(v)); } catch (_) {}
     };
 
+    const [showItemConverter, setShowItemConverterState] = useState(() => readLocalBool('pos_show_item_converter', true));
+    const setShowItemConverter = (v) => {
+        setShowItemConverterState(v);
+        try { localStorage.setItem('pos_show_item_converter', String(v)); } catch (_) {}
+    };
+
     /* Interface scale is applied as a CSS custom property on the terminal, and
        the layout engine is fed the scaled box -- so a pane that can no longer
        hold its own contents at 130% demotes to a button rather than clipping,
@@ -775,7 +815,7 @@ const POSInterface = ({
     };
 
     const [preparesOrders, setPreparesOrdersState] = useState(
-        () => (settings?.prepares_orders ?? '0') === '1'
+        () => (settings?.prepares_orders ?? '1') === '1'
     );
 
     const savePreparesOrders = async (enabled) => {
@@ -928,7 +968,7 @@ const POSInterface = ({
         setPriceDraft(null);
         if (!Number.isFinite(n) || n < 0) return;
         if (n === Number(item.price)) return;
-        const base = Number(item.original_price ?? item.price);
+        const base = Math.max(Number(item.original_price ?? item.price), n);
         updateActiveSale({
             cart: activeSale.cart.map(l => (l.cartItemId === item.cartItemId
                 ? { ...l, price: n, original_price: base, discount: Math.max(0, base - n) }
@@ -1009,8 +1049,8 @@ const POSInterface = ({
        tab; a dark kitchen sees only those. Both come off the same store
        settings the Floor Builder writes. */
     const lanes = {
-        takeaway: String(settings?.lane_takeaway ?? '0') === '1',
-        delivery: String(settings?.lane_delivery ?? '0') === '1',
+        takeaway: String(settings?.lane_takeaway ?? '1') !== '0',
+        delivery: String(settings?.lane_delivery ?? '1') !== '0',
     };
 
     const tables = useTableService({
@@ -1106,6 +1146,25 @@ const POSInterface = ({
         });
     }, [tableMode, tables.selectedId, tables.selected?.occupancy_id]);
 
+    /* A QR order can arrive while this same table is already open on the
+       register. The ordinary poll deliberately does not replace an open cart,
+       because doing so would erase a waiter's unsaved edits. Merge only lines
+       whose stable server line id is not present locally; this makes the new
+       customer order appear without disturbing anything staff are typing. */
+    useEffect(() => {
+        if (!tableMode) return;
+        const t = tables.selected;
+        if (!t?.occupancy_id || loadedOccupancy.current !== t.occupancy_id || Number(t.customer_pending) < 1) return;
+        const localIds = new Set(activeSale.cart.map((line) => line.lineId || line.cartItemId));
+        const arrived = (t.cart || [])
+            .filter((line) => line.customer_pending && !localIds.has(line.line_id))
+            .map(serverLineToCart);
+        if (!arrived.length) return;
+        const merged = [...activeSale.cart, ...arrived];
+        tables.prime(merged);
+        updateActiveSale({ cart: merged });
+    }, [tableMode, tables.selected?.occupancy_id, tables.selected?.customer_pending, tables.selected?.cart, activeSale.cart]);
+
     /* …and every edit to it saves back, debounced. */
     useEffect(() => {
         if (!tableMode) return;
@@ -1122,7 +1181,7 @@ const POSInterface = ({
     const backToFloor = () => {
         loadedOccupancy.current = null;
         tables.select(null);
-        updateActiveSale({ cart: [], cashReceived: '', customer: null, remarks: '' });
+        updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
     };
 
     /* One entry point for the floor, because a table's state decides what
@@ -1159,9 +1218,40 @@ const POSInterface = ({
         if (pos) {
             loadedOccupancy.current = pos.occupancy_id;
             tables.prime([]);
-            updateActiveSale({ cart: [], cashReceived: '', customer: null, remarks: '' });
+            updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
             setOpenSheet(null);
         }
+    };
+
+    const openingLaneRef = useRef(null);
+    /* In table service mode, if an operator adds an item without picking a table,
+       automatically open a Takeaway lane ticket. This allows swift counter sales
+       without blocking staff or occupying physical dining tables. */
+    const ensureActiveOrder = async (orderType = 'takeaway') => {
+        if (!tableMode || tables.selected) return tables.selected;
+        if (openingLaneRef.current) {
+            return openingLaneRef.current;
+        }
+        const promise = (async () => {
+            try {
+                const ticket = await tables.openLane(orderType);
+                if (ticket) {
+                    loadedOccupancy.current = ticket.occupancy_id;
+                    tables.prime([]);
+                    updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
+                    return ticket;
+                }
+            } catch (err) {
+                console.error('Failed to auto-create takeaway ticket:', err);
+                addToast('Could not start takeaway order. Please select a table or ticket.', 'error');
+                return null;
+            } finally {
+                openingLaneRef.current = null;
+            }
+            return null;
+        })();
+        openingLaneRef.current = promise;
+        return promise;
     };
 
     /* Firing must never send a stale order: the debounce is flushed first, so
@@ -1177,24 +1267,23 @@ const POSInterface = ({
         if (res) {
             /* The lines are now the kitchen's. Marking them here rather than
                waiting for the next poll keeps the Fire button honest between
-               the tap and the refresh. */
-            updateActiveSale({ cart: activeSale.cart.map(l => ({ ...l, sent: true })) });
-            if (res.kot) {
-                KitchenPrintService.printKOT(res.kot);
-            }
+               the tap and the refresh. Note: sendToKitchen already handles KOT printing. */
+            updateActiveSale({
+                cart: activeSale.cart.map(l => ({ ...l, sent: true, sent_qty: Number(l.qty) || 1 })),
+            });
         }
     };
 
     const [firingCounter, setFiringCounter] = useState(false);
     const handleCounterFire = async () => {
-        const unsent = activeSale.cart.filter(l => !l.sent);
+        const unsent = activeSale.cart.filter(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0));
         if (unsent.length === 0) return;
         setFiringCounter(true);
         try {
             const { data } = await axios.post(route('store.tables.kitchen.counter-fire', { store_slug: store?.slug }), {
                 cart: activeSale.cart.map(cartLineToServer),
                 order_type: activeSale.order_type || 'takeaway',
-                customer_name: activeSale.customer?.name || null,
+                customer_name: activeSale.customer?.name || (activeSale.walkInName || '').trim() || null,
                 phone: activeSale.customer?.phone || null,
                 note: activeSale.remarks || activeSale.notes || '',
                 party_id: activeSale.customer?.id || null,
@@ -1205,7 +1294,8 @@ const POSInterface = ({
                 KitchenPrintService.printKOT(data.kot);
             }
             updateActiveSale({
-                cart: activeSale.cart.map(l => ({ ...l, sent: true })),
+                ticket_code: data?.ticket_code || activeSale.ticket_code,
+                cart: activeSale.cart.map(l => ({ ...l, sent: true, sent_qty: Number(l.qty) || 1 })),
             });
             addToast(`${data?.sent || unsent.length} item${(data?.sent || unsent.length) === 1 ? '' : 's'} sent to kitchen`, 'success');
         } catch (err) {
@@ -1215,8 +1305,6 @@ const POSInterface = ({
         }
     };
 
-    /* Dropping the check. Not a printer call -- it records that the bill is
-       with the guest, which starts the clock the floor turns into an alarm. */
     const dropCheck = async () => {
         const t = tables.selected;
         if (!t?.occupancy_id) return;
@@ -1224,11 +1312,12 @@ const POSInterface = ({
         const res = await tables.dropCheck(t.occupancy_id, already);
         if (res) {
             addToast(already ? 'Bill taken back' : 'Bill dropped — the pay clock is running', 'info');
-            if (!already && printOnComplete) {
-                /* If the station prints, print it. If it does not, the state is
-                   still recorded, because the thing that matters to the floor
-                   is that the guest has the bill -- not that a printer agreed. */
-                try { PrintService.printBill?.({ sale: activeSale, total: cartTotal, table: t }); } catch (_) {}
+            if (!already) {
+                try {
+                    await PrintService.printBill({ sale: activeSale, total: cartTotal, table: t }, store || settings);
+                } catch (err) {
+                    console.error('[POS] Failed to print bill:', err);
+                }
             }
         }
     };
@@ -1259,7 +1348,7 @@ const POSInterface = ({
             const ok = await tables.closeTable(t.occupancy_id, force);
             if (ok) {
                 loadedOccupancy.current = null;
-                updateActiveSale({ cart: [], cashReceived: '', customer: null, remarks: '' });
+                updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
                 addToast(`${t.label || t.code} is free`, 'success');
             }
         };
@@ -1613,10 +1702,18 @@ const POSInterface = ({
         const newQty = parseFloat(qty);
         if (isNaN(newPrice) || newPrice < 0 || isNaN(newQty) || newQty <= 0) { addToast('Invalid values', 'error'); return; }
         // Stock check
+        const isStockTracking = isStockMaintenanceEnabled(settings);
         const allowNegative = !shouldStopNegativeStock(settings);
-        if (newQty > item.stock && !item.has_manufacturing_rule && !allowNegative) { addToast('Not enough stock!', 'error'); return; }
+        if (isStockTracking && newQty > item.stock && !item.has_manufacturing_rule && !allowNegative) { addToast('Not enough stock!', 'error'); return; }
         const newCart = activeSale.cart.map(i =>
-            i.cartItemId === item.cartItemId ? { ...i, price: newPrice, original_price: newPrice, qty: newQty, discount: 0 } : i
+            i.cartItemId === item.cartItemId ? {
+                ...i,
+                price: newPrice,
+                original_price: newPrice,
+                qty: newQty,
+                discount: 0,
+                sent: i.sent_qty ? newQty <= i.sent_qty : false,
+            } : i
         );
         updateActiveSale({ cart: newCart });
         setConverterModal({ show: false, item: null, mode: 'price', price: '', qty: '', total: '' });
@@ -1696,6 +1793,9 @@ const POSInterface = ({
     const customerDropdownRef = useRef(null);
     const cartListRef = useRef(null);
     const cashReceivedInputRef = useRef(null);
+    const shiftMenuRef = useRef(null);
+    const paymentDropdownRef = useRef(null);
+    const bankAccountDropdownRef = useRef(null);
 
     // Sync local sales to context
     useEffect(() => {
@@ -1749,7 +1849,8 @@ const POSInterface = ({
     // Filtered & Sorted Catalog Products (Instant client-side sorting)
     const sortedCategoryProducts = React.useMemo(() => {
         let list = Array.isArray(categoryProducts) ? [...categoryProducts] : [];
-        if (hideOutOfStock) {
+        const isStockTracking = isStockMaintenanceEnabled(settings);
+        if (hideOutOfStock && isStockTracking) {
             list = list.filter(p => {
                 const isService = p.type === 'service' || p.is_service || p.item_type === 'service';
                 if (isService) return true;
@@ -1775,7 +1876,7 @@ const POSInterface = ({
             default:
                 return list.sort((a, b) => (Number(b.recent_sold || 0)) - (Number(a.recent_sold || 0)));
         }
-    }, [categoryProducts, catalogSort, hideOutOfStock]);
+    }, [categoryProducts, catalogSort, hideOutOfStock, settings]);
 
     // Customer search debounce
     useEffect(() => {
@@ -1793,19 +1894,64 @@ const POSInterface = ({
     const loadRecentInvoices = async () => {
         setLoadingRecent(true);
         try {
-            const res = await fetch('/api/pos/recent-sales', {
-                headers: { 'Accept': 'application/json' }
-            });
-            const data = await res.json();
-            if (data.status === 'success') {
-                setRecentInvoices(data.data);
+            const res = await axios.get(route('store.pos.recent-sales', { store_slug: store?.slug }));
+            if (res.data?.status === 'success' && Array.isArray(res.data?.data)) {
+                setRecentInvoices(res.data.data);
             }
         } catch (e) {
-            console.error(e);
+            console.error('[POS] loadRecentInvoices error:', e);
             addToast('Failed to fetch recent invoices', 'error');
         } finally {
             setLoadingRecent(false);
         }
+    };
+
+    const handleRecallRecentSale = (sale) => {
+        if (!sale || !Array.isArray(sale.items) || sale.items.length === 0) {
+            addToast('Cannot recall: sale has no items', 'warning');
+            return;
+        }
+        const mappedCart = sale.items.map(item => {
+            const qty = parseFloat(item.quantity) || 1;
+            const rowDiscount = parseFloat(item.discount_amount || item.discount || 0);
+            const unitDiscount = qty > 0 ? (rowDiscount / qty) : rowDiscount;
+            const unitPrice = parseFloat(item.unit_price || 0);
+            return {
+                cartItemId: `${item.product_id}-${item.product_variant_id || ''}-${Date.now()}-${Math.random()}`,
+                id: item.product_id,
+                variant_id: item.product_variant_id,
+                name: (item.product?.name || item.name || 'Item') + (item.product_variant?.sku ? ` (${item.product_variant.sku})` : ''),
+                price: Math.max(0, unitPrice - unitDiscount),
+                original_price: unitPrice,
+                discount: unitDiscount,
+                qty: parseFloat(item.quantity || 1),
+                freeQuantity: parseFloat(item.free_quantity || 0),
+                stock: 9999,
+                image: item.product?.image_path,
+                category: item.product?.category?.name || 'General'
+            };
+        });
+
+        const saleSession = {
+            id: `RECALL-${sale.id}`,
+            type: 'pos',
+            cart: mappedCart,
+            cashReceived: '',
+            searchTerm: '',
+            customer: sale.customer ? {
+                id: sale.customer.id,
+                name: sale.customer.name,
+                phone: sale.customer.phone
+            } : null,
+            discountValue: parseFloat(sale.global_discount || 0),
+            discountType: 'fixed',
+            is_recall: true,
+            original_sale_id: sale.id
+        };
+
+        addPosSession(saleSession);
+        setShowRecentInvoices(false);
+        addToast(`Recalled Sale #${sale.reference_number || sale.id}`, 'info');
     };
 
     // --- CART RESCUE (CRASH AIRBAG) ---
@@ -1931,17 +2077,18 @@ const POSInterface = ({
         }
     };
 
-    const handleProductSelect = (product) => {
-        /* In a restaurant an item has to belong to a table. Adding one with no
-           table picked would build an order the floor cannot see and the
-           kitchen can never be told about. */
+    const handleProductSelect = async (product) => {
+        /* In table service mode, if no table or ticket is selected,
+           automatically open a Takeaway order so counter/takeaway items can be
+           rung up immediately without occupying physical dining tables. */
         if (tableMode && !selectedTable) {
-            addToast('Pick a table first — an order has to belong to one.', 'warning');
-            return;
+            const ticket = await ensureActiveOrder('takeaway');
+            if (!ticket) return;
         }
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const isStockTracking = isStockMaintenanceEnabled(settings);
         const hasPreSales = !Array.isArray(modules) || modules.includes('pre_sales');
-        if (hasPreSales && (product.reserved_quantity > 0) && !isService && (product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
+        if (isStockTracking && hasPreSales && (product.reserved_quantity > 0) && !isService && (product.available_stock ?? product.stock_quantity ?? 0) <= 0 && (!product.has_manufacturing_rule)) {
             if (!window.confirm(`Warning: ${product.reserved_quantity || 0} units are reserved for pre-orders. Available: ${product.available_stock || 0}. Selling this will put reservations into backorder. Continue?`)) {
                 updateActiveSale({ searchTerm: '' });
                 setSearchResults([]);
@@ -1973,7 +2120,7 @@ const POSInterface = ({
             : '';
         const cartItemId = (variant ? `${product.id}-${variant.id}` : `${product.id}`) + modKey;
 
-        const existing = currentCart.find(item => item.cartItemId === cartItemId);
+        const existing = currentCart.find(item => (item.cartItemId === cartItemId || item.lineId === cartItemId) && !item.paidSaleId);
         let newCart;
 
         const price = variant ? getProductPrice(variant, 1, settings) : getProductPrice(product, 1, settings);
@@ -1982,12 +2129,14 @@ const POSInterface = ({
         const stock = isService ? 999999 : (variant ? variant.stock_quantity : product.stock_quantity);
 
         if (existing) {
-            const newQty = existing.qty + 1;
+            const currentQty = Number(existing.qty) || 1;
+            const newQty = currentQty + 1;
 
-            // Stock Validation Logic (Bypassed for Services and Auto-manufactured items)
+            // Stock Validation Logic (Bypassed for Services, Auto-manufactured items, table/restaurant mode, or when stock tracking is disabled)
             const canAutoManufacture = product.has_manufacturing_rule === true;
+            const isStockTracking = !tableMode && isStockMaintenanceEnabled(settings);
 
-            if (!isService && newQty > stock && !canAutoManufacture) {
+            if (isStockTracking && !isService && newQty > stock && !canAutoManufacture) {
                 // If setting is undefined, null, or '1' -> BLOCK
                 // Only if setting is explicitly '0' or false -> ALLOW
                 const allowNegative = !shouldStopNegativeStock(settings);
@@ -2005,16 +2154,23 @@ const POSInterface = ({
                     // Allowed but warn
                     addToast(`Warning: ${name} stock will be negative!`, 'warning');
                 }
-            } else if (!isService && newQty > stock && canAutoManufacture) {
+            } else if (isStockTracking && !isService && newQty > stock && canAutoManufacture) {
                 // Product has manufacturing rule - will be auto-manufactured
                 addToast(`🏭 ${name} will be auto-manufactured`, 'info');
             }
-            newCart = currentCart.map(item => item.cartItemId === cartItemId ? { ...item, qty: newQty } : item);
+            const sentQty = Number(existing.sent_qty) || (existing.sent ? currentQty : 0);
+            newCart = currentCart.map(item => (item.cartItemId === cartItemId || item.lineId === cartItemId) ? {
+                ...item,
+                qty: newQty,
+                sent: sentQty > 0 ? newQty <= sentQty : false,
+                sent_qty: sentQty,
+            } : item);
         } else {
-            // Stock Validation Logic (Bypassed for Services and Auto-manufactured items)
+            // Stock Validation Logic (Bypassed for Services, Auto-manufactured items, or when stock tracking is disabled)
             const canAutoManufacture = product.has_manufacturing_rule === true;
+            const isStockTracking = isStockMaintenanceEnabled(settings);
 
-            if (!isService && stock < 1 && !canAutoManufacture) {
+            if (isStockTracking && !isService && stock < 1 && !canAutoManufacture) {
                 // If setting is undefined, null, or '1' -> BLOCK
                 // Only if setting is explicitly '0' or false -> ALLOW
                 const allowNegative = !shouldStopNegativeStock(settings);
@@ -2032,7 +2188,7 @@ const POSInterface = ({
                     // Allowed but warn
                     addToast(`Warning: ${name} stock is out (Qty: ${stock})!`, 'warning');
                 }
-            } else if (!isService && stock < 1 && canAutoManufacture) {
+            } else if (isStockTracking && !isService && stock < 1 && canAutoManufacture) {
                 // Product has manufacturing rule - will be auto-manufactured
                 addToast(`🏭 ${name} will be auto-manufactured from ingredients`, 'info');
             }
@@ -2087,9 +2243,13 @@ const POSInterface = ({
                         const variantId = response.data.variant_id;
                         if (variantId && product.variants) {
                             const variant = product.variants.find(v => v.id === variantId);
+                            if (tableMode && !selectedTable) {
+                                const ticket = await ensureActiveOrder('takeaway');
+                                if (!ticket) return;
+                            }
                             addToCart(product, variant);
                         } else {
-                            handleProductSelect(product);
+                            await handleProductSelect(product);
                         }
                         updateActiveSale({ searchTerm: '' });
                         setIsSearching(false);
@@ -2168,21 +2328,43 @@ const POSInterface = ({
         }
     };
 
+    /* Fill a line's quantity from the scale connected to Station. */
+    const weighLine = async (item) => {
+        const w = await AMDStation.getWeight();
+        if (!w || w.weight == null || Date.now() - (w.at || 0) > 5000) { addToast('No scale reading. Check the scale is on and connected in Station settings.', 'warning'); return; }
+        if (w.overload) { addToast('Scale is overloaded.', 'warning'); return; }
+        if (w.stable === false) { addToast('Scale is still settling. Wait for a steady reading and press again.', 'warning'); return; }
+        if (!(Number(w.weight) > 0)) { addToast('Put the item on the scale first.', 'warning'); return; }
+        updateQty(item.cartItemId, Number(w.weight) - Number(item.qty), { exact: true });
+        addToast(`${item.name}: ${Number(w.weight).toFixed(3)} kg`, 'success');
+    };
+
     const removeFromCart = (cartItemId) => {
-        const newCart = activeSale.cart.filter(item => item.cartItemId !== cartItemId);
+        const newCart = activeSale.cart.filter(item => item.cartItemId !== cartItemId && item.lineId !== cartItemId);
         updateActiveSale({ cart: newCart });
     };
 
-    const updateQty = (cartItemId, delta) => {
+    /* `opts.exact` is for weighed goods (0.350 kg): the whole-unit floor of 1 does not apply.
+       Every other caller keeps the old behaviour. The server accepts quantities down to 0.001. */
+    const updateQty = (cartItemId, delta, opts = null) => {
         const newCart = activeSale.cart.map(item => {
-            if (item.cartItemId === cartItemId) {
-                const newQty = Math.max(1, item.qty + delta);
+            const matches = item.cartItemId === cartItemId || (item.lineId && item.lineId === cartItemId);
+            if (matches) {
+                const currentQty = Number(item.qty) || 1;
+                const newQty = opts?.exact
+                    ? Math.max(0.001, Math.round((currentQty + delta) * 1000) / 1000)
+                    : currentQty + delta;
+
+                if (newQty <= 0) {
+                    return null; // Remove item from cart when quantity drops to 0 or below
+                }
 
                 // Stock Check
-                // BYPASS: Products with manufacturing rules can always be sold
+                // BYPASS: Products with manufacturing rules, or when stock maintenance is disabled, or in restaurant table mode
                 const canAutoManufacture = item.has_manufacturing_rule === true;
+                const isStockTracking = !tableMode && isStockMaintenanceEnabled(settings);
 
-                if (newQty > item.stock && !canAutoManufacture) {
+                if (isStockTracking && newQty > item.stock && !canAutoManufacture) {
                     // If setting is undefined, null, or '1' -> BLOCK
                     // Only if setting is explicitly '0' or false -> ALLOW
                     const allowNegative = !shouldStopNegativeStock(settings);
@@ -2206,19 +2388,33 @@ const POSInterface = ({
                 }
 
                 // Recalculate Price based on Quantity (Wholesale Logic)
-                const newPrice = getProductPrice(item, newQty, settings);
+                const wholesalePrice = isWholesalePricingEnabled(settings) ? item.wholesale_price : null;
+                const minQty = item.wholesale_min_quantity || 1;
+                const hasWholesale = wholesalePrice && newQty >= minQty;
+                const hasExistingDiscount = Number(item.discount || 0) > 0 || (item.original_price && Number(item.original_price) !== Number(item.price));
+                const newPrice = hasWholesale ? parseFloat(wholesalePrice) : (hasExistingDiscount ? item.price : getProductPrice(item, newQty, settings));
 
-                return { ...item, qty: newQty, price: newPrice };
+                const sentQty = Number(item.sent_qty) || (item.sent ? currentQty : 0);
+
+                return {
+                    ...item,
+                    qty: newQty,
+                    price: newPrice,
+                    sent: sentQty > 0 ? newQty <= sentQty : false,
+                    sent_qty: sentQty,
+                };
             }
             return item;
-        });
+        }).filter(Boolean);
         updateActiveSale({ cart: newCart });
     };
 
     const updateFreeQty = (cartItemId, delta) => {
         const newCart = activeSale.cart.map(item => {
-            if (item.cartItemId === cartItemId) {
-                const newQty = Math.max(0, (item.freeQuantity || 0) + delta);
+            const matches = item.cartItemId === cartItemId || (item.lineId && item.lineId === cartItemId);
+            if (matches) {
+                const currentFree = Number(item.freeQuantity) || 0;
+                const newQty = Math.max(0, currentFree + delta);
                 return { ...item, freeQuantity: newQty };
             }
             return item;
@@ -2241,19 +2437,35 @@ const POSInterface = ({
     const taxRate = enableTax ? (activeSale.taxRate !== undefined ? activeSale.taxRate : parseFloat(settings?.default_tax_rate || 0)) : 0;
     const taxInclusive = enableTax ? (activeSale.taxInclusive !== undefined ? activeSale.taxInclusive : false) : false;
 
-    // Subtotal includes free items (gross sales value)
-    const subtotal = activeSale.cart.reduce((acc, item) => acc + ((item.key_price || item.price) * (item.qty + (enableFreeQty ? (item.freeQuantity || 0) : 0))), 0);
+    // Subtotal includes free items (gross sales value before line discounts)
+    const subtotal = activeSale.cart.reduce((acc, item) => {
+        const unitGross = Number(item.original_price ?? item.price ?? 0);
+        const qty = Number(item.qty || 0);
+        const freeQty = enableFreeQty ? Number(item.freeQuantity || 0) : 0;
+        return acc + (unitGross * (qty + freeQty));
+    }, 0);
 
     // Calculate discounts
-    const freeItemDiscounts = enableFreeQty ? activeSale.cart.reduce((acc, item) => acc + ((item.freeQuantity || 0) * (item.key_price || item.price)), 0) : 0;
-    const itemDiscounts = activeSale.cart.reduce((acc, item) => acc + (item.discount || 0), 0);
+    const freeItemDiscounts = enableFreeQty ? activeSale.cart.reduce((acc, item) => {
+        const unitGross = Number(item.original_price ?? item.price ?? 0);
+        return acc + (Number(item.freeQuantity || 0) * unitGross);
+    }, 0) : 0;
 
-    // Global Discount Calculation
+    const itemDiscounts = activeSale.cart.reduce((acc, item) => {
+        const orig = Number(item.original_price ?? item.price ?? 0);
+        const cur = Number(item.price ?? 0);
+        const unitDiscount = Math.max(0, orig - cur) || Number(item.discount || 0);
+        const qty = Number(item.qty || 0);
+        return acc + (unitDiscount * qty);
+    }, 0);
+
+    // Global Discount Calculation (applied to net balance after line discounts)
+    const subtotalAfterLineDiscounts = Math.max(0, subtotal - (freeItemDiscounts + itemDiscounts));
     let globalDiscount = 0;
     if (activeSale.discountType === 'percentage') {
-        globalDiscount = (subtotal * (activeSale.discountValue || 0)) / 100;
+        globalDiscount = (subtotalAfterLineDiscounts * (activeSale.discountValue || 0)) / 100;
     } else {
-        globalDiscount = parseFloat(activeSale.discountValue !== undefined ? activeSale.discountValue : (activeSale.discount || 0));
+        globalDiscount = parseFloat(activeSale.discountValue !== undefined ? activeSale.discountValue : (activeSale.discount || 0)) || 0;
     }
 
     const totalDiscounts = freeItemDiscounts + itemDiscounts + globalDiscount;
@@ -2289,6 +2501,28 @@ const POSInterface = ({
     const cartTotal = roundOff ? roundTotal(rawCartTotal, settings) : parseFloat(rawCartTotal || 0);
 
     const changeDue = activeSale.cashReceived ? parseFloat(activeSale.cashReceived) - cartTotal : 0;
+
+    /* VenQore Station 3: mirror the open cart on the customer-facing second
+       screen and the 2x20 pole display. A no-op in the browser and on older
+       Stations (the bridge method does not exist there). */
+    const customerDisplayKey = activeSale.cart.map(i => `${i.cartItemId ?? i.id}:${i.qty}:${i.price}`).join('|') + `#${cartTotal}`;
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.amdAPI?.updateCustomerDisplay) return;
+        const t = setTimeout(() => {
+            const money = (n) => (Number(n) || 0).toFixed(2);
+            window.amdAPI.updateCustomerDisplay({
+                mode: activeSale.cart.length ? 'cart' : 'idle',
+                storeName: settings?.business_name || store?.name || '',
+                currency: settings?.currency_symbol || store?.currency_code || '',
+                items: activeSale.cart.map(i => ({ name: String(i.name || ''), qty: String(i.qty ?? 1), price: money(i.price), total: money((Number(i.price) || 0) * (Number(i.qty) || 0)) })),
+                subtotal: money(subtotal),
+                discount: totalDiscounts > 0 ? money(totalDiscounts) : '',
+                tax: taxAmount > 0 ? money(taxAmount) : '',
+                total: money(cartTotal),
+            }).catch(() => {});
+        }, 150);
+        return () => clearTimeout(t);
+    }, [customerDisplayKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleCheckoutClick = () => {
         if (activeSale.cart.length === 0) return;
@@ -2392,16 +2626,23 @@ const POSInterface = ({
         });
 
         const basePayload = {
-            items: activeSale.cart.map(item => ({
-                product_id: item.id,
-                variant_id: item.variant_id,
-                quantity: item.qty,
-                free_quantity: item.freeQuantity || 0,
-                price: item.original_price || item.price,
-                discount: item.discount || 0,
-                discount_type: item.discountType || 'fixed'
-            })),
+            items: activeSale.cart.map(item => {
+                const orig = Number(item.original_price ?? item.price ?? 0);
+                const cur = Number(item.price ?? 0);
+                const unitDiscount = Math.max(0, orig - cur) || Number(item.discount || 0);
+                const lineDiscount = unitDiscount * Number(item.qty || 0);
+                return {
+                    product_id: item.id,
+                    variant_id: item.variant_id,
+                    quantity: item.qty,
+                    free_quantity: item.freeQuantity || 0,
+                    price: orig,
+                    discount: lineDiscount,
+                    discount_type: 'fixed'
+                };
+            }),
             customer_id: activeSale.customer?.id || null,
+            walk_in_name: activeSale.customer?.id ? null : ((activeSale.walkInName || '').trim() || null),
             register_shift_id: registerShift?.id || null,
             register_id: settings?.register_id || 'REG-1',
             payment_method: 'split',
@@ -2486,7 +2727,12 @@ const POSInterface = ({
     const finalizeSale = (data, paymentData) => {
         setLastSale({
             ...data,
+            ticket_code: activeSale.ticket_code || data.ticket_code || null,
             cart: activeSale.cart,
+            subtotal: subtotal,
+            subtotal_gross: subtotal,
+            discount: totalDiscounts,
+            total_item_discounts: totalDiscounts,
             total: cartTotal,
             cash: paymentData.totalPaid,
             change: paymentData.change
@@ -2496,7 +2742,7 @@ const POSInterface = ({
         localStorage.removeItem('pos_cart');
 
         // Clear current sale
-        updateActiveSale({ cart: [], cashReceived: '', searchTerm: '', customer: null });
+        updateActiveSale({ cart: [], cashReceived: '', searchTerm: '', customer: null, walkInName: '' });
 
         // Refresh shift metrics
         fetchCurrentShift();
@@ -2542,6 +2788,10 @@ const POSInterface = ({
         }
 
         // Auto-print if enabled
+        if (paymentData.printReceipt && printerProblem) {
+            /* The sale is saved either way. Say so now, instead of a print failure half a second later. */
+            addToast(`Sale saved. Receipt printer: ${printerProblem}. Print it later from Recent invoices.`, 'warning');
+        }
         if (paymentData.printReceipt) {
             // Build sale object for printing — include `id` from `sale_id` so that
             // PrintService.quickPrint can fetch the full sale (with live ledger balance)
@@ -2553,7 +2803,7 @@ const POSInterface = ({
                 total: cartTotal,
                 amount_paid: paymentData.totalPaid,
                 change: paymentData.change,
-                customer: activeSale.customer,
+                customer: activeSale.customer || ((activeSale.walkInName || '').trim() ? { name: activeSale.walkInName.trim() } : null),
                 tax: taxAmount
             };
             // Use configured default print type (thermal or regular)
@@ -2656,6 +2906,7 @@ const POSInterface = ({
 
     // Customer search function
     const searchCustomers = async (query) => {
+        if (!customersOn) { setCustomerResults([]); return; }
         try {
             if (isOnline) {
                 const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), {
@@ -2707,6 +2958,7 @@ const POSInterface = ({
     // Load initial customers for suggestions
     useEffect(() => {
         const loadInitialCustomers = async () => {
+            if (!customersOn) return;
             try {
                 if (isOnline) {
                     const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), { params: { search: '' } });
@@ -2725,7 +2977,7 @@ const POSInterface = ({
             }
         };
         loadInitialCustomers();
-    }, [isOnline]);
+    }, [isOnline, customersOn]);
 
     // Print receipt function
     const printReceipt = (type = null) => {
@@ -2737,71 +2989,282 @@ const POSInterface = ({
         }
     };
 
-    // Keyboard shortcuts Engine (Option B)
+    // Unified Keyboard Shortcuts Engine (matching POS_KEYMAP)
     useEffect(() => {
         const handleKeyDown = (e) => {
-            // Check if user is typing in a modal or input (except search)
-            const isInput = ['INPUT', 'TEXTAREA'].includes(e.target.tagName);
-            const isSearchInput = e.target === searchInputRef.current;
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (
+                activeElement.tagName === 'INPUT' || 
+                activeElement.tagName === 'TEXTAREA' || 
+                activeElement.isContentEditable
+            );
+            const isSearchInput = activeElement === searchInputRef.current;
 
-            // Global Shortcuts (Always active)
-            if (e.key === 'F1') {
-                e.preventDefault();
-                searchInputRef.current?.focus();
+            // ESC: Close topmost open layer / modal or clear search
+            if (e.key === 'Escape') {
+                if (settingsOpen) { setSettingsOpen(false); return; }
+                if (showSetupWizard) { setShowSetupWizard(false); return; }
+                if (paymentModalOpen) { setPaymentModalOpen(false); return; }
+                if (showSyncHub) { setShowSyncHub(false); return; }
+                if (parkedDropdownOpen) { setParkedDropdownOpen(false); return; }
+                if (showRecentInvoices) { setShowRecentInvoices(false); return; }
+                if (customerDropdownOpen) { setCustomerDropdownOpen(false); return; }
+                if (itemDiscountModal?.show) { setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' }); return; }
+                if (globalDiscountModal?.show) { setGlobalDiscountModal({ show: false, type: 'fixed', value: '' }); return; }
+                if (converterModal?.show) { setConverterModal(prev => ({ ...prev, show: false })); return; }
+                if (activeSale?.searchTerm) {
+                    updateActiveSale({ searchTerm: '' });
+                    return;
+                }
+                setSearchResults([]);
                 return;
             }
 
-            // NAVIGATION
-            if (e.key === 'F11') {
+            // '?' opens settings at Keyboard shortcuts
+            if (!isInputFocused && e.key === '?') {
                 e.preventDefault();
-                setCustomerDropdownOpen(true);
-                // We'll need a way to focus the customer search input once it's open
+                setSettingsTab('keys');
+                setSettingsOpen(true);
                 return;
             }
 
+            // Alt+L opens settings at Layout
+            if (!isInputFocused && (e.key === 'l' || e.key === 'L') && e.altKey && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                setSettingsTab('layout');
+                setSettingsOpen(true);
+                return;
+            }
+
+            // Alt+Z toggles fullscreen
+            if (e.altKey && e.key.toLowerCase() === 'z') {
+                e.preventDefault();
+                toggleFullscreen();
+                return;
+            }
+
+            // Ctrl+D: Open cash drawer (matches UI title="Open cash drawer (Ctrl+D)")
+            if (e.ctrlKey && e.key.toLowerCase() === 'd') {
+                e.preventDefault();
+                handleOpenCashDrawer();
+                return;
+            }
+
+            // Ctrl+T: New sale tab
             if (e.ctrlKey && e.key.toLowerCase() === 't') {
                 e.preventDefault();
                 createNewSale();
                 return;
             }
 
+            // Ctrl+W: Close current sale tab
             if (e.ctrlKey && e.key.toLowerCase() === 'w') {
                 e.preventDefault();
                 closeSale(e, activeSaleId);
                 return;
             }
 
+            // Ctrl+Tab / Ctrl+Shift+Tab: Switch active tab
             if (e.ctrlKey && e.key === 'Tab') {
                 e.preventDefault();
                 const currentIndex = sales.findIndex(s => s.id === activeSaleId);
                 let nextIndex;
-                if (e.shiftKey) { // CTRL + SHIFT + TAB
+                if (e.shiftKey) {
                     nextIndex = (currentIndex - 1 + sales.length) % sales.length;
-                } else { // CTRL + TAB
+                } else {
                     nextIndex = (currentIndex + 1) % sales.length;
                 }
                 setActiveSaleId(sales[nextIndex].id);
                 return;
             }
 
-            // ITEM ACTIONS (Target lastAddedItemId or last item in cart)
-            const targetItem = activeSale.cart.find(i => i.cartItemId === lastAddedItemId) || activeSale.cart[activeSale.cart.length - 1];
+            // Ctrl+S: Hold the sale (matches POS_KEYMAP: "Ctrl + S Hold the sale")
+            if (e.ctrlKey && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                if (activeSale?.cart?.length > 0 && !parkingBill) {
+                    handleParkBill();
+                }
+                return;
+            }
 
-            if (targetItem) {
-                if (e.key === 'F2') {
-                    e.preventDefault();
+            // Ctrl+P: Quick Save & Print
+            if (e.ctrlKey && e.key.toLowerCase() === 'p') {
+                e.preventDefault();
+                if (activeSale?.cart?.length > 0 && !processingPayment) {
+                    const paymentData = {
+                        totalPaid: cartTotal,
+                        change: 0,
+                        payments: [{ method: paymentMethod || 'cash', amount: cartTotal }],
+                        notes: activeSale.remarks || '',
+                        printReceipt: true
+                    };
+                    processCheckout(paymentData, false);
+                }
+                return;
+            }
+
+            // Ctrl+N: Save and immediately create new tab
+            if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+                e.preventDefault();
+                if (activeSale?.cart?.length > 0 && !processingPayment) {
+                    const paymentData = {
+                        totalPaid: cartTotal,
+                        change: 0,
+                        payments: [{ method: paymentMethod || 'cash', amount: cartTotal }],
+                        notes: activeSale.remarks || '',
+                        printReceipt: printOnComplete
+                    };
+                    processCheckout(paymentData, false).then((ok) => { if (ok) createNewSale(); });
+                }
+                return;
+            }
+
+            // Ctrl+R: Reset active tab
+            if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+                e.preventDefault();
+                showConfirm('Reset Tab', 'This will clear all items and customer data. Continue?', () => {
+                    updateActiveSale({ cart: [], customer: null, discount: 0, remarks: '', additionalCharges: 0, taxRate: null });
+                    addToast('Tab reset successfully.', 'info');
+                }, true);
+                return;
+            }
+
+            // Ctrl+F: Bill breakup
+            if (e.ctrlKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                showAlert('Bill Breakup', `
+                    Subtotal: ${formatCurrency(subtotal, store || settings)}
+                    Discount: ${formatCurrency(totalDiscounts, store || settings)}
+                    Taxable: ${formatCurrency(taxableAmount, store || settings)}
+                    Tax: ${formatCurrency(taxAmount, store || settings)}
+                    --------------------
+                    Total: ${formatCurrency(cartTotal, store || settings)}
+                `, 'info');
+                return;
+            }
+
+            // Move to first/last row
+            if (e.ctrlKey && e.key === '1') {
+                e.preventDefault();
+                if (activeSale?.cart?.length > 0) {
+                    setLastAddedItemId(activeSale.cart[0].cartItemId);
+                    addToast(`Selected ${activeSale.cart[0].name}`, 'info');
+                }
+                return;
+            }
+            if (e.ctrlKey && e.key === '9') {
+                e.preventDefault();
+                if (activeSale?.cart?.length > 0) {
+                    const lastIdx = activeSale.cart.length - 1;
+                    setLastAddedItemId(activeSale.cart[lastIdx].cartItemId);
+                    addToast(`Selected ${activeSale.cart[lastIdx].name}`, 'info');
+                }
+                return;
+            }
+
+            // Key guard: If typing in an input field or textarea (except global barcode wedge),
+            // do not fire document/cart shortcuts that would interfere with typing.
+            if (isInputFocused && !isSearchInput) return;
+
+            // F1: Focus scan / search
+            if (e.key === 'F1') {
+                e.preventDefault();
+                const searchInput = document.querySelector('#tour-pos-product input') || searchInputRef.current;
+                if (searchInput) searchInput.focus();
+                return;
+            }
+
+            // F7: Document tax override
+            if (e.key === 'F7') {
+                e.preventDefault();
+                showInput('Override Tax (%)', 'Enter tax percentage', (val) => {
+                    const rate = parseFloat(val);
+                    if (!isNaN(rate)) {
+                        updateActiveSale({ taxRate: rate });
+                        addToast(`Tax rate set to ${rate}%`, 'success');
+                    }
+                });
+                return;
+            }
+
+            // F8: Additional charges
+            if (e.key === 'F8') {
+                e.preventDefault();
+                showInput('Additional Charges', 'Enter extra charge amount (e.g. 150)', (val) => {
+                    const charge = parseFloat(val);
+                    if (!isNaN(charge)) {
+                        updateActiveSale({ additionalCharges: charge });
+                        addToast(`Additional charge of ${formatCurrency(charge, store || settings)} added`, 'success');
+                    }
+                });
+                return;
+            }
+
+            // F9: Document discount
+            if (e.key === 'F9') {
+                e.preventDefault();
+                showInput('Document Discount', 'Enter fixed discount amount', (val) => {
+                    const disc = parseFloat(val);
+                    if (!isNaN(disc)) {
+                        updateActiveSale({ discountType: 'fixed', discountValue: disc, discount: disc });
+                        addToast(`Document discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
+                    }
+                });
+                return;
+            }
+
+            // F10: Checkout / Tender
+            if (e.key === 'F10') {
+                e.preventDefault();
+                if (activeSale?.cart?.length > 0 && !processingPayment) {
+                    handleCheckoutClick();
+                }
+                return;
+            }
+
+            // F11: Customer / party
+            if (e.key === 'F11') {
+                e.preventDefault();
+                if (customersOn) {
+                    setShowQuickPartyModal(true);
+                }
+                return;
+            }
+
+            // F12: Sale remarks / notes
+            if (e.key === 'F12') {
+                e.preventDefault();
+                showInput('Sale Remarks / Notes', 'Enter notes for this sale', (val) => {
+                    updateActiveSale({ remarks: val, notes: val });
+                    addToast('Sale remarks saved', 'success');
+                });
+                return;
+            }
+
+            // Target Item Actions (F2 - F6)
+            const targetItem = activeSale?.cart?.find(i => i.cartItemId === lastAddedItemId) || (activeSale?.cart?.length ? activeSale.cart[activeSale.cart.length - 1] : null);
+
+            // F2: Quantity on active line (or focus search if cart is empty)
+            if (e.key === 'F2') {
+                e.preventDefault();
+                if (targetItem) {
                     showInput(`Qty: ${targetItem.name}`, 'Enter new quantity', (val) => {
                         const qty = parseFloat(val);
                         if (!isNaN(qty) && qty > 0) {
-                            const newCart = activeSale.cart.map(i =>
-                                i.cartItemId === targetItem.cartItemId ? { ...i, qty: qty } : i
-                            );
-                            updateActiveSale({ cart: newCart });
+                            const delta = qty - Number(targetItem.qty);
+                            updateQty(targetItem.cartItemId, delta);
                             addToast(`Quantity updated to ${qty}`, 'success');
                         }
                     });
+                } else {
+                    const searchInput = document.querySelector('#tour-pos-product input') || searchInputRef.current;
+                    if (searchInput) searchInput.focus();
                 }
+                return;
+            }
 
+            if (targetItem) {
+                // F3: Discount on active line
                 if (e.key === 'F3') {
                     e.preventDefault();
                     const currentOriginal = targetItem.original_price || targetItem.price;
@@ -2817,16 +3280,21 @@ const POSInterface = ({
                                 } : i
                             );
                             updateActiveSale({ cart: newCart });
+                            addToast(`Line discount applied`, 'success');
                         }
                     });
+                    return;
                 }
 
+                // F4: Remove active line
                 if (e.key === 'F4') {
                     e.preventDefault();
                     removeFromCart(targetItem.cartItemId);
                     addToast(`Removed ${targetItem.name}`, 'info');
+                    return;
                 }
 
+                // F5: Rate / Unit price on active line
                 if (e.key === 'F5') {
                     e.preventDefault();
                     showInput(`Price: ${targetItem.name}`, 'Enter new unit price', (val) => {
@@ -2838,167 +3306,33 @@ const POSInterface = ({
                             updateActiveSale({ cart: newCart });
                         }
                     });
+                    return;
                 }
 
+                // F6: Converter Modal
                 if (e.key === 'F6') {
                     e.preventDefault();
-                    addToast('Change Unit feature coming soon!', 'info');
+                    openConverterModal(targetItem);
+                    return;
                 }
             }
 
-            // TRANSACTION ACTIONS
-            if (e.key === 'F7') {
-                e.preventDefault();
-                showInput('Override Tax (%)', 'Enter tax percentage', (val) => {
-                    const rate = parseFloat(val);
-                    if (!isNaN(rate)) {
-                        updateActiveSale({ taxRate: rate });
-                        addToast(`Tax rate set to ${rate}%`, 'success');
-                    }
-                });
-            }
-
-            if (e.key === 'F8') {
-                e.preventDefault();
-                showInput('Additional Charges', 'Enter charge amount', (val) => {
-                    const charge = parseFloat(val); if (!isNaN(charge)) { updateActiveSale({ additionalCharges: charge }); addToast(`Additional charge of ${formatCurrency(charge, store || settings)} added`, 'success');
-                    }
-                });
-            }
-
-            if (e.key === 'F9') {
-                e.preventDefault();
-                showInput('Apply Bill Discount', 'Enter discount amount', (val) => {
-                    const disc = parseFloat(val);
-                    if (!isNaN(disc)) {
-                        updateActiveSale({ discount: disc });
-                        addToast(`Bill discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
-                    }
-                });
-            }
-
-            if (e.key === 'F10') {
-                e.preventDefault();
-                addToast('Loyalty points system not configured.', 'warning');
-            }
-
-            if (e.key === 'F12') {
-                e.preventDefault();
-                showInput('Sale Remarks', 'Enter internal notes for this sale', (val) => {
-                    updateActiveSale({ remarks: val });
-                });
-            }
-
-            if (e.ctrlKey && e.key.toLowerCase() === 'r') {
-                e.preventDefault();
-                showConfirm('Reset Tab', 'This will clear all items and customer data. Continue?', () => {
-                    updateActiveSale({ cart: [], customer: null, discount: 0, remarks: '', additionalCharges: 0, taxRate: null });
-                    addToast('Tab reset successfully.', 'info');
-                }, true);
-            }
-
-            if (e.ctrlKey && e.key.toLowerCase() === 'f') {
-                e.preventDefault();
-                // Toggle a breakup view (using existing summary or dedicated modal)
-                showAlert('Bill Breakup', `
-                    Subtotal: ${formatCurrency(subtotal, store || settings)}
-                    Discount: ${formatCurrency(totalDiscounts, store || settings)}
-                    Taxable: ${formatCurrency(taxableAmount, store || settings)}
-                    Tax: ${formatCurrency(taxAmount, store || settings)}
-                    --------------------
-                    Total: ${formatCurrency(cartTotal, store || settings)}
-                `, 'info');
-            }
-
-            // SAVE ACTIONS
-            if (e.ctrlKey && e.key.toLowerCase() === 's') {
-                e.preventDefault();
-                if (activeSale.cart.length > 0) {
-                    // Quick Save (No print)
-                    const paymentData = {
-                        totalPaid: cartTotal,
-                        change: 0,
-                        payments: [{ method: paymentMethod || 'cash', amount: cartTotal }],
-                        notes: activeSale.remarks || '',
-                        printReceipt: false
-                    };
-                    processCheckout(paymentData, false);
-                }
-            }
-
-            if (e.ctrlKey && e.key.toLowerCase() === 'p') {
-                e.preventDefault();
-                if (activeSale.cart.length > 0) {
-                    // Quick Save & Print
-                    const paymentData = {
-                        totalPaid: cartTotal,
-                        change: 0,
-                        payments: [{ method: paymentMethod || 'cash', amount: cartTotal }],
-                        notes: activeSale.remarks || '',
-                        printReceipt: true
-                    };
-                    processCheckout(paymentData, false);
-                }
-            }
-
-            if (e.ctrlKey && e.key.toLowerCase() === 'n') {
-                e.preventDefault();
-                if (activeSale.cart.length > 0) {
-                    // Save and immediately create new tab
-                    const paymentData = {
-                        totalPaid: cartTotal,
-                        change: 0,
-                        payments: [{ method: paymentMethod || 'cash', amount: cartTotal }],
-                        notes: activeSale.remarks || '',
-                        printReceipt: printOnComplete
-                    };
-                    processCheckout(paymentData, false).then((ok) => { if (ok) createNewSale(); });
-                }
-            }
-
-            // OTHER ACTIONS
-            if (e.ctrlKey && e.key.toLowerCase() === 'd') {
-                e.preventDefault();
-                setShowQuickPartyModal(true);
-            }
-
-            if (e.altKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                toggleFullscreen();
-            }
-
-            // Move to first/last row
-            if (e.ctrlKey && e.key === '1') {
-                e.preventDefault();
-                if (activeSale.cart.length > 0) {
-                    setLastAddedItemId(activeSale.cart[0].cartItemId);
-                    addToast(`Selected ${activeSale.cart[0].name}`, 'info');
-                }
-            }
-            if (e.ctrlKey && e.key === '9') {
-                e.preventDefault();
-                if (activeSale.cart.length > 0) {
-                    const lastIdx = activeSale.cart.length - 1;
-                    setLastAddedItemId(activeSale.cart[lastIdx].cartItemId);
-                    addToast(`Selected ${activeSale.cart[lastIdx].name}`, 'info');
-                }
-            }
-
-            // ESC: Clear search or escape modals
-            if (e.key === 'Escape') {
-                if (activeSale.searchTerm) {
-                    updateActiveSale({ searchTerm: '' });
-                } else {
-                    setSearchResults([]);
-                    setCustomerDropdownOpen(false);
-                    setParkedDropdownOpen(false);
-                }
+            // Single printable character (when not typing in an input) -> focus barcode search
+            if (!isInputFocused && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                const searchInput = document.querySelector('#tour-pos-product input') || searchInputRef.current;
+                if (searchInput) searchInput.focus();
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [activeSale, sales, lastSale, lastAddedItemId, paymentMethod]);
+    }, [
+        activeSale, activeSaleId, sales, store, settings, lastAddedItemId, paymentMethod,
+        cartTotal, subtotal, totalDiscounts, taxableAmount, taxAmount, processingPayment,
+        printOnComplete, settingsOpen, showSetupWizard, paymentModalOpen, showSyncHub,
+        parkedDropdownOpen, showRecentInvoices, customerDropdownOpen, customersOn,
+        itemDiscountModal, globalDiscountModal, converterModal, parkingBill
+    ]);
 
     // Load parked sales from backend
     const loadParkedSales = async () => {
@@ -3196,19 +3530,25 @@ const POSInterface = ({
             }
             setReturnSaleId(sale.id);
             // Load sale items into cart
-            const mappedCart = sale.items.map(item => ({
-                cartItemId: Date.now() + Math.random(),
-                id: item.product_id,
-                sale_item_id: item.id,
-                name: item.product?.name || 'Unknown Product',
-                price: parseFloat(item.unit_price),
-                qty: parseFloat(item.quantity),
-                freeQuantity: parseFloat(item.free_quantity || 0),
-                unit: item.product?.unit || 'pcs',
-                tax_rate: parseFloat(item.tax_rate || 0),
-                discount: parseFloat(item.discount || 0),
-                original_price: parseFloat(item.unit_price),
-            }));
+            const mappedCart = sale.items.map(item => {
+                const qty = parseFloat(item.quantity) || 1;
+                const rowDiscount = parseFloat(item.discount_amount || item.discount || 0);
+                const unitDiscount = qty > 0 ? (rowDiscount / qty) : rowDiscount;
+                const unitPrice = parseFloat(item.unit_price || 0);
+                return {
+                    cartItemId: Date.now() + Math.random(),
+                    id: item.product_id,
+                    sale_item_id: item.id,
+                    name: item.product?.name || 'Unknown Product',
+                    price: Math.max(0, unitPrice - unitDiscount),
+                    qty: parseFloat(item.quantity),
+                    freeQuantity: parseFloat(item.free_quantity || 0),
+                    unit: item.product?.unit || 'pcs',
+                    tax_rate: parseFloat(item.tax_rate || 0),
+                    discount: unitDiscount,
+                    original_price: unitPrice,
+                };
+            });
             updateActiveSale({ cart: mappedCart, customer: sale.customer || null });
             addToast(`Sale #${returnSaleRef} loaded for return`, 'info');
         } catch (err) {
@@ -3240,118 +3580,7 @@ const POSInterface = ({
         loadCategories();
     }, []);
 
-    // Global Keyboard Handler with Layout Law key_guard
-    useEffect(() => {
-        const handleGlobalKeyDown = (e) => {
-            const activeElement = document.activeElement;
-            const isInputFocused = activeElement && (
-                activeElement.tagName === 'INPUT' || 
-                activeElement.tagName === 'TEXTAREA' || 
-                activeElement.isContentEditable
-            );
 
-            // Esc always works to close top layers
-            if (e.key === 'Escape') {
-                setSettingsOpen(false);
-                setShowSetupWizard(false);
-                setPaymentModalOpen(false);
-                setShowSyncHub(false);
-                setParkedDropdownOpen(false);
-                setShowRecentInvoices(false);
-                return;
-            }
-
-            /* '?' opens the one settings surface AT the key map, rather than the
-               second modal that used to duplicate it. It opens rather than
-               toggles: Esc is what closes the top layer, everywhere, and a key
-               that sometimes opens and sometimes closes is a key you have to
-               look at the screen to use. */
-            if (!isInputFocused && e.key === '?') {
-                e.preventDefault();
-                setSettingsTab('keys');
-                setSettingsOpen(true);
-                return;
-            }
-
-            /* Alt+L opens it at Layout — the shortcut the old picker advertised
-               in its tooltip and never bound. Deliberately NOT bare 'L': a
-               keyboard-wedge barcode scanner types its payload as keystrokes,
-               and if the scan field has lost focus an 'L' inside a barcode
-               would open a settings panel in the middle of a scan. */
-            if (!isInputFocused && (e.key === 'l' || e.key === 'L') && e.altKey && !e.ctrlKey && !e.metaKey) {
-                e.preventDefault();
-                setSettingsTab('layout');
-                setSettingsOpen(true);
-                return;
-            }
-
-            // Key guard: suspend POS functional F-keys and shortcuts if typing in input field
-            if (isInputFocused) return;
-
-            // Functional Keyboard Map
-            if (e.key === 'F1' || e.key === 'F2') {
-                e.preventDefault();
-                const searchInput = document.querySelector('#tour-pos-product input');
-                if (searchInput) searchInput.focus();
-            } else if (e.key === 'F8') {
-                e.preventDefault();
-                showInput('Additional Charges', 'Enter extra charge amount (e.g. 150)', (val) => {
-                    const charge = parseFloat(val);
-                    if (!isNaN(charge)) {
-                        updateActiveSale({ additionalCharges: charge });
-                        addToast(`Additional charge of ${formatCurrency(charge, store || settings)} added`, 'success');
-                    }
-                });
-            } else if (e.key === 'F9') {
-                e.preventDefault();
-                showInput('Document Discount', 'Enter fixed discount amount', (val) => {
-                    const disc = parseFloat(val);
-                    if (!isNaN(disc)) {
-                        updateActiveSale({ discountType: 'fixed', discountValue: disc });
-                        addToast(`Document discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
-                    }
-                });
-            } else if (e.key === 'F10') {
-                e.preventDefault();
-                if (activeSale.cart.length > 0 && !processingPayment) {
-                    handleCheckoutClick();
-                }
-            } else if (e.key === 'F11') {
-                e.preventDefault();
-                setShowQuickPartyModal(true);
-            } else if (e.key === 'F12') {
-                e.preventDefault();
-                showInput('Sale Remarks / Notes', 'Enter notes for this sale', (val) => {
-                    updateActiveSale({ remarks: val, notes: val });
-                    addToast('Sale remarks saved', 'success');
-                });
-            } else if (e.ctrlKey && e.key.toLowerCase() === 's') {
-                e.preventDefault();
-                // Was `handleParkSale()`, which has never existed on this
-                // component — Ctrl+S threw a ReferenceError and parked
-                // nothing. The function is `handleParkBill`.
-                if (activeSale.cart.length > 0) handleParkBill();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 't') {
-                e.preventDefault();
-                createNewSale();
-            } else if (e.ctrlKey && e.key.toLowerCase() === 'w') {
-                e.preventDefault();
-                if (sales.length > 1) {
-                    setSales(prev => prev.filter(s => s.id !== activeSaleId));
-                }
-            } else if (e.altKey && e.key.toLowerCase() === 'z') {
-                e.preventDefault();
-                toggleFullscreen();
-            } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                // Printable single keypress focuses search input
-                const searchInput = document.querySelector('#tour-pos-product input');
-                if (searchInput) searchInput.focus();
-            }
-        };
-
-        document.addEventListener('keydown', handleGlobalKeyDown);
-        return () => document.removeEventListener('keydown', handleGlobalKeyDown);
-    }, [activeSale, activeSaleId, sales, store, settings]);
 
     // Cart Auto-Scroll to Bottom on New Item Addition
     useEffect(() => {
@@ -3366,6 +3595,15 @@ const POSInterface = ({
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
+            if (shiftMenuRef.current && !shiftMenuRef.current.contains(event.target)) {
+                setShiftMenuOpen(false);
+            }
+            if (paymentDropdownRef.current && !paymentDropdownRef.current.contains(event.target)) {
+                setPaymentDropdownOpen(false);
+            }
+            if (bankAccountDropdownRef.current && !bankAccountDropdownRef.current.contains(event.target)) {
+                setBankAccountDropdownOpen(false);
+            }
             if (parkedDropdownRef.current && !parkedDropdownRef.current.contains(event.target)) {
                 setParkedDropdownOpen(false);
             }
@@ -3482,6 +3720,8 @@ const POSInterface = ({
                                 onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
                                 hideCostAndMargin={true}
                                 hideSearchIcon={true}
+                                settings={settings}
+                                isStockTracking={isStockMaintenanceEnabled(settings)}
                             />
                             {hasBarcodes && (
                                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none z-10 flex items-center gap-1">
@@ -3600,14 +3840,14 @@ const POSInterface = ({
                                 {tt('Service')}
                             </span>
                         </div>
-                    ) : (
+                    ) : isStockMaintenanceEnabled(settings) ? (
                         <div>
                             <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Stock</span>
                             <span className={`vq-num text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
                                 {formatNumber(product.stock_quantity || 0, 0)}
                             </span>
                         </div>
-                    )
+                    ) : null
                 )}
                 <div>
                     <span className="text-4xs font-bold text-ink-muted uppercase tracking-wider block leading-none mb-0.5">Price</span>
@@ -3627,8 +3867,9 @@ const POSInterface = ({
     const renderProductPill = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const isStockTracking = isStockMaintenanceEnabled(settings);
         const stock = product.stock_quantity;
-        const out = !isService && stock !== undefined && Number(stock) <= 0;
+        const out = isStockTracking && !isService && stock !== undefined && Number(stock) <= 0;
         return (
             <button
                 key={product.id}
@@ -3665,8 +3906,9 @@ const POSInterface = ({
     const renderProductLargeTile = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const isStockTracking = isStockMaintenanceEnabled(settings);
         const stock = product.stock_quantity;
-        const out = !isService && stock !== undefined && Number(stock) <= 0;
+        const out = isStockTracking && !isService && stock !== undefined && Number(stock) <= 0;
         const hasImage = Boolean(product.image_url || product.image_path);
 
         return (
@@ -3707,7 +3949,7 @@ const POSInterface = ({
                     <div className="vq-tile-large-foot">
                         {showCatalogStock && (
                             <span className={`vq-tile-large-stock${out ? ' is-out' : ''}`}>
-                                {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                                {isService ? tt('Service') : isStockTracking && stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : ''}
                             </span>
                         )}
                         <span className="vq-num vq-tile-large-price ml-auto">
@@ -3729,8 +3971,9 @@ const POSInterface = ({
     const renderProductTile = (product) => {
         const inCart = inCartQty.get(product.id) || 0;
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
+        const isStockTracking = isStockMaintenanceEnabled(settings);
         const stock = product.stock_quantity;
-        const out = !isService && stock !== undefined && Number(stock) <= 0;
+        const out = isStockTracking && !isService && stock !== undefined && Number(stock) <= 0;
         return (
             <button
                 key={product.id}
@@ -3762,7 +4005,7 @@ const POSInterface = ({
                 <span className="vq-tile-foot">
                     {showCatalogStock && (
                         <span className={`vq-tile-stock${out ? ' is-out' : ''}`}>
-                            {isService ? tt('Service') : (stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : '')}
+                            {isService ? tt('Service') : isStockTracking && stock !== undefined ? `${formatNumber(stock || 0, 0)} left` : ''}
                         </span>
                     )}
                     <span className="vq-num vq-tile-price ml-auto">
@@ -4108,7 +4351,9 @@ const POSInterface = ({
        through its own fit ladder — table → relay → minimal — inside the
        container query in pos-law.css, and below the leanest fit the pane
        scrolls rather than breaking. It never becomes a sheet. */
-    const renderCartLine = (item, index) => (
+    const renderCartLine = (item, index) => {
+        const isPaid = !!item.paidSaleId;
+        return (
         <div key={item.cartItemId} className="vq-line bg-surface border border-line hover:border-brand-300 shadow-xs hover:shadow-md group transition-all py-3">
             {/* Index Badge */}
             <span className="vq-line-idx vq-num text-xs sm:text-sm font-bold text-brand-800 dark:text-brand-300 bg-brand-50/80 dark:bg-brand-950/50 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 border border-brand-200/60 font-mono">
@@ -4125,6 +4370,11 @@ const POSInterface = ({
                         and it must not be charged again. */}
                     {tableMode && item.sent && !item.paidSaleId && (
                         <span className="vqt-line-sent">sent</span>
+                    )}
+                    {tableMode && !item.sent && item.sent_qty > 0 && !item.paidSaleId && (
+                        <span className="vqt-line-sent bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                            sent ({item.sent_qty}) · +{item.qty - item.sent_qty} new
+                        </span>
                     )}
                     {tableMode && item.paidSaleId && (
                         <span className="vqt-line-sent vqt-line-paid">paid</span>
@@ -4147,7 +4397,7 @@ const POSInterface = ({
                             {item.barcode || item.sku}
                         </span>
                     )}
-                    {item.qty > item.stock && (
+                    {isStockMaintenanceEnabled(settings) && !(item.type === 'service' || item.is_service || item.item_type === 'service') && item.stock !== undefined && item.qty > item.stock && (
                         <span className="text-xs font-bold text-red-600 bg-red-100 dark:bg-red-950/60 dark:text-red-400 px-2 py-0.5 rounded-md inline-flex items-center">
                             Over stock ({item.stock})
                         </span>
@@ -4159,42 +4409,47 @@ const POSInterface = ({
             </div>
 
             {/* Unit Price Pill */}
-            <div className="vq-line-price flex flex-col items-end shrink-0 justify-center">
+            <div className="vq-line-price flex flex-col items-center shrink-0 justify-center">
                 {hasPriceOverridePerm ? (
                     /* The unit price, edited in place. It used to be a button
                         that opened a discount modal -- which meant overriding a
                         rate, the single most common counter negotiation, cost
                         two dialogs. Typing here writes the rate directly and
                         the discount is derived from the original. */
-                    <span className="flex flex-col items-end">
+                    <span className="flex flex-col items-center">
                         {item.discount > 0 && (
                             <span className="line-through text-2xs text-ink-muted opacity-70">{money(item.original_price)}</span>
                         )}
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            value={priceDraft?.id === item.cartItemId ? priceDraft.value : String(item.price)}
-                            onFocus={e => { setPriceDraft({ id: item.cartItemId, value: String(item.price) }); e.target.select(); }}
-                            onChange={e => setPriceDraft({ id: item.cartItemId, value: e.target.value.replace(/[^\d.]/g, '') })}
-                            onBlur={() => commitPrice(item)}
-                            onKeyDown={e => {
-                                if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
-                                if (e.key === 'Escape') { setPriceDraft(null); e.currentTarget.blur(); }
-                            }}
-                            aria-label={`Unit price of ${item.name}`}
-                            title="Type a new unit price"
-                            className="vq-num vq-line-rate w-24 text-right text-xs sm:text-sm font-bold
-                                       text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40
-                                       border border-brand-200/80 dark:border-brand-800 px-2.5 py-1.5 rounded-xl
-                                       focus:outline-none focus:ring-2 focus:ring-brand-500/40"
-                        />
+                        <div className="relative inline-flex items-center">
+                            <span className="absolute left-2.5 text-xs font-black text-brand-700/70 dark:text-brand-300/70 select-none pointer-events-none">
+                                {getCurrencySymbol(store || settings)}
+                            </span>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                value={priceDraft?.id === item.cartItemId ? priceDraft.value : String(item.price)}
+                                onFocus={e => { setPriceDraft({ id: item.cartItemId, value: String(item.price) }); e.target.select(); }}
+                                onChange={e => setPriceDraft({ id: item.cartItemId, value: e.target.value.replace(/[^\d.]/g, '') })}
+                                onBlur={() => commitPrice(item)}
+                                onKeyDown={e => {
+                                    if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+                                    if (e.key === 'Escape') { setPriceDraft(null); e.currentTarget.blur(); }
+                                }}
+                                aria-label={`Unit price of ${item.name}`}
+                                title="Type a new unit price"
+                                className="vq-num vq-line-rate w-24 text-right text-xs sm:text-sm font-bold
+                                           text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40
+                                           border border-brand-200/80 dark:border-brand-800 pl-6 pr-2.5 py-1.5 rounded-xl
+                                           focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                            />
+                        </div>
                     </span>
                 ) : hasDiscountPerm ? (
                     <button
                         type="button"
                         onClick={() => openItemDiscountModal(item)}
                         title="Click to edit line discount"
-                        className="vq-num text-xs sm:text-sm font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200/80 dark:border-brand-800 px-3 py-1.5 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-all flex flex-col items-end cursor-pointer shadow-xs"
+                        className="vq-num text-xs sm:text-sm font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200/80 dark:border-brand-800 px-3 py-1.5 rounded-xl hover:bg-brand-100 dark:hover:bg-brand-900/60 transition-all flex flex-col items-center cursor-pointer shadow-xs"
                     >
                         {item.discount > 0 ? (
                             <>
@@ -4209,28 +4464,43 @@ const POSInterface = ({
                     </span>
                 )}
                 {item.discount > 0 && (
-                    <span className="vq-num text-2xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        −{money(item.discount)}
+                    <span className="vq-num text-2xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" title={`${money(item.discount)} each`}>
+                        {item.qty > 1 ? `−${money(item.discount * item.qty)} (${money(item.discount)} ea)` : `−${money(item.discount)}`}
                     </span>
                 )}
             </div>
 
             {/* Line Controls: Quick Edit & Quantity Stepper */}
             <div className="vq-line-ctl flex items-center gap-2 shrink-0">
-                <button
-                    type="button"
-                    onClick={() => openConverterModal(item)}
-                    title="Edit price, quantity or rate"
-                    className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 flex items-center justify-center transition-all cursor-pointer shadow-xs"
-                >
-                    <ArrowLeftRight size={16} strokeWidth={2.5} />
-                </button>
+                {showItemConverter && (
+                    <button
+                        type="button"
+                        onClick={() => openConverterModal(item)}
+                        title="Edit price, quantity or rate"
+                        className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 flex items-center justify-center transition-all cursor-pointer shadow-xs"
+                    >
+                        <ArrowLeftRight size={16} strokeWidth={2.5} />
+                    </button>
+                )}
 
+                {scaleLinked && (
+                    <button
+                        type="button"
+                        onClick={() => weighLine(item)}
+                        title="Take the weight from the scale"
+                        aria-label={`Weigh ${item.name}`}
+                        className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-sky-600 dark:text-sky-400 hover:bg-sky-100 flex items-center justify-center transition-all cursor-pointer shadow-xs"
+                    >
+                        <ScaleIcon size={16} strokeWidth={2.5} />
+                    </button>
+                )}
                 <div className="flex items-center bg-sunken/80 rounded-xl border border-line/80 overflow-hidden p-0.5 shadow-xs">
                     <button
                         type="button"
+                        disabled={isPaid}
+                        onMouseDown={e => e.preventDefault()}
                         onClick={() => updateQty(item.cartItemId, -1)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface text-ink-secondary hover:text-ink transition-all cursor-pointer"
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface text-ink-secondary hover:text-ink transition-all cursor-pointer ${isPaid ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                         aria-label="Decrease quantity"
                     >
                         <MinusCircle size={17} />
@@ -4243,6 +4513,7 @@ const POSInterface = ({
                     <input
                         type="text"
                         inputMode="decimal"
+                        disabled={isPaid}
                         value={qtyDraft?.id === item.cartItemId ? qtyDraft.value : String(item.qty)}
                         onFocus={e => { setQtyDraft({ id: item.cartItemId, value: String(item.qty) }); e.target.select(); }}
                         onChange={e => setQtyDraft({ id: item.cartItemId, value: e.target.value.replace(/[^\d.]/g, '') })}
@@ -4252,14 +4523,16 @@ const POSInterface = ({
                             if (e.key === 'Escape') { setQtyDraft(null); e.currentTarget.blur(); }
                         }}
                         aria-label={`Quantity of ${item.name}`}
-                        className="vq-num vq-line-qty w-12 text-center font-bold text-ink text-sm sm:text-base
+                        className={`vq-num vq-line-qty w-12 text-center font-bold text-ink text-sm sm:text-base
                                    bg-transparent border-0 rounded-lg focus:outline-none
-                                   focus:bg-surface focus:ring-2 focus:ring-brand-500/40"
+                                   focus:bg-surface focus:ring-2 focus:ring-brand-500/40 ${isPaid ? 'opacity-60 cursor-not-allowed' : ''}`}
                     />
                     <button
                         type="button"
+                        disabled={isPaid}
+                        onMouseDown={e => e.preventDefault()}
                         onClick={() => updateQty(item.cartItemId, 1)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface text-ink-secondary hover:text-ink transition-all cursor-pointer"
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface text-ink-secondary hover:text-ink transition-all cursor-pointer ${isPaid ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                         aria-label="Increase quantity"
                     >
                         <PlusCircle size={17} />
@@ -4270,8 +4543,10 @@ const POSInterface = ({
                     <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-0.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
                         <button
                             type="button"
+                            disabled={isPaid}
+                            onMouseDown={e => e.preventDefault()}
                             onClick={() => updateFreeQty(item.cartItemId, -1)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400 cursor-pointer ${isPaid ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                             aria-label="Decrease free quantity"
                         >
                             <MinusCircle size={15} />
@@ -4282,8 +4557,10 @@ const POSInterface = ({
                         </div>
                         <button
                             type="button"
+                            disabled={isPaid}
+                            onMouseDown={e => e.preventDefault()}
                             onClick={() => updateFreeQty(item.cartItemId, 1)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400 cursor-pointer ${isPaid ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                             aria-label="Increase free quantity"
                         >
                             <PlusCircle size={15} />
@@ -4308,14 +4585,16 @@ const POSInterface = ({
             {/* Delete Line */}
             <button
                 type="button"
+                disabled={isPaid}
                 onClick={() => removeFromCart(item.cartItemId)}
-                className="vq-line-del w-9 h-9 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-ink-muted hover:text-rose-600 flex items-center justify-center transition-colors shrink-0 cursor-pointer"
+                className={`vq-line-del w-9 h-9 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-ink-muted hover:text-rose-600 flex items-center justify-center transition-colors shrink-0 cursor-pointer ${isPaid ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                 aria-label="Remove item"
             >
                 <Trash2 size={18} />
             </button>
         </div>
-    );
+        );
+    };
 
     const renderReturnBanner = () => (
         <div className="vq-pane-fixed mx-3 mt-2 mb-1 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
@@ -4391,7 +4670,7 @@ const POSInterface = ({
                     table={selectedTable}
                     covers={tableCovers}
                     orderType={tableOrderType}
-                    unsent={activeSale.cart.filter(l => !l.sent).length}
+                    unsent={activeSale.cart.reduce((sum, l) => sum + Math.max(0, (Number(l.qty) || 0) - (Number(l.sent_qty) || (l.sent ? Number(l.qty) : 0))), 0)}
                     elapsedLabel={tableElapsed(selectedTable.opened_at)}
                     onBack={backToFloor}
                     onCovers={setCovers}
@@ -4436,10 +4715,12 @@ const POSInterface = ({
                             <ScanBarcode size={32} strokeWidth={1.75} />
                         </div>
                         <h3 className="font-bold text-ink text-base sm:text-lg mb-1">
-                            {tableMode && !selectedTable ? 'Pick a table to start' : 'Scan Barcode or Search Item'}
+                            {tableMode && !selectedTable ? 'Pick a Table or Start Ringing Items' : 'Scan Barcode or Search Item'}
                         </h3>
                         <p className="text-xs text-ink-muted max-w-sm mb-6 leading-relaxed">
-                            Point your handheld barcode scanner or type a product name, SKU, or batch number to start this order.
+                            {tableMode && !selectedTable
+                                ? 'Select a dine-in table from the floor, or scan/add any item to instantly start a Takeaway order.'
+                                : 'Point your handheld barcode scanner or type a product name, SKU, or batch number to start this order.'}
                         </p>
                         <div className="flex flex-wrap items-center justify-center gap-2 max-w-md">
                             <span className="text-3xs font-bold text-ink-muted bg-surface border border-line px-2.5 py-1 rounded-lg shadow-xs">
@@ -4503,7 +4784,17 @@ const POSInterface = ({
     const renderTenderFields = () => (
         <>
             <div id="tour-pos-customer" className="relative z-sticky">
-                {customerDropdownOpen ? (
+                {!customersOn ? (
+                    <input
+                        type="text"
+                        maxLength={120}
+                        value={activeSale.walkInName || ''}
+                        onChange={(e) => updateActiveSale({ walkInName: e.target.value })}
+                        placeholder="Name for this order (optional)"
+                        aria-label="Name for this order (optional)"
+                        className="w-full h-12 bg-surface px-3.5 rounded-xl border border-line/80 shadow-xs text-sm sm:text-base font-bold text-ink placeholder:font-normal placeholder:text-ink-muted outline-none focus:border-brand-300"
+                    />
+                ) : customerDropdownOpen ? (
                     <div className="relative">
                         <AsyncPartyCombobox
                             defaultOptions={initialCustomers}
@@ -4530,21 +4821,32 @@ const POSInterface = ({
                     <button
                         type="button"
                         onClick={() => setCustomerDropdownOpen(true)}
-                        className="w-full bg-surface p-4 rounded-2xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex items-center justify-between gap-3 group cursor-pointer"
+                        className="w-full h-12 bg-surface px-3.5 rounded-xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex items-center justify-between gap-2.5 group cursor-pointer"
                     >
-                        <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-100 to-teal-50 dark:from-brand-950/60 dark:to-teal-950/40 text-brand-700 dark:text-brand-300 font-bold border border-brand-200 dark:border-brand-800/60 flex items-center justify-center text-base shadow-xs shrink-0">
-                                <User size={20} />
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-brand-100 to-teal-50 dark:from-brand-950/60 dark:to-teal-950/40 text-brand-700 dark:text-brand-300 font-bold border border-brand-200 dark:border-brand-800/60 flex items-center justify-center text-xs shadow-xs shrink-0">
+                                <User size={15} />
                             </div>
-                            <div className="min-w-0">
-                                <span className="text-xs uppercase font-bold text-ink-muted block leading-none mb-1 tracking-wider">{t('customer', 'Customer')}</span>
-                                <span className="vq-clip font-bold text-ink text-base sm:text-lg block">
+                            <div className="min-w-0 flex items-center gap-2">
+                                <span className="text-[10px] uppercase font-bold text-ink-muted tracking-wider shrink-0">{t('customer', 'Customer')}:</span>
+                                <span className="vq-clip font-bold text-ink text-sm sm:text-base">
                                     {activeSale.customer?.name || `Walk-in ${t('customer', 'customer').toLowerCase()}`}
                                 </span>
                             </div>
                         </div>
-                        <Search size={18} className="text-ink-muted group-hover:text-brand-600 transition-colors shrink-0" />
+                        <Search size={16} className="text-ink-muted group-hover:text-brand-600 transition-colors shrink-0" />
                     </button>
+                )}
+                {customersOn && !activeSale.customer?.id && (
+                    <input
+                        type="text"
+                        maxLength={120}
+                        value={activeSale.walkInName || ''}
+                        onChange={(e) => updateActiveSale({ walkInName: e.target.value })}
+                        placeholder="Name for this order (optional)"
+                        aria-label="Name for this order (optional)"
+                        className="mt-2 w-full h-10 bg-surface px-3.5 rounded-xl border border-line/80 shadow-xs text-sm font-semibold text-ink placeholder:font-normal placeholder:text-ink-muted outline-none focus:border-brand-300"
+                    />
                 )}
             </div>
 
@@ -4557,10 +4859,10 @@ const POSInterface = ({
                             type: activeSale.discountType || 'fixed',
                             value: activeSale.discountValue ? String(activeSale.discountValue) : '',
                         })}
-                        className="bg-surface p-4 rounded-2xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex flex-col justify-center cursor-pointer"
+                        className="bg-surface px-3.5 py-2 rounded-xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex flex-col justify-center cursor-pointer min-h-[46px]"
                     >
-                        <span className="text-xs uppercase font-bold text-ink-muted block mb-1 tracking-wider">Bill Discount</span>
-                        <span className="vq-clip vq-num text-base sm:text-lg font-bold text-brand-600 dark:text-brand-400">
+                        <span className="text-[10px] uppercase font-bold text-ink-muted block leading-tight tracking-wider">Bill Discount</span>
+                        <span className="vq-clip vq-num text-sm sm:text-base font-bold text-brand-600 dark:text-brand-400">
                             {activeSale.discountType === 'percentage'
                                 ? `${activeSale.discountValue}% (${money(globalDiscount)})`
                                 : money(globalDiscount)}
@@ -4568,24 +4870,24 @@ const POSInterface = ({
                     </button>
                 )}
 
-                <div className="relative">
+                <div className="relative" ref={paymentDropdownRef}>
                     <button
                         type="button"
                         onClick={() => setPaymentDropdownOpen(!paymentDropdownOpen)}
-                        className="w-full h-full bg-surface p-4 rounded-2xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex flex-col justify-center cursor-pointer"
+                        className="w-full h-full bg-surface px-3.5 py-2 rounded-xl text-left hover:border-brand-300 hover:shadow-sm transition-all border border-line/80 shadow-xs flex flex-col justify-center cursor-pointer min-h-[46px]"
                     >
-                        <span className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-xs uppercase font-bold text-ink-muted tracking-wider">Payment Method</span>
+                        <span className="flex items-center justify-between gap-2 mb-0.5">
+                            <span className="text-[10px] uppercase font-bold text-ink-muted tracking-wider leading-tight">Payment Method</span>
                         </span>
-                        <span className="flex items-center gap-2 min-w-0">
-                            <CreditCard size={16} className="text-brand-600 dark:text-brand-400 shrink-0" />
-                            <span className="vq-clip text-sm sm:text-base font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 px-2.5 py-0.5 rounded-md uppercase">
+                        <span className="flex items-center gap-1.5 min-w-0">
+                            <CreditCard size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+                            <span className="vq-clip text-xs font-bold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/40 border border-brand-200 dark:border-brand-800 px-2 py-0.5 rounded uppercase">
                                 {paymentMethod}
                             </span>
                         </span>
                     </button>
                     {paymentDropdownOpen && (
-                        <div className="absolute top-full right-0 mt-1 w-48 bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden z-sticky py-1">
+                        <div className="absolute top-full right-0 mt-1 w-48 bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden z-dropdown py-1">
                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
                                 if (method === 'credit' && (!activeSale.customer || !modulesEnabled.has('khata_credit'))) return null;
                                 return (
@@ -4613,6 +4915,68 @@ const POSInterface = ({
                     )}
                 </div>
             </div>
+
+            {/* Deposit Bank Account Selector (when digital/bank/card selected) */}
+            {['bank', 'card', 'online'].includes(paymentMethod) && (
+                <div className="relative mt-2" ref={bankAccountDropdownRef}>
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] uppercase font-bold text-ink-muted tracking-wider">Deposit Account</span>
+                        <button
+                            type="button"
+                            onClick={() => setShowQuickAccountModal(true)}
+                            className="text-[10px] font-bold text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        >
+                            <Plus size={11} /> New Account
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setBankAccountDropdownOpen(!bankAccountDropdownOpen)}
+                        className="w-full bg-surface px-3 py-2 rounded-xl text-left hover:border-brand-300 transition-all border border-line/80 shadow-xs flex items-center justify-between cursor-pointer min-h-[40px]"
+                    >
+                        <div className="flex items-center gap-2 min-w-0">
+                            <Landmark size={14} className="text-brand-600 dark:text-brand-400 shrink-0" />
+                            <span className="text-xs font-bold text-ink truncate">
+                                {bankAccounts.find(a => String(a.id) === String(selectedBankAccountId))?.name || (bankAccounts.length > 0 ? bankAccounts[0].name : 'No Accounts Found')}
+                            </span>
+                        </div>
+                        <ChevronDown size={14} className={`text-ink-muted transition-transform duration-150 ${bankAccountDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {bankAccountDropdownOpen && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden z-dropdown py-1 max-h-48 overflow-y-auto">
+                            {bankAccounts.map(account => (
+                                <button
+                                    key={account.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedBankAccountId(account.id);
+                                        setBankAccountDropdownOpen(false);
+                                    }}
+                                    className={`w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-interactive-hover transition-colors cursor-pointer flex items-center justify-between ${String(selectedBankAccountId) === String(account.id) ? 'text-brand-600 bg-brand-50 dark:bg-brand-950/30' : 'text-ink-secondary'}`}
+                                >
+                                    <div className="min-w-0">
+                                        <p className="truncate">{account.name}</p>
+                                        {account.bank_name && <p className="text-[10px] text-ink-muted">{account.bank_name}</p>}
+                                    </div>
+                                    {String(selectedBankAccountId) === String(account.id) && <Check size={14} className="shrink-0 ml-2" />}
+                                </button>
+                            ))}
+                            <div className="border-t border-line my-1" />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setBankAccountDropdownOpen(false);
+                                    setShowQuickAccountModal(true);
+                                }}
+                                className="w-full text-left px-3.5 py-2 text-xs font-bold text-brand-600 hover:bg-interactive-hover transition-colors cursor-pointer flex items-center gap-1.5"
+                            >
+                                <Plus size={13} />
+                                <span>Create new account...</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* ── LOCATION ─────────────────────────────────────────────────
                 Rank 2, and it had no control at all: PosController sends the
@@ -4825,7 +5189,7 @@ const POSInterface = ({
                         (Cash / Credit / Bank / Card / Online), not as a separate button here. */}
                 </div>
                 <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted font-bold pointer-events-none text-base sm:text-lg">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-secondary font-extrabold pointer-events-none text-lg sm:text-xl">
                         {getCurrencySymbol(store || settings)}
                     </span>
                     <input
@@ -4835,8 +5199,8 @@ const POSInterface = ({
                         onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
                         onKeyDown={handleTenderedKeyDown}
                         placeholder="0.00"
-                        className="vq-num w-full bg-sunken/60 focus:bg-surface border border-line/90 rounded-xl pl-11 pr-24 font-bold text-ink focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 outline-none transition-all no-spinner h-14"
-                        style={{ fontSize: 'var(--vq-t-num)' }}
+                        className="vq-num w-full bg-sunken/60 focus:bg-surface border border-line/90 rounded-xl pl-11 pr-24 font-extrabold text-ink focus:ring-4 focus:ring-brand-500/15 focus:border-brand-500 outline-none transition-all no-spinner h-14"
+                        style={{ fontSize: '1.45rem', fontWeight: 800 }}
                         disabled={activeSale.cart.length === 0}
                     />
                     <button
@@ -4876,14 +5240,14 @@ const POSInterface = ({
             </div>
 
             {!returnMode && (
-                <div className={`p-4 sm:p-5 rounded-2xl border transition-all shadow-xs ${
+                <div className={`px-4 py-3.5 sm:px-5 sm:py-3.5 rounded-2xl border transition-all shadow-xs ${
                     changeDue >= 0 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'
                 }`}>
                     <div className="flex justify-between items-center gap-2">
                         <span className={`text-sm sm:text-base font-bold uppercase tracking-wider ${changeDue >= 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'}`}>
                             {changeDue >= 0 ? 'Change due' : 'Shortage'}
                         </span>
-                        <span className={`vq-num font-bold ${changeDue >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} style={{ fontSize: 'var(--vq-t-num)' }}>
+                        <span className={`vq-num font-extrabold tracking-tight ${changeDue >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`} style={{ fontSize: '1.5rem', fontWeight: 800 }}>
                             {money(Math.abs(changeDue))}
                         </span>
                     </div>
@@ -4904,9 +5268,21 @@ const POSInterface = ({
                 });
                 if (!handleApprovalResponse(response, 'POS return')) {
                     addToast(`Return processed — Ref: ${response.data.reference}`, 'success');
+                    if (printOnComplete) {
+                        const returnDoc = response.data?.sale || response.data?.return || {
+                            ...response.data,
+                            id: response.data?.reference || Date.now(),
+                            reference_number: response.data?.reference,
+                            items: activeSale.cart,
+                            total: activeSale.cart.reduce((sum, i) => sum + (i.price * i.qty), 0),
+                            type: 'return',
+                            is_return: true,
+                        };
+                        try { PrintService.quickPrint(returnDoc, null, settings); } catch (_) {}
+                    }
                 }
                 setReturnMode(false);
-                updateActiveSale({ cart: [], customer: null });
+                updateActiveSale({ cart: [], customer: null, walkInName: '' });
             } else {
                 if (!returnSaleId) {
                     addToast('Load the original sale by reference first', 'error');
@@ -4921,11 +5297,23 @@ const POSInterface = ({
                 });
                 if (!handleApprovalResponse(response, 'POS return')) {
                     addToast('Return processed successfully', 'success');
+                    if (printOnComplete) {
+                        const returnDoc = response.data?.sale || response.data?.return || {
+                            ...response.data,
+                            id: response.data?.id || returnSaleId,
+                            reference_number: response.data?.reference_number || returnSaleRef,
+                            items: activeSale.cart,
+                            total: activeSale.cart.reduce((sum, i) => sum + (i.price * i.qty), 0),
+                            type: 'return',
+                            is_return: true,
+                        };
+                        try { PrintService.quickPrint(returnDoc, null, settings); } catch (_) {}
+                    }
                 }
                 setReturnMode(false);
                 setReturnSaleId(null);
                 setReturnSaleRef('');
-                updateActiveSale({ cart: [], customer: null });
+                updateActiveSale({ cart: [], customer: null, walkInName: '' });
             }
         } catch (err) {
             addToast(err.response?.data?.message || 'Return failed', 'error');
@@ -4994,12 +5382,12 @@ const POSInterface = ({
                     <button
                         type="button"
                         onClick={handleCounterFire}
-                        disabled={firingCounter || activeSale.cart.length === 0 || activeSale.cart.every(l => l.sent)}
-                        className={`flex-1 bg-amber-500 hover:bg-amber-600 text-white active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${firingCounter || activeSale.cart.length === 0 || activeSale.cart.every(l => l.sent) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={firingCounter || activeSale.cart.length === 0 || !activeSale.cart.some(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0))}
+                        className={`flex-1 bg-amber-500 hover:bg-amber-600 text-white active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${firingCounter || activeSale.cart.length === 0 || !activeSale.cart.some(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0)) ? 'opacity-50 cursor-not-allowed' : ''}`}
                         title="Send order to kitchen"
                     >
                         {firingCounter ? <Loader2 size={17} className="animate-spin" /> : <ChefHat size={17} />}
-                        <span>{firingCounter ? 'Sending…' : (activeSale.cart.some(l => !l.sent) ? 'Kitchen' : 'Sent')}</span>
+                        <span>{firingCounter ? 'Sending…' : (activeSale.cart.some(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0)) ? 'Kitchen' : 'Sent')}</span>
                     </button>
                 )}
                 <button
@@ -5437,8 +5825,8 @@ const POSInterface = ({
                                                     ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
                                                     : 'bg-surface hover:bg-interactive-hover border-line text-ink-muted hover:text-ink'
                                             }`}
-                                            title={printerReady ? `${printerCount} printer${printerCount === 1 ? '' : 's'} connected` : 'Printer disconnected — click to configure'}
-                                            aria-label={printerReady ? `${printerCount} printer${printerCount === 1 ? '' : 's'} connected` : 'Printer disconnected — click to configure'}
+                                            title={printerReady ? `${printerCount} printer${printerCount === 1 ? '' : 's'} connected` : `${printerLabel} — click to configure`}
+                                            aria-label={printerReady ? `${printerCount} printer${printerCount === 1 ? '' : 's'} connected` : `${printerLabel} — click to configure`}
                                         >
                                             {printerReady ? (
                                                 <Printer size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -5468,83 +5856,85 @@ const POSInterface = ({
                                 </>
                             )}
 
-                            {/* ── REGISTER SHIFT & CASH DRAWER (R20) ────── */}
-                            <div className="relative">
-                                {registerShift ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShiftMenuOpen(prev => !prev)}
-                                        className="h-11 px-3.5 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                        title={`Shift #${registerShift.id} Open — Click for Cash In/Out or Close Shift`}
-                                    >
-                                        <span className="relative flex h-2.5 w-2.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                                        </span>
-                                        <span className="text-xs font-bold font-mono">Shift #{registerShift.id}</span>
-                                        <ChevronDown size={14} className={`transition-transform duration-150 ${shiftMenuOpen ? 'rotate-180' : ''}`} />
-                                    </button>
-                                ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowOpenShiftModal(true)}
-                                        className="h-11 px-3.5 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
-                                        title="Open Register Shift"
-                                    >
-                                        <Clock size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
-                                        <span className="text-xs font-bold">Open Shift</span>
-                                    </button>
-                                )}
+                            {/* ── REGISTER SHIFT & CASH DRAWER (R20) — restricted POS staff only ────── */}
+                            {isPosStaff && (
+                                <div className="relative" ref={shiftMenuRef}>
+                                    {registerShift ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShiftMenuOpen(prev => !prev)}
+                                            className="h-11 px-3.5 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                                            title={`Shift #${registerShift.id} Open — Click for Cash In/Out or Close Shift`}
+                                        >
+                                            <span className="relative flex h-2.5 w-2.5">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                            </span>
+                                            <span className="text-xs font-bold font-mono">Shift #{registerShift.id}</span>
+                                            <ChevronDown size={14} className={`transition-transform duration-150 ${shiftMenuOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowOpenShiftModal(true)}
+                                            className="h-11 px-3.5 rounded-xl flex items-center gap-2 transition-all border shadow-xs shrink-0 cursor-pointer bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                                            title="Open Register Shift"
+                                        >
+                                            <Clock size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
+                                            <span className="text-xs font-bold">Open Shift</span>
+                                        </button>
+                                    )}
 
-                                {shiftMenuOpen && registerShift && (
-                                    <div 
-                                        className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-dropdown text-slate-200 animate-in fade-in zoom-in-95 duration-150"
-                                        onClick={() => setShiftMenuOpen(false)}
-                                    >
-                                        <div className="p-2.5 border-b border-slate-800 mb-1">
-                                            <div className="text-xs font-bold text-white flex items-center justify-between">
-                                                <span>Shift #{registerShift.id}</span>
-                                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">OPEN</span>
+                                    {shiftMenuOpen && registerShift && (
+                                        <div 
+                                            className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-dropdown text-slate-200 animate-in fade-in zoom-in-95 duration-150"
+                                            onClick={() => setShiftMenuOpen(false)}
+                                        >
+                                            <div className="p-2.5 border-b border-slate-800 mb-1">
+                                                <div className="text-xs font-bold text-white flex items-center justify-between">
+                                                    <span>Shift #{registerShift.id}</span>
+                                                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">OPEN</span>
+                                                </div>
+                                                <div className="text-[11px] text-slate-400 mt-1 flex justify-between">
+                                                    <span>Expected Cash:</span>
+                                                    <span className="font-mono font-bold text-emerald-400">
+                                                        {money(shiftMetrics?.expected_cash ?? registerShift.opening_float)}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="text-[11px] text-slate-400 mt-1 flex justify-between">
-                                                <span>Expected Cash:</span>
-                                                <span className="font-mono font-bold text-emerald-400">
-                                                    {money(shiftMetrics?.expected_cash ?? registerShift.opening_float)}
-                                                </span>
-                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCashMovementModal(true)}
+                                                className="w-full text-left px-3 py-2 text-xs font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition cursor-pointer"
+                                            >
+                                                <ArrowLeftRight size={15} className="text-indigo-400 shrink-0" />
+                                                <span>Cash In / Cash Out (Petty)</span>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={handleOpenCashDrawer}
+                                                className="w-full text-left px-3 py-2 text-xs font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition cursor-pointer"
+                                            >
+                                                <Unlock size={15} className="text-amber-400 shrink-0" />
+                                                <span>Open Drawer (Hardware Pulse)</span>
+                                            </button>
+
+                                            <div className="border-t border-slate-800 my-1"></div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCloseShiftModal(true)}
+                                                className="w-full text-left px-3 py-2 text-xs font-bold rounded-xl hover:bg-rose-950/60 text-rose-400 hover:text-rose-300 flex items-center gap-2.5 transition cursor-pointer"
+                                            >
+                                                <Lock size={15} className="text-rose-400 shrink-0" />
+                                                <span>Close Shift & Z-Report</span>
+                                            </button>
                                         </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowCashMovementModal(true)}
-                                            className="w-full text-left px-3 py-2 text-xs font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition cursor-pointer"
-                                        >
-                                            <ArrowLeftRight size={15} className="text-indigo-400 shrink-0" />
-                                            <span>Cash In / Cash Out (Petty)</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={handleOpenCashDrawer}
-                                            className="w-full text-left px-3 py-2 text-xs font-semibold rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white flex items-center gap-2.5 transition cursor-pointer"
-                                        >
-                                            <Unlock size={15} className="text-amber-400 shrink-0" />
-                                            <span>Open Drawer (Hardware Pulse)</span>
-                                        </button>
-
-                                        <div className="border-t border-slate-800 my-1"></div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowCloseShiftModal(true)}
-                                            className="w-full text-left px-3 py-2 text-xs font-bold rounded-xl hover:bg-rose-950/60 text-rose-400 hover:text-rose-300 flex items-center gap-2.5 transition cursor-pointer"
-                                        >
-                                            <Lock size={15} className="text-rose-400 shrink-0" />
-                                            <span>Close Shift & Z-Report</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* ── THE ONE SETTINGS BUTTON ──────────────────
                                 Three lived here: a layout picker, a quick-settings
@@ -5552,6 +5942,32 @@ const POSInterface = ({
                                 overlapping subsets of the same values. One drawer
                                 now holds every one of them, and the operator no
                                 longer has to guess which button owns which switch. */}
+                            {/* ── KITCHEN DISPLAY & CUSTOMER TV SCREEN QUICK LAUNCH ── */}
+                            {preparesOrders && (
+                                <a
+                                    href={route('store.restaurant.kitchen', { store_slug: store?.slug })}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="h-11 px-3 rounded-xl bg-surface hover:bg-amber-50 dark:hover:bg-amber-950/30 text-ink-secondary hover:text-amber-600 dark:hover:text-amber-400 flex items-center justify-center gap-1.5 transition-all border border-line hover:border-amber-300 shadow-xs shrink-0 cursor-pointer"
+                                    title="Open Kitchen Display (KDS) in a new tab"
+                                >
+                                    <ChefHat size={17} className="text-amber-500" />
+                                    <span className="text-xs font-bold hidden xl:inline">Kitchen</span>
+                                </a>
+                            )}
+                            {preparesOrders && (
+                                <a
+                                    href={route('store.restaurant.queue', { store_slug: store?.slug })}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="h-11 px-3 rounded-xl bg-surface hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-ink-secondary hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center gap-1.5 transition-all border border-line hover:border-emerald-300 shadow-xs shrink-0 cursor-pointer"
+                                    title="Open Customer Order Queue Display (TV Screen) in a new tab"
+                                >
+                                    <Tv size={17} className="text-emerald-500" />
+                                    <span className="text-xs font-bold hidden xl:inline">TV Screen</span>
+                                </a>
+                            )}
+
                             <button
                                 onClick={() => openSettings('layout')}
                                 aria-expanded={settingsOpen}
@@ -5612,7 +6028,9 @@ const POSInterface = ({
                                     selectedId={tables.selectedId}
                                     onPick={pickTable}
                                     onNewTicket={(kind) => setNewTicketFor(kind)}
+                                    onUpdateDelivery={tables.updateDelivery}
                                     onSetup={openFloorPlan}
+                                    onRefresh={tables.refresh}
                                     money={money}
                                     now={floorNow}
                                     storeSlug={store?.slug}
@@ -5641,7 +6059,9 @@ const POSInterface = ({
                                             selectedId={tables.selectedId}
                                             onPick={pickTable}
                                             onNewTicket={(kind) => setNewTicketFor(kind)}
+                                            onUpdateDelivery={tables.updateDelivery}
                                             onSetup={openFloorPlan}
+                                            onRefresh={tables.refresh}
                                             money={money}
                                             now={floorNow}
                                             storeSlug={store?.slug}
@@ -5760,10 +6180,18 @@ const POSInterface = ({
                         </div>
                         <div className="p-4 max-h-96 overflow-y-auto">
                             {selectedProductForVariant.variants.map(variant => (
-                                <div
+                                <button
+                                    type="button"
                                     key={variant.id}
-                                    onClick={() => addToCart(selectedProductForVariant, variant)}
-                                    className="p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl cursor-pointer border border-line mb-2 flex justify-between items-center"
+                                    onClick={async () => {
+                                        if (tableMode && !tables.selected) {
+                                            const ticket = await ensureActiveOrder('takeaway');
+                                            if (!ticket) return;
+                                        }
+                                        addToCart(selectedProductForVariant, variant);
+                                        setVariantModalOpen(false);
+                                    }}
+                                    className="w-full text-left p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl cursor-pointer border border-line mb-2 flex justify-between items-center transition-colors"
                                 >
                                     <div>
                                         <p className="font-bold">{variant.sku}</p>
@@ -5776,7 +6204,7 @@ const POSInterface = ({
                                         <p className="font-bold text-brand-600">{formatCurrency(variant.price, store || settings)}</p>
                                         <p className="text-xs text-ink-muted">Stock: {variant.stock_quantity}</p>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -5792,7 +6220,6 @@ const POSInterface = ({
                 onClose={() => setApprovalRequest(null)}
                 onSubmit={(approval) => processCheckout(approvalRequest.paymentData, approvalRequest.addToLedger, approval)}
             />}
-            <Toast toasts={toasts} removeToast={(id) => setToasts(prev => prev.filter(t => t.id !== id))} />
 
             <AlertModal
                 show={alertState.show}
@@ -5845,7 +6272,7 @@ const POSInterface = ({
                         if (t) {
                             loadedOccupancy.current = t.occupancy_id;
                             tables.prime([]);
-                            updateActiveSale({ cart: [], cashReceived: '', customer: null, remarks: '' });
+                            updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
                             addToast(`${t.code} opened`, 'success');
                         }
                     }}
@@ -5936,8 +6363,8 @@ const POSInterface = ({
 
             {/* Custom Global Discount Preset Modal */}
             {globalDiscountModal.show && typeof document !== 'undefined' && createPortal((
-                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade">
-                    <div className="bg-neutral-900 w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden text-white">
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade" onClick={() => setGlobalDiscountModal({ show: false, type: 'fixed', value: '' })}>
+                    <div className="bg-neutral-900 w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden text-white" onClick={e => e.stopPropagation()}>
                         <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
                                 <h3 className="text-base font-bold uppercase tracking-tight">Apply <span className="text-emerald-400">Discount</span></h3>
@@ -6065,8 +6492,8 @@ const POSInterface = ({
 
             {/* Quick Bank Account Modal */}
             {showQuickAccountModal && typeof document !== 'undefined' && createPortal((
-                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade">
-                    <div className="bg-neutral-900 w-full max-w-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
+                <div className="fixed inset-0 z-modal flex items-center justify-center bg-black/60 backdrop-blur-sm vq-anim-fade" onClick={() => setShowQuickAccountModal(false)}>
+                    <div className="bg-neutral-900 w-full max-w-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden" onClick={e => e.stopPropagation()}>
                         <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <div>
                                 <h3 className="text-lg font-bold text-white uppercase tracking-tight">Create <span className="text-brand-400">Bank Account</span></h3>
@@ -6119,9 +6546,9 @@ const POSInterface = ({
                             <button 
                                 onClick={async () => {
                                     setCreatingAccount(true);
-                                    const name = document.getElementById('quick-acc-name').value;
-                                    const type = document.getElementById('quick-acc-type').value;
-                                    const bank = document.getElementById('quick-acc-bank').value;
+                                    const name = document.getElementById('quick-acc-name')?.value;
+                                    const type = document.getElementById('quick-acc-type')?.value;
+                                    const bank = document.getElementById('quick-acc-bank')?.value;
                                     
                                     if (!name) {
                                         addToast('Account name is required', 'error');
@@ -6130,12 +6557,15 @@ const POSInterface = ({
                                     }
 
                                     try {
-                                        await axios.post(route('store.bank-accounts.store', { store_slug: store?.slug }), {
+                                        const response = await axios.post(route('store.bank-accounts.store', { store_slug: store?.slug }), {
                                             name,
                                             account_type: type,
                                             bank_name: bank,
                                             opening_balance: 0
                                         });
+                                        if (response.data?.bankAccount?.id) {
+                                            setSelectedBankAccountId(response.data.bankAccount.id);
+                                        }
                                         addToast('Account created successfully!', 'success');
                                         setShowQuickAccountModal(false);
                                         router.reload({ only: ['bankAccounts'] });
@@ -6168,6 +6598,7 @@ const POSInterface = ({
                 onClose={() => { setShowQuickPartyModal(false); setEditingCustomer(null); }}
                 editingParty={editingCustomer}
                 onSuccess={(newCustomer) => {
+                    setInitialCustomers(prev => [newCustomer, ...(prev || []).filter(c => c.id !== newCustomer.id)]);
                     updateActiveSale({ customer: newCustomer });
                     setShowQuickPartyModal(false);
                     setEditingCustomer(null);
@@ -6184,50 +6615,55 @@ const POSInterface = ({
                     addToCart(newProduct);
                     setShowProductModal(false);
                     addToast(`Product ${newProduct.name} added!`, 'success');
+                    window.dispatchEvent(new CustomEvent('amd:refresh-products'));
                 }}
             />
 
-            {/* ── Register Shift & Cash Drawer Modals (R20) ───────────── */}
-            <OpenShiftModal
-                isOpen={showOpenShiftModal}
-                onClose={() => setShowOpenShiftModal(false)}
-                onSuccess={(shift, metrics) => {
-                    setRegisterShift(shift);
-                    setShiftMetrics(metrics);
-                    addToast(`Shift #${shift.id} opened with float ${money(shift.opening_float)}`, 'success');
-                }}
-                registerId={settings?.register_id || 'REG-1'}
-            />
+            {/* ── Register Shift & Cash Drawer Modals (R20) — restricted POS staff only ───────────── */}
+            {isPosStaff && (
+                <>
+                    <OpenShiftModal
+                        isOpen={showOpenShiftModal}
+                        onClose={() => setShowOpenShiftModal(false)}
+                        onSuccess={(shift, metrics) => {
+                            setRegisterShift(shift);
+                            setShiftMetrics(metrics);
+                            addToast(`Shift #${shift.id} opened with float ${money(shift.opening_float)}`, 'success');
+                        }}
+                        registerId={settings?.register_id || 'REG-1'}
+                    />
 
-            <CashMovementModal
-                isOpen={showCashMovementModal}
-                onClose={() => setShowCashMovementModal(false)}
-                shiftId={registerShift?.id}
-                onSuccess={(movement, metrics) => {
-                    setShiftMetrics(metrics);
-                    addToast(`${movement.type === 'in' ? 'Cash In' : 'Cash Out'} of ${money(movement.amount)} recorded`, 'success');
-                }}
-            />
+                    <CashMovementModal
+                        isOpen={showCashMovementModal}
+                        onClose={() => setShowCashMovementModal(false)}
+                        shiftId={registerShift?.id}
+                        onSuccess={(movement, metrics) => {
+                            setShiftMetrics(metrics);
+                            addToast(`${movement.type === 'in' ? 'Cash In' : 'Cash Out'} of ${money(movement.amount)} recorded`, 'success');
+                        }}
+                    />
 
-            <CloseShiftModal
-                isOpen={showCloseShiftModal}
-                onClose={() => setShowCloseShiftModal(false)}
-                shift={registerShift}
-                metrics={shiftMetrics || {}}
-                onSuccess={(closedShift, zReport, metrics) => {
-                    setRegisterShift(null);
-                    setShiftMetrics(null);
-                    setActiveZReport(zReport);
-                    setShowZReportModal(true);
-                    addToast(`Shift #${closedShift.id} closed. Generating Z-Report...`, 'success');
-                }}
-            />
+                    <CloseShiftModal
+                        isOpen={showCloseShiftModal}
+                        onClose={() => setShowCloseShiftModal(false)}
+                        shift={registerShift}
+                        metrics={shiftMetrics || {}}
+                        onSuccess={(closedShift, zReport, metrics) => {
+                            setRegisterShift(null);
+                            setShiftMetrics(null);
+                            setActiveZReport(zReport);
+                            setShowZReportModal(true);
+                            addToast(`Shift #${closedShift.id} closed. Generating Z-Report...`, 'success');
+                        }}
+                    />
 
-            <ZReportModal
-                isOpen={showZReportModal}
-                onClose={() => setShowZReportModal(false)}
-                zReport={activeZReport}
-            />
+                    <ZReportModal
+                        isOpen={showZReportModal}
+                        onClose={() => setShowZReportModal(false)}
+                        zReport={activeZReport}
+                    />
+                </>
+            )}
 
             <FormModal
                 isOpen={showOverpaymentModal}
@@ -6265,10 +6701,10 @@ const POSInterface = ({
                 </div>
             </FormModal>
 
-            {/* â”€â”€ Item Discount Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── Item Discount Modal ────────────────────────────────────── */}
             {itemDiscountModal.show && typeof document !== 'undefined' && createPortal((
-                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' })}>
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5" onClick={e => e.stopPropagation()}>
                         <div>
                             <h3 className="text-lg font-bold text-ink">Apply Item Discount</h3>
                             <p className="text-xs text-ink-muted mt-1 truncate">{itemDiscountModal.item?.name}</p>
@@ -6342,10 +6778,10 @@ const POSInterface = ({
                 </div>
             ), document.body)}
 
-            {/* â”€â”€ Converter Modal (Price / Qty / Total) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── Converter Modal (Price / Qty / Total) ─────────────────── */}
             {converterModal.show && typeof document !== 'undefined' && createPortal((
-                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5">
+                <div className="fixed inset-0 z-command flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConverterModal({ show: false, item: null, mode: 'price', price: '', qty: '', total: '' })}>
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-5" onClick={e => e.stopPropagation()}>
                         <div>
                             <h3 className="text-lg font-bold text-ink">Edit Item Values</h3>
                             <p className="text-xs text-ink-muted mt-1 truncate">{converterModal.item?.name}</p>
@@ -6411,8 +6847,8 @@ const POSInterface = ({
             ), document.body)}
         {/* --- OFFLINE SYNC HUB MODAL --- */}
         {showSyncHub && typeof document !== 'undefined' && createPortal((
-            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm vq-anim-fade">
-                <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-line text-lg">
+            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm vq-anim-fade" onClick={() => setShowSyncHub(false)}>
+                <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-line text-lg" onClick={e => e.stopPropagation()}>
                     {/* Header */}
                     <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -6544,8 +6980,8 @@ const POSInterface = ({
                     button that set a flag into the void. It is a sheet now,
                     like every other rank-2 capability. */}
                 {showRecentInvoices && typeof document !== 'undefined' && createPortal((
-                    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-surface rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden border border-line flex flex-col max-h-[86vh]">
+                    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowRecentInvoices(false)}>
+                        <div className="bg-surface rounded-lg shadow-2xl w-full max-w-2xl overflow-hidden border border-line flex flex-col max-h-[86vh]" onClick={e => e.stopPropagation()}>
                             <div className="p-5 border-b border-line flex items-center justify-between bg-sunken/40 gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-10 h-10 rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-950/50 dark:text-brand-400 flex items-center justify-center shrink-0">
@@ -6583,12 +7019,23 @@ const POSInterface = ({
                                                 {inv.created_at ? ` · ${new Date(inv.created_at).toLocaleTimeString()}` : ''}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => PrintService.quickPrint(inv, null, settings)}
-                                            className="px-4 rounded-lg bg-surface border border-line text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-xs font-bold shrink-0"
-                                        >
-                                            <Printer size={14} className="inline mr-1.5" />Reprint
-                                        </button>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRecallRecentSale(inv)}
+                                                className="px-3 py-1.5 rounded-lg bg-surface border border-line text-ink hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold shrink-0 cursor-pointer"
+                                                title="Recall sale into POS cart"
+                                            >
+                                                <Undo2 size={13} className="inline mr-1" />Recall
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => PrintService.quickPrint(inv, null, settings)}
+                                                className="px-3 py-1.5 rounded-lg bg-surface border border-line text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-xs font-bold shrink-0 cursor-pointer"
+                                            >
+                                                <Printer size={13} className="inline mr-1" />Reprint
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -6601,8 +7048,8 @@ const POSInterface = ({
                     bar, which fell outside the viewport on a narrow screen.
                     A rank-2 capability belongs in a sheet. */}
                 {parkedDropdownOpen && typeof document !== 'undefined' && createPortal((
-                    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-surface rounded-lg shadow-2xl w-full max-w-lg overflow-hidden border border-line flex flex-col max-h-[80vh]">
+                    <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setParkedDropdownOpen(false)}>
+                        <div className="bg-surface rounded-lg shadow-2xl w-full max-w-lg overflow-hidden border border-line flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
                             <div className="p-5 border-b border-line flex items-center justify-between bg-sunken/40">
                                 <h3 className="font-bold text-ink" style={{ fontSize: 'var(--vq-t-lg)' }}>Parked sales</h3>
                                 <button
@@ -6804,6 +7251,7 @@ const POSInterface = ({
                     setShowCatalogStock={setShowCatalogStock}
                     hideOutOfStock={hideOutOfStock}
                     setHideOutOfStock={setHideOutOfStock}
+                    isStockTracking={isStockMaintenanceEnabled(settings)}
 
                     enableTax={enableTax}
                     setEnableTax={v => { setEnableTax(v); try { localStorage.setItem('pos_enable_tax', String(v)); } catch (_) {} }}
@@ -6811,6 +7259,8 @@ const POSInterface = ({
                     setEnableFulfilment={v => { setEnableFulfilment(v); try { localStorage.setItem('pos_enable_fulfilment', String(v)); } catch (_) {} }}
                     enableFreeQty={enableFreeQty}
                     setEnableFreeQty={v => { setEnableFreeQty(v); try { localStorage.setItem('pos_enable_free_qty', String(v)); } catch (_) {} if (!v) setShowFreeQty(false); }}
+                    showItemConverter={showItemConverter}
+                    setShowItemConverter={setShowItemConverter}
                     roundOff={roundOff}
                     setRoundOff={setRoundOff}
                     autoFillCash={autoFillCash}

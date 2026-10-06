@@ -240,6 +240,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $membership = $this->getActiveMembership();
         if (!$membership) return false;
 
+        // POS staff ceiling: strictly limited to derived capabilities
+        if ($membership->isPosStaff()) {
+            return in_array($permission, $membership->getDerivedPosPermissions(), true);
+        }
+
         // Owner retains full control across all store capabilities
         if ($membership->role === 'owner') {
             return true;
@@ -477,6 +482,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $membership = $this->getActiveMembership();
 
         if ($membership) {
+            // Hard POS access ceiling: POS staff never inherit broad roles or wildcards
+            if ($membership->isPosStaff()) {
+                return $membership->getDerivedPosPermissions();
+            }
+
             if ($membership->role === 'owner') {
                 return config('permissions.owner', ['*']);
             }

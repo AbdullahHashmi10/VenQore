@@ -1,5 +1,7 @@
 # ROADMAP.md — Product Roadmap (from 2026-07-07)
 
+Current focused plan: [POS staff, seats, and shifts](POS_STAFF_AND_SEATS_PLAN.md). Deferred ideas are maintained in [FUTURE_IDEAS.md](FUTURE_IDEAS.md), including rider accounts and delivery dispatch. These documents do not imply those features have shipped.
+
 > Assumes: solo founder + AI agents (current mode), pre-revenue. Each phase lists engineering, product, security, infra, GTM-readiness. GAPS/FEATURES references in parentheses.
 
 ## 0–30 days — "Make it safe and honest" (Launch-hardening)

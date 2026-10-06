@@ -45,6 +45,8 @@ class SaleController extends Controller
 
         $request->validate([
             'customer_id'           => 'nullable|exists:parties,id',
+            // Optional label for a walk-in sale (name to call out). Not a customer record.
+            'walk_in_name'          => 'nullable|string|max:120',
             'items'                 => 'required|array|min:1',
             'items.*.product_id'    => 'nullable|string',
             'items.*.description'   => 'required_without:items.*.product_id|nullable|string|max:255',
@@ -260,6 +262,20 @@ class SaleController extends Controller
             
             $roundOff     = $invoiceTotal - ($netSales + $totalTax + $addOnCharges);
 
+            // ── Walk-in guard ──
+            // A POS sale with no customer is a counter sale: it must be paid in
+            // full, because there is nobody to owe the balance.
+            if ($request->source === 'pos' && !$request->customer_id) {
+                $walkInPaid = $request->filled('amount_paid')
+                    ? (float) $request->amount_paid
+                    : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
+                if ($request->payment_method === 'credit' || $walkInPaid + 0.5 < $invoiceTotal) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'customer_id' => ['Choose a customer to sell on credit or take a part payment. Walk-in sales must be paid in full.'],
+                    ]);
+                }
+            }
+
             // ── Credit Limit Check ──
             if ($request->customer_id) {
                 $customer = DB::table('parties')
@@ -451,7 +467,9 @@ class SaleController extends Controller
                     'idempotency_key'      => $request->header('Idempotency-Key') ?: $request->input('idempotency_key'),
                     'source'               => $request->source === 'pos' ? 'pos' : 'manual',
                     'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
+                    'walk_in_name'         => $request->customer_id ? null : (trim((string) $request->input('walk_in_name')) ?: null),
                     'user_id'              => Auth::id() ?? 1,
+                    'order_taker_id'       => $request->input('order_taker_id', Auth::id()),
                     'warehouse_id'         => $request->warehouse_id ?? (\App\Models\Warehouse::first()?->id ?? 1),
                     'subtotal'             => $subtotalGross,
                     'tax'                  => $totalTax,
@@ -1744,9 +1762,10 @@ class SaleController extends Controller
                 ['reference_id' => $sale->id, 'reference_type' => 'sale'],
                 [
                     'type'           => 'sale',
-                    'description'    => 'Sale to ' . ($sale->party_id 
-                        ? \App\Models\Party::find($sale->party_id)?->name ?? 'Customer' 
-                        : 'Walk-in'),
+                    'description'    => 'Sale to ' . ($sale->walk_in_name
+                        ?: ($sale->party_id
+                            ? \App\Models\Party::find($sale->party_id)?->name ?? 'Customer'
+                            : 'Walk-in')),
                     'amount'         => $roundedInvoiceTotal,
                     'user_id'        => auth()->id(),
                     'metadata'       => json_encode([

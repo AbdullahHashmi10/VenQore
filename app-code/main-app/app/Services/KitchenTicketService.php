@@ -42,7 +42,11 @@ class KitchenTicketService
         $eligibleLines = [];
 
         foreach ($currentCart as $idx => $line) {
-            if (!empty($line['sent'])) {
+            $qty = (float) ($line['qty'] ?? 1);
+            $sentQty = (float) ($line['sent_qty'] ?? (!empty($line['sent']) ? $qty : 0));
+            $unsentDelta = max(0, $qty - $sentQty);
+
+            if ($unsentDelta <= 0 && !empty($line['sent'])) {
                 continue; // Already sent
             }
 
@@ -66,6 +70,7 @@ class KitchenTicketService
                 ?: 'kitchen';
 
             $lineCopy = $line;
+            $lineCopy['qty'] = $unsentDelta;
             $lineCopy['resolved_station'] = $st;
             $lineCopy['resolved_course'] = $lineCourse;
 
@@ -137,8 +142,9 @@ class KitchenTicketService
                 ]);
             }
 
-            // Mark fired items as sent and unheld in occupancy
+            // Mark fired items as sent and unheld in occupancy, recording sent_qty
             foreach ($eligibleIndices as $idx) {
+                $currentCart[$idx]['sent_qty'] = (float) ($currentCart[$idx]['qty'] ?? 1);
                 $currentCart[$idx]['sent'] = true;
                 $currentCart[$idx]['is_held'] = false;
             }

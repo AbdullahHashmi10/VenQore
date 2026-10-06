@@ -39,6 +39,9 @@ class StaffInvitationController extends Controller
                 'invitee_name'  => $inv->invitee_name,
                 'invitee_email' => $inv->invitee_email ?? $inv->email,
                 'invitee_phone' => $inv->invitee_phone,
+                'membership_type' => $inv->membership_type ?? 'full',
+                'pos_capabilities' => $inv->pos_capabilities ?? [],
+                'assigned_location_id' => $inv->assigned_location_id,
                 'roles'         => $inv->roles ?? [$inv->role ?? 'cashier'],
                 'short_code'    => $inv->short_code,
                 'status'                    => $inv->status ?? 'pending',
@@ -156,6 +159,9 @@ class StaffInvitationController extends Controller
                     'display_name'  => $m->display_name,
                     'email'         => $m->user?->email,
                     'role'                      => $m->role,
+                    'membership_type'           => $m->membership_type ?? ($m->role === 'cashier' ? 'pos' : 'full'),
+                    'pos_capabilities'          => $m->pos_capabilities ?? ($m->membership_type === 'pos' ? ['take_orders', 'take_payments'] : []),
+                    'assigned_location_id'      => $m->assigned_location_id,
                     'custom_role_name'          => $m->custom_role_name,
                     'status'                    => $m->status,
                     'pos_pin_set'               => !is_null($m->pos_pin),
@@ -224,6 +230,8 @@ class StaffInvitationController extends Controller
             return false;
         }));
 
+        $locations = \App\Models\Warehouse::where('tenant_id', $tenant->id)->select('id', 'name', 'code')->get();
+
         return Inertia::render('Admin/Users', [
             'mode'                   => 'admin',
             'users'                  => $users,
@@ -235,6 +243,8 @@ class StaffInvitationController extends Controller
             'staffData'              => $staffData,
             'approval_admin_enabled' => $approvalAdminEnabled,
             'usersWithApprovals'     => $usersWithApprovals,
+            'seat_capacity'          => \App\Services\SeatAllocationService::getUsageSummary($tenant),
+            'locations'              => $locations,
             'settings'               => array_merge(
                 \App\Helpers\SettingsHelper::all(),
                 ['approval_admin_enabled' => $approvalAdminEnabled ? '1' : '0']
@@ -248,21 +258,63 @@ class StaffInvitationController extends Controller
     {
         $tenant = app('current.tenant');
 
-        $validated = $request->validate([
-            'invitee_name'              => 'required|string|max:255',
-            'invitee_email'             => 'required|email|max:255',
-            'invitee_phone'             => 'nullable|string|max:30',
-            'roles'                     => 'required|array|min:1',
-            'roles.*'                   => 'string|in:owner,admin,franchise_admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,production_supervisor,kitchen_manager,dispenser,sales_executive,fulfillment_lead,delivery_driver,cashier,viewer,custom,inventory_staff,support',
-            'permissions'               => 'nullable|array',
-            'transaction_approval_mode' => 'nullable|string|in:inherit,required,direct,custom',
-            'assigned_approvers'        => 'nullable|array',
-            'assigned_approvers.*'      => 'nullable|integer',
-            'id_card_number'            => 'nullable|string|max:100',
-            'designation'               => 'nullable|string|max:100',
-            'approval_overrides'        => 'nullable|array',
-            'approval_threshold_amount' => 'nullable|numeric|min:0',
-        ]);
+        $membershipType = $request->input('membership_type', 'full');
+
+        if ($membershipType === 'pos') {
+            $validated = $request->validate([
+                'invitee_name'         => 'required|string|max:255',
+                'invitee_email'        => 'required|email|max:255',
+                'invitee_phone'        => 'nullable|string|max:30',
+                'membership_type'      => 'required|string|in:pos',
+                'pos_capabilities'     => 'required|array|min:1',
+                'pos_capabilities.*'   => 'string|in:take_orders,take_payments,process_returns',
+                'assigned_location_id' => 'nullable|integer',
+            ]);
+
+            // Enforce capacity for POS staff
+            \App\Services\SeatAllocationService::enforceCanAllocate($tenant, 'pos');
+
+            $roles = ['cashier'];
+            $posCapabilities = array_values(array_unique($validated['pos_capabilities']));
+            $assignedLocationId = $validated['assigned_location_id'] ?? null;
+            $permissions = [];
+            $approvalMode = 'inherit';
+            $metadata = [];
+        } else {
+            $membershipType = 'full';
+            $validated = $request->validate([
+                'invitee_name'              => 'required|string|max:255',
+                'invitee_email'             => 'required|email|max:255',
+                'invitee_phone'             => 'nullable|string|max:30',
+                'membership_type'           => 'nullable|string|in:full',
+                'roles'                     => 'required|array|min:1',
+                'roles.*'                   => 'string|in:owner,admin,franchise_admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,production_supervisor,kitchen_manager,dispenser,sales_executive,fulfillment_lead,delivery_driver,cashier,viewer,custom,inventory_staff,support',
+                'permissions'               => 'nullable|array',
+                'transaction_approval_mode' => 'nullable|string|in:inherit,required,direct,custom',
+                'assigned_approvers'        => 'nullable|array',
+                'assigned_approvers.*'      => 'nullable|integer',
+                'id_card_number'            => 'nullable|string|max:100',
+                'designation'               => 'nullable|string|max:100',
+                'approval_overrides'        => 'nullable|array',
+                'approval_threshold_amount' => 'nullable|numeric|min:0',
+            ]);
+
+            // Enforce capacity for Full staff
+            \App\Services\SeatAllocationService::enforceCanAllocate($tenant, 'full');
+
+            $roles = $validated['roles'];
+            $posCapabilities = null;
+            $assignedLocationId = null;
+            $permissions = $validated['permissions'] ?? [];
+            $approvalMode = $validated['transaction_approval_mode'] ?? 'inherit';
+            $metadata = [
+                'assigned_approvers'        => $validated['assigned_approvers'] ?? [],
+                'approval_overrides'        => $validated['approval_overrides'] ?? [],
+                'approval_threshold_amount' => $request->input('approval_threshold_amount'),
+                'designation'               => $validated['designation'] ?? null,
+                'id_card_number'            => $validated['id_card_number'] ?? null,
+            ];
+        }
 
         // Check for existing active invite to this email
         $existing = StaffInvitation::where('tenant_id', $tenant->id)
@@ -285,17 +337,14 @@ class StaffInvitationController extends Controller
             'invitee_email'             => $validated['invitee_email'],
             'email'                     => $validated['invitee_email'], // legacy compat
             'invitee_phone'             => $validated['invitee_phone'] ?? null,
-            'roles'                     => $validated['roles'],
-            'permissions'               => $validated['permissions'] ?? [],
-            'transaction_approval_mode' => $validated['transaction_approval_mode'] ?? 'inherit',
-            'metadata'                  => [
-                'assigned_approvers'        => $validated['assigned_approvers'] ?? [],
-                'approval_overrides'        => $validated['approval_overrides'] ?? [],
-                'approval_threshold_amount' => $request->input('approval_threshold_amount'),
-                'designation'               => $validated['designation'] ?? null,
-                'id_card_number'            => $validated['id_card_number'] ?? null,
-            ],
-            'role'                      => $validated['roles'][0] ?? 'cashier', // legacy compat
+            'membership_type'           => $membershipType,
+            'pos_capabilities'          => $posCapabilities,
+            'assigned_location_id'      => $assignedLocationId,
+            'roles'                     => $roles,
+            'permissions'               => $permissions,
+            'transaction_approval_mode' => $approvalMode,
+            'metadata'                  => $metadata,
+            'role'                      => $roles[0] ?? 'cashier', // legacy compat
             'token'                     => StaffInvitation::generateToken(),
             'short_code'                => StaffInvitation::generateShortCode(),
             'status'                    => $hasAccount ? 'pending' : 'no_account',
@@ -352,25 +401,10 @@ class StaffInvitationController extends Controller
 
         $tenant = app('current.tenant');
 
-        // Link user to this store
-        $membership = TenantUser::firstOrCreate(
-            ['tenant_id' => $tenant->id, 'user_id' => $user->id],
-            [
-                'role'                      => $invitation->primaryRole(),
-                'status'                    => 'active',
-                'display_name'              => $invitation->invitee_name,
-                'permissions'               => $invitation->permissions,
-                'transaction_approval_mode' => $invitation->transaction_approval_mode ?? 'inherit',
-                'joined_at'                 => now(),
-            ]
-        );
+        // Link user to this store and consume invitation atomically
+        $membership = \App\Services\SeatAllocationService::consumeInvitation($invitation, $user);
 
         $this->applyInvitationMetadata($invitation, $user, $membership);
-
-        $invitation->update([
-            'status'      => 'active',
-            'approved_at' => now(),
-        ]);
 
         return back()->with('success', $invitation->invitee_name . ' has been added to your store.');
     }
@@ -493,27 +527,15 @@ class StaffInvitationController extends Controller
             return back()->with('error', 'This invitation is for ' . $inviteEmail . '. Please log in with that account.');
         }
 
-        // Mark as active (Auto-approve for seamless UX)
-        $invitation->update([
-            'status'      => 'active',
-            'accepted_at' => now(),
-            'approved_at' => now(),
-        ]);
-
-        // Link user to this store immediately
-        $membership = \App\Models\TenantUser::updateOrCreate(
-            ['tenant_id' => $invitation->tenant_id, 'user_id' => $user->id],
-            [
-                'role'         => $invitation->primaryRole(),
-                'status'       => 'active',
-                'display_name'              => $invitation->invitee_name,
-                'permissions'               => $invitation->permissions,
-                'transaction_approval_mode' => $invitation->transaction_approval_mode ?? 'inherit',
-                'joined_at'                 => now(),
-            ]
-        );
+        // Consume invitation atomically and create/update membership
+        $membership = \App\Services\SeatAllocationService::consumeInvitation($invitation, $user);
 
         $this->applyInvitationMetadata($invitation, $user, $membership);
+
+        if ($membership->isPosStaff()) {
+            return redirect()->route('pos', ['store_slug' => $invitation->tenant->slug])
+                ->with('success', 'Invitation accepted! Welcome to the team.');
+        }
 
         return redirect()->route('hub')->with('success', 'Invitation accepted! You now have access to ' . $invitation->tenant->name . '.');
     }

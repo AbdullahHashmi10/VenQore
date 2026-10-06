@@ -264,6 +264,8 @@ class BillingController extends Controller
             'usage' => [
                 'staff_count'          => $fullSeatsCount,
                 'staff_limit'          => $tenant->getLimit('staff_limit'),
+                'pos_staff_count'      => $tenant->posSeatsCount(),
+                'pos_staff_limit'      => $tenant->getLimit('pos_staff_limit'),
                 'cashier_count'        => $cashierCount,
                 'till_logins_limit'    => $tenant->getLimit('till_logins'),
                 'product_count'        => $productCount,
@@ -865,7 +867,7 @@ class BillingController extends Controller
 
         $request->validate([
             // AI Spark is the free allowance every store already has — it is not sold.
-            'addon_type' => 'required|string|in:ai_byok,ai_shop,ai_pro,ai_max,ai_topup,sync_woocommerce,sync_amazon'
+            'addon_type' => 'required|string|in:ai_byok,ai_shop,ai_pro,ai_max,ai_topup,sync_woocommerce,sync_amazon,extra_seat,extra_pos_seat'
         ]);
 
         $addonType = $request->input('addon_type');
@@ -878,6 +880,8 @@ class BillingController extends Controller
             'ai_topup'         => 'pricing.add_ons.ai_topup.variant_id',
             'sync_woocommerce' => 'services.lemon_squeezy.woocommerce_addon_id',
             'sync_amazon'      => 'services.lemon_squeezy.amazon_addon_id',
+            'extra_seat'       => 'pricing.add_ons.extra_seat.variant_id',
+            'extra_pos_seat'   => 'pricing.add_ons.extra_pos_seat.variant_id',
             default            => null,
         };
 

@@ -273,7 +273,7 @@ html.dark .vqc--accent:hover,
    4 · PERIOD PICKER — Day / Week / Month / Quarter / Year, on the card face
    ══════════════════════════════════════════════════════════════════════════ */
 
-.vqc-per { position: relative; }
+.vqc-per { position: relative; border-radius: var(--vq-r-full, 9999px); background: transparent; }
 
 .vqc-per-b {
     display: inline-flex;
@@ -325,6 +325,9 @@ html.dark .vqc--accent:hover,
     box-shadow: var(--vq-elev-3);
     overflow: hidden;
     animation: vqc-menu-in var(--vq-dur-2) var(--vq-ease-out);
+}
+.vqc-per-m[hidden] {
+    display: none !important;
 }
 @keyframes vqc-menu-in {
     from { opacity: 0; transform: translateY(-5px) scale(.97); }

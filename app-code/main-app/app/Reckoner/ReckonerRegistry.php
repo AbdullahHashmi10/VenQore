@@ -2365,6 +2365,8 @@ final class ReckonerRegistry
                 $area = 'Production';
             } elseif (in_array($mod, ['customers', 'suppliers', 'khata_credit'], true)) {
                 $area = 'Customers';
+            } elseif ($mod === 'marketplace_sync') {
+                $area = 'Online store';
             } elseif (!$mod) {
                 $area = 'Overview';
             }

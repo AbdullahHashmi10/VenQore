@@ -73,12 +73,17 @@ function Server({ server }) {
 }
 
 /* ── A TABLE ─────────────────────────────────────────────────────────── */
+/* ── A TABLE ─────────────────────────────────────────────────────────── */
 function TableCard({ p, selected, onPick, money, variant, now }) {
     const alert = alertAge(p, now);
     const due = Number(p.order_total) || 0;
     const unsent = Number(p.unsent) || 0;
+    const customerPending = Number(p.customer_pending) || 0;
     const isList = variant === 'list';
-    const open = !!p.occupancy_id;
+    const inAction = !!p.occupancy_id || (p.state && p.state !== 'free' && p.state !== 'cleaning');
+
+    const isCodeInLabel = p.label && p.label.trim().toLowerCase() === p.code.trim().toLowerCase();
+    const displayTitle = (!p.label || isCodeInLabel) ? `Table ${p.code}` : p.label;
 
     return (
         <button
@@ -86,50 +91,63 @@ function TableCard({ p, selected, onPick, money, variant, now }) {
             onClick={() => onPick(p)}
             className="vqt-table"
             data-tone={toneOf(p)}
+            data-in-action={inAction ? '1' : '0'}
             data-selected={selected ? '1' : '0'}
             data-variant={variant}
             data-alert={alert ? '1' : '0'}
             aria-pressed={selected}
-            aria-label={`${p.label || p.code}, ${(STATES[p.state] || {}).label || ''}${due ? `, ${money(due)} due` : ''}${alert ? `, waiting ${alert} minutes` : ''}`}
+            aria-label={`${displayTitle}, ${(STATES[p.state] || {}).label || ''}${due ? `, ${money(due)} due` : ''}${alert ? `, waiting ${alert} minutes` : ''}`}
         >
-            <span className="vqt-table-code">{p.code}</span>
+            <div className="vqt-card-header">
+                <span className="vqt-table-code">{p.code}</span>
+                <div className="vqt-card-title-col vq-clip">
+                    <span className="vqt-table-name vq-clip">{displayTitle}</span>
+                    <span className="vqt-table-sub vq-clip">
+                        {inAction ? (
+                            <>
+                                <Users size={11} aria-hidden="true" />
+                                <span>{p.covers || 1}</span>
+                                <span className="vqt-dot">·</span>
+                                <Clock size={11} aria-hidden="true" />
+                                <span>{elapsed(p.opened_at)}</span>
+                            </>
+                        ) : (
+                            <>
+                                <Users size={11} aria-hidden="true" />
+                                <span>seats {p.capacity || 2}</span>
+                            </>
+                        )}
+                    </span>
+                </div>
+                {!isList && p.server && <Server server={p.server} />}
+            </div>
 
-            <span className="vqt-table-mid">
-                <span className="vqt-table-name vq-clip">{p.label || p.code}</span>
-                <span className="vqt-table-sub vq-clip">
-                    {open ? (
-                        <>
-                            <Users size={11} aria-hidden="true" />
-                            {p.covers || 0}
-                            <span className="vqt-dot" aria-hidden="true">·</span>
-                            <Clock size={11} aria-hidden="true" />
-                            {elapsed(p.opened_at)}
-                        </>
-                    ) : (
-                        <>
-                            <Users size={11} aria-hidden="true" />
-                            {`seats ${p.capacity || 0}`}
-                        </>
+            {(unsent > 0 || customerPending > 0) && (
+                <div className="vqt-card-mid-badges">
+                    {customerPending > 0 && (
+                        <span className="vqt-table-unsent" title={`${customerPending} new customer items`}>
+                            <ShoppingBag size={10} aria-hidden="true" />
+                            {customerPending} new
+                        </span>
                     )}
-                </span>
-            </span>
+                    {unsent > 0 && (
+                        <span className="vqt-table-unsent" title={`${unsent} not yet sent to the kitchen`}>
+                            <CircleDot size={10} aria-hidden="true" />
+                            {unsent} unsent
+                        </span>
+                    )}
+                </div>
+            )}
 
-            <span className="vqt-table-end">
+            <div className="vqt-table-footer">
                 <StateChip card={p} alert={alert} />
-                {open && due > 0 && (
-                    <span className="vq-num vqt-table-due" title={money(due)}>{money(due)}</span>
-                )}
-                {open && unsent > 0 && (
-                    <span className="vqt-table-unsent" title={`${unsent} not yet sent to the kitchen`}>
-                        <CircleDot size={10} aria-hidden="true" />
-                        {unsent}
+                {inAction && due > 0 && (
+                    <span className="vq-num vqt-table-due" title={money(due)}>
+                        {money(due)}
                     </span>
                 )}
-                {!isList && <Server server={p.server} />}
-            </span>
+            </div>
 
-            {/* The alarm says how long, because "eight minutes" is what makes
-                someone move and a red border on its own does not. */}
             {alert > 0 && (
                 <span className="vqt-alert-age vq-num" aria-hidden="true">{alert}m</span>
             )}
@@ -138,16 +156,20 @@ function TableCard({ p, selected, onPick, money, variant, now }) {
 }
 
 /* ── A LANE TICKET ───────────────────────────────────────────────────── */
-function TicketCard({ t, selected, onPick, money, variant, now }) {
+function TicketCard({ t, selected, onPick, money, variant, now, onUpdateDelivery }) {
     const alert = alertAge(t, now);
-    /* A delivery past its promised time is an alert in exactly the same sense
-       as a table that has been waiting to pay — something a human has to do
-       something about. It reads through the same `data-alert` channel rather
-       than a second red of its own. */
     const lateRun = isLate(t.delivery);
     const due = Number(t.order_total) || 0;
     const unsent = Number(t.unsent) || 0;
+    const customerPending = Number(t.customer_pending) || 0;
     const Icon = LANE_ICON[t.order_type] || ShoppingBag;
+    const isList = variant === 'list';
+    const isDelivery = t.order_type === 'delivery';
+    const inAction = true;
+    const isCodeInCustomer = t.customer_name && t.customer_name.trim().toLowerCase() === t.code.trim().toLowerCase();
+    const displayTitle = (!t.customer_name || isCodeInCustomer)
+        ? (isDelivery ? 'Delivery Order' : 'Takeaway Order')
+        : t.customer_name;
 
     return (
         <button
@@ -155,6 +177,7 @@ function TicketCard({ t, selected, onPick, money, variant, now }) {
             onClick={() => onPick(t)}
             className="vqt-table vqt-ticket"
             data-tone={toneOf(t)}
+            data-in-action={inAction ? '1' : '0'}
             data-selected={selected ? '1' : '0'}
             data-variant={variant}
             data-alert={(alert || lateRun) ? '1' : '0'}
@@ -162,55 +185,88 @@ function TicketCard({ t, selected, onPick, money, variant, now }) {
             aria-label={`${t.order_type} ${t.code}${due ? `, ${money(due)} due` : ''}${
                 t.delivery ? `, ${t.delivery.status}${lateRun ? ', past its promised time' : ''}` : ''}`}
         >
-            <span className="vqt-table-code vqt-ticket-code">
-                <Icon size={12} aria-hidden="true" />
-                {t.code}
-            </span>
-
-            <span className="vqt-table-mid">
-                <span className="vqt-table-name vq-clip">{t.label || t.code}</span>
-                <span className="vqt-table-sub vq-clip">
-                    <Clock size={11} aria-hidden="true" />
-                    {elapsed(t.opened_at)}
-                    {t.phone && (
-                        <>
-                            <span className="vqt-dot" aria-hidden="true">·</span>
-                            <Phone size={11} aria-hidden="true" />
-                            {t.phone}
-                        </>
-                    )}
+            <div className="vqt-card-header">
+                <span className="vqt-table-code vqt-ticket-code">
+                    <Icon size={12} aria-hidden="true" />
+                    {t.code}
                 </span>
-                {/* Where it is going. A delivery with no address on the card is
-                    a driver walking back to ask. */}
-                {t.order_type === 'delivery' && t.address && (
-                    <span className="vqt-ticket-addr vq-clip">{t.address}</span>
-                )}
-                {/* Where it has GOT to, and for how long. A dispatch screen
-                    showing status without duration is decoration: "on the way"
-                    is not information, "on the way for 35 minutes" is. */}
-                {t.delivery && (
-                    <span className="vqt-ticket-run">
-                        <DeliveryChip delivery={t.delivery} compact={variant === 'list'} />
-                        {t.delivery.rider && (
-                            <span className="vqt-ticket-rider vq-clip">{t.delivery.rider}</span>
+                <div className="vqt-card-title-col vq-clip">
+                    <span className="vqt-table-name vq-clip">{displayTitle}</span>
+                    <span className="vqt-table-sub vq-clip">
+                        <Clock size={11} aria-hidden="true" />
+                        <span>{elapsed(t.opened_at)}</span>
+                        {t.phone && (
+                            <>
+                                <span className="vqt-dot">·</span>
+                                <Phone size={11} aria-hidden="true" />
+                                <span>{t.phone}</span>
+                            </>
                         )}
                     </span>
-                )}
-            </span>
+                </div>
+                {!isList && t.server && <Server server={t.server} />}
+            </div>
 
-            <span className="vqt-table-end">
+            {isDelivery && (t.address || t.delivery) && (
+                <div className="vqt-ticket-details">
+                    {t.address && <span className="vqt-ticket-addr vq-clip">{t.address}</span>}
+                    {t.delivery && (
+                        <div className="vqt-ticket-run">
+                            <DeliveryChip delivery={t.delivery} compact={isList} />
+                            {t.delivery.rider && (
+                                <span className="vqt-ticket-rider vq-clip">{t.delivery.rider}</span>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {isDelivery && t.delivery && t.delivery.status !== 'out' && t.delivery.status !== 'delivered' && onUpdateDelivery && (
+                <div className="vqt-dispatch-row">
+                    <button
+                        type="button"
+                        className="vqt-quick-dispatch"
+                        title="Mark this delivery as Out for Delivery"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onUpdateDelivery(t.occupancy_id, { status: 'out' });
+                        }}
+                    >
+                        <Bike size={11} aria-hidden="true" />
+                        <span>Out for Delivery</span>
+                    </button>
+                </div>
+            )}
+
+            {(unsent > 0 || customerPending > 0) && (
+                <div className="vqt-card-mid-badges">
+                    {customerPending > 0 && (
+                        <span className="vqt-table-unsent" title={`${customerPending} new customer items`}>
+                            <ShoppingBag size={10} aria-hidden="true" />
+                            {customerPending} new
+                        </span>
+                    )}
+                    {unsent > 0 && (
+                        <span className="vqt-table-unsent" title={`${unsent} not yet sent to the kitchen`}>
+                            <CircleDot size={10} aria-hidden="true" />
+                            {unsent} unsent
+                        </span>
+                    )}
+                </div>
+            )}
+
+            <div className="vqt-table-footer">
                 <StateChip card={t} alert={alert} />
-                {due > 0 && <span className="vq-num vqt-table-due" title={money(due)}>{money(due)}</span>}
-                {unsent > 0 && (
-                    <span className="vqt-table-unsent" title={`${unsent} not yet sent to the kitchen`}>
-                        <CircleDot size={10} aria-hidden="true" />
-                        {unsent}
+                {due > 0 && (
+                    <span className="vq-num vqt-table-due" title={money(due)}>
+                        {money(due)}
                     </span>
                 )}
-                {variant !== 'list' && <Server server={t.server} />}
-            </span>
+            </div>
 
-            {alert > 0 && <span className="vqt-alert-age vq-num" aria-hidden="true">{alert}m</span>}
+            {(alert || lateRun) > 0 && (
+                <span className="vqt-alert-age vq-num" aria-hidden="true">{alert}m</span>
+            )}
         </button>
     );
 }
@@ -224,7 +280,9 @@ export default function FloorPane({
     selectedId,
     onPick,
     onNewTicket,
+    onUpdateDelivery,
     onSetup,
+    onRefresh,
     money,
     /* 'map' | 'list' — the engine's decision, never this component's */
     variant = 'map',
@@ -260,6 +318,11 @@ export default function FloorPane({
     }, [positions, now]);
 
     const laneTab = tabs.find(t => t.id === zone && t.kind === 'lane');
+    const zoneTabs = useMemo(() => tabs.filter(t => t.kind !== 'lane'), [tabs]);
+    const takeawayTab = useMemo(() => tabs.find(t => t.id === 'takeaway'), [tabs]);
+    const deliveryTab = useMemo(() => tabs.find(t => t.id === 'delivery'), [tabs]);
+    const takeawayCount = takeawayTab ? (takeawayTab.count || 0) : (counts?.takeawayCount || 0);
+    const deliveryCount = deliveryTab ? (deliveryTab.count || 0) : (counts?.deliveryCount || 0);
 
     return (
         <section
@@ -307,8 +370,9 @@ export default function FloorPane({
                 </header>
             )}
 
-            {tabs.length > 1 && (
-                <div className="vqt-zones vq-pane-fixed" role="tablist" aria-label="Areas">
+            {/* Unified Single Toolbar Row: Dining Area Tabs on Left + Channel Actions on Right */}
+            <div className="vqt-toolbar-row vq-pane-fixed">
+                <div className="vqt-zones" role="tablist" aria-label="Areas">
                     <button
                         type="button" role="tab" aria-selected={zone === 'all'}
                         className="vqt-zone" data-on={zone === 'all' ? '1' : '0'}
@@ -316,25 +380,93 @@ export default function FloorPane({
                     >
                         All
                     </button>
-                    {tabs.map(t => {
-                        const Icon = t.kind === 'lane' ? (LANE_ICON[t.id] || ShoppingBag) : null;
-                        return (
-                            <button
-                                key={t.id} type="button" role="tab" aria-selected={zone === t.id}
-                                className="vqt-zone" data-on={zone === t.id ? '1' : '0'}
-                                data-kind={t.kind}
-                                onClick={() => setZone(t.id)}
-                            >
-                                {Icon && <Icon size={12} aria-hidden="true" />}
-                                {t.label}
-                                {t.kind === 'lane' && t.count > 0 && (
-                                    <span className="vqt-zone-n vq-num">{t.count}</span>
-                                )}
-                            </button>
-                        );
-                    })}
+                    {zoneTabs.map(t => (
+                        <button
+                            key={t.id} type="button" role="tab" aria-selected={zone === t.id}
+                            className="vqt-zone" data-on={zone === t.id ? '1' : '0'}
+                            onClick={() => setZone(t.id)}
+                        >
+                            <span>{t.label}</span>
+                        </button>
+                    ))}
                 </div>
-            )}
+
+                <div className="vqt-channel-actions">
+                    {takeawayTab !== undefined && (
+                        takeawayCount > 0 ? (
+                            <div className="vqt-channel-pill vqt-channel-takeaway" data-active={zone === 'takeaway' ? '1' : '0'}>
+                                <button
+                                    type="button"
+                                    className="vqt-channel-filter-btn"
+                                    onClick={() => setZone(zone === 'takeaway' ? 'all' : 'takeaway')}
+                                    title={zone === 'takeaway' ? "Showing Takeaway orders (click to show all)" : "Filter to Takeaway orders"}
+                                >
+                                    <ShoppingBag size={12} aria-hidden="true" />
+                                    <span>Takeaway</span>
+                                    <span className="vqt-channel-badge">{takeawayCount}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="vqt-channel-add-btn"
+                                    onClick={() => onNewTicket?.('takeaway')}
+                                    title="Start new Takeaway order"
+                                    aria-label="New Takeaway order"
+                                >
+                                    <Plus size={11} strokeWidth={2.5} />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                className="vqt-channel-btn vqt-channel-takeaway"
+                                data-active={zone === 'takeaway' ? '1' : '0'}
+                                onClick={() => onNewTicket?.('takeaway')}
+                                title="Start a new Takeaway order (bag at counter, no table needed)"
+                            >
+                                <ShoppingBag size={12} aria-hidden="true" />
+                                <span>+ Takeaway</span>
+                            </button>
+                        )
+                    )}
+
+                    {deliveryTab !== undefined && (
+                        deliveryCount > 0 ? (
+                            <div className="vqt-channel-pill vqt-channel-delivery" data-active={zone === 'delivery' ? '1' : '0'}>
+                                <button
+                                    type="button"
+                                    className="vqt-channel-filter-btn"
+                                    onClick={() => setZone(zone === 'delivery' ? 'all' : 'delivery')}
+                                    title={zone === 'delivery' ? "Showing Delivery orders (click to show all)" : "Filter to Delivery orders"}
+                                >
+                                    <Bike size={12} aria-hidden="true" />
+                                    <span>Delivery</span>
+                                    <span className="vqt-channel-badge">{deliveryCount}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="vqt-channel-add-btn"
+                                    onClick={() => onNewTicket?.('delivery')}
+                                    title="Start new Delivery order"
+                                    aria-label="New Delivery order"
+                                >
+                                    <Plus size={11} strokeWidth={2.5} />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                className="vqt-channel-btn vqt-channel-delivery"
+                                data-active={zone === 'delivery' ? '1' : '0'}
+                                onClick={() => onNewTicket?.('delivery')}
+                                title="Start a new Delivery order (courier / driver dispatch, no table needed)"
+                            >
+                                <Bike size={12} aria-hidden="true" />
+                                <span>+ Delivery</span>
+                            </button>
+                        )
+                    )}
+                </div>
+            </div>
 
             <div className="vq-pane-body vqt-floor-body" data-variant={variant}>
                 {/* A lane's primary action is "start one", and it belongs at
@@ -350,32 +482,30 @@ export default function FloorPane({
                 {ordered.map(c => (
                     c.kind === 'ticket'
                         ? <TicketCard key={c.id} t={c} variant={variant} now={now}
-                                      selected={c.id === selectedId} onPick={onPick} money={money} />
+                                      selected={c.id === selectedId} onPick={onPick} money={money}
+                                      onUpdateDelivery={onUpdateDelivery} />
                         : <TableCard key={c.id} p={c} variant={variant} now={now}
                                      selected={c.id === selectedId} onPick={onPick} money={money} />
                 ))}
 
                 {ordered.length === 0 && (
                     <div className="vqt-floor-empty">
-                        <div className="w-14 h-14 rounded-2xl bg-sunken border border-line flex items-center justify-center text-ink-muted mb-3">
-                            <Plus size={26} strokeWidth={1.75} />
+                        <div className="w-14 h-14 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-700 mb-3 shadow-sm">
+                            <Plus size={26} strokeWidth={2} />
                         </div>
-                        <p className="font-bold text-ink">
+                        <p className="font-bold text-ink text-base">
                             {laneTab ? `No ${laneTab.label.toLowerCase()} tickets open` : tt('No tables in this area')}
                         </p>
                         {laneTab ? (
                             <p className="text-xs text-ink-muted mt-1">Start one above.</p>
                         ) : (
                             <>
-                                <p className="text-xs text-ink-muted mt-1 mb-3">
+                                <p className="text-xs text-ink-muted mt-1 mb-4 max-w-sm">
                                     {tt('Tables come from the floor plan. Build it once and this fills in.')}
                                 </p>
-                                {/* This empty state used to say "add tables in
-                                    Settings" and point at a screen that did not
-                                    exist. It exists now, so it is a button. */}
                                 <button type="button" className="vqt-new-ticket" onClick={onSetup}>
-                                    <Plus size={15} aria-hidden="true" />
-                                    Set up the floor plan
+                                    <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+                                    <span>Set up the floor plan</span>
                                 </button>
                             </>
                         )}
@@ -404,10 +534,10 @@ export default function FloorPane({
                 <ReservationModal
                     storeSlug={storeSlug}
                     positions={positions}
+                    onRefresh={onRefresh}
                     onClose={() => setShowReservations(false)}
                 />
             )}
         </section>
     );
 }
-

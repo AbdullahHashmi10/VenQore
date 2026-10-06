@@ -28,20 +28,22 @@ class DispatchController extends Controller
     /** Render the dispatch SPA page. */
     public function index(Request $request): Response
     {
-        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
+        $preparesOrders = \App\Models\Setting::where('tenant_id', $tenant->id)->where('key', 'prepares_orders')->value('value');
+        $deliveryEnabled = \App\Models\Setting::where('tenant_id', $tenant->id)->where('key', 'lane_delivery')->value('value');
 
         return Inertia::render('Restaurant/Dispatch', [
-            'storeSlug' => $tenant->slug,
-            'orders'    => $this->deliveryQueue($tenant->id),
-            'riders'    => $this->riderList($tenant->id),
+            'storeSlug'             => $tenant->slug,
+            'orders'                => $this->deliveryQueue($tenant->id),
+            'riders'                => $this->riderList($tenant->id),
+            'preparesOrdersEnabled' => (string) $preparesOrders !== '0',
+            'deliveryEnabled'       => (string) $deliveryEnabled === '1',
         ]);
     }
 
     /** JSON poll — same shape as the initial page prop. */
     public function state(Request $request): JsonResponse
     {
-        $this->ensurePreparesOrders();
         $tenant = app('current.tenant');
 
         return response()->json([

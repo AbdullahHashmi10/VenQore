@@ -1,12 +1,20 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
-import { MapPin, Clock, ShieldCheck, Minus, Plus } from 'lucide-react';
+import { MapPin, Clock, ShieldCheck, Minus, Plus, Headphones, Laptop, Monitor, Smartphone, Watch, Keyboard, Mouse, Cable, Gamepad2, Package, ArrowUpRight, ShoppingBag } from 'lucide-react';
+import '../../../css/catalogue-studio.css';
 import PublicShell, { shopToast } from '@/Components/Commerce/PublicShell';
+import EditorialMenu from '@/Components/Commerce/EditorialMenu';
 import { Alert, Badge, Btn, Field, Icon, Pager, initials, tone } from '@/Components/Commerce/shop';
 import { DAY_LABEL, cartStore, money, newKey } from '@/lib/commerce';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+function ProductIllustration({ item }) {
+    const name = `${item.name} ${item.category || ''}`.toLowerCase();
+    const Symbol = /watch|wearable/.test(name) ? Watch : /headphone|airpod|audio|earbud/.test(name) ? Headphones : /keyboard/.test(name) ? Keyboard : /mouse/.test(name) ? Mouse : /laptop|macbook|computer/.test(name) ? Laptop : /monitor|display/.test(name) ? Monitor : /phone|tablet|ipad/.test(name) ? Smartphone : /cable|usb|ssd|storage/.test(name) ? Cable : /gaming|playstation|controller/.test(name) ? Gamepad2 : Package;
+    return <span className="vqs-product-illustration" aria-hidden="true"><Symbol strokeWidth={1} /><span>No photo available</span></span>;
+}
 
 function format12Time(val) {
     if (!val || !val.includes(':')) return '';
@@ -35,17 +43,36 @@ function formatHourRange(h) {
     return str;
 }
 
-export default function Store({ preview, store, items, pagination, limits, categories = [], filters = {}, show_images = true, has_coupons = false, rating_summary, customer }) {
+export default function Store({ preview, store, items, pagination, limits, categories = [], filters = {}, show_images = true, has_coupons = false, rating_summary, customer, onsite = null }) {
+    const catalogueTheme = ['visual-grid', 'editorial-ledger', 'express-rail'].includes(store.catalogue_theme) ? store.catalogue_theme : 'visual-grid';
+    const catalogueOnly = store.customer_mode === 'catalogue';
+    const onsiteMode = Boolean(onsite);
+    const browseOnly = catalogueOnly && !onsiteMode;
+    const canAdd = onsiteMode || store.accepting_orders;
+    const cartScope = onsiteMode ? `${store.slug}:${onsite.channel}:${onsite.token || 'counter'}` : store.slug;
     const [search, setSearch] = useState(filters.q || '');
-    const goCatalogue = (params) => router.get(`/shop/${store.slug}`, { q: filters.q || undefined, category: filters.category || undefined, ...params }, { preserveState: true, preserveScroll: true, only: ['items', 'pagination', 'filters', 'categories'] });
+    const cataloguePath = onsiteMode
+        ? (onsite.channel === 'table_qr' ? `/catalogue/${store.slug}/table/${onsite.token}` : `/catalogue/${store.slug}`)
+        : `/shop/${store.slug}`;
+    const goCatalogue = (params) => router.get(cataloguePath, { q: filters.q || undefined, category: filters.category || undefined, ...params }, { preserveState: true, preserveScroll: true, only: ['items', 'pagination', 'filters', 'categories', 'onsite'] });
     const sym = store.currency_symbol;
     const [cartRev, setCartRev] = useState(0); // bump to re-read the persisted cart
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const cart = useMemo(() => { const c = cartStore.read(); return c.slug === store.slug ? c : { slug: store.slug, lines: [] }; }, [store.slug, cartRev]);
+    const cart = useMemo(() => { const c = cartStore.read(); return c.slug === cartScope ? c : { slug: cartScope, lines: [] }; }, [cartScope, cartRev]);
     const [pendingSwitch, setPendingSwitch] = useState(null); // item waiting for "replace cart?" answer
     const [quoteRaw, setQuote] = useState(null);
     const [problemsRaw, setProblems] = useState([]);
-    const quote = cart.lines.length ? quoteRaw : null;          // an emptied cart shows no stale quote
+    const onsiteItems = useMemo(() => items.flatMap((item) => item.options?.length ? item.options.map((option) => ({ ...item, ...option })) : [item]), [items]);
+    const onsiteQuote = useMemo(() => {
+        if (!onsiteMode || !cart.lines.length) return null;
+        const priced = cart.lines.map((line) => {
+            const item = onsiteItems.find((candidate) => candidate.id === line.item_id);
+            return item ? { item_id: line.item_id, title: line.name, quantity: line.quantity, price: Number(item.price), line_total: Number(item.price) * line.quantity } : null;
+        }).filter(Boolean);
+        const total = priced.reduce((sum, line) => sum + line.line_total, 0);
+        return { items: priced, subtotal: total, tax_total: 0, delivery_fee: 0, discount_total: 0, total };
+    }, [onsiteMode, onsiteItems, cart.lines]);
+    const quote = cart.lines.length ? (onsiteMode ? onsiteQuote : quoteRaw) : null;
     const problems = cart.lines.length ? problemsRaw : [];
     const [notice, setNotice] = useState(null);
     const [busy, setBusy] = useState(false);
@@ -107,7 +134,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
 
     // server quote (debounced) — the browser never computes prices
     useEffect(() => {
-        if (cart.lines.length === 0) return undefined;
+        if (cart.lines.length === 0 || onsiteMode) return undefined;
         const t = setTimeout(() => {
             axios.post(`/shop/${store.slug}/quote`, { items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity })), fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined })
                 .then((r) => { setQuote(r.data); setProblems([]); setCouponError(null); })
@@ -119,33 +146,54 @@ export default function Store({ preview, store, items, pagination, limits, categ
                 });
         }, 250);
         return () => clearTimeout(t);
-    }, [cart.lines, fulfilment, store.slug, zone, coupon]);
+    }, [cart.lines, fulfilment, store.slug, zone, coupon, onsiteMode]);
 
     const add = (item) => {
         const cur = cartStore.read();
-        if (cur.slug && cur.slug !== store.slug && cur.lines.length > 0) { setPendingSwitch(item); return; }
+        if (cur.slug && cur.slug !== cartScope && cur.lines.length > 0) { setPendingSwitch(item); return; }
         const lines = [...cart.lines];
         const ex = lines.find((l) => l.item_id === item.id);
         if (ex) ex.quantity = Math.min(limits.max_qty, ex.quantity + 1); else lines.push({ item_id: item.id, quantity: 1, name: item.label ? `${item.name} — ${item.label}` : item.name });
-        persist({ slug: store.slug, lines });
+        persist({ slug: cartScope, lines });
         shopToast(`${item.name} added to your bag`);
     };
     const setQty = (id, q) => {
         const lines = cart.lines.map((l) => (l.item_id === id ? { ...l, quantity: Math.max(0, Math.min(limits.max_qty, q)) } : l)).filter((l) => l.quantity > 0);
-        persist({ slug: store.slug, lines });
+        persist({ slug: cartScope, lines });
     };
-    const removeProblems = () => persist({ slug: store.slug, lines: cart.lines.filter((l) => !problems.some((p) => p.item_id === l.item_id)) });
+    const removeProblems = () => persist({ slug: cartScope, lines: cart.lines.filter((l) => !problems.some((p) => p.item_id === l.item_id)) });
 
     const count = cart.lines.reduce((n, l) => n + l.quantity, 0);
     const minOrder = Number(quote?.min_order ?? store.min_order_amount ?? 0);
     const zoneMissing = fulfilment === 'delivery' && zones.length > 0 && !zone;
     const belowMin = quote && minOrder > 0 && (quote.subtotal + quote.tax_total) < minOrder;
-    const canSubmit = store.accepting_orders && quote && !belowMin && !busy && problems.length === 0 && form.customer_name.trim() && form.customer_phone.trim() && !zoneMissing && payment && (fulfilment === 'pickup' || form.delivery_address.trim());
+    const canSubmit = onsiteMode
+        ? Boolean(quote && !busy && problems.length === 0 && (onsite.channel === 'table_qr' || form.customer_name.trim()))
+        : Boolean(store.accepting_orders && quote && !belowMin && !busy && problems.length === 0 && form.customer_name.trim() && form.customer_phone.trim() && !zoneMissing && payment && (fulfilment === 'pickup' || form.delivery_address.trim()));
 
     const submit = async (e) => {
         e.preventDefault();
         if (!canSubmit) return;
         setBusy(true); setNotice(null); setFieldErrors({});
+        if (onsiteMode) {
+            const payload = {
+                table_token: onsite.token || null,
+                customer_name: form.customer_name || null,
+                customer_note: form.customer_note || null,
+                items: cart.lines.map((line) => ({ item_id: line.item_id, quantity: line.quantity })),
+            };
+            const sig = JSON.stringify(payload);
+            if (attempt.current.sig !== sig) attempt.current = { sig, key: newKey() };
+            try {
+                const response = await axios.post(onsite.submit_url, { ...payload, idempotency_key: attempt.current.key });
+                cartStore.clear(); setCartRev((revision) => revision + 1); setCartOpen(false);
+                setNotice({ success: true, text: `${response.data.message} Reference ${response.data.order_number}.` });
+                shopToast('Order sent to the POS');
+            } catch (err) {
+                setNotice(err.response?.data?.message || 'We could not send your order. Please ask a staff member.');
+            } finally { setBusy(false); }
+            return;
+        }
         const payload = {
             fulfilment, payment_method: payment, customer_name: form.customer_name, customer_phone: form.customer_phone, customer_email: form.customer_email || null, company_site: form.company_site, opened_at: openedAt,
             delivery_address: fulfilment === 'delivery' ? form.delivery_address : null, delivery_zone: fulfilment === 'delivery' && zone ? zone : null, coupon: coupon || null, customer_note: form.customer_note || null,
@@ -177,13 +225,18 @@ export default function Store({ preview, store, items, pagination, limits, categ
             storeSlug={store.slug}
             ratingSummary={rating_summary}
             customer={customer}
-            bag={{ count, total: quote?.total ?? 0, onClick: () => setCartOpen(true) }}
+            bag={browseOnly ? undefined : { count, total: quote?.total ?? 0, onClick: () => setCartOpen(true) }}
+            catalogueTheme={catalogueTheme}
+            catalogueOnly={browseOnly}
+            onsite={onsiteMode}
         >
             <Head title={`${store.name}${store.city ? ` — ${store.city}` : ''}`}>
                 <meta name="description" content={store.description || `Order from ${store.name}${store.city ? ` in ${store.city}` : ''}.`} />
             </Head>
 
-            <a href="/shop" className="vqs-row" style={{ gap: 6, fontSize: 14, fontWeight: 600, marginBottom: 14 }}>{Icon.back}All shops{store.city ? ` in ${store.city}` : ''}</a>
+            {onsiteMode && <div className="vqs-order-context"><span><ShoppingBag size={15} />{onsite.channel === 'table_qr' ? `Ordering for ${onsite.label}` : 'Order at the counter'}</span><span>Browse. Choose. Make it yours.</span></div>}
+
+            {!onsiteMode && <a href="/shop" className="vqs-row" style={{ gap: 6, fontSize: 14, fontWeight: 600, marginBottom: 14 }}>{Icon.back}All shops{store.city ? ` in ${store.city}` : ''}</a>}
 
             {store.announcement && <div style={{ marginBottom: 14 }}><Alert kind="info"><b>{store.announcement}</b></Alert></div>}
             <section className="vqs-card vqs-storehead">
@@ -223,12 +276,20 @@ export default function Store({ preview, store, items, pagination, limits, categ
                         </div>
                     </div>
                     <div className="vqs-tiles">
-                        {store.pickup && <div className="vqs-tile"><span className="vqs-eyebrow">Pickup</span><b>Collect in store</b></div>}
-                        {store.delivery && <div className="vqs-tile"><span className="vqs-eyebrow">Delivery</span><b>{zones.length > 0 ? `${zones.length} area${zones.length === 1 ? '' : 's'} · from ${money(Math.min(...zones.map((z) => z.fee)), sym)}` : Number(store.delivery_charge) > 0 ? money(store.delivery_charge, sym) : 'Free'}</b>{store.delivery_note && <span className="vqs-faint" style={{ fontSize: 12 }}>{store.delivery_note}</span>}</div>}
+                        {!onsiteMode && store.pickup && <div className="vqs-tile"><span className="vqs-eyebrow">Pickup</span><b>Collect in store</b></div>}
+                        {!onsiteMode && store.delivery && <div className="vqs-tile"><span className="vqs-eyebrow">Delivery</span><b>{zones.length > 0 ? `${zones.length} area${zones.length === 1 ? '' : 's'} · from ${money(Math.min(...zones.map((z) => z.fee)), sym)}` : Number(store.delivery_charge) > 0 ? money(store.delivery_charge, sym) : 'Free'}</b>{store.delivery_note && <span className="vqs-faint" style={{ fontSize: 12 }}>{store.delivery_note}</span>}</div>}
                         {store.prep_minutes && <div className="vqs-tile"><span className="vqs-eyebrow">Usual prep time</span><b>About {store.prep_minutes} min</b></div>}
-                        {Number(store.min_order_amount) > 0 && <div className="vqs-tile"><span className="vqs-eyebrow">Minimum order</span><b className="vqs-num">{money(Number(store.min_order_amount), sym)}</b></div>}
-                        {payLabel && <div className="vqs-tile"><span className="vqs-eyebrow">Payment</span><b>{payLabel}</b></div>}
+                        {!onsiteMode && Number(store.min_order_amount) > 0 && <div className="vqs-tile"><span className="vqs-eyebrow">Minimum order</span><b className="vqs-num">{money(Number(store.min_order_amount), sym)}</b></div>}
+                        {!onsiteMode && payLabel && <div className="vqs-tile"><span className="vqs-eyebrow">Payment</span><b>{payLabel}</b></div>}
                     </div>
+                    {onsiteMode && (
+                        <div className="vqs-local-status">
+                            <span><ShoppingBag size={14} />Browse & order in store</span>
+                            {store.prep_minutes && <span><i className="wait" />Avg Prep: {store.prep_minutes} mins</span>}
+                            <span><ShieldCheck size={14} />Confirmed by our team</span>
+                            <b>{onsite.channel === 'table_qr' ? onsite.label : 'Counter ordering'}</b>
+                        </div>
+                    )}
                 </div>
                 {hours && (
                     <details style={{ padding: '0 24px 20px', fontSize: 14 }}>
@@ -265,7 +326,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
             </section>
 
             {preview && <div style={{ marginTop: 16 }}><Alert kind="info">Preview: only you can see this page. Customers cannot see or order from your shop until you publish it.</Alert></div>}
-            {!preview && !store.accepting_orders && (
+            {!onsiteMode && !catalogueOnly && !preview && !store.accepting_orders && (
                 <div style={{ marginTop: 16 }}>
                     <Alert kind="warn">
                         {store.hours_guidance?.is_on_break && !store.orders_during_break
@@ -276,20 +337,35 @@ export default function Store({ preview, store, items, pagination, limits, categ
                     </Alert>
                 </div>
             )}
-            {pendingSwitch && (
+            {!browseOnly && pendingSwitch && (
                 <div style={{ marginTop: 16 }}><Alert kind="warn">
                     Your cart has items from another business. One shop per order — adding here will replace it.
                     <span className="vqs-row" style={{ marginTop: 10 }}>
-                        <Btn onClick={() => { persist({ slug: store.slug, lines: [{ item_id: pendingSwitch.id, quantity: 1, name: pendingSwitch.label ? `${pendingSwitch.name} — ${pendingSwitch.label}` : pendingSwitch.name }] }); setPendingSwitch(null); }}>Replace cart</Btn>
+                        <Btn onClick={() => { persist({ slug: cartScope, lines: [{ item_id: pendingSwitch.id, quantity: 1, name: pendingSwitch.label ? `${pendingSwitch.name} — ${pendingSwitch.label}` : pendingSwitch.name }] }); setPendingSwitch(null); }}>Replace cart</Btn>
                         <Btn variant="soft" onClick={() => setPendingSwitch(null)}>Keep my other cart</Btn>
                     </span>
                 </Alert></div>
             )}
 
-            <div className="vqs-layout" style={{ marginTop: 24 }}>
-                <section aria-label="Catalogue">
+            <div className={`vqs-layout ${browseOnly ? 'vqs-layout--catalogue' : ''}`} style={{ marginTop: 24 }}>
+                {onsiteMode && catalogueTheme === 'editorial-ledger' ? <EditorialMenu store={store} items={items} categories={categories} filters={filters} pagination={pagination} search={search} setSearch={setSearch} goCatalogue={goCatalogue} showImages={show_images} pick={pick} renderOptions={renderOptions} cart={cart} add={add} setQty={setQty} canAdd={canAdd} onDetail={setDetail} maxQty={limits.max_qty} /> : <section aria-label="Catalogue" className="vqs-catalogue-panel">
+                    {onsiteMode && <header className={`vqs-collection-heading vqs-collection-heading--${catalogueTheme}`}><div><span>{catalogueTheme === 'express-rail' ? 'Express service' : catalogueTheme === 'visual-grid' ? 'The collection' : 'The collection'}</span><h2>{catalogueTheme === 'express-rail' ? 'Order in a few taps.' : catalogueTheme === 'visual-grid' ? 'Find your next favourite.' : 'Find your next favourite.'}</h2><p>{catalogueTheme === 'express-rail' ? 'Choose a section, pick a product, and send it straight to the counter.' : `Explore ${store.name}. A closer look is just a tap away.`}</p></div><ArrowUpRight size={36} strokeWidth={1} aria-hidden="true" /></header>}
+                    {!onsiteMode && catalogueTheme === 'editorial-ledger' && (
+                        <header className="vqs-ledger-masthead">
+                            <span>~ Carte du Jour ~</span>
+                            <h2>Curated Catalogue Ledger</h2>
+                            <p>A considered collection of {store.name}&apos;s signature selections.</p>
+                        </header>
+                    )}
+                    {!onsiteMode && catalogueTheme === 'express-rail' && (
+                        <header className="vqs-rail-masthead">
+                            <span>Express catalogue</span>
+                            <h2>Quick order</h2>
+                            <p>Choose a category, add an item, and send your order directly to the counter.</p>
+                        </header>
+                    )}
                     <div className="vqs-between" style={{ marginBottom: 14, alignItems: 'baseline' }}>
-                        <h2 className="vqs-h2">Everything we sell</h2>
+                        <h2 className="vqs-h2">{onsiteMode ? (categories.find((category) => String(category.id) === String(filters.category))?.name || 'All products') : 'Everything we sell'}</h2>
                         <span className="vqs-eyebrow">{pagination.total ?? items.length} item{(pagination.total ?? items.length) === 1 ? '' : 's'}</span>
                     </div>
                     <search><form onSubmit={(e) => { e.preventDefault(); goCatalogue({ q: search.trim() || undefined, page: undefined }); }} style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -313,21 +389,23 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                 const inCart = cart.lines.find((l) => l.item_id === it.id)?.quantity || 0;
                                 const pt = tone(it.id);
                                 return (
-                                    <li key={it.id} className="vqs-rise" style={{ '--i': Math.min(idx, 11) }}>
+                                    <li key={it.id} className="vqs-rise" data-category={it.category || ''} style={{ '--i': Math.min(idx, 11) }}>
                                         <div className={`vqs-card vqs-prod ${it.stock === 'out' ? 'soldout' : ''}`} style={{ height: '100%' }}>
                                             <button type="button" className="vqs-pimg vqs-reset" style={{ background: pt.bg, color: pt.fg, position: 'relative' }} onClick={() => setDetail(it)} aria-label={`View ${it.name}`}>
                                                 {(it.featured || it.was_price) && <span className="vqs-ribbon">{it.was_price ? 'Offer' : 'Featured'}</span>}
                                                 {it.stock === 'out' ? <span className="vqs-stock out">Sold out</span> : it.stock === 'low' ? <span className="vqs-stock low">{it.left} left</span> : null}
-                                                {it.category && <span className="vqs-ptag">{it.category}</span>}
-                                                {it.image_url ? <img src={it.image_url} alt="" loading="lazy" /> : <span aria-hidden="true">{initials(it.name)}</span>}
+                                                {!onsiteMode && it.category && <span className="vqs-ptag">{it.category}</span>}
+                                                {it.image_url ? <img src={it.image_url} alt="" loading="lazy" /> : onsiteMode ? <ProductIllustration item={it} /> : <span aria-hidden="true">{initials(it.name)}</span>}
                                                 <span className="vqs-quick" aria-hidden="true"><span>Quick view</span></span>
                                             </button>
-                                            <h3 className="vqs-pname" style={{ margin: 0 }}><button type="button" className="vqs-reset vqs-linkish" onClick={() => setDetail(it)}>{it.name}</button></h3>
+                                            <h3 className="vqs-pname" style={{ margin: 0 }}>{onsiteMode && it.category && <span className="vqs-product-category">{it.category}</span>}<button type="button" className="vqs-reset vqs-linkish" onClick={() => setDetail(it)}>{it.name}</button></h3>
                                             {renderOptions(it)}
                                             {it.description && <p className="vqs-pdesc" style={{ margin: 0 }}>{it.description}</p>}
                                             <div className="vqs-pfoot">
                                                 <span><span className="vqs-price">{money(it.price, sym)}</span>{it.was_price && <s className="vqs-was">{money(it.was_price, sym)}</s>}<br /><span className="vqs-unit">/ {it.unit}</span></span>
-                                                {inCart > 0 ? (
+                                                {browseOnly ? (
+                                                    <button type="button" className="vqs-btn vqs-btn--soft" onClick={() => setDetail(it)}>View</button>
+                                                ) : inCart > 0 ? (
                                                     <span className="vqs-qty">
                                                         <button type="button" aria-label={`Remove one ${it.name}`} onClick={() => setQty(it.id, inCart - 1)}>
                                                             <Minus size={13} strokeWidth={2.5} />
@@ -338,7 +416,9 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                                         </button>
                                                     </span>
                                                 ) : (
-                                                    <button type="button" className="vqs-btn vqs-btn--round" aria-label={`Add ${it.name} to cart`} disabled={!store.accepting_orders || it.stock === 'out'} onClick={() => add(it)}>+</button>
+                                                    <button type="button" className="vqs-btn vqs-btn--round" aria-label={`Add ${it.name} to cart`} disabled={!canAdd || it.stock === 'out'} onClick={() => add(it)}>
+                                                        {onsiteMode ? <><Plus size={16} /><span>Add</span></> : catalogueTheme === 'visual-grid' ? '+ Select' : catalogueTheme === 'editorial-ledger' ? `Add to order · ${money(it.price, sym)} →` : '+'}
+                                                    </button>
                                                 )}
                                             </div>
                                         </div>
@@ -349,9 +429,9 @@ export default function Store({ preview, store, items, pagination, limits, categ
                     )}
                     <Pager current={pagination.current} last={pagination.last}
                         onGo={(p) => goCatalogue({ page: p })} />
-                </section>
+                </section>}
 
-                <aside aria-label="Your cart" className={`vqs-sticky ${cartOpen ? 'open' : ''}`}>
+                {!browseOnly && <aside aria-label="Your cart" className={`vqs-sticky ${cartOpen ? 'open' : ''}`}>
                     <div className="vqs-card vqs-pad vqs-cartcard">
                         <div className="vqs-between" style={{ alignItems: 'baseline' }}>
                             <h2 className="vqs-h2" style={{ fontSize: 22 }}>Your order</h2>
@@ -423,15 +503,15 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                     })}
                                 </ul>
 
-                                <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                                {!onsiteMode && <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
                                     <legend className="vqs-label">How would you like to get it?</legend>
                                     <div className="vqs-seg" style={{ position: 'relative' }}>
                                         {store.pickup && <label className={fulfilment === 'pickup' ? 'on' : ''}><input type="radio" name="f" checked={fulfilment === 'pickup'} onChange={() => setFulfilment('pickup')} />Pickup</label>}
                                         {store.delivery && <label className={fulfilment === 'delivery' ? 'on' : ''}><input type="radio" name="f" checked={fulfilment === 'delivery'} onChange={() => setFulfilment('delivery')} />Delivery</label>}
                                     </div>
-                                </fieldset>
+                                </fieldset>}
 
-                                {fulfilment === 'delivery' && zones.length > 0 && (
+                                {!onsiteMode && fulfilment === 'delivery' && zones.length > 0 && (
                                     <Field label="Delivery area" error={fieldErrors.delivery_zone?.[0]} hint={zone ? undefined : 'Choose where we are delivering.'}>
                                         <select className="vqs-select" value={zone} onChange={(e) => setZone(e.target.value)} required>
                                             <option value="">Select your area…</option>
@@ -439,7 +519,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         </select>
                                     </Field>
                                 )}
-                                {has_coupons && (
+                                {!onsiteMode && has_coupons && (
                                     <Field label="Coupon code (optional)" error={couponError}>
                                         <span className="vqs-couponrow">
                                             <input className="vqs-input" value={couponInput} onChange={(e) => setCouponInput(e.target.value)} maxLength={40} placeholder="Enter code" autoCapitalize="characters" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setCouponError(null); setCoupon(couponInput.trim()); } }} />
@@ -447,14 +527,14 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         </span>
                                     </Field>
                                 )}
-                                <Field label="Your name" error={fieldErrors.customer_name?.[0]}><input className="vqs-input" value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} autoComplete="name" required maxLength={150} /></Field>
-                                <Field label="Phone number" error={fieldErrors.customer_phone?.[0]} hint="So the business can reach you about this order."><input className="vqs-input" value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} inputMode="tel" autoComplete="tel" required maxLength={40} /></Field>
-                                <Field label="Email (optional)" hint="We will email you when the business accepts or updates your order."><input className="vqs-input" type="email" autoComplete="email" value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} maxLength={150} /></Field>
+                                <Field label={onsiteMode && onsite.channel === 'table_qr' ? 'Your name (optional)' : 'Your name'} error={fieldErrors.customer_name?.[0]}><input className="vqs-input" value={form.customer_name} onChange={(e) => setForm({ ...form, customer_name: e.target.value })} autoComplete="name" required={!onsiteMode || onsite.channel !== 'table_qr'} maxLength={150} /></Field>
+                                {!onsiteMode && <Field label="Phone number" error={fieldErrors.customer_phone?.[0]} hint="So the business can reach you about this order."><input className="vqs-input" value={form.customer_phone} onChange={(e) => setForm({ ...form, customer_phone: e.target.value })} inputMode="tel" autoComplete="tel" required maxLength={40} /></Field>}
+                                {!onsiteMode && <Field label="Email (optional)" hint="We will email you when the business accepts or updates your order."><input className="vqs-input" type="email" autoComplete="email" value={form.customer_email} onChange={(e) => setForm({ ...form, customer_email: e.target.value })} maxLength={150} /></Field>}
                                 <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}><label>Leave this empty<input tabIndex={-1} autoComplete="off" value={form.company_site} onChange={(e) => setForm({ ...form, company_site: e.target.value })} /></label></div>
-                                {fulfilment === 'delivery' && <Field label="Delivery address" error={fieldErrors.delivery_address?.[0]}><textarea className="vqs-textarea" rows={3} value={form.delivery_address} onChange={(e) => setForm({ ...form, delivery_address: e.target.value })} required maxLength={500} /></Field>}
-                                <Field label="Note for the business (optional)"><textarea className="vqs-textarea" rows={2} value={form.customer_note} onChange={(e) => setForm({ ...form, customer_note: e.target.value })} maxLength={500} /></Field>
+                                {!onsiteMode && fulfilment === 'delivery' && <Field label="Delivery address" error={fieldErrors.delivery_address?.[0]}><textarea className="vqs-textarea" rows={3} value={form.delivery_address} onChange={(e) => setForm({ ...form, delivery_address: e.target.value })} required maxLength={500} /></Field>}
+                                <Field label={onsiteMode ? 'Notes for staff (optional)' : 'Note for the business (optional)'}><textarea className="vqs-textarea" rows={2} value={form.customer_note} onChange={(e) => setForm({ ...form, customer_note: e.target.value })} maxLength={500} /></Field>
 
-                                <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+                                {!onsiteMode && <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
                                     <legend className="vqs-label">Payment</legend>
                                     {methods.length === 0 && <p className="vqs-err">No payment option is available for this choice.</p>}
                                     <div className="vqs-stack" style={{ gap: 8 }}>
@@ -463,7 +543,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         ))}
                                     </div>
                                     {payment === 'bank' && store.payments.bank_instructions && <p className="vqs-hint" style={{ whiteSpace: 'pre-line' }}>{store.payments.bank_instructions}</p>}
-                                </fieldset>
+                                </fieldset>}
 
                                 {quote && (
                                     <dl className="vqs-totals" style={{ margin: 0 }}>
@@ -474,14 +554,14 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         <div className="vqs-between big"><dt>Total</dt><dd className="vqs-num" style={{ margin: 0 }}>{money(quote.total, sym)}</dd></div>
                                     </dl>
                                 )}
-                                {belowMin && <Alert kind="warn">Add {money(minOrder - (quote.subtotal + quote.tax_total), sym)} more to reach the {money(minOrder, sym)} minimum order.</Alert>}
-                                {notice && <Alert kind="error">{notice}</Alert>}
-                                <Btn type="submit" size="lg" full disabled={!canSubmit} onClick={() => {}}>{busy ? 'Placing order…' : 'Place order request'}</Btn>
-                                <p className="vqs-hint" style={{ margin: 0 }}>The business confirms availability before your order is accepted. You pay as chosen above — nothing is charged online.</p>
+                                {!onsiteMode && belowMin && <Alert kind="warn">Add {money(minOrder - (quote.subtotal + quote.tax_total), sym)} more to reach the {money(minOrder, sym)} minimum order.</Alert>}
+                                {notice && <Alert kind={notice?.success ? 'ok' : 'error'}>{notice?.text || notice}</Alert>}
+                                <Btn type="submit" size="lg" full disabled={!canSubmit} onClick={() => {}}>{busy ? 'Sending order…' : onsiteMode ? `Send order to ${onsite.channel === 'table_qr' ? onsite.label : 'counter'}` : 'Place order request'}</Btn>
+                                <p className="vqs-hint" style={{ margin: 0 }}>{onsiteMode ? 'Staff will review the order in the POS before it is sent to preparation.' : 'The business confirms availability before your order is accepted. You pay as chosen above — nothing is charged online.'}</p>
                             </form>
                         )}
                     </div>
-                </aside>
+                </aside>}
             </div>
 
             <section className="vqs-card vqs-hub vqs-rise" style={{ marginTop: 28 }} aria-label="About this business">
@@ -501,13 +581,12 @@ export default function Store({ preview, store, items, pagination, limits, categ
                     ) : <p>Opening hours are not listed.</p>}
                 </div>
                 <div>
-                    <span className="vqs-hubhead"><ShieldCheck size={14} />How ordering works</span>
-                    <p>Add items, choose {store.pickup && store.delivery ? 'pickup or delivery' : store.delivery ? 'delivery' : 'pickup'} and send your order. {store.name} confirms availability before accepting it, and you pay as chosen at checkout.</p>
-                    <p>You can follow your order on its status page.</p>
+                    <span className="vqs-hubhead"><ShieldCheck size={14} />{browseOnly ? 'How to buy' : 'How ordering works'}</span>
+                    {browseOnly ? <p>Browse the catalogue, then contact {store.name} to confirm availability and arrange your purchase.</p> : onsiteMode ? <p>Add items and send the order from this device. Staff will review it in the POS before preparation.</p> : <><p>Add items, choose {store.pickup && store.delivery ? 'pickup or delivery' : store.delivery ? 'delivery' : 'pickup'} and send your order. {store.name} confirms availability before accepting it, and you pay as chosen at checkout.</p><p>You can follow your order on its status page.</p></>}
                 </div>
             </section>
 
-            {count > 0 && (
+            {!browseOnly && count > 0 && (
                 <section className="vqs-cartbar" aria-label="Cart summary">
                     <button type="button" className="vqs-btn vqs-btn--lg vqs-btn--full vqs-between" onClick={() => setCartOpen(true)}>
                         <span className="vqs-row" style={{ gap: 10 }}><span className="vqs-cartcount">{count}</span>View cart</span>
@@ -526,7 +605,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                         <div className="vqs-sheet-in vqs-card">
                             <button type="button" className="vqs-reset vqs-closex vqs-sheet-x" aria-label="Close" onClick={() => setDetail(null)}>✕</button>
                             <div className={`vqs-pimg vqs-detail-img`} style={{ background: dt.bg, color: dt.fg, display: show_images ? undefined : 'none' }}>
-                                {d.image_url ? <img src={d.image_url} alt="" /> : <span aria-hidden="true">{initials(d.name)}</span>}
+                                {d.image_url ? <img src={d.image_url} alt="" /> : onsiteMode ? <ProductIllustration item={d} /> : <span aria-hidden="true">{initials(d.name)}</span>}
                             </div>
                             <div className="vqs-stack" style={{ gap: 8, padding: '4px 4px 0' }}>
                                 <span className="vqs-eyebrow">{store.name}</span>
@@ -535,7 +614,9 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                 <div className="vqs-row" style={{ gap: 8, alignItems: 'baseline' }}><span className="vqs-price" style={{ fontSize: 22 }}>{money(d.price, sym)}</span>{d.was_price && <s className="vqs-was">{money(d.was_price, sym)}</s>}<span className="vqs-unit">/ {d.unit}</span></div>
                                 {d.description ? <p className="vqs-muted" style={{ margin: 0, fontSize: 15, lineHeight: 1.55 }}>{d.description}</p> : <p className="vqs-faint" style={{ margin: 0, fontSize: 14 }}>No description from the business.</p>}
                                 <div className="vqs-row" style={{ marginTop: 8 }}>
-                                    {dq > 0 ? (
+                                    {browseOnly ? (
+                                        store.phone ? <a className="vqs-btn vqs-btn--lg vqs-btn--full" href={`tel:${store.phone}`}>Call to order</a> : <p className="vqs-muted">Contact the business to ask about this item.</p>
+                                    ) : dq > 0 ? (
                                         <>
                                             <span className="vqs-qty">
                                                 <button type="button" aria-label={`Remove one ${d.name}`} onClick={() => setQty(d.id, dq - 1)}>
@@ -549,7 +630,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                             <Btn size="lg" onClick={() => { setDetail(null); setCartOpen(true); }}>View cart</Btn>
                                         </>
                                     ) : (
-                                        <Btn size="lg" full disabled={!store.accepting_orders} onClick={() => add(d)}>{store.accepting_orders ? 'Add to cart' : 'Not taking orders'}</Btn>
+                                        <Btn size="lg" full disabled={!canAdd || d.stock === 'out'} onClick={() => add(d)}>{d.stock === 'out' ? 'Sold out' : canAdd ? 'Add to cart' : 'Not taking orders'}</Btn>
                                     )}
                                 </div>
                             </div>

@@ -24,6 +24,10 @@ class DashboardController extends Controller
         $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
         $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
         $user = auth()->user();
+        $membership = app()->bound('current.membership') ? app('current.membership') : null;
+        if ($membership && $membership->isPosStaff()) {
+            return redirect()->route('pos', ['store_slug' => app('current.tenant')->slug]);
+        }
 
         // The default dashboard is the permission-filtered V6 card engine for
         // every role. Role presets and card permissions decide what is shown.

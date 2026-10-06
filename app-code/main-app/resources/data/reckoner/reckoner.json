@@ -1924,6 +1924,42 @@
     "staff.revenue_per_staff": [
       "attendance.entries",
       "sales.headers"
+    ],
+    "expenses.recent": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "purchases.recent": [
+      "purchase.headers"
+    ],
+    "payments.recent": [
+      "payment.entries"
+    ],
+    "core.recent_sales": [
+      "sales.headers"
+    ],
+    "marketplace.online_revenue": [
+      "ledger.journal"
+    ],
+    "marketplace.online_orders": [
+      "ledger.journal"
+    ],
+    "marketplace.online_aov": [
+      "ledger.journal"
+    ],
+    "marketplace.online_trend": [
+      "ledger.journal"
+    ],
+    "marketplace.recent_orders": [
+      "ledger.journal"
+    ],
+    "core.gross_profit_trend": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
     ]
   }
 }

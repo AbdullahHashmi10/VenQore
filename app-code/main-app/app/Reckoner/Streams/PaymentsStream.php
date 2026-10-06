@@ -71,4 +71,30 @@ class PaymentsStream
 
         return $unallocatedList;
     }
+
+    /**
+     * The newest payments in the window, received and paid.
+     */
+    public function recent(string $from, string $to, int|string $tenantId, int $limit = 10): array
+    {
+        return DB::table('payments')
+            ->where('tenant_id', $tenantId)
+            ->whereBetween(DB::raw('COALESCE(date, DATE(created_at))'), [$from, $to])
+            ->select('id', 'amount', 'method', 'type', DB::raw('COALESCE(date, DATE(created_at)) as day'))
+            ->orderByDesc('day')
+            ->orderByDesc('created_at')
+            ->limit($limit)
+            ->get()
+            ->map(function ($r) {
+                $in = in_array((string) $r->type, ['in', 'received'], true);
+                $method = ucfirst(strtolower(trim((string) ($r->method ?: 'payment'))));
+                return [
+                    'id'     => $r->id,
+                    'date'   => $r->day,
+                    'title'  => ($in ? 'Received · ' : 'Paid · ') . $method,
+                    'amount' => round((float) $r->amount, 2),
+                ];
+            })
+            ->all();
+    }
 }

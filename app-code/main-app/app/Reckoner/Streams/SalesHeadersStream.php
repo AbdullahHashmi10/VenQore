@@ -335,4 +335,27 @@ class SalesHeadersStream
     {
         return $this->invoiceAgingList($asOf, $tenantId, $overdueOnly);
     }
+
+    /**
+     * The newest completed sales in the window, whatever channel they came from.
+     */
+    public function recent(string $from, string $to, int|string $tenantId, int $limit = 10): array
+    {
+        return DB::table('sales')
+            ->where('tenant_id', $tenantId)
+            ->whereIn('status', ['posted', 'completed'])
+            ->whereNull('deleted_at')
+            ->whereBetween(DB::raw('DATE(COALESCE(posted_at, created_at))'), [$from, $to])
+            ->select('id', 'reference_number', 'net_sales', DB::raw('COALESCE(posted_at, created_at) as at'))
+            ->orderByDesc('at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($r) => [
+                'id'     => $r->id,
+                'date'   => (string) $r->at,
+                'title'  => $r->reference_number ?: 'Sale',
+                'amount' => round((float) $r->net_sales, 2),
+            ])
+            ->all();
+    }
 }

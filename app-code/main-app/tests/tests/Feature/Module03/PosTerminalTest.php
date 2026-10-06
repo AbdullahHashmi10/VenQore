@@ -54,6 +54,26 @@ test('featured products endpoint returns top sold items with positive stock', fu
     $response->assertJsonFragment(['name' => 'Featured POS Product']);
 });
 
+test('featured products endpoint returns products with zero stock when stock maintenance is disabled', function () {
+    \App\Models\Setting::updateOrCreate(
+        ['tenant_id' => $this->tenant->id, 'key' => 'stock_maintenance'],
+        ['value' => '0']
+    );
+    \App\Helpers\SettingsHelper::clearCache();
+    \Illuminate\Support\Facades\Cache::forget("pos.featured.{$this->tenant->id}.untracked");
+
+    $product = Product::factory()->create([
+        'tenant_id' => $this->tenant->id,
+        'name'      => 'Untracked Zero Stock Item',
+        'price'     => 45.00,
+    ]);
+
+    $response = $this->get("/s/{$this->tenant->slug}/pos/products/featured");
+
+    $response->assertStatus(200);
+    $response->assertJsonFragment(['name' => 'Untracked Zero Stock Item']);
+});
+
 // ─── Test 2: Rate Limiting ────────────────────────────────────────────────────
 // Plan: 300 requests/min per tenant.
 // Strategy: send 1 request (assert 200), manually exhaust the limiter bucket,

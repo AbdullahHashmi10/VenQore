@@ -766,6 +766,7 @@ export default function ProductModal({
  {/* Backdrop */}
  <div
  className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-normal"
+ onClick={onClose}
  ></div>
 
  {/* Modal Content */}

@@ -529,6 +529,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // forward, one back — which is the whole vocabulary of a kitchen screen.
         Route::post('/restaurant/order/{id}/bump',   [\App\Http\Controllers\RestaurantDashboardController::class, 'bump'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.bump');
         Route::post('/restaurant/order/{id}/recall', [\App\Http\Controllers\RestaurantDashboardController::class, 'recall'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.recall');
+        Route::post('/restaurant/order/{id}/dismiss', [\App\Http\Controllers\RestaurantDashboardController::class, 'dismissCancelled'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.dismiss');
+        Route::post('/restaurant/order/clear-all', [\App\Http\Controllers\RestaurantDashboardController::class, 'clearAll'])->middleware('permission:pos.checkout,sales.edit')->name('restaurant.order.clear-all');
+        Route::get('/restaurant/queue', [\App\Http\Controllers\RestaurantDashboardController::class, 'queue'])->name('restaurant.queue');
+        Route::get('/restaurant/queue/state', [\App\Http\Controllers\RestaurantDashboardController::class, 'queueState'])->name('restaurant.queue.state');
 
         // ── Dispatch & Rider Management (Phase 3) ─────────────────────────
         Route::get('/restaurant/dispatch', [\App\Http\Controllers\DispatchController::class, 'index'])->middleware('permission:pos.checkout')->name('restaurant.dispatch');
@@ -538,6 +542,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
         Route::get('/riders', [\App\Http\Controllers\RiderController::class, 'list'])->middleware('permission:pos.checkout')->name('riders.list');
         Route::post('/riders/{id}/toggle-rider', [\App\Http\Controllers\RiderController::class, 'toggleRider'])->middleware('permission:admin.settings_manage')->name('riders.toggle');
+
+        Route::get('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'index'])->name('restaurant.riders');
+        Route::post('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'store'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.store');
+        Route::put('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'update'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.update');
+        Route::delete('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'destroy'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.destroy');
+
+        Route::get('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'settings'])->name('restaurant.settings');
+        Route::post('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('restaurant.settings.update');
 
         // ── Phase 4: Reservations & Restaurant Analytics ───────────────────
         Route::get('/restaurant/reports/kitchen-performance', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenPerformance'])->middleware('permission:pos.checkout')->name('restaurant.reports.kitchen-performance');
@@ -553,6 +565,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/shifts/open',               [\App\Http\Controllers\RegisterShiftController::class, 'open'])->middleware('permission:pos.checkout')->name('shifts.open');
         Route::post('/shifts/movement',           [\App\Http\Controllers\RegisterShiftController::class, 'movement'])->middleware('permission:pos.checkout')->name('shifts.movement');
         Route::post('/shifts/close',              [\App\Http\Controllers\RegisterShiftController::class, 'close'])->middleware('permission:pos.checkout')->name('shifts.close');
+        Route::post('/shifts/{id}/acknowledge-handover', [\App\Http\Controllers\RegisterShiftController::class, 'acknowledgeHandover'])->middleware('permission:admin.manage_staff')->name('shifts.acknowledge-handover');
         Route::get('/shifts/{id}/z-report',       [\App\Http\Controllers\RegisterShiftController::class, 'zReport'])->middleware('permission:pos.checkout')->name('shifts.z-report');
         Route::get('/shifts/history',             [\App\Http\Controllers\RegisterShiftController::class, 'history'])->middleware('permission:pos.checkout')->name('shifts.history');
 
@@ -1345,17 +1358,26 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
            top of the group's pos.checkout, like service-mode: rearranging the
            building is not a decision a till makes mid-service. */
         Route::middleware('permission:admin.settings_manage')->group(function () {
-            Route::get('/plan',                [\App\Http\Controllers\TableServiceController::class, 'plan'])->name('plan');
             Route::post('/plan/zone/add',      [\App\Http\Controllers\TableServiceController::class, 'planZoneAdd'])->name('plan.zone.add');
             Route::post('/plan/zone/rename',   [\App\Http\Controllers\TableServiceController::class, 'planZoneRename'])->name('plan.zone.rename');
             Route::post('/plan/zone/remove',   [\App\Http\Controllers\TableServiceController::class, 'planZoneRemove'])->name('plan.zone.remove');
             Route::post('/plan/tables/bulk',   [\App\Http\Controllers\TableServiceController::class, 'planTablesBulk'])->name('plan.tables.bulk');
             Route::post('/plan/table',         [\App\Http\Controllers\TableServiceController::class, 'planTableAdd'])->name('plan.table.add');
             Route::post('/plan/table/update',  [\App\Http\Controllers\TableServiceController::class, 'planTableUpdate'])->name('plan.table.update');
+            Route::get('/plan/table/{position}/qr.svg', [\App\Http\Controllers\TableServiceController::class, 'planTableQr'])->name('plan.table.qr');
+            Route::post('/plan/table/qr/regenerate', [\App\Http\Controllers\TableServiceController::class, 'regenerateTableQr'])->name('plan.table.qr.regenerate');
             Route::post('/plan/table/remove',  [\App\Http\Controllers\TableServiceController::class, 'planTableRemove'])->name('plan.table.remove');
             Route::post('/plan/reorder',       [\App\Http\Controllers\TableServiceController::class, 'planReorder'])->name('plan.reorder');
             Route::post('/plan/lanes',         [\App\Http\Controllers\TableServiceController::class, 'planLanes'])->name('plan.lanes');
         });
+    });
+
+    Route::get('/floor-plan', [\App\Http\Controllers\TableServiceController::class, 'plan'])
+        ->middleware(['permission:pos.checkout', 'permission:admin.settings_manage'])
+        ->name('tables.plan');
+
+    Route::get('/tables/plan', function ($store_slug) {
+        return redirect()->route('store.tables.plan', ['store_slug' => $store_slug]);
     });
 
     // New POS — the composed register. Layout Law v2.0 geometry, V6 tokens, and a

@@ -1,6 +1,12 @@
 # VenQore: The Retail Operating System
 
+## Product planning documents
+
+- [POS staff, paid seats, permissions, and shifts plan](app-code/main-app/docs/POS_STAFF_AND_SEATS_PLAN.md)
+- [Future product ideas backlog, including riders](app-code/main-app/docs/FUTURE_IDEAS.md)
+
 ## Project Overview
+
 VenQore is an Offline-First, "Father-Friendly" Retail OS designed for Hostinger Shared Hosting.
 It combines a Laravel 11 backend, FilamentPHP v3 Admin Panel, and a React + Inertia.js POS Interface.
 

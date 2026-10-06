@@ -246,7 +246,7 @@ class DashboardSanitizer
                 $clean[$k] = $style[$k];
             }
         }
-        foreach (['glare', 'starBorder', 'showOpenArrow', 'showWhen', 'showDelta', 'showPeriodPicker', 'motion', 'full'] as $k) {
+        foreach (['glare', 'starBorder', 'showOpenArrow', 'showWhen', 'showDelta', 'showPeriodPicker', 'showRecent', 'motion', 'full'] as $k) {
             if (isset($style[$k])) {
                 $clean[$k] = (bool) $style[$k];
             }

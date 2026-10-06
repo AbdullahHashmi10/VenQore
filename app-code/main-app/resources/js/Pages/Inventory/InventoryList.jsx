@@ -37,6 +37,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     const { t, tp } = useTerms();
     const tt = useTermText();
     const { flash, store, modules } = usePage().props;
+    const isStockTracked = stats?.stock_maintenance ?? (store?.settings?.stock_maintenance !== '0' && store?.settings?.stock_maintenance !== false);
 
     // Infinite Scroll State
     const [allProducts, setAllProducts] = useState(serverProducts.data || []);
@@ -106,12 +107,21 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
         { key: 'name', label: tt('Product / Service Name'), width: '25%' },
         { key: 'sku', label: 'SKU', width: '10%' },
         { key: 'category', label: 'Category', width: '15%' },
-        { key: 'available_stock', label: 'Stock / Duration', width: '10%' },
+        { key: 'available_stock', label: isStockTracked ? 'Stock / Duration' : 'Sold / Duration', width: '10%' },
         { key: 'cost_price', label: 'Cost', width: '10%' },
         { key: 'price', label: 'Price', width: '10%' },
         { key: 'status', label: 'Status', width: '10%' },
         { key: 'actions', label: 'Actions', width: '10%' }
     ]);
+
+    useEffect(() => {
+        setTableColumns(prev => prev.map(col => {
+            if (col.key === 'available_stock') {
+                return { ...col, label: isStockTracked ? 'Stock / Duration' : 'Sold / Duration' };
+            }
+            return col;
+        }));
+    }, [isStockTracked]);
 
     // Click Outside Handler
     useEffect(() => {
@@ -320,7 +330,11 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     {!isStatsExpanded && (
                         <div className="flex items-center gap-3 text-xs font-bold">
                             <span className="text-brand-600">{stats?.total_products?.toLocaleString() || 0} {tt('Products')}</span>
-                            <span className="text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0} Low</span>
+                            {isStockTracked ? (
+                                <span className="text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0} Low</span>
+                            ) : (
+                                <span className="text-teal-600">{Number(stats?.total_units_sold || 0).toLocaleString()} Sold</span>
+                            )}
                         </div>
                     )}
                 </div>
@@ -339,12 +353,14 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangleIcon size={16} />
+                            <div className={`p-1.5 rounded-lg ${isStockTracked ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' : 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400'}`}>
+                                {isStockTracked ? <AlertTriangleIcon size={16} /> : <BarChart3 size={16} />}
                             </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Low Stock</p>
+                            <p className="text-xs font-bold text-ink-muted uppercase">{isStockTracked ? 'Low Stock' : 'Total Units Sold'}</p>
                         </div>
-                        <p className="text-base font-bold text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0}</p>
+                        <p className={`text-base font-bold ${isStockTracked ? 'text-amber-600' : 'text-teal-600 dark:text-teal-400'}`}>
+                            {isStockTracked ? (stats?.low_stock_count?.toLocaleString() || 0) : Number(stats?.total_units_sold || 0).toLocaleString()}
+                        </p>
                     </div>
 
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between col-span-2 md:col-span-2">
@@ -357,6 +373,24 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                         <p className="text-base font-bold text-emerald-600">{formatCurrency(stats?.inventory_value || 0, store)}</p>
                     </div>
                 </div>
+
+                {/* Unlimited Selling Mode Notice */}
+                {!isStockTracked && (
+                    <div className="bg-teal-50/90 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800/60 rounded-xl px-3.5 py-2 flex items-center justify-between gap-3 text-xs text-teal-900 dark:text-teal-200 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={15} className="text-teal-600 dark:text-teal-400 shrink-0" />
+                            <span>
+                                <strong>Unlimited Selling Mode Active:</strong> Products sell freely without stock constraints or out-of-stock blockers. We track <strong>Total Units Sold</strong> instead of stock counts.
+                            </span>
+                        </div>
+                        <Link
+                            href={route('store.admin.settings', { store_slug: store?.slug })}
+                            className="text-2xs font-bold text-teal-700 dark:text-teal-300 underline hover:text-teal-900 shrink-0"
+                        >
+                            Settings
+                        </Link>
+                    </div>
+                )}
 
                 {/* Category & Type Filter Row */}
                 <div
@@ -596,6 +630,15 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                                 <Clock size={12} />
                                                                 <span>{row.default_duration || 60} min</span>
                                                             </div>
+                                                        ) : !isStockTracked ? (
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-ink text-sm tabular-nums">
+                                                                    {Number(row.units_sold || 0).toLocaleString()} <span className="text-2xs font-semibold text-ink-muted">sold</span>
+                                                                </span>
+                                                                <span className="text-3xs text-teal-600 dark:text-teal-400 font-bold uppercase tracking-wider">
+                                                                    Untracked
+                                                                </span>
+                                                            </div>
                                                         ) : (
                                                             <div className="flex flex-col">
                                                                 <span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-ink-secondary dark:text-ink'}`}>{row.available_stock}</span>
@@ -617,13 +660,15 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                             <span className={`px-2 py-1 rounded-full text-2xs font-bold border ${
                                                                 isService
                                                                     ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
-                                                                    : row.status === 'In Stock'
-                                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                                                        : row.status === 'Low Stock'
-                                                                            ? 'bg-amber-50 text-amber-600 border-amber-200'
-                                                                            : 'bg-red-50 text-red-600 border-red-200'
+                                                                    : !isStockTracked
+                                                                        ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800'
+                                                                        : row.status === 'In Stock'
+                                                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                                            : row.status === 'Low Stock'
+                                                                                ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                                                : 'bg-red-50 text-red-600 border-red-200'
                                                             }`}>
-                                                                {isService ? 'Available' : row.status}
+                                                                {isService ? 'Available' : !isStockTracked ? 'Active' : row.status}
                                                             </span>
                                                         );
                                                         case 'actions': return (
@@ -697,12 +742,14 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                         <span className={`px-2 py-0.5 rounded-full text-3xs font-bold border shrink-0 ${
                                             isService
                                                 ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800'
-                                                : row.status === 'In Stock'
-                                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                                    : row.status === 'Low Stock'
-                                                        ? 'bg-amber-50 text-amber-600 border-amber-200'
-                                                        : 'bg-red-50 text-red-600 border-red-200'
-                                        }`}>{isService ? 'Available' : row.status}</span>
+                                                : !isStockTracked
+                                                    ? 'bg-teal-50 text-teal-700 border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800'
+                                                    : row.status === 'In Stock'
+                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                                        : row.status === 'Low Stock'
+                                                            ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                                            : 'bg-red-50 text-red-600 border-red-200'
+                                        }`}>{isService ? 'Available' : !isStockTracked ? 'Active' : row.status}</span>
                                     </div>
 
                                     {/* Row 2: Category badge */}
@@ -722,6 +769,13 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                     <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Duration</span>
                                                     <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tabular-nums flex items-center gap-1">
                                                         <Clock size={11} /> {row.default_duration || 60}m
+                                                    </span>
+                                                </div>
+                                            ) : !isStockTracked ? (
+                                                <div>
+                                                    <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Sold</span>
+                                                    <span className="text-xs font-bold text-teal-700 dark:text-teal-300 tabular-nums">
+                                                        {Number(row.units_sold || 0).toLocaleString()} <span className="text-4xs text-ink-muted">units</span>
                                                     </span>
                                                 </div>
                                             ) : (

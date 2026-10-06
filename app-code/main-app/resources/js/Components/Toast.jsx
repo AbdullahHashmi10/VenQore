@@ -65,22 +65,34 @@ function ToastItem({ toast, onClose, duration }) {
 
     const style = typeStyles[toast.type] || typeStyles.info;
 
+    const handleClose = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+        }
+        if (typeof onClose === 'function') {
+            onClose();
+        } else if (typeof onCloseRef.current === 'function') {
+            onCloseRef.current();
+        }
+    };
+
     // Auto-dismiss timer with progress bar
     useEffect(() => {
         startTimeRef.current = Date.now();
         remainingRef.current = duration;
 
-        const startTimer = () => {
-            timerRef.current = setTimeout(() => {
-                onCloseRef.current();
-            }, remainingRef.current);
-        };
-
-        startTimer();
+        timerRef.current = setTimeout(() => {
+            handleClose();
+        }, duration);
 
         // Animate progress bar
         if (progressRef.current) {
-            progressRef.current.style.transition = `width ${remainingRef.current}ms linear`;
+            progressRef.current.style.transition = `width ${duration}ms linear`;
             progressRef.current.style.width = '0%';
         }
 
@@ -92,10 +104,10 @@ function ToastItem({ toast, onClose, duration }) {
     // Pause on hover
     const handleMouseEnter = () => {
         if (timerRef.current) clearTimeout(timerRef.current);
-        const elapsed = Date.now() - startTimeRef.current;
-        remainingRef.current = Math.max(0, remainingRef.current - elapsed);
+        const elapsed = Date.now() - (startTimeRef.current || Date.now());
+        remainingRef.current = Math.max(1000, remainingRef.current - elapsed);
         if (progressRef.current) {
-            const currentWidth = (remainingRef.current / duration) * 100;
+            const currentWidth = Math.max(0, Math.min(100, (remainingRef.current / duration) * 100));
             progressRef.current.style.transition = 'none';
             progressRef.current.style.width = `${currentWidth}%`;
         }
@@ -104,18 +116,19 @@ function ToastItem({ toast, onClose, duration }) {
     // Resume on mouse leave
     const handleMouseLeave = () => {
         startTimeRef.current = Date.now();
+        const nextTime = Math.max(1000, remainingRef.current);
         timerRef.current = setTimeout(() => {
-            onCloseRef.current();
-        }, remainingRef.current);
+            handleClose();
+        }, nextTime);
         if (progressRef.current) {
-            progressRef.current.style.transition = `width ${remainingRef.current}ms linear`;
+            progressRef.current.style.transition = `width ${nextTime}ms linear`;
             progressRef.current.style.width = '0%';
         }
     };
 
     return (
         <div
-            className={`pointer-events-auto min-w-[280px] max-w-sm rounded-xl border shadow-lg overflow-hidden animate-in slide-in-from-right-5 fade-in duration-slow ${style.bg} ${style.border}`}
+            className={`pointer-events-auto min-w-[280px] max-w-sm rounded-xl border shadow-lg overflow-hidden animate-in slide-in-from-right-5 fade-in duration-slow relative z-[1] ${style.bg} ${style.border}`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -123,8 +136,10 @@ function ToastItem({ toast, onClose, duration }) {
                 <div className="shrink-0 mt-0.5">{style.icon}</div>
                 <p className={`text-sm font-medium flex-1 ${style.text}`}>{toast.message}</p>
                 <button
-                    onClick={onClose}
-                    className={`shrink-0 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors ${style.text}`}
+                    type="button"
+                    aria-label="Dismiss notification"
+                    onClick={handleClose}
+                    className={`shrink-0 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/15 active:scale-95 transition-all cursor-pointer ${style.text}`}
                 >
                     <X size={14} />
                 </button>

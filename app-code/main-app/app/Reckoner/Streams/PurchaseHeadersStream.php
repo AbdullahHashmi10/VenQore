@@ -231,4 +231,27 @@ class PurchaseHeadersStream
             'by_supplier'=> [],
         ];
     }
+
+    /**
+     * The newest purchase bills in the window.
+     */
+    public function recent(string $from, string $to, int|string $tenantId, int $limit = 10): array
+    {
+        return DB::table('purchases as p')
+            ->leftJoin('parties as pt', 'p.party_id', '=', 'pt.id')
+            ->where('p.tenant_id', $tenantId)
+            ->whereBetween(DB::raw('DATE(COALESCE(p.purchase_date, p.created_at))'), [$from, $to])
+            ->select('p.id', 'p.total', 'pt.name as supplier', DB::raw('DATE(COALESCE(p.purchase_date, p.created_at)) as day'))
+            ->orderByDesc('day')
+            ->orderByDesc('p.created_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($r) => [
+                'id'     => $r->id,
+                'date'   => $r->day,
+                'title'  => $r->supplier ?: 'Direct supplier',
+                'amount' => round((float) $r->total, 2),
+            ])
+            ->all();
+    }
 }

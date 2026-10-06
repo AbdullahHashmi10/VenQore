@@ -2,7 +2,7 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StoreTabs from '@/Components/Commerce/StoreTabs';
-import { Clock, Coins, CreditCard, MapPin, Save, Store as StoreIcon, Truck } from 'lucide-react';
+import { Clock, Coins, CreditCard, LayoutTemplate, MapPin, Save, Store as StoreIcon, Truck } from 'lucide-react';
 import { Alert, Button, Card, CardTitle, Field, ImageInput, Switch, inputCls } from '@/Components/Commerce/ui';
 import { DAY_LABEL } from '@/lib/commerce';
 
@@ -48,6 +48,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
         orders_outside_hours: !!store.orders_outside_hours,
         orders_during_break: !!store.orders_during_break,
         announcement: store.announcement || '', prep_minutes: store.prep_minutes || '', delivery_zones: (store.delivery_zones || []).map((z) => ({ name: z.name, fee: z.fee, min_order: z.min_order || 0 })),
+        customer_mode: store.customer_mode || 'ordering', catalogue_theme: store.catalogue_theme || 'visual-grid',
     });
     const cityOptions = cities.filter((c) => String(c.country_id) === String(data.country_id));
     const countrySelectOptions = [{ value: '', label: 'Select country…' }, ...countries.map((c) => ({ value: String(c.id), label: c.name }))];
@@ -85,7 +86,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
     const submit = (e) => { e.preventDefault(); post(urls.settings_save, { forceFormData: true, preserveScroll: true }); };
     const chk = (k, label, desc) => <Switch checked={data[k]} onChange={(v) => setData(k, v)} label={label} desc={desc} />;
     const copyMonday = () => setData('opening_hours', Object.fromEntries(days.map((d) => [d, { ...data.opening_hours[days[0]] }])));
-    const SECTIONS = [['profile', 'Public profile', StoreIcon], ['location', 'Location & contact', MapPin], ['hours', 'Opening hours', Clock], ['fulfilment', 'Pickup & delivery', Truck], ['payment', 'Payment & orders', CreditCard], ['pricing', 'Online pricing', Coins]];
+    const SECTIONS = [['profile', 'Public profile', StoreIcon], ['appearance', 'Catalogue style', LayoutTemplate], ['location', 'Location & contact', MapPin], ['hours', 'Opening hours', Clock], ['fulfilment', 'Pickup & delivery', Truck], ['payment', 'Payment & orders', CreditCard], ['pricing', 'Online pricing', Coins]];
 
     return (
         <OneGlanceLayout title="Online Store" activeMenu="Online Store">
@@ -105,6 +106,38 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                     </div>
                     <Field label="Announcement (shown above your catalogue)" error={errors.announcement} hint="e.g. Closed Friday for Eid. Leave empty for none."><input className={inputCls} maxLength={240} value={data.announcement} onChange={(e) => setData('announcement', e.target.value)} /></Field>
                     {chk('show_images', 'Show product photos', 'Turn off for a compact, text-only catalogue.')}
+                </Card>
+
+                <Card id="appearance" className="space-y-5 scroll-mt-24">
+                    <CardTitle icon={LayoutTemplate} tone="plum" title="Catalogue style" sub="Choose what customers can do and how your products are presented" />
+                    <Field label="Customer experience" error={errors.customer_mode}>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                                ['ordering', 'Catalogue and ordering', 'Customers can browse, add to cart and place pickup or delivery orders.'],
+                                ['catalogue', 'Catalogue only', 'Customers browse products and prices, then contact you to buy.'],
+                            ].map(([value, title, copy]) => (
+                                <button key={value} type="button" onClick={() => setData('customer_mode', value)} className={`text-left rounded-2xl border p-4 transition ${data.customer_mode === value ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-200' : 'border-line bg-surface hover:bg-interactive-hover'}`}>
+                                    <span className="block font-bold text-ink">{title}</span>
+                                    <span className="mt-1 block text-sm leading-5 text-ink-muted">{copy}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </Field>
+                    <Field label="Template" error={errors.catalogue_theme}>
+                        <div className="grid md:grid-cols-3 gap-3">
+                            {[
+                                ['visual-grid', 'Visual grid', 'Bright and photographic for any shop.', 'from-brand-100 via-white to-sky-100'],
+                                ['editorial-ledger', 'Editorial ledger', 'Refined for restaurants and premium catalogues.', 'from-ink-900 via-ink-800 to-amber-900'],
+                                ['express-rail', 'Express rail', 'Fast scanning for busy counters and large menus.', 'from-sky-700 via-ink-900 to-coral-500'],
+                            ].map(([value, title, copy, preview]) => (
+                                <button key={value} type="button" aria-label={`Use ${title} template`} onClick={() => setData('catalogue_theme', value)} className={`overflow-hidden rounded-2xl border text-left transition ${data.catalogue_theme === value ? 'border-brand-500 ring-2 ring-brand-200' : 'border-line hover:border-ink-300'}`}>
+                                    <span className={`block h-20 bg-gradient-to-br ${preview}`} aria-hidden="true" />
+                                    <span className="block bg-surface p-3"><span className="block font-bold text-ink">{title}</span><span className="mt-1 block text-xs leading-5 text-ink-muted">{copy}</span></span>
+                                </button>
+                            ))}
+                        </div>
+                    </Field>
+                    {data.customer_mode === 'catalogue' && <Alert kind="info">Your public QR link stays the same. Cart, checkout and ordering controls will be removed from the customer page.</Alert>}
                 </Card>
 
                 <Card id="location" className="space-y-4 scroll-mt-24">

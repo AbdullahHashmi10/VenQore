@@ -89,6 +89,8 @@ export function serverLineToCart(l, i) {
     const mods = Array.isArray(l.mods) ? l.mods : [];
     const delta = mods.reduce((a, m) => a + (Number(m.price_delta) || 0), 0);
     const base = Number(l.base_price != null ? l.base_price : l.price) || 0;
+    const qty = Number(l.qty) || 1;
+    const sentQty = Number(l.sent_qty != null ? l.sent_qty : (l.sent ? qty : 0));
     return {
         /* A stable key matters more here than anywhere else in the register:
            the poll replaces this array wholesale, and a key derived from
@@ -102,11 +104,12 @@ export function serverLineToCart(l, i) {
         original_price: base,
         basePrice: base,
         mods,
-        qty: Number(l.qty) || 1,
+        qty,
+        sent_qty: sentQty,
         freeQuantity: 0,
         discount: 0,
         notes: l.notes || '',
-        sent: !!l.sent,
+        sent: !!l.sent && sentQty >= qty,
         course: Number(l.course) || 1,
         paidSaleId: l.paid_sale_id || null,
         /* The kitchen has already committed the stock for a fired line, and a
@@ -119,14 +122,17 @@ export function serverLineToCart(l, i) {
 }
 
 export function cartLineToServer(l) {
+    const qty = Number(l.qty) || 0;
+    const sentQty = Number(l.sent_qty != null ? l.sent_qty : (l.sent ? qty : 0));
     return {
         line_id: l.lineId || l.cartItemId,
         id: l.id,
         name: l.name,
         price: Number(l.basePrice != null ? l.basePrice : (l.original_price != null ? l.original_price : l.price)) || 0,
-        qty: Number(l.qty) || 0,
+        qty,
+        sent_qty: sentQty,
         notes: l.notes || '',
-        sent: !!l.sent,
+        sent: !!l.sent && sentQty >= qty,
         course: Number(l.course) || 1,
         mods: Array.isArray(l.mods) ? l.mods.map(m => ({
             id: m.id, name: m.name, price_delta: Number(m.price_delta) || 0,
@@ -255,6 +261,9 @@ export function useTableService({
             }
             if (data?.cancellation_kot) {
                 KitchenPrintService.printKOT(data.cancellation_kot, { isCancellation: true });
+                if (onNotice) {
+                    onNotice('Cancellation docket sent to kitchen');
+                }
             }
             return data;
         } catch (e) {
@@ -302,10 +311,14 @@ export function useTableService({
         const now = Date.now();
         const open = positions.filter(p => p.occupancy_id);
         const billing = [...open, ...tickets];
+        const takeawayCount = tickets.filter(t => t.order_type === 'takeaway').length;
+        const deliveryCount = tickets.filter(t => t.order_type === 'delivery').length;
         return {
             open: open.length,
             free: positions.filter(p => !p.occupancy_id && p.status === 'available').length,
             tickets: tickets.length,
+            takeawayCount,
+            deliveryCount,
             covers: open.reduce((a, p) => a + (Number(p.covers) || 0), 0),
             /* Money on the floor includes the bags on the pass. It is the
                answer to "what would we lose if the power went out", and a

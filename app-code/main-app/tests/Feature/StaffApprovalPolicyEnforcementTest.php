@@ -30,6 +30,7 @@ class StaffApprovalPolicyEnforcementTest extends TestCase
             'name' => 'Audit Test Store',
             'slug' => 'audit-test-store-' . uniqid(),
             'status' => 'active',
+            'plan' => 'core',
             'setup_completed' => true,
         ]);
         app()->instance('current.tenant', $this->tenant);

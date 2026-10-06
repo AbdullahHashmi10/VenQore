@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { MessagesSquare, CheckCircle, ArrowLeft, Mail, Clock, CheckCircle2 } from 'lucide-react';
-import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
+import PlatformLayout from '@/Layouts/PlatformLayout';
+import { useT, Panel, PageHeader, Badge, Button, EmptyState, KpiCard, BRAND } from '@/Platform/ui';
+import {
+    MessagesSquare, CheckCircle, ArrowLeft, Mail, Clock, CheckCircle2,
+    Building2, Inbox, Send, User, ChevronRight, MessageSquareText
+} from 'lucide-react';
 
 export default function Contacts({ submissions, filters }) {
+    const t = useT();
     const [selected, setSelected] = useState(null);
 
-    const statusFilter = filters.status || 'new';
+    const statusFilter = filters?.status || 'new';
+    const isNew = statusFilter === 'new';
 
     function setFilter(status) {
         router.get(route('platform.health.contacts'), { status }, { preserveState: true });
@@ -22,130 +28,343 @@ export default function Contacts({ submissions, filters }) {
         });
     }
 
-    return (
-        <OneGlanceLayout title="Contact Desk" mode="admin">
-            <Head title="Contact Forms - System Health" />
+    const items = submissions?.data || [];
 
-            <div className="h-full flex flex-col relative overflow-hidden">
-                {/* --- Unified Header Banner --- */}
-                <div style={{ 
-                    background: 'linear-gradient(135deg, rgba(56,189,248,0.1) 0%, rgba(99,102,241,0.05) 100%)', 
-                    borderBottom: '1px solid rgba(255,255,255,0.07)', 
-                    padding: '32px', 
-                    borderRadius: '24px 24px 0 0',
-                    marginBottom: 8
-                }} className="flex-shrink-0 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        <Link href={route('platform.dashboard')} className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 text-ink-muted transition-all border border-white/5">
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <MessagesSquare className="text-sky-500" size={24} />
-                                <h1 className="text-3xl font-bold text-white tracking-tight">Contact Desk</h1>
+    const stats = useMemo(() => {
+        const total = items.length;
+        const unreadCount = items.filter(s => s.status === 'new').length;
+        const readCount = items.filter(s => s.status === 'read').length;
+        return { total, unreadCount, readCount };
+    }, [items]);
+
+    return (
+        <PlatformLayout title="Contact Desk & Customer Inquiries">
+            <Head title="Contact Desk — VenQore Platform" />
+
+            <div style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {/* ── Page Header ────────────────────────────────────────── */}
+                <PageHeader
+                    title="Contact Desk & Inquiries"
+                    subtitle="Direct contact form inquiries submitted via public marketing landing pages and trial interest flows."
+                    icon={MessagesSquare}
+                    accent={BRAND.sky}
+                    actions={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                            <Link href={route('platform.dashboard')}>
+                                <Button variant="secondary" icon={ArrowLeft} size="sm">
+                                    Dashboard
+                                </Button>
+                            </Link>
+
+                            {/* Status Filter Toggle */}
+                            <div style={{
+                                display: 'inline-flex',
+                                background: t.inputBg,
+                                border: `1px solid ${t.border}`,
+                                borderRadius: 12,
+                                padding: 3,
+                                gap: 2,
+                            }}>
+                                <button
+                                    onClick={() => setFilter('new')}
+                                    style={{
+                                        padding: '6px 14px',
+                                        fontSize: 12.5,
+                                        fontWeight: 800,
+                                        borderRadius: 9,
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s',
+                                        background: isNew ? `${BRAND.sky}1f` : 'transparent',
+                                        color: isNew ? BRAND.sky : t.muted,
+                                        boxShadow: isNew ? `0 0 0 1px ${BRAND.sky}44` : 'none',
+                                    }}
+                                >
+                                    Unread Inquiries
+                                </button>
+                                <button
+                                    onClick={() => setFilter('read')}
+                                    style={{
+                                        padding: '6px 14px',
+                                        fontSize: 12.5,
+                                        fontWeight: 800,
+                                        borderRadius: 9,
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.15s',
+                                        background: !isNew ? `${BRAND.emerald}1f` : 'transparent',
+                                        color: !isNew ? BRAND.emerald : t.muted,
+                                        boxShadow: !isNew ? `0 0 0 1px ${BRAND.emerald}44` : 'none',
+                                    }}
+                                >
+                                    Archived / Read
+                                </button>
                             </div>
-                            <p className="text-ink-muted font-medium mt-1">Queries submitted via marketing pages.</p>
                         </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 backdrop-blur-sm">
-                        <button onClick={() => setFilter('new')} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'new' ? 'bg-sky-500/10 text-sky-500 border border-sky-500/20 shadow-lg ' : 'text-ink-muted hover:text-white hover:bg-white/5'}`}>
-                            Unread
-                        </button>
-                        <button onClick={() => setFilter('read')} className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${statusFilter === 'read' ? 'bg-white/10 text-white border border-white/10 shadow-lg' : 'text-ink-muted hover:text-white hover:bg-white/5'}`}>
-                            Read
-                        </button>
-                    </div>
+                    }
+                />
+
+                {/* ── KPI Metrics Bar ────────────────────────────────────── */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                    <KpiCard
+                        label="Inquiry Queue"
+                        value={stats.total}
+                        sub={`In "${statusFilter}" status`}
+                        icon={Mail}
+                        accent={BRAND.sky}
+                    />
+                    <KpiCard
+                        label="Unread Submissions"
+                        value={stats.unreadCount}
+                        sub="Awaiting operator response"
+                        icon={MessagesSquare}
+                        accent={BRAND.amber}
+                    />
+                    <KpiCard
+                        label="Handled / Read"
+                        value={stats.readCount}
+                        sub="Processed submissions"
+                        icon={CheckCircle}
+                        accent={BRAND.emerald}
+                    />
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-8 relative z-0 hide-scrollbar flex gap-8">
-                    
-                    {/* List */}
-                    <div className="flex-1 max-w-4xl flex flex-col gap-4">
-                        {submissions.data.length === 0 ? (
-                            <div className="text-center py-20 bg-surface rounded-2xl border border-line">
-                                <CheckCircle className="mx-auto text-sky-500 mb-4 opacity-50" size={48} />
-                                <h3 className="text-lg font-bold text-ink-secondary">Inbox Zero 🎉</h3>
-                                <p className="text-sm text-ink-muted">No {statusFilter} contact submissions right now.</p>
-                            </div>
+                {/* ── Two-Column Inquiries View ──────────────────────────── */}
+                <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 460px' : '1fr', gap: 20, alignItems: 'start' }}>
+                    {/* Inquiries list */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {items.length === 0 ? (
+                            <Panel pad={48}>
+                                <EmptyState
+                                    icon={Inbox}
+                                    title="Inbox Zero 🎉"
+                                    message={`No ${statusFilter} contact inquiries found in this queue.`}
+                                    action={
+                                        !isNew ? (
+                                            <Button size="sm" variant="secondary" onClick={() => setFilter('new')}>
+                                                View Unread Inquiries
+                                            </Button>
+                                        ) : null
+                                    }
+                                />
+                            </Panel>
                         ) : (
-                            submissions.data.map(sub => (
-                                <div 
-                                    key={sub.id} 
-                                    onClick={() => setSelected(sub)}
-                                    className={`p-5 rounded-2xl border cursor-pointer transition-all ${selected?.id === sub.id ? 'bg-sky-50 border-sky-200 dark:bg-sky-900/10 dark:border-sky-900/50 shadow-md' : 'bg-white border-line hover:border-sky-300 dark:bg-surface dark:border-line dark:hover:border-line-strong'} ${sub.status === 'new' ? 'border-l-4 border-l-sky-500' : ''}`}
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-3">
-                                            <h3 className="font-bold text-ink">{sub.name}</h3>
-                                            <span className="text-sm text-ink-muted">&lt;{sub.email}&gt;</span>
+                            items.map(sub => {
+                                const isSelected = selected?.id === sub.id;
+                                const isUnread = sub.status === 'new';
+
+                                return (
+                                    <div
+                                        key={sub.id}
+                                        onClick={() => setSelected(sub)}
+                                        style={{
+                                            background: isSelected
+                                                ? (t.isDark ? 'rgba(56, 189, 248, 0.08)' : '#f0f9ff')
+                                                : t.panel,
+                                            border: `1px solid ${isSelected ? (t.isDark ? 'rgba(56, 189, 248, 0.4)' : '#bae6fd') : t.border}`,
+                                            borderLeft: isUnread ? `4px solid ${BRAND.sky}` : `1px solid ${t.border}`,
+                                            borderRadius: 16,
+                                            padding: '16px 20px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.15s ease',
+                                            position: 'relative',
+                                            boxShadow: isSelected ? 'var(--vq-elev-2)' : 'none',
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (!isSelected) e.currentTarget.style.borderColor = t.border2;
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (!isSelected) e.currentTarget.style.borderColor = t.border;
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                                <span style={{ fontSize: 14.5, fontWeight: 800, color: t.ink }}>
+                                                    {sub.name}
+                                                </span>
+                                                <span style={{ fontSize: 12, color: t.muted }}>
+                                                    &lt;{sub.email}&gt;
+                                                </span>
+                                                {isUnread ? (
+                                                    <Badge color={BRAND.sky} tone="soft">
+                                                        New
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge color={BRAND.emerald} tone="soft">
+                                                        <CheckCircle size={11} /> Read
+                                                    </Badge>
+                                                )}
+                                            </div>
+
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: t.muted, fontFamily: 'monospace' }}>
+                                                <Clock size={12} />
+                                                <span>{new Date(sub.created_at).toLocaleDateString()} {new Date(sub.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
                                         </div>
-                                        <span className="text-xs text-ink-muted font-medium flex items-center gap-1"><Clock size={12}/> {new Date(sub.created_at).toLocaleString()}</span>
+
+                                        <div style={{ fontSize: 13.5, fontWeight: 700, color: t.sub, marginBottom: 6 }}>
+                                            {sub.subject || 'No Subject'}
+                                        </div>
+
+                                        <p style={{
+                                            margin: 0,
+                                            fontSize: 12.5,
+                                            color: t.muted,
+                                            lineHeight: 1.5,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                            maxWidth: '90%',
+                                        }}>
+                                            {sub.message}
+                                        </p>
                                     </div>
-                                    <div className="font-semibold text-ink-secondary mb-2 truncate">
-                                        {sub.subject || 'No Subject'}
-                                    </div>
-                                    <p className="text-sm text-ink-muted truncate max-w-2xl">
-                                        {sub.message}
-                                    </p>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
 
-                    {/* Details Panel */}
+                    {/* Inquiry Details Side Panel */}
                     {selected && (
-                        <div className="w-[400px] flex-shrink-0 bg-surface rounded-2xl border border-line p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
-                            <h3 className="text-lg font-bold text-ink mb-6 flex items-center gap-2 border-b border-line pb-4">
-                                <Mail className="text-sky-500" />
-                                Message Details
-                            </h3>
-                            
-                            <div className="flex-1 overflow-y-auto hide-scrollbar space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">Sender</div>
-                                        <div className="text-sm font-medium text-ink-secondary">{selected.name}</div>
+                        <Panel
+                            pad={20}
+                            style={{
+                                position: 'sticky',
+                                top: 20,
+                                maxHeight: 'calc(100vh - 120px)',
+                                overflowY: 'auto',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 20,
+                                border: `1px solid ${t.border2}`,
+                                boxShadow: 'var(--vq-elev-3)',
+                            }}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingBottom: 14, borderBottom: `1px solid ${t.border}` }}>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                                        <Mail size={16} style={{ color: BRAND.sky }} />
+                                        <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.muted }}>
+                                            Inquiry Details
+                                        </span>
                                     </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">Email</div>
-                                        <div className="text-sm font-medium text-ink-secondary"><a href={`mailto:${selected.email}`} className="text-sky-600 hover:underline">{selected.email}</a></div>
+                                    <span style={{ fontSize: 11, fontFamily: 'monospace', color: t.faint }}>
+                                        ID #{selected.id}
+                                    </span>
+                                </div>
+
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelected(null)}
+                                >
+                                    Close
+                                </Button>
+                            </div>
+
+                            {/* Contact information card */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div style={{ padding: 12, borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
+                                    <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: t.muted, marginBottom: 4 }}>
+                                        Sender Name
                                     </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">Company</div>
-                                        <div className="text-sm font-medium text-ink-secondary">{selected.company || 'N/A'}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs font-bold text-ink-muted uppercase mb-1">Date</div>
-                                        <div className="text-sm font-medium text-ink-secondary">{new Date(selected.created_at).toLocaleString()}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: t.ink, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                        <User size={13} style={{ color: BRAND.indigo }} />
+                                        {selected.name}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <div className="text-xs font-bold text-ink-muted uppercase mb-2">Message</div>
-                                    <div className="text-sm font-normal text-ink-secondary break-words whitespace-pre-wrap bg-app p-4 rounded-xl border border-line leading-relaxed">
-                                        {selected.message}
+                                <div style={{ padding: 12, borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
+                                    <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: t.muted, marginBottom: 4 }}>
+                                        Email Address
+                                    </div>
+                                    <a
+                                        href={`mailto:${selected.email}`}
+                                        style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.sky, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}
+                                    >
+                                        <Mail size={13} />
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.email}</span>
+                                    </a>
+                                </div>
+
+                                <div style={{ padding: 12, borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
+                                    <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: t.muted, marginBottom: 4 }}>
+                                        Company / Store
+                                    </div>
+                                    <div style={{ fontSize: 12.5, fontWeight: 600, color: t.sub, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                        <Building2 size={13} style={{ color: BRAND.amber }} />
+                                        {selected.company || 'Not Specified'}
+                                    </div>
+                                </div>
+
+                                <div style={{ padding: 12, borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
+                                    <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', color: t.muted, marginBottom: 4 }}>
+                                        Submitted At
+                                    </div>
+                                    <div style={{ fontSize: 11.5, fontFamily: 'monospace', color: t.sub, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                        <Clock size={13} style={{ color: t.muted }} />
+                                        {new Date(selected.created_at).toLocaleString()}
                                     </div>
                                 </div>
                             </div>
 
-                            {selected.status === 'new' && (
-                                <div className="mt-6 pt-6 border-t border-line">
-                                    <button 
-                                        onClick={markAsRead}
-                                        className="w-full bg-neutral-800 hover:bg-interactive-hover dark:bg-white dark:hover:bg-interactive-hover dark:text-ink text-white font-bold py-3 rounded-xl transition-all shadow-lg flex justify-center items-center gap-2"
-                                    >
-                                        <CheckCircle2 size={18} />
-                                        Mark as Read
-                                    </button>
+                            {/* Subject & Full message */}
+                            <div>
+                                <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.muted, marginBottom: 6 }}>
+                                    Subject
                                 </div>
-                            )}
-                        </div>
-                    )}
+                                <div style={{ fontSize: 14, fontWeight: 800, color: t.ink, marginBottom: 12 }}>
+                                    {selected.subject || 'No Subject Provided'}
+                                </div>
 
+                                <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.muted, marginBottom: 6 }}>
+                                    Message Body
+                                </div>
+                                <div style={{
+                                    padding: '14px 16px',
+                                    borderRadius: 12,
+                                    background: t.inputBg,
+                                    border: `1px solid ${t.border}`,
+                                    color: t.ink,
+                                    fontSize: 13,
+                                    lineHeight: 1.6,
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                }}>
+                                    {selected.message}
+                                </div>
+                            </div>
+
+                            {/* Action footer */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 12, borderTop: `1px solid ${t.border}` }}>
+                                <a
+                                    href={`mailto:${selected.email}?subject=${encodeURIComponent(`Re: ${selected.subject || 'Inquiry'}`)}`}
+                                    style={{ textDecoration: 'none' }}
+                                >
+                                    <Button
+                                        variant="primary"
+                                        icon={Send}
+                                        style={{ width: '100%' }}
+                                    >
+                                        Reply via Email
+                                    </Button>
+                                </a>
+
+                                {selected.status === 'new' && (
+                                    <Button
+                                        variant="success"
+                                        icon={CheckCircle2}
+                                        onClick={markAsRead}
+                                        style={{ width: '100%' }}
+                                    >
+                                        Mark as Read
+                                    </Button>
+                                )}
+                            </div>
+                        </Panel>
+                    )}
                 </div>
             </div>
-        </OneGlanceLayout>
+        </PlatformLayout>
     );
 }

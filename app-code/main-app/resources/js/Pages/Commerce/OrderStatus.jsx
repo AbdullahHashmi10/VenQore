@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import PublicShell from '@/Components/Commerce/PublicShell';
 import { Alert, Badge, Btn, Field, Icon } from '@/Components/Commerce/shop';
@@ -13,7 +13,51 @@ const waNumber = (phone, sym) => {
 const STEPS_PICKUP = ['pending', 'confirmed', 'preparing', 'ready', 'completed'];
 const STEPS_DELIVERY = ['pending', 'confirmed', 'preparing', 'out_for_delivery', 'completed'];
 
-export default function OrderStatus({ order, store, events, transfer_url, cancel_url, reorder_url, history = [], prep_minutes, revision, revision_url, rating_summary, customer }) {
+const formatRemaining = (milliseconds) => {
+    const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return hours > 0
+        ? `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+        : `${minutes}:${String(seconds).padStart(2, '0')}`;
+};
+
+function PreparationCountdown({ estimatedReadyAt, prepMinutes, fulfilment }) {
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        const timer = window.setInterval(() => setNow(Date.now()), 1000);
+        return () => window.clearInterval(timer);
+    }, []);
+
+    const remaining = new Date(estimatedReadyAt).getTime() - now;
+    const total = Math.max(1, Number(prepMinutes) * 60 * 1000);
+    const progress = Math.min(100, Math.max(0, ((total - Math.max(0, remaining)) / total) * 100));
+    const destination = fulfilment === 'delivery' ? 'ready to leave the business' : 'ready for pickup';
+
+    return (
+        <section className="vqs-card vqs-pad vqs-countdown" aria-live="polite" style={{ marginTop: 16 }}>
+            <div className="vqs-between" style={{ gap: 16, alignItems: 'center' }}>
+                <div>
+                    <div className="vqs-eyebrow"><span className="vqs-live-dot" aria-hidden="true" />The team is working on it</div>
+                    <p className="vqs-muted" style={{ margin: '6px 0 0', fontSize: 14 }}>Estimated time until your order is {destination}.</p>
+                </div>
+                <div className="vqs-countdown-time vqs-num">
+                    {remaining > 0 ? formatRemaining(remaining) : 'Any moment'}
+                </div>
+            </div>
+            <div className="vqs-countdown-track" aria-hidden="true">
+                <span style={{ width: `${progress}%` }} />
+            </div>
+            <p className="vqs-faint" style={{ margin: '8px 0 0', fontSize: 12 }}>
+                {remaining > 0 ? `Based on the business’s usual ${prepMinutes}-minute preparation time.` : 'The estimate has passed, but your order is still active. The status above will update as soon as the business moves it forward.'}
+            </p>
+        </section>
+    );
+}
+
+export default function OrderStatus({ order, store, events, transfer_url, cancel_url, reorder_url, live_url, history = [], prep_minutes, revision, revision_url, rating_summary, customer }) {
     const [reorderMsg, setReorderMsg] = useState(null);
     const reorder = async () => {
         setReorderMsg(null);
@@ -33,6 +77,63 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
     const [receiptPreview, setReceiptPreview] = useState(null);
     const [fileErr, setFileErr] = useState('');
     const [uploading, setUploading] = useState(false);
+
+    useEffect(() => {
+        if (!live_url) return undefined;
+        let stopped = false;
+        let timer = null;
+        let controller = null;
+
+        const schedule = () => {
+            if (stopped) return;
+            timer = window.setTimeout(check, document.hidden ? 60_000 : 10_000);
+        };
+
+        async function check() {
+            if (stopped || controller) return;
+            controller = new AbortController();
+            try {
+                const response = await fetch(live_url, {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+                if (!response.ok) return;
+                const update = await response.json();
+                if (Number(update.version) !== Number(order.version)
+                    || update.status !== order.status
+                    || update.payment_status !== order.payment_status
+                    || update.estimated_ready_at !== order.estimated_ready_at) {
+                    stopped = true;
+                    router.reload({ preserveState: true, preserveScroll: true });
+                }
+            } catch (error) {
+                if (error?.name !== 'AbortError') {
+                    // A temporary connection failure is retried on the next check.
+                }
+            } finally {
+                controller = null;
+                schedule();
+            }
+        }
+
+        const onVisibilityChange = () => {
+            if (document.hidden || stopped) return;
+            if (timer) window.clearTimeout(timer);
+            timer = null;
+            check();
+        };
+
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        schedule();
+        return () => {
+            stopped = true;
+            if (timer) window.clearTimeout(timer);
+            controller?.abort();
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
+    }, [live_url, order.estimated_ready_at, order.payment_status, order.status, order.version]);
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
@@ -130,6 +231,10 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
             </div>
             {order.status === 'pending' && <div style={{ marginTop: 16 }}><Alert kind="info">Your order is a request. {store.name} must confirm that the items are available before it is accepted.</Alert></div>}
             {closed && <div style={{ marginTop: 16 }}><Alert kind="error">This order was {order.status === 'expired' ? 'not accepted in time' : order.status}.{order.reason ? ` Reason: ${order.reason}` : ''} {order.payment_status === 'refunded' ? 'The business confirmed your payment has been refunded.' : ['collected', 'transfer_reported'].includes(order.payment_status) ? 'You told us you paid. Please contact the business to get your money back.' : 'You have not been charged.'}</Alert></div>}
+
+            {order.estimated_ready_at && ['confirmed', 'preparing'].includes(order.status) && (
+                <PreparationCountdown estimatedReadyAt={order.estimated_ready_at} prepMinutes={prep_minutes} fulfilment={order.fulfilment} />
+            )}
 
             {!closed && (
                 <div className="vqs-card vqs-pad" style={{ marginTop: 20 }}>
@@ -230,7 +335,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
                                 </div>
 
                                 <div>
-                                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--vq-text, #0f172a)' }}>
+                                    <label htmlFor="commerce-payment-receipt" style={{ display: 'block', fontSize: 13, fontWeight: 600, marginBottom: 6, color: 'var(--vq-text, #0f172a)' }}>
                                         Payment screenshot / receipt <span style={{ color: '#ef4444' }}>* (Compulsory)</span>
                                     </label>
                                     <label
@@ -249,6 +354,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
                                         }}
                                     >
                                         <input
+                                            id="commerce-payment-receipt"
                                             type="file"
                                             accept="image/png,image/jpeg,image/webp,application/pdf"
                                             style={{ display: 'none' }}

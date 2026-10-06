@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
-import { Plus, Edit2, Database, Shield, Layout, Save, X } from 'lucide-react';
+import OneGlanceLayout from '@/Layouts/PlatformShell';
+import {
+    useT, PageHeader, Panel, Badge, Button,
+    Input, Field, EmptyState
+} from '@/Platform/ui';
+import { BRAND } from '@/Platform/theme';
+import { Boxes, Plus, Edit2, Database, Shield, Save, X, Layers } from 'lucide-react';
 
-export default function PlatformIndex({ platforms }) {
+export default function PlatformIndex({ platforms = [] }) {
+    const t = useT();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: '',
         slug: '',
-        is_active: true
+        is_active: true,
     });
 
     const startAdd = () => {
@@ -23,7 +29,7 @@ export default function PlatformIndex({ platforms }) {
         setData({
             name: p.name,
             slug: p.slug,
-            is_active: p.is_active
+            is_active: !!p.is_active,
         });
         setEditingId(p.id);
         setIsAdding(false);
@@ -39,152 +45,205 @@ export default function PlatformIndex({ platforms }) {
         e.preventDefault();
         if (editingId) {
             put(route('platform.platforms.update', editingId), {
-                onSuccess: () => cancel()
+                onSuccess: () => cancel(),
             });
         } else {
             post(route('platform.platforms.store'), {
-                onSuccess: () => cancel()
+                onSuccess: () => cancel(),
             });
         }
     };
 
     return (
         <OneGlanceLayout title="System Platforms" mode="admin" activeMenu="Platforms">
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h2 className="text-2xl font-bold text-white">System Platforms</h2>
-                    <p className="text-ink-muted mt-1">Define high-level software platforms (e.g. VenQore Cloud, VenQore On-Prem)</p>
-                </div>
-                {!isAdding && !editingId && (
-                    <button
-                        onClick={startAdd}
-                        className="flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold transition-all shadow-lg "
-                    >
-                        <Plus size={18} /> Add Platform
-                    </button>
-                )}
-            </div>
+            <Head title="Platform HQ | System Platforms" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* List Section */}
-                <div className="lg:col-span-2 space-y-4">
-                    {platforms.map((p) => (
-                        <div 
-                            key={p.id}
-                            className={`p-6 rounded-2xl border transition-all flex items-center justify-between ${
-                                editingId === p.id 
-                                ? 'bg-brand-500/10 border-brand-500 shadow-xl ' 
-                                : 'bg-neutral-900 border-neutral-800 hover:border-line-strong shadow-lg'
-                            }`}
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${p.is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-ink-muted'}`}>
-                                    <Database size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-lg text-white">{p.name}</h3>
-                                    <p className="text-xs font-mono text-ink-muted uppercase tracking-widest">{p.slug}</p>
-                                </div>
-                            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <PageHeader
+                    icon={Boxes}
+                    accent={BRAND.indigo}
+                    title="System Platforms"
+                    subtitle="Define high-level product platforms (e.g. VenQore Cloud, VenQore On-Prem, Hardware POS)."
+                    actions={
+                        !isAdding && !editingId ? (
+                            <Button variant="primary" icon={Plus} onClick={startAdd}>
+                                Add Platform
+                            </Button>
+                        ) : null
+                    }
+                />
 
-                            <div className="flex items-center gap-4">
-                                <span className={`px-3 py-1 rounded-full text-2xs font-bold uppercase tracking-widest ${
-                                    p.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-neutral-800 text-ink-muted border border-neutral-700'
-                                }`}>
-                                    {p.is_active ? 'Active' : 'Disabled'}
-                                </span>
-                                <button
-                                    onClick={() => startEdit(p)}
-                                    className="p-2 text-ink-muted hover:text-white hover:bg-interactive-hover rounded-xl transition-all"
-                                >
-                                    <Edit2 size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                    {platforms.length === 0 && (
-                        <div className="p-20 text-center bg-neutral-900/50 rounded-2xl border border-dashed border-neutral-800">
-                            <Database size={48} className="mx-auto mb-4 text-ink-secondary" />
-                            <p className="text-ink-muted font-medium">No platforms defined yet.</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Form Section (Sidebar style) */}
-                <div className="lg:col-span-1">
-                    {(isAdding || editingId) ? (
-                        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 sticky top-28 shadow-2xl">
-                            <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
-                                {editingId ? <Edit2 size={20} className="text-brand-400" /> : <Plus size={20} className="text-emerald-400" />}
-                                {editingId ? 'Edit Platform' : 'New Platform'}
-                            </h3>
-
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold text-ink-muted uppercase tracking-widest mb-2">Platform Name</label>
-                                    <input 
-                                        type="text"
-                                        value={data.name}
-                                        onChange={e => {
-                                            setData('name', e.target.value);
-                                            if (!editingId) setData('slug', e.target.value.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''));
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(320px, 380px)', gap: 24, alignItems: 'start' }}>
+                    {/* Platforms list */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        {platforms.length === 0 ? (
+                            <Panel pad={40}>
+                                <EmptyState
+                                    icon={Database}
+                                    title="No platforms defined yet"
+                                    message="Establish software platform groupings to categorize plans and license tiers."
+                                    action={
+                                        <Button variant="primary" icon={Plus} onClick={startAdd}>
+                                            Add First Platform
+                                        </Button>
+                                    }
+                                />
+                            </Panel>
+                        ) : (
+                            platforms.map((p) => {
+                                const isEditingThis = editingId === p.id;
+                                return (
+                                    <Panel
+                                        key={p.id}
+                                        pad={20}
+                                        hover
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            border: isEditingThis ? `1px solid ${BRAND.indigo}` : `1px solid ${t.border}`,
+                                            background: isEditingThis ? `${BRAND.indigo}10` : t.panel,
                                         }}
-                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-semibold"
-                                        placeholder="e.g. VenQore Cloud"
-                                        required
-                                    />
-                                    {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-ink-muted uppercase tracking-widest mb-2">Identifier (Slug)</label>
-                                    <input 
-                                        type="text"
-                                        value={data.slug}
-                                        onChange={e => setData('slug', e.target.value)}
-                                        className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl px-5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all font-mono text-sm uppercase tracking-tighter"
-                                        placeholder="E.G. CLOUD-S1"
-                                        required
-                                    />
-                                    {errors.slug && <p className="text-red-400 text-xs mt-1">{errors.slug}</p>}
-                                </div>
-
-                                <div className="flex items-center justify-between p-4 bg-neutral-950 rounded-2xl border border-neutral-800">
-                                    <span className="text-sm font-bold text-neutral-300">Status Active</span>
-                                    <button 
-                                        type="button"
-                                        onClick={() => setData('is_active', !data.is_active)}
-                                        className={`w-12 h-6 rounded-full p-1 transition-all ${data.is_active ? 'bg-emerald-600' : 'bg-neutral-700'}`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-all ${data.is_active ? 'translate-x-6' : 'translate-x-0'}`} />
-                                    </button>
-                                </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                            <div style={{
+                                                width: 44,
+                                                height: 44,
+                                                borderRadius: 14,
+                                                background: p.is_active ? `${BRAND.emerald}18` : t.inputBg,
+                                                color: p.is_active ? BRAND.emerald : t.muted,
+                                                border: `1px solid ${p.is_active ? `${BRAND.emerald}33` : t.border}`,
+                                                display: 'grid',
+                                                placeItems: 'center',
+                                                flexShrink: 0,
+                                            }}>
+                                                <Database size={22} />
+                                            </div>
 
-                                <div className="pt-4 flex flex-col gap-3">
-                                    <button
-                                        type="submit"
-                                        disabled={processing}
-                                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-lg "
-                                    >
-                                        <Save size={18} />
-                                        {editingId ? 'Update Platform' : 'Save Platform'}
-                                    </button>
+                                            <div>
+                                                <div style={{ fontSize: 16, fontWeight: 800, color: t.ink, letterSpacing: '-0.01em' }}>
+                                                    {p.name}
+                                                </div>
+                                                <div style={{ fontSize: 12, fontFamily: 'monospace', color: t.muted, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                                    {p.slug}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                            <Badge color={p.is_active ? BRAND.emerald : BRAND.slate} tone="soft">
+                                                {p.is_active ? 'Active' : 'Disabled'}
+                                            </Badge>
+
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                icon={Edit2}
+                                                onClick={() => startEdit(p)}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </div>
+                                    </Panel>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Add/Edit Panel */}
+                    <div>
+                        {isAdding || editingId ? (
+                            <Panel pad={24} style={{ position: 'sticky', top: 24 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: t.ink, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        {editingId ? <Edit2 size={18} style={{ color: BRAND.indigo }} /> : <Plus size={18} style={{ color: BRAND.emerald }} />}
+                                        {editingId ? 'Edit Platform' : 'New Platform'}
+                                    </h3>
                                     <button
                                         type="button"
                                         onClick={cancel}
-                                        className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-neutral-800 hover:bg-interactive-hover text-neutral-300 rounded-2xl font-bold uppercase tracking-widest transition-all"
+                                        style={{ background: 'none', border: 'none', color: t.muted, cursor: 'pointer', padding: 4 }}
                                     >
-                                        <X size={18} /> Cancel
+                                        <X size={18} />
                                     </button>
                                 </div>
-                            </form>
-                        </div>
-                    ) : (
-                        <div className="bg-neutral-900/30 border border-dashed border-neutral-800 rounded-2xl p-10 text-center">
-                            <Shield size={40} className="mx-auto mb-4 text-ink-secondary opacity-50" />
-                            <p className="text-ink-secondary text-sm font-medium">Select a platform to edit or add a new one.</p>
-                        </div>
-                    )}
+
+                                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                    <Field label="Platform Name" error={errors.name}>
+                                        <Input
+                                            value={data.name}
+                                            onChange={(e) => {
+                                                setData('name', e.target.value);
+                                                if (!editingId) {
+                                                    setData('slug', e.target.value.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''));
+                                                }
+                                            }}
+                                            placeholder="e.g. VenQore Cloud"
+                                            required
+                                        />
+                                    </Field>
+
+                                    <Field label="Identifier Slug" hint="Internal alphanumeric key" error={errors.slug}>
+                                        <Input
+                                            value={data.slug}
+                                            onChange={(e) => setData('slug', e.target.value)}
+                                            placeholder="e.g. venqore-cloud"
+                                            style={{ fontFamily: 'monospace' }}
+                                            required
+                                        />
+                                    </Field>
+
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '12px 14px',
+                                        background: t.inputBg,
+                                        border: `1px solid ${t.border}`,
+                                        borderRadius: 12,
+                                    }}>
+                                        <div>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: t.ink }}>Platform Active</div>
+                                            <div style={{ fontSize: 11.5, color: t.muted }}>Available for assigning plans</div>
+                                        </div>
+                                        <input
+                                            type="checkbox"
+                                            checked={data.is_active}
+                                            onChange={(e) => setData('is_active', e.target.checked)}
+                                            style={{ accentColor: BRAND.indigo, width: 18, height: 18, cursor: 'pointer' }}
+                                        />
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                                        <Button
+                                            type="submit"
+                                            variant="primary"
+                                            icon={Save}
+                                            disabled={processing}
+                                            style={{ flex: 1 }}
+                                        >
+                                            {editingId ? 'Update' : 'Save Platform'}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            onClick={cancel}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </div>
+                                </form>
+                            </Panel>
+                        ) : (
+                            <Panel pad={32} style={{ textAlign: 'center', borderStyle: 'dashed' }}>
+                                <Shield size={36} style={{ color: t.muted, margin: '0 auto 12px', opacity: 0.6 }} />
+                                <div style={{ fontSize: 14, fontWeight: 700, color: t.ink }}>Select a Platform</div>
+                                <div style={{ fontSize: 12.5, color: t.muted, marginTop: 4 }}>
+                                    Click "Edit" on any platform to adjust parameters, or click "+ Add Platform" to establish a new one.
+                                </div>
+                            </Panel>
+                        )}
+                    </div>
                 </div>
             </div>
         </OneGlanceLayout>

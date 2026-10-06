@@ -262,7 +262,7 @@ export function fillFlowGaps(series, from, to, grain) {
 
 function normaliseRow(r, i) {
   const o = r && typeof r === 'object' ? r : { value: r };
-  const label = o.name ?? o.label ?? o.title ?? o.customer ?? o.product ?? o.party ?? o.reference ?? o.description ?? `Item ${i + 1}`;
+  const label = o.name ?? o.label ?? o.title ?? o.ref ?? o.customer ?? o.product ?? o.party ?? o.reference ?? o.description ?? `Item ${i + 1}`;
   const amountRaw = o.amount ?? o.value ?? o.total ?? o.total_amount ?? o.net_revenue ?? o.revenue ?? o.balance ?? o.qty ?? o.count ?? null;
   return {
     id: o.id ?? o.uuid ?? `${i}`,

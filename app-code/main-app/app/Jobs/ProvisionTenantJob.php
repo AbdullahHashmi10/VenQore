@@ -241,6 +241,7 @@ class ProvisionTenantJob implements ShouldQueue
         }
 
         $staffSeatId    = config('pricing.add_ons.extra_seat.variant_id');
+        $posSeatId      = config('pricing.add_ons.extra_pos_seat.variant_id');
         $locationSeatId = config('pricing.add_ons.extra_location.variant_id');
 
         if ($staffSeatId && $staffSeatId !== 'REPLACE_ME' && $variantIdStr === (string)$staffSeatId) {
@@ -255,6 +256,27 @@ class ProvisionTenantJob implements ShouldQueue
                         [
                             'override_value' => (string) ($currentLimit + $quantity),
                             'reason'         => 'Purchased additional staff seat add-on (Lemon Squeezy)',
+                            'updated_at'     => now(),
+                            'created_at'     => now(),
+                        ]
+                    );
+                    \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+                }
+            }
+        }
+
+        if ($posSeatId && $posSeatId !== 'REPLACE_ME' && $variantIdStr === (string)$posSeatId) {
+            $isAddon = true;
+            if ($tenantId) {
+                $tenant = Tenant::find($tenantId);
+                if ($tenant) {
+                    $currentLimit = (int) $tenant->getLimit('pos_staff_limit');
+                    $quantity = (int) (data_get($this->payload, 'data.attributes.quantity') ?? 1);
+                    \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                        ['tenant_id' => $tenant->id, 'override_key' => 'pos_staff_limit'],
+                        [
+                            'override_value' => (string) ($currentLimit + $quantity),
+                            'reason'         => 'Purchased additional POS staff seat add-on (Lemon Squeezy)',
                             'updated_at'     => now(),
                             'created_at'     => now(),
                         ]

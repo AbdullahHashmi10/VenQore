@@ -70,6 +70,7 @@ class SaleReturnLookupController extends Controller
             ->get([
                 'sale_items.id', 'sale_items.product_id', 'sale_items.quantity',
                 'sale_items.unit_price', 'sale_items.subtotal', 'sale_items.returned_quantity',
+                'sale_items.discount_amount', 'sale_items.net_amount',
                 'sale_items.tax_rate', 'sale_items.cost_price',
                 'products.name as product_name', 'products.sku', 'products.base_unit',
                 'products.tax_rate as product_tax_rate',
@@ -96,6 +97,8 @@ class SaleReturnLookupController extends Controller
                the line (returned_quantity) rather than as a return document;
                this screen's credit notes are recorded in both places. */
             $back = max((float) ($alreadyBack[$l->id] ?? 0), (float) ($l->returned_quantity ?? 0));
+            $unitDisc = $sold > 0 ? (float) ($l->discount_amount ?? 0) / $sold : 0.0;
+            $netUnit  = $sold > 0 ? (float) ($l->net_amount ?? (($sold * (float) $l->unit_price) - (float) ($l->discount_amount ?? 0))) / $sold : (float) $l->unit_price;
             return [
                 'original_sale_item_id' => $l->id,
                 'product_id'   => $l->product_id,
@@ -105,7 +108,9 @@ class SaleReturnLookupController extends Controller
                 'sold_qty'     => round($sold, 4),
                 'returned_qty' => round($back, 4),
                 'returnable_qty' => round(max(0, $sold - $back), 4),
-                'unit_price'   => (float) $l->unit_price,
+                'unit_price'   => round($netUnit, 4),
+                'original_unit_price' => (float) $l->unit_price,
+                'unit_discount' => round($unitDisc, 4),
                 'tax_rate'     => (float) ($l->tax_rate ?? $l->product_tax_rate ?? 0),
                 'cost_price'   => (float) ($l->cost_price ?? 0),
             ];

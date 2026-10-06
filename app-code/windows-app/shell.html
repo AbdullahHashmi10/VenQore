@@ -1,368 +1,373 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VenQore Station</title>
-    <link rel="stylesheet" href="shell.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VenQore Station</title>
+  <link rel="stylesheet" href="assets/v6.css">
+  <link rel="stylesheet" href="shell.css">
 </head>
-
 <body>
 
-    <!-- TOP NOTCH BAR -->
-    <div class="notch-container top">
-        <div class="pill left">
-            <div id="conn-indicator" class="indicator" title="Connection Status"></div>
-            <span id="status-text">CONNECTING...</span>
-            <div class="sep"></div>
-            <span id="sync-text">📡 Syncing...</span>
-            <div class="sep"></div>
-            <button id="settings-btn" title="Station Settings">⚙️</button>
-        </div>
+<!-- ═══ TOP BAR ═══════════════════════════════════════════════════════════ -->
+<header id="bar">
+  <div class="bar-left">
+    <img src="assets/icon.svg" class="bar-logo" alt="">
+    <span class="bar-name display">VenQore <b>Station</b></span>
+    <span id="bar-store" class="bar-store hidden"><i data-icon="store"></i><span></span></span>
+  </div>
 
-        <div class="pill center">
-            <span class="station-title">⚡ VenQore STATION</span>
-        </div>
+  <div class="bar-status" id="bar-status">
+    <button class="stat" id="st-net" data-tab="station" title="Internet connection"><span class="dot"></span><span class="lbl">Connecting…</span></button>
+    <button class="stat" id="st-printer" data-tab="printers" title="Receipt printer"><i data-icon="printer"></i><span class="lbl">Printer</span></button>
+    <button class="stat hidden" id="st-scanner" data-tab="devices" title="Barcode scanner"><i data-icon="scan"></i><span class="lbl">Scanner</span></button>
+    <button class="stat hidden" id="st-scale" data-tab="devices" title="Weighing scale"><i data-icon="scale"></i><span class="lbl num">0.000 kg</span></button>
+    <button class="stat hidden" id="st-display" data-tab="display" title="Customer display"><i data-icon="monitor"></i><span class="lbl">Display</span></button>
+    <span class="stat-sync hidden" id="st-sync"></span>
+  </div>
 
-        <div class="pill right">
-            <span id="printer-status">🖨️ Ready</span>
-            <div class="sep"></div>
-            <button id="blur-toggle" title="Privacy Shade">👁️ Blur</button>
-            <div class="sep"></div>
-            <button id="refresh" title="Reload">⚡ Refresh</button>
-            <div class="sep"></div>
-            <button id="close" class="exit-btn" title="Exit">🛑 Exit</button>
-        </div>
+  <div class="bar-actions">
+    <button class="ib" id="btn-drawer" title="Open cash drawer"><i data-icon="cash"></i></button>
+    <button class="ib" id="btn-privacy" title="Privacy shade (Ctrl+Shift+P)"><i data-icon="eye-off"></i></button>
+    <button class="ib" id="btn-reload" title="Reload POS (Ctrl+Shift+R)"><i data-icon="refresh"></i></button>
+    <button class="ib" id="btn-settings" title="Station settings (Ctrl+Shift+S)"><i data-icon="settings"></i></button>
+    <span class="win-ctl hidden" id="win-ctl">
+      <button class="ib" data-win="minimize" title="Minimise"><i data-icon="minus"></i></button>
+      <button class="ib" data-win="maximize" title="Maximise"><i data-icon="square"></i></button>
+    </span>
+    <button class="ib exit" id="btn-exit" title="Exit Station"><i data-icon="power"></i></button>
+  </div>
+</header>
+
+<!-- non-blocking banners under the bar -->
+<div id="banner" class="banner hidden" role="status">
+  <i data-icon="info"></i><span class="banner-text"></span>
+  <button class="btn sm" id="banner-action"></button>
+  <button class="ib sm" id="banner-close" title="Dismiss"><i data-icon="x"></i></button>
+</div>
+
+<!-- ═══ STAGE ═════════════════════════════════════════════════════════════ -->
+<main id="stage">
+
+  <!-- loader -->
+  <section id="ov-loader" class="ov ov-solid">
+    <div class="center-col">
+      <div class="logo-wrap"><img src="assets/icon.svg" alt="" class="logo-xl"><span class="ring"></span></div>
+      <h2 class="display" id="loader-title">Connecting to VenQore</h2>
+      <p class="muted" id="loader-sub">Opening a secure connection…</p>
+      <div class="progress"><span id="loader-bar"></span></div>
     </div>
+  </section>
 
-    <!-- MAIN VIEWPORT -->
-    <div id="view-container">
-        <webview id="app-view" src="about:blank" autosize="on"
-            webpreferences="contextIsolation=yes, nodeIntegration=no"
-            partition="persist:venqore_cloud"></webview>
-
-        <!-- LOADING OVERLAY -->
-        <div id="loader-overlay">
-            <div class="loader-content">
-                <img src="assets/icon.png" class="logo-pulse" alt="VenQore">
-                <div class="loading-ring"></div>
-                <h2 id="loading-status">Connecting to VenQore...</h2>
-                <p id="loading-sub">Establishing secure connection</p>
-            </div>
+  <!-- pairing -->
+  <section id="ov-pair" class="ov ov-solid ov-spot hidden">
+    <div class="pair">
+      <div class="pair-brand">
+        <img src="assets/icon.svg" alt="" class="logo-lg">
+        <p class="eyebrow">Desktop terminal</p>
+        <h1 class="display">Pair this till with your store</h1>
+        <p class="muted lede">Station connects the VenQore POS to this computer's receipt printer, cash drawer, scanner, scale and customer display.</p>
+        <ol class="steps">
+          <li><span class="num">1</span><span>On any device, open VenQore → <b>Settings → Terminals</b>.</span></li>
+          <li><span class="num">2</span><span>Choose <b>Create pairing code</b>.</span></li>
+          <li><span class="num">3</span><span>Type your store and the code here.</span></li>
+        </ol>
+      </div>
+      <form class="card pair-card" id="pair-form" autocomplete="off">
+        <div class="field">
+          <label for="pair-slug">Store</label>
+          <div class="slug">
+            <span class="slug-pre" id="slug-pre">www.venqore.com/s/</span>
+            <input class="input lg" id="pair-slug" placeholder="your-store" spellcheck="false" autocomplete="off">
+          </div>
+          <p class="hint">You can also paste your full POS link.</p>
         </div>
-
-        <!-- NATIVE LOGIN / SETUP OVERLAY -->
-        <div id="native-login-overlay" class="hidden">
-            <div class="login-container">
-                <div class="login-logo-container">
-                    <img src="assets/icon.png" class="login-logo" alt="VenQore">
-                    <h1>VenQore Station</h1>
-                    <p class="subtitle">Enterprise Desktop POS Terminal</p>
-                </div>
-                
-                <div class="login-card">
-                    <div id="setup-view">
-                        <h3>Terminal Configuration</h3>
-                        <p class="card-hint">Pair this station terminal with your VenQore cloud or local store.</p>
-                        
-                        <div class="input-group">
-                            <label for="store-slug-input">Store Subdomain / Slug</label>
-                            <div class="slug-input-wrapper">
-                                <input type="text" id="store-slug-input" placeholder="e.g. my-store" autofocus autocomplete="off">
-                                <span id="slug-suffix-label" class="slug-suffix">.venqore.com</span>
-                            </div>
-                        </div>
-
-                        <div class="input-group">
-                            <label for="pairing-code-input">Pairing code</label>
-                            <input type="text" id="pairing-code-input" placeholder="ABCD-2345" maxlength="20" autocomplete="off" spellcheck="false" style="text-transform: uppercase; letter-spacing: 0.15em;">
-                            <p class="card-hint" style="margin-top:6px">Store owner: Settings → Terminals → Create pairing code. Not needed again once this terminal is paired.</p>
-                        </div>
-
-                        <p id="pairing-error" class="card-hint" role="alert" style="color:#f87171; display:none"></p>
-
-                        <button id="btn-connect-store" class="primary-btn">Link Store &amp; Sign In</button>
-                        
-                        <div class="divider">
-                            <span>OR</span>
-                        </div>
-                        
-                        <button id="btn-direct-signin" class="secondary-btn">Direct Cloud Sign In</button>
-                    </div>
-                </div>
-
-                <div class="login-footer">
-                    <p>Don't have an account? <a href="#" id="link-register">Create your account on VenQore</a></p>
-                    <p class="version-label" id="login-version-label">Version 2.0.0</p>
-                </div>
-            </div>
+        <div class="field">
+          <label for="pair-code">Pairing code</label>
+          <input class="input lg code" id="pair-code" placeholder="ABCD-2345" maxlength="9" spellcheck="false">
+          <p class="hint" id="pair-code-hint">Only needed the first time this till is paired.</p>
         </div>
-
-        <!-- NATIVE SYSTEM ERROR OVERLAY -->
-        <div id="native-error-overlay" class="hidden">
-            <div class="error-container">
-                <div class="error-badge">⚠️</div>
-                <h1 id="error-title">System Error</h1>
-                <p id="error-desc">The requested resource could not be found or the server encountered an error.</p>
-                <div class="error-details">
-                    <span class="details-label">URL:</span>
-                    <span id="error-url" class="details-value">http://127.0.0.1:8000/s/pos</span>
-                </div>
-                <div style="display:flex; gap:12px; justify-content:center; margin-top:24px;">
-                    <button id="btn-error-retry" class="primary-btn" style="width:auto; padding:12px 30px;">🔄 Reload Page</button>
-                    <button id="btn-error-home" class="secondary-btn" style="width:auto; padding:12px 30px;">🔌 Pair Store</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- NATIVE 7-DAY OFFLINE LOCK OVERLAY -->
-        <div id="native-offline-lock-overlay" class="hidden">
-            <div class="lock-container">
-                <div class="lock-icon">🔒</div>
-                <h1>Terminal Offline Lock</h1>
-                <p>This register has been offline for more than 7 days. To protect transaction integrity and verify your subscription, an internet connection is required to unlock this station.</p>
-                <div class="offline-details">
-                    <span>Last Online Sync:</span>
-                    <span id="offline-last-sync-label">Unknown</span>
-                </div>
-                <button id="btn-offline-sync-retry" class="primary-btn" style="margin-top:24px;">🔄 Connect &amp; Sync Now</button>
-            </div>
-        </div>
-
-        <!-- NATIVE MONITORING CONSENT OVERLAY -->
-        <div id="native-consent-overlay" class="hidden">
-            <div class="consent-container">
-                <div class="consent-icon">🛡️</div>
-                <h1>Activity Monitoring Consent</h1>
-                <p class="warning-text">Security Tracking has been enabled for this terminal by your store administrator.</p>
-                <div class="consent-card">
-                    <h4>Terms &amp; Conditions of Monitoring</h4>
-                    <p class="terms-text">By using this cash register station, you acknowledge and agree that your screen activity, focus loss events, and time away from the POS system may be tracked and securely recorded. Captured data is encrypted locally and sent exclusively to the store owner's administrative dashboard. You agree not to hold VenQore liable for privacy disclosures under this authorized company monitoring.</p>
-                </div>
-                <button id="btn-consent-accept" class="primary-btn" style="margin-top:24px;">I Accept &amp; Continue</button>
-            </div>
-        </div>
-
-        <!-- NATIVE PASSCODE GATING MODAL -->
-        <div id="native-passcode-overlay" class="hidden">
-            <div class="passcode-container">
-                <div class="passcode-header">
-                    <h2>Manager Authorization</h2>
-                    <p>Enter exit passcode to verify authority</p>
-                </div>
-                <div class="passcode-display">
-                    <span id="passcode-dot-1" class="p-dot"></span>
-                    <span id="passcode-dot-2" class="p-dot"></span>
-                    <span id="passcode-dot-3" class="p-dot"></span>
-                    <span id="passcode-dot-4" class="p-dot"></span>
-                </div>
-                <div class="passcode-grid">
-                    <button class="num-btn" data-val="1">1</button>
-                    <button class="num-btn" data-val="2">2</button>
-                    <button class="num-btn" data-val="3">3</button>
-                    <button class="num-btn" data-val="4">4</button>
-                    <button class="num-btn" data-val="5">5</button>
-                    <button class="num-btn" data-val="6">6</button>
-                    <button class="num-btn" data-val="7">7</button>
-                    <button class="num-btn" data-val="8">8</button>
-                    <button class="num-btn" data-val="9">9</button>
-                    <button class="num-btn action" id="btn-passcode-clear">C</button>
-                    <button class="num-btn" data-val="0">0</button>
-                    <button class="num-btn action danger" id="btn-passcode-cancel">✕</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- OFFLINE OVERLAY -->
-        <div id="offline-overlay" class="hidden">
-            <div class="offline-content">
-                <div class="offline-icon">📡</div>
-                <h2>No Internet Connection</h2>
-                <p>VenQore Station requires an internet connection to operate.<br>
-                   Please check your network and try again.</p>
-                <button id="retry-btn" class="retry-button">
-                    <span>🔄</span> Retry Connection
-                </button>
-                <div class="offline-hint">
-                    Hardware features (printer, cash drawer, scanner) remain available.
-                </div>
-            </div>
-        </div>
-
-        <!-- PRIVACY BLUR SHADE -->
-        <div id="privacy-overlay">
-            <div class="blur-box">
-                <div class="lock">🔒</div>
-                <h2>Privacy Shade Active</h2>
-                <p>Click anywhere to resume</p>
-            </div>
-        </div>
+        <p class="form-error hidden" id="pair-error" role="alert"></p>
+        <button class="btn primary lg block" id="pair-submit" type="submit">Pair and open POS</button>
+        <div class="or"><span>or</span></div>
+        <button class="btn lg block" id="pair-signin" type="button">Sign in without pairing</button>
+        <p class="hint center">New to VenQore? <a href="#" id="pair-register">Create an account</a></p>
+      </form>
     </div>
+    <p class="foot-version num" id="pair-version"></p>
+  </section>
 
-    <!-- SETTINGS PANEL MODAL -->
-    <div id="settings-overlay" class="settings-overlay hidden">
-        <div class="settings-panel">
+  <!-- page error -->
+  <section id="ov-error" class="ov ov-solid hidden">
+    <div class="center-col narrow">
+      <div class="badge-icon bad"><i data-icon="alert"></i></div>
+      <h2 class="display" id="err-title">This page could not be shown</h2>
+      <p class="muted" id="err-desc"></p>
+      <code class="err-url num" id="err-url"></code>
+      <div class="row-gap">
+        <button class="btn primary lg" id="err-retry"><i data-icon="refresh"></i>Try again</button>
+        <button class="btn lg" id="err-pos">Back to POS</button>
+      </div>
+    </div>
+  </section>
 
-            <!-- Header -->
-            <div class="settings-header">
-                <div class="settings-title">
-                    <span class="settings-icon">⚙️</span>
-                    <div>
-                        <h2>Station Settings</h2>
-                        <p>Hardware configuration for this POS terminal</p>
-                    </div>
-                </div>
-                <button id="settings-close-btn" class="settings-close">✕</button>
-            </div>
+  <!-- offline -->
+  <section id="ov-offline" class="ov ov-solid hidden">
+    <div class="center-col narrow">
+      <div class="badge-icon warn"><i data-icon="wifi-off"></i></div>
+      <h2 class="display">No internet connection</h2>
+      <p class="muted">VenQore will reconnect by itself as soon as the network is back. The printer, drawer, scanner and scale stay connected.</p>
+      <p class="retry-line num" id="offline-retry">Retrying…</p>
+      <button class="btn primary lg" id="offline-now"><i data-icon="refresh"></i>Retry now</button>
+    </div>
+  </section>
 
-            <!-- Tabs -->
-            <div class="settings-tabs">
-                <button class="tab-btn active" data-tab="hardware">🖨️ Hardware</button>
-                <button class="tab-btn" data-tab="serial">🔌 COM Ports</button>
-                <button class="tab-btn" data-tab="system">⚡ System</button>
-            </div>
+  <!-- 7-day lock -->
+  <section id="ov-lock" class="ov ov-solid hidden">
+    <div class="center-col narrow">
+      <div class="badge-icon bad"><i data-icon="lock"></i></div>
+      <h2 class="display">Connect to the internet to continue</h2>
+      <p class="muted">This till has been offline for more than 7 days. It needs to reach VenQore once to confirm the subscription and sync sales.</p>
+      <p class="retry-line">Last online: <b class="num" id="lock-last">Never</b></p>
+      <p class="hint">This screen closes by itself once the connection is back.</p>
+    </div>
+  </section>
 
-            <!-- Tab: Hardware (Printer / Cash Drawer) -->
-            <div class="tab-content active" id="tab-hardware">
-                <div class="settings-section">
-                    <label class="settings-label">Default Receipt Printer</label>
-                    <p class="settings-hint">Printer used for silent thermal receipts and cash drawer kicks</p>
-                    <select id="cfg-default-printer" class="settings-select">
-                        <option value="">Loading printers...</option>
-                    </select>
-                    <div style="display:flex; gap:8px; margin-top:8px;">
-                        <button class="test-btn" id="test-printer-btn">🖨️ Print Test Page</button>
-                        <button class="test-btn" id="test-drawer-btn">💰 Test Cash Drawer</button>
-                    </div>
-                </div>
-            </div>
+  <!-- monitoring consent -->
+  <section id="ov-consent" class="ov ov-solid hidden">
+    <div class="center-col narrow">
+      <div class="badge-icon info"><i data-icon="shield"></i></div>
+      <p class="eyebrow">Set by your store owner</p>
+      <h2 class="display">This till records activity</h2>
+      <div class="card consent-card">
+        <p>While you use this terminal, Station records when the POS window loses focus and for how long, and may take an encrypted screenshot while you are away from it.</p>
+        <p>Recordings are encrypted on this computer and sent only to the store owner's VenQore account.</p>
+      </div>
+      <button class="btn primary lg" id="consent-accept">I understand — continue</button>
+    </div>
+  </section>
 
-            <!-- Tab: COM Ports -->
-            <div class="tab-content hidden" id="tab-serial">
-                <div class="settings-section">
-                    <label class="settings-label">Available COM Ports</label>
-                    <p class="settings-hint">Serial devices detected on this machine</p>
-                    <button class="browse-btn" id="refresh-ports-btn" style="margin-bottom:12px">↻ Scan for Devices</button>
-                    <div id="port-list" class="port-list">
-                        <p class="settings-hint">Click Scan to detect COM port devices...</p>
-                    </div>
-                </div>
+  <!-- privacy shade -->
+  <section id="ov-privacy" class="ov ov-glass hidden">
+    <div class="center-col">
+      <div class="badge-icon accent"><i data-icon="eye-off"></i></div>
+      <h2 class="display">Screen hidden</h2>
+      <p class="muted">Tap anywhere to continue.</p>
+    </div>
+  </section>
+</main>
 
-                <div class="settings-section">
-                    <label class="settings-label">Barcode Scanner (Serial COM)</label>
-                    <p class="settings-hint">For scanners using serial mode (not keyboard emulation)</p>
-                    <div class="path-row">
-                        <select id="cfg-scanner-port" class="settings-select">
-                            <option value="">Select COM Port...</option>
-                        </select>
-                        <select id="cfg-scanner-baud" class="settings-select" style="width:130px;flex:none">
-                            <option value="9600">9600</option>
-                            <option value="19200">19200</option>
-                            <option value="38400">38400</option>
-                            <option value="115200">115200</option>
-                        </select>
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:8px">
-                        <button class="test-btn" id="open-scanner-btn">▶ Connect Scanner</button>
-                        <button class="test-btn danger" id="close-scanner-btn">■ Disconnect</button>
-                    </div>
-                    <div id="scanner-status" class="test-result hidden"></div>
-                </div>
+<!-- ═══ MODALS ════════════════════════════════════════════════════════════ -->
+<div id="modal-pin" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pin-title">
+  <div class="modal-card pin-card">
+    <div class="badge-icon accent"><i data-icon="lock"></i></div>
+    <h3 class="display" id="pin-title">Manager PIN</h3>
+    <p class="muted" id="pin-sub">Enter the PIN to continue</p>
+    <div class="pin-dots" id="pin-dots"></div>
+    <p class="form-error center hidden" id="pin-error"></p>
+    <div class="pad" id="pin-pad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k="cancel" class="pad-alt">Cancel</button><button data-k="0">0</button><button data-k="back" class="pad-alt" title="Delete"><i data-icon="backspace"></i></button>
+    </div>
+    <button class="btn primary lg block" id="pin-ok">Confirm</button>
+  </div>
+</div>
 
-                <div class="settings-section">
-                    <label class="settings-label">Weight Scale (Serial COM)</label>
-                    <p class="settings-hint">For digital scales using RS-232 serial output</p>
-                    <div class="path-row">
-                        <select id="cfg-scale-port" class="settings-select">
-                            <option value="">Select COM Port...</option>
-                        </select>
-                        <select id="cfg-scale-baud" class="settings-select" style="width:130px;flex:none">
-                            <option value="9600">9600</option>
-                            <option value="19200">19200</option>
-                            <option value="38400">38400</option>
-                            <option value="115200">115200</option>
-                        </select>
-                    </div>
-                    <div style="display:flex;gap:8px;margin-top:8px">
-                        <button class="test-btn" id="open-scale-btn">▶ Connect Scale</button>
-                        <button class="test-btn danger" id="close-scale-btn">■ Disconnect</button>
-                    </div>
-                    <div id="scale-status" class="test-result hidden"></div>
-                    <div id="scale-live" class="scale-live hidden">
-                        Live Reading: <span id="scale-value">--</span> kg
-                    </div>
-                </div>
-            </div>
+<div id="modal-confirm" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="badge-icon" id="confirm-badge"><i data-icon="power"></i></div>
+    <h3 class="display" id="confirm-title">Exit VenQore Station?</h3>
+    <p class="muted" id="confirm-body">The POS will close and the printer, drawer and scanner will disconnect.</p>
+    <div class="row-gap end">
+      <button class="btn lg" id="confirm-cancel">Cancel</button>
+      <button class="btn danger lg" id="confirm-ok">Exit</button>
+    </div>
+  </div>
+</div>
 
-            <!-- Tab: System / About -->
-            <div class="tab-content hidden" id="tab-system">
-                <div class="settings-section">
-                    <label class="settings-label">Station Identity</label>
-                    <div class="info-grid">
-                        <span class="info-label">App Version</span>
-                        <span class="info-value" id="app-version">--</span>
-                        <span class="info-label">Terminal ID</span>
-                        <span class="info-value" id="app-terminal-id">Not yet assigned</span>
-                        <span class="info-label">Device ID</span>
-                        <span class="info-value" id="app-device-id">--</span>
-                        <span class="info-label">Connected To</span>
-                        <span class="info-value cloud-badge" id="app-connected-url">app.venqore.com ✓</span>
-                    </div>
-                </div>
+<!-- ═══ SETTINGS SHEET ════════════════════════════════════════════════════ -->
+<div id="settings" class="sheet-wrap hidden">
+  <aside class="sheet" role="dialog" aria-modal="true" aria-labelledby="set-title">
+    <header class="sheet-head">
+      <div>
+        <p class="eyebrow">This terminal</p>
+        <h2 class="display" id="set-title">Station settings</h2>
+      </div>
+      <button class="ib" id="set-close" title="Close (Esc)"><i data-icon="x"></i></button>
+    </header>
+    <nav class="tabs" id="set-tabs">
+      <button data-tab="printers" class="on"><i data-icon="printer"></i>Printers</button>
+      <button data-tab="devices"><i data-icon="scan"></i>Scanner &amp; scale</button>
+      <button data-tab="display"><i data-icon="monitor"></i>Display</button>
+      <button data-tab="station"><i data-icon="zap"></i>Station</button>
+      <button data-tab="security"><i data-icon="shield"></i>Security</button>
+    </nav>
 
-                <div class="settings-section" id="disconnect-store-section">
-                    <label class="settings-label">Connection Management</label>
-                    <p class="settings-hint">Disconnect this terminal from the current store to pair with a different one.</p>
-                    <button class="test-btn danger" id="btn-disconnect-store">🔌 Disconnect Store</button>
-                </div>
-
-                <div class="settings-section" id="activity-tracking-section">
-                    <label class="settings-label">Security &amp; Tracking</label>
-                    <p class="settings-hint">Record window focus shifts (Alt-Tab) and take silent encrypted screenshots during away time.</p>
-                    
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:10px 14px; border-radius:8px;">
-                        <span style="font-size:12px; color:#94a3b8; font-weight:600;">Enable Security Monitoring</span>
-                        <input type="checkbox" id="cfg-tracking-enabled" style="width:20px; height:20px; cursor:pointer; accent-color:#6366f1;">
-                    </div>
-
-                    <div id="passcode-setting-wrapper" class="hidden" style="margin-top:12px;">
-                        <label class="settings-label">Manager Exit Passcode (4-Digits)</label>
-                        <input type="password" id="cfg-exit-passcode" class="settings-input" style="letter-spacing: 0.5em; font-size:16px; text-align:center; max-width:180px; display:block;" maxlength="4" placeholder="••••">
-                    </div>
-                </div>
-
-                <div class="settings-section">
-                    <label class="settings-label">Software Updates</label>
-                    <p class="settings-hint">VenQore Station checks for updates automatically on every launch</p>
-                    <div id="update-status" class="update-status">
-                        <span id="update-text">Checking status...</span>
-                    </div>
-                    <button class="test-btn" id="check-update-btn">🔄 Check for Updates</button>
-                    <div id="update-progress" class="update-progress hidden">
-                        <div class="update-bar-container">
-                            <div class="update-bar" id="update-bar"></div>
-                        </div>
-                        <span id="update-pct">0%</span>
-                    </div>
-                    <button class="test-btn success hidden" id="install-update-btn">⚡ Restart &amp; Install Update</button>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="settings-footer">
-                <button id="settings-save-btn" class="save-btn">💾 Save Settings</button>
-                <span class="save-hint" id="save-hint"></span>
-            </div>
+    <div class="sheet-body">
+      <!-- PRINTERS -->
+      <section class="pane" data-pane="printers">
+        <div class="group">
+          <div class="group-head">
+            <div><h4>Customer bills</h4><p class="hint">Receipts and the cash drawer print here. Kitchen, bar and the other jobs below use this printer until you give them their own.</p></div>
+            <button class="btn sm ghost" id="pr-refresh"><i data-icon="refresh"></i>Refresh</button>
+          </div>
+          <select class="select" id="pr-default"></select>
+          <div class="row-gap">
+            <button class="btn" id="pr-test"><i data-icon="printer"></i>Print test page</button>
+            <button class="btn" id="pr-drawer"><i data-icon="cash"></i>Open cash drawer</button>
+          </div>
+          <p class="hint" id="pr-result"></p>
         </div>
-    </div>
 
-    <!-- LEGAL -->
-    <div class="footer-legal">
-        VenQore Group — All Rights Reserved | Created By Abdullah Hashmi
-    </div>
+        <div class="group">
+          <div class="group-head"><div><h4>Where each job prints</h4><p class="hint">Set it once — the POS sends each ticket to the right printer without anyone choosing. The backup takes over if the main printer is off, out of paper or unplugged.</p></div></div>
+          <div id="pr-roles" class="roles"></div>
+        </div>
 
-    <script src="shell-renderer.js"></script>
+        <div class="group">
+          <div class="group-head"><div><h4>All printers</h4><p class="hint">ESC/POS mode prints fast, cuts the paper and opens the drawer. Use Windows driver mode for A4 or label printers.</p></div></div>
+          <div id="pr-list" class="list"></div>
+        </div>
+
+        <div class="group">
+          <div class="group-head"><div><h4>Add a network printer</h4><p class="hint">Ethernet or Wi-Fi kitchen/bar printers on port 9100 — no driver needed.</p></div></div>
+          <div class="grid-3">
+            <input class="input" id="np-label" placeholder="Kitchen" maxlength="40">
+            <input class="input num" id="np-host" placeholder="192.168.1.50" spellcheck="false">
+            <input class="input num" id="np-port" placeholder="9100" value="9100" inputmode="numeric">
+          </div>
+          <button class="btn" id="np-add"><i data-icon="plus"></i>Add printer</button>
+          <p class="hint" id="np-result"></p>
+        </div>
+
+        <div class="group">
+          <div class="group-head"><div><h4>Recent print jobs</h4></div></div>
+          <div id="pr-jobs" class="jobs"><p class="hint">Nothing printed yet.</p></div>
+        </div>
+      </section>
+
+      <!-- DEVICES -->
+      <section class="pane hidden" data-pane="devices">
+        <div class="group">
+          <div class="group-head">
+            <div><h4>COM ports</h4><p class="hint">USB scanners in keyboard mode need no setup. Configure only serial (COM) devices here.</p></div>
+            <button class="btn sm" id="sp-scan"><i data-icon="refresh"></i>Scan</button>
+          </div>
+          <div id="sp-list" class="ports"><p class="hint">Looking for devices…</p></div>
+        </div>
+
+        <div class="group" data-dev="scanner">
+          <div class="group-head"><div><h4>Barcode scanner</h4></div><span class="chip" data-state></span></div>
+          <div class="grid-2"><select class="select" data-port></select><select class="select" data-baud></select></div>
+          <div class="kv">
+            <span>Scans go</span>
+            <div class="seg" id="sc-mode"><button data-v="wedge">Into the POS like a keyboard</button><button data-v="event">To the app only</button></div>
+            <span>After each scan</span>
+            <div class="seg" id="sc-suffix"><button data-v="enter">Enter</button><button data-v="tab">Tab</button><button data-v="none">Nothing</button></div>
+          </div>
+          <div class="row-gap"><button class="btn primary" data-connect>Connect</button><button class="btn" data-disconnect>Disconnect</button></div>
+          <p class="live" id="sc-last">Last scan: —</p>
+        </div>
+
+        <div class="group" data-dev="scale">
+          <div class="group-head"><div><h4>Weighing scale</h4></div><span class="chip" data-state></span></div>
+          <div class="grid-2"><select class="select" data-port></select><select class="select" data-baud></select></div>
+          <div class="kv">
+            <span>Protocol</span>
+            <div class="seg" id="sl-poll"><button data-v="none">Continuous</button><button data-v="W">Ask “W”</button><button data-v="P">Ask “P”</button><button data-v="ENQ">ENQ (CAS)</button><button data-v="SI">SI</button></div>
+            <span>Unit if not sent</span>
+            <div class="seg" id="sl-unit"><button data-v="kg">kg</button><button data-v="g">g</button><button data-v="lb">lb</button></div>
+          </div>
+          <div class="row-gap"><button class="btn primary" data-connect>Connect</button><button class="btn" data-disconnect>Disconnect</button></div>
+          <div class="weight"><span class="num" id="sl-weight">—</span><span class="chip" id="sl-stable">No reading</span></div>
+        </div>
+
+        <div class="group" data-dev="pole">
+          <div class="group-head"><div><h4>Pole display (2 × 20)</h4><p class="hint">Customer-facing VFD on a COM port. Shows the last item and the total.</p></div><span class="chip" data-state></span></div>
+          <div class="grid-2"><select class="select" data-port></select><select class="select" data-baud></select></div>
+          <div class="grid-2"><input class="input" id="pl-l1" maxlength="20" placeholder="Idle line 1"><input class="input" id="pl-l2" maxlength="20" placeholder="Idle line 2"></div>
+          <div class="row-gap"><button class="btn primary" data-connect>Connect</button><button class="btn" data-disconnect>Disconnect</button><button class="btn" id="pl-test">Test</button></div>
+        </div>
+      </section>
+
+      <!-- DISPLAY -->
+      <section class="pane hidden" data-pane="display">
+        <div class="group">
+          <div class="group-head"><div><h4>Customer display</h4><p class="hint" id="cd-screens"></p></div><span class="chip" id="cd-state"></span></div>
+          <div class="row-gap"><button class="btn primary" id="cd-open"><i data-icon="monitor"></i>Show on second screen</button><button class="btn" id="cd-close">Close</button></div>
+          <label class="line"><span>Open automatically when a second screen is connected</span><span class="toggle"><input type="checkbox" id="cd-auto"><span></span></span></label>
+        </div>
+        <div class="group">
+          <div class="group-head"><div><h4>POS size</h4><p class="hint">Zoom the POS for this screen. Ctrl + / Ctrl − / Ctrl 0.</p></div><span class="num big" id="zoom-val">100%</span></div>
+          <input type="range" id="zoom" min="60" max="200" step="5" value="100">
+        </div>
+        <div class="group">
+          <div class="group-head"><div><h4>Window</h4></div></div>
+          <div class="kv">
+            <span>Mode</span><div class="seg" id="win-mode"><button data-v="fullscreen">Full screen</button><button data-v="windowed">Window</button></div>
+            <span>Theme</span><div class="seg" id="theme"><button data-v="light">Light</button><button data-v="dark">Dark</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATION -->
+      <section class="pane hidden" data-pane="station">
+        <div class="group">
+          <div class="group-head"><div><h4>Store connection</h4></div><span class="chip" id="stn-pair"></span></div>
+          <dl class="info">
+            <dt>Store</dt><dd id="stn-store">—</dd>
+            <dt>Terminal</dt><dd class="num" id="stn-terminal">—</dd>
+            <dt>Device ID</dt><dd class="num" id="stn-device">—</dd>
+            <dt>Server</dt><dd class="num" id="stn-cloud">—</dd>
+            <dt>Last sync</dt><dd class="num" id="stn-sync">—</dd>
+          </dl>
+          <div class="row-gap"><button class="btn" id="stn-repair">Pair again</button><button class="btn danger" id="stn-disconnect"><i data-icon="plug"></i>Disconnect store</button></div>
+        </div>
+        <div class="group">
+          <div class="group-head"><div><h4>Startup &amp; power</h4></div></div>
+          <label class="line"><span>Start Station when Windows starts</span><span class="toggle"><input type="checkbox" id="opt-autostart"><span></span></span></label>
+          <label class="line"><span>Keep the screen awake</span><span class="toggle"><input type="checkbox" id="opt-awake"><span></span></span></label>
+          <label class="line"><span>Safe graphics mode <small class="hint">— for blank or flickering screens. Restarts Station.</small></span><span class="toggle"><input type="checkbox" id="opt-safegfx"><span></span></span></label>
+        </div>
+        <div class="group">
+          <div class="group-head"><div><h4>Updates</h4><p class="hint" id="upd-text">—</p></div><span class="chip" id="upd-chip"></span></div>
+          <div class="progress hidden" id="upd-progress"><span id="upd-bar"></span></div>
+          <div class="row-gap"><button class="btn" id="upd-check"><i data-icon="refresh"></i>Check now</button><button class="btn primary hidden" id="upd-install"><i data-icon="download"></i>Restart &amp; install</button></div>
+        </div>
+        <div class="group">
+          <div class="group-head"><div><h4>Support</h4><p class="hint">If something misbehaves, export diagnostics and send the file to VenQore support.</p></div></div>
+          <div class="row-gap wrap">
+            <button class="btn" id="sup-diag"><i data-icon="activity"></i>Export diagnostics</button>
+            <button class="btn" id="sup-logs"><i data-icon="folder"></i>Open logs</button>
+            <button class="btn" id="sup-cache"><i data-icon="trash"></i>Clear cache</button>
+            <button class="btn" id="sup-restart"><i data-icon="refresh"></i>Restart Station</button>
+          </div>
+          <p class="hint" id="sup-result"></p>
+        </div>
+        <p class="about num" id="about"></p>
+      </section>
+
+      <!-- SECURITY -->
+      <section class="pane hidden" data-pane="security">
+        <div class="group">
+          <div class="group-head"><div><h4>Manager PIN</h4><p class="hint">Asked before exiting Station and for protected settings. 4–8 digits, stored only as a salted hash.</p></div><span class="chip" id="pin-state"></span></div>
+          <div class="row-gap"><button class="btn primary" id="pin-set">Set PIN</button><button class="btn danger hidden" id="pin-remove">Remove PIN</button></div>
+          <label class="line"><span>Require the PIN to open these settings</span><span class="toggle"><input type="checkbox" id="opt-locksettings"><span></span></span></label>
+        </div>
+        <div class="group">
+          <div class="group-head"><div><h4>Activity monitoring</h4><p class="hint">Records when the POS loses focus and takes encrypted screenshots during away time. Cashiers are asked to consent first. Needs a manager PIN.</p></div><span class="chip" id="mon-state"></span></div>
+          <label class="line"><span>Monitor this till</span><span class="toggle"><input type="checkbox" id="opt-monitor"><span></span></span></label>
+        </div>
+      </section>
+    </div>
+  </aside>
+</div>
+
+<div id="toasts" class="toasts" aria-live="polite"></div>
+
+<script src="shell-renderer.js"></script>
 </body>
-
 </html>

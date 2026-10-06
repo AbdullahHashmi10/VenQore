@@ -1,20 +1,27 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
-import { 
-    Ticket, Plus, Download, Upload, Trash2, Search, Filter, 
-    CheckCircle, AlertCircle, RefreshCcw, ExternalLink
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import OneGlanceLayout from '@/Layouts/PlatformShell';
+import {
+    useT, PageHeader, Panel, Badge, Button,
+    Input, Drawer, Field, Select, EmptyState
+} from '@/Platform/ui';
+import { BRAND } from '@/Platform/theme';
+import {
+    Ticket, Plus, Download, Upload, Trash2, Search, Filter,
+    CheckCircle, AlertCircle, RefreshCcw, ExternalLink, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
-export default function AppSumoIndex({ codes, filters, stats }) {
+export default function AppSumoIndex({ codes, filters, stats = {} }) {
+    const t = useT();
     const { data, setData, post, delete: destroy, processing, reset } = useForm({
         count: 100,
         tier: 'Tier 1',
-        codes: '', // for import
+        codes: '',
     });
 
     const [showGenerate, setShowGenerate] = useState(false);
     const [showImport, setShowImport] = useState(false);
+    const [search, setSearch] = useState(filters?.search || '');
 
     const handleGenerate = (e) => {
         e.preventDefault();
@@ -22,7 +29,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
             onSuccess: () => {
                 setShowGenerate(false);
                 reset('count');
-            }
+            },
         });
     };
 
@@ -32,7 +39,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
             onSuccess: () => {
                 setShowImport(false);
                 reset('codes');
-            }
+            },
         });
     };
 
@@ -40,272 +47,375 @@ export default function AppSumoIndex({ codes, filters, stats }) {
         const passcode = prompt('Enter your action passcode to confirm purging unredeemed codes:');
         if (passcode) {
             destroy(route('platform.appsumo.purge'), {
-                data: { passcode }
+                data: { passcode },
             });
         }
     };
 
+    const handleSearch = (e) => {
+        if (e) e.preventDefault();
+        router.get(route('platform.appsumo.index'), { search, status: filters?.status }, { preserveState: true });
+    };
+
+    const handleStatusFilter = (val) => {
+        router.get(route('platform.appsumo.index'), { search, status: val }, { preserveState: true });
+    };
+
+    const codeList = codes?.data ?? [];
+
     return (
-        <OneGlanceLayout title="AppSumo Code Bank" mode="admin">
-            <Head title="AppSumo Code Bank" />
+        <OneGlanceLayout title="AppSumo Code Bank" mode="admin" activeMenu="AppSumo / LTD">
+            <Head title="Platform HQ | AppSumo Code Bank" />
 
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-slower">
-                {/* Header Actions */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
-                            <Ticket className="text-brand-400" />
-                            AppSumo Code Bank
-                        </h1>
-                        <p className="text-ink-muted text-sm mt-1">
-                            Manage one-time redemption codes for the AppSumo LTD campaign.
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <button 
-                            onClick={() => setShowGenerate(true)}
-                            className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
-                        >
-                            <Plus size={16} /> Bulk Generate
-                        </button>
-                        <button 
-                            onClick={() => setShowImport(true)}
-                            className="bg-sunken dark:bg-white/5 hover:bg-interactive-hover dark:hover:bg-white/10 text-ink px-4 py-2 rounded-xl text-sm font-bold border border-line dark:border-white/10 flex items-center gap-2 transition-all"
-                        >
-                            <Upload size={16} /> Import CSV
-                        </button>
-                        <a 
-                            href={route('platform.appsumo.export')}
-                            className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 px-4 py-2 rounded-xl text-sm font-bold border border-emerald-500/20 flex items-center gap-2 transition-all"
-                        >
-                            <Download size={16} /> Export CSV
-                        </a>
-                        <button 
-                            onClick={handlePurge}
-                            className="bg-red-600/20 hover:bg-red-600/30 text-red-400 px-4 py-2 rounded-xl text-sm font-bold border border-red-500/20 flex items-center gap-2 transition-all"
-                        >
-                            <Trash2 size={16} /> Clear Unused
-                        </button>
-                    </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <PageHeader
+                    icon={Ticket}
+                    accent={BRAND.indigo}
+                    title="AppSumo Code Bank"
+                    subtitle="Manage one-time lifetime deal (LTD) redemption codes and track claimed merchant stores."
+                    actions={
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                            <Button variant="primary" icon={Plus} onClick={() => setShowGenerate(true)}>
+                                Bulk Generate
+                            </Button>
+                            <Button variant="secondary" icon={Upload} onClick={() => setShowImport(true)}>
+                                Import Codes
+                            </Button>
+                            <a href={route('platform.appsumo.export')} style={{ textDecoration: 'none' }}>
+                                <Button variant="secondary" icon={Download}>
+                                    Export CSV
+                                </Button>
+                            </a>
+                            <Button variant="danger" icon={Trash2} onClick={handlePurge}>
+                                Clear Unused
+                            </Button>
+                        </div>
+                    }
+                />
+
+                {/* KPI stats */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Total Codes
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: t.ink, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {(stats.total || 0).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Issued in catalog</div>
+                    </Panel>
+
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Available for Claim
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: BRAND.emerald, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {(stats.available || 0).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Unredeemed vouchers</div>
+                    </Panel>
+
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Redeemed Stores
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: BRAND.indigo, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {(stats.redeemed || 0).toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Activated by merchants</div>
+                    </Panel>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-white/5 border border-line dark:border-white/10 p-6 rounded-2xl">
-                        <p className="text-ink-muted text-xs font-bold uppercase tracking-widest mb-1">Total Codes</p>
-                        <p className="text-3xl font-bold text-ink">{stats.total.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-2xl">
-                        <p className="text-emerald-500/60 text-xs font-bold uppercase tracking-widest mb-1">Available</p>
-                        <p className="text-3xl font-bold text-emerald-400">{stats.available.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-brand-500/5 border border-brand-500/10 p-6 rounded-2xl">
-                        <p className="text-brand-500/60 text-xs font-bold uppercase tracking-widest mb-1">Redeemed</p>
-                        <p className="text-3xl font-bold text-brand-400">{stats.redeemed.toLocaleString()}</p>
-                    </div>
-                </div>
+                {/* Filter Toolbar */}
+                <Panel pad={16}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 10, flex: '1 1 300px', maxWidth: 460 }}>
+                            <div style={{ position: 'relative', flex: 1 }}>
+                                <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: t.muted, pointerEvents: 'none' }} />
+                                <Input
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    placeholder="Search by code or merchant email…"
+                                    style={{ paddingLeft: 36 }}
+                                />
+                            </div>
+                            <Button type="submit" variant="primary">
+                                Search
+                            </Button>
+                        </form>
 
-                {/* Filters & Table */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
-                    <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
-                            <input 
-                                type="text"
-                                placeholder="Search by code or email..."
-                                className="w-full bg-white/5 border-white/10 rounded-xl pl-10 text-sm text-white focus:ring-brand-500"
-                                onKeyUp={(e) => {
-                                    if (e.key === 'Enter') {
-                                        // Simple navigation for search
-                                        window.location.href = route('platform.appsumo.index', { search: e.target.value });
-                                    }
-                                }}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: t.muted }}>Status:</span>
+                            <Select
+                                value={filters?.status || ''}
+                                onChange={(e) => handleStatusFilter(e.target.value)}
+                                options={[
+                                    { value: '', label: 'All Statuses' },
+                                    { value: 'available', label: 'Available Only' },
+                                    { value: 'redeemed', label: 'Redeemed Only' },
+                                ]}
+                                style={{ width: 170 }}
                             />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Filter size={16} className="text-ink-muted" />
-                            <select 
-                                className="bg-white/5 border-white/10 rounded-xl text-sm text-white focus:ring-brand-500 py-1.5"
-                                onChange={(e) => window.location.href = route('platform.appsumo.index', { status: e.target.value })}
-                                defaultValue={filters.status || ''}
-                            >
-                                <option value="">All Statuses</option>
-                                <option value="available">Available</option>
-                                <option value="redeemed">Redeemed</option>
-                            </select>
-                        </div>
                     </div>
+                </Panel>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-white/5 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted border-b border-white/5">
+                {/* Codes Table */}
+                <Panel pad={0} style={{ overflow: 'hidden' }}>
+                    <div className="vq-scroll" style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+                            <thead>
                                 <tr>
-                                    <th className="px-6 py-4">Redemption Code</th>
-                                    <th className="px-6 py-4">Plan Tier</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4">Store Link</th>
-                                    <th className="px-6 py-4 text-right">Added</th>
+                                    {['Redemption Code', 'Plan Tier', 'Status', 'Store Link', 'Issued'].map((h, idx) => (
+                                        <th
+                                            key={h}
+                                            style={{
+                                                padding: '12px 18px',
+                                                textAlign: idx === 4 ? 'right' : 'left',
+                                                color: t.muted,
+                                                fontWeight: 800,
+                                                fontSize: 11,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.06em',
+                                                background: t.panel2,
+                                                borderBottom: `1px solid ${t.border}`,
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-line dark:divide-white/5">
-                                {codes.data.length > 0 ? codes.data.map((item) => (
-                                    <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-white/5 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <code className="text-ink font-mono font-bold bg-sunken dark:bg-white/10 px-2 py-1 rounded text-sm">
-                                                {item.code}
-                                            </code>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-ink-secondary text-sm">{item.plan_tier}</span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {item.is_redeemed ? (
-                                                <div className="space-y-0.5">
-                                                    <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
-                                                        <CheckCircle size={12} /> Redeemed
-                                                    </div>
-                                                    <div className="text-2xs text-ink-muted break-all">{item.redeemed_by_email}</div>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center gap-1.5 text-ink-muted text-xs font-bold">
-                                                    <AlertCircle size={12} /> Available
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {item.tenant ? (
-                                                <Link 
-                                                    href={route('store.dashboard', { store_slug: item.tenant.slug })}
-                                                    className="text-brand-400 hover:text-brand-300 text-sm flex items-center gap-1"
-                                                >
-                                                    {item.tenant.name}
-                                                    <ExternalLink size={12} />
-                                                </Link>
-                                            ) : '—'}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-ink-muted text-right">
-                                            {new Date(item.created_at).toLocaleDateString()}
-                                        </td>
-                                    </tr>
-                                )) : (
+                            <tbody>
+                                {codeList.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-12 text-center">
-                                            <div className="flex flex-col items-center gap-3 text-ink-muted">
-                                                <Ticket size={48} className="opacity-20" />
-                                                <p>No codes found. Generate some above!</p>
-                                            </div>
+                                        <td colSpan={5} style={{ padding: '64px 20px', textAlign: 'center' }}>
+                                            <EmptyState
+                                                icon={Ticket}
+                                                title="No codes found"
+                                                message="Generate a batch of AppSumo LTD codes or import them from a CSV file."
+                                                action={
+                                                    <Button variant="primary" icon={Plus} onClick={() => setShowGenerate(true)}>
+                                                        Bulk Generate Codes
+                                                    </Button>
+                                                }
+                                            />
                                         </td>
                                     </tr>
+                                ) : (
+                                    codeList.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            className="vq-row"
+                                            style={{ borderBottom: `1px solid ${t.rowBorder}` }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = t.hover; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                        >
+                                            <td style={{ padding: '14px 18px', verticalAlign: 'middle' }}>
+                                                <span style={{
+                                                    fontFamily: 'monospace',
+                                                    fontWeight: 800,
+                                                    fontSize: 13.5,
+                                                    color: t.ink,
+                                                    background: t.inputBg,
+                                                    border: `1px solid ${t.border}`,
+                                                    padding: '3px 8px',
+                                                    borderRadius: 7,
+                                                }}>
+                                                    {item.code}
+                                                </span>
+                                            </td>
+
+                                            <td style={{ padding: '14px 18px', verticalAlign: 'middle', color: t.sub, fontSize: 13, fontWeight: 600 }}>
+                                                {item.plan_tier}
+                                            </td>
+
+                                            <td style={{ padding: '14px 18px', verticalAlign: 'middle' }}>
+                                                {item.is_redeemed ? (
+                                                    <div>
+                                                        <Badge color={BRAND.emerald} tone="soft">
+                                                            <CheckCircle size={11} style={{ marginRight: 4 }} /> Redeemed
+                                                        </Badge>
+                                                        {item.redeemed_by_email && (
+                                                            <div style={{ fontSize: 11, color: t.muted, marginTop: 3 }}>
+                                                                {item.redeemed_by_email}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <Badge color={BRAND.sky} tone="soft">
+                                                        <AlertCircle size={11} style={{ marginRight: 4 }} /> Available
+                                                    </Badge>
+                                                )}
+                                            </td>
+
+                                            <td style={{ padding: '14px 18px', verticalAlign: 'middle' }}>
+                                                {item.tenant ? (
+                                                    <Link
+                                                        href={route('store.dashboard', { store_slug: item.tenant.slug })}
+                                                        style={{
+                                                            fontSize: 13,
+                                                            fontWeight: 700,
+                                                            color: BRAND.indigo,
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: 4,
+                                                            textDecoration: 'none',
+                                                        }}
+                                                    >
+                                                        <span>{item.tenant.name}</span>
+                                                        <ExternalLink size={12} />
+                                                    </Link>
+                                                ) : (
+                                                    <span style={{ color: t.faint, fontSize: 13 }}>—</span>
+                                                )}
+                                            </td>
+
+                                            <td style={{ padding: '14px 18px', verticalAlign: 'middle', textAlign: 'right', color: t.muted, fontSize: 12 }}>
+                                                {new Date(item.created_at).toLocaleDateString()}
+                                            </td>
+                                        </tr>
+                                    ))
                                 )}
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                {/* Modals */}
-                {showGenerate && (
-                    <div className="fixed inset-0 bg-neutral-900/60 dark:bg-void-950/95 backdrop-blur-md z-drawer flex items-center justify-center p-6">
-                        <div className="bg-surface border border-line dark:border-white/10 rounded-2xl max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-slow">
-                            <h2 className="text-2xl font-bold text-ink mb-6 flex items-center gap-3">
-                                <Plus className="text-brand-400" />
-                                Bulk Generate Codes
-                            </h2>
-                            <form onSubmit={handleGenerate} className="space-y-5">
-                                <div>
-                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Count (Max 1,000)</label>
-                                    <input 
-                                        type="number" 
-                                        value={data.count}
-                                        onChange={e => setData('count', e.target.value)}
-                                        className="w-full bg-surface dark:bg-white/5 border-line dark:border-white/10 rounded-2xl text-ink px-5 py-3 focus:ring-brand-500"
-                                        autoFocus
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Plan Tier</label>
-                                    <select 
-                                        value={data.tier}
-                                        onChange={e => setData('tier', e.target.value)}
-                                        className="w-full bg-surface dark:bg-white/5 border-line dark:border-white/10 rounded-2xl text-ink px-5 py-3 focus:ring-brand-500"
-                                    >
-                                        <option value="Tier 1">Tier 1 (Single Store)</option>
-                                        <option value="Tier 2">Tier 2 (3 Stores)</option>
-                                        <option value="Tier 3">Tier 3 (10 Stores)</option>
-                                    </select>
-                                </div>
-                                <div className="flex items-center gap-3 pt-4">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setShowGenerate(false)}
-                                        className="flex-1 bg-white/5 text-ink-muted px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit"
-                                        disabled={processing}
-                                        className="flex-1 bg-brand-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-brand-500 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {processing ? <RefreshCcw className="animate-spin" size={16} /> : 'Generate Now'}
-                                    </button>
-                                </div>
-                            </form>
+                    {/* Pagination */}
+                    {codes?.last_page > 1 && (
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '14px 20px',
+                            borderTop: `1px solid ${t.border}`,
+                            flexWrap: 'wrap',
+                            gap: 12,
+                        }}>
+                            <span style={{ fontSize: 12.5, color: t.muted }}>
+                                Page {codes.current_page} of {codes.last_page} · {codes.total} codes total
+                            </span>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    icon={ChevronLeft}
+                                    disabled={codes.current_page <= 1}
+                                    onClick={() => router.get(route('platform.appsumo.index'), { search, status: filters?.status, page: codes.current_page - 1 }, { preserveState: true })}
+                                >
+                                    Prev
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    disabled={codes.current_page >= codes.last_page}
+                                    onClick={() => router.get(route('platform.appsumo.index'), { search, status: filters?.status, page: codes.current_page + 1 }, { preserveState: true })}
+                                >
+                                    Next <ChevronRight size={14} />
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                )}
-
-                {showImport && (
-                    <div className="fixed inset-0 bg-void-950/95 backdrop-blur-md z-drawer flex items-center justify-center p-6">
-                        <div className="bg-neutral-900 border border-white/10 rounded-2xl max-w-xl w-full p-8 shadow-2xl animate-in zoom-in-95 duration-slow">
-                            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3 text-glow">
-                                <Upload className="text-emerald-400" />
-                                Import External Codes
-                            </h2>
-                            <form onSubmit={handleImport} className="space-y-5">
-                                <div>
-                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Codes (Paste comma or newline separated)</label>
-                                    <textarea 
-                                        rows="8"
-                                        placeholder="CODE-123, CODE-456..."
-                                        value={data.codes}
-                                        onChange={e => setData('codes', e.target.value)}
-                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-brand-500 font-mono text-sm"
-                                        autoFocus
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Assign to Plan Tier</label>
-                                    <select 
-                                        value={data.tier}
-                                        onChange={e => setData('tier', e.target.value)}
-                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-brand-500"
-                                    >
-                                        <option value="Tier 1">Tier 1 (Single Store)</option>
-                                        <option value="Tier 2">Tier 2 (3 Stores)</option>
-                                        <option value="Tier 3">Tier 3 (10 Stores)</option>
-                                    </select>
-                                </div>
-                                <div className="flex items-center gap-3 pt-4">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setShowImport(false)}
-                                        className="flex-1 bg-white/5 text-ink-muted px-6 py-3 rounded-2xl font-bold hover:bg-white/10 transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit"
-                                        disabled={processing}
-                                        className="flex-1 bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold hover:bg-emerald-500 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {processing ? <RefreshCcw className="animate-spin" size={16} /> : 'Start Import'}
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
+                    )}
+                </Panel>
             </div>
+
+            {/* Bulk Generate Drawer */}
+            <Drawer
+                open={showGenerate}
+                onClose={() => setShowGenerate(false)}
+                title="Bulk Generate Codes"
+                subtitle="Generate batches of random alphanumeric lifetime deal codes"
+                width={480}
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setShowGenerate(false)} disabled={processing}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={handleGenerate} disabled={processing} icon={Plus}>
+                            {processing ? 'Generating…' : 'Generate Codes'}
+                        </Button>
+                    </>
+                }
+            >
+                <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Field label="Quantity (Max 1,000)">
+                        <Input
+                            type="number"
+                            min="1"
+                            max="1000"
+                            value={data.count}
+                            onChange={(e) => setData('count', e.target.value)}
+                        />
+                    </Field>
+
+                    <Field label="Target Plan Tier">
+                        <Select
+                            value={data.tier}
+                            onChange={(e) => setData('tier', e.target.value)}
+                            options={[
+                                { value: 'Tier 1', label: 'Tier 1 (Single Store)' },
+                                { value: 'Tier 2', label: 'Tier 2 (3 Stores)' },
+                                { value: 'Tier 3', label: 'Tier 3 (10 Stores)' },
+                            ]}
+                        />
+                    </Field>
+                </form>
+            </Drawer>
+
+            {/* Import Codes Drawer */}
+            <Drawer
+                open={showImport}
+                onClose={() => setShowImport(false)}
+                title="Import External Codes"
+                subtitle="Paste comma or newline separated codes to register"
+                width={520}
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setShowImport(false)} disabled={processing}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={handleImport} disabled={processing} icon={Upload}>
+                            {processing ? 'Importing…' : 'Start Import'}
+                        </Button>
+                    </>
+                }
+            >
+                <form onSubmit={handleImport} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <Field label="Codes (CSV or newline separated)">
+                        <textarea
+                            rows={8}
+                            placeholder="AS-1234-ABCD, AS-5678-EFGH..."
+                            value={data.codes}
+                            onChange={(e) => setData('codes', e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '12px 14px',
+                                fontSize: 13,
+                                borderRadius: 12,
+                                background: t.inputBg,
+                                color: t.ink,
+                                border: `1px solid ${t.border}`,
+                                fontFamily: 'monospace',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                            }}
+                        />
+                    </Field>
+
+                    <Field label="Assign to Plan Tier">
+                        <Select
+                            value={data.tier}
+                            onChange={(e) => setData('tier', e.target.value)}
+                            options={[
+                                { value: 'Tier 1', label: 'Tier 1 (Single Store)' },
+                                { value: 'Tier 2', label: 'Tier 2 (3 Stores)' },
+                                { value: 'Tier 3', label: 'Tier 3 (10 Stores)' },
+                            ]}
+                        />
+                    </Field>
+                </form>
+            </Drawer>
         </OneGlanceLayout>
     );
 }

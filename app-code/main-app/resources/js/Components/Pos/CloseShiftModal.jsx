@@ -12,7 +12,12 @@ export default function CloseShiftModal({
     metrics = {},
 }) {
     const { store } = usePage().props;
+    const isOrdersOnly = shift?.shift_mode === 'orders_only';
+
     const [countedCash, setCountedCash] = useState(0);
+    const [retainedFloat, setRetainedFloat] = useState(shift?.retained_float ?? shift?.opening_float ?? 0);
+    const [actualHandover, setActualHandover] = useState(null);
+    const [handoverNotes, setHandoverNotes] = useState('');
     const [denominations, setDenominations] = useState({});
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
@@ -20,8 +25,10 @@ export default function CloseShiftModal({
 
     if (!isOpen || !shift) return null;
 
-    const expectedCash = metrics?.expected_cash ?? (parseFloat(shift.opening_float || 0));
+    const expectedCash = isOrdersOnly ? 0 : (metrics?.expected_cash ?? (parseFloat(shift.opening_float || 0)));
     const variance = countedCash - expectedCash;
+    const computedExpectedHandover = Math.max(0, expectedCash - (parseFloat(retainedFloat) || 0));
+    const effectiveActualHandover = actualHandover !== null ? parseFloat(actualHandover) : Math.max(0, countedCash - (parseFloat(retainedFloat) || 0));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -29,12 +36,22 @@ export default function CloseShiftModal({
         setLoading(true);
 
         try {
-            const response = await window.axios.post(route('store.shifts.close', { store_slug: store?.slug }), {
-                shift_id: shift.id,
-                counted_cash: countedCash,
-                denominations: denominations,
-                notes: notes.trim() || null,
-            });
+            const payload = isOrdersOnly
+                ? {
+                    shift_id: shift.id,
+                    notes: notes.trim() || null,
+                }
+                : {
+                    shift_id: shift.id,
+                    counted_cash: countedCash,
+                    retained_float: parseFloat(retainedFloat) || 0,
+                    actual_handover: effectiveActualHandover,
+                    handover_notes: handoverNotes.trim() || null,
+                    denominations: denominations,
+                    notes: notes.trim() || null,
+                };
+
+            const response = await window.axios.post(route('store.shifts.close', { store_slug: store?.slug }), payload);
 
             if (response.data?.success) {
                 if (onSuccess) {
@@ -51,8 +68,8 @@ export default function CloseShiftModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-auto animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto" onClick={onClose}>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-auto animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 border-b border-slate-800 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
@@ -85,42 +102,114 @@ export default function CloseShiftModal({
                         </div>
                     )}
 
-                    {/* Shift Performance Summary Cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                            <span className="text-[11px] font-medium text-slate-400 block">Opening Float</span>
-                            <span className="text-sm font-mono font-bold text-slate-200">
-                                {formatCurrency(metrics.opening_float || shift.opening_float || 0)}
-                            </span>
+                    {isOrdersOnly ? (
+                        <div className="p-4 bg-indigo-950/40 border border-indigo-800/60 rounded-xl text-indigo-200 text-sm leading-relaxed">
+                            <span className="font-bold block mb-1">Ending Order Taker Work Shift</span>
+                            You are completing an orders-only work shift. No cash drawer reconciliation is required. Your order history will be logged and active orders preserved.
                         </div>
-                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                            <span className="text-[11px] font-medium text-slate-400 block">Cash Sales</span>
-                            <span className="text-sm font-mono font-bold text-emerald-400">
-                                {formatCurrency(metrics.cash_sales || 0)}
-                            </span>
-                        </div>
-                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                            <span className="text-[11px] font-medium text-slate-400 block">Pay-Ins / Drops</span>
-                            <span className="text-sm font-mono font-bold text-slate-300">
-                                +{formatCurrency(metrics.cash_in || 0)} / -{formatCurrency(metrics.cash_out || 0)}
-                            </span>
-                        </div>
-                        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                            <span className="text-[11px] font-medium text-indigo-300 block font-semibold">Expected Cash</span>
-                            <span className="text-sm font-mono font-bold text-indigo-400">
-                                {formatCurrency(expectedCash)}
-                            </span>
-                        </div>
-                    </div>
+                    ) : (
+                        <>
+                            {/* Shift Performance Summary Cards */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                    <span className="text-[11px] font-medium text-slate-400 block">Opening Float</span>
+                                    <span className="text-sm font-mono font-bold text-slate-200">
+                                        {formatCurrency(metrics.opening_float || shift.opening_float || 0)}
+                                    </span>
+                                </div>
+                                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                    <span className="text-[11px] font-medium text-slate-400 block">Cash Sales</span>
+                                    <span className="text-sm font-mono font-bold text-emerald-400">
+                                        {formatCurrency(metrics.cash_sales || 0)}
+                                    </span>
+                                </div>
+                                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                    <span className="text-[11px] font-medium text-slate-400 block">Pay-Ins / Drops</span>
+                                    <span className="text-sm font-mono font-bold text-slate-300">
+                                        +{formatCurrency(metrics.cash_in || 0)} / -{formatCurrency(metrics.cash_out || 0)}
+                                    </span>
+                                </div>
+                                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                                    <span className="text-[11px] font-medium text-indigo-300 block font-semibold">Expected Cash</span>
+                                    <span className="text-sm font-mono font-bold text-indigo-400">
+                                        {formatCurrency(expectedCash)}
+                                    </span>
+                                </div>
+                            </div>
 
-                    {/* Denominations Cash Counter */}
-                    <div>
-                        <CashDrawerCountSheet
-                            expectedCash={expectedCash}
-                            onTotalChange={setCountedCash}
-                            onCountsChange={setDenominations}
-                        />
-                    </div>
+                            {/* Denominations Cash Counter */}
+                            <div>
+                                <CashDrawerCountSheet
+                                    expectedCash={expectedCash}
+                                    onTotalChange={setCountedCash}
+                                    onCountsChange={setDenominations}
+                                />
+                            </div>
+
+                            {/* Handover & Retained Float */}
+                            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Retained Float</span>
+                                        <span className="text-[11px] text-slate-400">Cash kept in drawer for the next shift</span>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        step="any"
+                                        min="0"
+                                        value={retainedFloat}
+                                        onChange={(e) => setRetainedFloat(e.target.value)}
+                                        className="w-32 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-right font-mono text-sm text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                                    <div>
+                                        <span className="text-xs text-slate-400 block">Expected Handover to Owner</span>
+                                        <span className="text-base font-bold font-mono text-indigo-300">
+                                            {formatCurrency(computedExpectedHandover)}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs text-slate-400 block">Actual Handover</span>
+                                        <span className="text-base font-bold font-mono text-emerald-400">
+                                            {formatCurrency(effectiveActualHandover)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Reconciliation Alert Banner */}
+                            <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                                variance === 0
+                                    ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200'
+                                    : variance > 0
+                                    ? 'bg-blue-950/40 border-blue-800/80 text-blue-200'
+                                    : 'bg-rose-950/40 border-rose-800/80 text-rose-200'
+                            }`}>
+                                <div className="flex items-center space-x-3">
+                                    {variance === 0 ? (
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                    ) : (
+                                        <AlertCircle className="w-5 h-5 shrink-0 text-amber-400" />
+                                    )}
+                                    <div>
+                                        <span className="font-bold text-sm block">
+                                            {variance === 0 ? 'Till is Perfectly Balanced' : variance > 0 ? 'Cash Overage (+)' : 'Cash Shortage (-)'}
+                                        </span>
+                                        <span className="text-xs opacity-80">
+                                            Counted: {formatCurrency(countedCash)} • Expected: {formatCurrency(expectedCash)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-mono font-bold text-base">
+                                        {variance > 0 ? '+' : ''}{formatCurrency(variance)}
+                                    </span>
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* Notes */}
                     <div>
@@ -134,36 +223,6 @@ export default function CloseShiftModal({
                             placeholder="Add reason for cash overage/shortage or any end of day handover notes..."
                             className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-slate-200 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
                         ></textarea>
-                    </div>
-
-                    {/* Reconciliation Alert Banner */}
-                    <div className={`p-4 rounded-xl border flex items-center justify-between ${
-                        variance === 0
-                            ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200'
-                            : variance > 0
-                            ? 'bg-blue-950/40 border-blue-800/80 text-blue-200'
-                            : 'bg-rose-950/40 border-rose-800/80 text-rose-200'
-                    }`}>
-                        <div className="flex items-center space-x-3">
-                            {variance === 0 ? (
-                                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                            ) : (
-                                <AlertCircle className="w-5 h-5 shrink-0 text-amber-400" />
-                            )}
-                            <div>
-                                <span className="font-bold text-sm block">
-                                    {variance === 0 ? 'Till is Perfectly Balanced' : variance > 0 ? 'Cash Overage (+)' : 'Cash Shortage (-)'}
-                                </span>
-                                <span className="text-xs opacity-80">
-                                    Counted: {formatCurrency(countedCash)} • Expected: {formatCurrency(expectedCash)}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <span className="font-mono font-bold text-base">
-                                {variance > 0 ? '+' : ''}{formatCurrency(variance)}
-                            </span>
-                        </div>
                     </div>
 
                     {/* Actions */}

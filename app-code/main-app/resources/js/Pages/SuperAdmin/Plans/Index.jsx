@@ -1,14 +1,16 @@
-import React, { useState, useCallback } from 'react';
-import { router, useForm, Head, usePage } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
+import React, { useState, useCallback, useMemo } from 'react';
+import { router, useForm, Head, usePage, Link } from '@inertiajs/react';
+import PlatformLayout from '@/Layouts/PlatformLayout';
 import { FEATURE_GROUPS, TOTAL_FEATURES, getFeatureDefault } from './featureGroups';
+import { useT, Panel, PageHeader, Badge, Button, Input, Field as FormField, Select as FormSelect, EmptyState, KpiCard, BRAND } from '@/Platform/ui';
 import { vq } from '@/theme/runtime';
 import {
     Layers, Zap, Database, Ticket, ShoppingBag,
     UserCog, CheckCircle, XCircle, Star, Edit3,
     Copy, Trash2, ArrowUpRight, Shield, Activity,
     Info, Award, Server, LayoutGrid, Table2, Grid3x3,
-    ChevronDown, ChevronRight, RefreshCw, Save, Archive
+    ChevronDown, ChevronRight, RefreshCw, Save, Archive,
+    X, AlertTriangle, ArrowLeft
 } from 'lucide-react';
 
 // ── Existing limit keys (for the Plan Drawer) ────────────────────────────────
@@ -25,33 +27,17 @@ const LIMIT_KEYS = [
     { key: 'reports',                label: 'Reports Complexity',    reset: 'never'   },
 ];
 
-// FEATURE_GROUPS and TOTAL_FEATURES are now imported from ./featureGroups.js
-
-// ── Value display helpers ────────────────────────────────────────────────────
-
-const displayValue = (v) => {
-    if (v === null || v === undefined || v === '') {
-        return <span className="badge-glass" style={{ color: vq.indigo[400], background: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.2)' }}>Unlimited</span>;
-    }
-    if (v === '0' || v === false) {
-        return <span className="badge-glass" style={{ color: vq.red[400], background: 'rgba(248,113,113,0.12)', border: '1px solid rgba(248,113,113,0.2)' }}>Disabled</span>;
-    }
-    if (v === '1' || v === true) {
-        return <span className="badge-glass" style={{ color: vq.emerald[400], background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.2)' }}>Enabled</span>;
-    }
-    return <span className="badge-glass" style={{ color: vq.sky[400], background: 'rgba(56,189,248,0.12)', border: '1px solid rgba(56,189,248,0.2)' }}>{v}</span>;
-};
-
 const planTypeColor = (type) => ({
-    trial: vq.indigo[500],
-    subscription: vq.sky[400],
-    ltd: vq.amber[500],
-    enterprise: vq.emerald[500]
-}[type] || vq.slate[400]);
+    trial: BRAND.indigo,
+    subscription: BRAND.sky,
+    ltd: BRAND.amber,
+    enterprise: BRAND.emerald
+}[type] || BRAND.slate);
 
 // ── Feature Cell Component ───────────────────────────────────────────────────
 
 function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
+    const t = useT();
     const isExplicit = value !== null && value !== undefined && value !== '';
     const defaultValue = getFeatureDefault(feature.key, planSlug);
     const hasDefault = defaultValue !== null && defaultValue !== undefined && defaultValue !== '';
@@ -59,7 +45,6 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
     const [localNum, setLocalNum] = useState(value ?? '');
     const [editing, setEditing] = useState(false);
 
-    // Sync input value if props update
     React.useEffect(() => {
         setLocalNum(value ?? '');
     }, [value]);
@@ -88,21 +73,21 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                     }}
                     title={isExplicit ? `Custom Override: ${value}` : `System Default: ${displayPlaceholder}`}
                     style={{
-                        width: 70,
-                        background: editing ? 'rgba(99,102,241,0.08)' : (isExplicit ? 'rgba(99,102,241,0.15)' : 'rgba(0,0,0,0.2)'),
-                        border: `1px solid ${editing ? 'rgba(99,102,241,0.4)' : (isExplicit ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)')}`,
-                        color: isExplicit ? vq.indigo[200] : vq.slate[600],
-                        padding: '5px 8px',
+                        width: 72,
+                        background: editing ? `${BRAND.indigo}14` : (isExplicit ? `${BRAND.indigo}1f` : t.inputBg),
+                        border: `1px solid ${editing ? BRAND.indigo : (isExplicit ? `${BRAND.indigo}55` : t.inputBorder)}`,
+                        color: isExplicit ? BRAND.indigo : t.muted,
+                        padding: '6px 8px',
                         borderRadius: 8,
                         fontSize: 12,
-                        fontWeight: isExplicit ? 800 : 500,
+                        fontWeight: isExplicit ? 800 : 600,
                         fontFamily: 'monospace',
                         textAlign: 'center',
                         outline: 'none',
                         transition: 'all 0.15s',
                     }}
                 />
-                {saving && <RefreshCw size={10} style={{ color: vq.indigo[500], animation: 'spin 1s linear infinite' }} />}
+                {saving && <RefreshCw size={10} style={{ color: BRAND.indigo, animation: 'spin 1s linear infinite' }} />}
             </div>
         );
     }
@@ -116,10 +101,10 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                     onChange={e => onSave(planId, feature.key, e.target.value || null)}
                     title={isExplicit ? `Custom Override: ${value}` : `System Default: ${defaultValue ?? 'default'}`}
                     style={{
-                        background: isExplicit ? 'rgba(99,102,241,0.15)' : 'rgba(0,0,0,0.25)',
-                        border: `1px solid ${isExplicit ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.06)'}`,
-                        color: isExplicit ? vq.indigo[200] : vq.slate[600],
-                        padding: '5px 8px',
+                        background: isExplicit ? `${BRAND.indigo}1f` : t.inputBg,
+                        border: `1px solid ${isExplicit ? `${BRAND.indigo}55` : t.inputBorder}`,
+                        color: isExplicit ? BRAND.indigo : t.muted,
+                        padding: '6px 8px',
                         borderRadius: 8,
                         fontSize: 11,
                         fontWeight: 700,
@@ -127,12 +112,12 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                         outline: 'none',
                     }}
                 >
-                    <option value="" style={{ color: vq.slate[600] }}>
+                    <option value="" style={{ color: t.muted }}>
                         {defaultValue ? `default (${defaultValue})` : 'default'}
                     </option>
                     {opts.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
-                {saving && <RefreshCw size={10} style={{ color: vq.indigo[500], animation: 'spin 1s linear infinite' }} />}
+                {saving && <RefreshCw size={10} style={{ color: BRAND.indigo, animation: 'spin 1s linear infinite' }} />}
             </div>
         );
     }
@@ -144,12 +129,12 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                     title="System Infrastructure Gate (Protected)"
                     style={{
                         fontSize: 10,
-                        color: vq.slate[500],
-                        background: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
+                        color: t.muted,
+                        background: t.inputBg,
+                        border: `1px solid ${t.border}`,
                         padding: '3px 8px',
                         borderRadius: 6,
-                        fontWeight: 700,
+                        fontWeight: 800,
                         fontFamily: 'monospace'
                     }}
                 >
@@ -163,33 +148,33 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
     const isEnabled = isExplicit
         ? (value === '1' || value === 'true' || value === true)
         : (defaultValue === '1' || defaultValue === 'true' || defaultValue === true || defaultValue === 1);
-        
+
     const isDisabled = isExplicit
         ? (value === '0' || value === 'false' || value === false)
         : (defaultValue === '0' || defaultValue === 'false' || defaultValue === false || defaultValue === 0);
 
     const next = isEnabled ? '0' : '1';
-    
+
     let bg, color, border, label;
     if (isEnabled) {
         if (isExplicit) {
-            bg = 'rgba(16,185,129,0.16)'; color = vq.emerald[400];
-            border = '1px solid rgba(16,185,129,0.45)'; label = '✓';
+            bg = `${BRAND.emerald}24`; color = BRAND.emerald;
+            border = `1px solid ${BRAND.emerald}66`; label = '✓';
         } else {
-            bg = 'rgba(16,185,129,0.05)'; color = 'rgba(52,211,153,0.5)';
-            border = '1px dashed rgba(16,185,129,0.25)'; label = '✓';
+            bg = `${BRAND.emerald}10`; color = BRAND.emerald;
+            border = `1px dashed ${BRAND.emerald}40`; label = '✓';
         }
     } else if (isDisabled) {
         if (isExplicit) {
-            bg = 'rgba(239,68,68,0.12)'; color = vq.red[400];
-            border = '1px solid rgba(239,68,68,0.35)'; label = '✕';
+            bg = `${BRAND.rose}18`; color = BRAND.rose;
+            border = `1px solid ${BRAND.rose}55`; label = '✕';
         } else {
-            bg = 'rgba(239,68,68,0.03)'; color = 'rgba(248,113,113,0.4)';
-            border = '1px dashed rgba(239,68,68,0.15)'; label = '✕';
+            bg = `${BRAND.rose}0a`; color = BRAND.rose;
+            border = `1px dashed ${BRAND.rose}30`; label = '✕';
         }
     } else {
-        bg = 'rgba(255,255,255,0.03)'; color = vq.slate[600];
-        border = '1px solid rgba(255,255,255,0.05)'; label = '—';
+        bg = t.inputBg; color = t.muted;
+        border = `1px solid ${t.border}`; label = '—';
     }
 
     const titleText = isExplicit
@@ -206,14 +191,12 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
                     background: bg, color, border,
                     width: 36, height: 28,
                     borderRadius: 8,
-                    fontSize: 14, fontWeight: 900,
+                    fontSize: 13, fontWeight: 900,
                     cursor: saving ? 'wait' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     transition: 'all 0.12s',
                     opacity: saving ? 0.6 : 1,
                 }}
-                onMouseEnter={e => { if (!saving) e.currentTarget.style.transform = 'scale(1.1)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
                 {saving ? <RefreshCw size={10} style={{ animation: 'spin 1s linear infinite' }} /> : label}
             </button>
@@ -224,6 +207,7 @@ function FeatureCell({ planId, planSlug, feature, value, onSave, saving }) {
 // ── Feature Matrix Component ──────────────────────────────────────────────────
 
 function FeatureMatrix({ plans }) {
+    const t = useT();
     const { vensynq_enabled, canonical_keys } = usePage().props;
     const vensynqKeys = [
         'vensync_command',
@@ -235,7 +219,7 @@ function FeatureMatrix({ plans }) {
         'multichannel_expense_alloc'
     ];
 
-    // Detect any canonical keys not mapped in FEATURE_GROUPS (F3 requirement)
+    // Detect any canonical keys not mapped in FEATURE_GROUPS
     const existingKeys = new Set(FEATURE_GROUPS.flatMap(g => g.features.map(f => f.key)));
     const ungroupedKeys = (canonical_keys || []).filter(k => !existingKeys.has(k));
 
@@ -245,7 +229,7 @@ function FeatureMatrix({ plans }) {
             id: 'ungrouped_new',
             label: 'Ungrouped / New Features',
             emoji: '📦',
-            description: 'Canonical features detected from plan matrix that are pending categorization',
+            description: 'Canonical features detected from plan matrix pending categorization',
             features: ungroupedKeys.map(k => ({
                 key: k,
                 label: k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
@@ -286,22 +270,17 @@ function FeatureMatrix({ plans }) {
     };
 
     const handleCellChange = useCallback((planId, featureKey, newValue) => {
-        // Optimistic local update
         setLocalMatrix(prev => ({
             ...prev,
             [planId]: { ...prev[planId], [featureKey]: newValue }
         }));
 
-        // Track pending changes locally
         setStagedChanges(prev => {
             const planChanges = { ...prev[planId], [featureKey]: newValue };
-
-            // Fetch the original value from plans prop
             const originalPlan = plans.find(p => p.id === planId);
             const originalLimit = originalPlan?.limits?.find(l => l.key === featureKey);
             const originalValue = originalLimit?.value ?? null;
 
-            // Normalize values for exact comparison
             const normNew = newValue !== null ? String(newValue) : null;
             const normOrig = originalValue !== null ? String(originalValue) : null;
 
@@ -351,15 +330,13 @@ function FeatureMatrix({ plans }) {
         }
     };
 
-    const planColors = [vq.indigo[400], vq.sky[400], vq.emerald[500], vq.amber[500], vq.pink[500], vq.violet[400]];
+    const planColors = [BRAND.indigo, BRAND.sky, BRAND.emerald, BRAND.amber, BRAND.rose, BRAND.purple];
 
     const handleBulkSet = useCallback((planId, value) => {
-        // Exclude system / infrastructure and read-only keys (F16 requirement)
         const boolKeys = filteredGroups.flatMap(g =>
             g.features.filter(f => f.type === 'boolean' && f.type !== 'system' && !f.system && !f.readOnly).map(f => f.key)
         );
 
-        // Optimistic local update
         setLocalMatrix(prev => ({
             ...prev,
             [planId]: {
@@ -368,7 +345,6 @@ function FeatureMatrix({ plans }) {
             }
         }));
 
-        // Stage all these changes!
         setStagedChanges(prev => {
             const planChanges = { ...prev[planId] };
             const originalPlan = plans.find(p => p.id === planId);
@@ -376,7 +352,7 @@ function FeatureMatrix({ plans }) {
             boolKeys.forEach(key => {
                 const originalLimit = originalPlan?.limits?.find(l => l.key === key);
                 const originalValue = originalLimit?.value ?? null;
-                
+
                 const normNew = value !== null ? String(value) : null;
                 const normOrig = originalValue !== null ? String(originalValue) : null;
 
@@ -397,24 +373,23 @@ function FeatureMatrix({ plans }) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0, position: 'relative' }}>
-
-            {/* Universal Reports Notice (F4 / V11 §1.1) */}
+            {/* Universal Reports Notice Banner */}
             <div style={{
                 margin: '0 0 16px 0',
                 padding: '12px 18px',
-                background: 'rgba(11, 170, 143, 0.08)',
-                border: '1px solid rgba(11, 170, 143, 0.25)',
+                background: `${BRAND.emerald}12`,
+                border: `1px solid ${BRAND.emerald}33`,
                 borderRadius: 12,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                color: '#0BAA8F',
-                fontSize: 12,
+                color: BRAND.emerald,
+                fontSize: 12.5,
                 fontWeight: 600
             }}>
                 <span style={{ fontSize: 16 }}>📊</span>
                 <span>
-                    <strong>Universal Reports (V11 §1.1):</strong> All 23 business, audit, and analytical reports are universal and included on every plan. Individual per-report gating has been deprecated.
+                    <strong>Universal Reports:</strong> All 23 business, audit, and analytical reports are universal and included across all active plans.
                 </span>
             </div>
 
@@ -422,61 +397,64 @@ function FeatureMatrix({ plans }) {
             <div style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '16px 24px',
-                background: 'rgba(99,102,241,0.05)',
-                border: '1px solid rgba(99,102,241,0.12)',
+                background: t.panel2,
+                border: `1px solid ${t.border}`,
                 borderRadius: '16px 16px 0 0',
                 borderBottom: 'none',
+                flexWrap: 'wrap',
+                gap: 12,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Grid3x3 size={16} color={vq.indigo[400]} />
-                    <span style={{ color: vq.indigo[200], fontSize: 13, fontWeight: 800 }}>
+                    <Grid3x3 size={16} style={{ color: BRAND.indigo }} />
+                    <span style={{ color: t.ink, fontSize: 13.5, fontWeight: 900 }}>
                         Feature Matrix
                     </span>
-                    <span style={{ background: 'rgba(99,102,241,0.15)', color: vq.indigo[400], fontSize: 10, fontWeight: 900, padding: '3px 10px', borderRadius: 6, border: '1px solid rgba(99,102,241,0.2)' }}>
-                        {totalFilteredFeatures} FEATURES · {plans.length} PLANS
-                    </span>
+                    <Badge color={BRAND.indigo} tone="soft">
+                        {totalFilteredFeatures} Features · {plans.length} Plans
+                    </Badge>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                    <span style={{ fontSize: 11, color: vq.slate[600], display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)' }} />✓ Enabled
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <span style={{ fontSize: 11.5, color: t.muted, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: `${BRAND.emerald}25`, border: `1px solid ${BRAND.emerald}55` }} />
+                        <span style={{ fontWeight: 600 }}>✓ Enabled</span>
                     </span>
-                    <span style={{ fontSize: 11, color: vq.slate[600], display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)' }} />✕ Disabled
+                    <span style={{ fontSize: 11.5, color: t.muted, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: `${BRAND.rose}20`, border: `1px solid ${BRAND.rose}50` }} />
+                        <span style={{ fontWeight: 600 }}>✕ Disabled</span>
                     </span>
-                    <span style={{ fontSize: 11, color: vq.slate[600], display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }} />— Default
+                    <span style={{ fontSize: 11.5, color: t.muted, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: t.inputBg, border: `1px solid ${t.border}` }} />
+                        <span style={{ fontWeight: 600 }}>— Default</span>
                     </span>
                 </div>
             </div>
 
             {/* Bulk Actions toolbar */}
             <div style={{
-                display: 'flex', alignItems: 'center', gap: 12,
+                display: 'flex', alignItems: 'center', gap: 16,
                 padding: '10px 24px',
-                background: 'rgba(15,23,42,0.9)',
-                border: '1px solid rgba(99,102,241,0.1)',
+                background: t.inputBg,
+                border: `1px solid ${t.border}`,
                 borderTop: 'none', borderBottom: 'none',
                 overflowX: 'auto',
             }}>
-                <span style={{ color: vq.slate[600], fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', flexShrink: 0 }}>
+                <span style={{ color: t.muted, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0 }}>
                     Bulk Actions:
                 </span>
                 {plans.map((plan, pi) => (
-                    <div key={plan.id} style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                        <span style={{ color: planColors[pi % planColors.length], fontSize: 10, fontWeight: 800, maxWidth: 70, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div key={plan.id} style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                        <span style={{ color: planColors[pi % planColors.length], fontSize: 11, fontWeight: 800, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {plan.name}
                         </span>
                         <button
                             onClick={() => handleBulkSet(plan.id, '1')}
                             title={`Enable all boolean features for ${plan.name}`}
                             style={{
-                                background: 'rgba(16,185,129,0.1)', color: vq.emerald[500],
-                                border: '1px solid rgba(16,185,129,0.25)',
-                                borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 800, cursor: 'pointer',
+                                background: `${BRAND.emerald}18`, color: BRAND.emerald,
+                                border: `1px solid ${BRAND.emerald}44`,
+                                borderRadius: 6, padding: '2px 8px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer',
                                 transition: 'all 0.15s',
                             }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.2)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(16,185,129,0.1)'}
                         >
                             ✓ All ON
                         </button>
@@ -484,13 +462,11 @@ function FeatureMatrix({ plans }) {
                             onClick={() => handleBulkSet(plan.id, '0')}
                             title={`Disable all boolean features for ${plan.name}`}
                             style={{
-                                background: 'rgba(239,68,68,0.08)', color: vq.red[400],
-                                border: '1px solid rgba(239,68,68,0.2)',
-                                borderRadius: 6, padding: '2px 8px', fontSize: 10, fontWeight: 800, cursor: 'pointer',
+                                background: `${BRAND.rose}15`, color: BRAND.rose,
+                                border: `1px solid ${BRAND.rose}33`,
+                                borderRadius: 6, padding: '2px 8px', fontSize: 10.5, fontWeight: 800, cursor: 'pointer',
                                 transition: 'all 0.15s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.16)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
                         >
                             ✕ All OFF
                         </button>
@@ -498,15 +474,16 @@ function FeatureMatrix({ plans }) {
                 ))}
             </div>
 
-            <div style={{ overflowX: 'auto', background: 'rgba(10,14,26,0.8)', borderRadius: '0 0 16px 16px', border: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(99,102,241,0.12)' }}>
+            {/* Matrix table container */}
+            <div style={{ overflowX: 'auto', background: t.panel, borderRadius: '0 0 16px 16px', border: `1px solid ${t.border}` }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: plans.length * 120 + 260 }}>
                     <colgroup>
-                        <col style={{ width: 260, minWidth: 200 }} />
+                        <col style={{ width: 280, minWidth: 220 }} />
                         {plans.map(p => <col key={p.id} style={{ width: 120, minWidth: 100 }} />)}
                     </colgroup>
                     <thead>
-                        <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '2px solid rgba(99,102,241,0.15)', position: 'sticky', top: 0, zIndex: 20 }}>
-                            <th style={{ padding: '14px 20px', textAlign: 'left', color: vq.slate[500], fontWeight: 900, fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        <tr style={{ background: t.panel2, borderBottom: `2px solid ${t.border2}`, position: 'sticky', top: 0, zIndex: 20 }}>
+                            <th style={{ padding: '14px 20px', textAlign: 'left', color: t.muted, fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                 Feature / Capability
                             </th>
                             {plans.map((plan, idx) => (
@@ -517,10 +494,10 @@ function FeatureMatrix({ plans }) {
                                             background: planColors[idx % planColors.length],
                                             boxShadow: `0 0 8px ${planColors[idx % planColors.length]}`,
                                         }} />
-                                        <span style={{ color: planColors[idx % planColors.length], fontWeight: 900, fontSize: 13, letterSpacing: '-0.01em' }}>
+                                        <span style={{ color: planColors[idx % planColors.length], fontWeight: 900, fontSize: 13 }}>
                                             {plan.name}
                                         </span>
-                                        <span style={{ color: vq.slate[600], fontSize: 9, fontFamily: 'monospace', fontWeight: 700 }}>
+                                        <span style={{ color: t.muted, fontSize: 9.5, fontFamily: 'monospace', fontWeight: 700 }}>
                                             {plan.slug}
                                         </span>
                                     </div>
@@ -535,59 +512,59 @@ function FeatureMatrix({ plans }) {
                                 <React.Fragment key={group.id}>
                                     {/* Group header row */}
                                     <tr
-                                        style={{ background: 'rgba(99,102,241,0.06)', borderTop: gi > 0 ? '2px solid rgba(99,102,241,0.08)' : 'none', cursor: 'pointer' }}
+                                        style={{ background: t.hover, borderTop: gi > 0 ? `2px solid ${t.border}` : 'none', cursor: 'pointer' }}
                                         onClick={() => toggleGroup(group.id)}
                                     >
                                         <td colSpan={plans.length + 1} style={{ padding: '10px 20px' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                                 <span style={{ fontSize: 14 }}>{group.emoji}</span>
                                                 <div>
-                                                    <span style={{ color: vq.indigo[300], fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                                                    <span style={{ color: BRAND.indigo, fontWeight: 900, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                                         {group.label}
                                                     </span>
                                                     {group.description && !isCollapsed && (
-                                                        <div style={{ color: vq.slate[600], fontSize: 10, marginTop: 2 }}>{group.description}</div>
+                                                        <div style={{ color: t.muted, fontSize: 11, marginTop: 2 }}>{group.description}</div>
                                                     )}
                                                 </div>
-                                                <span style={{ color: vq.slate[600], fontSize: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', padding: '1px 7px', borderRadius: 5, flexShrink: 0 }}>
+                                                <span style={{ color: t.muted, fontSize: 10.5, background: t.inputBg, border: `1px solid ${t.border}`, padding: '1px 8px', borderRadius: 6, flexShrink: 0, fontWeight: 700 }}>
                                                     {group.features.length} features
                                                 </span>
-                                                <span style={{ marginLeft: 'auto', color: vq.slate[600] }}>
-                                                    {isCollapsed ? <ChevronRight size={13} /> : <ChevronDown size={13} />}
+                                                <span style={{ marginLeft: 'auto', color: t.muted }}>
+                                                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
                                                 </span>
                                             </div>
                                         </td>
                                     </tr>
 
                                     {/* Feature rows */}
-                                    {!isCollapsed && group.features.map((feature, fi) => (
+                                    {!isCollapsed && group.features.map((feature) => (
                                         <tr
                                             key={feature.key}
-                                            style={{ borderBottom: '1px solid rgba(255,255,255,0.025)', transition: 'background 0.1s' }}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.015)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = ''}
+                                            style={{ borderBottom: `1px solid ${t.rowBorder}`, transition: 'background 0.1s' }}
+                                            onMouseEnter={e => { e.currentTarget.style.background = t.hover; }}
+                                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                                         >
-                                            <td style={{ padding: '9px 20px 9px 32px' }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                                    <span style={{ color: vq.slate[400], fontSize: 12, fontWeight: 600 }}>
-                                                        {feature.label}
-                                                    </span>
-                                                    {feature.type === 'number' && (
-                                                        <span style={{ fontSize: 9, color: vq.sky[400], background: 'rgba(56,189,248,0.08)', border: '1px solid rgba(56,189,248,0.15)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
-                                                            NUM
+                                            <td style={{ padding: '10px 20px 10px 32px' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                        <span style={{ color: t.ink, fontSize: 12.5, fontWeight: 700 }}>
+                                                            {feature.label}
                                                         </span>
-                                                    )}
-                                                    {feature.type === 'select' && (
-                                                        <span style={{ fontSize: 9, color: vq.amber[500], background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>
-                                                            TIER
-                                                        </span>
+                                                        {feature.type === 'number' && (
+                                                            <span style={{ fontSize: 9, color: BRAND.sky, background: `${BRAND.sky}18`, border: `1px solid ${BRAND.sky}33`, padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
+                                                                NUM
+                                                            </span>
+                                                        )}
+                                                        {feature.type === 'select' && (
+                                                            <span style={{ fontSize: 9, color: BRAND.amber, background: `${BRAND.amber}18`, border: `1px solid ${BRAND.amber}33`, padding: '1px 6px', borderRadius: 4, fontWeight: 800 }}>
+                                                                TIER
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    {feature.note && (
+                                                        <span style={{ fontSize: 10.5, color: t.muted, fontStyle: 'italic' }}>{feature.note}</span>
                                                     )}
                                                 </div>
-                                                {feature.note && (
-                                                    <span style={{ fontSize: 10, color: vq.slate[600], fontStyle: 'italic' }}>{feature.note}</span>
-                                                )}
-                                            </div>
                                             </td>
                                             {plans.map(plan => (
                                                 <td key={plan.id} style={{ padding: '7px 12px', textAlign: 'center' }}>
@@ -611,38 +588,30 @@ function FeatureMatrix({ plans }) {
             </div>
 
             {/* Footer note */}
-            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, color: vq.slate[600], fontSize: 11 }}>
-                <Shield size={11} />
-                Changes are staged locally. Click "Save Changes" at the bottom to publish all updates instantly to active tenants.
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, color: t.muted, fontSize: 11.5 }}>
+                <Shield size={13} style={{ color: BRAND.indigo }} />
+                <span>Changes are staged locally. Click "Save Changes" to publish all tier updates instantly to active tenants.</span>
             </div>
 
-            {/* Sticky Floating Save Panel */}
+            {/* Floating Save Panel */}
             {stagedCount > 0 && (
                 <div style={{
                     position: 'fixed',
                     bottom: 24,
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: 'rgba(15, 23, 42, 0.95)',
-                    backdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(99, 102, 241, 0.35)',
+                    background: t.panelSolid,
+                    border: `1px solid ${BRAND.indigo}66`,
                     borderRadius: 16,
-                    padding: '14px 28px',
+                    padding: '12px 24px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: 32,
-                    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.2)',
-                    zIndex: 50,
-                    animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    gap: 28,
+                    boxShadow: t.shadow,
+                    zIndex: 100,
                 }}>
-                    <style>{`
-                        @keyframes fadeInUp {
-                            from { opacity: 0; transform: translate(-50%, 20px); }
-                            to   { opacity: 1; transform: translate(-50%, 0); }
-                        }
-`}</style>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <span style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -650,71 +619,36 @@ function FeatureMatrix({ plans }) {
                             width: 24,
                             height: 24,
                             borderRadius: '50%',
-                            background: 'rgba(99, 102, 241, 0.2)',
-                            color: vq.indigo[300],
+                            background: `${BRAND.indigo}20`,
+                            color: BRAND.indigo,
                             fontSize: 12,
                             fontWeight: 900,
-                            border: '1px solid rgba(99, 102, 241, 0.4)'
+                            border: `1px solid ${BRAND.indigo}55`
                         }}>
                             {stagedCount}
                         </span>
-                        <span style={{ color: vq.indigo[200], fontSize: 13, fontWeight: 700 }}>
-                            Unsaved Feature Matrix changes pending
+                        <span style={{ color: t.ink, fontSize: 13, fontWeight: 700 }}>
+                            Unsaved Feature Matrix updates pending
                         </span>
                     </div>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                        <button
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <Button
+                            size="sm"
+                            variant="secondary"
                             onClick={handleDiscardChanges}
                             disabled={saving}
-                            style={{
-                                background: 'transparent',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                color: vq.slate[400],
-                                padding: '8px 16px',
-                                borderRadius: 10,
-                                fontSize: 12,
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; e.currentTarget.style.color = vq.red[400]; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = vq.slate[400]; }}
                         >
                             Discard
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="primary"
+                            icon={Save}
                             onClick={handleSaveStaged}
                             disabled={saving}
-                            style={{
-                                background: 'linear-gradient(to right, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))',
-                                border: 'none',
-                                color: '#ffffff',
-                                padding: '8px 20px',
-                                borderRadius: 10,
-                                fontSize: 12,
-                                fontWeight: 900,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
-                                transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
                         >
-                            {saving ? (
-                                <>
-                                    <RefreshCw size={13} style={{ animation: 'spin 1s linear infinite', marginRight: 4 }} />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={13} style={{ marginRight: 4 }} />
-                                    Save Changes
-                                </>
-                            )}
-                        </button>
+                            {saving ? 'Publishing…' : 'Save Changes'}
+                        </Button>
                     </div>
                 </div>
             )}
@@ -722,9 +656,10 @@ function FeatureMatrix({ plans }) {
     );
 }
 
-// ── Plan Drawer ──────────────────────────────────────────────────────────────
+// ── Plan Drawer (Modal Slide-Out) ─────────────────────────────────────────────
 
 function PlanDrawer({ open, onClose, plan, platforms }) {
+    const t = useT();
     const isEdit = !!plan;
     const { data, setData, post, put, processing, errors, reset } = useForm({
         platform_id:    plan?.platform_id   ?? (platforms[0]?.id ?? ''),
@@ -763,151 +698,200 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
     if (!open) return null;
 
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', animation: 'fadeIn 0.25s ease-out' }}>
-            <div style={{ flex: 1, background: 'rgba(2, 6, 23, 0.7)', backdropFilter: 'blur(8px)', transition: 'all 0.3s' }} onClick={onClose} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--vq-scrim)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
             <div style={{
-                width: 600,
-                background: vq.void[800],
-                overflowY: 'auto',
-                boxShadow: '-10px 0 40px rgba(0,0,0,0.6)',
+                position: 'absolute',
+                top: 0, right: 0, bottom: 0,
+                width: 620,
+                maxWidth: '100%',
+                background: t.panelSolid,
+                borderLeft: `1px solid ${t.border2}`,
+                boxShadow: t.shadow,
                 display: 'flex',
                 flexDirection: 'column',
-                borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
-                position: 'relative'
+                overflowY: 'auto',
+                zIndex: 2,
             }}>
-                {/* Decorative Glowing Edge */}
-                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 2, background: 'linear-gradient(to bottom, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))' }} />
-
-                <div style={{ padding: '28px 32px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* Drawer Header */}
+                <div style={{ padding: '22px 28px', borderBottom: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: t.panelSolid, position: 'sticky', top: 0, zIndex: 3 }}>
                     <div>
-                        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: vq.slate[50], display: 'flex', alignItems: 'center', gap: 10, letterSpacing: '-0.02em' }}>
-                            <Layers size={20} color={vq.indigo[400]} /> {isEdit ? `Edit Plan: ${plan.name}` : 'Create New Plan'}
+                        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: t.ink, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Layers size={18} style={{ color: BRAND.indigo }} /> {isEdit ? `Edit Tier: ${plan.name}` : 'Create Subscription Tier'}
                         </h2>
-                        <span style={{ fontSize: 11, color: vq.slate[500], fontFamily: 'monospace', marginTop: 4, display: 'block' }}>Standard-aligned subscription pipeline parameters</span>
+                        <span style={{ fontSize: 12, color: t.muted, marginTop: 2, display: 'block' }}>Platform subscription pipeline parameters</span>
                     </div>
-                    <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.04)', border: 'none', color: vq.slate[400], width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.15)'} onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}>✕</button>
+                    <button
+                        onClick={onClose}
+                        style={{
+                            background: t.inputBg,
+                            border: `1px solid ${t.border}`,
+                            color: t.muted,
+                            width: 32,
+                            height: 32,
+                            borderRadius: 10,
+                            display: 'grid',
+                            placeItems: 'center',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <X size={16} />
+                    </button>
                 </div>
 
-                <form onSubmit={submit} style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-                    {/* Section 1: Basic Info */}
-                    <section style={cardSection}>
-                        <h3 style={sectionTitle}><Info size={12} /> Basic Config</h3>
-                        <div style={grid2}>
-                            <Field label="Platform System" error={errors.platform_id}>
-                                <select style={input} value={data.platform_id} onChange={e => setData('platform_id', e.target.value)} disabled={isEdit}>
+                <form onSubmit={submit} style={{ flex: 1, padding: '28px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    {/* Basic Config */}
+                    <Panel pad={16} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: BRAND.indigo, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Info size={13} /> Basic Configuration
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <FormField label="Platform System" error={errors.platform_id}>
+                                <select
+                                    style={{
+                                        width: '100%', padding: '9px 12px', fontSize: 13, borderRadius: 10,
+                                        background: t.inputBg, color: t.ink, border: `1px solid ${t.inputBorder}`, outline: 'none'
+                                    }}
+                                    value={data.platform_id}
+                                    onChange={e => setData('platform_id', e.target.value)}
+                                    disabled={isEdit}
+                                >
                                     {platforms.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                 </select>
-                            </Field>
-                            <Field label="Tier Type" error={errors.type}>
-                                <select style={input} value={data.type} onChange={e => setData('type', e.target.value)}>
+                            </FormField>
+                            <FormField label="Tier Type" error={errors.type}>
+                                <select
+                                    style={{
+                                        width: '100%', padding: '9px 12px', fontSize: 13, borderRadius: 10,
+                                        background: t.inputBg, color: t.ink, border: `1px solid ${t.inputBorder}`, outline: 'none'
+                                    }}
+                                    value={data.type}
+                                    onChange={e => setData('type', e.target.value)}
+                                >
                                     {['trial','subscription','ltd','enterprise'].map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
                                 </select>
-                            </Field>
+                            </FormField>
                         </div>
-                        <div style={grid3}>
-                            <Field label="Plan Title" error={errors.name}>
-                                <input style={input} value={data.name} onChange={e => setData('name', e.target.value)} placeholder="e.g. Starter" />
-                            </Field>
-                            <Field label="Display Name" error={errors.display_name}>
-                                <input style={input} value={data.display_name} onChange={e => setData('display_name', e.target.value)} placeholder="e.g. Starter Engine" />
-                            </Field>
-                            <Field label="Identifier Slug" error={errors.slug}>
-                                <input style={input} value={data.slug} onChange={e => setData('slug', e.target.value)} placeholder="e.g. starter" disabled={isEdit} />
-                            </Field>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                            <FormField label="Plan Title" error={errors.name}>
+                                <Input value={data.name} onChange={e => setData('name', e.target.value)} placeholder="e.g. Starter" />
+                            </FormField>
+                            <FormField label="Display Name" error={errors.display_name}>
+                                <Input value={data.display_name} onChange={e => setData('display_name', e.target.value)} placeholder="e.g. Starter Engine" />
+                            </FormField>
+                            <FormField label="Identifier Slug" error={errors.slug}>
+                                <Input value={data.slug} onChange={e => setData('slug', e.target.value)} placeholder="e.g. starter" disabled={isEdit} />
+                            </FormField>
                         </div>
-                        <div style={grid3}>
-                            <ToggleField label="Featured Tier" value={data.is_featured} onChange={v => setData('is_featured', v)} />
-                            <ToggleField label="Active State"   value={data.is_active}   onChange={v => setData('is_active', v)} />
-                            <ToggleField label="Visible public"  value={data.is_visible}  onChange={v => setData('is_visible', v)} />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                            <FormField label="Featured Tier">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={data.is_featured ? 'primary' : 'secondary'}
+                                    onClick={() => setData('is_featured', !data.is_featured)}
+                                    style={{ width: '100%' }}
+                                >
+                                    {data.is_featured ? '★ Featured' : 'Normal'}
+                                </Button>
+                            </FormField>
+                            <FormField label="Active State">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={data.is_active ? 'success' : 'secondary'}
+                                    onClick={() => setData('is_active', !data.is_active)}
+                                    style={{ width: '100%' }}
+                                >
+                                    {data.is_active ? '✓ Active' : 'Inactive'}
+                                </Button>
+                            </FormField>
+                            <FormField label="Public Visibility">
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={data.is_visible ? 'primary' : 'secondary'}
+                                    onClick={() => setData('is_visible', !data.is_visible)}
+                                    style={{ width: '100%' }}
+                                >
+                                    {data.is_visible ? 'Visible' : 'Hidden'}
+                                </Button>
+                            </FormField>
                         </div>
-                        <Field label="Sort Priority Order" error={errors.sort_order}>
-                            <input style={{ ...input, width: 120 }} type="number" value={data.sort_order} onChange={e => setData('sort_order', +e.target.value)} />
-                        </Field>
-                    </section>
+                    </Panel>
 
-                    {/* Section 2: Pricing */}
-                    <section style={cardSection}>
-                        <h3 style={sectionTitle}><Zap size={12} /> Standard Monies (USD)</h3>
-                        <div style={grid3}>
-                            <Field label="Monthly Rate" error={errors.price_monthly}>
-                                <div style={{ position: 'relative' }}>
-                                    <span style={inputPrefix}>$</span>
-                                    <input style={{ ...input, paddingLeft: 24 }} type="number" step="0.01" value={data.price_monthly} onChange={e => setData('price_monthly', e.target.value)} placeholder="29.00" />
-                                </div>
-                            </Field>
-                            <Field label="Annual Rate" error={errors.price_annual}>
-                                <div style={{ position: 'relative' }}>
-                                    <span style={inputPrefix}>$</span>
-                                    <input style={{ ...input, paddingLeft: 24 }} type="number" step="0.01" value={data.price_annual} onChange={e => setData('price_annual', e.target.value)} placeholder="290.00" />
-                                </div>
-                            </Field>
-                            <Field label="Lifetime (LTD)" error={errors.price_lifetime}>
-                                <div style={{ position: 'relative' }}>
-                                    <span style={inputPrefix}>$</span>
-                                    <input style={{ ...input, paddingLeft: 24 }} type="number" step="0.01" value={data.price_lifetime} onChange={e => setData('price_lifetime', e.target.value)} placeholder="179.00" />
-                                </div>
-                            </Field>
+                    {/* Standard Pricing */}
+                    <Panel pad={16} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: BRAND.indigo, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Zap size={13} /> Standard Monies (USD)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                            <FormField label="Monthly Rate ($)" error={errors.price_monthly}>
+                                <Input type="number" step="0.01" value={data.price_monthly} onChange={e => setData('price_monthly', e.target.value)} placeholder="29.00" />
+                            </FormField>
+                            <FormField label="Annual Rate ($)" error={errors.price_annual}>
+                                <Input type="number" step="0.01" value={data.price_annual} onChange={e => setData('price_annual', e.target.value)} placeholder="290.00" />
+                            </FormField>
+                            <FormField label="Lifetime LTD ($)" error={errors.price_lifetime}>
+                                <Input type="number" step="0.01" value={data.price_lifetime} onChange={e => setData('price_lifetime', e.target.value)} placeholder="179.00" />
+                            </FormField>
                         </div>
 
-                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 16 }}>
-                            <h4 style={{ ...sectionTitle, color: vq.emerald[400], fontSize: 11, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {/* Localized PKR Overrides */}
+                        <div style={{ borderTop: `1px solid ${t.border}`, paddingTop: 12 }}>
+                            <div style={{ fontSize: 11.5, fontWeight: 800, color: BRAND.emerald, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                                 🇵🇰 Localized Rupee Pricing (PKR Overrides)
-                            </h4>
-                            <div style={grid3}>
-                                <Field label="Monthly (PKR)" error={errors.price_monthly_pkr}>
-                                    <div style={{ position: 'relative' }}>
-                                        <span style={{ ...inputPrefix, color: vq.emerald[400] }}>Rs</span>
-                                        <input style={{ ...input, paddingLeft: 30 }} type="number" value={data.price_monthly_pkr} onChange={e => setData('price_monthly_pkr', e.target.value)} placeholder="1100" />
-                                    </div>
-                                </Field>
-                                <Field label="Annual (PKR)" error={errors.price_annual_pkr}>
-                                    <div style={{ position: 'relative' }}>
-                                        <span style={{ ...inputPrefix, color: vq.emerald[400] }}>Rs</span>
-                                        <input style={{ ...input, paddingLeft: 30 }} type="number" value={data.price_annual_pkr} onChange={e => setData('price_annual_pkr', e.target.value)} placeholder="11000" />
-                                    </div>
-                                </Field>
-                                <Field label="Lifetime (PKR)" error={errors.price_lifetime_pkr}>
-                                    <div style={{ position: 'relative' }}>
-                                        <span style={{ ...inputPrefix, color: vq.emerald[400] }}>Rs</span>
-                                        <input style={{ ...input, paddingLeft: 30 }} type="number" value={data.price_lifetime_pkr} onChange={e => setData('price_lifetime_pkr', e.target.value)} placeholder="22120" />
-                                    </div>
-                                </Field>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                                <FormField label="Monthly (PKR)" error={errors.price_monthly_pkr}>
+                                    <Input type="number" value={data.price_monthly_pkr} onChange={e => setData('price_monthly_pkr', e.target.value)} placeholder="1100" />
+                                </FormField>
+                                <FormField label="Annual (PKR)" error={errors.price_annual_pkr}>
+                                    <Input type="number" value={data.price_annual_pkr} onChange={e => setData('price_annual_pkr', e.target.value)} placeholder="11000" />
+                                </FormField>
+                                <FormField label="Lifetime (PKR)" error={errors.price_lifetime_pkr}>
+                                    <Input type="number" value={data.price_lifetime_pkr} onChange={e => setData('price_lifetime_pkr', e.target.value)} placeholder="22120" />
+                                </FormField>
                             </div>
                         </div>
-                    </section>
+                    </Panel>
 
-                    {/* Section 2.5: Gateway Checkout URLs */}
-                    <section style={cardSection}>
-                        <h3 style={sectionTitle}><Ticket size={12} /> Lemon Squeezy Gateway Routing</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <Field label="Standard Checkout URL (USD)" error={errors.checkout_url_usd}>
-                                <input style={input} type="url" value={data.checkout_url_usd} onChange={e => setData('checkout_url_usd', e.target.value)} placeholder="https://checkout.lemonsqueezy.com/buy/..." />
-                            </Field>
-                            <Field label="Localized Checkout URL (PKR)" error={errors.checkout_url_pkr}>
-                                <input style={input} type="url" value={data.checkout_url_pkr} onChange={e => setData('checkout_url_pkr', e.target.value)} placeholder="https://checkout.lemonsqueezy.com/buy/..." />
-                            </Field>
+                    {/* Gateway Checkout URLs */}
+                    <Panel pad={16} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: BRAND.indigo, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Ticket size={13} /> Payment Gateway Routing
                         </div>
-                    </section>
+                        <FormField label="Standard Checkout URL (USD)" error={errors.checkout_url_usd}>
+                            <Input type="url" value={data.checkout_url_usd} onChange={e => setData('checkout_url_usd', e.target.value)} placeholder="https://checkout.lemonsqueezy.com/buy/..." />
+                        </FormField>
+                        <FormField label="Localized Checkout URL (PKR)" error={errors.checkout_url_pkr}>
+                            <Input type="url" value={data.checkout_url_pkr} onChange={e => setData('checkout_url_pkr', e.target.value)} placeholder="https://checkout.lemonsqueezy.com/buy/..." />
+                        </FormField>
+                    </Panel>
 
-                    {/* Section 3: Limits */}
-                    <section style={cardSection}>
-                        <h3 style={sectionTitle}><Server size={12} /> System Limits & Allowances</h3>
-                        <div style={{ overflowX: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.04)' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    {/* System Limits & Allowances */}
+                    <Panel pad={16} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: BRAND.indigo, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Server size={13} /> System Limits & Allowances
+                        </div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-                                        {['System Feature / Key Allowances', 'Max Allowance (blank = ∞)', 'Reset Frequency'].map(h => (
-                                            <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: vq.slate[500], fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
-                                        ))}
+                                    <tr style={{ borderBottom: `1px solid ${t.border}`, background: t.panel2 }}>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', color: t.muted, fontWeight: 800, textTransform: 'uppercase' }}>Feature / Key</th>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', color: t.muted, fontWeight: 800, textTransform: 'uppercase' }}>Allowance (blank = ∞)</th>
+                                        <th style={{ padding: '8px 12px', textAlign: 'left', color: t.muted, fontWeight: 800, textTransform: 'uppercase' }}>Reset Period</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {data.limits.map((lim, i) => (
-                                        <tr key={lim.key} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                                            <td style={{ padding: '12px 14px', color: vq.slate[200], fontSize: 12, fontWeight: 600 }}>{LIMIT_KEYS[i]?.label || lim.key}</td>
-                                            <td style={{ padding: '8px 14px' }}>
-                                                <input
-                                                    style={{ ...input, padding: '6px 12px', fontSize: 12, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}
+                                        <tr key={lim.key} style={{ borderBottom: `1px solid ${t.rowBorder}` }}>
+                                            <td style={{ padding: '8px 12px', color: t.ink, fontWeight: 700 }}>
+                                                {LIMIT_KEYS[i]?.label || lim.key}
+                                            </td>
+                                            <td style={{ padding: '6px 12px' }}>
+                                                <Input
+                                                    style={{ padding: '6px 10px', fontSize: 12 }}
                                                     value={lim.value ?? ''}
                                                     placeholder="Unlimited"
                                                     onChange={e => {
@@ -917,9 +901,12 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                                                     }}
                                                 />
                                             </td>
-                                            <td style={{ padding: '8px 14px' }}>
+                                            <td style={{ padding: '6px 12px' }}>
                                                 <select
-                                                    style={{ ...input, padding: '6px 12px', fontSize: 12, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }}
+                                                    style={{
+                                                        width: '100%', padding: '6px 10px', fontSize: 12, borderRadius: 9,
+                                                        background: t.inputBg, color: t.ink, border: `1px solid ${t.inputBorder}`, outline: 'none'
+                                                    }}
                                                     value={lim.reset_period}
                                                     onChange={e => {
                                                         const updated = [...data.limits];
@@ -935,24 +922,33 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                                 </tbody>
                             </table>
                         </div>
-                    </section>
+                    </Panel>
 
-                    {/* Section 4: Internal Notes */}
-                    <section style={cardSection}>
-                        <h3 style={sectionTitle}><Award size={12} /> Executive Internal Notes</h3>
+                    {/* Internal Notes */}
+                    <Panel pad={16} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: BRAND.indigo, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Award size={13} /> Internal Notes
+                        </div>
                         <textarea
-                            style={{ ...input, height: 80, resize: 'vertical', fontFamily: 'inherit' }}
+                            style={{
+                                width: '100%', height: 70, resize: 'vertical', fontFamily: 'inherit',
+                                borderRadius: 10, background: t.inputBg, color: t.ink, border: `1px solid ${t.inputBorder}`,
+                                padding: '10px 12px', fontSize: 12.5, outline: 'none'
+                            }}
                             value={data.internal_notes}
                             onChange={e => setData('internal_notes', e.target.value)}
-                            placeholder="Notes for the platforms team only. Highly confidential..."
+                            placeholder="Platform team confidential notes…"
                         />
-                    </section>
+                    </Panel>
 
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: '12px', paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                        <button type="button" onClick={onClose} style={btnSecondary}>Cancel</button>
-                        <button type="submit" disabled={processing} style={btnPrimary}>
-                            {processing ? 'Saving...' : isEdit ? 'Save Changes' : 'Publish Plan'}
-                        </button>
+                    {/* Footer buttons */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, paddingTop: 12, borderTop: `1px solid ${t.border}` }}>
+                        <Button type="button" variant="secondary" onClick={onClose}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" variant="primary" disabled={processing}>
+                            {processing ? 'Saving…' : isEdit ? 'Save Changes' : 'Publish Plan'}
+                        </Button>
                     </div>
                 </form>
             </div>
@@ -962,38 +958,41 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
-export default function PlansIndex({ plans, platforms }) {
+export default function PlansIndex({ plans = [], platforms = [] }) {
+    const t = useT();
     const [activeTab, setActiveTab]   = useState(platforms[0]?.id);
     const [viewMode, setViewMode]     = useState('list');   // 'list' | 'matrix'
     const [drawerPlan, setDrawerPlan] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
 
-    const filteredPlans = plans.filter(p => p.platform_id === activeTab);
+    const filteredPlans = useMemo(() => {
+        return plans.filter(p => p.platform_id === activeTab);
+    }, [plans, activeTab]);
 
     const openCreate  = () => { setDrawerPlan(null); setDrawerOpen(true); };
     const openEdit    = (plan) => { setDrawerPlan(plan); setDrawerOpen(true); };
     const closeDrawer = () => setDrawerOpen(false);
 
     const duplicate = (plan) => {
-        if (confirm(`Duplicate subscription plan "${plan.name}"?`)) {
+        if (confirm(`Duplicate subscription tier "${plan.name}"?`)) {
             router.post(route('platform.plans.duplicate', { plan: plan.id }));
         }
     };
 
     const destroy = (plan) => {
-        if (confirm(`Delete subscription plan "${plan.name}"? This is completely irreversible.`)) {
+        if (confirm(`Delete subscription tier "${plan.name}"? Irreversible action.`)) {
             router.delete(route('platform.plans.destroy', { plan: plan.id }));
         }
     };
 
     const archive = (plan) => {
-        if (confirm(`Archive subscription plan "${plan.name}"? This will disable it and hide it from signup lists.`)) {
+        if (confirm(`Archive subscription tier "${plan.name}"? This will disable it and hide it from signup lists.`)) {
             router.post(route('platform.plans.archive', { plan: plan.id }));
         }
     };
 
     const unarchive = (plan) => {
-        if (confirm(`Unarchive subscription plan "${plan.name}"?`)) {
+        if (confirm(`Unarchive subscription tier "${plan.name}"?`)) {
             router.post(route('platform.plans.unarchive', { plan: plan.id }));
         }
     };
@@ -1002,63 +1001,54 @@ export default function PlansIndex({ plans, platforms }) {
         router.put(route('platform.plans.update', { plan: plan.id }), { is_active: !plan.is_active });
     };
 
+    const totalActiveTenants = useMemo(() => {
+        return filteredPlans.reduce((sum, p) => sum + (p.active_tenant_count || 0), 0);
+    }, [filteredPlans]);
+
     return (
-        <OneGlanceLayout title="SaaS Subscriptions" mode="admin" activeMenu="Plans & Limits">
+        <PlatformLayout title="SaaS Subscriptions & Tiers">
             <Head title="Plans & Limits | VenQore Platform HQ" />
 
-            <style>{`
-                .badge-glass {
-                    padding: 4px 10px;
-                    border-radius: 8px;
-                    font-size: 11px;
-                    font-weight: 800;
-                    letter-spacing: 0.05em;
-                    text-transform: uppercase;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 5px;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateX(20px); }
-                    to   { opacity: 1; transform: translateX(0); }
-                }
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to   { transform: rotate(360deg); }
-                }
-`}</style>
+            <div style={{ maxWidth: 1440, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+                {/* ── Page Header ────────────────────────────────────────── */}
+                <PageHeader
+                    title="Subscription Tiers & Plan Matrix"
+                    subtitle="Configure plan allowances, limits, local pricing overrides, and capability matrices across all platform systems."
+                    icon={Layers}
+                    accent={BRAND.indigo}
+                    actions={
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                            <Link href={route('platform.dashboard')}>
+                                <Button variant="secondary" icon={ArrowLeft} size="sm">
+                                    Dashboard
+                                </Button>
+                            </Link>
 
-            <div style={{ padding: '32px 40px', minHeight: '100vh', background: vq.gray[950], position: 'relative', overflow: 'hidden' }}>
-
-                {/* Background Auroras */}
-                <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)', filter: 'blur(80px)', pointerEvents: 'none' }} />
-                <div style={{ position: 'absolute', bottom: '-15%', left: '-5%', width: 550, height: 550, background: 'radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-
-                <div style={{ position: 'relative', zIndex: 10 }}>
-                    {/* Page Header */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, marginBottom: 36 }}>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: vq.indigo[400], fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 6 }}>
-                                <Activity size={14} /> Monetization Pipeline
-                            </div>
-                            <h1 style={{ margin: 0, fontSize: 32, fontWeight: 900, color: vq.slate[50], letterSpacing: '-0.03em' }}>Subscription Tiers</h1>
-                            <p style={{ margin: '6px 0 0', color: vq.slate[500], fontSize: 14, maxWidth: 550, lineHeight: 1.6 }}>
-                                Edit limit matrices, toggle features per tier, and configure pricing. Changes propagate instantly to all active tenants.
-                            </p>
-                        </div>
-                        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                             {/* View Mode Toggle */}
-                            <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 3 }}>
+                            <div style={{
+                                display: 'inline-flex',
+                                background: t.inputBg,
+                                border: `1px solid ${t.border}`,
+                                borderRadius: 12,
+                                padding: 3,
+                                gap: 2,
+                            }}>
                                 <button
                                     onClick={() => setViewMode('list')}
                                     style={{
-                                        background: viewMode === 'list' ? 'rgba(99,102,241,0.15)' : 'transparent',
-                                        color: viewMode === 'list' ? vq.indigo[300] : vq.slate[500],
-                                        border: viewMode === 'list' ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
-                                        padding: '8px 16px', borderRadius: 9,
-                                        fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', gap: 6,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6,
+                                        padding: '6px 14px',
+                                        fontSize: 12.5,
+                                        fontWeight: 800,
+                                        borderRadius: 9,
+                                        border: 'none',
+                                        cursor: 'pointer',
                                         transition: 'all 0.15s',
+                                        background: viewMode === 'list' ? `${BRAND.indigo}1f` : 'transparent',
+                                        color: viewMode === 'list' ? BRAND.indigo : t.muted,
+                                        boxShadow: viewMode === 'list' ? `0 0 0 1px ${BRAND.indigo}44` : 'none',
                                     }}
                                 >
                                     <Table2 size={13} /> Plans List
@@ -1066,148 +1056,223 @@ export default function PlansIndex({ plans, platforms }) {
                                 <button
                                     onClick={() => setViewMode('matrix')}
                                     style={{
-                                        background: viewMode === 'matrix' ? 'rgba(99,102,241,0.15)' : 'transparent',
-                                        color: viewMode === 'matrix' ? vq.indigo[300] : vq.slate[500],
-                                        border: viewMode === 'matrix' ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
-                                        padding: '8px 16px', borderRadius: 9,
-                                        fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', gap: 6,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 6,
+                                        padding: '6px 14px',
+                                        fontSize: 12.5,
+                                        fontWeight: 800,
+                                        borderRadius: 9,
+                                        border: 'none',
+                                        cursor: 'pointer',
                                         transition: 'all 0.15s',
+                                        background: viewMode === 'matrix' ? `${BRAND.indigo}1f` : 'transparent',
+                                        color: viewMode === 'matrix' ? BRAND.indigo : t.muted,
+                                        boxShadow: viewMode === 'matrix' ? `0 0 0 1px ${BRAND.indigo}44` : 'none',
                                     }}
                                 >
                                     <Grid3x3 size={13} /> Feature Matrix
                                 </button>
                             </div>
+
                             {viewMode === 'list' && (
-                                <button onClick={openCreate} style={btnPrimary}>+ Create New Plan</button>
+                                <Button variant="primary" size="sm" onClick={openCreate}>
+                                    + Create New Plan
+                                </Button>
                             )}
                         </div>
-                    </div>
+                    }
+                />
 
-                    {/* Platform Tabs Navigation */}
-                    <div style={{ display: 'flex', gap: 6, borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 32, paddingBottom: 2 }}>
-                        {platforms.map(p => {
-                            const isTabActive = activeTab === p.id;
-                            return (
-                                <button
-                                    key={p.id}
-                                    onClick={() => setActiveTab(p.id)}
-                                    style={{
-                                        background: isTabActive ? 'rgba(99,102,241,0.12)' : 'transparent',
-                                        border: `1px solid ${isTabActive ? 'rgba(99,102,241,0.4)' : 'transparent'}`,
-                                        color: isTabActive ? vq.indigo[300] : vq.slate[500],
-                                        padding: '10px 22px',
-                                        fontSize: 13, fontWeight: 800, cursor: 'pointer',
-                                        borderRadius: '12px 12px 0 0',
-                                        transition: 'all 0.20s',
-                                        display: 'flex', alignItems: 'center', gap: 8,
-                                    }}
-                                >
-                                    <Database size={13} /> {p.name}
-                                    <span style={{
-                                        marginLeft: 6,
-                                        background: isTabActive ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.03)',
-                                        color: isTabActive ? vq.indigo[200] : vq.slate[600],
-                                        padding: '2px 8px', borderRadius: 6,
-                                        fontSize: 10, fontFamily: 'monospace', fontWeight: 900
-                                    }}>
-                                        {plans.filter(pl => pl.platform_id === p.id).length}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                {/* ── KPI Metrics Bar ────────────────────────────────────── */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                    <KpiCard
+                        label="Registered Tiers"
+                        value={filteredPlans.length}
+                        sub="In active platform system"
+                        icon={Layers}
+                        accent={BRAND.indigo}
+                    />
+                    <KpiCard
+                        label="Active Merchant Stores"
+                        value={totalActiveTenants}
+                        sub="Subscribers on selected tiers"
+                        icon={ShoppingBag}
+                        accent={BRAND.emerald}
+                    />
+                    <KpiCard
+                        label="Feature Matrix Gates"
+                        value={TOTAL_FEATURES || 184}
+                        sub="Fine-grained system toggles"
+                        icon={Grid3x3}
+                        accent={BRAND.purple}
+                    />
+                </div>
 
-                    {/* ── Plans List View ─────────────────────────────────────── */}
-                    {viewMode === 'list' && (
-                        <div style={{
-                            background: 'rgba(30,41,59,0.3)',
-                            borderRadius: 24,
-                            border: '1px solid rgba(255,255,255,0.06)',
-                            backdropFilter: 'blur(12px)',
-                            overflow: 'hidden',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-                        }}>
-                            <div style={{ overflowX: 'auto' }}>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                                    <thead>
-                                        <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                                            {['Subscription Tier', 'Platform Type', 'Standard Pricing', 'Active Stores', 'Key Limits Matrix', 'Visibility', 'Operator Control'].map(h => (
-                                                <th key={h} style={{ padding: '16px 20px', textAlign: 'left', color: vq.slate[400], fontWeight: 800, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
-                                            ))}
+                {/* ── Platform Tabs Navigation ───────────────────────────── */}
+                <div style={{
+                    display: 'flex',
+                    borderBottom: `1px solid ${t.border}`,
+                    gap: 8,
+                    paddingBottom: 2,
+                }}>
+                    {platforms.map(p => {
+                        const isTabActive = activeTab === p.id;
+                        const planCount = plans.filter(pl => pl.platform_id === p.id).length;
+
+                        return (
+                            <button
+                                key={p.id}
+                                onClick={() => setActiveTab(p.id)}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 8,
+                                    padding: '10px 18px',
+                                    fontSize: 13,
+                                    fontWeight: 800,
+                                    border: 'none',
+                                    borderBottom: `2px solid ${isTabActive ? BRAND.indigo : 'transparent'}`,
+                                    background: 'transparent',
+                                    color: isTabActive ? t.ink : t.muted,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    marginBottom: -2,
+                                }}
+                            >
+                                <Database size={14} style={{ color: isTabActive ? BRAND.indigo : t.muted }} />
+                                <span>{p.name}</span>
+                                <span style={{
+                                    fontSize: 11,
+                                    padding: '2px 7px',
+                                    borderRadius: 999,
+                                    background: isTabActive ? `${BRAND.indigo}18` : t.inputBg,
+                                    color: isTabActive ? BRAND.indigo : t.muted,
+                                    fontWeight: 700,
+                                }}>
+                                    {planCount}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* ── View 1: Plans List ──────────────────────────────────── */}
+                {viewMode === 'list' && (
+                    <Panel pad={0} style={{ overflow: 'hidden' }}>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: 800 }}>
+                                <thead>
+                                    <tr style={{ background: t.panel2, borderBottom: `1px solid ${t.border}` }}>
+                                        {['Subscription Tier', 'Platform Type', 'Standard Pricing', 'Active Stores', 'Key Limits Matrix', 'Visibility', 'Operator Control'].map(h => (
+                                            <th key={h} style={{ padding: '14px 20px', fontSize: 11, fontWeight: 800, color: t.muted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredPlans.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7}>
+                                                <EmptyState
+                                                    icon={LayoutGrid}
+                                                    title="No plans registered"
+                                                    message="No subscription tiers have been created for this platform system yet."
+                                                    action={
+                                                        <Button size="sm" variant="primary" onClick={openCreate}>
+                                                            + Create First Plan
+                                                        </Button>
+                                                    }
+                                                />
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredPlans.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={7} style={{ padding: '72px 0', textAlign: 'center', color: vq.slate[600], fontSize: 14 }}>
-                                                    <LayoutGrid size={24} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                                                    No plans registered under this platform yet. Click "+ Create New Plan" to establish one.
-                                                </td>
-                                            </tr>
-                                        ) : filteredPlans.map((plan, i) => (
+                                    ) : (
+                                        filteredPlans.map(plan => (
                                             <tr
                                                 key={plan.id}
-                                                style={{ borderTop: i > 0 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.15s ease' }}
-                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
-                                                onMouseLeave={e => e.currentTarget.style.background = ''}
+                                                style={{ borderBottom: `1px solid ${t.rowBorder}`, transition: 'background 0.15s' }}
+                                                onMouseEnter={e => { e.currentTarget.style.background = t.hover; }}
+                                                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                                             >
-                                                <td style={{ padding: '18px 20px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: plan.is_active ? vq.emerald[500] : vq.slate[500], boxShadow: plan.is_active ? '0 0 8px rgb(var(--vq-emerald-500))' : 'none', flexShrink: 0 }} />
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                                        <div style={{
+                                                            width: 8, height: 8, borderRadius: '50%',
+                                                            background: plan.is_active ? BRAND.emerald : t.muted,
+                                                            boxShadow: plan.is_active ? `0 0 8px ${BRAND.emerald}` : 'none',
+                                                            flexShrink: 0
+                                                        }} />
                                                         <div>
-                                                            <div style={{ fontWeight: 800, color: vq.slate[100], fontSize: 14 }}>{plan.name}</div>
-                                                            <div style={{ fontSize: 10, color: vq.slate[600], marginTop: 2, fontFamily: 'monospace' }}>{plan.slug}</div>
+                                                            <div style={{ fontWeight: 800, color: t.ink, fontSize: 14 }}>
+                                                                {plan.name}
+                                                            </div>
+                                                            <div style={{ fontSize: 10.5, color: t.muted, marginTop: 2, fontFamily: 'monospace' }}>
+                                                                {plan.slug}
+                                                            </div>
                                                         </div>
-                                                        {plan.is_featured && <span style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: vq.amber[400], fontSize: 9, padding: '2px 8px', borderRadius: 6, fontWeight: 900, letterSpacing: '0.08em' }}><Star size={8} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />FEATURED</span>}
+                                                        {plan.is_featured && (
+                                                            <Badge color={BRAND.amber} tone="soft">
+                                                                <Star size={9} /> Featured
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                 </td>
-                                                <td style={{ padding: '18px 20px' }}>
-                                                    <span style={{ background: planTypeColor(plan.type) + '15', color: planTypeColor(plan.type), border: `1px solid ${planTypeColor(plan.type)}30`, padding: '3px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, textTransform: 'uppercase' }}>
+
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <Badge color={planTypeColor(plan.type)} tone="soft">
                                                         {plan.type}
-                                                    </span>
+                                                    </Badge>
                                                 </td>
-                                                <td style={{ padding: '18px 20px', color: vq.slate[300], fontSize: 13, fontWeight: 600 }}>
+
+                                                <td style={{ padding: '16px 20px', fontSize: 13, fontWeight: 700, color: t.sub }}>
                                                     <div>
                                                         {plan.price_monthly  ? `$${parseFloat(plan.price_monthly).toFixed(0)}/mo` : ''}
                                                         {plan.price_annual   ? ` · $${parseFloat(plan.price_annual).toFixed(0)}/yr` : ''}
                                                         {plan.price_lifetime ? `$${parseFloat(plan.price_lifetime).toFixed(0)} once` : ''}
-                                                        {!plan.price_monthly && !plan.price_annual && !plan.price_lifetime ? <span style={{ color: vq.slate[600] }}>—</span> : ''}
+                                                        {!plan.price_monthly && !plan.price_annual && !plan.price_lifetime ? <span style={{ color: t.muted }}>—</span> : ''}
                                                     </div>
                                                     {(plan.price_monthly_pkr || plan.price_annual_pkr || plan.price_lifetime_pkr) && (
-                                                        <div style={{ fontSize: 11, color: vq.emerald[500], marginTop: 4, fontWeight: 700 }}>
+                                                        <div style={{ fontSize: 11, color: BRAND.emerald, marginTop: 4, fontWeight: 700 }}>
                                                             {plan.price_monthly_pkr  ? `Rs ${parseFloat(plan.price_monthly_pkr).toFixed(0)}/mo` : ''}
                                                             {plan.price_annual_pkr   ? ` · Rs ${parseFloat(plan.price_annual_pkr).toFixed(0)}/yr` : ''}
                                                             {plan.price_lifetime_pkr ? ` · Rs ${parseFloat(plan.price_lifetime_pkr).toFixed(0)} once` : ''}
                                                         </div>
                                                     )}
                                                 </td>
-                                                <td style={{ padding: '18px 20px' }}>
-                                                    <span style={{ fontWeight: 900, color: plan.active_tenant_count > 0 ? vq.emerald[500] : vq.slate[600], fontSize: 16, fontFamily: 'monospace' }}>
+
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <span style={{ fontWeight: 900, color: plan.active_tenant_count > 0 ? BRAND.emerald : t.muted, fontSize: 15, fontFamily: 'monospace' }}>
                                                         {plan.active_tenant_count ?? 0}
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: '18px 20px' }}>
-                                                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 400 }}>
-                                                        {plan.limits?.slice(0, 4).map(l => (
-                                                            <span key={l.key} style={{ fontSize: 10, color: vq.slate[400], background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.04)', padding: '3px 8px', borderRadius: 6, fontFamily: 'monospace' }}>
+
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', maxWidth: 360 }}>
+                                                        {plan.limits?.slice(0, 3).map(l => (
+                                                            <span key={l.key} style={{ fontSize: 10, color: t.sub, background: t.inputBg, border: `1px solid ${t.border}`, padding: '2px 7px', borderRadius: 6, fontFamily: 'monospace' }}>
                                                                 {LIMIT_KEYS.find(k => k.key === l.key)?.label.replace(' Integration', '').replace(' AI', '').replace(' Support', '') || l.key}: {l.value ?? '∞'}
                                                             </span>
                                                         ))}
-                                                        {plan.limits?.length > 4 && <span style={{ fontSize: 9, color: vq.slate[600], padding: '3px 6px', fontWeight: 700 }}>+{plan.limits.length - 4} more</span>}
+                                                        {plan.limits?.length > 3 && (
+                                                            <span style={{ fontSize: 10, color: t.muted, padding: '2px 6px', fontWeight: 700 }}>
+                                                                +{plan.limits.length - 3} more
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </td>
-                                                <td style={{ padding: '18px 20px' }}>
+
+                                                <td style={{ padding: '16px 20px' }}>
                                                     {plan.archived_at ? (
-                                                        <span style={{ color: vq.red[500], background: 'rgba(239,68,68,0.1)', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, border: '1px solid rgba(239,68,68,0.2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Archived</span>
+                                                        <Badge color={BRAND.rose} tone="soft">Archived</Badge>
                                                     ) : (
                                                         <button
                                                             onClick={() => toggleActive(plan)}
                                                             style={{
-                                                                background: plan.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
-                                                                color: plan.is_active ? vq.emerald[500] : vq.slate[500],
-                                                                border: `1px solid ${plan.is_active ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)'}`,
-                                                                padding: '4px 14px', borderRadius: 8,
+                                                                background: plan.is_active ? `${BRAND.emerald}18` : t.inputBg,
+                                                                color: plan.is_active ? BRAND.emerald : t.muted,
+                                                                border: `1px solid ${plan.is_active ? `${BRAND.emerald}44` : t.border}`,
+                                                                padding: '4px 12px', borderRadius: 8,
                                                                 fontSize: 11, fontWeight: 800, cursor: 'pointer',
                                                                 textTransform: 'uppercase', letterSpacing: '0.05em',
                                                                 transition: 'all 0.15s ease'
@@ -1217,149 +1282,83 @@ export default function PlansIndex({ plans, platforms }) {
                                                         </button>
                                                     )}
                                                 </td>
-                                                <td style={{ padding: '18px 20px' }}>
-                                                    <div style={{ display: 'flex', gap: 8 }}>
-                                                        <button onClick={() => openEdit(plan)} style={btnSmall}><Edit3 size={11} /> Edit</button>
-                                                        <button onClick={() => duplicate(plan)} style={btnSmall}><Copy size={11} /> Clone</button>
+
+                                                <td style={{ padding: '16px 20px' }}>
+                                                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                                                        <Button size="sm" variant="secondary" icon={Edit3} onClick={() => openEdit(plan)}>
+                                                            Edit
+                                                        </Button>
+                                                        <Button size="sm" variant="secondary" icon={Copy} onClick={() => duplicate(plan)}>
+                                                            Clone
+                                                        </Button>
                                                         {plan.archived_at ? (
-                                                            <button onClick={() => unarchive(plan)} style={{ ...btnSmall, color: vq.emerald[500], background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)' }} title="Restore Plan">
+                                                            <Button size="sm" variant="secondary" onClick={() => unarchive(plan)} style={{ color: BRAND.emerald }}>
                                                                 Restore
-                                                            </button>
+                                                            </Button>
                                                         ) : (
-                                                            <button onClick={() => archive(plan)} style={{ ...btnSmall, color: vq.amber[500], background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }} title="Archive Plan">
+                                                            <Button size="sm" variant="secondary" onClick={() => archive(plan)} style={{ color: BRAND.amber }}>
                                                                 Archive
-                                                            </button>
+                                                            </Button>
                                                         )}
                                                         <button
                                                             onClick={() => destroy(plan)}
                                                             disabled={plan.active_tenant_count > 0}
                                                             title={plan.active_tenant_count > 0 ? `${plan.active_tenant_count} tenants on this plan` : 'Delete'}
                                                             style={{
-                                                                ...btnSmall,
-                                                                color: vq.red[500],
-                                                                background: 'rgba(239,68,68,0.05)',
-                                                                border: '1px solid rgba(239,68,68,0.15)',
+                                                                background: `${BRAND.rose}15`,
+                                                                border: `1px solid ${BRAND.rose}33`,
+                                                                color: BRAND.rose,
+                                                                borderRadius: 8,
+                                                                padding: 7,
+                                                                cursor: plan.active_tenant_count > 0 ? 'not-allowed' : 'pointer',
                                                                 opacity: plan.active_tenant_count > 0 ? 0.3 : 1,
-                                                                cursor: plan.active_tenant_count > 0 ? 'not-allowed' : 'pointer'
+                                                                display: 'grid',
+                                                                placeItems: 'center',
                                                             }}
                                                         >
-                                                            <Trash2 size={11} />
+                                                            <Trash2 size={13} />
                                                         </button>
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
-                    )}
+                    </Panel>
+                )}
 
-                    {/* ── Feature Matrix View ──────────────────────────────────── */}
-                    {viewMode === 'matrix' && (
-                        filteredPlans.length === 0 ? (
-                            <div style={{ textAlign: 'center', padding: '72px 0', color: vq.slate[600] }}>
-                                <Grid3x3 size={28} style={{ margin: '0 auto 14px', opacity: 0.4 }} />
-                                <p>No plans exist for this platform yet. Create a plan first, then return here to configure its feature matrix.</p>
-                                <button onClick={() => setViewMode('list')} style={{ ...btnPrimary, marginTop: 16 }}>Go to Plans List</button>
-                            </div>
-                        ) : (
-                            <FeatureMatrix plans={filteredPlans} />
-                        )
-                    )}
-                </div>
+                {/* ── View 2: Feature Matrix ──────────────────────────────── */}
+                {viewMode === 'matrix' && (
+                    filteredPlans.length === 0 ? (
+                        <Panel pad={48}>
+                            <EmptyState
+                                icon={Grid3x3}
+                                title="No plans exist for this platform"
+                                message="Create a subscription tier first, then return here to configure its feature matrix."
+                                action={
+                                    <Button size="sm" variant="primary" onClick={() => setViewMode('list')}>
+                                        Go to Plans List
+                                    </Button>
+                                }
+                            />
+                        </Panel>
+                    ) : (
+                        <FeatureMatrix plans={filteredPlans} />
+                    )
+                )}
             </div>
 
-            {drawerOpen && <PlanDrawer open={drawerOpen} onClose={closeDrawer} plan={drawerPlan} platforms={platforms} />}
-        </OneGlanceLayout>
+            {/* Plan Drawer Slide-Out */}
+            {drawerOpen && (
+                <PlanDrawer
+                    open={drawerOpen}
+                    onClose={closeDrawer}
+                    plan={drawerPlan}
+                    platforms={platforms}
+                />
+            )}
+        </PlatformLayout>
     );
 }
-
-// ── Shared Sub-components ─────────────────────────────────────────────────────
-
-function Field({ label, error, children }) {
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-            <label style={{ fontSize: 11, color: vq.slate[400], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
-            {children}
-            {error && <span style={{ fontSize: 11, color: vq.red[500], fontWeight: 600, marginTop: 2 }}>{error}</span>}
-        </div>
-    );
-}
-
-function ToggleField({ label, value, onChange }) {
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-            <label style={{ fontSize: 11, color: vq.slate[400], fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
-            <button
-                type="button"
-                onClick={() => onChange(!value)}
-                style={{
-                    background: value ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.02)',
-                    color: value ? vq.indigo[300] : vq.slate[500],
-                    border: '1px solid ' + (value ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.06)'),
-                    padding: '8px 16px', borderRadius: 10,
-                    fontSize: 12, fontWeight: 800, cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    textTransform: 'uppercase', letterSpacing: '0.05em'
-                }}
-            >
-                {value ? '✓ On' : 'Off'}
-            </button>
-        </div>
-    );
-}
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const cardSection = {
-    background: 'rgba(255,255,255,0.02)',
-    border: '1px solid rgba(255,255,255,0.04)',
-    borderRadius: 18, padding: 20,
-    display: 'flex', flexDirection: 'column', gap: 16
-};
-
-const sectionTitle = {
-    margin: '0 0 4px', fontSize: 11, fontWeight: 900,
-    color: vq.indigo[400], textTransform: 'uppercase', letterSpacing: '0.1em',
-    display: 'flex', alignItems: 'center', gap: 6
-};
-
-const grid2 = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 };
-const grid3 = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 };
-
-const input = {
-    width: '100%', boxSizing: 'border-box',
-    background: vq.gray[900], border: '1px solid rgba(255,255,255,0.08)',
-    color: vq.slate[50], padding: '10px 14px',
-    borderRadius: 10, fontSize: 13, outline: 'none',
-    fontFamily: 'inherit', transition: 'border 0.2s',
-};
-
-const inputPrefix = {
-    position: 'absolute', left: 12, top: '52%',
-    transform: 'translateY(-50%)',
-    color: vq.slate[600], fontSize: 13, fontWeight: 700
-};
-
-const btnPrimary = {
-    background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))',
-    color: '#fff', border: 'none', padding: '11px 24px',
-    borderRadius: 12, fontWeight: 800, fontSize: 13,
-    cursor: 'pointer', boxShadow: '0 8px 24px rgba(99,102,241,0.25)',
-    transition: 'all 0.15s',
-};
-
-const btnSecondary = {
-    background: 'rgba(255,255,255,0.03)', color: vq.slate[400],
-    border: '1px solid rgba(255,255,255,0.06)', padding: '10px 22px',
-    borderRadius: 12, fontWeight: 700, fontSize: 13, cursor: 'pointer',
-};
-
-const btnSmall = {
-    background: 'rgba(255,255,255,0.03)', color: vq.slate[300],
-    border: '1px solid rgba(255,255,255,0.05)', padding: '6px 14px',
-    borderRadius: 8, fontWeight: 700, fontSize: 11, cursor: 'pointer',
-    whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 5,
-    transition: 'all 0.15s'
-};

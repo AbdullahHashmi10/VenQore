@@ -5,12 +5,13 @@ namespace App\Observers;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Services\PlanGate;
+use App\Services\SeatAllocationService;
 
 class TenantUserObserver
 {
     /**
      * Handle the TenantUser "creating" event.
-     * Cashiers are free & unlimited till logins and do not consume a seat.
+     * Enforces seat allocation capacity using the unified SeatAllocationService.
      */
     public function creating(TenantUser $tenantUser): void
     {
@@ -29,22 +30,8 @@ class TenantUserObserver
             return;
         }
 
-        // Till logins / cashier accounts
-        if ($tenantUser->role === 'cashier') {
-            $tillLoginsCount = TenantUser::where('tenant_id', $tenantId)
-                ->where('role', 'cashier')
-                ->whereIn('status', ['active', 'invited'])
-                ->count();
+        $type = $tenantUser->isPosStaff() ? SeatAllocationService::TYPE_POS : SeatAllocationService::TYPE_FULL;
 
-            PlanGate::enforce('till_logins', $tillLoginsCount, $tenant);
-            return;
-        }
-
-        $fullSeatsCount = TenantUser::where('tenant_id', $tenantId)
-            ->where('role', '!=', 'cashier')
-            ->whereIn('status', ['active', 'invited'])
-            ->count();
-
-        PlanGate::enforce('staff_limit', $fullSeatsCount, $tenant);
+        SeatAllocationService::enforceCanAllocate($tenant, $type);
     }
 }

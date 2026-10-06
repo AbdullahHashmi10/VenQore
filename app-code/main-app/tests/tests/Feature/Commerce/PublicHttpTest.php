@@ -109,6 +109,109 @@ class PublicHttpTest extends CommerceTestCase
         $this->assertStringStartsWith(url('/order-status/'), $a->json('status_url'));
     }
 
+    public function test_catalogue_only_store_is_browsable_but_cannot_quote_or_checkout(): void
+    {
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Catalogue Item'], 10, $this->store);
+        $listing = DB::table('storefront_products')->where('product_id', $pid)->value('id');
+        $this->store->update(['customer_mode' => 'catalogue', 'catalogue_theme' => 'editorial-ledger']);
+        $ordersBefore = CommerceOrder::count();
+
+        $this->get('/shop/' . $this->store->slug)->assertOk()->assertInertia(function ($page) {
+            $store = $page->toArray()['props']['store'];
+            $this->assertSame('catalogue', $store['customer_mode']);
+            $this->assertSame('editorial-ledger', $store['catalogue_theme']);
+            $this->assertFalse($store['ordering_enabled']);
+            $this->assertFalse($store['accepting_orders']);
+        });
+        $this->postJson('/shop/' . $this->store->slug . '/quote', ['items' => [['item_id' => $listing, 'quantity' => 1]]])->assertNotFound();
+        $this->postJson('/shop/' . $this->store->slug . '/checkout', $this->body([['item_id' => $listing, 'quantity' => 1]]))->assertNotFound();
+        $this->assertSame($ordersBefore, CommerceOrder::count());
+    }
+
+    public function test_table_qr_order_opens_the_table_and_adds_server_priced_pending_lines(): void
+    {
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Table Burger', 'price' => 1250], 10, $this->store);
+        $listing = DB::table('storefront_products')->where('product_id', $pid)->value('id');
+        $token = Str::random(40);
+        $position = DB::table('positions')->insertGetId([
+            'tenant_id' => $this->tenant->id, 'zone' => 'Dining', 'code' => 'T7', 'label' => 'Window 7',
+            'capacity' => 4, 'status' => 'available', 'sort_order' => 7,
+            'customer_order_token' => $token, 'customer_ordering_enabled' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // Public catalogue mode and onsite ordering are independent: a business
+        // can refuse remote orders while still accepting orders from its tables.
+        $this->store->update(['customer_mode' => 'catalogue', 'onsite_ordering_enabled' => true]);
+
+        $this->get('/onsite/' . $this->store->slug . '/table/' . $token . '?q=burger')->assertOk()
+            ->assertInertia(function ($page) {
+                $props = $page->toArray()['props'];
+                $this->assertSame('T7', $props['onsite']['table_code']);
+                $this->assertSame('catalogue', $props['store']['customer_mode']);
+                $this->assertSame('burger', $props['filters']['q']);
+            });
+
+        $body = ['idempotency_key' => (string) Str::uuid(), 'table_token' => $token,
+            'items' => [['item_id' => $listing, 'quantity' => 2, 'price' => 1]]];
+        $first = $this->postJson('/onsite/' . $this->store->slug . '/orders', $body)->assertCreated();
+        $this->postJson('/onsite/' . $this->store->slug . '/orders', $body)->assertOk()
+            ->assertJsonPath('order_number', $first->json('order_number'));
+
+        $occupancy = DB::table('occupancies')->where('position_id', $position)->whereNull('closed_at')->first();
+        $session = json_decode($occupancy->session_data, true);
+        $this->assertSame('table_qr', $occupancy->source_type);
+        $this->assertSame(1, count($session['cart']));
+        $this->assertEquals(1250.0, $session['cart'][0]['price']);
+        $this->assertSame(2, $session['cart'][0]['qty']);
+        $this->assertTrue($session['cart'][0]['customer_pending']);
+        $this->assertEquals(2500.0, $session['order_total']);
+        $this->assertSame(1, DB::table('onsite_order_requests')->where('position_id', $position)->count());
+    }
+
+    public function test_counter_qr_order_creates_a_takeaway_pos_tab(): void
+    {
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Walk-in Coffee'], 10, $this->store);
+        $listing = DB::table('storefront_products')->where('product_id', $pid)->value('id');
+        $this->store->update(['onsite_ordering_enabled' => true, 'counter_qr_enabled' => true]);
+
+        $this->get('/onsite/' . $this->store->slug)->assertOk()
+            ->assertInertia(fn ($page) => $this->assertSame('counter_qr', $page->toArray()['props']['onsite']['channel']));
+        $response = $this->postJson('/onsite/' . $this->store->slug . '/orders', [
+            'idempotency_key' => (string) Str::uuid(), 'customer_name' => 'Ayesha',
+            'items' => [['item_id' => $listing, 'quantity' => 1]],
+        ])->assertCreated();
+        $request = DB::table('onsite_order_requests')->where('public_number', $response->json('order_number'))->first();
+        $occupancy = DB::table('occupancies')->where('id', $request->occupancy_id)->first();
+        $session = json_decode($occupancy->session_data, true);
+        $this->assertNull($occupancy->position_id);
+        $this->assertSame('counter_qr', $occupancy->source_type);
+        $this->assertSame('takeaway', $session['order_type']);
+        $this->assertSame('Ayesha', $session['customer_name']);
+    }
+
+    public function test_onsite_order_rechecks_stock_before_opening_a_pos_tab(): void
+    {
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Sold Out'], 0, $this->store);
+        $listing = DB::table('storefront_products')->where('product_id', $pid)->value('id');
+        $token = Str::random(40);
+        $position = DB::table('positions')->insertGetId([
+            'tenant_id' => $this->tenant->id, 'zone' => 'Dining', 'code' => 'T8', 'label' => null,
+            'capacity' => 2, 'status' => 'available', 'sort_order' => 8,
+            'customer_order_token' => $token, 'customer_ordering_enabled' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $this->store->update(['onsite_ordering_enabled' => true]);
+
+        $this->postJson('/onsite/' . $this->store->slug . '/orders', [
+            'idempotency_key' => (string) Str::uuid(), 'table_token' => $token,
+            'items' => [['item_id' => $listing, 'quantity' => 1]],
+        ])->assertStatus(422)->assertJsonPath('reason', 'cart_changed');
+
+        $this->assertFalse(DB::table('occupancies')->where('position_id', $position)->whereNull('closed_at')->exists());
+        $this->assertSame('available', DB::table('positions')->where('id', $position)->value('status'));
+        $this->assertSame(0, DB::table('onsite_order_requests')->where('position_id', $position)->count());
+    }
+
     public function test_forged_expected_total_and_forged_prices_are_rejected(): void
     {
         $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 10, $this->store);
@@ -169,6 +272,33 @@ class PublicHttpTest extends CommerceTestCase
         $this->get('/order-status/' . $order->id)->assertNotFound();                      // nor does the internal id
         $this->get('/order-status/' . Str::random(48))->assertNotFound();
         $this->get('/order-status/' . hash('sha256', 'x'))->assertNotFound();
+    }
+
+    public function test_live_status_reports_changes_and_an_optional_countdown_estimate(): void
+    {
+        $this->store->update(['prep_minutes' => 30]);
+        $pid = $this->makeProduct($this->tenant, $this->warehouseId, [], 10, $this->store);
+        $listing = DB::table('storefront_products')->where('product_id', $pid)->value('id');
+        $placed = $this->postJson('/shop/' . $this->store->slug . '/checkout', $this->body([['item_id' => $listing, 'quantity' => 1]]))->assertCreated();
+        $token = basename($placed->json('status_url'));
+        $confirmedAt = now()->subMinutes(5)->startOfSecond();
+        CommerceOrder::first()->update(['status' => 'confirmed', 'version' => 2, 'confirmed_at' => $confirmedAt]);
+
+        $page = $this->get($placed->json('status_url'))->assertOk()->viewData('page')['props'];
+        $this->assertSame(2, $page['order']['version']);
+        $this->assertSame($confirmedAt->copy()->addMinutes(30)->toIso8601String(), $page['order']['estimated_ready_at']);
+        $this->assertSame(url('/order-status/' . $token . '/live'), $page['live_url']);
+
+        $live = $this->getJson('/order-status/' . $token . '/live')
+            ->assertOk()
+            ->assertJsonPath('version', 2)
+            ->assertJsonPath('status', 'confirmed')
+            ->assertJsonPath('estimated_ready_at', $confirmedAt->copy()->addMinutes(30)->toIso8601String());
+        $this->assertStringContainsString('no-store', $live->headers->get('Cache-Control'));
+
+        $this->store->update(['prep_minutes' => null]);
+        $this->getJson('/order-status/' . $token . '/live')->assertOk()->assertJsonPath('estimated_ready_at', null);
+        $this->getJson('/order-status/' . Str::random(48) . '/live')->assertNotFound();
     }
 
     public function test_customer_transfer_report_does_not_mark_paid(): void

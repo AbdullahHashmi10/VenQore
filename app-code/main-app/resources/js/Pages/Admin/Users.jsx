@@ -550,6 +550,8 @@ export default function AdminUsers({
     staffData = [],
     approval_admin_enabled = null,
     usersWithApprovals = [],
+    seat_capacity = {},
+    locations = [],
 }) {
     const { store, modules, settings } = usePage().props;
     const tt = useTermText();
@@ -592,6 +594,62 @@ export default function AdminUsers({
         });
     }, [usersWithApprovals, users]);
 
+    const fullCap = useMemo(() => {
+        return seat_capacity?.full || {
+            plan_limit: 1,
+            purchased: 0,
+            effective_limit: 1,
+            active: (users || []).filter(u => (u.membership_type || 'full') === 'full').length,
+            reserved: (invitations || []).filter(i => (i.membership_type || 'full') === 'full' && ['pending', 'no_account'].includes(i.status)).length,
+            available: 0,
+            is_at_capacity: false,
+            addon_price: 15,
+        };
+    }, [seat_capacity, users, invitations]);
+
+    const posCap = useMemo(() => {
+        return seat_capacity?.pos || {
+            plan_limit: 0,
+            purchased: 0,
+            effective_limit: 0,
+            active: (users || []).filter(u => u.membership_type === 'pos').length,
+            reserved: (invitations || []).filter(i => i.membership_type === 'pos' && ['pending', 'no_account'].includes(i.status)).length,
+            available: 0,
+            is_at_capacity: true,
+            addon_price: 5,
+        };
+    }, [seat_capacity, users, invitations]);
+
+    const [purchasingAddon, setPurchasingAddon] = useState(false);
+
+    const handleBuyExtraSeat = async (seatType) => {
+        if (!store?.slug) return;
+        const addonType = seatType === 'pos' ? 'extra_pos_seat' : 'extra_seat';
+        setPurchasingAddon(true);
+        try {
+            const response = await axios.post(route('store.billing.checkout-addon', { store_slug: store.slug }), {
+                addon_type: addonType,
+            });
+            if (response.data?.url) {
+                window.location.href = response.data.url;
+            } else {
+                alert('Add-on checkout initiated.');
+            }
+        } catch (err) {
+            console.error('Failed to initiate add-on checkout:', err);
+            const msg = err.response?.data?.error || 'Unable to start checkout for this seat add-on.';
+            alert(msg);
+        } finally {
+            setPurchasingAddon(false);
+        }
+    };
+
+    const handleComparePlans = () => {
+        if (store?.slug) {
+            router.visit(route('store.billing', { store_slug: store.slug }));
+        }
+    };
+
     const handleToggleStoreApprovalSystem = async () => {
         if (!store?.slug) return;
         const nextVal = !approvalAdminEnabled;
@@ -629,6 +687,9 @@ export default function AdminUsers({
     }, [users]);
 
     const { data, setData, post, processing, errors, reset } = useForm({
+        membership_type: 'pos',
+        pos_capabilities: ['take_orders', 'take_payments'],
+        assigned_location_id: '',
         invitee_name:  '',
         invitee_email: '',
         invitee_phone: '',
@@ -637,7 +698,7 @@ export default function AdminUsers({
         documents: [],
         roles:         ['cashier'],
         permissions:   ROLE_PERMISSIONS.cashier,
-        transaction_approval_mode: null,
+        transaction_approval_mode: 'direct',
         assigned_approvers: [],
         approval_threshold_amount: '',
         approval_overrides: {},
@@ -684,6 +745,41 @@ export default function AdminUsers({
         } finally {
             setEnablingLedger(false);
         }
+    };
+
+    const isPosEnabled = useMemo(() => {
+        if (!modules) return true;
+        if (Array.isArray(modules) && modules.length === 0) return true;
+        return isModuleActive('pos');
+    }, [modules]);
+
+    const handleEnablePosModule = async () => {
+        if (!store?.slug) return;
+        try {
+            const currentMods = Array.isArray(modules)
+                ? modules.map(m => (typeof m === 'string' ? m : (m?.enabled ? m?.key : null))).filter(Boolean)
+                : [];
+            const newMods = Array.from(new Set([...currentMods, 'pos']));
+            await axios.post(route('store.builder.apply', { store_slug: store.slug }), {
+                modules: newMods
+            });
+            router.reload({ only: ['modules', 'nav'] });
+        } catch (err) {
+            console.error('Failed to enable POS module:', err);
+            router.visit(route('store.builder', { store_slug: store.slug }));
+        }
+    };
+
+    const togglePosCapability = (capKey) => {
+        setData(d => {
+            const current = d.pos_capabilities || [];
+            const exists = current.includes(capKey);
+            const next = exists ? current.filter(c => c !== capKey) : [...current, capKey];
+            return {
+                ...d,
+                pos_capabilities: next,
+            };
+        });
     };
 
     const LEDGER_PERMISSIONS = [
@@ -838,15 +934,19 @@ export default function AdminUsers({
         setTimeout(() => setCopiedId(null), 2000);
     };
 
-    const handleOpenAddModal = () => {
+    const handleOpenAddModal = (preferredType = null) => {
         setInviteStep(1);
         setSelectedPresetName(null);
         setShowFineTune(false);
+        const targetType = preferredType || (isPosEnabled && !posCap.is_at_capacity ? 'pos' : 'full');
         setData(d => ({
             ...d,
+            membership_type: targetType,
+            pos_capabilities: ['take_orders', 'take_payments'],
+            assigned_location_id: '',
             roles: ['cashier'],
             permissions: ROLE_PERMISSIONS.cashier,
-            transaction_approval_mode: 'inherit',
+            transaction_approval_mode: targetType === 'pos' ? 'direct' : 'inherit',
         }));
         setShowAddModal(true);
     };
@@ -1010,11 +1110,74 @@ export default function AdminUsers({
 
                 {/* ── Stats ── */}
                 {['members', 'invitations'].includes(activeTab) && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
-                        <StatCard title="Active Members" value={activeMembers}    icon={<Users size={16} />}         color="bg-brand-500" />
-                        <StatCard title="Pending Invites" value={pendingInvites}   icon={<Send size={16} />}           color="bg-amber-500" />
-                        <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={16} />} color="bg-blue-500" subtext={awaitingApproval > 0 ? 'Action required' : ''} />
-                        <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />} color="bg-neutral-500" />
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                            <StatCard title="Active Members" value={activeMembers}    icon={<Users size={16} />}         color="bg-brand-500" />
+                            <StatCard title="Pending Invites" value={pendingInvites}   icon={<Send size={16} />}           color="bg-amber-500" />
+                            <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={16} />} color="bg-blue-500" subtext={awaitingApproval > 0 ? 'Action required' : ''} />
+                            <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />} color="bg-neutral-500" />
+                        </div>
+
+                        {/* Seat Capacity Overview */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                            <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
+                                        <ShoppingCart size={16} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-ink truncate">POS Staff Seats</span>
+                                            <span className={`text-3xs font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${posCap.available > 0 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
+                                                {posCap.available > 0 ? `${posCap.available} remaining` : 'At Capacity'}
+                                            </span>
+                                        </div>
+                                        <p className="text-2xs text-ink-muted truncate">
+                                            {posCap.active} active + {posCap.reserved} reserved / {posCap.effective_limit} capacity ({posCap.plan_limit} plan + {posCap.purchased} extra)
+                                        </p>
+                                    </div>
+                                </div>
+                                {posCap.available <= 0 && posCap.addon_price && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBuyExtraSeat('pos')}
+                                        disabled={purchasingAddon}
+                                        className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all shrink-0"
+                                    >
+                                        + Extra POS (${posCap.addon_price}/mo)
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0">
+                                        <Crown size={16} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-ink truncate">Full Staff Seats</span>
+                                            <span className={`text-3xs font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${fullCap.available > 0 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'}`}>
+                                                {fullCap.available > 0 ? `${fullCap.available} remaining` : 'At Capacity'}
+                                            </span>
+                                        </div>
+                                        <p className="text-2xs text-ink-muted truncate">
+                                            {fullCap.active} active + {fullCap.reserved} reserved / {fullCap.effective_limit} capacity ({fullCap.plan_limit} plan + {fullCap.purchased} extra)
+                                        </p>
+                                    </div>
+                                </div>
+                                {fullCap.available <= 0 && fullCap.addon_price && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBuyExtraSeat('full')}
+                                        disabled={purchasingAddon}
+                                        className="px-2.5 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all shrink-0"
+                                    >
+                                        + Extra Full (${fullCap.addon_price}/mo)
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -1116,7 +1279,7 @@ export default function AdminUsers({
                         onResend={inv  => action('store.admin.invitations.resend', inv)}
                     />
                 )}
-                {activeTab === 'members' && <MembersTable users={users} store={store} />}
+                {activeTab === 'members' && <MembersTable users={users} store={store} locations={locations} seatCapacity={seat_capacity} />}
                 {activeTab === 'attendance' && (
                     <AttendanceTable
                         attendance={attendance || { today: {}, history: {} }}
@@ -1222,60 +1385,92 @@ export default function AdminUsers({
                     {/* TOP MODAL HEADER & STEPPER */}
                     <div className="px-6 py-4 md:px-8 pr-16 md:pr-20 border-b border-line bg-surface flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 relative">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
-                                    <UserPlus size={20} />
+                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                    data.membership_type === 'pos'
+                                        ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                                        : 'bg-brand-50 dark:bg-brand-950/50 border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400'
+                                }`}>
+                                    {data.membership_type === 'pos' ? <ShoppingCart size={20} /> : <UserPlus size={20} />}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="font-bold text-lg md:text-xl text-ink tracking-tight">
-                                            {inviteStep === 1 && 'Step 1: Role & Permissions'}
-                                            {inviteStep === 2 && 'Step 2: Approvals & Ledger Privileges'}
-                                            {inviteStep === 3 && 'Step 3: Member Details & Credentials'}
+                                            {data.membership_type === 'pos' ? (
+                                                inviteStep === 1 ? 'Step 1: Seat & POS Capabilities' : 'Step 2: Member Details & Credentials'
+                                            ) : (
+                                                <>
+                                                    {inviteStep === 1 && 'Step 1: Seat & Role Template'}
+                                                    {inviteStep === 2 && 'Step 2: Approvals & Ledger Privileges'}
+                                                    {inviteStep === 3 && 'Step 3: Member Details & Credentials'}
+                                                </>
+                                            )}
                                         </h3>
-                                        <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-                                            Step {inviteStep} of 3
+                                        <span className={`text-2xs font-bold px-2 py-0.5 rounded-full border ${
+                                            data.membership_type === 'pos'
+                                                ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20'
+                                                : 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border-brand-500/20'
+                                        }`}>
+                                            Step {inviteStep} of {data.membership_type === 'pos' ? 2 : 3}
                                         </span>
                                     </div>
                                     <p className="text-xs text-ink-muted mt-0.5">
-                                        {inviteStep === 1 && 'Select a standard role or an industry preset, then review and customize permissions on the right.'}
-                                        {inviteStep === 2 && 'Set transaction verification rules, enable store ledger access, or customize permissions.'}
-                                        {inviteStep === 3 && 'Enter employee contact info, identification number, and send the invitation.'}
+                                        {data.membership_type === 'pos' ? (
+                                            inviteStep === 1
+                                                ? 'Choose seat capacity, select permitted POS capabilities, and assign optional station location.'
+                                                : 'Enter POS staff contact info, employee identification, and send the invitation.'
+                                        ) : (
+                                            <>
+                                                {inviteStep === 1 && 'Choose seat capacity, select a standard role or preset, and review capabilities.'}
+                                                {inviteStep === 2 && 'Set transaction verification rules, enable store ledger access, or customize permissions.'}
+                                                {inviteStep === 3 && 'Enter employee contact info, identification number, and send the invitation.'}
+                                            </>
+                                        )}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Stepper Indicator */}
                             <div className="flex items-center gap-1.5 shrink-0 self-start lg:self-center">
-                                {[
-                                    { num: 1, label: 'Template & Perms' },
-                                    { num: 2, label: 'Approvals & Ledger' },
-                                    { num: 3, label: 'Details' }
-                                ].map((s, idx) => {
+                                {(data.membership_type === 'pos'
+                                    ? [
+                                        { num: 1, label: 'Seat & Capabilities' },
+                                        { num: 2, label: 'Details' }
+                                      ]
+                                    : [
+                                        { num: 1, label: 'Seat & Template' },
+                                        { num: 2, label: 'Approvals & Ledger' },
+                                        { num: 3, label: 'Details' }
+                                      ]
+                                ).map((s, idx) => {
                                     const isCurrent = inviteStep === s.num;
                                     const isDone = inviteStep > s.num;
                                     return (
                                         <React.Fragment key={s.num}>
                                             {idx > 0 && (
-                                                <div className={`h-0.5 w-4 sm:w-6 transition-colors ${isDone ? 'bg-brand-500' : 'bg-line'}`} />
+                                                <div className={`h-0.5 w-4 sm:w-6 transition-colors ${isDone ? (data.membership_type === 'pos' ? 'bg-purple-500' : 'bg-brand-500') : 'bg-line'}`} />
                                             )}
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (isDone || (s.num === 2 && data.roles.length > 0)) {
+                                                    if (isDone || (s.num === 2 && data.membership_type === 'full' && data.roles.length > 0)) {
                                                         setInviteStep(s.num);
                                                     }
                                                 }}
                                                 disabled={!isDone && !isCurrent}
                                                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition-all ${
                                                     isCurrent
-                                                        ? 'bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/20'
+                                                        ? (data.membership_type === 'pos'
+                                                            ? 'bg-purple-600 text-white shadow-sm ring-2 ring-purple-500/20'
+                                                            : 'bg-brand-600 text-white shadow-sm ring-2 ring-brand-500/20')
                                                         : isDone
-                                                            ? 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20'
+                                                            ? (data.membership_type === 'pos'
+                                                                ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20'
+                                                                : 'bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 hover:bg-brand-500/20')
                                                             : 'bg-app text-ink-muted border border-line opacity-60 cursor-not-allowed'
                                                 }`}
                                             >
                                                 {isDone ? (
-                                                    <Check size={12} strokeWidth={3} className="text-brand-600 dark:text-brand-400" />
+                                                    <Check size={12} strokeWidth={3} className={data.membership_type === 'pos' ? 'text-purple-600 dark:text-purple-400' : 'text-brand-600 dark:text-brand-400'} />
                                                 ) : (
                                                     <span className="w-4 h-4 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center text-3xs font-black">
                                                         {s.num}
@@ -1298,12 +1493,404 @@ export default function AdminUsers({
                             </button>
                         </div>
 
-                        {/* STEP 1: ROLE & TEMPLATE SELECTION (CENTERED MODERN LAYOUT) */}
+                        {/* STEP 1: SEAT SELECTION & CAPABILITIES / TEMPLATES */}
                         {inviteStep === 1 && (
                             <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 custom-scrollbar">
                                 <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-4 pb-28">
 
-                                    {/* Section 1: Role Selection */}
+                                    {/* Section 0: Seat Type & Capacity Cards (Specification Section 3) */}
+                                    <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-app/20">
+                                            <div className="flex items-center gap-3.5">
+                                                <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                    1
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-ink">Choose Seat Type & Capacity</h4>
+                                                    <p className="text-2xs text-ink-muted">Select whether this invitation allocates a restricted POS terminal seat or a full store backoffice seat.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Card 1: POS Staff Seat */}
+                                            <div
+                                                onClick={() => {
+                                                    if (isPosEnabled && posCap.available > 0) {
+                                                        setData(d => ({
+                                                            ...d,
+                                                            membership_type: 'pos',
+                                                            role: 'cashier',
+                                                            pos_capabilities: d.pos_capabilities?.length ? d.pos_capabilities : ['take_orders', 'take_payments'],
+                                                            permissions: ROLE_PERMISSIONS.cashier,
+                                                            transaction_approval_mode: 'direct',
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative text-left ${
+                                                    data.membership_type === 'pos'
+                                                        ? 'bg-purple-500/5 dark:bg-purple-950/20 border-purple-500 ring-2 ring-purple-500/20 shadow-md'
+                                                        : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                } ${(!isPosEnabled || posCap.available <= 0) ? 'opacity-85' : 'cursor-pointer'}`}
+                                            >
+                                                <div className="space-y-3">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
+                                                                data.membership_type === 'pos'
+                                                                    ? 'bg-purple-600 border-purple-600 text-white shadow-sm'
+                                                                    : 'bg-app border-line text-purple-600 dark:text-purple-400'
+                                                            }`}>
+                                                                <ShoppingCart size={22} />
+                                                            </div>
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <h5 className="text-sm font-bold text-ink">POS Staff Seat</h5>
+                                                                    <span className="text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                                                                        Terminals & Shifts
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-2xs text-ink-muted font-medium">Waiters, Cashiers & Counter Staff</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                                            data.membership_type === 'pos' ? 'bg-purple-600 border-purple-500 text-white' : 'border-line bg-surface'
+                                                        }`}>
+                                                            {data.membership_type === 'pos' && <Check size={12} strokeWidth={3} />}
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-2xs text-ink-secondary dark:text-ink-muted leading-relaxed">
+                                                        Operate checkout registers, enter customer orders, or process refunds. Direct landing in POS terminal with individual work shifts and cash drawer custody. Strictly isolated from settings and finance.
+                                                    </p>
+
+                                                    {/* Usage meter */}
+                                                    <div className="p-3 bg-app rounded-xl border border-line space-y-1.5">
+                                                        <div className="flex items-center justify-between text-2xs font-bold">
+                                                            <span className="text-ink">
+                                                                {posCap.active} active + {posCap.reserved} invitation reserved / {posCap.effective_limit} available seats
+                                                            </span>
+                                                            <span className={posCap.available > 0 ? 'text-emerald-600 font-extrabold' : 'text-red-500 font-extrabold'}>
+                                                                {posCap.available > 0 ? `${posCap.available} remaining` : '0 remaining'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full bg-line/60 h-2 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full transition-all duration-300 ${
+                                                                    posCap.available <= 0 ? 'bg-red-500' : (posCap.active + posCap.reserved) / Math.max(1, posCap.effective_limit) > 0.8 ? 'bg-amber-500' : 'bg-purple-500'
+                                                                }`}
+                                                                style={{ width: `${Math.min(100, Math.round(((posCap.active + posCap.reserved) / Math.max(1, posCap.effective_limit)) * 100))}%` }}
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center justify-between text-3xs text-ink-muted font-medium pt-0.5">
+                                                            <span>Included in plan: {posCap.plan_limit} seats</span>
+                                                            <span>Purchased add-on: {posCap.purchased} seats</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Bottom action / warning */}
+                                                {!isPosEnabled ? (
+                                                    <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
+                                                        <div className="flex items-center gap-1.5 text-2xs font-bold text-amber-700 dark:text-amber-400">
+                                                            <AlertTriangle size={13} className="shrink-0" />
+                                                            <span>POS module disabled for this store</span>
+                                                        </div>
+                                                        <p className="text-3xs text-ink-muted leading-relaxed">
+                                                            Enable the Point of Sale module in store settings to invite POS staff.
+                                                        </p>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleEnablePosModule}
+                                                            className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all"
+                                                        >
+                                                            Enable POS Module
+                                                        </button>
+                                                    </div>
+                                                ) : posCap.available <= 0 ? (
+                                                    <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2">
+                                                        <div className="flex items-center justify-between text-2xs font-bold text-red-600">
+                                                            <span>POS Staff Capacity Reached</span>
+                                                            <span className="text-3xs font-black uppercase px-1.5 py-0.5 rounded bg-red-500/10">Full</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {posCap.addon_price ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleBuyExtraSeat('pos')}
+                                                                    disabled={purchasingAddon}
+                                                                    className="flex-1 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all"
+                                                                >
+                                                                    Buy extra POS seat — ${posCap.addon_price}/mo
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleComparePlans}
+                                                                    className="flex-1 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all"
+                                                                >
+                                                                    Upgrade Plan (Solo)
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleComparePlans}
+                                                                className="px-2.5 py-1.5 bg-surface border border-line hover:bg-interactive-hover text-ink text-2xs font-bold uppercase tracking-wider rounded-lg transition-all"
+                                                            >
+                                                                Compare Plans
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-between pt-1 text-2xs">
+                                                        <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                                                            <CheckCircle size={13} /> Capacity available
+                                                        </span>
+                                                        <span className="text-3xs text-ink-muted">Extra seats: $5/month</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Card 2: Full Staff Seat */}
+                                            <div
+                                                onClick={() => {
+                                                    if (fullCap.available > 0) {
+                                                        setData(d => ({
+                                                            ...d,
+                                                            membership_type: 'full',
+                                                            role: d.roles?.[0] || 'cashier',
+                                                            permissions: ROLE_PERMISSIONS[d.roles?.[0] || 'cashier'] || [],
+                                                            transaction_approval_mode: 'inherit',
+                                                        }));
+                                                    }
+                                                }}
+                                                className={`p-5 rounded-2xl border transition-all flex flex-col justify-between gap-4 relative text-left ${
+                                                    data.membership_type === 'full'
+                                                        ? 'bg-brand-500/5 dark:bg-brand-950/20 border-brand-500 ring-2 ring-brand-500/20 shadow-md'
+                                                        : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                } ${fullCap.available <= 0 ? 'opacity-85' : 'cursor-pointer'}`}
+                                            >
+                                                <div className="space-y-3">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
+                                                                data.membership_type === 'full'
+                                                                    ? 'bg-brand-600 border-brand-600 text-white shadow-sm'
+                                                                    : 'bg-app border-line text-brand-600 dark:text-brand-400'
+                                                            }`}>
+                                                                <Crown size={22} />
+                                                            </div>
+                                                            <div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <h5 className="text-sm font-bold text-ink">Full Staff Seat</h5>
+                                                                    <span className="text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 border border-brand-500/20">
+                                                                        Store & Admin
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-2xs text-ink-muted font-medium">Managers, Accountants & Supervisors</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                                            data.membership_type === 'full' ? 'bg-brand-600 border-brand-500 text-white' : 'border-line bg-surface'
+                                                        }`}>
+                                                            {data.membership_type === 'full' && <Check size={12} strokeWidth={3} />}
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-2xs text-ink-secondary dark:text-ink-muted leading-relaxed">
+                                                        Full business management privileges. Includes custom operational roles, inventory controls, purchasing, financial ledgers, and transaction approval administration.
+                                                    </p>
+
+                                                    {/* Usage meter */}
+                                                    <div className="p-3 bg-app rounded-xl border border-line space-y-1.5">
+                                                        <div className="flex items-center justify-between text-2xs font-bold">
+                                                            <span className="text-ink">
+                                                                {fullCap.active} active + {fullCap.reserved} invitation reserved / {fullCap.effective_limit} available seats
+                                                            </span>
+                                                            <span className={fullCap.available > 0 ? 'text-emerald-600 font-extrabold' : 'text-red-500 font-extrabold'}>
+                                                                {fullCap.available > 0 ? `${fullCap.available} remaining` : '0 remaining'}
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full bg-line/60 h-2 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full transition-all duration-300 ${
+                                                                    fullCap.available <= 0 ? 'bg-red-500' : (fullCap.active + fullCap.reserved) / Math.max(1, fullCap.effective_limit) > 0.8 ? 'bg-amber-500' : 'bg-brand-500'
+                                                                }`}
+                                                                style={{ width: `${Math.min(100, Math.round(((fullCap.active + fullCap.reserved) / Math.max(1, fullCap.effective_limit)) * 100))}%` }}
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center justify-between text-3xs text-ink-muted font-medium pt-0.5">
+                                                            <span>Included in plan: {fullCap.plan_limit} seats</span>
+                                                            <span>Purchased add-on: {fullCap.purchased} seats</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Bottom action / warning */}
+                                                {fullCap.available <= 0 ? (
+                                                    <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2">
+                                                        <div className="flex items-center justify-between text-2xs font-bold text-red-600">
+                                                            <span>Full Staff Capacity Reached</span>
+                                                            <span className="text-3xs font-black uppercase px-1.5 py-0.5 rounded bg-red-500/10">Full</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {fullCap.addon_price ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleBuyExtraSeat('full')}
+                                                                    disabled={purchasingAddon}
+                                                                    className="flex-1 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all"
+                                                                >
+                                                                    Buy extra full seat — ${fullCap.addon_price}/mo
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleComparePlans}
+                                                                    className="flex-1 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-2xs font-bold uppercase tracking-wider transition-all"
+                                                                >
+                                                                    Upgrade Plan (Solo)
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleComparePlans}
+                                                                className="px-2.5 py-1.5 bg-surface border border-line hover:bg-interactive-hover text-ink text-2xs font-bold uppercase tracking-wider rounded-lg transition-all"
+                                                            >
+                                                                Compare Plans
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-between pt-1 text-2xs">
+                                                        <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                                                            <CheckCircle size={13} /> Capacity available
+                                                        </span>
+                                                        <span className="text-3xs text-ink-muted">Extra seats: $15/month</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Section 2 (POS Staff): Exactly 3 capabilities and location assignment */}
+                                    {data.membership_type === 'pos' && (
+                                        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs space-y-4">
+                                            <div className="px-5 sm:px-6 py-4 border-b border-line flex items-center justify-between bg-app/20">
+                                                <div className="flex items-center gap-3.5">
+                                                    <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
+                                                        2
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-sm font-bold text-ink">POS Capabilities & Station Location</h4>
+                                                        <p className="text-2xs text-ink-muted">Select permitted POS capabilities and optional station assignment. At least one capability is required.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-5 sm:p-6 space-y-6">
+                                                {/* Capabilities Checkboxes */}
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-xs font-bold uppercase tracking-wider text-ink">
+                                                            Enabled Capabilities (Select at least 1) <span className="text-red-500">*</span>
+                                                        </label>
+                                                        {(data.pos_capabilities || []).length === 0 && (
+                                                            <span className="text-3xs font-bold text-red-500 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">
+                                                                At least one capability required
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                        {[
+                                                            {
+                                                                key: 'take_orders',
+                                                                title: 'Take Orders',
+                                                                icon: ShoppingCart,
+                                                                desc: 'Browse sellable items, select table/customer, create and submit orders, send kitchen tickets.',
+                                                                excluded: 'Excluded: Payments, posted-sale cancellations, arbitrary discounts.',
+                                                            },
+                                                            {
+                                                                key: 'take_payments',
+                                                                title: 'Take Payments',
+                                                                icon: CreditCard,
+                                                                desc: 'Load eligible orders, collect permitted tender, complete checkout, issue receipts, cash drawer custody.',
+                                                                excluded: 'Excluded: Payment provider admin, money movement outside assigned session.',
+                                                            },
+                                                            {
+                                                                key: 'process_returns',
+                                                                title: 'Process Returns / Refunds',
+                                                                icon: RotateCcw,
+                                                                desc: 'Find eligible receipts within scope, select returnable items, process permitted refunds.',
+                                                                excluded: 'Excluded: Purchase returns, credit notes, sales export, accounting corrections.',
+                                                            },
+                                                        ].map(cap => {
+                                                            const isChecked = (data.pos_capabilities || []).includes(cap.key);
+                                                            const CapIcon = cap.icon;
+                                                            return (
+                                                                <div
+                                                                    key={cap.key}
+                                                                    onClick={() => togglePosCapability(cap.key)}
+                                                                    className={`p-4 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between gap-3 ${
+                                                                        isChecked
+                                                                            ? 'bg-purple-500/10 border-purple-500 ring-2 ring-purple-500/20 shadow-xs'
+                                                                            : 'bg-app border-line hover:border-line-strong hover:bg-interactive-hover/40'
+                                                                    }`}
+                                                                >
+                                                                    <div className="space-y-2">
+                                                                        <div className="flex items-center justify-between gap-2">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <CapIcon size={16} className={isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-ink-muted'} />
+                                                                                <h5 className="text-xs font-bold text-ink">{cap.title}</h5>
+                                                                            </div>
+                                                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                                                                isChecked ? 'bg-purple-600 border-purple-500 text-white' : 'border-line bg-surface'
+                                                                            }`}>
+                                                                                {isChecked && <Check size={10} strokeWidth={3} />}
+                                                                            </div>
+                                                                        </div>
+                                                                        <p className="text-2xs text-ink-secondary dark:text-ink-muted leading-relaxed">
+                                                                            {cap.desc}
+                                                                        </p>
+                                                                    </div>
+                                                                    <span className="text-3xs text-ink-muted italic pt-1 border-t border-line/60">
+                                                                        {cap.excluded}
+                                                                    </span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                {/* Assigned Location */}
+                                                <div className="space-y-2 pt-2 border-t border-line">
+                                                    <label className="text-xs font-bold uppercase tracking-wider text-ink flex items-center gap-2">
+                                                        <ShoppingCart size={14} className="text-purple-500" />
+                                                        Assigned Store Location / Station (Optional)
+                                                    </label>
+                                                    <select
+                                                        value={data.assigned_location_id || ''}
+                                                        onChange={e => setData('assigned_location_id', e.target.value)}
+                                                        className="w-full max-w-md px-4 py-2.5 bg-app border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                                                    >
+                                                        <option value="">All Locations / Store Default</option>
+                                                        {(locations || []).map(loc => (
+                                                            <option key={loc.id} value={loc.id}>
+                                                                {loc.name} {loc.code ? `(${loc.code})` : ''}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <p className="text-2xs text-ink-muted">
+                                                        Restricts this POS worker's active work shifts and station lookup to the assigned branch location.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Section 2 (Full Staff): Role Selection */}
+                                    {data.membership_type === 'full' && (
                                     <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
                                         <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-app/20">
                                             <div className="flex items-center gap-3.5">
@@ -1471,8 +2058,10 @@ export default function AdminUsers({
                                             )}
                                         </div>
                                     </div>
+                                    )}
 
                                     {/* Section 2: Included Capabilities & Fine-Tuning */}
+                                    {data.membership_type === 'full' && (
                                     <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
                                         <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-app/20">
                                             <div className="flex items-center gap-3.5">
@@ -1557,13 +2146,14 @@ export default function AdminUsers({
                                             )}
                                         </div>
                                     </div>
+                                    )}
 
                                 </div>
                             </div>
                         )}
 
-                        {/* STEP 2: APPROVAL POLICY & ASSIGNED APPROVERS */}
-                        {inviteStep === 2 && (
+                        {/* STEP 2: APPROVAL POLICY & ASSIGNED APPROVERS (FULL STAFF ONLY) */}
+                        {data.membership_type === 'full' && inviteStep === 2 && (
                             <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 custom-scrollbar">
                                 <div className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-4 pb-28">
 
@@ -1972,8 +2562,8 @@ export default function AdminUsers({
                             </div>
                         )}
 
-                        {/* STEP 3: MEMBER DETAILS & INVITATION (CENTERED MODERN LAYOUT) */}
-                        {inviteStep === 3 && (
+                        {/* STEP 3 / POS STEP 2: MEMBER DETAILS & INVITATION (CENTERED MODERN LAYOUT) */}
+                        {((data.membership_type === 'pos' && inviteStep === 2) || (data.membership_type === 'full' && inviteStep === 3)) && (
                             <div className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-6 lg:p-8 custom-scrollbar">
                                 <form id="invite-step3-form" onSubmit={handleSubmit} className="w-full max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-4 pb-28">
 
@@ -2168,66 +2758,112 @@ export default function AdminUsers({
                                             </span>
                                         </div>
 
-                                        <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                            {/* Role Card */}
-                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
-                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Assigned Role</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-bold text-ink truncate">
-                                                        {selectedPresetName || ROLES[data.roles[0]]?.name || 'Custom Role'}
-                                                    </span>
-                                                </div>
-                                                <p className="text-3xs text-ink-muted line-clamp-1">
-                                                    {data.permissions.length} capabilities enabled
-                                                </p>
-                                            </div>
-
-                                            {/* Policy Card */}
-                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
-                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Approval Policy</span>
-                                                <p className="text-xs font-bold text-ink truncate">
-                                                    {data.transaction_approval_mode === 'inherit' && 'Follow Store Policy'}
-                                                    {data.transaction_approval_mode === 'required' && 'Always Require Approval'}
-                                                    {data.transaction_approval_mode === 'direct' && 'Direct Posting (Bypass)'}
-                                                    {data.transaction_approval_mode === 'custom' && 'Custom Action Rules'}
-                                                </p>
-                                                <p className="text-3xs text-ink-muted">
-                                                    {data.approval_threshold_amount ? `Threshold: ${getCurrencySymbol()} ${Number(data.approval_threshold_amount).toLocaleString()}` : 'No single-item threshold'}
-                                                </p>
-                                            </div>
-
-                                            {/* Approvers Card */}
-                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1.5">
-                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Designated Approvers</span>
-                                                {data.transaction_approval_mode === 'direct' ? (
-                                                    <p className="text-xs font-semibold text-ink-muted">None needed (Direct posting)</p>
-                                                ) : (data.assigned_approvers || []).length > 0 ? (
-                                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                                        {data.assigned_approvers.map(id => {
-                                                            const approver = eligibleApprovers.find(a => a.id === id);
-                                                            if (!approver) return null;
-                                                            return (
-                                                                <span key={id} className="inline-flex items-center gap-1 text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
-                                                                    <span className="w-3.5 h-3.5 rounded-full bg-brand-600 text-white flex items-center justify-center text-4xs">
-                                                                        {approver.name?.charAt(0).toUpperCase()}
-                                                                    </span>
-                                                                    {approver.name}
-                                                                </span>
-                                                            );
-                                                        })}
+                                        {data.membership_type === 'pos' ? (
+                                            <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                {/* POS Seat Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Access Boundary</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                                                            Restricted POS Seat
+                                                        </span>
                                                     </div>
-                                                ) : (
-                                                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">⚠️ No approver selected</p>
-                                                )}
-                                            </div>
+                                                    <p className="text-3xs text-ink-muted">
+                                                        Direct terminal landing • No backoffice
+                                                    </p>
+                                                </div>
 
-                                            {/* Invitation Validity Card */}
-                                            <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
-                                                <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Invitation Validity</span>
-                                                <p className="text-xs font-bold text-ink">48 Hours Window</p>
-                                                <p className="text-3xs text-ink-muted">Magic link + short join code generated</p>
+                                                {/* Capabilities Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">POS Capabilities ({data.pos_capabilities?.length || 0}/3)</span>
+                                                    <p className="text-xs font-bold text-ink truncate">
+                                                        {data.pos_capabilities?.map(c => c.replace('take_', '').replace('process_', '')).join(', ') || 'None selected'}
+                                                    </p>
+                                                    <p className="text-3xs text-ink-muted">
+                                                        Independent shift & register custody
+                                                    </p>
+                                                </div>
+
+                                                {/* Station Location Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Assigned Station</span>
+                                                    <p className="text-xs font-bold text-ink truncate">
+                                                        {locations.find(l => String(l.id) === String(data.assigned_location_id))?.name || 'All Store Stations'}
+                                                    </p>
+                                                    <p className="text-3xs text-ink-muted">
+                                                        Shift custody scope
+                                                    </p>
+                                                </div>
+
+                                                {/* Invitation Validity Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Invitation Validity</span>
+                                                    <p className="text-xs font-bold text-ink">48 Hours Window</p>
+                                                    <p className="text-3xs text-ink-muted">Magic link + short join code generated</p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                {/* Role Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Assigned Role</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold text-ink truncate">
+                                                            {selectedPresetName || ROLES[data.roles[0]]?.name || 'Custom Role'}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-3xs text-ink-muted line-clamp-1">
+                                                        {data.permissions.length} capabilities enabled
+                                                    </p>
+                                                </div>
+
+                                                {/* Policy Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Approval Policy</span>
+                                                    <p className="text-xs font-bold text-ink truncate">
+                                                        {data.transaction_approval_mode === 'inherit' && 'Follow Store Policy'}
+                                                        {data.transaction_approval_mode === 'required' && 'Always Require Approval'}
+                                                        {data.transaction_approval_mode === 'direct' && 'Direct Posting (Bypass)'}
+                                                        {data.transaction_approval_mode === 'custom' && 'Custom Action Rules'}
+                                                    </p>
+                                                    <p className="text-3xs text-ink-muted">
+                                                        {data.approval_threshold_amount ? `Threshold: ${getCurrencySymbol()} ${Number(data.approval_threshold_amount).toLocaleString()}` : 'No single-item threshold'}
+                                                    </p>
+                                                </div>
+
+                                                {/* Approvers Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1.5">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Designated Approvers</span>
+                                                    {data.transaction_approval_mode === 'direct' ? (
+                                                        <p className="text-xs font-semibold text-ink-muted">None needed (Direct posting)</p>
+                                                    ) : (data.assigned_approvers || []).length > 0 ? (
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            {data.assigned_approvers.map(id => {
+                                                                const approver = eligibleApprovers.find(a => a.id === id);
+                                                                if (!approver) return null;
+                                                                return (
+                                                                    <span key={id} className="inline-flex items-center gap-1 text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20">
+                                                                        <span className="w-3.5 h-3.5 rounded-full bg-brand-600 text-white flex items-center justify-center text-4xs">
+                                                                            {approver.name?.charAt(0).toUpperCase()}
+                                                                        </span>
+                                                                        {approver.name}
+                                                                    </span>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">⚠️ No approver selected</p>
+                                                    )}
+                                                </div>
+
+                                                {/* Invitation Validity Card */}
+                                                <div className="p-4 rounded-xl bg-surface/80 border border-line space-y-1">
+                                                    <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted">Invitation Validity</span>
+                                                    <p className="text-xs font-bold text-ink">48 Hours Window</p>
+                                                    <p className="text-3xs text-ink-muted">Magic link + short join code generated</p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                 </form>
@@ -2259,41 +2895,70 @@ export default function AdminUsers({
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {inviteStep < 3 && (
-                                    <div className="flex items-center gap-3">
-                                        {inviteStep === 2 && !isStep2Valid && isApproverRequired && !hasSelectedApprover && (
-                                            <span className="hidden sm:inline-flex items-center gap-1.5 text-2xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                                                <AlertTriangle size={13} className="text-amber-600 shrink-0" />
-                                                Select at least 1 supervisor in Section 3 to continue
-                                            </span>
+                                {data.membership_type === 'pos' ? (
+                                    <>
+                                        {inviteStep === 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setInviteStep(2)}
+                                                disabled={!isPosEnabled || (posCap.remaining <= 0 && posCap.total > 0) || !data.pos_capabilities || data.pos_capabilities.length === 0}
+                                                className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                                            >
+                                                <span>Next: Member Details</span>
+                                                <ChevronRight size={15} />
+                                            </button>
                                         )}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (inviteStep === 1) {
-                                                    const isOn = settings?.approval_admin_enabled === '1' || settings?.approval_admin_enabled === 1 || settings?.approval_admin_enabled === true || approvalAdminEnabled;
-                                                    setActiveStep2Accordion(isOn ? 2 : 1);
-                                                }
-                                                setInviteStep(s => s + 1);
-                                            }}
-                                            disabled={inviteStep === 1 ? data.roles.length === 0 : !isStep2Valid}
-                                            className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2"
-                                        >
-                                            <span>{inviteStep === 1 ? 'Next: Approvals & Ledger' : 'Next: Member Details'}</span>
-                                            <ChevronRight size={15} />
-                                        </button>
-                                    </div>
-                                )}
-                                {inviteStep === 3 && (
-                                    <button
-                                        type="submit"
-                                        form="invite-step3-form"
-                                        disabled={processing || !data.invitee_name?.trim() || !data.invitee_email?.trim()}
-                                        className="px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
-                                    >
-                                        <Send size={15} />
-                                        <span>{processing ? 'Sending...' : 'Send Invitation'}</span>
-                                    </button>
+                                        {inviteStep === 2 && (
+                                            <button
+                                                type="submit"
+                                                form="invite-step3-form"
+                                                disabled={processing || !data.invitee_name?.trim() || !data.invitee_email?.trim() || !data.pos_capabilities?.length}
+                                                className="px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
+                                            >
+                                                <Send size={15} />
+                                                <span>{processing ? 'Sending...' : 'Send POS Invitation'}</span>
+                                            </button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {inviteStep < 3 && (
+                                            <div className="flex items-center gap-3">
+                                                {inviteStep === 2 && !isStep2Valid && isApproverRequired && !hasSelectedApprover && (
+                                                    <span className="hidden sm:inline-flex items-center gap-1.5 text-2xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                                        <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                                                        Select at least 1 supervisor in Section 3 to continue
+                                                    </span>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (inviteStep === 1) {
+                                                            const isOn = settings?.approval_admin_enabled === '1' || settings?.approval_admin_enabled === 1 || settings?.approval_admin_enabled === true || approvalAdminEnabled;
+                                                            setActiveStep2Accordion(isOn ? 2 : 1);
+                                                        }
+                                                        setInviteStep(s => s + 1);
+                                                    }}
+                                                    disabled={inviteStep === 1 ? (data.roles.length === 0 || (fullCap.remaining <= 0 && fullCap.total > 0)) : !isStep2Valid}
+                                                    className="px-7 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                                                >
+                                                    <span>{inviteStep === 1 ? 'Next: Approvals & Ledger' : 'Next: Member Details'}</span>
+                                                    <ChevronRight size={15} />
+                                                </button>
+                                            </div>
+                                        )}
+                                        {inviteStep === 3 && (
+                                            <button
+                                                type="submit"
+                                                form="invite-step3-form"
+                                                disabled={processing || !data.invitee_name?.trim() || !data.invitee_email?.trim()}
+                                                className="px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
+                                            >
+                                                <Send size={15} />
+                                                <span>{processing ? 'Sending...' : 'Send Invitation'}</span>
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -2450,18 +3115,33 @@ function InvitationsTable({ invitations, copiedId, openMenu, setOpenMenu, onCopy
                                         {inv.invitee_phone || <span className="text-neutral-300">—</span>}
                                     </td>
 
-                                    {/* Roles */}
+                                    {/* Roles / Membership */}
                                     <td className="px-6 py-4">
-                                        <div className="flex flex-wrap gap-1">
-                                            {roles.map(r => {
-                                                const ri = getRoleInfo(r);
-                                                return (
-                                                    <span key={r} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${ri.badge}`}>
-                                                        <ri.icon size={9} />{tt(ri.name)}
-                                                    </span>
-                                                );
-                                            })}
-                                        </div>
+                                        {inv.membership_type === 'pos' ? (
+                                            <div className="flex flex-col gap-1 items-start">
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-extrabold uppercase bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                                                    <CreditCard size={9} /> POS Staff Seat
+                                                </span>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(inv.pos_capabilities || []).map(cap => (
+                                                        <span key={cap} className="inline-block px-1.5 py-0.2 rounded text-4xs font-bold uppercase bg-app border border-line text-ink-muted">
+                                                            {cap.replace('take_', '').replace('process_', '')}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-wrap gap-1">
+                                                {roles.map(r => {
+                                                    const ri = getRoleInfo(r);
+                                                    return (
+                                                        <span key={r} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold uppercase ${ri.badge}`}>
+                                                            <ri.icon size={9} />{tt(ri.name)}
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </td>
 
                                     {/* Invite Code */}
@@ -2810,10 +3490,13 @@ function AttendanceDetailModal({ user, history, onClose }) {
 }
 
 // ─── Edit Member Modal ──────────────────────────────────────────────────────
-function EditMemberModal({ member, onClose, users = [] }) {
+function EditMemberModal({ member, onClose, users = [], locations = [], seatCapacity = null }) {
     const { store } = usePage().props;
     const tt = useTermText();
     const { data, setData, patch, processing, errors } = useForm({
+        membership_type: member.membership_type || 'full',
+        pos_capabilities: member.pos_capabilities || ['take_orders', 'take_payments'],
+        assigned_location_id: member.assigned_location_id || '',
         role: member.role || 'custom',
         custom_role_name: member.custom_role_name ?? '',
         display_name: member.display_name ?? '',
@@ -2827,9 +3510,10 @@ function EditMemberModal({ member, onClose, users = [] }) {
         approval_threshold_amount: member.approval_threshold_amount ?? '',
     });
 
-    const isApproverRequired = member.role !== 'owner' && data.transaction_approval_mode !== 'direct';
+    const isApproverRequired = data.membership_type === 'full' && member.role !== 'owner' && data.transaction_approval_mode !== 'direct';
     const hasSelectedApprover = (data.assigned_approvers || []).length > 0;
     const isApprovalValid = !isApproverRequired || hasSelectedApprover;
+    const isPosValid = data.membership_type !== 'pos' || ((data.pos_capabilities || []).length > 0);
 
     const eligibleApprovers = useMemo(() => {
         return (users || []).filter(u => {
@@ -2849,6 +3533,14 @@ function EditMemberModal({ member, onClose, users = [] }) {
         }));
     };
 
+    const togglePosCapability = (capKey) => {
+        const current = data.pos_capabilities || [];
+        const next = current.includes(capKey)
+            ? current.filter(c => c !== capKey)
+            : [...current, capKey];
+        setData('pos_capabilities', next);
+    };
+
     const handleApplyPreset = (preset, mode) => {
         const targetPerms = mode === 'merge'
             ? Array.from(new Set([...(data.permissions || []), ...preset.permissions]))
@@ -2864,7 +3556,7 @@ function EditMemberModal({ member, onClose, users = [] }) {
 
     const submit = (e) => {
         e.preventDefault();
-        if (!store?.slug || !isApprovalValid) return;
+        if (!store?.slug || !isApprovalValid || !isPosValid) return;
         patch(route('store.admin.users.update', { store_slug: store.slug, member: member.membership_id || member.id }), {
             onSuccess: onClose,
         });
@@ -2888,6 +3580,48 @@ function EditMemberModal({ member, onClose, users = [] }) {
                     </div>
 
                     <form id="edit-member-form" onSubmit={submit} className="flex flex-col gap-8 flex-1">
+
+                        {/* Membership Type Switcher (Only for non-owner) */}
+                        {member.role !== 'owner' && (
+                            <div className="space-y-3">
+                                <label className="text-xs font-bold uppercase tracking-wider text-ink-secondary ml-1">
+                                    Membership Access Scope
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('membership_type', 'pos')}
+                                        className={`p-3.5 rounded-xl border flex flex-col gap-1 text-left transition-all ${
+                                            data.membership_type === 'pos'
+                                                ? 'bg-purple-500/10 border-purple-500 ring-2 ring-purple-500/20 text-ink'
+                                                : 'bg-app border-line hover:border-line-strong text-ink-muted'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-ink">POS Staff Seat</span>
+                                            {data.membership_type === 'pos' && <Check size={14} className="text-purple-600 dark:text-purple-400" />}
+                                        </div>
+                                        <span className="text-3xs text-ink-muted">POS Only • 3 Capabilities</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('membership_type', 'full')}
+                                        className={`p-3.5 rounded-xl border flex flex-col gap-1 text-left transition-all ${
+                                            data.membership_type === 'full'
+                                                ? 'bg-brand-500/10 border-brand-500 ring-2 ring-brand-500/20 text-ink'
+                                                : 'bg-app border-line hover:border-line-strong text-ink-muted'
+                                        }`}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-ink">Full Staff Seat</span>
+                                            {data.membership_type === 'full' && <Check size={14} className="text-brand-600 dark:text-brand-400" />}
+                                        </div>
+                                        <span className="text-3xs text-ink-muted">Backoffice, Approvals & Roles</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Member Profile */}
                         <div className="space-y-4">
@@ -2925,7 +3659,68 @@ function EditMemberModal({ member, onClose, users = [] }) {
                             </div>
                         </div>
 
-                        {/* Roles */}
+                        {/* POS Mode Capabilities & Station Location */}
+                        {data.membership_type === 'pos' && (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
+                                        <ShoppingCart size={15} className="text-purple-600 dark:text-purple-400" /> POS Capabilities
+                                    </h4>
+                                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400 tracking-wider">
+                                        {(data.pos_capabilities || []).length} OF 3 ACTIVE
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2.5">
+                                    {[
+                                        { key: 'take_orders', label: 'Take Orders', desc: 'Browse catalog, create orders, send kitchen tickets.' },
+                                        { key: 'take_payments', label: 'Take Payments', desc: 'Accept tenders, checkout, cash drawer custody.' },
+                                        { key: 'process_returns', label: 'Process Returns', desc: 'Look up receipts, process customer refunds.' },
+                                    ].map(cap => {
+                                        const isChecked = (data.pos_capabilities || []).includes(cap.key);
+                                        return (
+                                            <div
+                                                key={cap.key}
+                                                onClick={() => togglePosCapability(cap.key)}
+                                                className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                                                    isChecked
+                                                        ? 'bg-purple-500/10 border-purple-500 ring-1 ring-purple-500/30'
+                                                        : 'bg-app border-line hover:border-line-strong'
+                                                }`}
+                                            >
+                                                <div>
+                                                    <div className="text-xs font-bold text-ink">{cap.label}</div>
+                                                    <div className="text-2xs text-ink-muted">{cap.desc}</div>
+                                                </div>
+                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                                    isChecked ? 'bg-purple-600 border-purple-500 text-white' : 'border-line bg-surface'
+                                                }`}>
+                                                    {isChecked && <Check size={10} strokeWidth={3} />}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Assigned Station Location */}
+                                <div className="space-y-1.5 focus-within:text-brand-600 transition-colors text-ink-secondary pt-2">
+                                    <label className="text-xs font-bold uppercase tracking-wider ml-1">Assigned Station / Location</label>
+                                    <select
+                                        value={data.assigned_location_id || ''}
+                                        onChange={e => setData('assigned_location_id', e.target.value)}
+                                        className="w-full px-4 py-3 bg-app border border-line rounded-xl text-sm font-semibold text-ink focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all dark:bg-neutral-800/80 dark:border-neutral-700 dark:text-white"
+                                    >
+                                        <option value="">All Store Locations / Stations</option>
+                                        {locations.map(loc => (
+                                            <option key={loc.id} value={loc.id}>{loc.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Full Staff Roles */}
+                        {data.membership_type === 'full' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
@@ -2977,9 +3772,10 @@ function EditMemberModal({ member, onClose, users = [] }) {
                             )}
                             {errors.role && <p className="text-xs text-red-500 ml-1">{errors.role}</p>}
                         </div>
+                        )}
 
                         {/* Approval Mode — owners/admins only */}
-                        {(member.role !== 'owner') && (
+                        {data.membership_type === 'full' && (member.role !== 'owner') && (
                             <div className="space-y-4">
                                 <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
                                     <Shield size={15} className="text-brand-500" /> Transaction Approval
@@ -3176,32 +3972,91 @@ function EditMemberModal({ member, onClose, users = [] }) {
                     </form>
                 </div>
 
-                {/* RIGHT COLUMN: Permissions Visualization */}
+                {/* RIGHT COLUMN: Permissions Visualization / POS Overview */}
                 <div className="flex-1 p-6 md:p-8 xl:p-10 bg-sunken/40 dark:bg-surface flex flex-col justify-between relative overflow-hidden">
                     {/* Ambient glow in right panel */}
                     <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-brand-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-                    <div className="flex items-center justify-between mb-6 relative z-10">
-                        <div className="space-y-1">
-                            <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
-                                <Shield size={16} className="text-brand-600 dark:text-brand-400" /> System Visibility & Access
-                            </h4>
-                            <p className="text-xs text-ink-muted font-medium pl-6">
-                                Module Access Control
-                            </p>
-                        </div>
-                        <div className="px-3.5 py-1.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2 tracking-wider uppercase">
-                            <Sparkles size={13} /> Live Permissions Preview
-                        </div>
-                    </div>
+                    {data.membership_type === 'pos' ? (
+                        <div className="space-y-6 relative z-10 flex-1">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="space-y-1">
+                                    <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                                        <ShoppingCart size={16} className="text-purple-600 dark:text-purple-400" /> POS Staff Access Boundary
+                                    </h4>
+                                    <p className="text-xs text-ink-muted font-medium pl-6">
+                                        Strict POS terminal access only • No backoffice dashboard or accounting access
+                                    </p>
+                                </div>
+                                <div className="px-3.5 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs font-bold text-purple-600 dark:text-purple-400 flex items-center gap-2 tracking-wider uppercase">
+                                    <Sparkles size={13} /> POS Mode Active
+                                </div>
+                            </div>
 
-                    <StaffPresetPicker onApplyPreset={handleApplyPreset} disabled={member.role === 'owner'} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 rounded-xl bg-surface border border-line space-y-2">
+                                    <h5 className="text-xs font-bold text-ink">Assigned Capabilities</h5>
+                                    <p className="text-2xs text-ink-muted">
+                                        {(data.pos_capabilities || []).length} of 3 capabilities enabled.
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                        {(data.pos_capabilities || []).map(cap => (
+                                            <span key={cap} className="px-2.5 py-1 rounded-lg text-2xs font-extrabold uppercase bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/20">
+                                                {cap.replace('take_', '').replace('process_', '')}
+                                            </span>
+                                        ))}
+                                        {(data.pos_capabilities || []).length === 0 && (
+                                            <span className="text-2xs font-bold text-red-500">Select at least 1 capability on the left!</span>
+                                        )}
+                                    </div>
+                                </div>
 
-                    <PermissionsSelector
-                        selectedPermissions={data.permissions}
-                        onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
-                        disabled={member.role === 'owner'}
-                    />
+                                <div className="p-4 rounded-xl bg-surface border border-line space-y-2">
+                                    <h5 className="text-xs font-bold text-ink">Terminal & Station Scope</h5>
+                                    <p className="text-2xs text-ink-muted">
+                                        {data.assigned_location_id
+                                            ? `Assigned to: ${locations.find(l => String(l.id) === String(data.assigned_location_id))?.name || 'Selected Station'}`
+                                            : 'Floating: Can operate across any store station or cashbox.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-surface border border-line space-y-2 text-2xs text-ink-muted">
+                                <p className="font-semibold text-ink">POS Staff Shift Rules:</p>
+                                <ul className="list-disc list-inside space-y-1">
+                                    <li>Orders-only staff start shifts without cash opening prompt.</li>
+                                    <li>Payment-enabled staff must confirm assigned cashbox and opening float.</li>
+                                    <li>Exclusive single-custodian custody per cash drawer is enforced.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="relative z-10 flex-1 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="space-y-1">
+                                        <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
+                                            <Shield size={16} className="text-brand-600 dark:text-brand-400" /> System Visibility & Access
+                                        </h4>
+                                        <p className="text-xs text-ink-muted font-medium pl-6">
+                                            Module Access Control
+                                        </p>
+                                    </div>
+                                    <div className="px-3.5 py-1.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400 flex items-center gap-2 tracking-wider uppercase">
+                                        <Sparkles size={13} /> Live Permissions Preview
+                                    </div>
+                                </div>
+
+                                <StaffPresetPicker onApplyPreset={handleApplyPreset} disabled={member.role === 'owner'} />
+
+                                <PermissionsSelector
+                                    selectedPermissions={data.permissions}
+                                    onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
+                                    disabled={member.role === 'owner'}
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     {/* Bottom Footer Actions inside Right Panel */}
                     <div className="mt-6 pt-6 border-t border-line flex items-center justify-between relative z-10">
@@ -3210,25 +4065,37 @@ function EditMemberModal({ member, onClose, users = [] }) {
                                 Summary
                             </div>
                             <div className="text-sm font-bold text-ink">
-                                <span className={data.permissions.length > 0 ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-ink-muted'}>
-                                     {data.permissions.length} Permissions Active
-                                </span>
+                                {data.membership_type === 'pos' ? (
+                                    <span className="text-purple-600 dark:text-purple-400 font-bold">
+                                        {(data.pos_capabilities || []).length} POS Capabilities Selected
+                                    </span>
+                                ) : (
+                                    <span className={data.permissions.length > 0 ? 'text-brand-600 dark:text-brand-400 font-bold' : 'text-ink-muted'}>
+                                         {data.permissions.length} Permissions Active
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            {!isApprovalValid && (
+                            {data.membership_type === 'full' && !isApprovalValid && (
                                 <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
                                     <AlertTriangle size={14} className="shrink-0" />
                                     <span>1 Approver Required</span>
+                                </div>
+                            )}
+                            {data.membership_type === 'pos' && !isPosValid && (
+                                <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20">
+                                    <AlertTriangle size={14} className="shrink-0" />
+                                    <span>Select at least 1 capability</span>
                                 </div>
                             )}
                             <button type="button" onClick={onClose}
                                 className="px-5 py-2.5 rounded-xl border border-line bg-surface hover:bg-interactive-hover text-ink-secondary hover:text-ink text-xs font-bold uppercase tracking-wider transition-colors">
                                 Discard
                             </button>
-                            <button type="submit" form="edit-member-form" disabled={processing || !isApprovalValid}
+                            <button type="submit" form="edit-member-form" disabled={processing || !isApprovalValid || !isPosValid}
                                 className={`px-7 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2.5 ${
-                                    !isApprovalValid
+                                    (!isApprovalValid || !isPosValid)
                                         ? 'bg-neutral-300 dark:bg-neutral-800 text-ink-muted cursor-not-allowed border border-line'
                                         : 'bg-brand-600 hover:bg-brand-500 text-white shadow-md hover:shadow-lg active:scale-95'
                                 }`}>
@@ -3398,7 +4265,7 @@ function MemberProfileModal({ member, onClose }) {
 }
 
 // ─── Members Table ─────────────────────────────────────────────────────────
-function MembersTable({ users, store }) {
+function MembersTable({ users, store, locations = [], seatCapacity = null }) {
     const { my_role } = usePage().props;
     const tt = useTermText();
     const canManage = ['owner', 'admin'].includes(my_role);
@@ -3432,6 +4299,8 @@ function MembersTable({ users, store }) {
                     member={editingMember}
                     onClose={() => setEditingMember(null)}
                     users={users}
+                    locations={locations}
+                    seatCapacity={seatCapacity}
                 />
             )}
             {viewingProfileMember && (
@@ -3493,9 +4362,24 @@ function MembersTable({ users, store }) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${role.badge}`}>
-                                                <RoleIcon size={10} />{badgeLabel}
-                                            </span>
+                                            {user.membership_type === 'pos' ? (
+                                                <div className="flex flex-col gap-1 items-start">
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-extrabold uppercase bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                                                        <CreditCard size={10} /> POS Staff Seat
+                                                    </span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {(user.pos_capabilities || []).map(cap => (
+                                                            <span key={cap} className="inline-block px-1.5 py-0.2 rounded text-4xs font-bold uppercase bg-app border border-line text-ink-muted">
+                                                                {cap.replace('take_', '').replace('process_', '')}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${role.badge}`}>
+                                                    <RoleIcon size={10} />{badgeLabel}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-ink-muted font-mono">{user.email}</td>
                                         <td className="px-6 py-4">

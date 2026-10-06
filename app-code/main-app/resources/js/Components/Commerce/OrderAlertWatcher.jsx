@@ -30,7 +30,7 @@ const beep = () => {
 
 /** Keep online-order alerts live throughout the signed-in store app. */
 export default function OrderAlertWatcher({ addToast }) {
-    const { auth, store, my_role: membershipRole, userRole } = usePage().props;
+    const { auth, store, modules = [], my_role: membershipRole, userRole } = usePage().props;
     const addToastRef = useRef(addToast);
 
     useEffect(() => {
@@ -39,6 +39,11 @@ export default function OrderAlertWatcher({ addToast }) {
 
     useEffect(() => {
         if (!store?.slug || !auth?.user) return undefined;
+
+        // If online_store module is configured and disabled for this store, do not poll
+        if (Array.isArray(modules) && modules.length > 0 && !modules.includes('online_store')) {
+            return undefined;
+        }
 
         const role = membershipRole || userRole || auth.user.role;
         const permissions = auth.user.permissions || [];

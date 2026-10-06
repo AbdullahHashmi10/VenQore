@@ -242,11 +242,13 @@ export function isCashSaleDefault(settings) {
 }
 
 /**
- * Check if stock maintenance is enabled
+ * Check if stock maintenance is enabled (defaults to true if unset)
  * @param {object} settings - Settings object from Inertia
  * @returns {boolean}
  */
 export function isStockMaintenanceEnabled(settings) {
-    return isSettingEnabled('stock_maintenance', settings);
+    const value = settings?.stock_maintenance;
+    if (value === undefined || value === null || value === '') return true;
+    return value !== '0' && value !== false && value !== 0 && value !== 'false';
 }
 

@@ -14,7 +14,7 @@ class GeminiProvider implements ProviderContract
     {
         $startTime = microtime(true);
         $apiKey = $keyConfig['api_key'] ?? '';
-        $model = $keyConfig['model'] ?? 'gemini-2.5-flash-lite';
+        $model = $keyConfig['model'] ?? 'gemini-2.0-flash-lite';
         $profile = config("ai_models.{$request->feature}") ?? config('ai_models.default', []);
         $timeout = (int) ($profile['timeout'] ?? config('ai_limits.timeout.default', 20));
 
@@ -95,8 +95,11 @@ class GeminiProvider implements ProviderContract
         if (isset($deprecations[$model]['fallback_successor'])) {
             $modelsToTry[] = $deprecations[$model]['fallback_successor'];
         }
-        if (!in_array('gemini-2.5-flash-lite', $modelsToTry, true)) {
-            $modelsToTry[] = 'gemini-2.5-flash-lite';
+        if (!in_array('gemini-2.0-flash-lite', $modelsToTry, true)) {
+            $modelsToTry[] = 'gemini-2.0-flash-lite';
+        }
+        if (!in_array('gemini-1.5-flash', $modelsToTry, true)) {
+            $modelsToTry[] = 'gemini-1.5-flash';
         }
 
         $lastError = null;

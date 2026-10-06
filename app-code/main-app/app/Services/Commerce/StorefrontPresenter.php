@@ -15,7 +15,12 @@ class StorefrontPresenter
 {
     public static function publicUrl(Storefront $s): string
     {
-        return url('/shop/' . $s->slug);
+        return self::customerUrl('/shop/' . $s->slug);
+    }
+
+    public static function customerUrl(string $path): string
+    {
+        return rtrim((string) config('app.customer_url', config('app.url')), '/') . '/' . ltrim($path, '/');
     }
 
     public static function mediaUrl(?string $path): ?string
@@ -26,7 +31,7 @@ class StorefrontPresenter
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
-        return Storage::disk('public')->url($path);
+        return self::customerUrl('/storage/' . ltrim($path, '/'));
     }
 
     public static function qrSvg(string $url): string
@@ -72,6 +77,11 @@ class StorefrontPresenter
             'timezone' => $s->timezone,
             'currency_symbol' => $s->currency_symbol,
             'currency_code' => $s->currency_code,
+            'customer_mode' => $s->customer_mode ?: 'ordering',
+            'catalogue_theme' => $s->catalogue_theme ?: 'visual-grid',
+            'ordering_enabled' => ($s->customer_mode ?: 'ordering') === 'ordering',
+            'onsite_ordering_enabled' => (bool) $s->onsite_ordering_enabled,
+            'counter_qr_enabled' => (bool) $s->counter_qr_enabled,
             'delivery_charge' => (float) $s->delivery_charge,
             'delivery_note' => $s->delivery_note,
             'min_order_amount' => (float) $s->min_order_amount,

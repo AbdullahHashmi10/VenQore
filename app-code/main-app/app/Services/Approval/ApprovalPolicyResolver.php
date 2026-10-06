@@ -57,7 +57,7 @@ class ApprovalPolicyResolver
             ->value('value');
         $adminEnabled = $adminEnabledSetting !== null
             ? (!in_array(strtolower(trim((string)$adminEnabledSetting)), ['false', '0', 'disabled', 'off'], true) && filter_var($adminEnabledSetting, FILTER_VALIDATE_BOOLEAN))
-            : true;
+            : false;
 
         if (!$adminEnabled) {
             // Master switch OFF means no approval for future submissions, full stop.

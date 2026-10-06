@@ -28,6 +28,9 @@ class Storefront extends Model
         'orders_outside_hours' => 'boolean',
         'orders_during_break' => 'boolean',
         'show_images' => 'boolean',
+        'onsite_ordering_enabled' => 'boolean',
+        'counter_qr_enabled' => 'boolean',
+        'onsite_show_images' => 'boolean',
         'delivery_zones' => 'array',
         'delivery_charge' => 'float',
         'min_order_amount' => 'float',
@@ -37,7 +40,15 @@ class Storefront extends Model
 
     public function isAcceptingOrders(): bool
     {
-        return $this->status === 'published' && ! $this->intake_paused && ! $this->isClosedByHours();
+        return $this->customer_mode !== 'catalogue'
+            && $this->status === 'published'
+            && ! $this->intake_paused
+            && ! $this->isClosedByHours();
+    }
+
+    public function isAcceptingOnsiteOrders(): bool
+    {
+        return (bool) $this->onsite_ordering_enabled;
     }
 
     /**

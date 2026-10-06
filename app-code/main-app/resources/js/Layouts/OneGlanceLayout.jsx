@@ -66,7 +66,8 @@ import {
  PenLine,
  PanelRight,
  RotateCcw,
- HeartHandshake
+ HeartHandshake,
+ UtensilsCrossed,
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -714,6 +715,27 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const setupRemainingCount = useMemo(() => setupChecklist.filter(item => !item.isDone).length, [setupChecklist]);
 	const showSetupBadge = !!(store && !store?.onboarding_completed && store?.onboarding_step && store?.onboarding_step !== 'completed' && setupRemainingCount > 0 && !store?.is_demo);
 
+	const enabledModuleSet = Array.isArray(props?.modules)
+		? new Set(
+				props.modules.map((m) => {
+					if (typeof m === 'string') return m;
+					if (typeof m === 'object' && m !== null) {
+						return m.enabled ? m.key : null;
+					}
+					return null;
+				}).filter(Boolean)
+		  )
+		: null;
+
+	const isRestaurantActive = Boolean(
+		(enabledModuleSet && enabledModuleSet.has('table_service')) ||
+		['tables', 'both'].includes(serviceMode)
+	);
+
+	const isOnlineStoreActive = Boolean(
+		enabledModuleSet && enabledModuleSet.has('online_store')
+	);
+
  const appMenuItemsRaw = [
  {
  name: 'Dashboard',
@@ -729,13 +751,25 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		icon: ShoppingCart,
 		// PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
 		subs: userRole === 'cashier' ? [] : [
-			{ group: 'Transactions', items: ['Orders', 'Floor', 'Floor Plan', 'Kitchen', 'Dispatch', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
+			{ group: 'Transactions', items: ['Orders', 'Service Jobs', 'Dispatch Calendar', 'Tools & Equipment', 'Quotations / Pre-Sales', 'Proposals'] },
 			{ group: 'Post-Sale', items: ['Returns History', 'Invoice Reminders', 'Recurring Invoices'] },
 			{ group: 'Config', items: ['E-Invoicing'] }
 		],
 		route: store ? 'store.sales.dashboard' : 'sales.dashboard',
 		routeParams: store ? { store_slug: store.slug } : {}
 	},
+	...(isRestaurantActive ? [{
+		name: 'Restaurant',
+		icon: UtensilsCrossed,
+		subs: [
+			{ group: 'Floor & Dining', items: ['Floor', 'Floor Plan', 'Reservations (Coming Soon)'] },
+			{ group: 'Kitchen & Display', items: ['Kitchen', 'Order TV Screen'] },
+			{ group: 'Delivery & Dispatch', items: ['Dispatch', 'Riders'] },
+			{ group: 'Settings', items: ['Restaurant Settings'] },
+		],
+		route: store ? 'store.restaurant.dashboard' : null,
+		routeParams: store ? { store_slug: store.slug } : {},
+	}] : []),
  {
  name: 'Purchase',
  icon: ShoppingBag,
@@ -793,7 +827,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  	: (store ? 'store.approvals.my-submissions' : 'approvals.my-submissions'),
  	routeParams: store ? { store_slug: store.slug } : {}
  },
- ...(store ? [{
+ ...(store && isOnlineStoreActive ? [{
  name: 'Online Store',
  icon: Store,
  subs: [
@@ -802,6 +836,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { label: 'Online Orders', route: 'store.commerce.orders' },
  { label: 'Online Products', route: 'store.commerce.products' },
  { label: 'Offers & Coupons', route: 'store.commerce.promotions' },
+ { label: 'Onsite Catalogue', route: 'store.commerce.catalogue' },
  { label: 'Store Settings', route: 'store.commerce.settings' },
  ] },
  ],
@@ -866,10 +901,21 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	// When all sub-items in a top-level group are gone, the entire group hides.
 	const SUBITEM_MODULE = {
 		'Orders': 'sales_orders',
-		'Floor': 'pos',
-		'Floor Plan': 'pos',
-		'Kitchen': 'pos',
-		'Dispatch': 'pos',
+		'Floor': 'table_service',
+		'Floor Plan': 'table_service',
+		'Kitchen': 'table_service',
+		'Order TV Screen': 'table_service',
+		'TV Screen': 'table_service',
+		'Dispatch': 'table_service',
+		'Riders': 'table_service',
+		'Restaurant Settings': 'table_service',
+		'Reservations': 'table_service',
+		'Reservations (Coming Soon)': 'table_service',
+		'Store Overview': 'online_store',
+		'Online Orders': 'online_store',
+		'Online Products': 'online_store',
+		'Offers & Coupons': 'online_store',
+		'Onsite Catalogue': 'online_store',
 		'Service Jobs': 'services',
 		'Dispatch Calendar': 'services',
 		'Tools & Equipment': 'services',
@@ -973,7 +1019,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Floor': ['store.pos', 'store.tables.index', 'store.tables.plan'],
 		'Floor Plan': ['store.tables.plan', 'store.tables.index'],
 		'Kitchen': ['store.restaurant.kitchen', 'restaurant.kitchen'],
+		'Order TV Screen': ['store.restaurant.queue', 'restaurant.queue'],
+		'TV Screen': ['store.restaurant.queue', 'restaurant.queue'],
 		'Dispatch': ['store.restaurant.dispatch', 'restaurant.dispatch'],
+		'Riders': ['store.restaurant.riders', 'restaurant.riders'],
+		'Restaurant Settings': ['store.restaurant.settings', 'restaurant.settings'],
+		'Reservations': ['store.reservations.list'],
+		'Store Overview': ['store.commerce.home'],
+		'Online Orders': ['store.commerce.orders'],
+		'Online Products': ['store.commerce.products'],
+		'Offers & Coupons': ['store.commerce.promotions'],
+		'Onsite Catalogue': ['store.commerce.catalogue'],
 		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
 		'Dispatch Calendar': ['store.service-jobs.calendar'],
 		'Tools & Equipment': ['store.tools.index'],
@@ -1016,17 +1072,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Approvals': ['store.approvals.inbox', 'store.approvals.my-submissions'],
 	};
 
-	const enabledModuleSet = Array.isArray(props?.modules)
-		? new Set(
-				props.modules.map((m) => {
-					if (typeof m === 'string') return m;
-					if (typeof m === 'object' && m !== null) {
-						return m.enabled ? m.key : null;
-					}
-					return null;
-				}).filter(Boolean)
-		  )
-		: null;
 	const derivedNavRoutes = Array.isArray(props?.nav) ? new Set(props.nav.map(n => n.route)) : null;
 
 	const subitemModuleVisible = (item) => {
@@ -1044,11 +1089,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 			return !(isPlatformAdmin || userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || hasAnyPerm('approvals.inbox', 'approvals.review'));
 		}
 
-		// Kitchen and Dispatch are visible ONLY when prepares_orders is active ('1')
-		if (label === 'Kitchen' || label === 'Dispatch') {
-			if (String(settings?.prepares_orders) !== '1') {
-				return false;
-			}
+		// Restaurant sub-items: visible if restaurant is active
+		const restaurantItems = ['Floor', 'Floor Plan', 'Kitchen', 'Order TV Screen', 'TV Screen', 'Dispatch', 'Riders', 'Restaurant Settings', 'Reservations', 'Reservations (Coming Soon)'];
+		if (restaurantItems.includes(label)) {
+			return isRestaurantActive;
+		}
+
+		// Online Store sub-items: visible if online store is active
+		const onlineStoreItems = ['Store Overview', 'Online Orders', 'Online Products', 'Offers & Coupons', 'Onsite Catalogue'];
+		if (onlineStoreItems.includes(label)) {
+			return isOnlineStoreActive;
 		}
 
 		// 1. Module key check against enabledModuleSet
@@ -1091,7 +1141,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 			   falls through to the "no children left" rule like everything
 			   else, and reappears the moment a module that reports on something
 			   is switched back on. */
-			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance', 'Approvals'].includes(group.name)) {
+			if (['Dashboard', 'Home', 'Settings', 'Administration', 'Appearance', 'Approvals', 'Restaurant', 'Online Store'].includes(group.name)) {
 				return true;
 			}
 			// For cashiers, keep Sell if POS is enabled
@@ -1193,6 +1243,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'AI Scan': ['pos', 'sales', 'purchases'],
  // Sell: only roles that can actually create sales or open POS sessions
  'Sell': ['sales.create', 'sales.view'],
+ 'Restaurant': ['pos.checkout', 'pos', 'sales.view', 'admin.settings_manage'],
  // Purchase: only roles that can create purchase orders
  'Purchase': ['purchases.create'],
  // Stock: only roles that can manage/adjust inventory (not read-only view)
@@ -1237,8 +1288,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  props?.settings?.approval_admin_enabled ?? 
  props?.store?.approval_admin_enabled ?? 
  (typeof window !== 'undefined' ? window?.amdSettings?.approval_admin_enabled : null);
- const isExplicitlyOff = String(rawVal) === '0' || rawVal === 0 || rawVal === false || String(rawVal).toLowerCase() === 'false' || String(rawVal).toLowerCase() === 'off';
- const isApprovalEnabled = !isExplicitlyOff;
+ const isApprovalEnabled = String(rawVal) === '1' || rawVal === 1 || rawVal === true || String(rawVal).toLowerCase() === 'true' || String(rawVal).toLowerCase() === 'on';
  const hasPendingDoc = (props.auth?.pending_approvals_count || 0) > 0;
  const isApprovalRoute = url?.includes('/approvals');
  if (isApprovalEnabled || hasPendingDoc || isApprovalRoute) {
@@ -1294,6 +1344,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Custom mapping for Approvals
  if (item.name === 'Approvals' && (route().current('store.approvals.*') || route().current('approvals.*') || url?.includes('/approvals'))) return true;
+
+ // Custom mapping for Restaurant
+ if (item.name === 'Restaurant' && (
+  route().current('store.restaurant.*') ||
+  route().current('restaurant.*') ||
+  route().current('store.tables.plan') ||
+  route().current('store.reservations.*') ||
+  url?.includes('/restaurant') ||
+  url?.includes('/floor-plan') ||
+  url?.includes('/reservations')
+ )) return true;
+
+ // Custom mapping for Online Store
+ if (item.name === 'Online Store' && (
+  route().current('store.commerce.*') ||
+  url?.includes('/online-store')
+ )) return true;
 
  // Custom mapping for Insights -> reports.*
  if (item.name === 'Insights' && route().current('store.reports.*')) return true;

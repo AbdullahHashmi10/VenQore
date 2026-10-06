@@ -25,8 +25,8 @@ class CardContractValidatorTest extends TestCase
     public function test_catalogue_contains_exactly_349_unique_cards(): void
     {
         $cards = CardRegistry::all();
-        $this->assertCount(364, $cards, 'CardRegistry must contain exactly 364 cards.');
-        $this->assertCount(364, array_unique(array_keys($cards)), 'All 364 card keys must be unique.');
+        $this->assertCount(374, $cards, 'CardRegistry must contain exactly 374 cards.');
+        $this->assertCount(374, array_unique(array_keys($cards)), 'All 374 card keys must be unique.');
     }
 
     public function test_every_card_has_structured_contract_block(): void

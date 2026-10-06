@@ -4,6 +4,7 @@ use App\Http\Controllers\Commerce\OrderInboxController;
 use App\Http\Controllers\Commerce\PublicStoreController;
 use App\Http\Controllers\Commerce\PromotionsController;
 use App\Http\Controllers\Commerce\StoreManagerController;
+use App\Http\Controllers\Commerce\OnsiteCatalogueController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,9 +15,15 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('/shop', [PublicStoreController::class, 'directory'])->name('commerce.directory');
 Route::get('/shop/{slug}', [PublicStoreController::class, 'show'])->where('slug', '[a-z0-9-]+')->name('commerce.store');
+Route::get('/catalogue/{slug}', [PublicStoreController::class, 'onsiteCounter'])->where('slug', '[a-z0-9-]+')->name('commerce.onsite.counter');
+Route::get('/catalogue/{slug}/table/{token}', [PublicStoreController::class, 'onsiteTable'])->where(['slug' => '[a-z0-9-]+', 'token' => '[A-Za-z0-9]{40}'])->name('commerce.onsite.table');
+Route::post('/catalogue/{slug}/orders', [PublicStoreController::class, 'placeOnsiteOrder'])->where('slug', '[a-z0-9-]+')->middleware('throttle:20,1')->name('commerce.onsite.order');
+Route::get('/onsite/{slug}', fn (string $slug) => redirect('/catalogue/' . $slug, 301))->where('slug', '[a-z0-9-]+');
+Route::get('/onsite/{slug}/table/{token}', fn (string $slug, string $token) => redirect('/catalogue/' . $slug . '/table/' . $token, 301))->where(['slug' => '[a-z0-9-]+', 'token' => '[A-Za-z0-9]{40}']);
 Route::post('/shop/{slug}/quote', [PublicStoreController::class, 'quote'])->where('slug', '[a-z0-9-]+')->middleware('throttle:60,1')->name('commerce.quote');
 Route::post('/shop/{slug}/checkout', [PublicStoreController::class, 'placeOrder'])->where('slug', '[a-z0-9-]+')->middleware('throttle:10,1')->name('commerce.checkout');
 Route::get('/order-status/{token}', [PublicStoreController::class, 'status'])->middleware('throttle:60,1')->name('commerce.order-status');
+Route::get('/order-status/{token}/live', [PublicStoreController::class, 'liveStatus'])->middleware('throttle:30,1')->name('commerce.order-status.live');
 Route::get('/order-status/{token}/reorder', [PublicStoreController::class, 'reorder'])->middleware('throttle:30,1')->name('commerce.order-status.reorder');
 Route::post('/order-status/{token}/revision', [PublicStoreController::class, 'answerRevision'])->middleware('throttle:10,1')->name('commerce.order-status.revision');
 Route::post('/order-status/{token}/cancel', [PublicStoreController::class, 'cancel'])->middleware('throttle:10,1')->name('commerce.order-status.cancel');
@@ -43,6 +50,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/publish', [StoreManagerController::class, 'publish'])->middleware('permission:admin.settings_manage')->name('publish');
         Route::post('/unpublish', [StoreManagerController::class, 'unpublish'])->middleware('permission:admin.settings_manage')->name('unpublish');
         Route::post('/intake', [StoreManagerController::class, 'intake'])->middleware('permission:admin.settings_manage')->name('intake');
+        Route::get('/catalogue', [OnsiteCatalogueController::class, 'setup'])->middleware('permission:admin.settings_manage')->name('catalogue');
+        Route::post('/catalogue', [OnsiteCatalogueController::class, 'save'])->middleware('permission:admin.settings_manage')->name('catalogue.save');
+        Route::get('/catalogue/qr.svg', [OnsiteCatalogueController::class, 'qr'])->middleware('permission:admin.settings_manage')->name('catalogue.qr');
         Route::get('/products', [StoreManagerController::class, 'products'])->middleware('permission:admin.settings_manage')->name('products');
         Route::post('/products/{product}/photo', [StoreManagerController::class, 'productPhoto'])->middleware('permission:admin.settings_manage')->name('products.photo');
         Route::post('/products/bulk', [StoreManagerController::class, 'bulkProducts'])->middleware('permission:admin.settings_manage')->name('products.bulk');

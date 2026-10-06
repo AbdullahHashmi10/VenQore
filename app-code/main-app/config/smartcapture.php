@@ -16,29 +16,29 @@ return [
     'gemini_key'   => env('GEMINI_API_KEY'),
     'api_key'      => env('SMART_CAPTURE_API_KEY'), // generic platform key for the provider above
     'free_api_key' => env('SMART_CAPTURE_FREE_API_KEY'),
-    'model'        => env('SMART_CAPTURE_MODEL', 'gemini-2.5-flash'),
+    'model'        => env('SMART_CAPTURE_MODEL', 'gemini-2.0-flash'),
 
     /*
     |--------------------------------------------------------------------------
     | Default models per provider (used when no model override is set)
     |--------------------------------------------------------------------------
     | These are conservative, known-good defaults. Newer models (e.g. the
-    | gemini-3.x flash family) can be selected per store from the AI Scan
+    | gemini-2.0 flash family) can be selected per store from the AI Scan
     | settings drawer — the model list is discovered live from the provider
     | using the store's own key, so this list never goes stale.
     */
     'default_models' => [
-        'gemini'    => env('SMART_CAPTURE_GEMINI_MODEL', 'gemini-2.5-flash'),
+        'gemini'    => env('SMART_CAPTURE_GEMINI_MODEL', 'gemini-2.0-flash'),
         'openai'    => 'gpt-4o-mini',
         'anthropic' => 'claude-sonnet-4-5',
         'deepseek'  => 'deepseek-chat',
     ],
 
     'feature_models' => [
-        'scan'           => env('SMART_CAPTURE_MODEL_SCAN', 'gemini-2.5-flash'),
-        'query'          => env('SMART_CAPTURE_MODEL_QUERY', 'gemini-2.5-flash-lite'),
-        'populate'       => env('SMART_CAPTURE_MODEL_POPULATE', 'gemini-2.5-flash-lite'),
-        'match_fallback' => env('SMART_CAPTURE_MODEL_FALLBACK', 'gemini-2.5-flash-lite'),
+        'scan'           => env('SMART_CAPTURE_MODEL_SCAN', 'gemini-2.0-flash'),
+        'query'          => env('SMART_CAPTURE_MODEL_QUERY', 'gemini-2.0-flash-lite'),
+        'populate'       => env('SMART_CAPTURE_MODEL_POPULATE', 'gemini-2.0-flash-lite'),
+        'match_fallback' => env('SMART_CAPTURE_MODEL_FALLBACK', 'gemini-2.0-flash-lite'),
     ],
 
     /*
@@ -58,7 +58,7 @@ return [
     'substitute_on_missing_model' => env('SMART_CAPTURE_MODEL_SUBSTITUTION', true),
 
     'fallback_models' => [
-        'gemini'    => ['gemini-2.5-flash', 'gemini-2.0-flash'],
+        'gemini'    => ['gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'],
         'openai'    => ['gpt-4o-mini'],
         'anthropic' => ['claude-sonnet-4-5'],
         'deepseek'  => ['deepseek-chat'],

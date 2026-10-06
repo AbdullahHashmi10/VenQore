@@ -54,6 +54,11 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Address reachable by customer phones. Offline/LAN installations can
+    // point this at router DNS (for example http://menu.local) while the POS
+    // itself continues to use APP_URL on the workstation.
+    'customer_url' => env('CUSTOMER_APP_URL', env('APP_URL', 'http://localhost')),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

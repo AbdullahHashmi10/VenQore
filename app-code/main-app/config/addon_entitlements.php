@@ -42,6 +42,9 @@ return [
     'extra_seat' => [
         '+staff_limit' => 1,
     ],
+    'extra_pos_seat' => [
+        '+pos_staff_limit' => 1,
+    ],
     'extra_register' => [
         '+registers' => 1,
     ],

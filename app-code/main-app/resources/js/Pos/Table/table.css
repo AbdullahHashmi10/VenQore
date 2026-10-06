@@ -28,18 +28,33 @@
     flex-direction: column;
 }
 
+/* Toolbar row: single row holding zone filter tabs on left and channel actions on right */
+.vqt-toolbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--vq-sunken, #e6ece8);
+    border-bottom: 1px solid var(--vq-line, #d3dcd7);
+    min-width: 0;
+}
+
 /* Zones. A horizontal strip that scrolls rather than wraps: a second row of
    zone tabs is height taken from the tables themselves, and on a terminal
    height is the scarce axis. */
 .vqt-zones {
     display: flex;
-    gap: 6px;
-    padding: 8px 10px;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
-    border-bottom: 1px solid var(--vq-line, #d3dcd7);
-    background: var(--vq-sunken, #e6ece8);
+    border-bottom: none;
+    background: transparent;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 .vqt-zones::-webkit-scrollbar { display: none; }
 
@@ -83,7 +98,10 @@
     gap: 8px;
 }
 .vqt-floor-body[data-variant='map'] {
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-auto-rows: min-content;
+    align-items: start;
+    gap: 12px;
 }
 .vqt-floor-body[data-variant='list'] {
     grid-template-columns: minmax(0, 1fr);
@@ -106,39 +124,55 @@
    -------------------------------------------------------------------------- */
 .vqt-table {
     position: relative;
-    display: grid;
-    align-items: center;
-    gap: 4px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     min-width: 0;
-    padding: 10px;
+    min-height: 112px;
+    padding: 12px;
     text-align: left;
     cursor: pointer;
     border-radius: 14px;                          /* --vq-r-md */
     border: 1px solid var(--vq-line, #d3dcd7);
     background: var(--vq-surface, #fff);
-    box-shadow: 0 1px 2px rgb(13 20 18 / .05);
-    transition: border-color var(--vq-dur-1, 120ms) var(--vq-ease-out, ease),
-                box-shadow var(--vq-dur-1, 120ms) var(--vq-ease-out, ease),
-                transform var(--vq-dur-1, 120ms) var(--vq-ease-out, ease);
-}
-.vqt-table[data-variant='map'] {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas: 'code mid' 'end end';
-    min-height: 82px;
-    align-content: space-between;
+    box-shadow: 0 1px 3px rgb(13 20 18 / .05);
+    transition: all var(--vq-dur-1, 140ms) cubic-bezier(0.16, 1, 0.3, 1);
 }
 .vqt-table[data-variant='list'] {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'code mid end';
+    flex-direction: row;
+    align-items: center;
     min-height: 52px;
-    padding: 8px 10px;
+    padding: 8px 12px;
 }
-.vqt-table:hover { border-color: var(--vq-teal-300, #59dbc0); }
+.vqt-table:hover {
+    border-color: var(--vq-teal-300, #59dbc0);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.12);
+}
 .vqt-table:active { transform: translateY(1px); }
 .vqt-table:focus-visible { outline: none; box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30)); }
 
+/* Card Header */
+.vqt-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+}
+.vqt-card-header .vqt-server {
+    flex-shrink: 0;
+    margin-left: auto;
+}
+.vqt-card-title-col {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
 .vqt-table-code {
-    grid-area: code;
+    flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -154,8 +188,6 @@
     letter-spacing: .02em;
     white-space: nowrap;
 }
-
-.vqt-table-mid { grid-area: mid; min-width: 0; display: block; }
 
 .vqt-table-name {
     display: block;
@@ -177,21 +209,45 @@
 }
 .vqt-dot { opacity: .55; }
 
-.vqt-table-end {
-    grid-area: end;
+/* Mid badges: Unsent, QR Pending, Delivery info */
+.vqt-card-mid-badges {
     display: flex;
     align-items: center;
     gap: 6px;
-    min-width: 0;
+    flex-wrap: wrap;
+    margin: 4px 0 2px 0;
+    width: 100%;
 }
-.vqt-table[data-variant='map'] .vqt-table-end { justify-content: space-between; margin-top: 2px; }
-.vqt-table[data-variant='list'] .vqt-table-end { justify-content: flex-end; }
+
+.vqt-ticket-details {
+    width: 100%;
+    margin-top: 2px;
+    font-size: calc(var(--vq-t-xs) - 1px);
+}
+.vqt-dispatch-row {
+    width: 100%;
+    margin-top: 6px;
+}
+
+/* Card Footer: Status on left, Price on right — NEVER overlaps */
+.vqt-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
 
 .vqt-table-due {
     color: var(--vq-text, #0d1412);
     font-size: var(--vq-t-sm);
     font-weight: 800;
     white-space: nowrap;
+    margin-left: auto;
+    letter-spacing: -0.01em;
 }
 
 /* Ordered, not yet fired. The only warning pigment on the floor. */
@@ -236,18 +292,39 @@
    restaurant and colouring it like an error is wrong. Only the two states that
    are actually WAITING on a person get a warm pigment, and only the alarm gets
    a ring -- which is what keeps the ring meaning something. */
-.vqt-table[data-tone='seated'],
-.vqt-table[data-tone='ordered'],
-.vqt-table[data-tone='kitchen'],
-.vqt-table[data-tone='served'],
-.vqt-table[data-tone='check'] {
-    border-color: var(--vq-violet-200, #ded0ef);
-    background: var(--vq-violet-50, #f6f1fd);
+/* IN ACTION: Any occupied table or active ticket turns brand teal/green */
+.vqt-table[data-in-action='1'] {
+    border-color: rgba(20, 184, 166, 0.45) !important;
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(13, 148, 136, 0.05) 100%) !important;
+    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.08);
 }
-.vqt-table[data-tone='check'] {
-    border-color: var(--vq-warning-300, #f6d27a);
-    background: var(--vq-warning-50, #fef6e3);
+.vqt-table[data-in-action='1'] .vqt-table-code {
+    background: #0d9488 !important;
+    color: #ffffff !important;
+    font-weight: 800;
 }
+.vqt-table[data-in-action='1'] .vqt-table-name {
+    color: #0f766e !important;
+    font-weight: 800;
+}
+.vqt-table[data-in-action='1'] .vqt-table-due {
+    color: #0f766e !important;
+    font-weight: 800;
+}
+.vqt-table[data-in-action='1'] .vqt-table-footer {
+    border-top-color: rgba(20, 184, 166, 0.20);
+}
+
+/* FREE TABLE: Quiet, neutral, clear */
+.vqt-table[data-in-action='0'] {
+    border-color: var(--vq-line, #d3dcd7);
+    background: var(--vq-surface, #ffffff);
+}
+.vqt-table[data-in-action='0'] .vqt-table-code {
+    background: var(--vq-sunken, #f1f5f9);
+    color: var(--vq-text-3, #64748b);
+}
+
 .vqt-table[data-tone='reserved'] { border-style: dashed; }
 .vqt-table[data-tone='cleaning'] { opacity: .62; }
 
@@ -292,7 +369,7 @@
     white-space: nowrap;
 }
 .vqt-state[data-tone='free']     { background: var(--vq-success-50, #e7f8ee);  color: var(--vq-success-700, #14663a); }
-.vqt-state[data-tone='seated']   { background: var(--vq-violet-100, #eee3fa);  color: var(--vq-violet-700, #6b3aa0); }
+.vqt-state[data-tone='seated']   { background: rgba(20, 184, 166, 0.15);      color: #0f766e; }
 .vqt-state[data-tone='ordered']  { background: var(--vq-warning-100, #fdefc7); color: var(--vq-warning-700, #7a5308); }
 .vqt-state[data-tone='kitchen']  { background: var(--vq-info-100, #d6e7fd);    color: var(--vq-info-700, #17508f); }
 .vqt-state[data-tone='served']   { background: var(--vq-teal-50, #e6fbf5);     color: var(--vq-accent-text, #076b5e); }
@@ -343,21 +420,37 @@
 
 .vqt-new-ticket {
     grid-column: 1 / -1;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    min-height: var(--vq-touch, 44px);
-    border-radius: 14px;
-    border: 1px dashed var(--vq-teal-300, #59dbc0);
-    background: var(--vq-teal-50, #e6fbf5);
-    color: var(--vq-accent-text, #076b5e);
-    font-size: var(--vq-t-sm);
-    font-weight: 800;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 22px;
+    white-space: nowrap;
+    border-radius: 9999px;
+    border: 1px solid var(--vq-teal-500, #0ba385);
+    background: var(--vq-teal-500, #0ba385);
+    color: #ffffff;
+    font-size: var(--vq-t-sm, 14px);
+    font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(11, 163, 133, 0.25);
+    transition: all 150ms ease-in-out;
 }
-.vqt-new-ticket:hover { background: var(--vq-surface, #fff); border-style: solid; }
-.vqt-new-ticket:focus-visible { outline: none; box-shadow: var(--vq-ring-focus, 0 0 0 4px rgb(35 196 166 / .30)); }
+.vqt-new-ticket:hover {
+    background: var(--vq-teal-600, #08876e);
+    border-color: var(--vq-teal-600, #08876e);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(11, 163, 133, 0.35);
+    transform: translateY(-1px);
+}
+.vqt-new-ticket:active {
+    transform: translateY(0);
+}
+.vqt-new-ticket:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(11, 163, 133, 0.30);
+}
 
 .vqt-zone-n {
     padding: 0 5px;
@@ -385,7 +478,169 @@
 
 .vqt-table[data-selected='1'] {
     border-color: var(--vq-teal-500, #23c4a6);
-    box-shadow: 0 0 0 1px var(--vq-teal-500, #23c4a6), 0 4px 12px rgb(13 20 18 / .10);
+    background: rgba(20, 184, 166, 0.16) !important;
+    box-shadow: 0 0 0 3px rgba(35, 196, 166, 0.35), 0 6px 16px rgba(13, 148, 136, 0.20);
+    transform: translateY(-2px);
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vqt-table[data-selected='1'] .vqt-table-code {
+    background: #0d9488;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.4);
+}
+
+/* Quick Channels: Takeaway & Delivery in the single toolbar row */
+.vqt-channel-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding: 0;
+    background: transparent;
+    border-bottom: none;
+}
+.vqt-channel-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: var(--vq-t-xs, 12px);
+    font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+}
+
+/* Smart channel pill when active orders exist */
+.vqt-channel-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    overflow: hidden;
+    transition: all 0.15s ease;
+    user-select: none;
+    white-space: nowrap;
+}
+.vqt-channel-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 100%;
+    padding: 0 8px 0 10px;
+    background: transparent;
+    border: none;
+    font-size: var(--vq-t-xs, 12px);
+    font-weight: 700;
+    color: inherit;
+    cursor: pointer;
+    transition: opacity 0.12s ease;
+}
+.vqt-channel-filter-btn:hover {
+    opacity: 0.85;
+}
+.vqt-channel-add-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 24px;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.06);
+    border: none;
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+}
+.vqt-channel-add-btn:hover {
+    background: rgba(0, 0, 0, 0.14);
+}
+
+.vqt-channel-takeaway {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border-color: rgba(245, 158, 11, 0.28);
+}
+.vqt-channel-takeaway:hover,
+.vqt-channel-takeaway[data-active='1'] {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(245, 158, 11, 0.50);
+}
+.vqt-channel-takeaway[data-active='1'] {
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25);
+    color: #92400e;
+    font-weight: 800;
+}
+
+.vqt-channel-delivery {
+    background: rgba(20, 184, 166, 0.12);
+    color: #0f766e;
+    border-color: rgba(20, 184, 166, 0.28);
+}
+.vqt-channel-delivery:hover,
+.vqt-channel-delivery[data-active='1'] {
+    background: rgba(20, 184, 166, 0.22);
+    border-color: rgba(20, 184, 166, 0.50);
+}
+.vqt-channel-delivery[data-active='1'] {
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.25);
+    color: #115e59;
+    font-weight: 800;
+}
+
+.vqt-channel-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+}
+.vqt-channel-takeaway .vqt-channel-badge {
+    background: #d97706;
+    color: #ffffff;
+}
+.vqt-channel-delivery .vqt-channel-badge {
+    background: #0d9488;
+    color: #ffffff;
+}
+
+/* Quick out-for-delivery button on ticket cards */
+.vqt-quick-dispatch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-height: 28px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    background: #0d9488;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(13, 148, 136, 0.25);
+    transition: all 0.12s ease;
+}
+.vqt-quick-dispatch:hover {
+    background: #0f766e;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.35);
 }
 
 .vqt-floor-foot {
@@ -413,8 +668,8 @@
     align-items: center;
     gap: 8px;
     padding: 7px 10px;
-    border-bottom: 1px solid var(--vq-line, #d3dcd7);
-    background: var(--vq-violet-50, #f6f1fd);
+    border-bottom: 1px solid rgba(20, 184, 166, 0.25);
+    background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(13, 148, 136, 0.05) 100%);
     min-width: 0;
     overflow: hidden;
 }
@@ -754,7 +1009,7 @@
     cursor: pointer;
 }
 .vqt-move-target:hover { border-color: var(--vq-teal-300, #59dbc0); }
-.vqt-move-target[data-occupied='1'] { background: var(--vq-violet-50, #f6f1fd); border-color: var(--vq-violet-200, #ded0ef); }
+.vqt-move-target[data-occupied='1'] { background: rgba(20, 184, 166, 0.08); border-color: rgba(20, 184, 166, 0.35); }
 .vqt-move-code { font-family: var(--vq-font-numeric, inherit); font-size: var(--vq-t-md); font-weight: 800; color: var(--vq-text, #0d1412); }
 .vqt-move-verb { font-size: calc(var(--vq-t-xs) - 1px); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--vq-accent-text, #076b5e); }
 .vqt-move-sub { font-size: var(--vq-t-xs); color: var(--vq-text-3, #6b7a73); font-weight: 600; }

@@ -288,6 +288,7 @@ class TenantDefaultSeeder
             'invoice_prefix'       => 'INV-',
             'receipt_footer'       => 'Thank you for your business!',
             'setup_completed'      => '0',
+            'approval_admin_enabled' => '0',
         ];
 
         foreach ($defaults as $key => $value) {

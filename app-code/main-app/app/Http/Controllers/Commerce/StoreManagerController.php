@@ -57,6 +57,7 @@ class StoreManagerController extends Controller
         $r = fn ($n, $extra = []) => route('store.commerce.' . $n, array_merge(['store_slug' => $slug], $extra));
         return [
             'home' => $r('home'), 'settings' => $r('settings'), 'settings_save' => $r('settings.save'),
+            'catalogue' => $r('catalogue'),
             'promotions' => $r('promotions'), 'products' => $r('products'), 'products_bulk' => $r('products.bulk'), 'products_photo' => $r('products.photo', ['product' => '__ID__']),
             'publish' => $r('publish'), 'unpublish' => $r('unpublish'), 'intake' => $r('intake'),
             'orders' => $r('orders'), 'alerts' => $r('alerts'),
@@ -183,6 +184,8 @@ class StoreManagerController extends Controller
             'accept_deadline_minutes' => ['nullable', 'integer', 'min:15', 'max:1440'],
             'logo' => ['nullable', 'image', 'max:2048'],
             'show_images' => ['boolean'],
+            'customer_mode' => ['required', Rule::in(['ordering', 'catalogue'])],
+            'catalogue_theme' => ['required', Rule::in(['visual-grid', 'editorial-ledger', 'express-rail'])],
             'announcement' => ['nullable', 'string', 'max:240'],
             'banner' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
             'prep_minutes' => ['nullable', 'integer', 'min:1', 'max:1440'],
@@ -556,6 +559,8 @@ class StoreManagerController extends Controller
             'accept_cod' => $s->accept_cod, 'accept_pickup_payment' => $s->accept_pickup_payment,
             'accept_bank_transfer' => $s->accept_bank_transfer, 'bank_instructions' => $s->bank_instructions,
             'accept_deadline_minutes' => $s->accept_deadline_minutes, 'show_images' => (bool) $s->show_images,
+            'customer_mode' => $s->customer_mode ?: 'ordering', 'catalogue_theme' => $s->catalogue_theme ?: 'visual-grid',
+            'onsite_ordering_enabled' => (bool) $s->onsite_ordering_enabled, 'counter_qr_enabled' => (bool) $s->counter_qr_enabled,
             'announcement' => $s->announcement, 'banner_url' => StorefrontPresenter::mediaUrl($s->banner_path), 'prep_minutes' => $s->prep_minutes,
             'delivery_zones' => collect($s->delivery_zones ?? [])->values(),
             'intake_paused' => $s->intake_paused, 'orders_outside_hours' => (bool) $s->orders_outside_hours, 'status' => $s->status, 'suspended_reason' => $s->suspended_reason,

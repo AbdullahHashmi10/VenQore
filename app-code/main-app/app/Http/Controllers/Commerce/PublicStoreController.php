@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Commerce\CommerceOrder;
 use App\Models\Commerce\Storefront;
 use App\Models\Commerce\StorefrontReview;
+use App\Models\Position;
 use App\Services\Commerce\CheckoutService;
 use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OnlinePricing;
+use App\Services\Commerce\OnsiteOrderService;
 use App\Services\Commerce\OrderService;
 use App\Services\Commerce\ProductReadiness;
 use App\Services\Commerce\StorefrontPresenter;
@@ -24,6 +26,63 @@ class PublicStoreController extends Controller
 {
     public function __construct(private CheckoutService $checkout, private OrderService $orders)
     {
+    }
+
+    public function onsiteCounter(Request $request, string $slug)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        abort_unless($store->isAcceptingOnsiteOrders() && $store->counter_qr_enabled, 404);
+        $request->attributes->set('onsite_context', [
+            'channel' => 'counter_qr', 'label' => 'Order here', 'submit_url' => "/catalogue/{$slug}/orders",
+        ]);
+        return $this->show($request, $slug);
+    }
+
+    public function onsiteTable(Request $request, string $slug, string $token)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        abort_unless($store->isAcceptingOnsiteOrders(), 404);
+        $position = Position::withoutGlobalScopes()->where('tenant_id', $store->tenant_id)->where('customer_order_token', $token)
+            ->where('customer_ordering_enabled', 1)->firstOrFail();
+        $request->attributes->set('onsite_context', [
+            'channel' => 'table_qr', 'label' => $position->label ?: $position->code,
+            'table_code' => $position->code, 'token' => $token,
+            'submit_url' => "/catalogue/{$slug}/orders",
+        ]);
+        return $this->show($request, $slug);
+    }
+
+    public function placeOnsiteOrder(Request $request, string $slug, OnsiteOrderService $orders)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        abort_unless($store->isAcceptingOnsiteOrders(), 404);
+        $data = $request->validate([
+            'idempotency_key' => ['required', 'string', 'min:16', 'max:100'],
+            'table_token' => ['nullable', 'string', 'size:40'],
+            'customer_name' => ['nullable', 'string', 'max:120'],
+            'customer_note' => ['nullable', 'string', 'max:500'],
+            'items' => ['required', 'array', 'min:1', 'max:' . CheckoutService::MAX_LINES],
+            'items.*.item_id' => ['required', 'string', 'max:36', 'distinct'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY],
+            'items.*.notes' => ['nullable', 'string', 'max:300'],
+        ]);
+        $position = null;
+        if (! empty($data['table_token'])) {
+            $position = Position::withoutGlobalScopes()->where('tenant_id', $store->tenant_id)->where('customer_order_token', $data['table_token'])
+                ->where('customer_ordering_enabled', 1)->firstOrFail();
+        } else {
+            abort_unless($store->counter_qr_enabled, 404);
+        }
+        try {
+            $result = $orders->place($store, $position, $data);
+        } catch (CommerceException $e) {
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason] + $e->payload, $e->httpStatus);
+        }
+        return response()->json([
+            'order_number' => $result['number'],
+            'message' => $position ? 'Your order was sent to ' . ($position->label ?: $position->code) . '.' : 'Your order was sent to the counter.',
+            'replayed' => $result['replayed'],
+        ], $result['replayed'] ? 200 : 201);
     }
 
     private function published(string $slug): Storefront
@@ -64,7 +123,9 @@ class PublicStoreController extends Controller
     public function show(Request $request, string $slug)
     {
         $preview = false;
-        if ($request->query('preview') && $request->hasValidSignature()) {
+        if ($request->attributes->get('onsite_context')) {
+            $store = Storefront::where('slug', $slug)->firstOrFail();
+        } elseif ($request->query('preview') && $request->hasValidSignature()) {
             $store = Storefront::where('slug', $slug)->firstOrFail(); // signed link: the owner previews an unpublished shop
             $preview = true;
         } else {
@@ -112,7 +173,8 @@ class PublicStoreController extends Controller
         $plan = ['coupon' => null, 'auto' => $promos->live($store)->filter(fn ($p) => $p->code === null && ($p->kind ?? 'percent') === 'percent' && (float) $p->min_order <= 0)->values()];
         $catNames = $categories->pluck('name', 'id');
         $stockSvc = app(\App\Services\Commerce\StockAvailability::class);
-        $build = function ($r) use ($pricing, $store, $promos, $plan, $catNames, $stockSvc) {
+        $onsiteMode = (bool) $request->attributes->get('onsite_context');
+        $build = function ($r) use ($pricing, $store, $promos, $plan, $catNames, $stockSvc, $onsiteMode) {
             if (ProductReadiness::reason($r) !== null) {
                 return null;
             }
@@ -150,7 +212,11 @@ class PublicStoreController extends Controller
                 'id' => $r->listing_id,
                 'name' => $r->public_name ?: $r->name,
                 'description' => $r->public_description ?: $r->description,
-                'image_url' => $store->show_images ? StorefrontPresenter::mediaUrl($r->listing_image ?: $r->image_path) : null,
+                'image_url' => ($onsiteMode ? $store->onsite_show_images : $store->show_images)
+                    ? ($onsiteMode && ($r->listing_image ?: $r->image_path) && ! preg_match('#^https?://#i', $r->listing_image ?: $r->image_path)
+                        ? '/storage/' . ltrim($r->listing_image ?: $r->image_path, '/')
+                        : StorefrontPresenter::mediaUrl($r->listing_image ?: $r->image_path))
+                    : null,
                 'price' => $price['online_price'],
                 'unit' => $r->base_unit ?: $r->unit,
                 'option_label' => $r->option_label,
@@ -247,15 +313,30 @@ class PublicStoreController extends Controller
             ];
         }
 
+        $publicStore = $preview ? array_merge(StorefrontPresenter::publicStore($store), ['accepting_orders' => false]) : StorefrontPresenter::publicStore($store);
+        if ($request->attributes->get('onsite_context')) {
+            $requestedTheme = (string) $request->query('theme', '');
+            $onsiteTheme = in_array($requestedTheme, ['visual-grid', 'editorial-ledger', 'express-rail'], true)
+                ? $requestedTheme
+                : ($store->onsite_catalogue_theme ?: 'visual-grid');
+            $publicStore = array_merge($publicStore, [
+                'name' => $store->onsite_name ?: $store->display_name,
+                'description' => $store->onsite_tagline ?: $store->description,
+                'logo_url' => ($p = $store->onsite_logo_path ?: $store->logo_path) && ! preg_match('#^https?://#i', $p) ? '/storage/' . ltrim($p, '/') : StorefrontPresenter::mediaUrl($p),
+                'banner_url' => ($p = $store->onsite_banner_path ?: $store->banner_path) && ! preg_match('#^https?://#i', $p) ? '/storage/' . ltrim($p, '/') : StorefrontPresenter::mediaUrl($p),
+                'catalogue_theme' => $onsiteTheme,
+                'accepting_orders' => $store->isAcceptingOnsiteOrders(),
+            ]);
+        }
         return Inertia::render('Commerce/Store', [
-            'store' => $preview ? array_merge(StorefrontPresenter::publicStore($store), ['accepting_orders' => false]) : StorefrontPresenter::publicStore($store),
+            'store' => $publicStore,
             'preview' => $preview,
             'items' => $items,
             'pagination' => ['current' => $rows->currentPage(), 'last' => $rows->lastPage(), 'total' => $rows->total()],
             'limits' => ['max_qty' => CheckoutService::MAX_QTY],
             'categories' => $categories,
             'filters' => ['q' => $q, 'category' => $cat],
-            'show_images' => (bool) $store->show_images,
+            'show_images' => $request->attributes->get('onsite_context') ? (bool) $store->onsite_show_images : (bool) $store->show_images,
             'has_coupons' => $promos->live($store)->contains(fn ($p) => $p->code !== null),
             'rating_summary' => [
                 'average' => $avgRating ? round((float) $avgRating, 1) : null,
@@ -263,12 +344,14 @@ class PublicStoreController extends Controller
                 'reviews' => $reviewsList,
             ],
             'customer' => $customerData,
+            'onsite' => $request->attributes->get('onsite_context'),
         ]);
     }
 
     public function quote(Request $request, string $slug)
     {
         $store = $this->published($slug);
+        abort_if(($store->customer_mode ?: 'ordering') === 'catalogue', 404);
         $data = $request->validate(['items' => ['required', 'array', 'max:' . CheckoutService::MAX_LINES], 'items.*.item_id' => ['required', 'string', 'max:36'], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY], 'fulfilment' => ['nullable', 'in:pickup,delivery'], 'delivery_zone' => ['nullable', 'string', 'max:120'], 'coupon' => ['nullable', 'string', 'max:40']]);
         try {
             $q = $this->checkout->quote($store, $data['items'], $data['fulfilment'] ?? 'pickup', ['zone' => $data['delivery_zone'] ?? null, 'coupon' => $data['coupon'] ?? null]);
@@ -281,6 +364,7 @@ class PublicStoreController extends Controller
     public function placeOrder(Request $request, string $slug)
     {
         $store = Storefront::where('slug', $slug)->firstOrFail(); // let replays work even if the store was just unpublished
+        abort_if(($store->customer_mode ?: 'ordering') === 'catalogue', 404);
         $data = $request->validate([
             'idempotency_key' => ['required', 'string', 'min:16', 'max:100'],
             'fulfilment' => ['required', 'in:pickup,delivery'],
@@ -325,13 +409,14 @@ class PublicStoreController extends Controller
     {
         $order = $this->orderByToken($token);
         $store = Storefront::find($order->storefront_id);
+        $estimatedReadyAt = $this->estimatedReadyAt($order, $store);
 
         $publicEvents = $order->events()->whereIn('type', ['placed', 'status_changed', 'completed', 'expired', 'confirmed', 'rejected', 'cancelled', 'transfer_reported', 'payment_collected'])
             ->get(['type', 'to_status', 'created_at'])->map(fn ($e) => ['type' => $e->type, 'to' => $e->to_status, 'at' => CommerceOrder::localTime($e->created_at, $order->storefront?->timezone ?? 'UTC')]);
 
         $resp = Inertia::render('Commerce/OrderStatus', [
             'order' => [
-                'number' => $order->public_number, 'status' => $order->status, 'payment_status' => $order->payment_status,
+                'number' => $order->public_number, 'status' => $order->status, 'payment_status' => $order->payment_status, 'version' => (int) $order->version,
                 'payment_method' => $order->payment_method, 'fulfilment' => $order->fulfilment, 'customer_name' => $order->customer_name,
                 'delivery_address' => $order->delivery_address, 'reason' => in_array($order->status, ['rejected', 'cancelled', 'expired'], true) ? $order->reason : null,
                 'subtotal' => $order->subtotal, 'tax_total' => $order->tax_total, 'delivery_fee' => $order->delivery_fee, 'total' => $order->total,
@@ -339,6 +424,7 @@ class PublicStoreController extends Controller
                 'bank_reference' => $order->bank_reference, 'delivery_zone' => $order->delivery_zone,
                 'bank_receipt_url' => $order->bank_receipt_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($order->bank_receipt_path) : null,
                 'discount_total' => $order->discount_total, 'promo_name' => $order->promo_name, 'promo_code' => $order->promo_code,
+                'estimated_ready_at' => $estimatedReadyAt,
                 'items' => $order->items()->get(['title', 'quantity', 'online_price', 'line_total'])->map(fn ($i) => $i->only(['title', 'quantity', 'online_price', 'line_total'])),
             ],
             'events' => $publicEvents,
@@ -348,6 +434,7 @@ class PublicStoreController extends Controller
                 ->where('id', '!=', $order->id)->orderByDesc('created_at')->limit(8)->get(['public_number', 'status', 'total', 'currency_symbol', 'created_at'])
                 ->map(fn ($h) => ['number' => $h->public_number, 'status' => $h->status, 'total' => (float) $h->total, 'symbol' => $h->currency_symbol, 'at' => CommerceOrder::localTime($h->created_at, $order->storefront?->timezone ?? 'UTC')])->values(),
             'transfer_url' => url('/order-status/' . $token . '/transfer'),
+            'live_url' => url('/order-status/' . $token . '/live'),
             'cancel_url' => in_array($order->status, ['pending', 'confirmed'], true) && $order->payment_status === 'unpaid' ? url('/order-status/' . $token . '/cancel') : null,
             'revision_url' => url('/order-status/' . $token . '/revision'),
             'revision' => $order->revision_status ? ['status' => $order->revision_status, 'note' => $order->revision_note, 'summary' => $order->revision['summary'] ?? [], 'previous_total' => $order->revision['previous_total'] ?? null, 'total' => $order->revision['total'] ?? null] : null,
@@ -371,6 +458,33 @@ class PublicStoreController extends Controller
         $resp->headers->set('Cache-Control', 'no-store, private');
         $resp->headers->set('Referrer-Policy', 'no-referrer');
         return $resp;
+    }
+
+    /** Small polling response used by the customer's open status screen. */
+    public function liveStatus(string $token)
+    {
+        $order = $this->orderByToken($token);
+        $store = Storefront::findOrFail($order->storefront_id);
+
+        return response()->json([
+            'version' => (int) $order->version,
+            'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'estimated_ready_at' => $this->estimatedReadyAt($order, $store),
+        ])->withHeaders([
+            'Cache-Control' => 'no-store, private',
+            'X-Robots-Tag' => 'noindex, nofollow, noarchive',
+            'Referrer-Policy' => 'no-referrer',
+        ]);
+    }
+
+    private function estimatedReadyAt(CommerceOrder $order, Storefront $store): ?string
+    {
+        if (! $store->prep_minutes || ! $order->confirmed_at) {
+            return null;
+        }
+
+        return $order->confirmed_at->copy()->addMinutes((int) $store->prep_minutes)->toIso8601String();
     }
 
     public function answerRevision(Request $request, string $token)

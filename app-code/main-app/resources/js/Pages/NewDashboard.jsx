@@ -457,6 +457,7 @@ function queueLiveReadings(cards, onComplete) {
     if (needsSeries(c)) {
       [c.key, ...more].forEach(k => { const comp = trendCompanionKey(k); if (comp && !more.includes(comp)) more.push(comp); });
     }
+    if (c.showRecent !== false) { const rc = recentCompanion(c.key); if (rc && !more.includes(rc.key)) more.push(rc.key); }
     if (more.length) {
       more.forEach(ek => {
         const ekRd = readingOf(ek);
@@ -1841,13 +1842,50 @@ let CURRENCY = (opts && opts.currency) || "Rs";
 /* A scalar reading may have a sibling that carries its day-by-day history
    (core.revenue → core.revenue_trend). Only exact siblings of the SAME
    measure are used — never a different measure that happens to be close. */
-const COMPANION_MAP = { "core.total_liquidity": "core.liquidity_trend" };
+const COMPANION_MAP = {
+  "core.total_liquidity": "core.liquidity_trend",
+  "core.expenses_total": "expenses.trend",
+  "marketplace.online_revenue": "marketplace.online_trend",
+};
 function trendCompanionKey(key){
   const rd = readingOf(key);
   if (Fam.kindOf(rd) !== "scalar") return null;
   const want = COMPANION_MAP[key] || `${key}_trend`;
   const hit = READINGS.find(r => r.key === want);
   return hit && readingAvailable(hit) && Fam.kindOf(hit) === "series" ? hit.key : null;
+}
+/* A money or count card can carry its latest entries as a companion list.
+   `<topic>.recent` readings light this up automatically the moment they exist;
+   until then expenses fall back to the existing largest-entries list. Only a
+   real reading is ever listed — nothing is invented. */
+const RECENT_FALLBACK = {
+  "core.expenses_total": ["expenses.recent", "Latest entries"],
+  "core.revenue":        ["core.recent_sales", "Latest sales"],
+  "core.gross_profit":   ["core.recent_sales", "Latest sales"],
+  "core.net_profit":     ["core.recent_sales", "Latest sales"],
+  "core.transaction_count":     ["core.recent_sales", "Latest sales"],
+  "core.avg_transaction_value": ["core.recent_sales", "Latest sales"],
+  "pos.revenue":    ["core.recent_sales", "Latest sales"],
+  "pos.sale_count": ["core.recent_sales", "Latest sales"],
+  "pos.avg_ticket": ["core.recent_sales", "Latest sales"],
+  "marketplace.online_revenue": ["marketplace.recent_orders", "Latest orders"],
+  "marketplace.online_orders":  ["marketplace.recent_orders", "Latest orders"],
+  "marketplace.online_aov":     ["marketplace.recent_orders", "Latest orders"],
+  "expenses.count":   ["expenses.recent", "Latest entries"],
+  "expenses.per_day": ["expenses.recent", "Latest entries"],
+  "expenses.unpaid":  ["expenses.recent", "Latest entries"],
+  "expenses.vs_prev": ["expenses.recent", "Latest entries"],
+};
+function recentCompanion(key){
+  const rd = readingOf(key);
+  if (!rd || Fam.kindOf(rd) !== "scalar") return null;
+  const topic = String(key).split(".")[0];
+  const cands = [RECENT_FALLBACK[key], [`${topic}.recent`, "Latest entries"]].filter(Boolean);
+  for (const [k, title] of cands){
+    const hit = READINGS.find(r => r.key === k);
+    if (hit && readingAvailable(hit) && Fam.kindOf(hit) === "records") return { key: hit.key, title };
+  }
+  return null;
 }
 /** Does this card draw time on an axis, so a scalar needs its companion? */
 const needsSeries = c => ["area", "line", "bar", "composed", "scatter", "live"]
@@ -1859,6 +1897,7 @@ function capCtx(card){
   return {
     seriesAvailable: kind === "series" || !!trendCompanionKey(card.key),
     seriesCount: 1 + ((card.extraKeys || []).length),
+    recentKey: (recentCompanion(card.key) || {}).key || null,
     hasGoal: Number(card.goal && card.goal.target) > 0,
     supportsComparison: kind === "scalar" && rd.supports_comparison !== false,
   };
@@ -2928,6 +2967,22 @@ function getDomainColor(key, area){
   return "#14B8A6";
 }
 
+function recentHTML(c, geo){
+  if (c.showRecent === false || geo.h < 5 || c.chart === "records") return "";
+  const rc = recentCompanion(c.key); if (!rc) return "";
+  const env = envelopeFor(rc.key, c.period, false);
+  if (env.state !== "ready" || !env.rows || !env.rows.length) return "";
+  const n = Math.min(10, env.rows.length, Math.floor((geo.h - 4) * 2.2));
+  if (n < 1) return "";
+  const unit = readingOf(rc.key)?.unit || readingOf(c.key)?.unit;
+  const rows = env.rows.slice(0, n).map(r => `<li class="vqc-recent-row">
+      <span class="vqc-recent-l" title="${esc(r.label)}">${esc(r.label)}</span>
+      ${r.sub ? `<span class="vqc-recent-s">${esc(dayLabel(r.sub) || String(r.sub).slice(0, 12))}</span>` : ""}
+      <b class="vqc-recent-v">${r.amount === null ? "" : unitPrefix(unit) + fmtValue(r.amount, unit, true)}</b>
+    </li>`).join("");
+  return `<div class="vqc-recent"><p class="vqc-recent-t">${esc(rc.title)}</p><ul>${rows}</ul></div>`;
+}
+
 function bodyChartCard(c, geo, link){
   const title = titleOf(c);
   const hl = headlineOf(c);
@@ -2963,6 +3018,7 @@ function bodyChartCard(c, geo, link){
       ${showWhen ? `<p class="vqc-when"${hl.asOf ? ` title="As of ${esc(hl.asOf)}"` : ''}>${esc(hl.when)}</p>` : ""}
       ${verifyChip}
       ${host}
+      ${recentHTML(c, geo)}
     </div>`;
 }
 
@@ -3060,10 +3116,14 @@ function resolveCollisions(cards, cols){
   rest.forEach(settle);
   unplaced.forEach(it => { it.y = bottomOf(placed); settle(it); });
 
-  /* Close gaps: lift every card as far up as it can go, top to bottom. */
+  /* Close gaps — but only for cards still sitting in their starting-layout slot.
+     A card the user has placed (moved, resized, added, or pushed off its slot)
+     stays exactly where it was put: the starting layout is a starting point,
+     never a rule. "Tidy up" is the explicit way to close every gap. */
   const compacted = [];
   [...placed].sort((a, b) => a.y - b.y || a.x - b.x || a.order - b.order).forEach(it => {
-    while (it.y > 0 && !hit(compacted, it, it.x, it.y - 1)) it.y -= 1;
+    const inStartingSlot = Number.isFinite(Number(it.c.frameSlot));
+    if (inStartingSlot) { while (it.y > 0 && !hit(compacted, it, it.x, it.y - 1)) it.y -= 1; }
     compacted.push(it);
   });
 
@@ -3086,6 +3146,27 @@ function resolveCollisions(cards, cols){
    bottom, left to right) and takes the first free spot, so gaps close in both
    directions. Remembers the previous arrangement so it can be undone. */
 let TIDY_UNDO = null;
+/** Add the next best cards the store can honestly fill — one reading per
+    topic first, so three clicks of "Suggest" never give three expense cards. */
+function addSuggested(n = 3){
+  const onBoard = new Set(CARDS.map(c => c.key));
+  const topics = new Set(CARDS.map(c => String(c.key).split(".")[0]));
+  const rank = r => ({ scalar: 0, series: 1, breakdown: 2 }[Fam.kindOf(r)] ?? 9);
+  const pool = READINGS.filter(r => !onBoard.has(r.key) && readingAvailable(r) && rank(r) < 9)
+    .sort((a, b) => rank(a) - rank(b));
+  const picks = [];
+  for (const pass of [0, 1]) {
+    for (const r of pool) {
+      if (picks.length >= n) break;
+      if (picks.includes(r)) continue;
+      const t = String(r.key).split(".")[0];
+      if (pass === 0 && topics.has(t)) continue;
+      picks.push(r); topics.add(t);
+    }
+  }
+  return picks.map(r => addCard(r.key)).filter(Boolean).length;
+}
+
 function tidyBoard(){
   const board = document.getElementById("board");
   const cols = board ? boardCols(board) : 12;
@@ -3705,6 +3786,7 @@ function serverCard(c){
     showWhen: c.showWhen !== false,
     showDelta: c.showDelta !== false,
     showPeriodPicker: c.showPeriodPicker !== false,
+    showRecent: c.showRecent !== false,
     legend: c.legend !== false,
     motion: c.motion !== false,
     full: !!c.full,
@@ -3747,7 +3829,7 @@ function fromServerCard(bc){
   };
   if (st.tone) card.tone = st.tone;
   ["glare", "starBorder", "full"].forEach(k => { if (st[k] !== undefined) card[k] = !!st[k]; });
-  ["showOpenArrow", "showWhen", "showDelta", "showPeriodPicker", "legend", "motion"].forEach(k => {
+  ["showOpenArrow", "showWhen", "showDelta", "showPeriodPicker", "showRecent", "legend", "motion"].forEach(k => {
     if (st[k] === false) card[k] = false;
   });
   if (Array.isArray(st.extraKeys)) card.extraKeys = st.extraKeys;
@@ -3956,6 +4038,7 @@ function boot(frameKey){
 window.VenQoreCards = {
   engineVersion: ENGINE_VERSION,
   tidy: tidyBoard,
+  addSuggested: addSuggested,
   undoTidy,
   getCards: () => CARDS,
   setCards: (newCards) => { CARDS = newCards.map(normaliseCard); draw(); },
@@ -4162,15 +4245,65 @@ const OPERATIONAL_TEMPLATES = [
    starts with a slash and a known root, so the store slug is applied at build
    time rather than baked into the file. */
 const SHORTCUT_TARGETS = [
-  { label: 'Point of Sale',            path: '/pos',             absolute: true,  icon: 'cart',     color: '#0baa8f' },
-  { label: 'Create New Invoice',       path: '/sales',           icon: 'file',     color: '#2ba5d1' },
-  { label: 'Inventory & Stock List',   path: '/inventory',       icon: 'box',      color: '#8ccb2e' },
-  { label: 'Create Purchase Order',    path: '/purchase-orders', icon: 'truck',    color: '#f26a47' },
-  { label: 'Accounts & Ledgers',       path: '/finance',         icon: 'dollar',   color: '#5227ff' },
-  { label: 'Parties & Customers',      path: '/parties',         icon: 'users',    color: '#e0b4e0' },
-  { label: 'Business Intel Reports',   path: '/reports',         icon: 'chart',    color: '#f5b32e' },
-  { label: 'Settings',                 path: '/settings',        icon: 'settings', color: '#7b8a83' },
+  { group: 'Sell', label: 'Point of Sale', path: '/pos', absolute: true, icon: 'cart', color: '#0baa8f' },
+  { group: 'Sell', label: 'Create New Invoice', path: '/sales/create', icon: 'file', color: '#2ba5d1' },
+  { group: 'Sell', label: 'All Sales', path: '/sales', icon: 'file', color: '#2ba5d1' },
+  { group: 'Sell', label: 'Parked Sales', path: '/sales/parked', icon: 'file', color: '#8c4bd6' },
+  { group: 'Sell', label: 'Recent POS Sales', path: '/pos/recent-sales', icon: 'cart', color: '#0baa8f' },
+  { group: 'Sell', label: 'Pre-sales', path: '/sales/pre-sales', icon: 'file', color: '#c2417a' },
+  { group: 'Sell', label: 'Recurring Invoices', path: '/recurring-invoices', icon: 'file', color: '#5227ff' },
+  { group: 'Sell', label: 'New Return', path: '/returns/create', icon: 'plus', color: '#f26a47' },
+  { group: 'Sell', label: 'Returns History', path: '/returns-history', icon: 'file', color: '#f26a47' },
+  { group: 'Buy', label: 'Create Purchase', path: '/purchases/create', icon: 'truck', color: '#f26a47' },
+  { group: 'Buy', label: 'Purchases', path: '/purchases', icon: 'truck', color: '#f26a47' },
+  { group: 'Buy', label: 'Purchase Orders', path: '/purchase-orders', icon: 'truck', color: '#b8860b' },
+  { group: 'Buy', label: 'Debit Notes', path: '/debit-notes', icon: 'file', color: '#4c5f57' },
+  { group: 'Stock', label: 'Inventory & Stock List', path: '/inventory', icon: 'box', color: '#8ccb2e' },
+  { group: 'Stock', label: 'Stock Levels', path: '/inventory/stock-levels', icon: 'box', color: '#8ccb2e' },
+  { group: 'Stock', label: 'Product Categories', path: '/inventory/categories', icon: 'box', color: '#4c5f57' },
+  { group: 'Stock', label: 'Inventory Health', path: '/inventory-health', icon: 'bolt', color: '#b8860b' },
+  { group: 'Stock', label: 'Batches & Expiry', path: '/batches', icon: 'box', color: '#c2417a' },
+  { group: 'Stock', label: 'Serial Numbers', path: '/serials', icon: 'box', color: '#2ba5d1' },
+  { group: 'Stock', label: 'Barcode Labels', path: '/barcode-label', icon: 'box', color: '#4c5f57' },
+  { group: 'Money', label: 'Accounts & Ledgers', path: '/finance', icon: 'dollar', color: '#5227ff' },
+  { group: 'Money', label: 'Add an Expense', path: '/expenses/create', icon: 'plus', color: '#f26a47' },
+  { group: 'Money', label: 'Expenses', path: '/expenses', icon: 'dollar', color: '#f26a47' },
+  { group: 'Money', label: 'Money In (Receive)', path: '/payments/in', icon: 'dollar', color: '#0baa8f' },
+  { group: 'Money', label: 'Money Out (Pay)', path: '/payments/out', icon: 'dollar', color: '#c2417a' },
+  { group: 'Money', label: 'Funds & Cash', path: '/funds', icon: 'dollar', color: '#2ba5d1' },
+  { group: 'Money', label: 'Bank Accounts', path: '/bank-accounts', icon: 'dollar', color: '#5227ff' },
+  { group: 'Money', label: 'Bank Reconciliation', path: '/bank-reconciliation', icon: 'dollar', color: '#8c4bd6' },
+  { group: 'Money', label: 'Journal Entries', path: '/finance/journal', icon: 'file', color: '#4c5f57' },
+  { group: 'Money', label: 'Receivables', path: '/finance/receivables', icon: 'dollar', color: '#0baa8f' },
+  { group: 'Money', label: 'Payables', path: '/finance/payables', icon: 'dollar', color: '#f26a47' },
+  { group: 'Money', label: 'Approvals Inbox', path: '/approvals/inbox', icon: 'bolt', color: '#b8860b' },
+  { group: 'People', label: 'Parties & Customers', path: '/parties', icon: 'users', color: '#e0b4e0' },
+  { group: 'People', label: 'Staff', path: '/staff', icon: 'users', color: '#2ba5d1' },
+  { group: 'People', label: 'Attendance', path: '/attendance', icon: 'users', color: '#8ccb2e' },
+  { group: 'Online', label: 'Online Store Manager', path: '/online-store-manager', icon: 'cart', color: '#0baa8f' },
+  { group: 'Online', label: 'Digital Hub', path: '/digital-hub', icon: 'bolt', color: '#5227ff' },
+  { group: 'Online', label: 'Digital Products', path: '/digital-products', icon: 'box', color: '#8c4bd6' },
+  { group: 'Online', label: 'Marketing Campaigns', path: '/marketing/campaigns', icon: 'bolt', color: '#c2417a' },
+  { group: 'Reports', label: 'Business Intel Reports', path: '/reports', icon: 'chart', color: '#f5b32e' },
+  { group: 'Reports', label: 'Daily Sales Report', path: '/reports/daily-sales', icon: 'chart', color: '#f5b32e' },
+  { group: 'Reports', label: 'Profit & Loss', path: '/reports/profit-loss', icon: 'chart', color: '#0baa8f' },
+  { group: 'Reports', label: 'Day Book', path: '/reports/day-book', icon: 'chart', color: '#4c5f57' },
+  { group: 'Reports', label: 'Aged Receivables', path: '/reports/aged-receivables', icon: 'chart', color: '#2ba5d1' },
+  { group: 'Reports', label: 'Aged Payables', path: '/reports/aged-payables', icon: 'chart', color: '#f26a47' },
+  { group: 'Reports', label: 'Low Stock Report', path: '/reports/low-stock', icon: 'chart', color: '#b8860b' },
+  { group: 'Reports', label: 'Tax Report', path: '/reports/tax', icon: 'chart', color: '#5227ff' },
+  { group: 'Reports', label: 'Balance Sheet', path: '/accounting/balance-sheet', icon: 'chart', color: '#5227ff' },
+  { group: 'Reports', label: 'AI Recommendations', path: '/ai/recommendations', icon: 'bolt', color: '#8c4bd6' },
+  { group: 'Operations', label: 'Service Jobs', path: '/service-jobs', icon: 'settings', color: '#4c5f57' },
+  { group: 'Operations', label: 'Kitchen Display', path: '/restaurant/kitchen', icon: 'bolt', color: '#f26a47' },
+  { group: 'Operations', label: 'Reservations', path: '/reservations', icon: 'users', color: '#c2417a' },
+  { group: 'Operations', label: 'Delivery Riders', path: '/riders', icon: 'truck', color: '#2ba5d1' },
+  { group: 'Operations', label: 'Cookbook (Recipes)', path: '/cookbook', icon: 'file', color: '#b8860b' },
+  { group: 'Operations', label: 'Smart Capture', path: '/smart-capture', icon: 'bolt', color: '#0baa8f' },
+  { group: 'Account', label: 'Settings', path: '/settings', icon: 'settings', color: '#7b8a83' },
+  { group: 'Account', label: 'Billing & Plan', path: '/billing', icon: 'dollar', color: '#7b8a83' },
 ];
+const groupTargets = list => list.reduce((m, t) => { (m[t.group || 'More'] ||= []).push(t); return m; }, {});
 
 /* The shortcut swatch set — every one clears 4.5:1 against white glyphs. */
 const SHORTCUT_COLORS = [
@@ -5463,19 +5596,26 @@ export default function NewDashboard(props) {
                     <FramePicker frames={frames} value={activeFrameKey} onChange={chooseFrame} />
                   </section>
                 )}
-                <div className="vq-board-bar" role="toolbar" aria-label="Arrange cards">
-                  {canUndoTidy && (
-                    <button type="button" className="vq-board-btn" onClick={() => { window.VenQoreCards?.undoTidy?.(); setCanUndoTidy(false); }}>
-                      Undo tidy
-                    </button>
-                  )}
-                  <button type="button" className="vq-board-btn" title="Close gaps and repack the cards, keeping their sizes"
-                    onClick={() => { if (window.VenQoreCards?.tidy?.()) setCanUndoTidy(true); }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
-                    Tidy up
-                  </button>
-                </div>
                 <div className="vq-grid" id="board" />
+                <div className="vq-board-foot" role="toolbar" aria-label="Add and arrange cards">
+                  <button type="button" className="vq-foot-add" onClick={() => openPicker(0)}>
+                    <span className="vq-foot-plus" aria-hidden="true"><Plus size={18} strokeWidth={2.4} /></span>
+                    <span><b>Add a card</b><small>Pick any reading and how it looks</small></span>
+                  </button>
+                  <button type="button" className="vq-foot-act" title="Add three cards your store can fill, one per topic"
+                    onClick={() => { window.VenQoreCards?.addSuggested?.(3); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+                    <span><b>Suggest 3 cards</b><small>Fills with what fits your store</small></span>
+                  </button>
+                  <button type="button" className="vq-foot-act" title="Close gaps and repack the cards, keeping their sizes"
+                    onClick={() => { if (window.VenQoreCards?.tidy?.()) setCanUndoTidy(true); }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                    <span><b>Tidy up</b><small>Close gaps, keep sizes</small></span>
+                  </button>
+                  {canUndoTidy && (
+                    <button type="button" className="vq-foot-undo" onClick={() => { window.VenQoreCards?.undoTidy?.(); setCanUndoTidy(false); }}>Undo tidy</button>
+                  )}
+                </div>
               </div>
 
               {railsOn && (
@@ -5659,20 +5799,25 @@ export default function NewDashboard(props) {
                 ) : (
                   <div className="vq-modal-section-group">
                     <div className="vq-modal-section-title">Pick where the button takes you</div>
-                    <div className="vq-modal-cards-grid">
-                      {SHORTCUT_TARGETS.map(target => (
-                        <button type="button" key={target.path} className="vq-item-card"
-                                onClick={() => selectCustomBtnForStep2(target)}>
-                          <span className="vq-item-card-top">
-                            <span className="vq-item-glyph" style={{ background: target.color }}
-                                  dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(target.icon, 15) || '' }} />
-                            <span className="vq-item-card-title">{target.label}</span>
-                            <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-                          </span>
-                          <span className="vq-item-card-desc">One click takes you straight there.</span>
-                        </button>
-                      ))}
-                    </div>
+                    {Object.entries(groupTargets(SHORTCUT_TARGETS)).map(([group, list]) => (
+                      <div key={group}>
+                        <div className="vq-modal-section-title" style={{ marginTop: 14, opacity: .75 }}>{group}</div>
+                        <div className="vq-modal-cards-grid">
+                          {list.map(target => (
+                            <button type="button" key={target.path} className="vq-item-card"
+                                    onClick={() => selectCustomBtnForStep2(target)}>
+                              <span className="vq-item-card-top">
+                                <span className="vq-item-glyph" style={{ background: target.color }}
+                                      dangerouslySetInnerHTML={{ __html: engine()?.iconMarkup?.(target.icon, 15) || '' }} />
+                                <span className="vq-item-card-title">{target.label}</span>
+                                <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                              </span>
+                              <span className="vq-item-card-desc">One click takes you straight there.</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )
               )}

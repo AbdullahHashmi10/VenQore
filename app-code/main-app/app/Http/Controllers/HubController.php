@@ -41,7 +41,7 @@ class HubController extends Controller
                 'custom_role_name' => $m->custom_role_name,
                 'currency_symbol' => $m->tenant->currency_symbol,
                 'trial_ends_at'   => $m->tenant->trial_ends_at,
-                'url'             => route('store.dashboard', ['store_slug' => $m->tenant->slug]),
+                'url'             => $m->isPosStaff() ? route('pos', ['store_slug' => $m->tenant->slug]) : route('store.dashboard', ['store_slug' => $m->tenant->slug]),
                 'is_last_used'    => $m->tenant_id === $user->last_store_id,
             ]);
 
@@ -87,7 +87,7 @@ class HubController extends Controller
                 'name'       => $m->tenant->name,
                 'plan'       => $m->tenant->plan,
                 'role'       => $m->role,
-                'url'        => route('store.dashboard', ['store_slug' => $m->tenant->slug]),
+                'url'        => $m->isPosStaff() ? route('pos', ['store_slug' => $m->tenant->slug]) : route('store.dashboard', ['store_slug' => $m->tenant->slug]),
                 'is_current' => $m->tenant->slug === request()->route('store_slug'),
             ]);
 

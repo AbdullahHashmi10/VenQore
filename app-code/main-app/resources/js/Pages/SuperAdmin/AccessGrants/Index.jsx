@@ -1,30 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
+import OneGlanceLayout from '@/Layouts/PlatformShell';
 import {
-    Gift, Plus, Copy, CheckCircle, XCircle, Clock, Ban, RotateCcw,
-    Trash2, Link as LinkIcon, ExternalLink
+    useT, PageHeader, Panel, Badge, Button,
+    Input, Drawer, Field, Select, EmptyState
+} from '@/Platform/ui';
+import { BRAND } from '@/Platform/theme';
+import {
+    Gift, Plus, Copy, CheckCircle, Clock, Ban,
+    RotateCcw, Trash2, X, Link as LinkIcon, ExternalLink
 } from 'lucide-react';
-
-// ── Status resolution ──────────────────────────────────────────────────────
-
-function grantStatus(grant) {
-    if (grant.revoked_at) return { label: 'Revoked', color: 'text-red-400 bg-red-500/10 border-red-500/20', icon: Ban };
-    if (grant.expires_at && new Date(grant.expires_at) < new Date() && grant.redemption_count === 0) {
-        return { label: 'Expired (unused)', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', icon: Clock };
-    }
-    if (grant.redemption_count >= grant.max_redemptions) {
-        return { label: 'Fully Redeemed', color: 'text-brand-400 bg-brand-500/10 border-brand-500/20', icon: CheckCircle };
-    }
-    return { label: 'Active', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', icon: CheckCircle };
-}
 
 function durationLabel(grant) {
     const unit = grant.duration_value === 1 ? grant.duration_unit : `${grant.duration_unit}s`;
     return `${grant.duration_value} ${unit.charAt(0).toUpperCase()}${unit.slice(1)}`;
 }
-
-// ── Copy-to-clipboard button ────────────────────────────────────────────────
 
 function CopyLinkButton({ url, primary = false }) {
     const [copied, setCopied] = useState(false);
@@ -33,7 +23,6 @@ function CopyLinkButton({ url, primary = false }) {
         try {
             await navigator.clipboard.writeText(url);
         } catch {
-            // Fallback for environments without clipboard permission
             const el = document.createElement('textarea');
             el.value = url;
             document.body.appendChild(el);
@@ -46,21 +35,19 @@ function CopyLinkButton({ url, primary = false }) {
     };
 
     return (
-        <button
+        <Button
+            size="sm"
+            variant={primary ? 'primary' : 'secondary'}
+            icon={copied ? CheckCircle : Copy}
             onClick={copy}
-            className={primary
-                ? "flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-bold transition-all"
-                : "flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-neutral-300 rounded-lg text-xs font-bold transition-all border border-white/10"}
         >
-            {copied ? <CheckCircle size={14} /> : <Copy size={14} />}
             {copied ? 'Copied!' : 'Copy Link'}
-        </button>
+        </Button>
     );
 }
 
-// ── New Grant Drawer ─────────────────────────────────────────────────────────
-
-function NewGrantDrawer({ open, onClose, plans, onCreated }) {
+function NewGrantDrawer({ open, onClose, plans = [], onCreated }) {
+    const t = useT();
     const { data, setData, post, processing, errors, reset } = useForm({
         plan_id: plans[0]?.id ?? '',
         duration_value: 1,
@@ -75,141 +62,101 @@ function NewGrantDrawer({ open, onClose, plans, onCreated }) {
         post(route('platform.access-grants.store'), {
             onSuccess: () => {
                 reset();
-                onCreated();
+                onCreated?.();
+                onClose();
             },
         });
     };
 
-    if (!open) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex">
-            <div className="flex-1 bg-black/50" onClick={onClose} />
-            <div className="w-[480px] bg-neutral-900 border-l border-white/10 overflow-y-auto shadow-2xl">
-                <div className="flex items-center justify-between px-7 py-5 border-b border-white/10">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Gift size={18} className="text-brand-400" /> New Gift Link
-                    </h2>
-                    <button onClick={onClose} className="text-ink-muted hover:text-white text-xl">✕</button>
-                </div>
+        <Drawer
+            open={open}
+            onClose={onClose}
+            title="Create Gift Link"
+            subtitle="Grant full store access to any plan for any duration — no payment required"
+            width={520}
+            footer={
+                <>
+                    <Button variant="secondary" onClick={onClose} disabled={processing}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={submit}
+                        icon={Gift}
+                        disabled={processing || !data.plan_id}
+                    >
+                        {processing ? 'Creating…' : 'Generate Gift Link'}
+                    </Button>
+                </>
+            }
+        >
+            <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <Field label="Plan to Grant" error={errors.plan_id}>
+                    <Select
+                        value={data.plan_id}
+                        onChange={(e) => setData('plan_id', e.target.value)}
+                        options={plans.map((p) => ({
+                            value: p.id,
+                            label: `${p.platform?.name ? `${p.platform.name} · ` : ''}${p.display_name || p.name}`,
+                        }))}
+                    />
+                </Field>
 
-                <form onSubmit={submit} className="px-7 py-6 space-y-5">
-                    <div>
-                        <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Plan to Grant</label>
-                        <select
-                            value={data.plan_id}
-                            onChange={e => setData('plan_id', e.target.value)}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                        >
-                            {plans.map(p => (
-                                <option key={p.id} value={p.id}>{p.display_name || p.name}</option>
-                            ))}
-                        </select>
-                        {errors.plan_id && <p className="text-xs text-red-400 mt-1">{errors.plan_id}</p>}
-                    </div>
-
-                    <div>
-                        <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">
-                            Duration — type any amount you want
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                min="1"
-                                value={data.duration_value}
-                                onChange={e => setData('duration_value', e.target.value)}
-                                className="w-24 bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                            />
-                            <select
-                                value={data.duration_unit}
-                                onChange={e => setData('duration_unit', e.target.value)}
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                            >
-                                <option value="day">Days</option>
-                                <option value="month">Months</option>
-                                <option value="year">Years</option>
-                            </select>
-                        </div>
-                        <p className="text-xs text-ink-muted mt-1.5">e.g. 1 Month, 18 Months, 5 Years — anything you want.</p>
-                        {(errors.duration_value || errors.duration_unit) && (
-                            <p className="text-xs text-red-400 mt-1">{errors.duration_value || errors.duration_unit}</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">
-                            Your Note (private — never shown to the customer)
-                        </label>
-                        <input
-                            type="text"
-                            value={data.label}
-                            onChange={e => setData('label', e.target.value)}
-                            placeholder="e.g. Ahmed — referral gift"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none placeholder:text-ink-secondary"
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+                    <Field label="Duration Length" error={errors.duration_value}>
+                        <Input
+                            type="number"
+                            min="1"
+                            value={data.duration_value}
+                            onChange={(e) => setData('duration_value', e.target.value)}
                         />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Max Uses</label>
-                            <input
-                                type="number"
-                                min="1"
-                                value={data.max_redemptions}
-                                onChange={e => setData('max_redemptions', e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                            />
-                            <p className="text-1xs text-ink-muted mt-1">1 = single customer only</p>
-                        </div>
-                        <div>
-                            <label className="block text-2xs font-bold uppercase tracking-widest text-ink-muted mb-2">Link Expires</label>
-                            <input
-                                type="date"
-                                value={data.expires_at}
-                                onChange={e => setData('expires_at', e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl text-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                            />
-                            <p className="text-1xs text-ink-muted mt-1">Blank = never</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-4 border-t border-white/10">
-                        <button type="button" onClick={onClose} className="flex-1 bg-white/5 text-ink-muted px-6 py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-all">
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={processing} className="flex-1 bg-brand-600 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-brand-500 transition-all disabled:opacity-50">
-                            {processing ? 'Creating…' : 'Create Gift Link'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-}
-
-// ── Just-Created Link Banner ────────────────────────────────────────────────
-
-function NewLinkBanner({ url, onDismiss }) {
-    return (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-5 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-                <CheckCircle size={20} className="text-emerald-400 shrink-0" />
-                <div className="min-w-0">
-                    <p className="text-sm font-bold text-emerald-400">Gift link created — send this to your customer:</p>
-                    <p className="text-xs text-neutral-300 font-mono truncate mt-0.5">{url}</p>
+                    </Field>
+                    <Field label="Duration Unit" error={errors.duration_unit}>
+                        <Select
+                            value={data.duration_unit}
+                            onChange={(e) => setData('duration_unit', e.target.value)}
+                            options={[
+                                { value: 'day', label: 'Days' },
+                                { value: 'month', label: 'Months' },
+                                { value: 'year', label: 'Years' },
+                            ]}
+                        />
+                    </Field>
                 </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-                <CopyLinkButton url={url} primary />
-                <button onClick={onDismiss} className="text-ink-muted hover:text-white text-lg px-2">✕</button>
-            </div>
-        </div>
+
+                <Field label="Internal Admin Note" hint="Private reference — never visible to the merchant" error={errors.label}>
+                    <Input
+                        value={data.label}
+                        onChange={(e) => setData('label', e.target.value)}
+                        placeholder="e.g. VIP onboarding gift, partner pilot store"
+                    />
+                </Field>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <Field label="Max Redemptions" hint="1 = single merchant link" error={errors.max_redemptions}>
+                        <Input
+                            type="number"
+                            min="1"
+                            value={data.max_redemptions}
+                            onChange={(e) => setData('max_redemptions', e.target.value)}
+                        />
+                    </Field>
+                    <Field label="Link Expiry Date" hint="Leave blank for perpetual" error={errors.expires_at}>
+                        <Input
+                            type="date"
+                            value={data.expires_at}
+                            onChange={(e) => setData('expires_at', e.target.value)}
+                        />
+                    </Field>
+                </div>
+            </form>
+        </Drawer>
     );
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
-
-export default function AccessGrantsIndex({ grants, plans }) {
+export default function AccessGrantsIndex({ grants = [], plans = [] }) {
+    const t = useT();
     const { flash } = usePage().props;
     const [showDrawer, setShowDrawer] = useState(false);
     const [newUrl, setNewUrl] = useState(flash?.new_grant_url ?? null);
@@ -220,156 +167,272 @@ export default function AccessGrantsIndex({ grants, plans }) {
 
     const revoke = (grant) => {
         if (confirm(`Revoke this gift link${grant.label ? ` ("${grant.label}")` : ''}? It will stop working immediately.`)) {
-            router.post(route('platform.access-grants.revoke', { grant: grant.id }));
+            router.post(route('platform.access-grants.revoke', { grant: grant.id }), {}, { preserveScroll: true });
         }
     };
 
     const unrevoke = (grant) => {
-        router.post(route('platform.access-grants.unrevoke', { grant: grant.id }));
+        router.post(route('platform.access-grants.unrevoke', { grant: grant.id }), {}, { preserveScroll: true });
     };
 
     const destroy = (grant) => {
         if (confirm('Delete this unused gift link permanently?')) {
-            router.delete(route('platform.access-grants.destroy', { grant: grant.id }));
+            router.delete(route('platform.access-grants.destroy', { grant: grant.id }), { preserveScroll: true });
         }
     };
 
     const stats = {
         total: grants.length,
-        active: grants.filter(g => !g.revoked_at && g.redemption_count < g.max_redemptions && (!g.expires_at || new Date(g.expires_at) > new Date())).length,
-        redeemed: grants.reduce((s, g) => s + g.redemption_count, 0),
-        revoked: grants.filter(g => g.revoked_at).length,
+        active: grants.filter((g) => !g.revoked_at && g.redemption_count < g.max_redemptions && (!g.expires_at || new Date(g.expires_at) > new Date())).length,
+        redeemed: grants.reduce((s, g) => s + (g.redemption_count || 0), 0),
+        revoked: grants.filter((g) => g.revoked_at).length,
     };
 
     return (
-        <OneGlanceLayout title="Gift Access Links" mode="admin">
-            <Head title="Gift Access Links" />
+        <OneGlanceLayout title="Gift Access Links" mode="admin" activeMenu="Gift Links">
+            <Head title="Platform HQ | Gift Access Links" />
 
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-slower">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
-                            <Gift className="text-brand-400" />
-                            Gift Access Links
-                        </h1>
-                        <p className="text-ink-muted text-sm mt-1">
-                            Generate a link that gives a customer any plan for any duration you choose — no payment required.
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => setShowDrawer(true)}
-                        className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
-                    >
-                        <Plus size={16} /> New Gift Link
-                    </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <PageHeader
+                    icon={Gift}
+                    accent={BRAND.indigo}
+                    title="Gift Access Links"
+                    subtitle="Generate promotional links granting any plan for any duration — zero payment gateway required."
+                    actions={
+                        <Button variant="primary" icon={Plus} onClick={() => setShowDrawer(true)}>
+                            New Gift Link
+                        </Button>
+                    }
+                />
+
+                {/* Just created URL banner */}
+                {newUrl && (
+                    <Panel pad={18} style={{
+                        background: 'rgba(16, 185, 129, 0.10)',
+                        border: '1px solid rgba(16, 185, 129, 0.30)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 16,
+                        flexWrap: 'wrap',
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                            <CheckCircle size={22} style={{ color: BRAND.emerald, flexShrink: 0 }} />
+                            <div style={{ minWidth: 0 }}>
+                                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.emerald }}>
+                                    Gift Link Created Successfully
+                                </div>
+                                <div style={{ fontSize: 12, color: t.ink, fontFamily: 'monospace', wordBreak: 'break-all', marginTop: 2 }}>
+                                    {newUrl}
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <CopyLinkButton url={newUrl} primary />
+                            <button
+                                type="button"
+                                onClick={() => setNewUrl(null)}
+                                style={{ background: 'none', border: 'none', color: t.muted, cursor: 'pointer', padding: 6 }}
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                    </Panel>
+                )}
+
+                {/* KPI Stats Strip */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Total Links
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: t.ink, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {stats.total}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Issued across campaigns</div>
+                    </Panel>
+
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Active Links
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: BRAND.emerald, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {stats.active}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Available for claim</div>
+                    </Panel>
+
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Redeemed Stores
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: BRAND.indigo, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {stats.redeemed}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Activated by users</div>
+                    </Panel>
+
+                    <Panel pad={16}>
+                        <div style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', color: t.muted }}>
+                            Revoked
+                        </div>
+                        <div style={{ fontSize: 26, fontWeight: 900, color: BRAND.rose, marginTop: 4, letterSpacing: '-0.02em' }}>
+                            {stats.revoked}
+                        </div>
+                        <div style={{ fontSize: 12, color: t.sub, marginTop: 3 }}>Disabled manually</div>
+                    </Panel>
                 </div>
 
-                {newUrl && <NewLinkBanner url={newUrl} onDismiss={() => setNewUrl(null)} />}
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    <div className="bg-white dark:bg-white/5 border border-line dark:border-white/10 p-6 rounded-2xl">
-                        <p className="text-ink-muted text-xs font-bold uppercase tracking-widest mb-1">Total Links</p>
-                        <p className="text-3xl font-bold text-ink">{stats.total}</p>
-                    </div>
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-2xl">
-                        <p className="text-emerald-500/60 text-xs font-bold uppercase tracking-widest mb-1">Active</p>
-                        <p className="text-3xl font-bold text-emerald-400">{stats.active}</p>
-                    </div>
-                    <div className="bg-brand-500/5 border border-brand-500/10 p-6 rounded-2xl">
-                        <p className="text-brand-500/60 text-xs font-bold uppercase tracking-widest mb-1">Redemptions</p>
-                        <p className="text-3xl font-bold text-brand-400">{stats.redeemed}</p>
-                    </div>
-                    <div className="bg-red-500/5 border border-red-500/10 p-6 rounded-2xl">
-                        <p className="text-red-500/60 text-xs font-bold uppercase tracking-widest mb-1">Revoked</p>
-                        <p className="text-3xl font-bold text-red-400">{stats.revoked}</p>
-                    </div>
-                </div>
-
-                {/* Table */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-white/5 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted border-b border-white/5">
+                {/* Grants Table */}
+                <Panel pad={0} style={{ overflow: 'hidden' }}>
+                    <div className="vq-scroll" style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 760 }}>
+                            <thead>
                                 <tr>
-                                    <th className="px-6 py-4">Plan &amp; Duration</th>
-                                    <th className="px-6 py-4">Note</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4">Uses</th>
-                                    <th className="px-6 py-4">Created</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    {['Plan & Duration', 'Admin Note', 'Status', 'Usage', 'Created', 'Actions'].map((h, idx) => (
+                                        <th
+                                            key={h}
+                                            style={{
+                                                padding: '12px 18px',
+                                                textAlign: idx === 5 ? 'right' : 'left',
+                                                color: t.muted,
+                                                fontWeight: 800,
+                                                fontSize: 11,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.06em',
+                                                background: t.panel2,
+                                                borderBottom: `1px solid ${t.border}`,
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {h}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody>
                                 {grants.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-16 text-center">
-                                            <div className="flex flex-col items-center gap-3 text-ink-muted">
-                                                <Gift size={48} className="opacity-20" />
-                                                <p>No gift links yet. Create your first one above.</p>
-                                            </div>
+                                        <td colSpan={6} style={{ padding: '64px 20px', textAlign: 'center' }}>
+                                            <EmptyState
+                                                icon={Gift}
+                                                title="No gift links yet"
+                                                message="Generate a link above to gift a free trial, influencer tier, or lifetime access to any customer."
+                                                action={
+                                                    <Button variant="primary" icon={Plus} onClick={() => setShowDrawer(true)}>
+                                                        Generate First Link
+                                                    </Button>
+                                                }
+                                            />
                                         </td>
                                     </tr>
-                                ) : grants.map(grant => {
-                                    const status = grantStatus(grant);
-                                    const StatusIcon = status.icon;
-                                    return (
-                                        <tr key={grant.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="font-bold text-white text-sm">{grant.plan?.display_name || grant.plan?.name}</div>
-                                                <div className="text-xs text-ink-muted mt-0.5">{durationLabel(grant)}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-ink-muted max-w-[180px] truncate">
-                                                {grant.label || <span className="text-ink-secondary">—</span>}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${status.color}`}>
-                                                    <StatusIcon size={11} /> {status.label}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-ink-muted">
-                                                {grant.redemption_count} / {grant.max_redemptions}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-ink-muted">
-                                                {new Date(grant.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <CopyLinkButton url={`${window.location.origin}/gift/${grant.token}`} />
-                                                    {grant.revoked_at ? (
-                                                        <button onClick={() => unrevoke(grant)} title="Re-activate"
-                                                            className="p-1.5 text-emerald-400/70 hover:text-emerald-400 hover:bg-white/5 rounded-lg transition-all">
-                                                            <RotateCcw size={14} />
-                                                        </button>
+                                ) : (
+                                    grants.map((grant) => {
+                                        const isRevoked = !!grant.revoked_at;
+                                        const isExpired = grant.expires_at && new Date(grant.expires_at) < new Date() && grant.redemption_count === 0;
+                                        const isFullyRedeemed = grant.redemption_count >= grant.max_redemptions;
+                                        const linkUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/gift/${grant.token}`;
+
+                                        return (
+                                            <tr
+                                                key={grant.id}
+                                                className="vq-row"
+                                                style={{ borderBottom: `1px solid ${t.rowBorder}` }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = t.hover; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                            >
+                                                {/* Plan & Duration */}
+                                                <td style={{ padding: '14px 18px', verticalAlign: 'middle' }}>
+                                                    <div style={{ fontWeight: 800, color: t.ink, fontSize: 14 }}>
+                                                        {grant.plan?.display_name || grant.plan?.name || 'Standard Tier'}
+                                                    </div>
+                                                    <div style={{ fontSize: 11.5, color: BRAND.indigo, fontWeight: 700, marginTop: 2 }}>
+                                                        {durationLabel(grant)}
+                                                    </div>
+                                                </td>
+
+                                                {/* Note */}
+                                                <td style={{ padding: '14px 18px', verticalAlign: 'middle', color: t.sub, fontSize: 13 }}>
+                                                    {grant.label || <span style={{ color: t.faint }}>—</span>}
+                                                </td>
+
+                                                {/* Status */}
+                                                <td style={{ padding: '14px 18px', verticalAlign: 'middle' }}>
+                                                    {isRevoked ? (
+                                                        <Badge color={BRAND.rose} tone="soft">Revoked</Badge>
+                                                    ) : isExpired ? (
+                                                        <Badge color={BRAND.amber} tone="soft">Expired</Badge>
+                                                    ) : isFullyRedeemed ? (
+                                                        <Badge color={BRAND.slate} tone="soft">Redeemed</Badge>
                                                     ) : (
-                                                        <button onClick={() => revoke(grant)} title="Revoke"
-                                                            className="p-1.5 text-amber-400/70 hover:text-amber-400 hover:bg-white/5 rounded-lg transition-all">
-                                                            <XCircle size={14} />
-                                                        </button>
+                                                        <Badge color={BRAND.emerald} tone="soft">Active</Badge>
                                                     )}
-                                                    {grant.redemption_count === 0 && (
-                                                        <button onClick={() => destroy(grant)} title="Delete"
-                                                            className="p-1.5 text-red-400/70 hover:text-red-400 hover:bg-white/5 rounded-lg transition-all">
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                                </td>
+
+                                                {/* Usage */}
+                                                <td style={{ padding: '14px 18px', verticalAlign: 'middle', color: t.sub, fontSize: 13, fontFamily: 'monospace' }}>
+                                                    <strong style={{ color: t.ink }}>{grant.redemption_count}</strong> / {grant.max_redemptions}
+                                                </td>
+
+                                                {/* Created */}
+                                                <td style={{ padding: '14px 18px', verticalAlign: 'middle', color: t.muted, fontSize: 12 }}>
+                                                    {new Date(grant.created_at).toLocaleDateString()}
+                                                </td>
+
+                                                {/* Actions */}
+                                                <td style={{ padding: '14px 18px', verticalAlign: 'middle', textAlign: 'right' }}>
+                                                    <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+                                                        <CopyLinkButton url={linkUrl} />
+
+                                                        {isRevoked ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                icon={RotateCcw}
+                                                                onClick={() => unrevoke(grant)}
+                                                                title="Re-activate link"
+                                                            >
+                                                                Reactivate
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                icon={Ban}
+                                                                onClick={() => revoke(grant)}
+                                                                title="Revoke link"
+                                                                style={{ color: BRAND.amber }}
+                                                            >
+                                                                Revoke
+                                                            </Button>
+                                                        )}
+
+                                                        {grant.redemption_count === 0 && (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                icon={Trash2}
+                                                                onClick={() => destroy(grant)}
+                                                                title="Delete unused link"
+                                                                style={{ color: BRAND.rose }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                )}
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </Panel>
             </div>
 
             <NewGrantDrawer
                 open={showDrawer}
                 onClose={() => setShowDrawer(false)}
                 plans={plans}
-                onCreated={() => setShowDrawer(false)}
             />
         </OneGlanceLayout>
     );
