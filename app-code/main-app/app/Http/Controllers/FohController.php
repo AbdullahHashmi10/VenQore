@@ -124,6 +124,11 @@ class FohController extends Controller
             'default_tab'        => 'nullable|string|in:auto,overview,tables,takeaway,delivery',
             'takeaway_collect'   => 'nullable|boolean',
             'takeaway_autoclose' => 'nullable|boolean',
+            'takeaway_name_required' => 'nullable|boolean',
+            'delivery_fee'       => 'nullable|numeric|min:0|max:100000',
+            'delivery_eta'       => 'nullable|integer|min:1|max:600',
+            'delivery_grace'     => 'nullable|integer|min:0|max:240',
+            'default_covers'     => 'nullable|integer|min:1|max:99',
 
             // Existing keys that now live on the FOH settings page.
             'service_charge_percent' => 'nullable|numeric|min:0|max:100',
@@ -136,6 +141,7 @@ class FohController extends Controller
 
         $foh = array_intersect_key($data, array_flip([
             'tables', 'takeaway', 'delivery', 'stock', 'takeaway_flow', 'default_tab', 'takeaway_collect', 'takeaway_autoclose',
+            'takeaway_name_required', 'delivery_fee', 'delivery_eta', 'delivery_grace', 'default_covers',
         ]));
         $foh = array_filter($foh, fn ($v) => $v !== null);
         FohSettings::save((int) $tenant->id, $foh);

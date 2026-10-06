@@ -764,3 +764,13 @@ Closed in this pass: Phase 0 leftovers (permission middleware on restaurant dash
 6. Settings sections without a working consumer were NOT added (no dead toggles): takeaway order-number prefix, name-required, default covers, device preferences, live preview, kitchen routing page move.
 7. FOH offline banner / read-only mode; "Updated on another device" notice.
 8. Harness screenshots, performance pass, manual checklist, `foh_beta` per-tenant rollout, Phase 10 recipe stock (deferred by plan).
+
+### Third pass, 6 Oct 2026
+Closed: rider cash-up now a drawer inside FOH → Delivery (`RidersDrawer`, same endpoints); offline banner, FOH goes read-only offline; settings that really change behaviour: default guests (seat dialog), takeaway name required (new-takeaway form), default delivery fee and promised time (new-delivery form), late grace (late flag everywhere). Tests added for grace and name-required.
+
+Decided NOT to do (with reasons):
+- Deleting the table code from `Pos.jsx` and finishing the Sale Core hook split. Table mode is woven through the layout engine (`usePosLayout` floor pane, `RegisterSettings` props, 150+ references). Without running the app that is a bet on the retail till for no user-visible gain. Unreachable for FOH stores already. Do it as its own pass with the app running, golden fixtures as the guard.
+- `FloorStateService` extraction: same reason (2,500-line controller, no PHP test runner available here).
+- Takeaway local draft: needs a second offline-capable cart in FOH; one server round-trip to open a ticket is acceptable.
+- Settings with no consumer (order-number prefix, delivery COD/tracking toggles, device preferences, live preview, kitchen-routing move): no dead toggles.
+- `foh_beta`: replaced by `VQ_FOH_REDIRECTS`.

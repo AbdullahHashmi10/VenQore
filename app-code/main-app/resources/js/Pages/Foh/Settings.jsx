@@ -31,6 +31,8 @@ export default function FohSettings({ storeSlug, fohSettings, extra, categories 
                 tables: !!f.tables, takeaway: !!f.takeaway, delivery: !!f.delivery,
                 stock: f.stock, takeaway_flow: f.takeaway_flow, default_tab: f.default_tab,
                 takeaway_collect: !!f.takeaway_collect, takeaway_autoclose: !!f.takeaway_autoclose,
+                takeaway_name_required: !!f.takeaway_name_required, default_covers: Number(f.default_covers) || 2,
+                delivery_fee: Number(f.delivery_fee) || 0, delivery_eta: Number(f.delivery_eta) || 30, delivery_grace: Number(f.delivery_grace) || 0,
                 service_charge_percent: Number(x.service_charge_percent) || 0,
                 prepares_orders: x.prepares_orders, kds_auto_print: x.kds_auto_print, kot_enabled: x.kot_enabled,
                 kot_show_prices: x.kot_show_prices, pos_sound_alert: x.pos_sound_alert,
@@ -65,6 +67,8 @@ export default function FohSettings({ storeSlug, fohSettings, extra, categories 
                     <Switch Icon={Utensils} label="Tables" hint="Dine-in with a floor plan" on={f.tables} onChange={set('tables')} />
                     <Switch Icon={ShoppingBag} label="Takeaway" hint="Orders handed over at the counter" on={f.takeaway} onChange={set('takeaway')} />
                     <Switch Icon={Bike} label="Delivery" hint="Orders sent out with a rider" on={f.delivery} onChange={set('delivery')} />
+                    <label className="foh-set-row"><span className="foh-set-l"><b>Default guests</b><small>Pre-filled when you seat a table</small></span>
+                        <input type="number" min="1" max="99" value={f.default_covers} onChange={(e) => set('default_covers')(e.target.value)} /></label>
                     <label className="foh-set-row"><span className="foh-set-l"><b>Open on</b><small>The tab FOH starts on</small></span>
                         <select value={f.default_tab} onChange={(e) => set('default_tab')(e.target.value)}>
                             <option value="auto">Automatic</option><option value="overview">Overview</option><option value="tables">Tables</option>
@@ -101,6 +105,13 @@ export default function FohSettings({ storeSlug, fohSettings, extra, categories 
                         <select value={f.takeaway_flow} onChange={(e) => set('takeaway_flow')(e.target.value)}>
                             <option value="fire_first">Fire first, pay when ready</option><option value="pay_first">Pay first</option>
                         </select></label>
+                    <Switch label="Ask for a customer name on takeaway" hint="The new-takeaway form will not continue without it" on={f.takeaway_name_required} onChange={set('takeaway_name_required')} />
+                    <label className="foh-set-row"><span className="foh-set-l"><b>Default delivery fee</b><small>Pre-filled on every new delivery</small></span>
+                        <input type="number" min="0" value={f.delivery_fee} onChange={(e) => set('delivery_fee')(e.target.value)} /></label>
+                    <label className="foh-set-row"><span className="foh-set-l"><b>Promised delivery time (minutes)</b><small>Pre-filled; an order out longer than this is late</small></span>
+                        <input type="number" min="1" value={f.delivery_eta} onChange={(e) => set('delivery_eta')(e.target.value)} /></label>
+                    <label className="foh-set-row"><span className="foh-set-l"><b>Late grace (minutes)</b><small>Extra minutes before an order is flagged late</small></span>
+                        <input type="number" min="0" value={f.delivery_grace} onChange={(e) => set('delivery_grace')(e.target.value)} /></label>
                     <Switch label="Keep paid orders until collected" hint="A paid bag stays on the board until the kitchen is done and it is handed over" on={f.takeaway_collect} onChange={set('takeaway_collect')} />
                     <Switch label="Close automatically when collected" hint="Remove the order once it is handed over" on={f.takeaway_autoclose} onChange={set('takeaway_autoclose')} />
                 </section>

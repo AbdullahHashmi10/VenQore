@@ -82,3 +82,10 @@
 .foh-tile-n{font-weight:700;font-size:14px;line-height:1.2}
 .foh-tile-p{font-weight:800;color:var(--vq-accent,#2563eb)}
 .foh-tile-tag{position:absolute;top:6px;right:6px;font-size:11px;font-weight:800;background:#fee2e2;color:#991b1b;border-radius:6px;padding:1px 6px}
+.foh-drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.15)}
+.foh-drawer-b{padding:14px;display:grid;gap:12px;overflow:auto;align-content:start}
+.foh-rider-row{display:flex;gap:8px}.foh-rider-row select,.foh-rider-row input{border:1px solid var(--vq-line,#e5e7eb);border-radius:8px;padding:8px;flex:1}
+.foh-rider-sum{display:grid;gap:4px}.foh-rider-sum span{display:flex;justify-content:space-between}.foh-rider-sum [data-hot="1"]{color:#b91c1c}
+.foh-rider-d{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--vq-line,#e5e7eb);border-radius:12px}
+.foh-offline{background:#fef3c7;color:#92400e;padding:8px 16px;font-weight:700;text-align:center}
+.foh-set-row input[type=text],.foh-set-row input[type=number]{border:1px solid var(--vq-line,#e5e7eb);border-radius:8px;padding:8px;width:110px}

@@ -23,7 +23,7 @@ const readFlag = (v, dflt) => (v === undefined || v === null || v === '' ? dflt 
  */
 export default function OrderPane({
     card, tables, catalog, settings, storeSlug, caps, money, checkout, enabledTypes,
-    bankAccounts = [], fohSettings = {}, onBack, onToast, onAfterPaid,
+    bankAccounts = [], fohSettings = {}, offline = false, onBack, onToast, onAfterPaid,
 }) {
     const order = useFohOrder({ tables, card });
     const { cart, extras } = order;
@@ -153,7 +153,7 @@ export default function OrderPane({
     return (
         <div className="foh-order" data-mobile-tab={mobileTab}>
             <OrderHeader
-                card={card} covers={card.covers || 1} unsent={unsent} busy={tables.busy}
+                card={card} covers={card.covers || 1} unsent={unsent} busy={tables.busy || offline}
                 elapsedLabel={null} checkDropped={!!card.check_dropped_at} enabledTypes={enabledTypes}
                 onBack={onBack} onCovers={(n) => tables.pushOrder(card.occupancy_id, order.getCart(), { ...meta, covers: n }, true)}
                 onFire={fire} onBill={bill} onSplit={() => setSplitOpen(true)} onMove={() => setMoving(true)}
@@ -195,7 +195,7 @@ export default function OrderPane({
 
                     <div className="foh-pay">
                         {mayPay ? (
-                            <button type="button" className="vqt-btn vqt-btn-go foh-pay-btn" data-primary="1" disabled={!payable.length || tables.busy || checkout.processing} onClick={pay}>
+                            <button type="button" className="vqt-btn vqt-btn-go foh-pay-btn" data-primary="1" disabled={!payable.length || tables.busy || checkout.processing || offline} onClick={pay}>
                                 <CreditCard size={18} aria-hidden="true" /> {payFirst && unsent > 0 ? 'Pay & send to kitchen' : 'Pay'} {payable.length ? money(due) : ''}
                             </button>
                         ) : (

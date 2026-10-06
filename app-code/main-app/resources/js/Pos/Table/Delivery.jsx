@@ -58,12 +58,12 @@ export function elapsedLabel(iso) {
 /* An order is LATE when it has been on the road longer than it was promised.
    Derived, never stored: a promise and a stopwatch are the only two facts, and
    a stored "is_late" is a value somebody has to keep true. */
-export function isLate(delivery) {
+export function isLate(delivery, graceMinutes = 0) {
     if (!delivery || delivery.status !== 'out') return false;
     const eta = Number(delivery.eta_minutes);
     if (!eta) return false;
     const m = sinceMinutes(delivery.status_at);
-    return m !== null && m > eta;
+    return m !== null && m > eta + (Number(graceMinutes) || 0);
 }
 
 /* ── The status chip, for a floor card ───────────────────────────────────

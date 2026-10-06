@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import FohTopBar from '@/Foh/FohTopBar';
@@ -21,6 +21,14 @@ import '@/Foh/foh.css';
 export default function FohIndex({ tab, tabs, orderId, floorState, fohSettings, caps, bankAccounts, warehouses, settings }) {
     const { auth, store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
+    /* Tables and delivery live on the server: when the network drops the screen turns read-only
+       (no pay, no fire) instead of letting two devices diverge. */
+    const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
+    useEffect(() => {
+        const up = () => setOnline(true), down = () => setOnline(false);
+        window.addEventListener('online', up); window.addEventListener('offline', down);
+        return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down); };
+    }, []);
     const money = (v) => formatCurrency(v, store || settings);
 
     const { tables, enabledTypes } = useFoh({ storeSlug, floorState, fohSettings, tab, orderId });
@@ -36,16 +44,16 @@ export default function FohIndex({ tab, tabs, orderId, floorState, fohSettings, 
     const goto = (card) => go(card.kind === 'ticket' ? (card.order_type === 'delivery' ? 'delivery' : 'takeaway') : 'tables', card);
 
     const order = useMemo(() => ({
-        tables, catalog, settings, storeSlug, caps, money, checkout, enabledTypes, bankAccounts, fohSettings, onToast: toast,
+        tables, catalog, settings, storeSlug, caps, money, checkout, enabledTypes, bankAccounts, fohSettings, offline: !online, onToast: toast,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }), [tables, catalog, settings, storeSlug, caps, checkout, enabledTypes, bankAccounts, fohSettings]);
+    }), [tables, catalog, settings, storeSlug, caps, checkout, enabledTypes, bankAccounts, fohSettings, online]);
 
     const seated = tables.positions.filter((p) => p.occupancy_id);
     const take = tables.tickets.filter((t) => t.order_type === 'takeaway' && !t.collected_at);
     const del = tables.tickets.filter((t) => t.order_type === 'delivery' && !t.collected_at);
     const counts = { tables: seated.length, takeaway: take.length, delivery: del.length };
     const now = Date.now();
-    const hot = (x) => alertAge(x, now) > 0 || x.customer_pending > 0 || x.state === 'check_dropped' || (x.paid_at && kitchenDone(x)) || isLate(x.delivery);
+    const hot = (x) => alertAge(x, now) > 0 || x.customer_pending > 0 || x.state === 'check_dropped' || (x.paid_at && kitchenDone(x)) || isLate(x.delivery, fohSettings?.delivery_grace);
     const alerts = { tables: seated.filter(hot).length, takeaway: take.filter(hot).length, delivery: del.filter(hot).length };
     alerts.overview = alerts.tables + alerts.takeaway + alerts.delivery;
 
@@ -70,11 +78,12 @@ export default function FohIndex({ tab, tabs, orderId, floorState, fohSettings, 
                     onNew={() => window.dispatchEvent(new CustomEvent('foh:new'))}
                     onEscape={() => tables.select(null)}
                 />
+                {!online && <div className="foh-offline" role="status">No connection. FOH is read-only until it comes back: nothing can be sent or paid.</div>}
                 <main className="foh-main">
                     {tab === 'overview' && <OverviewTab tables={tables} money={money} goto={goto} fohSettings={fohSettings} />}
-                    {tab === 'tables' && <TablesTab tables={tables} order={order} money={money} storeSlug={storeSlug} canManage={caps?.canManage} />}
-                    {tab === 'takeaway' && <LaneTab kind="takeaway" tables={tables} order={order} money={money} storeSlug={storeSlug} caps={caps} />}
-                    {tab === 'delivery' && <LaneTab kind="delivery" tables={tables} order={order} money={money} storeSlug={storeSlug} caps={caps} />}
+                    {tab === 'tables' && <TablesTab tables={tables} order={order} money={money} storeSlug={storeSlug} canManage={caps?.canManage} fohSettings={fohSettings} />}
+                    {tab === 'takeaway' && <LaneTab kind="takeaway" tables={tables} order={order} money={money} storeSlug={storeSlug} caps={caps} fohSettings={fohSettings} />}
+                    {tab === 'delivery' && <LaneTab kind="delivery" tables={tables} order={order} money={money} storeSlug={storeSlug} caps={caps} fohSettings={fohSettings} />}
                 </main>
             </div>
         </OneGlanceLayout>

@@ -86,3 +86,24 @@ describe('FOH views', () => {
         expect(screen.getByText('Ready to collect')).toBeTruthy();
     });
 });
+
+describe('FOH settings that change behaviour', () => {
+    it('late flag honours the grace minutes', async () => {
+        const { isLate } = await import('@/Pos/Table/Delivery');
+        const d = { status: 'out', eta_minutes: 30, status_at: new Date(Date.now() - 35 * 60000).toISOString() };
+        expect(isLate(d)).toBe(true);
+        expect(isLate(d, 10)).toBe(false);
+    });
+
+    it('new takeaway cannot continue without a name when the store requires one', async () => {
+        const { NewTicketDialog } = await import('@/Pos/Table/TableBar');
+        const onConfirm = vi.fn();
+        render(<NewTicketDialog orderType="takeaway" nameRequired onCancel={() => {}} onConfirm={onConfirm} storeSlug="s" />);
+        const create = screen.getAllByRole('button').find((b) => /open|create|start|ticket/i.test(b.textContent) && !/cancel/i.test(b.textContent));
+        fireEvent.click(create);
+        expect(onConfirm).not.toHaveBeenCalled();
+        fireEvent.change(screen.getByPlaceholderText('Name (required)'), { target: { value: 'Sara' } });
+        fireEvent.click(create);
+        expect(onConfirm).toHaveBeenCalled();
+    });
+});

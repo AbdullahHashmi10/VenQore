@@ -29,9 +29,9 @@ const TYPE_LABEL = { dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delive
    Two facts and a button. Covers defaults to the table's capacity because
    that is right more often than any other guess, and a stepper is faster
    than a keyboard for a number that is almost always between one and eight. */
-export function SeatDialog({ position, onCancel, onConfirm, busy }) {
+export function SeatDialog({ position, onCancel, onConfirm, busy, defaultCovers = null }) {
     const tt = useTermText();
-    const [covers, setCovers] = useState(Math.max(1, Number(position?.capacity) || 2));
+    const [covers, setCovers] = useState(defaultCovers ? Math.max(1, Number(defaultCovers)) : Math.max(1, Number(position?.capacity) || 2));
     if (!position) return null;
 
     const quickCovers = [1, 2, 3, 4, 6, 8];
@@ -156,7 +156,7 @@ export function SeatDialog({ position, onCancel, onConfirm, busy }) {
    A ticket gets a number either way, and a counter mid-rush must be able to
    take the order first and chase the details after. But a delivery with no
    address is a bag nobody can deliver, so that one field is held. */
-export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlug }) {
+export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlug, defaults = {}, nameRequired = false }) {
     const isDelivery = orderType === 'delivery';
     const Icon = isDelivery ? Bike : ShoppingBag;
 
@@ -165,8 +165,8 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlu
         phone: '',
         address: '',
         deliveryNote: '',
-        deliveryFee: '',
-        etaMinutes: isDelivery ? '30' : '',
+        deliveryFee: defaults.deliveryFee ? String(defaults.deliveryFee) : '',
+        etaMinutes: isDelivery ? String(defaults.etaMinutes || 30) : '',
         rider: '',
         riderId: null,
         paymentMethod: 'cash',
@@ -177,6 +177,7 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlu
     const [touched, setTouched] = useState(false);
 
     const addressMissing = isDelivery && v.address.trim() === '';
+    const nameMissing = nameRequired && !isDelivery && v.customerName.trim() === '';
 
     /* Picking a known customer fills three fields at once and remembers WHICH
        customer, so the address written back later lands on the right record
@@ -192,7 +193,7 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlu
 
     const submit = () => {
         setTouched(true);
-        if (addressMissing) return;
+        if (addressMissing || nameMissing) return;
         onConfirm({
             customerName: v.customerName.trim() || null,
             phone: v.phone.trim() || null,
@@ -252,7 +253,8 @@ export function NewTicketDialog({ orderType, onCancel, onConfirm, busy, storeSlu
                             className="vqt-input"
                             value={v.customerName}
                             onChange={e => set('customerName', e.target.value)}
-                            placeholder={isDelivery ? 'Who it is going to' : 'Who is collecting'}
+                            placeholder={isDelivery ? 'Who it is going to' : (nameRequired ? 'Name (required)' : 'Who is collecting')}
+                            aria-invalid={touched && nameMissing ? 'true' : undefined}
                             autoFocus={!isDelivery}
                         />
                     </label>

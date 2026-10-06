@@ -77,6 +77,12 @@ class FohSettings
             'takeaway_collect'  => $collect,
             'takeaway_autoclose'=> $autoclose,
             'prepares_orders'   => self::bool($r['prepares_orders'] ?? '1'),
+            // Defaults the FOH dialogs actually use (see TableBar NewTicketDialog / SeatDialog, Tabs late flag).
+            'delivery_fee'          => max(0, (float) ($r['foh_delivery_fee'] ?? 0)),
+            'delivery_eta'          => max(1, (int) ($r['foh_delivery_eta'] ?? 30)),
+            'delivery_grace'        => max(0, (int) ($r['foh_delivery_grace'] ?? 0)),
+            'takeaway_name_required'=> self::bool($r['foh_takeaway_name_required'] ?? '0'),
+            'default_covers'        => max(1, min(99, (int) ($r['foh_default_covers'] ?? 2))),
         ];
     }
 
@@ -120,10 +126,16 @@ class FohSettings
         $map = [
             'tables' => 'foh_tables', 'takeaway' => 'foh_takeaway', 'delivery' => 'foh_delivery',
             'takeaway_collect' => 'foh_takeaway_collect', 'takeaway_autoclose' => 'foh_takeaway_autoclose',
+            'takeaway_name_required' => 'foh_takeaway_name_required',
         ];
         foreach ($map as $field => $key) {
             if (array_key_exists($field, $data)) {
                 Setting::updateOrCreate(['tenant_id' => $tenantId, 'key' => $key], ['value' => $data[$field] ? '1' : '0']);
+            }
+        }
+        foreach (['delivery_fee' => 'foh_delivery_fee', 'delivery_eta' => 'foh_delivery_eta', 'delivery_grace' => 'foh_delivery_grace', 'default_covers' => 'foh_default_covers'] as $field => $key) {
+            if (array_key_exists($field, $data)) {
+                Setting::updateOrCreate(['tenant_id' => $tenantId, 'key' => $key], ['value' => (string) $data[$field]]);
             }
         }
         foreach (['stock' => 'foh_stock', 'takeaway_flow' => 'foh_takeaway_flow', 'default_tab' => 'foh_default_tab'] as $field => $key) {

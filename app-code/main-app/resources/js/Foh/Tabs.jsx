@@ -8,6 +8,7 @@ import { alertAge } from '@/Pos/Table/useTableService';
 import { DELIVERY_META, DELIVERY_STATES, isLate, elapsedLabel } from '@/Pos/Table/Delivery';
 import OrderPane from './OrderPane';
 import { toast } from './useFoh';
+import RidersDrawer from './RidersDrawer';
 
 /* A paid lane ticket is waiting on the kitchen / the customer, not on the till. */
 export const kitchenDone = (c) => {
@@ -39,10 +40,10 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
     const take = lane('takeaway');
     const del = lane('delivery');
     const c = tables.counts || {};
-    const needs = [...seated, ...take, ...del].filter((x) => alertAge(x, now) > 0 || x.customer_pending > 0 || x.state === 'check_dropped' || (x.paid_at && kitchenDone(x)) || isLate(x.delivery)).length;
+    const needs = [...seated, ...take, ...del].filter((x) => alertAge(x, now) > 0 || x.customer_pending > 0 || x.state === 'check_dropped' || (x.paid_at && kitchenDone(x)) || isLate(x.delivery, fohSettings?.delivery_grace)).length;
     const cooking = [...seated, ...take, ...del].filter((x) => x.state === 'in_kitchen').length;
     const showTables = fohSettings?.tables !== false, showTake = fohSettings?.takeaway !== false, showDel = fohSettings?.delivery !== false;
-    const lateCount = del.filter((t) => isLate(t.delivery)).length;
+    const lateCount = del.filter((t) => isLate(t.delivery, fohSettings?.delivery_grace)).length;
 
     return (
         <div className="foh-overview">
@@ -80,7 +81,7 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
                         <ul className="foh-attn">
                             {del.map((t) => {
                                 const st = t.delivery?.status || 'placed';
-                                const late = isLate(t.delivery);
+                                const late = isLate(t.delivery, fohSettings?.delivery_grace);
                                 return <MiniCard key={t.id} card={t} sub={`${DELIVERY_META[st]?.label || st}${t.delivery?.status_at ? ' · ' + elapsedLabel(t.delivery.status_at) : ''}${late ? ' · LATE' : ''}`} tone={late ? 'warn' : 'quiet'} money={money} goto={goto} />;
                             })}
                             {del.length === 0 && <li className="foh-empty">No deliveries.</li>}
@@ -93,7 +94,7 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
 }
 
 /* ── Tables ──────────────────────────────────────────────────────────── */
-export function TablesTab({ tables, order, money, storeSlug, canManage }) {
+export function TablesTab({ tables, order, money, storeSlug, canManage, fohSettings }) {
     const [seatFor, setSeatFor] = useState(null);
     const [quick, setQuick] = useState(false);
     const card = tables.selected && tables.selected.kind !== 'ticket' ? tables.selected : null;
@@ -112,7 +113,7 @@ export function TablesTab({ tables, order, money, storeSlug, canManage }) {
                 </nav>
                 <div className="foh-rail-body"><OrderPane {...order} card={card} onBack={() => tables.select(null)} /></div>
                 {seatFor && (
-                    <SeatDialog position={seatFor} busy={tables.busy} onCancel={() => setSeatFor(null)}
+                    <SeatDialog position={seatFor} defaultCovers={fohSettings?.default_covers} busy={tables.busy} onCancel={() => setSeatFor(null)}
                         onConfirm={async ({ covers }) => { const p = await tables.openTable(seatFor.id, { covers, orderType: 'dine_in' }); setSeatFor(null); if (p) tables.select(p.id); }} />
                 )}
             </div>
@@ -141,7 +142,7 @@ export function TablesTab({ tables, order, money, storeSlug, canManage }) {
                 />
             )}
             {seatFor && (
-                <SeatDialog position={seatFor} busy={tables.busy} onCancel={() => setSeatFor(null)}
+                <SeatDialog position={seatFor} defaultCovers={fohSettings?.default_covers} busy={tables.busy} onCancel={() => setSeatFor(null)}
                     onConfirm={async ({ covers }) => { const p = await tables.openTable(seatFor.id, { covers, orderType: 'dine_in' }); setSeatFor(null); if (p) tables.select(p.id); }} />
             )}
             {quick && (
@@ -159,8 +160,9 @@ const useNow = () => {
 };
 
 /* ── Takeaway & Delivery share one list + the same order pane ────────── */
-export function LaneTab({ kind, tables, order, money, storeSlug, caps }) {
+export function LaneTab({ kind, tables, order, money, storeSlug, caps, fohSettings }) {
     const [creating, setCreating] = useState(false);
+    const [riders, setRiders] = useState(false);
     const isDelivery = kind === 'delivery';
     const Icon = isDelivery ? Bike : ShoppingBag;
     const list = tables.tickets.filter((t) => t.order_type === kind && !t.collected_at);
@@ -201,11 +203,11 @@ export function LaneTab({ kind, tables, order, money, storeSlug, caps }) {
                 <h2 className="foh-h2"><Icon size={16} aria-hidden="true" /> {isDelivery ? 'Delivery' : 'Takeaway'}</h2>
                 <span className="foh-spacer" />
                 {isDelivery && <Link className="vqt-btn" href={route('store.restaurant.riders', { store_slug: storeSlug })}>Riders</Link>}
-                {isDelivery && <Link className="vqt-btn" href={route('store.restaurant.dispatch', { store_slug: storeSlug }) + '?legacy=1'}>Rider cash-up</Link>}
+                {isDelivery && <button type="button" className="vqt-btn" onClick={() => setRiders(true)}>Rider cash-up</button>}
                 <button type="button" className="vqt-btn vqt-btn-go" onClick={() => setCreating(true)}><Plus size={16} /> New {isDelivery ? 'delivery' : 'takeaway'}</button>
             </div>
             {list.length === 0 && <p className="foh-empty">No open {isDelivery ? 'deliveries' : 'takeaway orders'}.</p>}
-            {isDelivery && list.some((t) => isLate(t.delivery)) && <p className="foh-late">{list.filter((t) => isLate(t.delivery)).length} late</p>}
+            {isDelivery && list.some((t) => isLate(t.delivery, fohSettings?.delivery_grace)) && <p className="foh-late">{list.filter((t) => isLate(t.delivery, fohSettings?.delivery_grace)).length} late</p>}
             <ul className="foh-tickets">
                 {(isDelivery ? [...list].sort((a, b) => DELIVERY_STATES.indexOf(a.delivery?.status || 'placed') - DELIVERY_STATES.indexOf(b.delivery?.status || 'placed')) : list).map((t) => {
                     const b = laneBadge(t);
@@ -214,7 +216,7 @@ export function LaneTab({ kind, tables, order, money, storeSlug, caps }) {
                             <button type="button" onClick={() => tables.select(t.id)} data-tone={b.tone}>
                                 <b>{t.code}</b>
                                 <span className="foh-t-n">{t.label !== t.code ? t.label : (t.phone || 'Walk-in')}</span>
-                                {isDelivery && <span className="foh-badge" data-tone={isLate(t.delivery) ? 'warn' : 'quiet'}>{DELIVERY_META[t.delivery?.status || 'placed']?.short}{isLate(t.delivery) ? ' · late' : ''}</span>}
+                                {isDelivery && <span className="foh-badge" data-tone={isLate(t.delivery, fohSettings?.delivery_grace) ? 'warn' : 'quiet'}>{DELIVERY_META[t.delivery?.status || 'placed']?.short}{isLate(t.delivery, fohSettings?.delivery_grace) ? ' · late' : ''}</span>}
                                 <span className="foh-badge" data-tone={b.tone}>{b.text}</span>
                                 <i className="vq-num">{money(t.paid_at ? t.paid_total : t.order_total)}</i>
                             </button>
@@ -222,8 +224,9 @@ export function LaneTab({ kind, tables, order, money, storeSlug, caps }) {
                     );
                 })}
             </ul>
+            {riders && <RidersDrawer storeSlug={storeSlug} money={money} onClose={() => setRiders(false)} />}
             {creating && (
-                <NewTicketDialog orderType={kind} storeSlug={storeSlug} busy={tables.busy} onCancel={() => setCreating(false)}
+                <NewTicketDialog orderType={kind} storeSlug={storeSlug} busy={tables.busy} nameRequired={!!fohSettings?.takeaway_name_required} defaults={{ deliveryFee: fohSettings?.delivery_fee, etaMinutes: fohSettings?.delivery_eta }} onCancel={() => setCreating(false)}
                     onConfirm={async (meta) => { const t = await tables.openLane(kind, meta); setCreating(false); if (t) tables.select(t.id); }} />
             )}
         </div>
