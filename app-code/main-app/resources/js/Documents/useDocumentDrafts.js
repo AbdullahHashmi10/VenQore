@@ -26,7 +26,7 @@ const read = (ns, seed) => {
 };
 
 const write = (ns, list) => {
-    try { sessionStorage.setItem(keyFor(ns), JSON.stringify(list)); } catch (_) { /* private mode */ }
+    try { sessionStorage.setItem(keyFor(ns), JSON.stringify(list)); window.dispatchEvent(new Event('vqdoc-drafts')); } catch (_) { /* private mode */ }
 };
 
 export default function useDocumentDrafts({ doc, seed, enabled = true }) {

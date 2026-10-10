@@ -266,7 +266,7 @@ class InventoryController extends Controller
                 $status = 'Available';
             } elseif (!$isStockEnabled) {
                 $status = 'Active';
-            } elseif ($totalStock == 0) {
+            } elseif ($totalStock <= 0) {
                 $status = 'Out of Stock';
             } elseif ($totalStock <= $product->min_stock_alert) {
                 $status = 'Low Stock';
@@ -373,7 +373,7 @@ class InventoryController extends Controller
                 'out_of_stock_count' => ($isStockEnabled && $hasProducts)
                     ? tap(Product::query()->whereNull('deleted_at'), $scopeByModule)
                         ->where(fn ($w) => $w->where('products.type', '!=', 'service')->orWhereNull('products.type'))
-                        ->whereRaw('(' . $this->stockOnHandSql() . ') = 0', [$tenantId, $tenantId])
+                        ->whereRaw('(' . $this->stockOnHandSql() . ') <= 0', [$tenantId, $tenantId])
                         ->count()
                     : 0,
                 'stock_maintenance' => (bool)$isStockEnabled,
@@ -470,7 +470,7 @@ class InventoryController extends Controller
                         $query->where('products.type', 'service');
                     } elseif ($val === 'Out of Stock') {
                         $nonService($query);
-                        $query->whereRaw("$t = 0", [$tenantId, $tenantId]);
+                        $query->whereRaw("$t <= 0", [$tenantId, $tenantId]);
                     } elseif ($val === 'Low Stock') {
                         $nonService($query);
                         $query->whereRaw("$t > 0 AND $t <= products.min_stock_alert", [$tenantId, $tenantId, $tenantId, $tenantId]);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import SidebarItem from '@/Components/SidebarItem';
+import DockNav from '@/Components/DockNav';
 import CommandPalette from '@/Components/CommandPalette';
 import OmniSearch from '@/Components/OmniSearch';
 import AiIsland from '@/Components/AiIsland';
@@ -35,12 +36,14 @@ import {
  BookOpen,
  FileText,
  FileCheck,
- ShieldCheck,
+ShieldCheck,
+ ChevronDown,
  Database,
  ShoppingCart,
  Users,
  Clock,
  Calculator,
+ Keyboard,
  Sparkles,
  MessageSquare,
  Check,
@@ -87,13 +90,14 @@ import { useTheme } from '@/Contexts/ThemeContext';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
 import ActivityHubModal from '@/Components/ActivityHubModal';
+import DraftsBell from '@/Components/DraftsBell';
 import StoreSwitcherModal from '@/Components/StoreSwitcherModal';
 import { useTermText } from '@/lib/terms';
 import BottomNavBar from '@/Components/BottomNavBar';
 import KitchenPrinterAlertModal from '@/Components/Pos/KitchenPrinterAlertModal';
 import OrderAlertWatcher from '@/Components/Commerce/OrderAlertWatcher';
 
-export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false }) {
+export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false, dock: dockProp = false }) {
  const {
  store
  } = usePage().props;
@@ -101,7 +105,45 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const isStarterOrLtd1 = store?.plan === 'starter' || store?.plan === 'ltd_1';
 
- const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
+ const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId, activePreSaleInvoices, setCurrentPreSaleId } = useWorkspace();
+ const [navMode, setNavMode] = useState(() => { try { return localStorage.getItem('vq_nav_mode') === 'rail' ? 'rail' : 'dock'; } catch (e) { return 'dock'; } });
+ const changeNavMode = (m) => { setNavMode(m); try { localStorage.setItem('vq_nav_mode', m); } catch (e) { /* ignore */ } };
+ const [railLabels, setRailLabels] = useState(() => { try { return localStorage.getItem('vq_rail_labels') === 'below' ? 'below' : 'beside'; } catch (e) { return 'beside'; } });
+ const changeRailLabels = (m) => { setRailLabels(m); try { localStorage.setItem('vq_rail_labels', m); } catch (e) { /* ignore */ } };
+ const dock = dockProp;
+ const railMode = dock && navMode === 'rail';
+ const [docDrafts, setDocDrafts] = useState([]);
+ useEffect(() => {
+  if (!dockProp) return undefined;
+  const NS = [['sales', 'Sales', ['store.sales.create']], ['quotation', 'Quotations', ['store.proposals.create', 'store.proposals.index']], ['sales-order', 'Sales orders', ['store.pre-sales.create']], ['sale-return', 'Returns', ['store.returns.create']], ['purchase', 'Purchases', ['store.purchases.create']], ['purchase-order', 'Purchase orders', ['store.purchase-orders.create', 'store.purchase-orders.index']], ['debit-note', 'Debit notes', ['store.debit-notes.create']]];
+  const read = () => {
+   const out = [];
+   NS.forEach(([ns, label, routes]) => {
+    try {
+     const arr = JSON.parse(sessionStorage.getItem('vqdoc_drafts_' + ns) || '[]');
+     (Array.isArray(arr) ? arr : []).forEach((d) => {
+      const n = (d.items || []).filter((i) => i && i.product).length;
+      if (d.party || n > 0) out.push({ ns, label, routes, d, n });
+     });
+    } catch (e) { /* ignore */ }
+   });
+   setDocDrafts(out);
+  };
+  read();
+  window.addEventListener('vqdoc-drafts', read);
+  window.addEventListener('focus', read);
+  window.addEventListener('storage', read);
+  return () => { window.removeEventListener('vqdoc-drafts', read); window.removeEventListener('focus', read); window.removeEventListener('storage', read); };
+ }, [dockProp]);
+ // Online orders: pull fresh shared props (cached 15s server-side) so the Online Store badge moves without a reload.
+ useEffect(() => {
+  if (!dockProp) return undefined;
+  const id = setInterval(() => {
+   if (document.visibilityState === 'visible') router.reload({ only: ['auth'], preserveScroll: true, preserveState: true });
+  }, 20000);
+  return () => clearInterval(id);
+ }, [dockProp]);
+ const [settingsSec, setSettingsSec] = useState(null);
  const { url, props } = usePage();
  const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo, planFeatures } = props;
  const aiUsage = props.plan?.usage?.ai;
@@ -712,6 +754,31 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	const visibleInvoices = (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') ? (activeInvoices || []) : [];
 	const visiblePurchases = (activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases'))) ? activePurchases : [];
 	const totalActiveOps = visibleInvoices.length + userPosSessions.length + visiblePurchases.length;
+	const itemsFilled = (d) => (d?.items || []).filter((i) => i?.product).length;
+	const draftGroups = [
+		{ key: 'invoice', label: 'Invoices', rows: visibleInvoices.filter((d) => d.customer || itemsFilled(d) > 0).map((d, i) => ({ id: `inv-${d.id}`, title: d.customer?.name || d.invoiceNumber || `Invoice ${i + 1}`, meta: `${itemsFilled(d)} items`, onOpen: () => { setCurrentInvoiceId(d.id); router.visit(route('store.sales.invoice.create', { store_slug: store?.slug })); } })) },
+		{ key: 'presale', label: 'Pre-sales', rows: (activePreSaleInvoices || []).filter((d) => d.customer || itemsFilled(d) > 0).map((d, i) => ({ id: `pre-${d.id}`, title: d.customer?.name || d.invoiceNumber || `Pre-sale ${i + 1}`, meta: `${itemsFilled(d)} items`, onOpen: () => { setCurrentPreSaleId(d.id); router.visit(route('store.pre-sales.create', { store_slug: store?.slug })); } })) },
+		...docDrafts.reduce((acc, x) => {
+			let g = acc.find((y) => y.key === x.ns);
+			if (!g) { g = { key: x.ns, label: x.label, rows: [] }; acc.push(g); }
+			g.rows.push({
+				id: `doc-${x.ns}-${x.d.id}`,
+				title: x.d.party?.name || `${x.label} draft`,
+				meta: `${x.n} items`,
+				onOpen: () => {
+					try {
+						const key = 'vqdoc_drafts_' + x.ns;
+						const arr = JSON.parse(sessionStorage.getItem(key) || '[]');
+						sessionStorage.setItem(key, JSON.stringify([...arr.filter((y) => y.id === x.d.id), ...arr.filter((y) => y.id !== x.d.id)]));
+					} catch (e) { /* ignore */ }
+					const rn = x.routes.find((r) => route().has(r));
+					if (rn) router.visit(route(rn, { store_slug: store?.slug }));
+				},
+			});
+			return acc;
+		}, []),
+		{ key: 'pos', label: (props?.runs_foh === true) ? 'FOH' : 'POS', rows: userPosSessions.filter((d) => (d.cart || []).length > 0).map((d, i) => ({ id: `pos-${d.id}`, title: d.customer?.name || `Sale ${i + 1}`, meta: `${d.cart.length} items`, onOpen: () => { setCurrentPosId(d.id); router.visit(route((props?.runs_foh === true) ? 'store.foh' : 'store.pos', { store_slug: store?.slug })); } })) },
+	];
 
 	const onboardingMetrics = props.onboarding_metrics || {
 		has_products: false,
@@ -847,6 +914,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  },
  ...(store && isOnlineStoreActive ? [{
  name: 'Online Store',
+ badgeCount: props.auth?.online_orders_pending || 0,
  icon: Store,
  subs: [
  { group: 'Online Store', items: [
@@ -1307,6 +1375,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'Database': ['settings']
  };
 
+
  const rawMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? adminMenuItems : appMenuItems;
 
  const menuItems = rawMenuItems.filter(item => {
@@ -1529,6 +1598,118 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		};
 	}, []);
 
+ const renderAvatar = (wrapCls, popupCls) => (
+<div className={wrapCls} ref={userMenuRef}>
+      <button
+          type="button"
+          onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+          title={showSetupBadge ? `Profile (${setupRemainingCount} setup steps remaining)` : 'Profile'}
+          className={`relative h-11 w-11 rounded-full bg-gradient-brand flex items-center justify-center text-white font-bold text-xs shadow-sm transition-all ${isUserMenuOpen ? 'ring-2 ring-brand-300' : 'ring-2 ring-surface'}`}
+      >
+          {(() => {
+              const name = props.auth?.user?.name || '';
+              const email = props.auth?.user?.email || '?';
+              if (name) {
+                  const parts = name.split(' ');
+                  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+                  return name.substring(0, 2).toUpperCase();
+              }
+              return email.substring(0, 2).toUpperCase();
+          })()}
+          {showSetupBadge && (
+              <span className="absolute -top-1 -right-1 min-w-[19px] h-[19px] px-1 bg-amber-500 text-white text-3xs font-extrabold rounded-full flex items-center justify-center ring-2 ring-surface pointer-events-none">
+                  {setupRemainingCount}
+              </span>
+          )}
+      </button>
+      {renderUserMenuPopup(popupCls)}
+  </div>
+ );
+
+ const renderUserMenuPopup = (pos) => isUserMenuOpen && (
+<div className={`${pos} w-60 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2`}>
+  {/* Setup Checklist in Profile Menu */}
+  {showSetupBadge && (
+   <button
+    onClick={() => {
+     setIsUserMenuOpen(false);
+     setIsChecklistModalOpen(true);
+    }}
+    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex flex-wrap items-center justify-between gap-y-2 group shadow-xs cursor-pointer"
+   >
+    <div className="flex items-center gap-2.5">
+     <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
+      <Sparkles size={14} className="animate-pulse" />
+     </div>
+     <div>
+      <div className="text-xs font-bold text-ink">Setup Checklist</div>
+      <div className="text-3xs font-semibold text-brand-600 dark:text-brand-400">
+       {setupRemainingCount} step{setupRemainingCount > 1 ? 's' : ''} remaining
+      </div>
+     </div>
+    </div>
+    <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
+     {setupRemainingCount}
+    </span>
+   </button>
+  )}
+ 						{props.auth?.my_stores_count > 1 && (
+							<button
+								onClick={() => {
+									setIsUserMenuOpen(false);
+									setIsStoreSwitcherModalOpen(true);
+								}}
+								className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
+							>
+								<div className="flex items-center gap-2.5">
+									<Store size={16} className="text-brand-500 group-hover:scale-110 transition-transform" />
+									<span>Switch Store</span>
+								</div>
+								<span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 max-w-[75px] truncate">
+									{store?.name}
+								</span>
+							</button>
+						)}
+ {store && (
+ <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+ <User size={16} /> Profile Settings
+ </Link>
+ )}
+  {store && (
+  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+      <div className="flex items-center gap-3">
+          <Sparkles size={16} className="text-[#0BAA8F]" />
+          <span>AI Usage</span>
+      </div>
+      {aiWarningState === 'limit' && (
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse" title="AI usage limit reached" />
+      )}
+      {aiWarningState === 'warning' && (
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse" title="AI usage warning (≥80%)" />
+      )}
+  </Link>
+  )}
+ <button
+ onClick={() => {
+ localStorage.removeItem('amd_onboarding_driver_complete');
+ window.location.reload();
+ }}
+ className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm font-medium text-brand-600 dark:indigo-400"
+ >
+ <Sparkles size={16} /> Take a Tour
+ </button>
+ {(userRole === 'platform_admin') && (
+ <Link href="/updater" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium text-amber-600 dark:text-amber-400">
+ <Package size={16} /> System Update
+ </Link>
+ )}
+ <div className="h-px bg-sunken my-1"></div>
+ <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
+ <LogOut size={16} /> Logout
+ </Link>
+ </div>
+ );
+
  return (
  <>
  <OrderAlertWatcher addToast={addToast} />
@@ -1536,7 +1717,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {/* Phase 4.4 — Global plan limit upgrade modal (triggered by axios interceptor) */}
  <UpgradeModal />
  <ImpersonationBanner />
- <div className={`fixed inset-0 overflow-hidden flex bg-surface text-ink font-sans transition-colors duration-slow`}>
+ <div className={`fixed inset-0 overflow-hidden flex bg-[var(--vq-bg)] text-ink font-sans transition-colors duration-slow`}>
  <style>{`
  .custom-scrollbar::-webkit-scrollbar {
  display: none;
@@ -1561,6 +1742,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  :root {
  --ui-scale: ${settings?.ui_scale ? settings.ui_scale / 100 : 1};
  }
+ @keyframes vqPulseScroll { from { transform: translateX(0); } to { transform: translateX(-20px); } }
+ @media (prefers-reduced-motion: reduce) { .vq-pulse-line { animation: none !important; } }
+ @keyframes vqLabelIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
  /* Draggable region for custom title bar */
  .amd-draggable {
  -webkit-app-region: drag;
@@ -1572,23 +1756,42 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
 
+{/* Store logo — top-left, embossed into the page (no container, no elevation) */}
+ {!fullScreen && !hideSidebar && !hideHeader && (
+ <div
+ className="hidden lg:flex absolute top-0 left-0 z-30 h-14 pt-2 items-center pointer-events-none overflow-hidden transition-[width] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+ style={{ width: dock ? 'auto' : (showExpandedSidebar ? 'var(--vq-nav-w-full)' : 'var(--vq-nav-w-rail)') }}
+ title={store?.name || 'VenQore'}
+ >
+ <div className={`w-full flex ${dock ? 'justify-start' : showExpandedSidebar ? 'justify-start pl-6' : 'justify-center'}`} style={dock ? { paddingLeft: railMode ? 8 + (railLabels === 'beside' ? 60 : 84) / 2 - 28 : 16, transition: 'padding-left 420ms cubic-bezier(0.22,1,0.36,1)' } : undefined}>
+ <img
+ src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"}
+ alt="Logo"
+ draggable={false}
+ className="h-14 w-14 object-contain select-none opacity-90 [filter:drop-shadow(0_1px_0_rgba(255,255,255,0.9))_drop-shadow(0_-1px_0_rgba(0,0,0,0.22))] dark:[filter:drop-shadow(0_1px_0_rgba(0,0,0,0.7))_drop-shadow(0_-1px_0_rgba(255,255,255,0.1))]"
+ />
+ </div>
+ </div>
+ )}
+
  {/* --- SIDEBAR --- */}
  {mobileSidebarOpen && (
  <div data-vq-drawer-scrim="" className="fixed inset-0 lg:hidden" style={{ zIndex: 1500, background: 'rgba(13,20,18,0.45)', opacity: 1, pointerEvents: 'auto' }} onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />
  )}
- {!fullScreen && !hideSidebar && (
+ {!fullScreen && !hideSidebar && !dock && (
  <aside
  ref={sidebarRef}
  onMouseLeave={handleSidebarMouseLeave}
  onClick={handleSidebarInteraction}
  className={`
-  fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer max-lg:z-[1600] lg:z-40
-  transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
-  flex flex-col amd-no-drag
+  fixed lg:relative inset-y-0 lg:inset-auto left-0 shrink-0 z-drawer max-lg:z-[1600] lg:z-40
+  lg:mt-16 lg:mb-2 lg:h-auto lg:rounded-r-[14px] lg:border-y lg:border-r
+  transform lg:transform-none transition-all duration-slow lg:transition-[width] lg:duration-[420ms] lg:ease-[cubic-bezier(0.22,1,0.36,1)]
+  flex flex-col amd-no-drag overflow-visible
   ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
   ${isPlatformAdmin && !store
   ? (isEffectiveDarkMode ? 'bg-neutral-950/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-line')
-  : 'bg-surface border-r border-line dark:border-line'}
+  : 'bg-[var(--vq-bg)] border-r border-line dark:border-line'}
    ${showExpandedSidebar ? 'w-[var(--vq-nav-w-full)]' : 'w-[var(--vq-nav-w-full)] lg:w-[var(--vq-nav-w-rail)]'}
    ${isPlatformAdmin && !store
    ? (isEffectiveDarkMode ? 'm-4 rounded-xl h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-line shadow-sm transition-all')
@@ -1607,29 +1810,28 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   <X size={18} />
   </button>
 
-  {/* Logo */}
-  <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
-  <div className="flex items-center justify-center">
-  <img 
-  src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
-  alt="Logo" 
-  className="w-16 h-16 object-contain drop-shadow-md transition-all duration-normal" 
-  />
-  </div>
+  {/* Mobile Drawer Logo only */}
+  <div className="lg:hidden h-20 flex items-center justify-center shrink-0 relative z-10">
+      <img 
+          src={(store?.logo_url && !store.logo_url.includes('logo.png')) ? store.logo_url : "/images/icon.svg"} 
+          alt="Logo" 
+          className="w-12 h-12 object-contain drop-shadow-md" 
+      />
   </div>
 
+  <div className="hidden lg:flex absolute inset-y-0 -right-3 w-6 items-center justify-center pointer-events-none z-50">
   <button
+  type="button"
   onClick={handleManualToggle}
-  className={`
-  hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-surface border border-line rounded-full shadow-md z-50 items-center justify-center text-ink-muted hover:text-brand-500 transition-all group
-  ${!showExpandedSidebar && 'rotate-180'}
-`}
+  aria-label={showExpandedSidebar ? 'Collapse sidebar' : 'Expand sidebar'}
+  className="pointer-events-auto w-6 h-12 bg-surface border border-line rounded-full shadow-md flex items-center justify-center text-ink-muted hover:text-brand-500 hover:scale-105 active:scale-95 outline-none focus-visible:ring-2 focus-visible:ring-brand-500 transition-all duration-200"
   >
-  <ChevronLeft size={14} className="transition-transform" />
+  <ChevronLeft size={14} className={`transition-transform duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${showExpandedSidebar ? '' : 'rotate-180'}`} />
   </button>
+  </div>
 
   {/* Menu */}
-  <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
+  <div className="flex-1 overflow-y-auto pt-2 pb-2 px-3 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
   {menuItems.map((item) => (
     <SidebarItem
       key={item.name}
@@ -1757,90 +1959,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </Link>
  )}
 
- {/* USER MENU POPUP */}
- {isUserMenuOpen && (
- <div className="absolute bottom-20 left-4 w-60 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
-  {/* Setup Checklist in Profile Menu */}
-  {showSetupBadge && (
-   <button
-    onClick={() => {
-     setIsUserMenuOpen(false);
-     setIsChecklistModalOpen(true);
-    }}
-    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex flex-wrap items-center justify-between gap-y-2 group shadow-xs cursor-pointer"
-   >
-    <div className="flex items-center gap-2.5">
-     <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
-      <Sparkles size={14} className="animate-pulse" />
-     </div>
-     <div>
-      <div className="text-xs font-bold text-ink">Setup Checklist</div>
-      <div className="text-3xs font-semibold text-brand-600 dark:text-brand-400">
-       {setupRemainingCount} step{setupRemainingCount > 1 ? 's' : ''} remaining
-      </div>
-     </div>
-    </div>
-    <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
-     {setupRemainingCount}
-    </span>
-   </button>
-  )}
- 						{props.auth?.my_stores_count > 1 && (
-							<button
-								onClick={() => {
-									setIsUserMenuOpen(false);
-									setIsStoreSwitcherModalOpen(true);
-								}}
-								className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
-							>
-								<div className="flex items-center gap-2.5">
-									<Store size={16} className="text-brand-500 group-hover:scale-110 transition-transform" />
-									<span>Switch Store</span>
-								</div>
-								<span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 max-w-[75px] truncate">
-									{store?.name}
-								</span>
-							</button>
-						)}
- {store && (
- <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
- <User size={16} /> Profile Settings
- </Link>
- )}
-  {store && (
-  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
-      <div className="flex items-center gap-3">
-          <Sparkles size={16} className="text-[#0BAA8F]" />
-          <span>AI Usage</span>
-      </div>
-      {aiWarningState === 'limit' && (
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] animate-pulse" title="AI usage limit reached" />
-      )}
-      {aiWarningState === 'warning' && (
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse" title="AI usage warning (≥80%)" />
-      )}
-  </Link>
-  )}
- <button
- onClick={() => {
- localStorage.removeItem('amd_onboarding_driver_complete');
- window.location.reload();
- }}
- className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm font-medium text-brand-600 dark:indigo-400"
- >
- <Sparkles size={16} /> Take a Tour
- </button>
- {(userRole === 'platform_admin') && (
- <Link href="/updater" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium text-amber-600 dark:text-amber-400">
- <Package size={16} /> System Update
- </Link>
- )}
- <div className="h-px bg-sunken my-1"></div>
- <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
- <LogOut size={16} /> Logout
- </Link>
- </div>
- )}
+ {renderUserMenuPopup('absolute bottom-20 left-4')}
 
  <button
  className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent hover:border-line dark:hover:border-line-strong relative group`}
@@ -1880,6 +1999,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </button>
  </div>
  </aside>
+ )}
+
+ {/* --- DOCK (opt-in per page) --- */}
+ {dock && !fullScreen && store && !(isPlatformAdmin && !store) && (
+ <DockNav
+  vertical={railMode}
+  labelMode={railLabels}
+  footer={railMode ? renderAvatar('relative', 'absolute bottom-0 left-full ml-3') : null}
+  items={menuItems}
+  isItemActive={(item) => activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home') || (!activeMenu && isMenuItemActive(item))}
+  pos={(!enabledModuleSet || enabledModuleSet.has('pos') || runsFoh)
+   && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos'))
+   ? {
+      href: isPosRoute ? route('store.dashboard', { store_slug: store.slug }) : route(runsFoh ? 'store.foh' : 'store.pos', { store_slug: store.slug }),
+      label: isPosRoute ? 'Close POS' : (runsFoh ? 'FOH' : 'POS'), foh: !!runsFoh && !isPosRoute,
+     }
+   : null}
+ />
  )}
 
  {/* --- MAIN CONTENT --- */}
@@ -1970,10 +2107,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Header */}
   {!hideHeader && !fullScreen && (
-  <header className="h-16 px-6 flex flex-wrap items-center justify-between gap-y-2 z-nav relative shrink-0 max-lg:h-auto max-lg:flex-nowrap max-lg:gap-1.5 max-lg:px-1.5 max-lg:pt-1.5 max-lg:pb-0">
+  <header className="h-16 lg:h-14 px-6 flex flex-wrap items-center justify-between gap-y-2 z-nav relative shrink-0 max-lg:h-auto max-lg:flex-nowrap max-lg:gap-1.5 max-lg:px-1.5 max-lg:pt-1.5 max-lg:pb-0">
   {/* LEFT SECTION */}
   <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10 max-lg:min-w-0 max-lg:shrink-0">
-  <button aria-label="Open menu" className="lg:hidden h-11 w-11 max-lg:h-10 max-lg:w-10 flex items-center justify-center rounded-lg text-ink-secondary bg-surface hover:text-brand-600 transition-colors border border-line"
+  <button aria-label="Open menu" className={`${dock ? 'hidden' : 'lg:hidden'} h-11 w-11 max-lg:h-10 max-lg:w-10 flex items-center justify-center rounded-lg text-ink-secondary bg-surface hover:text-brand-600 transition-colors border border-line`}
   onClick={() => setMobileSidebarOpen(true)}>
   <Menu size={20} />
   </button>
@@ -1981,15 +2118,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   </div>
 
-  {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}
-  <div id="tour-omnisearch" className="absolute left-1/2 top-1/2 max-lg:top-[calc(50%+3px)] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center">
+  {/* CENTER SECTION - THE AI ISLAND (Aligned with header controls opposite it) */}
+  <div id="tour-omnisearch" className="absolute left-1/2 top-2.5 max-lg:top-1.5 -translate-x-1/2 pointer-events-none z-20 flex items-center justify-center">
       <div className="pointer-events-auto">
           <AiIsland compact={isPhoneBar} phone={isPhoneBar} />
       </div>
   </div>
 
   {/* RIGHT SECTION */}
-  <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10 max-lg:min-w-0 max-lg:ml-auto max-lg:gap-1.5 max-lg:shrink-0">
+  <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10 lg:translate-y-1 max-lg:min-w-0 max-lg:ml-auto max-lg:gap-1.5 max-lg:shrink-0">
   {isTrial && !is_demo && (
   <Link
   href={route('store.billing', { store_slug: store?.slug })}
@@ -2032,6 +2169,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
       </div>
   )}
 
+  {dock && store && !(isPlatformAdmin && !store) && <DraftsBell groups={draftGroups} />}
+
   {/* Display & Dashboard Customization Settings Dropdown */}
   <div className="hidden lg:block relative" ref={displayMenuRef}>
       <button
@@ -2046,10 +2185,34 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
       {isDisplayMenuOpen && (
           <div className="absolute right-0 top-full mt-2 w-72 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2.5 space-y-2">
+              {dockProp && (
+              <>
+                  <button type="button" onClick={() => setSettingsSec(settingsSec === 'nav' ? null : 'nav')} className="w-full flex items-center justify-between px-2 h-9 rounded-xl hover:bg-interactive-hover text-sm font-semibold text-ink">
+                  <span>Navigation</span><ChevronDown size={14} className={`text-ink-muted transition-transform ${settingsSec === 'nav' ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsSec === 'nav' && (<div className="space-y-2 pb-1">
+                  <div className="flex items-center p-1 bg-sunken rounded-xl gap-1">
+                      {[['dock', 'Bottom'], ['rail', 'Side']].map(([m, l]) => (
+                          <button key={m} type="button" onClick={() => changeNavMode(m)}
+                              className={`flex-1 h-8 rounded-[12px] text-xs font-semibold transition-colors ${navMode === m ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}>{l}</button>
+                      ))}
+                  </div>
+                  {navMode === 'rail' && (
+                      <div className="flex items-center p-1 bg-sunken rounded-xl gap-1">
+                          {[['beside', 'Expand on hover'], ['below', 'Label below']].map(([m, l]) => (
+                              <button key={m} type="button" onClick={() => changeRailLabels(m)}
+                                  className={`flex-1 h-8 rounded-[12px] text-xs font-semibold transition-colors ${railLabels === m ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}>{l}</button>
+                          ))}
+                      </div>
+                  )}
+              </div>)}
+                  </>
+              )}
               {/* Theme Selector */}
-              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  Theme Appearance
-              </div>
+              <button type="button" onClick={() => setSettingsSec(settingsSec === 'theme' ? null : 'theme')} className="w-full flex items-center justify-between px-2 h-9 rounded-xl hover:bg-interactive-hover text-sm font-semibold text-ink">
+                  <span>Theme Appearance</span><ChevronDown size={14} className={`text-ink-muted transition-transform ${settingsSec === 'theme' ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsSec === 'theme' && (<div className="space-y-2 pb-1">
               <div className="flex items-center p-1 bg-sunken rounded-xl gap-1">
                   {[
                       { id: 'light', label: 'Light' },
@@ -2074,10 +2237,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
 
+              </div>)}
               {/* Header Controls */}
-              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted">
-                  Header Preferences
-              </div>
+              <button type="button" onClick={() => setSettingsSec(settingsSec === 'header' ? null : 'header')} className="w-full flex items-center justify-between px-2 h-9 rounded-xl hover:bg-interactive-hover text-sm font-semibold text-ink">
+                  <span>Header Preferences</span><ChevronDown size={14} className={`text-ink-muted transition-transform ${settingsSec === 'header' ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsSec === 'header' && (<div className="space-y-2 pb-1">
 
               <button
                   onClick={toggleClockVisibility}
@@ -2139,12 +2304,28 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                   </div>
               </button>
 
+              <button
+                  onClick={() => {
+                      setIsDisplayMenuOpen(false);
+                      window.dispatchEvent(new CustomEvent('amd:open-keyboard-shortcuts'));
+                  }}
+                  className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-all"
+              >
+                  <div className="flex items-center gap-2.5">
+                      <Keyboard size={16} className="text-brand-500 shrink-0" />
+                      <span className="text-sm font-semibold">Keyboard Shortcuts</span>
+                  </div>
+                  <span className="text-3xs font-mono font-semibold px-1.5 py-0.5 rounded bg-sunken text-ink-muted border border-line">?</span>
+              </button>
+
               <div className="h-px bg-line my-1" />
 
+              </div>)}
               {/* Dashboard Layout Actions */}
-              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex flex-wrap items-center justify-between gap-y-2">
-                  <span>Dashboard Customizer</span>
-              </div>
+              <button type="button" onClick={() => setSettingsSec(settingsSec === 'layout' ? null : 'layout')} className="w-full flex items-center justify-between px-2 h-9 rounded-xl hover:bg-interactive-hover text-sm font-semibold text-ink">
+                  <span>Dashboard</span><ChevronDown size={14} className={`text-ink-muted transition-transform ${settingsSec === 'layout' ? 'rotate-180' : ''}`} />
+              </button>
+              {settingsSec === 'layout' && (<div className="space-y-2 pb-1">
 
               <button
                   onClick={() => {
@@ -2191,6 +2372,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                   <span className="flex-1 text-left">Start Fresh…</span>
               </button>
 
+              </div>)}
               {props.auth?.my_stores_count > 1 && (
                   <button
                       onClick={() => {
@@ -2211,6 +2393,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
           </div>
       )}
   </div>
+
+  {/* Dock mode: profile menu (the sidebar's avatar lives here instead) */}
+  {dock && !railMode && store && renderAvatar('hidden lg:block relative', 'absolute right-0 top-full mt-2')}
 
   {/* Phone: Online Store shortcut with new-order badge */}
   {store && isShopActive && (
@@ -2427,7 +2612,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
  {/* DYNAMIC CONTENT AREA */}
- <div data-vq-content className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-1.5 md:p-6'}`}>
+ <div data-vq-content className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-1.5 md:p-6'}${railMode ? (railLabels === 'beside' ? ' lg:pl-[68px]' : ' lg:pl-[92px]') : ''}`}>
  {children}
  {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
  {showMobileNavBar && (

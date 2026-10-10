@@ -439,7 +439,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     };
 
     return (
-        <OneGlanceLayout title="Inventory Management" activeMenu="Stock" noPadding>
+        <OneGlanceLayout title="Inventory Management" activeMenu="Stock" noPadding dock>
             <Head title="Inventory & Services" />
 
             <PasscodeModal
@@ -476,7 +476,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
             <ProductTourGuide isModalOpen={isModalOpen} store={store} categories={categories} />
 
-            <div className="flex flex-col h-full bg-app gap-2 px-1.5 pt-1.5 pb-1.5 md:px-6 md:pt-4 md:pb-6 overflow-y-auto md:overflow-hidden relative">
+            <div className="flex flex-col h-full bg-transparent gap-2 px-1.5 pt-1.5 pb-1.5 md:px-4 md:pt-2 md:pb-2 overflow-y-auto md:overflow-hidden relative">
 
                 {/* Phone / small tablet: section dropdown (desktop gets the title dropdown in the toolbar) */}
                 <div className="md:hidden">
@@ -497,57 +497,119 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                 {/* ── ROW 1 · toolbar (desktop): [page title ▾ nav]  ····  [search] [category ▾] [+ add] ── */}
                 <div className="hidden md:flex relative z-20 h-14 shrink-0 items-center justify-between gap-3 px-2 bg-surface border border-line rounded-[14px] shadow-sm">
 
-                    {/* Left: page name + dropdown with every Stock page */}
-                    <div className="relative" data-menu>
-                        <button
-                            type="button"
-                            onClick={() => toggleMenu('nav')}
-                            aria-haspopup="menu"
-                            aria-expanded={openMenu === 'nav'}
-                            className={`h-10 pl-3 pr-2.5 rounded-[12px] flex items-center gap-2 transition-colors ${openMenu === 'nav' ? 'bg-interactive-hover' : 'hover:bg-interactive-hover'}`}
-                        >
-                            <span className="text-lg font-bold text-ink tracking-tight whitespace-nowrap">{pageTitle}</span>
-                            <ChevronDown size={18} className={`text-ink-muted transition-transform duration-200 ${openMenu === 'nav' ? 'rotate-180' : ''}`} />
-                        </button>
-                        {openMenu === 'nav' && (
-                            <div role="menu" className="absolute left-0 top-full mt-2 w-72 max-h-[70vh] overflow-y-auto overscroll-contain bg-surface border border-line rounded-[14px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
-                                {navGroups.map((group, gi) => (
-                                    <div key={group.id} className={gi > 0 ? 'mt-1' : ''}>
-                                        <div className="px-2.5 pt-2 pb-1 text-2xs font-bold uppercase tracking-wider text-ink-muted">{group.label}</div>
-                                        {group.items.map(item => {
-                                            const ItemIcon = item.icon;
-                                            const on = item.id === 'products';
-                                            return (
-                                                <Link
-                                                    key={item.id}
-                                                    href={item.href}
-                                                    onClick={() => setOpenMenu(null)}
-                                                    role="menuitem"
-                                                    className={`flex items-center gap-3 h-9 px-2.5 rounded-[12px] text-sm transition-colors ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink hover:bg-interactive-hover'}`}
-                                                >
-                                                    <ItemIcon size={15} className={on ? '' : 'text-ink-muted'} />
-                                                    <span className="flex-1 truncate">{item.label}</span>
-                                                    {on && <Check size={15} />}
-                                                </Link>
-                                            );
-                                        })}
+                    {/* Left: page name + category dropdown side by side */}
+                    <div className="flex items-center gap-2 min-w-0">
+                        {/* Page navigation dropdown */}
+                        <div className="relative" data-menu>
+                            <button
+                                type="button"
+                                onClick={() => toggleMenu('nav')}
+                                aria-haspopup="menu"
+                                aria-expanded={openMenu === 'nav'}
+                                className={`h-10 pl-3 pr-2.5 rounded-[12px] flex items-center gap-2 transition-colors ${openMenu === 'nav' ? 'bg-interactive-hover' : 'hover:bg-interactive-hover'}`}
+                            >
+                                <span className="text-lg font-bold text-ink tracking-tight whitespace-nowrap">{pageTitle}</span>
+                                <ChevronDown size={18} className={`text-ink-muted transition-transform duration-200 ${openMenu === 'nav' ? 'rotate-180' : ''}`} />
+                            </button>
+                            {openMenu === 'nav' && (
+                                <div role="menu" className="absolute left-0 top-full mt-2 w-72 max-h-[70vh] overflow-y-auto overscroll-contain bg-surface border border-line rounded-[14px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+                                    {navGroups.map((group, gi) => (
+                                        <div key={group.id} className={gi > 0 ? 'mt-1' : ''}>
+                                            <div className="px-2.5 pt-2 pb-1 text-2xs font-bold uppercase tracking-wider text-ink-muted">{group.label}</div>
+                                            {group.items.map(item => {
+                                                const ItemIcon = item.icon;
+                                                const on = item.id === 'products';
+                                                return (
+                                                    <Link
+                                                        key={item.id}
+                                                        href={item.href}
+                                                        onClick={() => setOpenMenu(null)}
+                                                        role="menuitem"
+                                                        className={`flex items-center gap-3 h-9 px-2.5 rounded-[12px] text-sm transition-colors ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink hover:bg-interactive-hover'}`}
+                                                    >
+                                                        <ItemIcon size={15} className={on ? '' : 'text-ink-muted'} />
+                                                        <span className="flex-1 truncate">{item.label}</span>
+                                                        {on && <Check size={15} />}
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                    <div className="h-px bg-line my-1.5" />
+                                    <Link
+                                        href={route('store.admin.data', { store_slug: store?.slug })}
+                                        onClick={() => setOpenMenu(null)}
+                                        role="menuitem"
+                                        className="flex items-center gap-3 h-9 px-2.5 rounded-[12px] text-sm text-ink hover:bg-interactive-hover transition-colors"
+                                    >
+                                        <Upload size={15} className="text-ink-muted" />
+                                        <span className="flex-1 truncate">Import / Export data</span>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Category (and type, when both kinds exist) dropdown beside page title */}
+                        <div className="relative" data-menu>
+                            <button
+                                type="button"
+                                onClick={() => toggleMenu('category')}
+                                aria-haspopup="listbox"
+                                aria-expanded={openMenu === 'category'}
+                                className={`h-10 px-3 rounded-[12px] border text-sm font-semibold flex items-center gap-2 max-w-[220px] transition-colors ${activeCategory !== 'all' || activeType !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
+                            >
+                                <Layers size={15} className="shrink-0" />
+                                <span className="truncate">{activeCategory === 'all' ? 'All categories' : (activeCategoryName || 'Category')}</span>
+                                <ChevronDown size={15} className={`shrink-0 transition-transform duration-200 ${openMenu === 'category' ? 'rotate-180' : ''}`} />
+                            </button>
+                            {openMenu === 'category' && (
+                                <div role="listbox" className="absolute left-0 top-full mt-2 w-72 bg-surface border border-line rounded-[14px] shadow-xl p-2 animate-[vqDrop_0.16s_ease-out] origin-top">
+                                    {bothKinds && (
+                                        <div className="grid grid-cols-3 gap-1 p-0.5 mb-2 rounded-[12px] bg-app border border-line">
+                                            {[['all', 'All'], ['standard', tt('Products')], ['service', tt('Services')]].map(([key, label]) => (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    onClick={() => handleTypeChange(key)}
+                                                    className={`h-8 rounded-[10px] text-xs font-semibold transition-colors ${activeType === key ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-muted hover:text-ink'}`}
+                                                >{label}</button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {categories.length > 8 && (
+                                        <input
+                                            type="text"
+                                            value={categoryQuery}
+                                            onChange={(e) => setCategoryQuery(e.target.value)}
+                                            placeholder="Find a category…"
+                                            className="w-full h-9 px-3 mb-1.5 text-sm bg-app border border-line rounded-[12px] outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                        />
+                                    )}
+                                    <div className="max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-0.5">
+                                        {[{ id: 'all', name: 'All categories' }, ...visibleCategories].map(cat => {
+                                             const on = String(activeCategory) === String(cat.id);
+                                             return (
+                                                 <button
+                                                     key={cat.id}
+                                                     type="button"
+                                                     role="option"
+                                                     aria-selected={on}
+                                                     onClick={() => { handleCategoryChange(cat.id); setOpenMenu(null); }}
+                                                     className={`h-9 px-3 rounded-[12px] text-sm text-left flex items-center justify-between gap-2 transition-colors ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink hover:bg-interactive-hover'}`}
+                                                 >
+                                                     <span className="truncate">{cat.name}</span>
+                                                     {on && <Check size={15} className="shrink-0" />}
+                                                 </button>
+                                             );
+                                         })}
+                                         {visibleCategories.length === 0 && <p className="px-3 py-2 text-sm text-ink-muted">No category matches.</p>}
                                     </div>
-                                ))}
-                                <div className="h-px bg-line my-1.5" />
-                                <Link
-                                    href={route('store.admin.data', { store_slug: store?.slug })}
-                                    onClick={() => setOpenMenu(null)}
-                                    role="menuitem"
-                                    className="flex items-center gap-3 h-9 px-2.5 rounded-[12px] text-sm text-ink hover:bg-interactive-hover transition-colors"
-                                >
-                                    <Upload size={15} className="text-ink-muted" />
-                                    <span className="flex-1 truncate">Import / Export data</span>
-                                </Link>
-                            </div>
-                        )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Right: filters badge · search · category · one add button */}
+                    {/* Right: filters badge · search · one add button */}
                     <div className="flex items-center gap-2 min-w-0">
                         {activeFilterCount > 0 && (
                             <button
@@ -574,65 +636,6 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 <button type="button" aria-label="Clear search" onClick={() => { setSearchTerm(''); applyFilters({ search: '' }); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-[12px] text-ink-muted hover:text-ink hover:bg-interactive-hover">
                                     <X size={14} />
                                 </button>
-                            )}
-                        </div>
-
-                        {/* Category (and type, when both kinds exist) */}
-                        <div className="relative" data-menu>
-                            <button
-                                type="button"
-                                onClick={() => toggleMenu('category')}
-                                aria-haspopup="listbox"
-                                aria-expanded={openMenu === 'category'}
-                                className={`h-10 px-3 rounded-[12px] border text-sm font-semibold flex items-center gap-2 max-w-[220px] transition-colors ${activeCategory !== 'all' || activeType !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
-                            >
-                                <Layers size={15} className="shrink-0" />
-                                <span className="truncate">{activeCategory === 'all' ? 'All categories' : (activeCategoryName || 'Category')}</span>
-                                <ChevronDown size={15} className={`shrink-0 transition-transform duration-200 ${openMenu === 'category' ? 'rotate-180' : ''}`} />
-                            </button>
-                            {openMenu === 'category' && (
-                                <div role="listbox" className="absolute right-0 top-full mt-2 w-72 bg-surface border border-line rounded-[14px] shadow-xl p-2 animate-[vqDrop_0.16s_ease-out] origin-top">
-                                    {bothKinds && (
-                                        <div className="grid grid-cols-3 gap-1 p-0.5 mb-2 rounded-[12px] bg-app border border-line">
-                                            {[['all', 'All'], ['standard', tt('Products')], ['service', tt('Services')]].map(([key, label]) => (
-                                                <button
-                                                    key={key}
-                                                    type="button"
-                                                    onClick={() => handleTypeChange(key)}
-                                                    className={`h-8 rounded-[10px] text-xs font-semibold transition-colors ${activeType === key ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-muted hover:text-ink'}`}
-                                                >{label}</button>
-                                            ))}
-                                        </div>
-                                    )}
-                                    {categories.length > 8 && (
-                                        <input
-                                            type="text"
-                                            value={categoryQuery}
-                                            onChange={(e) => setCategoryQuery(e.target.value)}
-                                            placeholder="Find a category…"
-                                            className="w-full h-9 px-3 mb-1.5 text-sm bg-app border border-line rounded-[12px] outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                                        />
-                                    )}
-                                    <div className="max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-0.5">
-                                        {[{ id: 'all', name: 'All categories' }, ...visibleCategories].map(cat => {
-                                            const on = String(activeCategory) === String(cat.id);
-                                            return (
-                                                <button
-                                                    key={cat.id}
-                                                    type="button"
-                                                    role="option"
-                                                    aria-selected={on}
-                                                    onClick={() => { handleCategoryChange(cat.id); setOpenMenu(null); }}
-                                                    className={`h-9 px-3 rounded-[12px] text-sm text-left flex items-center justify-between gap-2 transition-colors ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink hover:bg-interactive-hover'}`}
-                                                >
-                                                    <span className="truncate">{cat.name}</span>
-                                                    {on && <Check size={15} className="shrink-0" />}
-                                                </button>
-                                            );
-                                        })}
-                                        {visibleCategories.length === 0 && <p className="px-3 py-2 text-sm text-ink-muted">No category matches.</p>}
-                                    </div>
-                                </div>
                             )}
                         </div>
 

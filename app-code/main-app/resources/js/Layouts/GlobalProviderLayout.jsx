@@ -150,6 +150,12 @@ function InnerGlobalLayout({ children, settings }) {
  };
  }, []);
 
+ useEffect(() => {
+     const handleOpenShortcuts = () => setShowShortcuts(true);
+     window.addEventListener('amd:open-keyboard-shortcuts', handleOpenShortcuts);
+     return () => window.removeEventListener('amd:open-keyboard-shortcuts', handleOpenShortcuts);
+ }, []);
+
  const handleExitSuccess = (code) => {
  console.log('[Global] Exit Authorized. Terminating...');
  if (window.amdAPI) {
@@ -253,20 +259,6 @@ function InnerGlobalLayout({ children, settings }) {
  <span>Reconnecting to server...</span>
  </div>
  </div>
- </div>
- </div>
- )}
-
- {/* Fixed Shortcuts Trigger - Hidden for Platform HQ, Marketing, and Unauthenticated Users */}
- {!isInstaller && !isMarketing && props.auth?.user && !currentPath.startsWith('/VenQore') && currentPath !== '/hub' && (
- <div
- onClick={() => setShowShortcuts(true)}
- className="hidden lg:block fixed bottom-1 left-1 z-command opacity-40 hover:opacity-100 transition-opacity cursor-pointer group"
- title="View Keyboard Shortcuts"
- >
- <div className="bg-black/80 text-white px-2 py-1 rounded text-2xs font-mono flex items-center gap-1 shadow-lg backdrop-blur-sm border border-white/10">
- <span>⌨</span>
- <span className="hidden group-hover:inline">Shortcuts</span>
  </div>
  </div>
  )}
