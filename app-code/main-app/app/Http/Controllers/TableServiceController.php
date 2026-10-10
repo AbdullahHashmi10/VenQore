@@ -246,6 +246,37 @@ class TableServiceController extends Controller
             }
         }
 
+        // The register only sends the fields it edits. Where a line came from a guest's QR order, keep the tags that tie it
+        // to that guest's reference (so their status page still finds it), and remember any line staff took off the table.
+        $oldById = [];
+        foreach ($oldCart as $ol) {
+            $oid = $ol['line_id'] ?? $ol['id'] ?? null;
+            if ($oid !== null && ! empty($ol['customer_request_id'])) {
+                $oldById[(string) $oid] = $ol;
+            }
+        }
+        $keptIds = [];
+        foreach ($newCart as $i => $nl) {
+            $nid = (string) ($nl['line_id'] ?? $nl['id'] ?? '');
+            if ($nid !== '' && isset($oldById[$nid])) {
+                $keptIds[$nid] = true;
+                foreach (['customer_request_id', 'customer_ref', 'source'] as $k) {
+                    if (isset($oldById[$nid][$k])) {
+                        $newCart[$i][$k] = $oldById[$nid][$k];
+                    }
+                }
+            }
+        }
+        foreach ($oldById as $oid => $ol) {
+            if (! isset($keptIds[$oid]) && empty($ol['paid_sale_id'])) {
+                $session['guest_removed'][] = [
+                    'request_id' => $ol['customer_request_id'], 'name' => (string) ($ol['name'] ?? ''), 'at' => now()->toIso8601String(),
+                    'reason' => $session['guest_reasons'][$oid] ?? null,
+                ];
+                unset($session['guest_reasons'][$oid]);
+            }
+        }
+
         // Settled rows are taken from the stored session, never from the request:
         // a handheld showing a stale table must not be able to un-sell them.
         $cart = $this->preservePaidLines($newCart, $oldCart);
@@ -1821,6 +1852,39 @@ class TableServiceController extends Controller
         ]);
     }
 
+    /** The reason staff give for taking a guest's line off, so the guest's status page can say why. */
+    public function guestLineReason(Request $request, int $position): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $data = $request->validate(['line_id' => 'required|string|max:80', 'reason' => 'nullable|string|max:120']);
+        $occ = Occupancy::where('tenant_id', $tenant->id)->where('position_id', $position)->whereNull('closed_at')->first();
+        if ($occ) {
+            $session = $occ->session_data ?? [];
+            $session['guest_reasons'][$data['line_id']] = trim((string) ($data['reason'] ?? '')) ?: null;
+            $occ->session_data = $session;
+            $occ->save();
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Staff have seen the guest's "call waiter / bill" request on this table. */
+    public function clearGuestCall(Request $request, int $position): JsonResponse
+    {
+        $tenant = app('current.tenant');
+        $occ = Occupancy::where('tenant_id', $tenant->id)->where('position_id', $position)->whereNull('closed_at')->first();
+        if ($occ) {
+            $session = $occ->session_data ?? [];
+            if (! empty($session['guest_call'])) {
+                $session['guest_call']['handled_at'] = now()->toIso8601String();
+                $occ->session_data = $session;
+                $occ->save();
+            }
+        }
+
+        return response()->json(['ok' => true]);
+    }
+
     public function regenerateTableQr(Request $request): JsonResponse
     {
         $tenant = app('current.tenant');
@@ -2255,6 +2319,7 @@ class TableServiceController extends Controller
             'lines'        => count($cart),
             'unsent'       => $unsent,
             'customer_pending' => $customerPending,
+            'guest_call' => (! empty($s['guest_call']) && empty($s['guest_call']['handled_at'])) ? ($s['guest_call']['kind'] ?? 'waiter') : null,
             'note'         => $s['note'] ?? '',
             'cart'         => $cart,
 
@@ -2458,6 +2523,7 @@ class TableServiceController extends Controller
             'lines'  => count($cart),
             'unsent' => $unsent,
             'customer_pending' => $customerPending,
+            'guest_call' => (! empty($s['guest_call']) && empty($s['guest_call']['handled_at'])) ? ($s['guest_call']['kind'] ?? 'waiter') : null,
             'note'   => $s['note'] ?? '',
             'cart'   => $cart,
 

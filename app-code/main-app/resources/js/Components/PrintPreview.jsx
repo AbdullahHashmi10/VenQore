@@ -870,9 +870,9 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
     const formatAmount = (amount) => formatCurrency(amount, data);
 
     const headerContent = (
-        <div className="bg-neutral-900 text-white p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center text-left" style={{ backgroundColor: themeColor }}>
+        <div className="bg-neutral-900 text-white p-4 sm:p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center text-left" style={{ backgroundColor: themeColor }}>
             <div>
-                <h1 className="text-4xl font-bold">{data.business_name || data.store_name || 'Store'}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold">{data.business_name || data.store_name || 'Store'}</h1>
                 <p className="opacity-80 mt-1">INVOICE</p>
             </div>
             <div className="text-right opacity-80 text-sm">

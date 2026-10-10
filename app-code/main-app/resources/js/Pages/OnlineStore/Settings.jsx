@@ -7,9 +7,8 @@ import { Alert, Button, Card, CardTitle, Field, ImageInput, Switch, inputCls } f
 import { DAY_LABEL } from '@/lib/commerce';
 
 import PremiumSelect from '@/Components/PremiumSelect';
-import Checkbox from '@/Components/Checkbox';
 import V6TimePicker, { getScheduleGuidance } from '@/Components/Commerce/V6TimePicker';
-import { Sparkles, Moon, Sun, Info, Coffee, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Sparkles, Moon, Sun, Info, Coffee, CheckCircle2, ExternalLink, Image as ImageIcon } from 'lucide-react';
 
 function format12Time(val) {
     if (!val) return '';
@@ -23,10 +22,28 @@ function format12Time(val) {
     return `${h12}:${m} ${period}`;
 }
 
-export default function Settings({ store, countries, cities, warehouses, days, timezones = [], store_time_now = '', hours_guidance = null, urls }) {
+const COLOUR_SWATCHES = ['#0BAA8F', '#2563EB', '#7C3AED', '#DB2777', '#DC2626', '#EA580C', '#CA8A04', '#16A34A', '#0F172A'];
+function ColourPicker({ value, onChange, defaultLabel }) {
+    const ok = /^#[0-9a-fA-F]{6}$/.test(value || '');
+    return (
+        <div className="flex flex-wrap items-center gap-2.5">
+            {COLOUR_SWATCHES.map((c) => (
+                <button key={c} type="button" aria-label={`Use colour ${c}`} onClick={() => onChange(c)} style={{ background: c }} className={`h-9 w-9 rounded-full border-2 transition ${(value || '').toLowerCase() === c.toLowerCase() ? 'border-ink ring-2 ring-offset-2 ring-brand-300' : 'border-white shadow'}`} />
+            ))}
+            <label className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-sm font-semibold cursor-pointer hover:bg-interactive-hover">
+                <input type="color" aria-label="Pick a custom colour" value={ok ? value : '#0BAA8F'} onChange={(e) => onChange(e.target.value)} className="h-6 w-6 cursor-pointer border-0 bg-transparent p-0" />
+                Custom
+            </label>
+            <button type="button" onClick={() => onChange('')} className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${value ? 'border-line hover:bg-interactive-hover' : 'border-brand-500 bg-brand-50'}`}>{defaultLabel}</button>
+            {ok ? <span className="text-xs font-mono text-ink-muted">{value.toUpperCase()}</span> : null}
+        </div>
+    );
+}
+
+export default function Settings({ store, countries, cities, warehouses, days, timezones = [], store_time_now = '', hours_guidance = null, urls, edit_photos_url: editPhotosUrl = null }) {
     const { data, setData, post, processing, errors } = useForm({
         display_name: store.display_name || '', slug: store.slug || '', description: store.description || '',
-        country_id: store.country_id || '', city_id: store.city_id || '', address_line: store.address_line || '', map_url: store.map_url || '',
+        country_id: store.country_id || '', city_id: store.city_id || '', address_line: store.address_line || '', map_url: store.map_url || '', latitude: store.latitude ?? '', longitude: store.longitude ?? '',
         phone: store.phone || '', email: store.email || '',
         timezone: store.timezone || 'Asia/Karachi',
         opening_hours: Object.fromEntries(days.map((d) => [
@@ -44,11 +61,11 @@ export default function Settings({ store, countries, cities, warehouses, days, t
         delivery_charge: store.delivery_charge ?? 0, delivery_note: store.delivery_note || '', min_order_amount: store.min_order_amount ?? 0,
         warehouse_id: store.warehouse_id || '', pricing_mode: store.pricing_mode || 'same', pricing_percent: store.pricing_percent ?? 0,
         accept_cod: !!store.accept_cod, accept_pickup_payment: !!store.accept_pickup_payment, accept_bank_transfer: !!store.accept_bank_transfer,
-        bank_instructions: store.bank_instructions || '', accept_deadline_minutes: store.accept_deadline_minutes || 120, logo: null, banner: null, show_images: store.show_images !== false,
+        bank_instructions: store.bank_instructions || '', accept_deadline_minutes: store.accept_deadline_minutes || 120, logo: null, banner: null, show_images: store.show_images !== false, booking_enabled: !!store.booking_enabled,
         orders_outside_hours: !!store.orders_outside_hours,
         orders_during_break: !!store.orders_during_break,
         announcement: store.announcement || '', prep_minutes: store.prep_minutes || '', delivery_zones: (store.delivery_zones || []).map((z) => ({ name: z.name, fee: z.fee, min_order: z.min_order || 0 })),
-        customer_mode: store.customer_mode || 'ordering', catalogue_theme: store.catalogue_theme || 'visual-grid',
+        customer_mode: store.customer_mode || 'ordering', catalogue_theme: store.catalogue_theme || 'visual-grid', storefront_template: store.storefront_template || 'auto', brand_color: store.brand_color || '', brand_color_2: store.brand_color_2 || '',
     });
     const cityOptions = cities.filter((c) => String(c.country_id) === String(data.country_id));
     const countrySelectOptions = [{ value: '', label: 'Select country…' }, ...countries.map((c) => ({ value: String(c.id), label: c.name }))];
@@ -106,6 +123,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                     </div>
                     <Field label="Announcement (shown above your catalogue)" error={errors.announcement} hint="e.g. Closed Friday for Eid. Leave empty for none."><input className={inputCls} maxLength={240} value={data.announcement} onChange={(e) => setData('announcement', e.target.value)} /></Field>
                     {chk('show_images', 'Show product photos', 'Turn off for a compact, text-only catalogue.')}
+                    {store.services_on && chk('booking_enabled', 'Accept booking requests', `Customers pick a service and a time at ${store.booking_url}. Each request arrives as a draft job for you to confirm.`)}
                 </Card>
 
                 <Card id="appearance" className="space-y-5 scroll-mt-24">
@@ -123,20 +141,46 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                             ))}
                         </div>
                     </Field>
-                    <Field label="Template" error={errors.catalogue_theme}>
-                        <div className="grid md:grid-cols-3 gap-3">
-                            {[
-                                ['visual-grid', 'Visual grid', 'Bright and photographic for any shop.', 'from-brand-100 via-white to-sky-100'],
-                                ['editorial-ledger', 'Editorial ledger', 'Refined for restaurants and premium catalogues.', 'from-ink-900 via-ink-800 to-amber-900'],
-                                ['express-rail', 'Express rail', 'Fast scanning for busy counters and large menus.', 'from-sky-700 via-ink-900 to-coral-500'],
-                            ].map(([value, title, copy, preview]) => (
-                                <button key={value} type="button" aria-label={`Use ${title} template`} onClick={() => setData('catalogue_theme', value)} className={`overflow-hidden rounded-2xl border text-left transition ${data.catalogue_theme === value ? 'border-brand-500 ring-2 ring-brand-200' : 'border-line hover:border-ink-300'}`}>
-                                    <span className={`block h-20 bg-gradient-to-br ${preview}`} aria-hidden="true" />
-                                    <span className="block bg-surface p-3"><span className="block font-bold text-ink">{title}</span><span className="mt-1 block text-xs leading-5 text-ink-muted">{copy}</span></span>
-                                </button>
-                            ))}
-                        </div>
+                    <Field label="Primary colour" error={errors.brand_color} hint="Main colour for buttons, highlights and badges on your online store and QR menu. Default keeps the template's own colours.">
+                        <ColourPicker value={data.brand_color} onChange={(v) => setData('brand_color', v)} defaultLabel="Default" />
                     </Field>
+                    <Field label="Secondary colour (optional)" error={errors.brand_color_2} hint="Blends with the primary colour in buttons and headers. Leave on None for a single-colour look.">
+                        <ColourPicker value={data.brand_color_2} onChange={(v) => setData('brand_color_2', v)} defaultLabel="None" />
+                    </Field>
+                    {(() => {
+                        // One choice: is this a restaurant/café or a shop? Businesses with the kitchen (Front of House)
+                        // module get Restaurant by default; "auto" keeps following that if the modules change later.
+                        const rec = store.runs_foh ? 'restaurant' : 'default';
+                        const cur = data.storefront_template === 'auto' || !data.storefront_template ? rec : data.storefront_template;
+                        const pick = (v) => setData((d) => ({ ...d, storefront_template: v === rec ? 'auto' : v, catalogue_theme: v === 'restaurant' ? 'editorial-ledger' : 'visual-grid' }));
+                        return (
+                            <Field label="What kind of business is this?" error={errors.storefront_template || errors.catalogue_theme} hint={store.runs_foh ? 'Your kitchen (Front of House) is switched on, so we recommend the restaurant website.' : 'We recommend the shop website. Choose Restaurant & café if you serve food.'}>
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                    {[
+                                        ['restaurant', Coffee, 'Restaurant & café', 'A restaurant website: full-screen food photo, your menu by course, order online, dine in and table booking.'],
+                                        ['default', StoreIcon, 'Shop', 'An online shop: product grid with categories and filters, deals and a quick-add cart.'],
+                                    ].map(([value, Icon, title, copy]) => (
+                                        <button key={value} type="button" aria-pressed={cur === value} onClick={() => pick(value)} className={`relative text-left rounded-2xl border p-4 transition ${cur === value ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-200' : 'border-line bg-surface hover:bg-interactive-hover'}`}>
+                                            <span className="flex items-center gap-2 font-bold text-ink"><Icon size={17} />{title}{rec === value && <span className="ml-auto rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-bold text-white">Recommended</span>}</span>
+                                            <span className="mt-1.5 block text-sm leading-5 text-ink-muted">{copy}</span>
+                                            {cur === value && <CheckCircle2 size={18} className="absolute right-3 bottom-3 text-brand-500" />}
+                                        </button>
+                                    ))}
+                                </div>
+                                <a href={`${store.storefront_url}?template=${cur}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-sm font-bold text-brand-600 hover:underline"><ExternalLink size={14} />Preview this design (owner only)</a>
+                                {editPhotosUrl && (
+                                    <a href={editPhotosUrl} target="_blank" rel="noreferrer" className="mt-3 flex items-center gap-3 rounded-2xl border border-dashed border-brand-300 bg-brand-50 p-4 transition hover:bg-brand-100">
+                                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-500 text-white"><ImageIcon size={18} /></span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block font-bold text-ink">Edit photos on your store</span>
+                                            <span className="block text-sm text-ink-muted">Opens your storefront with “Add photo” on every spot — main photo or slideshow, welcome photos, delivery, takeaway and dine in.</span>
+                                        </span>
+                                        <ExternalLink size={16} className="shrink-0 text-brand-600" />
+                                    </a>
+                                )}
+                            </Field>
+                        );
+                    })()}
                     {data.customer_mode === 'catalogue' && <Alert kind="info">Your public QR link stays the same. Cart, checkout and ordering controls will be removed from the customer page.</Alert>}
                 </Card>
 
@@ -164,7 +208,15 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                         </Field>
                     </div>
                     <Field label="Address" error={errors.address_line}><input className={inputCls} value={data.address_line} onChange={(e) => setData('address_line', e.target.value)} /></Field>
-                    <Field label="Map link (optional)" error={errors.map_url}><input className={inputCls} value={data.map_url} onChange={(e) => setData('map_url', e.target.value)} placeholder="https://maps.google.com/…" /></Field>
+                    <Field label="Map link (optional)" error={errors.map_url} hint="Paste a Google Maps link and we read the location from it, or set the pin below."><input className={inputCls} value={data.map_url} onChange={(e) => setData('map_url', e.target.value)} placeholder="https://maps.google.com/…" /></Field>
+                    <div className="grid sm:grid-cols-3 gap-4 items-end">
+                        <Field label="Shop latitude" error={errors.latitude}><input className={inputCls} inputMode="decimal" value={data.latitude} onChange={(e) => setData('latitude', e.target.value)} placeholder="31.5204" /></Field>
+                        <Field label="Shop longitude" error={errors.longitude}><input className={inputCls} inputMode="decimal" value={data.longitude} onChange={(e) => setData('longitude', e.target.value)} placeholder="74.3587" /></Field>
+                        <button type="button" className="rounded-xl border border-line px-3 py-2 text-sm font-semibold hover:bg-sunken"
+                            onClick={() => navigator.geolocation?.getCurrentPosition((p) => { setData('latitude', p.coords.latitude.toFixed(6)); setData('longitude', p.coords.longitude.toFixed(6)); }, () => {}, { enableHighAccuracy: true, timeout: 10000 })}>
+                            Use my current location (stand in the shop)
+                        </button>
+                    </div>
                     <div className="grid sm:grid-cols-2 gap-4">
                         <Field label="Phone" error={errors.phone}><input className={inputCls} value={data.phone} onChange={(e) => setData('phone', e.target.value)} /></Field>
                         <Field label="Email (optional)" error={errors.email}><input className={inputCls} value={data.email} onChange={(e) => setData('email', e.target.value)} /></Field>
@@ -273,7 +325,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                                 <div key={d} className="p-3.5 hover:bg-surface-2/40 transition-colors">
                                     <div className="grid grid-cols-1 sm:grid-cols-[7rem_1fr_1fr_auto] items-center gap-3">
                                         {/* Day name & toggle */}
-                                        <div className="flex items-center justify-between sm:justify-start gap-2">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 sm:justify-start gap-2">
                                             <span className="font-semibold text-sm text-ink">{DAY_LABEL[d]}</span>
                                             <button
                                                 type="button"
@@ -465,18 +517,10 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                         </div>
                         <div className="space-y-3 divide-y divide-line/60">
                             <div className="pt-1 first:pt-0">
-                                <Checkbox
-                                    checked={!!data.orders_outside_hours}
-                                    onChange={(checked) => setData('orders_outside_hours', checked)}
-                                    label={<span><b>Accept advance orders when closed.</b> Customers can browse and submit orders even when the shop is closed. Order preparation starts when your next shift opens.</span>}
-                                />
+                                {chk('orders_outside_hours', 'Accept advance orders when closed', 'Customers can browse and submit orders even when the shop is closed. Order preparation starts when your next shift opens.')}
                             </div>
                             <div className="pt-3">
-                                <Checkbox
-                                    checked={!!data.orders_during_break}
-                                    onChange={(checked) => setData('orders_during_break', checked)}
-                                    label={<span><b>Accept orders during mid-shift breaks.</b> Allow orders while your team is on scheduled break (queued and prepared as soon as the break ends). Off by default.</span>}
-                                />
+                                {chk('orders_during_break', 'Accept orders during mid-shift breaks', 'Allow orders while your team is on scheduled break (queued and prepared as soon as the break ends). Off by default.')}
                             </div>
                         </div>
                     </div>
@@ -559,7 +603,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                     </a>
 
                     <div className="border-t border-line/70 pt-3 space-y-2.5 text-xs">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <span className="text-ink-muted font-medium">Store Status</span>
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold text-[11px] ${store.status === 'published' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${store.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
@@ -567,21 +611,21 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <span className="text-ink-muted font-medium">Order Intake</span>
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold text-[11px] ${store.intake_paused ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'}`}>
                                 {store.intake_paused ? 'Intake Paused' : 'Intake Active'}
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <span className="text-ink-muted font-medium">Live Shift</span>
                             <span className="font-semibold text-ink text-right">
                                 {hours_guidance?.badge || (store.open_now ? 'Open now' : 'Closed now')}
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <span className="text-ink-muted font-medium">Store Time</span>
                             <span className="font-mono text-ink text-[11px] font-semibold">
                                 {store_time_now ? store_time_now.split('(')[0].trim() : '—'}
@@ -598,26 +642,26 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                     </div>
 
                     <div className="space-y-2.5 divide-y divide-line/60">
-                        <div className="flex items-center justify-between pt-1 first:pt-0">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1 first:pt-0">
                             <span className="text-ink-muted">Timezone</span>
                             <span className="font-medium text-ink truncate max-w-[120px]">{data.timezone}</span>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
                             <span className="text-ink-muted">Closed Orders</span>
                             <span className={`font-semibold ${data.orders_outside_hours ? 'text-emerald-600' : 'text-neutral-500'}`}>
                                 {data.orders_outside_hours ? 'Allowed' : 'Blocked'}
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
                             <span className="text-ink-muted">Break Orders</span>
                             <span className={`font-semibold ${data.orders_during_break ? 'text-emerald-600' : 'text-neutral-500'}`}>
                                 {data.orders_during_break ? 'Allowed' : 'Blocked'}
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
                             <span className="text-ink-muted">Fulfilment</span>
                             <div className="flex items-center gap-1">
                                 {data.supports_pickup && <span className="bg-surface-2 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-line">Pickup</span>}
@@ -626,7 +670,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
                             <span className="text-ink-muted">Payments</span>
                             <div className="flex items-center gap-1">
                                 {data.accept_cod && <span className="bg-surface-2 px-1.5 py-0.5 rounded text-[10px] font-semibold border border-line">COD</span>}
@@ -636,7 +680,7 @@ export default function Settings({ store, countries, cities, warehouses, days, t
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
                             <span className="text-ink-muted">Warehouse</span>
                             <span className="font-medium text-ink truncate max-w-[120px]">
                                 {warehouses.find(w => String(w.id) === String(data.warehouse_id))?.name || 'Unassigned'}

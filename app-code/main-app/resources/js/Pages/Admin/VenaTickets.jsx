@@ -165,7 +165,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
             <div className="h-full flex flex-col gap-4 overflow-hidden">
                 {/* Header */}
-                <div className="shrink-0 flex items-center justify-between">
+                <div className="shrink-0 flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-brand-600/10 dark:bg-brand-500/20 border border-brand-200 dark:border-brand-800 flex items-center justify-center p-2 shadow-xs">
                             <VenaLogo size={22} />
@@ -346,7 +346,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                 {/* Pagination */}
                 {tickets.last_page > 1 && (
-                    <div className="shrink-0 flex items-center justify-between py-3 border-t border-line">
+                    <div className="shrink-0 flex flex-wrap items-center justify-between gap-y-2 py-3 border-t border-line">
                         <span className="text-xs text-ink-muted">
                             Showing {tickets.from}–{tickets.to} of {tickets.total} tickets
                         </span>
@@ -381,7 +381,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
             {openModal && (
                 <div className="fixed inset-0 z-toast flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-sm animate-fade-in" style={{ animation: 'fadeIn 0.2s ease-out' }}>
                     <div className="w-full max-w-lg bg-surface border border-line rounded-2xl overflow-hidden shadow-2xl animate-scale-up" style={{ animation: 'scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-                        <div className="px-6 py-5 border-b border-line flex items-center justify-between bg-sunken/50 dark:bg-surface">
+                        <div className="px-6 py-5 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-sunken/50 dark:bg-surface">
                             <div>
                                 <h3 className="text-base font-bold text-ink tracking-tight">{tt('Log New Customer Ticket')}</h3>
                                 <p className="text-xs text-ink-muted mt-0.5">{tt('Record customer issues manually while on the call or in-store')}</p>

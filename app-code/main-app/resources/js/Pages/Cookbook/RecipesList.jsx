@@ -74,7 +74,7 @@ export default function CookbookIndex({ recipes = [], store }) {
 
                     {/* Recipe Cards Grid */}
                     {recipes.length === 0 ? (
-                        <MidnightNebula className="rounded-2xl p-12 text-center" primaryColor="indigo" secondaryColor="purple">
+                        <MidnightNebula className="rounded-2xl p-5 sm:p-12 text-center" primaryColor="indigo" secondaryColor="purple">
                             <div className="flex flex-col items-center max-w-md mx-auto">
                                 <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
                                     <ChefHat size={40} className="text-white/70" />
@@ -124,7 +124,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                                         </p>
 
                                         {/* Stats Row */}
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                             <div className="text-center p-2 bg-app rounded-xl">
                                                 <Package size={16} className="mx-auto text-ink-muted mb-1" />
                                                 <p className="text-xs text-ink-muted">Ingredients</p>
@@ -207,7 +207,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                 {/* Pre-Production Simulator Modal */}
                 <Modal show={simulatorOpen} onClose={() => setSimulatorOpen(false)} maxWidth="2xl">
                     <div className="p-6">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
                             <h2 className="text-xl font-bold text-ink flex items-center gap-2">
                                 <PlayCircle className="text-brand-600" />
                                 Pre-Production Simulator
@@ -317,7 +317,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                 {/* Training Modal */}
                 <Modal show={trainingOpen} onClose={() => setTrainingOpen(false)} maxWidth="4xl">
                     <div className="p-6">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
                             <h2 className="text-xl font-bold text-ink flex items-center gap-2">
                                 <BookOpen className="text-blue-600" />
                                 Training Resources: {selectedRecipe?.name}

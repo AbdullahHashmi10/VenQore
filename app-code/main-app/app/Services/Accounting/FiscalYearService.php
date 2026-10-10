@@ -114,11 +114,12 @@ class FiscalYearService
 
         $proposedLines = [];
         $netProfit = 0.0;
+        $netProfitM = 0;
         $totalIncome = 0.0;
         $totalExpense = 0.0;
 
         foreach ($plAccounts as $account) {
-            $balance = (float) DB::table('journal_items as ji')
+            $raw = DB::table('journal_items as ji')
                 ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
                 ->where('ji.tenant_id', $tenantId)
                 ->where('je.tenant_id', $tenantId)
@@ -127,10 +128,15 @@ class FiscalYearService
                 ->whereBetween('je.date', [$startStr, $endStr])
                 ->where('je.reference_type', '!=', 'fiscal_year_close')
                 ->selectRaw('SUM(ji.debit) - SUM(ji.credit) AS balance')
-                ->value('balance') ?? 0.0;
+                ->value('balance') ?? '0';
 
-            $balance = round($balance, 2);
-            if (abs($balance) < 0.01) continue;
+            // Exact paisa (ZeroDrift Ledger): the database's exact DECIMAL sum,
+            // quantized once; the closing line and the profit it feeds are the
+            // same figure.
+            $balanceM = \App\Support\Money::parseMinor((string) $raw, 'balance', false);
+            $balance = \App\Support\Money::toFloat($balanceM);
+            if ($balanceM === 0) continue;
+            $netProfitM -= $balanceM;
 
             if ($account->type === 'income') {
                 $totalIncome += abs($balance);
@@ -153,7 +159,7 @@ class FiscalYearService
             ];
         }
 
-        $netProfit = round($netProfit, 2);
+        $netProfit = \App\Support\Money::toFloat($netProfitM);
 
         // Retained Earnings Line
         $retainedAccount = Account::withoutGlobalScopes()
@@ -230,30 +236,28 @@ class FiscalYearService
         $endStr   = $fy->end_date->toDateString();
         $checks   = [];
 
-        // Check 1: Balanced Trial Balance up to end_date
-        $totalDebits = (float) DB::table('journal_items as ji')
+        // Check 1: Balanced Trial Balance up to end_date — exact paisa, no
+        // tolerance (ZeroDrift Ledger). The sums are the database's exact
+        // DECIMAL totals, never floats.
+        $tb = DB::table('journal_items as ji')
             ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
             ->where('ji.tenant_id', $tenantId)
             ->where('je.tenant_id', $tenantId)
             ->where('je.is_reversed', 0)
             ->where('je.date', '<=', $endStr)
-            ->sum('ji.debit');
-
-        $totalCredits = (float) DB::table('journal_items as ji')
-            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-            ->where('ji.tenant_id', $tenantId)
-            ->where('je.tenant_id', $tenantId)
-            ->where('je.is_reversed', 0)
-            ->where('je.date', '<=', $endStr)
-            ->sum('ji.credit');
-
-        $tbDiff = abs(round($totalDebits - $totalCredits, 2));
+            ->selectRaw('COALESCE(SUM(ji.debit), 0) AS dr, COALESCE(SUM(ji.credit), 0) AS cr')
+            ->first();
+        $drM = \App\Support\Money::parseMinor((string) ($tb->dr ?? '0'), 'debits', false);
+        $crM = \App\Support\Money::parseMinor((string) ($tb->cr ?? '0'), 'credits', false);
+        $totalDebits  = \App\Support\Money::toString($drM);
+        $totalCredits = \App\Support\Money::toString($crM);
+        $tbDiff       = \App\Support\Money::toString(abs($drM - $crM));
 
         $checks[] = [
             'check_key'     => 'balanced_trial_balance',
             'label'         => 'Trial Balance Equality',
             'severity'      => 'blocking',
-            'status'        => $tbDiff < 0.01 ? 'pass' : 'fail',
+            'status'        => $drM === $crM ? 'pass' : 'fail',
             'measured_value'=> "Debits: {$totalDebits}, Credits: {$totalCredits}, Diff: {$tbDiff}",
         ];
 

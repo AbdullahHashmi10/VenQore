@@ -159,9 +159,12 @@ class AiExtractionService
             $dashboardModel = $fromFreePool ? $keys->freeModel() : null;
         } else {
             // 'managed' (paid usage-based) and any other explicitly-paying mode
-            $provider = $this->normalizeProvider($keys->paidProvider() ?: $defaultProvider);
+            $wanted = $this->normalizeProvider($keys->paidProvider() ?: $defaultProvider);
+            // Same rule as KeyResolver: if the chosen provider has no key, use
+            // any provider that does instead of reporting "no key".
+            $provider = $this->normalizeProvider($keys->usablePaidProvider($wanted) ?: $wanted);
             $key = $keys->paidKey($provider);
-            $dashboardModel = $keys->paidModel();
+            $dashboardModel = ($keys->paidProvider() === null || $keys->paidProvider() === $provider) ? $keys->paidModel() : null;
         }
 
         // Feature models are Gemini model names; only use them for Gemini.

@@ -45,7 +45,7 @@ export default function GiftShow({
  const durationText = duration_label || 'a limited time';
 
  return (
- <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-8">
+ <div className="min-h-screen bg-void-950 text-white font-sans flex items-center justify-center p-4 sm:p-8">
  {/* The title MUST be a single string child.
  Inertia's <Head> serialises children itself, and its walker calls
  Object.keys(child.props) on each one. Mixing literal text with an
@@ -64,7 +64,7 @@ export default function GiftShow({
  </div>
 
  <div className="relative z-10 max-w-xl w-full text-center">
- <div className="w-24 h-24 mx-auto rounded-xl bg-gradient-brand flex items-center justify-center text-4xl mb-8 shadow-2xl">
+ <div className="w-24 h-24 mx-auto rounded-xl bg-gradient-brand flex items-center justify-center text-2xl sm:text-4xl mb-8 shadow-2xl">
  🎁
  </div>
 
@@ -72,7 +72,7 @@ export default function GiftShow({
  You've Been Gifted
  </span>
 
- <h1 className="text-4xl font-bold mt-4 mb-3 tracking-tight">
+ <h1 className="text-2xl sm:text-4xl font-bold mt-4 mb-3 tracking-tight">
  {planLabel}
  <br />
  <span className="bg-gradient-brand bg-clip-text text-transparent">

@@ -41,7 +41,8 @@ class OrderInboxController extends Controller
     {
         $sl = DB::table('storefronts')->where('tenant_id', $this->tid())->value('slug');
         return ['home' => $this->url('home'), 'settings' => $this->url('settings'), 'products' => $this->url('products'), 'promotions' => $this->url('promotions'),
-            'orders' => $this->url('orders'), 'alerts' => $this->url('alerts'), 'public' => $sl ? url('/shop/' . $sl) : null];
+            'orders' => $this->url('orders'), 'alerts' => $this->url('alerts'), 'public' => $sl ? url('/shop/' . $sl) : null,
+            'catalogue' => \App\Services\ModuleService::enabled(app('current.tenant'), 'onsite_catalogue') ? $this->url('catalogue') : null];
     }
 
     private function url(string $name, array $extra = []): string
@@ -109,7 +110,9 @@ class OrderInboxController extends Controller
                 'id' => $it->id, 'title' => $it->title, 'sku' => $it->sku, 'quantity' => (float) $it->quantity, 'online_price' => (float) $it->online_price,
                 'base_price' => (float) $it->base_price, 'rule' => $it->price_rule, 'rule_percent' => $it->rule_percent !== null ? (float) $it->rule_percent : null,
                 'line_total' => (float) $it->line_total,
+                'mods' => $it->mods ?? [], 'notes' => $it->notes,
                 'available' => $o->warehouse_id ? round($stock->available($tid, $it->product_id, $o->warehouse_id, $o->id), 2) : null,
+                'sold_without_stock' => $stock->sellsWithoutStock($tid, (string) $it->product_id),
             ];
         });
 
@@ -232,7 +235,7 @@ class OrderInboxController extends Controller
             'new_customer.address' => ['nullable', 'string', 'max:500'],
         ]);
         // Recording that money was received needs the finance permission, not just permission to complete.
-        abort_if(! empty($v['collect_now']) && ! $r->user()->hasPermission('finance.receive_payment'), 403, 'You do not have permission to record payments.');
+        abort_if(! empty($v['collect_now']) && ! $r->user()->hasPermission('online.orders_collect'), 403, 'You do not have permission to record payments.');
         return $this->run(fn () => $this->orders->complete(
             $id,
             $this->tid(),

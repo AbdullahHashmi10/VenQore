@@ -392,7 +392,8 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                         : route('store.sales.store', { store_slug: store?.slug })))}
                 /* ── what a sale will not let you do ─────────────────────── */
                 validate={({ d, items }) => {
-                    if (isStockMaintenanceEnabled(settings) && shouldStopNegativeStock(settings)) {
+                    /* Deliver-later: nothing leaves the shelf until dispatch, so there is no stock to check yet. */
+                    if (!d.deliverLater && isStockMaintenanceEnabled(settings) && shouldStopNegativeStock(settings)) {
                         for (const i of items.filter((x) => x.product)) {
                             /* Free goods leave the shelf too — the server
                                deducts quantity PLUS free, and checking only the
@@ -450,6 +451,7 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                         cheque_date: d.isCheque ? (d.chequeDate || null) : null,
                         payment_reference: d.paymentReference || null,
                         source: 'manual',
+                        ...(d.deliverLater && !isEdit ? { deliver_later: true } : {}),
                         ...(isEdit ? {} : { idempotency_key: idemRef.current[d.id] }),
                     };
 
@@ -491,7 +493,7 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                         );
                         return;
                     }
-                    setDone({ id: savedId, total: res?.data?.total });
+                    setDone({ id: savedId, total: res?.data?.total, deferred: !!d.deliverLater });
                 }}
 
                 header={({ d, patch, chrome, acct, setSettleMode }) => (
@@ -504,6 +506,19 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                                     onClick={() => setSettleMode('credit')}>On account</button>
                             </div>
                         </Field>
+
+                        {!isEdit && (
+                            <Field label="Stock goes out" span={4}>
+                                <div className="vqdoc-seg">
+                                    <button type="button" aria-pressed={!d.deliverLater}
+                                        title="Stock leaves the shelf when this invoice is saved"
+                                        onClick={() => patch({ deliverLater: false })}>At sale</button>
+                                    <button type="button" aria-pressed={!!d.deliverLater}
+                                        title="Stock and its cost leave when you dispatch it in Goods Out"
+                                        onClick={() => patch({ deliverLater: true })}>At dispatch</button>
+                                </div>
+                            </Field>
+                        )}
 
                         {chrome.field('account') && (
                             <Field label="Money goes to" span={4}>
@@ -750,7 +765,9 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                                     </header>
                                     <div className="body" style={{ display: 'grid', gap: 'var(--d-s4)' }}>
                                         <p style={{ margin: 0, color: 'var(--vq-text-2)' }}>
-                                            The stock is out and the invoice is in the books.
+                                            {done.deferred
+                                                ? 'The invoice is in the books. Stock goes out when you dispatch it in Goods Out.'
+                                                : 'The stock is out and the invoice is in the books.'}
                                         </p>
                                         <div className="vqdoc-actions">
                                             <button type="button" className="vqdoc-btn" disabled={printing}

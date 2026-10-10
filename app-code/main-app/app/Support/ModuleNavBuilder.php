@@ -70,6 +70,22 @@ class ModuleNavBuilder
             }
         }
 
+        // A restaurant or cafe runs the shop from Front of House, so FOH is its "POS":
+        // it takes the till's place in the menu and the old till is hidden. Stores
+        // without the restaurant module never see FOH and keep the ordinary POS.
+        if (ModuleService::runsFrontOfHouse($tenant)
+            && array_filter($items, fn ($i) => $i['route'] === 'store.foh')) {
+            $items = array_values(array_filter($items, fn ($i) => $i['route'] !== 'store.pos'));
+            foreach ($items as &$item) {
+                if ($item['route'] === 'store.foh') {
+                    $item['label'] = 'POS';
+                    $item['icon']  = 'ShoppingCart';
+                    $item['order'] = 10;
+                }
+            }
+            unset($item);
+        }
+
         usort($items, fn ($a, $b) => $a['order'] <=> $b['order']);
 
         return $items;

@@ -8,48 +8,31 @@
  * cannot be revisited is a trap, and one that pretends its choices are
  * permanent makes people agonise over them.
  *
- * WHY SERVICE STYLE IS NOW THE FIRST QUESTION
- * -------------------------------------------
- * It used to not be asked at all. `service_mode` lived only in the settings
- * drawer, which meant a restaurant installed the product, got a counter till,
- * and had no reason to believe the thing had a floor plan in it. The feature
- * was complete and undiscoverable, which is the same as missing.
- *
- * It goes first because it is the only answer that changes the SHAPE of every
- * question after it — a counter till is never asked about takeaway lanes or
- * how many tables are in the room, and a dine-in room should not have to work
- * out which of five counter layouts it wants before it can say "we have
- * twelve tables".
- *
- * WHY THE STEPS ARE A LIST AND NOT A NUMBER
- * -----------------------------------------
- * The previous version hard-coded "Step 1 of 2" and a two-segment progress
- * bar. The path through this now depends on the first answer and on whether
- * the person at the till is allowed to change store-wide settings, so the step
- * list is computed and everything that displays progress reads from it. A
- * cashier without `admin.settings_manage` sees two steps and is never shown a
- * floor builder that would 403 on submit.
+ * THE REGISTER IS A COUNTER, AND ONLY A COUNTER
+ * ---------------------------------------------
+ * Tables, takeaway tickets, delivery and the floor plan live in Front of
+ * House, not here. This wizard therefore never asks how people are served
+ * and never writes `service_mode`: a restaurant that finishes it must not
+ * have its floor switched off as a side effect. Two steps: what kind of
+ * counter, then the handful of preferences counters change first.
  *
  * WHAT IS LOCAL AND WHAT IS STORE-WIDE
  * ------------------------------------
  * Layout and the four preferences are THIS device's (localStorage, via
- * `onApply`). Service style, lanes and the floor are the BUSINESS's — rows in
- * `settings` and `positions`, shared by every till in the building. They go to
- * the server, they can fail, and the wizard reports it rather than closing
- * over a silent 403.
+ * `onApply`). Kitchen preparation is the BUSINESS's — a row in `settings`
+ * shared by every till. It goes to the server, it can fail, and the wizard
+ * reports it rather than closing over a silent 403.
  */
 
 import React, { useMemo, useState } from 'react';
 import axios from 'axios';
 import {
-    Store, Zap, Coffee, Type, UtensilsCrossed, ChefHat,
-    Check, ArrowRight, ArrowLeft, X, Monitor, LayoutGrid,
-    ShoppingBag, Bike, Loader2, AlertTriangle,
+    Store, Zap, Coffee, Type, ChefHat,
+    Check, ArrowRight, ArrowLeft, X, Loader2,
 } from 'lucide-react';
 import { BUSINESS_SUGGESTIONS, DEFAULT_OPS, DEFAULTS } from './settings';
 import { presetComposition } from '@/LayoutLaw/engine';
 import LayoutPreviewShell from './LayoutPreviewShell';
-import { QuickFloorSetup, applyQuickFloor, DEFAULT_FLOOR } from '@/Pos/Table/QuickFloorSetup';
 
 /* Icons, by counter type. Mapped here rather than stored on the suggestion,
    because an icon is a rendering decision and settings.js is a data file. */
@@ -58,55 +41,21 @@ const ICONS = {
     scan: Zap,
     visual: Coffee,
     simple: Type,
-    table: UtensilsCrossed,
 };
 
-/* The three service styles. `tables` is the server's spelling — the endpoint
-   validates in:counter,tables,both — and getting it wrong here is a 422 that
-   looks like the switch did nothing. */
-const SERVICE_OPTIONS = [
-    {
-        id: 'counter',
-        icon: Monitor,
-        title: 'Counter service',
-        desc: 'One queue, one till. The customer orders and pays in the same moment, and nothing is held open.',
-        fits: 'Retail, pharmacy, grocery, takeaway counters',
-    },
-    {
-        id: 'tables',
-        icon: UtensilsCrossed,
-        title: 'Table service',
-        desc: 'The table is the unit of work, not the sale. Orders stay open, get added to, move, split, and settle at the end.',
-        fits: 'Dine-in restaurants, salons, clinics, workshops',
-    },
-    {
-        id: 'both',
-        icon: LayoutGrid,
-        title: 'Both',
-        desc: 'A floor for the people sitting down and a counter for everyone else, on the same register.',
-        fits: 'Cafés, casual dining, anywhere with a pickup counter',
-    },
-];
-
-/* What this kind of business almost certainly wants, from what they told the
-   builder they are. A suggestion and never a decision: it is the card that
-   gets the badge, not the card that gets chosen for them. */
+/* What kind of counter this business almost certainly runs, from what they
+   told the builder they are. A suggestion and never a decision: it is the card
+   that gets the badge, not the card that gets chosen for them. */
 function recommendFor(store) {
     const raw = `${store?.business_type || ''} ${store?.industry || ''} ${store?.name || ''}`.toLowerCase();
 
-    if (/restaurant|dine.?in|dhaba|eatery|diner|steakhouse|buffet|salon|barber|spa|clinic/.test(raw)) {
-        return { service: 'tables', takeaway: true, delivery: false, counter: 'table' };
-    }
-    if (/cafe|café|coffee|tea.?shop|chai|bistro|lounge/.test(raw)) {
-        return { service: 'both', takeaway: true, delivery: false, counter: 'visual' };
-    }
-    if (/fast.?food|burger|pizza|shawarma|broast|fried.?chicken|biryani|food.?truck|kiosk|juice|dessert|ice.?cream|bakery|sweets|catering/.test(raw)) {
-        return { service: 'counter', takeaway: true, delivery: true, counter: 'visual' };
+    if (/cafe|café|coffee|tea.?shop|chai|bistro|lounge|restaurant|dine.?in|dhaba|eatery|diner|fast.?food|burger|pizza|shawarma|broast|fried.?chicken|biryani|food.?truck|kiosk|juice|dessert|ice.?cream|bakery|sweets|catering/.test(raw)) {
+        return { counter: 'visual', prepares: true };
     }
     if (/pharmac|medical|chemist|hardware|wholesal|distribut/.test(raw)) {
-        return { service: 'counter', takeaway: false, delivery: false, counter: 'scan' };
+        return { counter: 'scan', prepares: false };
     }
-    return { service: 'counter', takeaway: false, delivery: false, counter: 'retail' };
+    return { counter: 'retail', prepares: false };
 }
 
 function Toggle({ checked, onChange, label, disabled }) {
@@ -180,10 +129,9 @@ export default function SetupWizardModal({
     currentPrefs = DEFAULTS,
     store = null,
     settings = null,
-    /* Service style, lanes and the floor are store-wide and gated on
-       `admin.settings_manage`. Without it those steps are not shown at all —
-       offering a cashier a floor builder that 403s on submit is worse than
-       not offering it. */
+    /* Kitchen preparation is store-wide and gated on `admin.settings_manage`.
+       Without it the toggle is not shown at all — offering a cashier a switch
+       that 403s on submit is worse than not offering it. */
     canManageStore = false,
     onDone,
 }) {
@@ -193,27 +141,16 @@ export default function SetupWizardModal({
        used to open with sat ABOVE the useState calls, which is a hooks-order
        violation React only forgives because the component happened to unmount
        rather than re-render when it closed. */
-    const [service, setService] = useState(
-        () => settings?.service_mode || suggestion.service,
-    );
     const [preparesOrders, setPreparesOrders] = useState(() => {
         if (settings?.prepares_orders !== undefined) {
             return String(settings.prepares_orders) === '1';
         }
-        return ['restaurant', 'cafe', 'bakery', 'food_counter', 'catering'].includes(store?.business_type) || suggestion.service !== 'counter';
+        return ['restaurant', 'cafe', 'bakery', 'food_counter', 'catering'].includes(store?.business_type) || suggestion.prepares;
     });
     const [selectedOptionId, setSelectedOptionId] = useState(() => {
         const match = BUSINESS_SUGGESTIONS.find(b => b.id === currentPrefs?.profile);
         return match ? match.id : suggestion.counter;
     });
-    const [lanes, setLanes] = useState(() => ({
-        takeaway: settings?.lane_takeaway !== undefined
-            ? String(settings.lane_takeaway) === '1' : suggestion.takeaway,
-        delivery: settings?.lane_delivery !== undefined
-            ? String(settings.lane_delivery) === '1' : suggestion.delivery,
-    }));
-    const [floor, setFloor] = useState(DEFAULT_FLOOR);
-    const [makeFloor, setMakeFloor] = useState(true);
 
     const [seniorMode, setSeniorMode] = useState(Boolean(currentPrefs?.ops?.senior));
     const [autoPrint, setAutoPrint] = useState(currentPrefs?.ops?.autoPrint ?? true);
@@ -224,21 +161,14 @@ export default function SetupWizardModal({
     const [saving, setSaving] = useState(false);
     const [problems, setProblems] = useState([]);
 
-    /* THE PATH, computed from the first answer. Everything that shows progress
-       reads from this, so a hard-coded "of 2" can never disagree with it. */
-    const steps = useMemo(() => {
-        const out = ['service', 'counter'];
-        if (service !== 'counter' && canManageStore) out.push('lanes', 'floor');
-        else if (service !== 'counter') out.push('lanes');
-        out.push('prefs');
-        return out;
-    }, [service, canManageStore]);
+    /* THE PATH. Everything that shows progress reads from this, so a
+       hard-coded "of 2" can never disagree with it. */
+    const steps = ['counter', 'prefs'];
 
     if (!open) return null;
 
     const step = steps[Math.min(stepIdx, steps.length - 1)];
     const isLast = stepIdx >= steps.length - 1;
-    const tableish = service !== 'counter';
 
     const activeSuggestion = BUSINESS_SUGGESTIONS.find(b => b.id === selectedOptionId) || BUSINESS_SUGGESTIONS[0];
     const activePreset = activeSuggestion.preset || 'column';
@@ -251,17 +181,6 @@ export default function SetupWizardModal({
         if (optId === 'simple') { setSeniorMode(true); setAutoFillCash(true); }
     };
 
-    /* Picking table service moves the layout with it unless the operator has
-       already picked one deliberately. A floor pane needs the table preset;
-       leaving it on `column` is how the previous build ended up with a table
-       terminal that had nowhere to draw the floor. */
-    const handleSelectService = (id) => {
-        setService(id);
-        if (id !== 'counter' && selectedOptionId !== 'table') setSelectedOptionId('table');
-        if (id === 'counter' && selectedOptionId === 'table') setSelectedOptionId(suggestion.counter);
-        if (id !== 'counter') setPreparesOrders(true);
-    };
-
     const finish = async () => {
         setSaving(true);
         setProblems([]);
@@ -269,45 +188,16 @@ export default function SetupWizardModal({
         const slug = store?.slug;
         const r = (name) => route(name, { store_slug: slug });
 
-        /* Store-wide first. If the service style does not land there is no
-           point creating tables for a floor nobody will be shown — but a
-           failure here is REPORTED and the local half still applies, because a
-           cashier whose layout silently reverted will simply run the wizard
-           again and hit the same wall. */
+        /* Store-wide first. A failure here is REPORTED and the local half still
+           applies, because a cashier whose layout silently reverted will simply
+           run the wizard again and hit the same wall. */
         if (canManageStore && slug) {
-            try {
-                await axios.post(r('store.tables.service-mode'), { mode: service });
-            } catch (e) {
-                failed.push(e?.response?.status === 403
-                    ? 'Service style needs permission to change store settings.'
-                    : 'The service style could not be saved.');
-            }
-
             try {
                 await axios.post(r('store.tables.prepares-orders'), {
                     prepares_orders: preparesOrders ? '1' : '0',
                 });
             } catch (_) {
                 failed.push('Kitchen preparation setting could not be saved.');
-            }
-
-            if (tableish) {
-                try {
-                    await axios.post(r('store.tables.plan.lanes'), {
-                        takeaway: Boolean(lanes.takeaway),
-                        delivery: Boolean(lanes.delivery),
-                    });
-                } catch (_) {
-                    failed.push('Takeaway and delivery lanes could not be saved.');
-                }
-
-                if (makeFloor) {
-                    try {
-                        await applyQuickFloor(slug, floor);
-                    } catch (e) {
-                        failed.push(e?.response?.data?.message || 'The tables could not be created.');
-                    }
-                }
             }
         }
 
@@ -316,7 +206,7 @@ export default function SetupWizardModal({
         onApply?.({
             ...currentPrefs,
             wizardCompleted: true,
-            auto: activeSuggestion.id !== 'table',
+            auto: true,
             profile: activeSuggestion.profile || 'retail',
             preset: activePreset,
             comp: presetComposition(activePreset),
@@ -334,26 +224,14 @@ export default function SetupWizardModal({
 
         if (failed.length) { setProblems(failed); return; }
 
-        onDone?.({ service, lanes, floor: makeFloor ? floor : null });
+        onDone?.({});
         onClose?.();
     };
 
     const HEADINGS = {
-        service: {
-            t: 'How does this place serve people?',
-            s: 'This is the one answer that changes the shape of the register. Everything after it follows from here, and all of it can be changed later.',
-        },
         counter: {
-            t: tableish ? 'And what should the till itself look like?' : 'What kind of counter is this?',
+            t: 'What kind of counter is this?',
             s: 'This picks a starting layout. Every part of it can be changed afterwards, and none of it is locked in.',
-        },
-        lanes: {
-            t: 'Besides sitting down, how else do orders arrive?',
-            s: 'Each one you turn on becomes a tab on the floor screen. A dine-in-only room never sees a Takeaway tab.',
-        },
-        floor: {
-            t: 'How many tables are in the room?',
-            s: 'Enough to take an order today. The full Floor Plan is where the room gets its real shape — zones, seat maps, table shapes — whenever you want it.',
         },
         prefs: {
             t: 'Four things worth setting now',
@@ -413,19 +291,19 @@ export default function SetupWizardModal({
                 {/* ── BODY ── */}
                 <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6">
 
-                    {step === 'service' && (
+                    {step === 'counter' && (
                         <>
-                            <div className="grid sm:grid-cols-3 gap-3">
-                                {SERVICE_OPTIONS.map(o => (
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {BUSINESS_SUGGESTIONS.map(sug => (
                                     <PickCard
-                                        key={o.id}
-                                        icon={o.icon}
-                                        title={o.title}
-                                        desc={o.desc}
-                                        meta={o.fits}
-                                        selected={o.id === service}
-                                        recommended={o.id === suggestion.service}
-                                        onClick={() => handleSelectService(o.id)}
+                                        key={sug.id}
+                                        icon={ICONS[sug.id] || Store}
+                                        title={sug.title}
+                                        desc={sug.desc}
+                                        meta={`${sug.preset} layout`}
+                                        selected={sug.id === selectedOptionId}
+                                        recommended={sug.id === suggestion.counter}
+                                        onClick={() => handleSelectOption(sug.id)}
                                     />
                                 ))}
                             </div>
@@ -437,119 +315,13 @@ export default function SetupWizardModal({
                                             <span>Kitchen preparation</span>
                                         </div>
                                         <p className="text-2xs text-ink-muted mt-0.5">
-                                            This shop prepares orders before handing them over (enables kitchen order tickets and KDS queue).
+                                            This shop prepares orders before handing them over (enables kitchen order tickets and the KDS queue).
                                         </p>
                                     </div>
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={preparesOrders}
-                                        onClick={() => setPreparesOrders(!preparesOrders)}
-                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 cursor-pointer ${
-                                            preparesOrders ? 'bg-amber-600' : 'bg-line'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all shadow-xs ${
-                                                preparesOrders ? 'left-6' : 'left-1'
-                                            }`}
-                                        />
-                                    </button>
+                                    <Toggle checked={preparesOrders} onChange={setPreparesOrders} label="Kitchen preparation" />
                                 </div>
-                            )}
-                            {!canManageStore && service !== 'counter' && (
-                                <p className="mt-4 rounded-xl border border-amber-200/70 dark:border-amber-900/60
-                                              bg-amber-50 dark:bg-amber-950/30 px-3.5 py-3
-                                              text-2xs text-amber-800 dark:text-amber-300 leading-relaxed">
-                                    <AlertTriangle size={13} className="inline -mt-0.5 mr-1.5" />
-                                    Service style is a store-wide setting, and this account cannot change
-                                    store settings. The layout below will still be set for this device — ask
-                                    an owner or manager to switch the store to table service.
-                                </p>
                             )}
                         </>
-                    )}
-
-                    {step === 'counter' && (
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {BUSINESS_SUGGESTIONS
-                                /* A counter-only shop is never offered the table
-                                   layout: it has no floor to draw. */
-                                .filter(sug => tableish || sug.id !== 'table')
-                                .map(sug => (
-                                    <PickCard
-                                        key={sug.id}
-                                        icon={ICONS[sug.id] || Store}
-                                        title={sug.title}
-                                        desc={sug.desc}
-                                        meta={`${sug.preset} layout`}
-                                        selected={sug.id === selectedOptionId}
-                                        recommended={sug.id === (tableish ? 'table' : suggestion.counter)}
-                                        onClick={() => handleSelectOption(sug.id)}
-                                    />
-                                ))}
-                        </div>
-                    )}
-
-                    {step === 'lanes' && (
-                        <div className="space-y-2.5 max-w-[560px]">
-                            {[
-                                { key: 'dine', icon: UtensilsCrossed, title: 'Dine-in',
-                                  hint: 'Always on for table service — it is what the floor plan is.',
-                                  value: true, locked: true },
-                                { key: 'takeaway', icon: ShoppingBag, title: 'Takeaway',
-                                  hint: 'A bag on the counter: an open bill with a ticket number and no table.',
-                                  value: lanes.takeaway,
-                                  set: (v) => setLanes(l => ({ ...l, takeaway: v })) },
-                                { key: 'delivery', icon: Bike, title: 'Delivery',
-                                  hint: 'Adds the address, the instructions, the fare, the rider and the on-the-way clock.',
-                                  value: lanes.delivery,
-                                  set: (v) => setLanes(l => ({ ...l, delivery: v })) },
-                            ].map(l => (
-                                <div key={l.key}
-                                     className="rounded-xl border border-line/80 bg-surface shadow-xs p-3.5
-                                                flex items-start justify-between gap-3">
-                                    <div className="flex items-start gap-3 min-w-0">
-                                        <span className="w-9 h-9 rounded-xl bg-sunken/70 border border-line/70
-                                                         text-ink-secondary flex items-center justify-center shrink-0">
-                                            <l.icon size={16} />
-                                        </span>
-                                        <div className="min-w-0 space-y-1">
-                                            <span className="block text-sm font-bold text-ink leading-tight">{l.title}</span>
-                                            <p className="text-2xs text-ink-muted leading-relaxed">{l.hint}</p>
-                                        </div>
-                                    </div>
-                                    <Toggle checked={l.value} onChange={l.set || (() => {})}
-                                            label={l.title} disabled={l.locked} />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {step === 'floor' && (
-                        <div className="max-w-[620px] space-y-4">
-                            <label className="rounded-xl border border-line/80 bg-surface shadow-xs p-3.5
-                                              flex items-start justify-between gap-3 cursor-pointer">
-                                <div className="min-w-0 space-y-1">
-                                    <span className="block text-sm font-bold text-ink leading-tight">
-                                        Create tables now
-                                    </span>
-                                    <p className="text-2xs text-ink-muted leading-relaxed">
-                                        Off if the floor is already built, or if you would rather lay it out
-                                        properly in the Floor Plan first.
-                                    </p>
-                                </div>
-                                <Toggle checked={makeFloor} onChange={setMakeFloor} label="Create tables now" />
-                            </label>
-
-                            {makeFloor && (
-                                <QuickFloorSetup
-                                    value={floor}
-                                    onChange={setFloor}
-                                    storeSlug={store?.slug}
-                                />
-                            )}
-                        </div>
                     )}
 
                     {step === 'prefs' && (

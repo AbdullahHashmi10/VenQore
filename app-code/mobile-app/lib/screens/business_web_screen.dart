@@ -35,6 +35,7 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   int _progress = 0;
   bool _hasError = false;
   bool _replacingRoot = false;
+  bool _googleOAuthActive = false;
   late String _title;
   Uri? _currentUri;
 
@@ -94,6 +95,22 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
     if (!request.isMainFrame) return NavigationDecision.navigate;
     final uri = Uri.tryParse(request.url);
     if (uri == null) return NavigationDecision.prevent;
+
+    // Google sign-in temporarily leaves VenQore in the same WebView so the
+    // Socialite state cookie and the authenticated callback stay in one
+    // session. Only Google's exact accounts origin is admitted, and only
+    // after VenQore started /auth/google.
+    if (_policy.isGoogleOAuthStart(uri)) {
+      _googleOAuthActive = true;
+      return NavigationDecision.navigate;
+    }
+    if (_googleOAuthActive && _policy.isGoogleOAuthProvider(uri)) {
+      return NavigationDecision.navigate;
+    }
+    if (_policy.isGoogleOAuthCallback(uri)) {
+      _googleOAuthActive = false;
+      return NavigationDecision.navigate;
+    }
 
     switch (_policy.evaluate(uri)) {
       case NavigationAction.allow:

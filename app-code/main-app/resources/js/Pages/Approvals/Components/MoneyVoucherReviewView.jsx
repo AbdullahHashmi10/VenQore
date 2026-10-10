@@ -186,7 +186,7 @@ export default function MoneyVoucherReviewView({
             )}
 
             {isExpense && (
-                <div className="p-4 rounded-xl bg-surface border border-line shadow-xs flex items-center justify-between">
+                <div className="p-4 rounded-xl bg-surface border border-line shadow-xs flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-500/20">
                             <Tag size={18} />
@@ -300,7 +300,7 @@ export default function MoneyVoucherReviewView({
                 {/* Cheque specific details if cheque */}
                 {(paymentMethod === 'cheque' || chequeNumber) && (
                     <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs space-y-1">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <span className="font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
                                 <FileText size={13} /> Reserved Cheque Leaf
                             </span>

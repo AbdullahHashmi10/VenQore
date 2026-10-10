@@ -76,7 +76,7 @@ class PublicHttpTest extends CommerceTestCase
     {
         $this->store->update(['pricing_mode' => 'increase', 'pricing_percent' => 10]);
         $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Priced', 'price' => 1000], 5, $this->store);
-        $this->get('/shop/' . $this->store->slug)->assertInertia(fn ($p) => $this->assertEquals(1100.0, $p->toArray()['props']['items'][0]['price']));
+        $this->get('/shop/' . $this->store->slug . '/products')->assertInertia(fn ($p) => $this->assertEquals(1100.0, $p->toArray()['props']['items'][0]['price']));
     }
 
     public function test_cross_tenant_listing_cannot_be_ordered_or_shown(): void
@@ -143,7 +143,7 @@ class PublicHttpTest extends CommerceTestCase
         // can refuse remote orders while still accepting orders from its tables.
         $this->store->update(['customer_mode' => 'catalogue', 'onsite_ordering_enabled' => true]);
 
-        $this->get('/onsite/' . $this->store->slug . '/table/' . $token . '?q=burger')->assertOk()
+        $this->get('/catalogue/' . $this->store->slug . '/table/' . $token . '?q=burger')->assertOk()
             ->assertInertia(function ($page) {
                 $props = $page->toArray()['props'];
                 $this->assertSame('T7', $props['onsite']['table_code']);
@@ -153,8 +153,8 @@ class PublicHttpTest extends CommerceTestCase
 
         $body = ['idempotency_key' => (string) Str::uuid(), 'table_token' => $token,
             'items' => [['item_id' => $listing, 'quantity' => 2, 'price' => 1]]];
-        $first = $this->postJson('/onsite/' . $this->store->slug . '/orders', $body)->assertCreated();
-        $this->postJson('/onsite/' . $this->store->slug . '/orders', $body)->assertOk()
+        $first = $this->postJson('/catalogue/' . $this->store->slug . '/orders', $body)->assertCreated();
+        $this->postJson('/catalogue/' . $this->store->slug . '/orders', $body)->assertOk()
             ->assertJsonPath('order_number', $first->json('order_number'));
 
         $occupancy = DB::table('occupancies')->where('position_id', $position)->whereNull('closed_at')->first();
@@ -174,9 +174,9 @@ class PublicHttpTest extends CommerceTestCase
         $listing = DB::table('storefront_products')->where('product_id', $pid)->value('id');
         $this->store->update(['onsite_ordering_enabled' => true, 'counter_qr_enabled' => true]);
 
-        $this->get('/onsite/' . $this->store->slug)->assertOk()
+        $this->get('/catalogue/' . $this->store->slug)->assertOk()
             ->assertInertia(fn ($page) => $this->assertSame('counter_qr', $page->toArray()['props']['onsite']['channel']));
-        $response = $this->postJson('/onsite/' . $this->store->slug . '/orders', [
+        $response = $this->postJson('/catalogue/' . $this->store->slug . '/orders', [
             'idempotency_key' => (string) Str::uuid(), 'customer_name' => 'Ayesha',
             'items' => [['item_id' => $listing, 'quantity' => 1]],
         ])->assertCreated();
@@ -202,7 +202,7 @@ class PublicHttpTest extends CommerceTestCase
         ]);
         $this->store->update(['onsite_ordering_enabled' => true]);
 
-        $this->postJson('/onsite/' . $this->store->slug . '/orders', [
+        $this->postJson('/catalogue/' . $this->store->slug . '/orders', [
             'idempotency_key' => (string) Str::uuid(), 'table_token' => $token,
             'items' => [['item_id' => $listing, 'quantity' => 1]],
         ])->assertStatus(422)->assertJsonPath('reason', 'cart_changed');
@@ -337,7 +337,7 @@ class PublicHttpTest extends CommerceTestCase
     {
         $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Pic', 'image_path' => 'products/own.jpg'], 5, $this->store);
         $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Pic2', 'image_path' => 'products/own2.jpg'], 5, $this->store, ['image_path' => 'commerce/products/online.jpg']);
-        $urls = fn () => collect($this->get('/shop/' . $this->store->slug)->viewData('page')['props']['items'])->pluck('image_url', 'name');
+        $urls = fn () => collect($this->get('/shop/' . $this->store->slug . '/products')->viewData('page')['props']['items'])->pluck('image_url', 'name');
         $u = $urls();
         $this->assertStringContainsString('products/own.jpg', $u['Pic']);
         $this->assertStringContainsString('commerce/products/online.jpg', $u['Pic2']);
@@ -365,7 +365,7 @@ class PublicHttpTest extends CommerceTestCase
         $a = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Alpha'], 9, $this->store);
         $z = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Zeta'], 9, $this->store, ['is_featured' => 1]);
         $gone = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Gone'], 9, $this->store);
-        $names = collect($this->get('/shop/' . $this->store->slug)->viewData('page')['props']['items'])->pluck('name')->all();
+        $names = collect($this->get('/shop/' . $this->store->slug . '/products')->viewData('page')['props']['items'])->pluck('name')->all();
         $this->assertSame('Zeta', $names[0]);
         $res = $this->postJson('/shop/' . $this->store->slug . '/checkout', $this->body([['item_id' => DB::table('storefront_products')->where('product_id', $a)->value('id'), 'quantity' => 2], ['item_id' => DB::table('storefront_products')->where('product_id', $gone)->value('id'), 'quantity' => 1]]))->assertCreated();
         $token = basename($res->json('status_url'));
@@ -396,7 +396,7 @@ class PublicHttpTest extends CommerceTestCase
         $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Plenty'], 40, $this->store);
         $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Few'], 3, $this->store);
         $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'None'], 0, $this->store);
-        $by = collect($this->get('/shop/' . $this->store->slug)->viewData('page')['props']['items'])->keyBy('name');
+        $by = collect($this->get('/shop/' . $this->store->slug . '/products')->viewData('page')['props']['items'])->keyBy('name');
         $this->assertNull($by['Plenty']['stock']);
         $this->assertNull($by['Plenty']['left']);
         $this->assertSame('low', $by['Few']['stock']);
@@ -410,7 +410,7 @@ class PublicHttpTest extends CommerceTestCase
         $l = $this->makeProduct($this->tenant, $this->warehouseId, ['name' => 'Tee Large', 'price' => 1200], 0, $this->store);
         DB::table('storefront_products')->where('product_id', $s)->update(['option_group' => 'Cotton Tee', 'option_label' => 'Small']);
         DB::table('storefront_products')->where('product_id', $l)->update(['option_group' => 'Cotton Tee', 'option_label' => 'Large']);
-        $props = $this->get('/shop/' . $this->store->slug)->viewData('page')['props'];
+        $props = $this->get('/shop/' . $this->store->slug . '/products')->viewData('page')['props'];
         $tees = collect($props['items'])->filter(fn ($i) => ($i['name'] ?? '') === 'Cotton Tee')->values();
         $this->assertCount(1, $tees, 'two options are one card');
         $opts = collect($tees[0]['options']);

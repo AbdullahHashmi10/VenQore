@@ -69,6 +69,8 @@ export default function SettingsPanel({ settings }) {
  const [saved, setSaved] = useState(false);
  const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+ // Phone: the settings list and a section are separate screens, not side by side.
+ const [mobileDetail, setMobileDetail] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('tab'));
  const [expandedCategories, setExpandedCategories] = useState(['org', 'ops', 'adv']);
 
  const toggleCategory = (catId) => {
@@ -345,7 +347,7 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  <div className="space-y-2 md:col-span-2">
- <div className="flex items-center justify-between p-4 bg-sunken rounded-xl border border-line">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-sunken rounded-xl border border-line">
  <div>
  <h4 className="text-sm font-bold text-ink">B2B Margin Display</h4>
  <p className="text-xs text-ink-muted">Display item-level profit margin column directly on B2B invoices.</p>
@@ -540,7 +542,7 @@ export default function SettingsPanel({ settings }) {
  )}
 
  {/* Charity Donations Toggle */}
- <div className="flex items-center justify-between py-4 border-b border-line">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 py-4 border-b border-line">
  <div>
  <span className="block text-sm font-bold text-ink-secondary">Enable Charity Donations</span>
  <span className="block text-xs text-ink-muted">Show the Charity button on the POS for quick donation recording</span>
@@ -703,7 +705,7 @@ export default function SettingsPanel({ settings }) {
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {/* Customer Receipts */}
  <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Customer Receipts</span>
  <select
  value={data.approval_policy_customer_receipt}
@@ -731,7 +733,7 @@ export default function SettingsPanel({ settings }) {
 
  {/* Supplier Payments */}
  <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Supplier Payments</span>
  <select
  value={data.approval_policy_supplier_payment}
@@ -759,7 +761,7 @@ export default function SettingsPanel({ settings }) {
 
  {/* Operating Expenses */}
  <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Operating Expenses</span>
  <select
  value={data.approval_policy_operating_expense}
@@ -787,7 +789,7 @@ export default function SettingsPanel({ settings }) {
 
  {/* Sales Invoices */}
  <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Sales Invoices (Admin)</span>
  <select
  value={data.approval_policy_sales_invoice}
@@ -830,7 +832,7 @@ export default function SettingsPanel({ settings }) {
  { key: 'fund_transfer', label: 'Internal Fund Transfer', sensitive: true },
  ].map(({ key, label, sensitive }) => (
  <div key={key} className={`p-4 bg-sunken/50 rounded-xl border space-y-3 ${sensitive ? 'border-orange-200' : 'border-line'}`}>
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">{label}</span>
  <select
  value={data[`approval_policy_${key}`]}
@@ -896,9 +898,9 @@ export default function SettingsPanel({ settings }) {
  <OneGlanceLayout mode="admin" title="Settings" activeMenu="Store Settings">
  <Head title="Settings" />
 
- <div className="h-full flex gap-6 overflow-hidden">
+ <div className="h-full flex flex-col lg:flex-row gap-3 lg:gap-6 overflow-hidden">
  {/* Sidebar - Midnight Nebula Styled - Collapsible */}
- <div className={`${sidebarCollapsed ? 'w-20' : 'w-72'} bg-neutral-900 rounded-2xl border border-neutral-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
+ <div className={`${sidebarCollapsed ? 'w-full lg:w-20' : 'w-full lg:w-72'} ${mobileDetail ? 'max-lg:hidden' : 'max-lg:flex-1 max-lg:min-h-0'} bg-neutral-900 rounded-2xl border border-neutral-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
  {/* Nebula Background Elements */}
  <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/10 rounded-full blur-[40px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
@@ -943,7 +945,7 @@ export default function SettingsPanel({ settings }) {
  <button
  type="button"
  onClick={() => toggleCategory(category.id)}
- className="w-full flex items-center justify-between px-3 py-2 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-brand-400 transition-colors group"
+ className="w-full flex flex-wrap items-center justify-between gap-y-2 px-3 py-2 text-2xs font-bold uppercase tracking-[0.2em] text-ink-muted hover:text-brand-400 transition-colors group"
  >
  <div className="flex items-center gap-2">
  <CatIcon size={12} />
@@ -962,7 +964,7 @@ export default function SettingsPanel({ settings }) {
  <button
  key={section.id}
  type="button"
- onClick={() => setActiveSection(section.id)}
+ onClick={() => { setActiveSection(section.id); setMobileDetail(true); }}
  title={sidebarCollapsed ? section.name : undefined}
  className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
  ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
@@ -997,18 +999,21 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  {/* Content Area */}
- <div className="flex-1 bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative">
+ <div className={`${mobileDetail ? '' : 'max-lg:hidden'} flex-1 min-h-0 bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative`}>
  <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
  <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
+ <button type="button" onClick={() => setMobileDetail(false)} className="lg:hidden shrink-0 flex items-center gap-2 px-4 py-3 text-sm font-bold text-brand-600 border-b border-line bg-surface">
+ <span aria-hidden>&larr;</span> All settings
+ </button>
  {/* Header */}
- <div className="p-10 border-b border-line shrink-0 bg-white/80 dark:bg-app backdrop-blur-xl">
- <div className="flex items-center justify-between">
+ <div className="p-4 sm:p-10 border-b border-line shrink-0 bg-white/80 dark:bg-app backdrop-blur-xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <div>
  <div className="flex items-center gap-3 mb-2">
  <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-full">Section</span>
- <h2 className="text-3xl font-bold text-ink tracking-tight">
+ <h2 className="text-xl sm:text-3xl font-bold text-ink tracking-tight">
  {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.name}
  </h2>
  </div>
@@ -1020,7 +1025,7 @@ export default function SettingsPanel({ settings }) {
  <button
  type="submit"
  disabled={processing || !isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)}
- className={`relative group px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl ${(!isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+ className={`relative group px-4 sm:px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl ${(!isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
  >
  {/* Midnight Nebula Background for Button */}
  <div className="absolute inset-0 bg-neutral-900 z-0">
@@ -1053,7 +1058,7 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  {/* Section Content */}
- <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+ <div className="flex-1 overflow-y-auto p-4 sm:p-10 custom-scrollbar">
  <div className="max-w-4xl mx-auto">
  {renderSection()}
  </div>

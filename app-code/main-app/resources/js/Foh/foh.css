@@ -89,3 +89,62 @@
 .foh-rider-d{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--vq-line,#e5e7eb);border-radius:12px}
 .foh-offline{background:#fef3c7;color:#92400e;padding:8px 16px;font-weight:700;text-align:center}
 .foh-set-row input[type=text],.foh-set-row input[type=number]{border:1px solid var(--vq-line,#e5e7eb);border-radius:8px;padding:8px;width:110px}
+
+/* Register composition: the FOH shell uses the same V6 working surface as POS. */
+.foh-root{
+  --foh-gap:16px;
+  height:100%;min-height:100dvh;min-width:0;overflow:hidden;
+  padding:16px 24px;gap:16px;
+  background:var(--vq-bg,#f1f5f2);
+  color:var(--vq-text,#17221f);
+  font-family:var(--vq-font-sans,"Plus Jakarta Sans",system-ui,sans-serif);
+  font-size:var(--vq-t-md,13.5px)
+}
+.foh-top{min-height:44px;padding:0;background:transparent;border:0;gap:10px}
+.foh-top-home,.foh-top-pos{min-height:44px;padding:0 13px;border-radius:12px;background:var(--vq-surface,#fff);border-color:var(--vq-line,#dce5df);box-shadow:0 1px 2px #11261a0d;font-size:13px}
+.foh-top-home:hover,.foh-top-pos:hover{background:var(--vq-accent-quiet,#e7f7f3);color:var(--vq-accent-text,#087969)}
+.foh-tabs{gap:8px;align-items:center;min-width:0}
+.foh-tabs button{min-height:44px;padding:0 15px;border-radius:12px;border-color:var(--vq-line,#dce5df);background:var(--vq-surface,#fff);font-size:13px;font-weight:750;box-shadow:0 1px 2px #11261a0d;white-space:nowrap}
+.foh-tabs button:hover{border-color:var(--vq-accent,#0baa8f);color:var(--vq-accent-text,#087969)}
+.foh-tabs button[data-on="1"]{background:var(--vq-surface,#fff);border-color:var(--vq-accent,#0baa8f);color:var(--vq-accent-text,#087969);box-shadow:0 0 0 2px var(--vq-accent-quiet,#dcf5ed)}
+.foh-tabs button[data-on="1"]:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--vq-accent,#0baa8f)}
+.foh-tabs button b{background:var(--vq-sunken,#edf3ef);color:var(--vq-text,#17221f)}
+.foh-top-search{min-height:44px;border-radius:12px;background:var(--vq-surface,#fff);box-shadow:0 1px 2px #11261a0d}
+.foh-main{overflow:hidden;min-height:0}
+.foh-main>*,.foh-with-rail,.foh-rail-body{min-height:0;height:100%}
+.foh-split{gap:var(--foh-gap);padding:0;grid-template-columns:minmax(360px,1.35fr) minmax(340px,.85fr)}
+.foh-catalog,.foh-cart{border-radius:20px;border-color:var(--vq-line,#dce5df);box-shadow:0 2px 10px #11261a0a}
+.foh-search{padding:14px 16px;background:var(--vq-surface,#fff)}
+.foh-search input{min-height:28px}
+.foh-cats{padding:10px 14px;border-bottom:1px solid var(--vq-line,#dce5df)}
+.foh-cats button,.foh-chips button{min-height:36px;background:var(--vq-surface,#fff);font-weight:650}
+.foh-cats button[data-on="1"],.foh-chips button[data-on="1"]{background:var(--vq-accent-quiet,#e7f7f3);color:var(--vq-accent-text,#087969);border-color:var(--vq-accent,#0baa8f)}
+.foh-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:16px;background:var(--vq-sunken,#f7faf8)}
+.foh-tile{min-height:102px;padding:14px;border-radius:14px;box-shadow:0 1px 2px #11261a0d;transition:border-color .15s,box-shadow .15s,transform .15s}
+.foh-tile:hover{background:var(--vq-surface,#fff);border-color:var(--vq-accent,#0baa8f);box-shadow:0 4px 14px #11261a18;transform:translateY(-1px)}
+.foh-tile-p{color:var(--vq-accent-text,#087969)}
+.foh-line{padding:14px 16px}
+.foh-totals{padding:14px 18px;gap:7px;background:var(--vq-sunken,#f7faf8)}
+.foh-due{margin-top:5px;padding-top:10px;border-top:1px solid var(--vq-line,#dce5df);font-size:21px}
+.foh-pay{padding:14px 18px;background:var(--vq-surface,#fff)}
+.foh-pay-btn{border-radius:12px;min-height:54px}
+.foh-with-rail{grid-template-columns:148px minmax(0,1fr);gap:16px}
+.foh-rail{padding:8px;gap:8px;border:1px solid var(--vq-line,#dce5df);border-radius:18px;background:var(--vq-surface,#fff)}
+.foh-rail button{min-height:54px;border-radius:11px;text-align:left}
+.foh-rail button[data-on="1"]{background:var(--vq-accent-quiet,#e7f7f3);color:var(--vq-accent-text,#087969);border-color:var(--vq-accent,#0baa8f)}
+.foh-lane-workspace{grid-template-columns:200px minmax(0,1fr)}
+.foh-lane-workspace .foh-rail button{display:grid;gap:4px;justify-content:stretch}
+.foh-lane-workspace .foh-rail i{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foh-order[data-order-type="dine_in"] .foh-cart{order:1}
+.foh-order[data-order-type="dine_in"] .foh-catalog{order:2}
+.foh-order[data-order-type="dine_in"] .foh-split{grid-template-columns:minmax(340px,.85fr) minmax(360px,1.15fr)}
+.foh-overview,.foh-lane{height:100%;overflow:auto;padding:0}
+.foh-today{padding:16px 20px;margin:0 0 16px;border:1px solid var(--vq-line,#dce5df);border-radius:18px;background:var(--vq-surface,#fff)}
+.foh-col{min-width:0;padding:18px;border:1px solid var(--vq-line,#dce5df);border-radius:20px;background:var(--vq-surface,#fff)}
+.foh-h2{margin:0 0 14px;font-size:16px}
+.foh-attn button,.foh-tickets button{border-radius:12px;min-height:68px}
+.foh-attn button:hover,.foh-tickets button:hover{border-color:var(--vq-accent,#0baa8f);background:var(--vq-accent-quiet,#e7f7f3)}
+.foh-lane{padding:18px;border:1px solid var(--vq-line,#dce5df);border-radius:20px;background:var(--vq-surface,#fff)}
+.foh-root :is(button,input,select):focus-visible{outline:2px solid var(--vq-accent,#0baa8f);outline-offset:2px}
+@media(max-width:1100px){.foh-root{padding:12px;gap:12px}.foh-top-search{display:none}.foh-split,.foh-order[data-order-type="dine_in"] .foh-split{grid-template-columns:minmax(0,1fr) minmax(320px,.85fr)}}
+@media(max-width:900px){.foh-root{padding:8px;gap:8px;min-height:100dvh}.foh-top{gap:6px}.foh-tabs{position:fixed;bottom:0;left:0;right:0;top:auto;z-index:30;padding:6px;background:var(--vq-surface,#fff);border-top:1px solid var(--vq-line,#dce5df);justify-content:space-around}.foh-tabs button{min-height:46px;padding:0 8px;border:0;box-shadow:none}.foh-main{padding-bottom:62px}.foh-with-rail,.foh-lane-workspace{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);gap:8px}.foh-rail{flex-direction:row;max-height:72px;overflow:auto}.foh-rail button{min-width:85px}.foh-split,.foh-order[data-order-type="dine_in"] .foh-split{grid-template-columns:1fr;padding:0}.foh-order[data-mobile-tab="order"] .foh-catalog{display:none}.foh-order[data-mobile-tab="menu"] .foh-cart{display:none}.foh-col{padding:14px}}

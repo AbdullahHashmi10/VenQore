@@ -277,7 +277,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                     <div className="border-t border-white/8 pt-5">
                         <Link
                             href={route('store.create')}
-                            className="group flex items-center justify-between w-full px-5 py-4 rounded-2xl border border-dashed border-white/15 hover:border-brand-500/40 hover:bg-brand-500/5 transition-all duration-normal"
+                            className="group flex flex-wrap items-center justify-between gap-y-2 w-full px-5 py-4 rounded-2xl border border-dashed border-white/15 hover:border-brand-500/40 hover:bg-brand-500/5 transition-all duration-normal"
                         >
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-white/5 group-hover:bg-brand-500/15 border border-white/10 group-hover:border-brand-500/30 flex items-center justify-center transition-all">
@@ -310,9 +310,9 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                     <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[85vh]">
 
                         {/* Modal Bg Decals */}
-                        <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 p-4 sm:p-8 pt-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
 
-                        <div className="p-8 shrink-0">
+                        <div className="p-4 sm:p-8 shrink-0">
                             <h2 className="text-xl font-bold text-white mb-2">
                                 Pending Invitations
                             </h2>
@@ -321,7 +321,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                             </p>
                         </div>
 
-                        <div className="px-8 pb-4 overflow-y-auto min-h-0 space-y-3 custom-scrollbar">
+                        <div className="px-4 sm:px-8 pb-4 overflow-y-auto min-h-0 space-y-3 custom-scrollbar">
                             {invites.length > 0 ? (
                                 invites.map(invite => (
                                     <InviteCard
@@ -338,7 +338,7 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                             )}
                         </div>
 
-                        <div className="p-8 shrink-0 border-t border-neutral-800 bg-neutral-900/50">
+                        <div className="p-4 sm:p-8 shrink-0 border-t border-neutral-800 bg-neutral-900/50">
                             <h3 className="text-sm font-bold text-neutral-300 mb-3">Have a short code?</h3>
                             <form onSubmit={handleCheckCode}>
                                 <input

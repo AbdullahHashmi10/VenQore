@@ -162,7 +162,7 @@ function UsageMeterCard({ icon: Icon, label, used, limit, suffix = '', helper = 
     return (
         <div className="p-5 rounded-2xl bg-surface border border-line shadow-sm hover:border-line-strong hover:shadow-md transition-all flex flex-col justify-between">
             <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 mb-3">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-surface-raised text-ink-secondary border border-line">
                             <Icon size={16} />
@@ -189,7 +189,7 @@ function UsageMeterCard({ icon: Icon, label, used, limit, suffix = '', helper = 
 
             <div className="mt-3 pt-3 border-t border-line">
                 {isUnlimited ? (
-                    <div className="flex items-center justify-between text-2xs font-semibold">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-semibold">
                         <span className="text-[#0BAA8F] uppercase tracking-wider flex items-center gap-1">
                             <CheckCircle2 size={11} /> Uncapped Capacity
                         </span>
@@ -203,7 +203,7 @@ function UsageMeterCard({ icon: Icon, label, used, limit, suffix = '', helper = 
                                 className={`h-full rounded-full transition-all duration-500 ${barColor}`}
                             />
                         </div>
-                        <div className="flex items-center justify-between text-2xs">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs">
                             <span className={`font-semibold uppercase tracking-wider ${isCritical ? 'text-rose-600 dark:text-rose-400 font-bold' : isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-ink-muted'}`}>
                                 {pct}% utilized
                             </span>
@@ -254,7 +254,7 @@ function PlanCardV6({
             }`}
         >
             {/* Badges */}
-            <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 mb-4">
                 {isCurrent ? (
                     <span className="px-3 py-1 rounded-full text-3xs font-bold tracking-widest text-white bg-[#0BAA8F] shadow-sm flex items-center gap-1">
                         <CheckCircle2 size={11} /> CURRENT PLAN
@@ -913,7 +913,7 @@ export default function BillingIndex({
                         </div>
 
                         {/* V6 Universal Guarantees: "Nothing Important is Withheld" */}
-                        <div className="p-8 rounded-2xl bg-surface border border-line shadow-sm">
+                        <div className="p-4 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm">
                             <div className="text-2xs font-bold text-[#0BAA8F] uppercase tracking-widest mb-1">
                                 In Every Plan, At Every Price
                             </div>
@@ -1160,7 +1160,7 @@ export default function BillingIndex({
                                                 <button
                                                     key={key}
                                                     onClick={() => handlePurchaseAddon(`ai_${key}`)}
-                                                    className="w-full p-2.5 rounded-xl bg-surface border border-line hover:border-[#0BAA8F]/40 flex items-center justify-between text-xs transition-all shadow-2xs"
+                                                    className="w-full p-2.5 rounded-xl bg-surface border border-line hover:border-[#0BAA8F]/40 flex flex-wrap items-center justify-between gap-y-2 text-xs transition-all shadow-2xs"
                                                 >
                                                     <span className="font-semibold text-ink">{tier.label}</span>
                                                     <span className="text-[#0BAA8F] font-mono font-bold">${tier.price_monthly}/mo</span>
@@ -1453,7 +1453,7 @@ export default function BillingIndex({
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="p-8 rounded-2xl bg-surface border border-line shadow-sm text-center">
+                                    <div className="p-4 sm:p-8 rounded-2xl bg-surface border border-line shadow-sm text-center">
                                         <Receipt size={28} className="mx-auto text-ink-muted mb-2" />
                                         <p className="text-xs font-semibold text-ink-muted">No payment records found.</p>
                                     </div>
@@ -1483,7 +1483,7 @@ export default function BillingIndex({
                     </h3>
 
                     <div className="space-y-4 mb-6">
-                        <div className="flex items-center justify-between p-4 rounded-xl bg-surface-raised border border-line">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-xl bg-surface-raised border border-line">
                             <div className="text-center flex-1">
                                 <div className="text-3xs text-ink-muted font-bold uppercase">Current</div>
                                 <div className="text-sm font-bold capitalize text-ink mt-0.5">{currentPlanKey}</div>
@@ -1519,7 +1519,7 @@ export default function BillingIndex({
 
             {/* ── Cancel Subscription Modal ─────────────────────────────────── */}
             <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
-                <div className="p-8 bg-surface text-ink rounded-2xl border border-line shadow-2xl">
+                <div className="p-4 sm:p-8 bg-surface text-ink rounded-2xl border border-line shadow-2xl">
                     <div className="flex items-center gap-3 mb-5">
                         <div className="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
                             <AlertTriangle size={20} />

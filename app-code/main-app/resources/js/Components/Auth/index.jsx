@@ -25,7 +25,7 @@ export function AuthField({ label, action, error, hint, id, ...rest }) {
     return (
         <div className="flex flex-col gap-2">
             {label ? (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
                     <label htmlFor={fid} className="text-sm font-medium text-ink-secondary">
                         {label}
                     </label>

@@ -211,7 +211,7 @@ class SitemapController extends Controller
 
         // 6. Published online shops (public, indexable)
         try {
-            foreach (\Illuminate\Support\Facades\DB::table('storefronts')->where('status', 'published')->orderBy('id')->limit(5000)->get(['slug', 'updated_at']) as $shop) {
+            foreach (\Illuminate\Support\Facades\DB::table('storefronts')->where('status', 'published')->whereRaw(\App\Models\Commerce\Storefront::moduleLiveSql(), ['online_store'])->orderBy('id')->limit(5000)->get(['slug', 'updated_at']) as $shop) {
                 $categorized['shops'][] = ['loc' => url('/shop/' . $shop->slug), 'changefreq' => 'weekly', 'priority' => '0.5'];
             }
         } catch (\Throwable $e) {

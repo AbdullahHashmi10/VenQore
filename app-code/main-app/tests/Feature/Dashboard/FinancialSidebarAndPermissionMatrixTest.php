@@ -377,12 +377,12 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
         $this->assertNull($props['inventoryValue'] ?? null, 'User with only inventory.view must not receive inventoryValue');
     }
 
-    public function test_all_32_staff_presets_end_to_end_permission_and_visibility_contract()
+    public function test_all_35_staff_presets_end_to_end_permission_and_visibility_contract()
     {
         $presetsPath = resource_path('js/Data/staff_presets.json');
         $this->assertFileExists($presetsPath);
         $presets = json_decode(file_get_contents($presetsPath), true);
-        $this->assertCount(32, $presets, 'There must be exactly 32 staff preset templates');
+        $this->assertCount(35, $presets, 'There must be exactly 35 staff preset templates');
 
         foreach ($presets as $preset) {
             $user = User::factory()->create();
@@ -730,7 +730,7 @@ class FinancialSidebarAndPermissionMatrixTest extends TestCase
         $presets = json_decode(file_get_contents($presetsPath), true);
         $canonicalPerms = config('permissions.owner', []);
 
-        $this->assertCount(32, $presets);
+        $this->assertCount(35, $presets);
 
         foreach ($presets as $preset) {
             $this->assertNotEmpty($preset['id']);

@@ -117,7 +117,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                             <tbody>
                                 {lines.map((l, i) => (
                                     <tr key={i} className="border-t border-line">
-                                        <td className="py-2">{l.title}<div className="text-xs text-ink-muted">{l.rule === 'fixed_override' ? 'fixed online price' : l.rule === 'percent' ? `${l.rule_percent > 0 ? '+' : ''}${l.rule_percent}% on ${money(l.base_price, sym)}` : 'regular price'}</div></td>
+                                        <td className="py-2">{l.title}{(l.mods || []).length > 0 && <div className="text-xs font-medium text-ink">{l.mods.map((m) => m.name).join(', ')}</div>}{l.notes && <div className="text-xs italic text-ink-muted">Note: {l.notes}</div>}<div className="text-xs text-ink-muted">{l.rule === 'fixed_override' ? 'fixed online price' : l.rule === 'percent' ? `${l.rule_percent > 0 ? '+' : ''}${l.rule_percent}% on ${money(l.base_price, sym)}` : 'regular price'}</div></td>
                                         <td className="text-right tabular-nums">{l.quantity}</td><td className="text-right tabular-nums">{money(l.online_price, sym)}</td><td className="text-right tabular-nums">{money(l.line_total, sym)}</td>
                                         {order.status === 'pending' && <td className={`text-right tabular-nums ${l.available !== null && l.available < l.quantity ? 'text-red-600 font-semibold' : ''}`}>{l.available ?? '—'}</td>}
                                     </tr>
@@ -187,7 +187,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         {['ready', 'out_for_delivery'].includes(order.status) && (
                             <div className="border-t border-line pt-3 space-y-3">
                                 <div className="p-3 rounded-xl bg-surface-2/60 border border-line flex flex-col gap-2">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2">
                                         <span className="text-xs font-semibold text-ink-secondary flex items-center gap-1.5">
                                             <User size={14} className="text-brand-600" />
                                             Target Customer Account
@@ -196,7 +196,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                             {customerMode === 'link' ? 'Linked Existing Customer' : 'New Customer Profile'}
                                         </span>
                                     </div>
-                                    <div className="text-sm font-medium text-ink flex items-center justify-between">
+                                    <div className="text-sm font-medium text-ink flex flex-wrap items-center justify-between gap-y-2">
                                         <div>
                                             {customerMode === 'link' && selectedCustomer
                                                 ? `${selectedCustomer.name} (${selectedCustomer.phone || 'No phone'})`
@@ -246,7 +246,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         <p className="text-sm text-ink-muted">{PAYMENT_LABEL[order.payment_status]}</p>
                         {order.bank_reference && (
                             <div className="mt-3 p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-xs space-y-2">
-                                <div className="flex items-center justify-between gap-2">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2">
                                     <span className="font-semibold text-amber-900 dark:text-amber-200">Customer Transfer Ref:</span>
                                     <span className="font-mono bg-white dark:bg-amber-900/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-700/60 text-[11px] font-bold text-amber-900 dark:text-amber-100">
                                         {order.bank_reference}
@@ -304,7 +304,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         className="relative max-w-3xl w-full max-h-[90vh] bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-4 border-b border-line bg-surface-2/60">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-surface-2/60">
                             <div>
                                 <h3 className="font-bold text-ink text-base">Payment Screenshot Proof</h3>
                                 <p className="text-xs text-ink-muted">
@@ -356,7 +356,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-line bg-surface-2/60">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-surface-2/60">
                             <div className="flex items-center gap-2.5">
                                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                                     completeModal.isAlreadyPaid 
@@ -451,7 +451,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                             {/* Mode 1: Create New Customer Form */}
                             {customerMode === 'new' && (
                                 <div className="space-y-3 p-3.5 bg-surface-2/40 rounded-xl border border-line animate-in fade-in duration-150">
-                                    <div className="flex items-center justify-between text-xs">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs">
                                         <span className="font-semibold text-ink">Online Order Customer Details</span>
                                         <span className="text-[11px] text-ink-muted">Pre-filled from order</span>
                                     </div>
@@ -577,7 +577,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                             )}
 
                             {/* Summary Confirmation Banner */}
-                            <div className="p-3 rounded-xl bg-surface border border-line flex items-center justify-between">
+                            <div className="p-3 rounded-xl bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2">
                                 <div>
                                     <span className="text-[11px] text-ink-muted block uppercase tracking-wider font-semibold">Attributed Customer</span>
                                     <span className="font-bold text-ink text-sm">

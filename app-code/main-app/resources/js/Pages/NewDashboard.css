@@ -1133,7 +1133,9 @@ body{
 }
 @media (max-width: 599px){
   .vq-grid{ --vq-cols: 4; }
-  .vq-w4,.vq-w5,.vq-w6,.vq-w7,.vq-w8,.vq-w9,.vq-w10,.vq-w11,.vq-w12{ grid-column: span 4; }
+  /* Phone: every card runs the full width. A 3-of-4 card used to leave a
+     quarter-width gap down the right edge. Desktop and tablet are untouched. */
+  .vq-w1,.vq-w2,.vq-w3,.vq-w4,.vq-w5,.vq-w6,.vq-w7,.vq-w8,.vq-w9,.vq-w10,.vq-w11,.vq-w12{ grid-column: span 4; }
   .pg{ padding: var(--vq-space-8) var(--vq-space-4) var(--vq-space-16); }
   .pg-top{ padding: var(--vq-space-3) var(--vq-space-4); }
 }

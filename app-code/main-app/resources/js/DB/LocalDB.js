@@ -17,6 +17,14 @@ db.version(3).stores({
     sync_queue: '++id, table, action, data, timestamp' // Generic sync queue
 });
 
+// v4 (sale reliability, Oct 2026) — ADDITIVE: sales_queue gains indexes for
+// the store it belongs to and its receipt key. No table is cleared and no row
+// is rewritten: rows queued by older builds keep everything they had and are
+// held for review if they carry no store identity (see useOfflineSync).
+db.version(4).stores({
+    sales_queue: '++id, created_at, status, tenant_id, intent_key, [tenant_id+status]',
+});
+
 // Initialize Settings if empty
 db.on('populate', () => {
     db.settings.add({ key: 'last_online_verify', value: Date.now() });

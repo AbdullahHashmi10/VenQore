@@ -19,25 +19,34 @@ class ExpensePostingService
     public function post(Tenant $tenant, array $payload, ?User $user = null): array
     {
         $tenantId = $tenant->id;
-        $amount = (float) $payload['amount'];
-        $inputTax = (float) ($payload['input_tax'] ?? $payload['tax_amount'] ?? 0);
-        $totalDue = round($amount + $inputTax, 2);
+        // ZeroDrift Ledger: each amount is quantized to the paisa ONCE, then
+        // every figure is an exact integer sum — expense + tax = paid + owed,
+        // to the paisa, so the entry balances by construction.
+        $M = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+        $F = fn (int $m) => \App\Support\Money::toFloat($m);
+        $amountM = $M($payload['amount']);
+        $taxM    = $M($payload['input_tax'] ?? $payload['tax_amount'] ?? 0);
+        if ($amountM < 0 || $taxM < 0) {
+            throw new \App\Exceptions\MoneyException('An expense and its tax cannot be negative.', 'negative_amount');
+        }
+        $dueM = $amountM + $taxM;
+        $amount = $F($amountM);
+        $inputTax = $F($taxM);
+        $totalDue = $F($dueM);
         $paymentMethod = $payload['payment_method'] ?? 'cash';
         $expenseDate = $payload['expense_date'] ?? $payload['date'] ?? now()->toDateString();
         $description = $payload['description'] ?? $payload['category'] ?? $payload['notes'] ?? 'Operating expense';
         $reference = $payload['reference'] ?? ('EXP-' . strtoupper(uniqid()));
 
-        // R07 FIX: Support partial payment.
-        // When amount_paid is explicitly provided, honour it; the remaining balance
-        // goes to AP (2000). This matches the legacy direct path which stored
-        // amount_paid on the Expense record without altering the GL posting logic.
-        // If amount_paid is null or not provided, default to paying the full total
-        // (backward-compatible behaviour).
-        $amountPaid = isset($payload['amount_paid']) && $payload['amount_paid'] !== null
-            ? round((float)$payload['amount_paid'], 2)
-            : $totalDue;
-        $amountPaid = max(0.0, min($amountPaid, $totalDue));
-        $amountCredit = round($totalDue - $amountPaid, 2); // balance posted to AP
+        // R07 FIX: Support partial payment. When amount_paid is given it is
+        // honoured (never more than the total); the rest goes to AP (2000).
+        // Without it the whole total is paid (backward-compatible).
+        $paidM = isset($payload['amount_paid']) && $payload['amount_paid'] !== null && $payload['amount_paid'] !== ''
+            ? $M($payload['amount_paid'])
+            : $dueM;
+        $paidM = max(0, min($paidM, $dueM));
+        $amountPaid = $F($paidM);
+        $amountCredit = $F($dueM - $paidM); // balance posted to AP
 
         return CanonicalPostingScope::run(function () use (
             $tenantId, $amount, $inputTax, $totalDue, $amountPaid, $amountCredit,

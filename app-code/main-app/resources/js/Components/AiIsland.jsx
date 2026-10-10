@@ -70,6 +70,7 @@ const MODES = {
   // full-screen island is a labelled pill — small enough to ignore over a POS
   // screen, legible enough to be an offer.
   orb:      { w: 154, h: CONTROL_H },
+  phone:    { w: 118, h: 34 },
   orbHover: { w: 340, h: CONTROL_H },
   working:  { w: 340, h: CONTROL_H },
   alert:    { w: 470, h: 84 },
@@ -275,9 +276,10 @@ export default function AiIsland({
   onAskAi,
   isAiLoading = false,
   compact = false,      // full-screen pages: orb-only until hovered
+  phone = false,        // phone top bar: small 'Ask Vena' pill, never hover-expands
   extraAlerts = [],
 }) {
-  const { auth, store, growth_engine, vensynq_enabled } = usePage().props;
+  const { auth, store, growth_engine, vensynq_enabled, smartcapture_enabled } = usePage().props;
   const { isDark: appearanceIsDark } = useAppearance() || { isDark: true };
   const { isDarkMode: themeIsDark } = useTheme() || { isDarkMode: true };
   const isDark = store ? appearanceIsDark : themeIsDark;
@@ -365,7 +367,7 @@ export default function AiIsland({
   const userRole = auth?.user?.role;
   const userPerms = useMemo(() => auth?.user?.permissions || [], [auth?.user?.permissions]);
   const isFullAccess = ['owner', 'admin', 'manager', 'platform_admin'].includes(userRole);
-  const canUseSmartCapture = vensynq_enabled && (isFullAccess || userPerms.some(p => /^(pos|sales|purchases)/.test(p)));
+  const canUseSmartCapture = (smartcapture_enabled ?? true) && (isFullAccess || userPerms.some(p => /^(pos|sales|purchases)/.test(p)));
 
   // ── Geometry ──────────────────────────────────────────────────────────────
   // Capture hosts the full AI Scan workflow, so it takes 80% of the viewport;
@@ -379,13 +381,14 @@ export default function AiIsland({
       }
       return MODES.open;
     }
+    if (mode === 'rest' && phone) return MODES.phone;
     if (mode === 'rest' && compact) return hovered ? MODES.orbHover : MODES.orb;
     return MODES[mode] || MODES.rest;
-  }, [mode, tab, compact, hovered, vw, vh]);
+  }, [mode, tab, compact, phone, hovered, vw, vh]);
 
   const width = Math.min(target.w, vw - 48);   // --vq-gutter on both sides
   const height = Math.min(target.h, vh - 88);
-  const restBase = compact ? MODES.orb : MODES.rest;
+  const restBase = phone ? MODES.phone : (compact ? MODES.orb : MODES.rest);
   const restWidth = Math.min(restBase.w, vw - 48);
   const restHeight = restBase.h;
 
@@ -607,11 +610,25 @@ export default function AiIsland({
         const d = res.data || {};
         const body = d.response || d.answer || d.summary;
         if (body) {
-          setAiAnswer({ text: body, records: d.records || [] });
+          setAiAnswer({
+            text: body,
+            records: d.records || [],
+            links: Array.isArray(d.links) ? d.links : [],
+            notice: d.notice || null,
+          });
           haptic('success');
         }
       })
-      .catch(err => console.error('Island AI error:', err))
+      .catch(err => {
+        console.error('Island AI error:', err);
+        const data = err?.response?.data || {};
+        setAiAnswer({
+          text: data.message || data.error || 'Vena could not answer just now. Please try again.',
+          records: [],
+          links: Array.isArray(data.links) ? data.links : [],
+          isError: true,
+        });
+      })
       .finally(() => { setIsAiAnswering(false); setActivity('idle'); });
   };
 
@@ -741,7 +758,8 @@ export default function AiIsland({
         tone={tone}
         sheen={!isOpen}
         onScrimClick={closeIsland}
-        onHoverChange={setHovered}
+        onHoverChange={phone ? undefined : setHovered}
+        centerWhenOpen={phone}
         slotClassName="shrink-0"
         ariaLabel="VenQore AI and notifications"
       >
@@ -752,16 +770,16 @@ export default function AiIsland({
             <Pane key="rest">
               <div
                 className="w-full h-full flex items-center gap-2"
-                style={{ padding: compact && !hovered ? '0 14px' : '0 8px 0 14px' }}
+                style={{ padding: phone ? '0 12px 0 8px' : (compact && !hovered ? '0 14px' : '0 8px 0 14px') }}
               >
                 <button
                   type="button"
                   onClick={() => openIsland('ask')}
-                  className="flex-1 min-w-0 h-full flex items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#23C4A6]/60 rounded-xl"
+                  className={`flex-1 min-w-0 h-full flex items-center ${phone ? 'gap-2 justify-center' : 'gap-3'} text-left outline-none focus-visible:ring-2 focus-visible:ring-[#23C4A6]/60 rounded-xl`}
                   aria-label="Open VenQore AI"
                 >
-                  <span className="shrink-0 grid place-items-center" style={{ width: 26, height: 26 }}>
-                    <ThinkingOrb state={orbState} size={24} theme="dark" paused={orbPaused} />
+                  <span className="shrink-0 grid place-items-center" style={{ width: phone ? 20 : 26, height: phone ? 20 : 26 }}>
+                    <ThinkingOrb state={orbState} size={phone ? 18 : 24} theme="dark" paused={orbPaused} />
                   </span>
 
                   {compact ? (
@@ -1080,6 +1098,21 @@ export default function AiIsland({
                                     <Sparkles size={14} /> Vena
                                   </p>
                                   <p className="whitespace-pre-line" style={{ ...T.small, color: `${INK}.94)` }}>{aiAnswer.text}</p>
+                                  {aiAnswer.notice && (
+                                    <p className="mt-2" style={{ ...T.small, color: `${INK}.6)` }}>{aiAnswer.notice}</p>
+                                  )}
+                                  {aiAnswer.links?.length > 0 && (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                      {aiAnswer.links.map((l, i) => (
+                                        <button key={`${l.url}-${i}`} type="button"
+                                          onClick={() => { haptic('pop'); router.visit(l.url); closeIsland(); }}
+                                          className="px-3 py-1.5 rounded-full"
+                                          style={{ ...T.small, background: 'rgba(35,196,166,.2)', color: '#59DBC0', boxShadow: 'inset 0 0 0 1px rgba(35,196,166,.35)' }}>
+                                          {l.label} →
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
                                 </motion.div>
                               )}
 

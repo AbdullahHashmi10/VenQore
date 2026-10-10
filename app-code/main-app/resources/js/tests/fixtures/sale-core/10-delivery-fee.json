@@ -27,18 +27,29 @@
       }
     ],
     "amount_paid": 1020,
+    "tendered_amount": 1020,
+    "cash_tendered": 1020,
+    "change_return": 0,
     "tax": 0,
     "tax_rate": 0,
     "tax_inclusive": false,
+    "tax_exempt": true,
     "discount": 0,
     "delivery_charge": 120,
-    "extra_charge_value": 120,
-    "extra_charge_label": "Delivery fee",
+    "extra_charge_value": 0,
+    "extra_charge_label": null,
     "service_charge": 0,
     "tip_amount": 0,
+    "bill_rounding": false,
+    "expected_total": 1020,
+    "calculation_version": 2,
     "notes": "",
     "add_to_ledger": false,
     "source": "pos",
     "is_dropship": false
-  }
+  },
+  "contract_v2_changes": [
+    "added: tendered_amount, cash_tendered, change_return, tax_exempt, bill_rounding, expected_total, calculation_version",
+    "delivery sent once (delivery_charge); the v1 recording double-sent it as extra_charge_value too, which the server summed (1140 posted vs 1020 shown)"
+  ]
 }

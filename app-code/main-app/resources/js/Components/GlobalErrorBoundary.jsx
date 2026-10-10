@@ -52,7 +52,7 @@ class GlobalErrorBoundary extends React.Component {
             // Premium Error UI
             return (
                 <div className="min-h-screen w-full flex items-center justify-center bg-app p-6 animate-in fade-in duration-slower">
-                    <div className="max-w-2xl w-full bg-surface rounded-2xl shadow-2xl border border-line p-12 text-center relative overflow-hidden">
+                    <div className="max-w-2xl w-full bg-surface rounded-2xl shadow-2xl border border-line p-5 sm:p-12 text-center relative overflow-hidden">
 
                         {/* Background Decoration */}
                         <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 via-orange-500 to-red-500"></div>
@@ -64,7 +64,7 @@ class GlobalErrorBoundary extends React.Component {
                                 <ShieldX size={48} className="text-red-500" />
                             </div>
 
-                            <h1 className="text-4xl font-bold text-ink mb-4 tracking-tight">
+                            <h1 className="text-2xl sm:text-4xl font-bold text-ink mb-4 tracking-tight">
                                 Something went wrong
                             </h1>
 
@@ -76,7 +76,7 @@ class GlobalErrorBoundary extends React.Component {
                             <div className="flex flex-wrap justify-center gap-4 w-full">
                                 <button
                                     onClick={this.handleReload}
-                                    className="flex items-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
+                                    className="flex items-center gap-2 px-4 sm:px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
                                 >
                                     <RefreshCw size={20} />
                                     Reload Application
@@ -84,7 +84,7 @@ class GlobalErrorBoundary extends React.Component {
 
                                 <button
                                     onClick={this.handleGoHome}
-                                    className="flex items-center gap-2 px-8 py-4 bg-surface text-ink-secondary dark:text-ink border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl font-bold transition-all active:scale-95"
+                                    className="flex items-center gap-2 px-4 sm:px-8 py-4 bg-surface text-ink-secondary dark:text-ink border border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl font-bold transition-all active:scale-95"
                                 >
                                     <Home size={20} />
                                     Return Home

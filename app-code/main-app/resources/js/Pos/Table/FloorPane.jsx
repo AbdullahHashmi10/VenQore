@@ -30,11 +30,12 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import {
     Users, Clock, Plus, ShoppingBag, Bike, AlertTriangle, Phone, Calendar, Map as MapIcon,
     LayoutGrid, Rows3, Grid3x3, List, Move, RotateCw, Circle, Square,
-    RectangleHorizontal, Check, Undo2, CircleDot, Loader2, Hand,
+    RectangleHorizontal, Bell, Check, Undo2, CircleDot, Loader2, Hand, Shrink, Expand, Pencil,
 } from 'lucide-react';
 import { STATES, alertAge } from './useTableService';
 import { DeliveryChip, isLate } from './Delivery';
 import ReservationModal from './ReservationModal';
+import { kitchenOn, cookWord } from './kitchenWord';
 import { useTermText } from '@/lib/terms';
 import './floor.css';
 
@@ -68,8 +69,9 @@ function timerLevel(card, now) {
 
 /* The one thing to do next, in the words a shift lead would use. */
 export function nextAction(c) {
-    const unsent = Number(c.unsent) || 0;
+    const unsent = kitchenOn() ? Number(c.unsent) || 0 : 0;
     const fromGuest = Number(c.customer_pending) || 0;
+    if (c.guest_call) return { text: c.guest_call === 'bill' ? 'Guest wants the bill' : 'Guest called a waiter', tone: 'warn' };
     if (fromGuest > 0) return { text: `${fromGuest} new from guest`, tone: 'warn' };
     switch (c.state) {
         case 'free':          return { text: c.kind === 'ticket' ? 'Start order' : 'Seat guests', tone: 'quiet' };
@@ -80,7 +82,7 @@ export function nextAction(c) {
         default: break;
     }
     if (unsent > 0) return { text: `Send ${unsent} to kitchen`, tone: 'warn' };
-    if (c.state === 'in_kitchen') return { text: 'Cooking', tone: 'calm' };
+    if (c.state === 'in_kitchen') return { text: cookWord(), tone: 'calm' };
     if (c.state === 'served') return { text: 'Offer the bill', tone: 'calm' };
     if (c.state === 'ordered') return { text: 'Ordered', tone: 'calm' };
     return { text: (STATES[c.state] || STATES.free).label, tone: 'calm' };
@@ -103,11 +105,12 @@ function Avatar({ server }) {
 }
 
 function Badges({ c }) {
-    const unsent = Number(c.unsent) || 0;
+    const unsent = kitchenOn() ? Number(c.unsent) || 0 : 0;
     const fromGuest = Number(c.customer_pending) || 0;
-    if (!unsent && !fromGuest) return null;
+    if (!unsent && !fromGuest && !c.guest_call) return null;
     return (
         <span className="vqf-badges">
+            {c.guest_call && <span className="vqf-badge" data-tone="guest"><Bell size={10} aria-hidden="true" />{c.guest_call === 'bill' ? 'Bill' : 'Call'}</span>}
             {fromGuest > 0 && <span className="vqf-badge" data-tone="guest"><ShoppingBag size={10} aria-hidden="true" />{fromGuest} new</span>}
             {unsent > 0 && <span className="vqf-badge"><CircleDot size={10} aria-hidden="true" />{unsent} unsent</span>}
         </span>
@@ -223,7 +226,7 @@ const SeatSquare = memo(function SeatSquare({ p, selected, onPick, money, now, s
     const alert = alertAge(p, now);
     const busy = !!p.occupancy_id;
     const due = Number(p.order_total) || 0;
-    const badge = (Number(p.unsent) || 0) + (Number(p.customer_pending) || 0) > 0;
+    const badge = (kitchenOn() ? Number(p.unsent) || 0 : 0) + (Number(p.customer_pending) || 0) > 0 || !!p.guest_call;
     return (
         <button type="button" onClick={() => onPick(p)} className="vqf-seat" data-tone={toneOf(p)}
                 data-selected={selected ? '1' : '0'} data-alert={alert ? '1' : '0'} data-dim={dim ? '1' : '0'}
@@ -299,7 +302,7 @@ const MapTable = memo(function MapTable({
     const wide = long && rot !== 90;
     const tall = long && rot === 90;
     const lvl = busy ? timerLevel(p, now) : 0;
-    const badge = (Number(p.unsent) || 0) + (Number(p.customer_pending) || 0) > 0;
+    const badge = (kitchenOn() ? Number(p.unsent) || 0 : 0) + (Number(p.customer_pending) || 0) > 0 || !!p.guest_call;
 
     return (
         <button type="button" className="vqf-mt" data-shape={shape} data-tone={toneOf(p)}
@@ -330,14 +333,77 @@ const MapTable = memo(function MapTable({
     );
 });
 
+/* Pack the room to its tables. Tables keep their arrangement, but empty margins and
+   empty rows are trimmed, and (in compact spacing) the gaps between tables close up
+   until they are about to touch. All maths is in pixels so nothing can overlap. */
+const COMPACT_MIN = 0.45;
+function packRoom(sorted, layout, W, H0, cols, rows, spacing) {
+    const u = Math.min(W / cols, (H0 / rows) * 1.05, 190);
+    const pts = sorted.map((p, i) => {
+        const saved = layout[p.id];
+        const shape = shapeFor(p, saved);
+        const long = shape === 'long';
+        const rot = saved?.rot || 0;
+        const k = u * 0.66 * scaleFor(Number(p.capacity) || 2);
+        const w = Math.max(long && rot !== 90 ? 87 : 54, k * (long && rot !== 90 ? 1.62 : 1));
+        const h = Math.max(long && rot === 90 ? 87 : 54, k * (long && rot === 90 ? 1.62 : 1));
+        const x = (saved ? saved.x : ((i % cols) + 0.5) / cols) * W;
+        const y = (saved ? saved.y : (Math.floor(i / cols) + 0.5) / rows) * H0;
+        return { id: p.id, x, y, w, h };
+    });
+    if (!pts.length) return null;
+    const GX = 28, GY = 40; /* chairs + the amount tag under a table */
+    const clash = (fx, fy, cx, cy) => {
+        for (let a = 0; a < pts.length; a++) for (let b = a + 1; b < pts.length; b++) {
+            const A = pts[a], B = pts[b];
+            const dx = Math.abs(A.x - B.x) * fx, dy = Math.abs(A.y - B.y) * fy;
+            if (dx < (A.w + B.w) / 2 + GX && dy < (A.h + B.h) / 2 + GY) return true;
+        }
+        return false;
+    };
+    const minx = Math.min(...pts.map(t => t.x)), maxx = Math.max(...pts.map(t => t.x));
+    const miny = Math.min(...pts.map(t => t.y)), maxy = Math.max(...pts.map(t => t.y));
+    const cx = (minx + maxx) / 2, cy = (miny + maxy) / 2;
+    /* Each axis closes up on its own: pick the tightest pair of factors that still leaves every table clear. */
+    let fx = 1, fy = 1;
+    if (spacing === 'compact') {
+        let best = null;
+        for (let a = COMPACT_MIN; a <= 1.0001; a += 0.05) for (let b = COMPACT_MIN; b <= 1.0001; b += 0.05) {
+            if ((!best || a * b < best.a * best.b) && !clash(a, b, cx, cy)) best = { a, b };
+        }
+        if (best) { fx = best.a; fy = best.b; }
+    }
+    const sp = pts.map(t => ({ ...t, x: cx + (t.x - cx) * fx, y: cy + (t.y - cy) * fy }));
+    const L = Math.min(...sp.map(t => t.x - t.w / 2 - 14)), R = Math.max(...sp.map(t => t.x + t.w / 2 + 14));
+    const T = Math.min(...sp.map(t => t.y - t.h / 2 - 16)), B = Math.max(...sp.map(t => t.y + t.h / 2 + 34));
+    const H = Math.max(150, Math.min(H0, B - T));
+    const sx = W / 2 - (L + R) / 2;
+    const out = {};
+    sp.forEach(t => { out[t.id] = { x: (t.x + sx) / W, y: (t.y - T) / H }; });
+    return { pos: out, height: H, rows: rows * (H / H0) };
+}
+
 function Room({
     title, tables, layout, selectedId, onPick, money, now, show, dimOf, arranging, pickedId,
-    onDragStart, showTitle,
+    onDragStart, showTitle, spacing = 'compact',
 }) {
     const sorted = useMemo(() => [...tables].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
         || String(a.code).localeCompare(String(b.code), undefined, { numeric: true })), [tables]);
     const { cols, rows } = roomGrid(sorted.length);
     const busy = sorted.filter(t => t.occupancy_id).length;
+    const ar = (rows * 0.92 + 0.12) / cols;
+    const ref = useRef(null);
+    const [W, setW] = useState(0);
+    useEffect(() => {
+        const el = ref.current; if (!el || typeof ResizeObserver === 'undefined') return undefined;
+        const ro = new ResizeObserver(([e]) => setW(Math.round(e.contentRect.width)));
+        ro.observe(el); return () => ro.disconnect();
+    }, []);
+    const packed = useMemo(() => {
+        if (arranging || !W) return null;
+        const H0 = Math.max(180, Math.min((W - 24) * ar, rows * 190 + 24));
+        return packRoom(sorted, layout, W, H0, cols, rows, spacing);
+    }, [arranging, W, sorted, layout, cols, rows, ar, spacing]);
     return (
         <div className="vqf-room-wrap">
             {showTitle && (
@@ -346,15 +412,17 @@ function Room({
                     <span className="vq-num">{busy}/{sorted.length} in use</span>
                 </div>
             )}
-            <div className="vqf-room" data-arranging={arranging ? '1' : '0'}
-                 style={{ '--cols': cols, '--rows': rows, '--ar': (rows * 0.92 + 0.12) / cols }}>
+            <div ref={ref} className="vqf-room" data-arranging={arranging ? '1' : '0'} data-packed={packed ? '1' : '0'}
+                 style={{ '--cols': cols, '--rows': packed ? packed.rows : rows, '--ar': ar,
+                          ...(packed ? { height: `${Math.round(packed.height)}px`, minHeight: 0 } : null) }}>
                 {sorted.map((p, i) => {
                     const saved = layout[p.id];
                     const ax = ((i % cols) + 0.5) / cols;
                     const ay = (Math.floor(i / cols) + 0.5) / rows;
+                    const at = packed?.pos[p.id];
                     return (
                         <MapTable key={p.id} p={p}
-                                  x={saved ? saved.x : ax} y={saved ? saved.y : ay}
+                                  x={at ? at.x : saved ? saved.x : ax} y={at ? at.y : saved ? saved.y : ay}
                                   shape={shapeFor(p, saved)} rot={saved?.rot || 0}
                                   selected={p.id === selectedId} onPick={onPick} money={money} now={now}
                                   show={show} dim={dimOf(p)} arranging={arranging}
@@ -488,6 +556,8 @@ export default function FloorPane({
 
     /* ── ARRANGE MODE ──────────────────────────────────────────────── */
     const [arranging, setArranging] = useState(false);
+    const [spacing, setSpacingState] = useState(() => { try { return localStorage.getItem('foh_floor_spacing') || 'compact'; } catch { return 'compact'; } });
+    const toggleSpacing = () => setSpacingState((v) => { const n = v === 'compact' ? 'roomy' : 'compact'; try { localStorage.setItem('foh_floor_spacing', n); } catch { /* private mode */ } return n; });
     const [layout, setLayout] = useState(() => floorMap?.tables || {});
     const [pickedId, setPickedId] = useState(null);
     const [saveState, setSaveState] = useState('idle');
@@ -663,6 +733,17 @@ export default function FloorPane({
                 <button type="button" className="vqf-hbtn" onClick={() => setShowReservations(true)} title="Bookings and waitlist">
                     <Calendar size={15} aria-hidden="true" /><span>Bookings</span>
                 </button>
+                {eff === 'map' && !arranging && (
+                    <button type="button" className="vqf-hbtn" onClick={toggleSpacing} aria-pressed={spacing === 'compact'}
+                            title={spacing === 'compact' ? 'Tables are packed close. Tap to spread them out.' : 'Tables are spread out. Tap to pack them close.'}>
+                        {spacing === 'compact' ? <Expand size={14} aria-hidden="true" /> : <Shrink size={14} aria-hidden="true" />}<span>{spacing === 'compact' ? 'Spread out' : 'Pack closer'}</span>
+                    </button>
+                )}
+                {canArrange && storeSlug && !arranging && (
+                    <a className="vqf-hbtn" href={route('store.tables.plan', { store_slug: storeSlug })} target="_blank" rel="noreferrer" title="Add, remove or rename tables and areas">
+                        <Pencil size={14} aria-hidden="true" /><span>Update floor</span>
+                    </a>
+                )}
                 {eff === 'map' && canArrange && onSaveFloorMap && !arranging && (
                     <button type="button" className="vqf-hbtn" onClick={() => setArranging(true)} title="Move tables to match your room">
                         <Move size={14} aria-hidden="true" /><span>Arrange</span>
@@ -743,11 +824,11 @@ export default function FloorPane({
                             <Room key={z} title={z} tables={list} layout={layout} selectedId={selectedId}
                                   onPick={pick} money={fmt} now={now} show={showStable} dimOf={dimOf}
                                   arranging={arranging} pickedId={pickedId} onDragStart={onDragStart}
-                                  showTitle={rooms.length > 1 || zone === 'all'} />
+                                  showTitle={rooms.length > 1 || zone === 'all'} spacing={spacing} />
                         ))}
                         {!arranging && rooms.length > 0 && (
                             <div className="vqf-legend" aria-hidden="true">
-                                {LEGEND.map(([tone, label]) => <span key={tone} data-tone={tone}><i />{label}</span>)}
+                                {LEGEND.map(([tone, label]) => <span key={tone} data-tone={tone}><i />{tone === 'kitchen' ? (kitchenOn() ? 'Kitchen' : 'Preparing') : label}</span>)}
                                 <span data-tone="alert"><i />Needs you</span>
                             </div>
                         )}

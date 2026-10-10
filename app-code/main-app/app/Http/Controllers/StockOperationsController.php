@@ -155,15 +155,29 @@ class StockOperationsController extends Controller
 
     public function storeWarehouse(Request $request)
     {
+        $tenant = app('current.tenant');
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:100',
+                \Illuminate\Validation\Rule::unique('warehouses', 'name')->where('tenant_id', $tenant->id)->whereNull('deleted_at')],
             'location' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:255',
         ]);
+
+        // Same plan limits as the Warehouses page: one creation rule, two doors.
+        $count = Warehouse::count();
+        if ($count >= 1) {
+            \App\Services\PlanGate::enforce('multi_branch', $tenant);
+        }
+        \App\Services\PlanGate::enforce('locations', $count);
 
         Warehouse::create([
             'name' => $validated['name'],
             'location' => $validated['location'],
-            // 'is_active' => true,
+            'contact_person' => $validated['contact_person'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'is_active' => true,
+            'is_default' => $count === 0,
         ]);
 
         return redirect()->back()->with('success', 'Warehouse created successfully');
@@ -174,7 +188,9 @@ class StockOperationsController extends Controller
         $warehouse = Warehouse::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => ['required', 'string', 'max:100',
+                \Illuminate\Validation\Rule::unique('warehouses', 'name')
+                    ->where('tenant_id', app('current.tenant')->id)->whereNull('deleted_at')->ignore($warehouse->id)],
             'location' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:255',

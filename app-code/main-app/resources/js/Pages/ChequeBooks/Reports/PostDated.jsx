@@ -54,7 +54,7 @@ export default function PostDatedCheques({ outgoing = [], incoming = [] }) {
 
                 {/* Line 3: 2 Summary Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div>
                             <p className="text-2xs font-bold uppercase tracking-wider text-blue-600 flex items-center gap-1">
                                 <ArrowUpRight size={14} /> Outgoing PDCs (Vendor Obligations)
@@ -64,7 +64,7 @@ export default function PostDatedCheques({ outgoing = [], incoming = [] }) {
                         <span className="text-xs font-bold text-ink-muted">{outgoing.length} cheques</span>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div>
                             <p className="text-2xs font-bold uppercase tracking-wider text-emerald-600 flex items-center gap-1">
                                 <ArrowDownLeft size={14} /> Incoming PDCs (Customer Receivables)

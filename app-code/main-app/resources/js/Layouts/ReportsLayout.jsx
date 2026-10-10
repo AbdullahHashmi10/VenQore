@@ -154,7 +154,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
  <button
  type="button"
  onClick={() => toggleGroup(idx)}
- className={`w-full flex items-center justify-between px-3 py-1.5 text-3xs font-bold uppercase tracking-[0.2em] transition-colors group ${hasActiveChild ? 'text-brand-400' : 'text-ink-muted hover:text-neutral-300'}`}
+ className={`w-full flex flex-wrap items-center justify-between gap-y-2 px-3 py-1.5 text-3xs font-bold uppercase tracking-[0.2em] transition-colors group ${hasActiveChild ? 'text-brand-400' : 'text-ink-muted hover:text-neutral-300'}`}
  >
  <div className="flex items-center gap-2">
  <GroupIcon size={10} />
@@ -196,7 +196,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
   </div>
 
   {!sidebarCollapsed && (
-  <div className="relative z-10 flex-1 min-w-0 flex items-center justify-between">
+  <div className="relative z-10 flex-1 min-w-0 flex flex-wrap items-center justify-between gap-y-2">
   <p className={`text-1xs font-bold tracking-tight truncate ${isActive ? 'text-white' : 'text-neutral-300'}`}>{tt(report.title)}</p>
   {isLocked && (
     <Lock size={11} className="text-amber-500 shrink-0 ml-1.5" />

@@ -245,9 +245,9 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  </div>
 
  {/* Main Content Area */}
- <div className="flex-1 flex overflow-hidden bg-sunken">
+ <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-sunken">
  {/* Scrollable Settings Sidebar */}
- <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'w-0 opacity-0' : 'w-96 opacity-100'}`}>
+ <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'max-lg:hidden lg:w-0 opacity-0' : 'w-full lg:w-96 opacity-100'}`}>
  <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
  {activePrintTab === 'thermal'
  ? <ThermalSettings data={data} setData={setData} activePrintTab={activePrintTab} onSetDefaultType={handleSubtabChange} />
@@ -261,7 +261,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  </div>
 
  {/* Preview Area */}
- <div className={`flex-1 overflow-auto flex items-start justify-center p-8 transition-colors duration-slow ${previewMode === 'dark' ? 'bg-neutral-900' : 'bg-sunken'}`}>
+ <div className={`flex-1 overflow-auto flex items-start justify-center p-4 sm:p-8 transition-colors duration-slow ${previewMode === 'dark' ? 'bg-neutral-900' : 'bg-sunken'}`}>
  <div className={`transform transition-all duration-slow ${sidebarCollapsed ? 'scale-100' : 'scale-95 origin-top'}`}>
  <PrintPreview
  data={data}
@@ -611,7 +611,7 @@ const ToggleBtn = ({ label, checked, onChange, color = 'indigo' }) => (
  <button
  type="button"
  onClick={() => onChange(!checked)}
- className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${checked
+ className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-xl border transition-all ${checked
  ? color === 'emerald'
  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
  : 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
@@ -631,7 +631,7 @@ const ToggleBtn = ({ label, checked, onChange, color = 'indigo' }) => (
 );
 
 const Toggle = ({ label, checked, onChange, color = 'indigo' }) => (
- <div className="flex items-center justify-between py-1">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 py-1">
  <span className="text-sm font-bold text-ink-secondary">{label}</span>
  <button
  type="button"
@@ -828,7 +828,7 @@ const B2BSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => {
           </div>
 
           <div className="pt-4 border-t border-line">
-            <label className="flex items-center justify-between cursor-pointer">
+            <label className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer">
               <div>
                 <span className="text-xs font-bold text-ink block">Show Margin on Invoices</span>
                 <span className="text-2xs text-ink-muted">Display item cost profit margin on generated B2B invoices</span>
@@ -891,7 +891,7 @@ const HardwareSettings = ({ data, setData }) => {
 				<div className="space-y-4">
 					{/* Connection Status Card */}
 					<div className="p-4 rounded-xl bg-app border border-line space-y-2">
-						<div className="flex items-center justify-between">
+						<div className="flex flex-wrap items-center justify-between gap-y-2">
 							<span className="text-xs font-bold text-ink">VenQore Station Status</span>
 							<span className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider ${isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
 								{isConnected ? 'Connected & Active' : 'Standalone Browser Mode'}
@@ -931,7 +931,7 @@ const HardwareSettings = ({ data, setData }) => {
 
 					{/* Cash Drawer Configuration */}
 					<div className="pt-3 border-t border-line space-y-3">
-						<label className="flex items-center justify-between cursor-pointer">
+						<label className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer">
 							<div>
 								<span className="text-xs font-bold text-ink block">Pulse Drawer on Cash Sale</span>
 								<span className="text-2xs text-ink-muted">Send 24V kickout pulse via RJ11/RJ12 printer port</span>
@@ -956,7 +956,7 @@ const HardwareSettings = ({ data, setData }) => {
 
 					{/* Auto-Cut Configuration */}
 					<div className="pt-3 border-t border-line space-y-2">
-						<label className="flex items-center justify-between cursor-pointer">
+						<label className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer">
 							<div>
 								<span className="text-xs font-bold text-ink block">Automatic Paper Cut</span>
 								<span className="text-2xs text-ink-muted">Trigger guillotine paper knife at end of thermal receipt</span>

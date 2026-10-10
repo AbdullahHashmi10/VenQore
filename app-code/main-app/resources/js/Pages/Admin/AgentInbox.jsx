@@ -505,9 +505,9 @@ export default function AgentInbox() {
         <OneGlanceLayout mode="admin" title="Agent Inbox" activeMenu={storeSlug ? "Store Settings" : "Agent Inbox"} noPadding={true}>
             <Head title="Agent Inbox" />
 
-            <div className="h-full w-full flex gap-6 overflow-hidden p-6">
+            <div className="h-full w-full flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-y-auto lg:overflow-hidden p-3 sm:p-6">
                 {/* Left panel: Active sessions */}
-                <div className="w-80 h-full bg-surface border border-line rounded-2xl shadow-xl flex flex-col overflow-hidden relative shrink-0">
+                <div className="w-full lg:w-80 h-80 lg:h-full bg-surface border border-line rounded-2xl shadow-xl flex flex-col overflow-hidden relative shrink-0">
                     <div className="p-6 border-b border-line bg-sunken/50 dark:bg-app">
                         <h3 className="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
                             <MessageSquare className="text-brand-500" size={20} />
@@ -582,7 +582,7 @@ export default function AgentInbox() {
                                         {/* Group Header */}
                                         <div 
                                             onClick={() => toggleGroup(groupName)}
-                                            className="flex items-center justify-between p-2.5 bg-surface hover:bg-sunken dark:hover:bg-interactive-hover rounded-xl cursor-pointer select-none transition-all text-ink border border-line shadow-sm"
+                                            className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 bg-surface hover:bg-sunken dark:hover:bg-interactive-hover rounded-xl cursor-pointer select-none transition-all text-ink border border-line shadow-sm"
                                         >
                                             <div className="flex items-center gap-2">
                                                 {isCollapsed ? <ChevronRight size={14} className="text-ink-muted" /> : <ChevronDown size={14} className="text-ink-muted" />}
@@ -619,7 +619,7 @@ export default function AgentInbox() {
                                                                 isClaimedByOther ? 'bg-amber-500' : 'bg-sunken'
                                                             }`} />
 
-                                                            <div className="flex items-center justify-between w-full">
+                                                            <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
                                                                 <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-ink'}`}>
                                                                     {s.visitor_name || 'Website Guest'}
                                                                 </span>
@@ -847,7 +847,7 @@ export default function AgentInbox() {
                                 </div>
 
                                 {/* Messages display */}
-                                <div ref={chatScrollRef} className="flex-1 chat-scroll p-8 space-y-4">
+                                <div ref={chatScrollRef} className="flex-1 chat-scroll p-4 sm:p-8 space-y-4">
                                     <div className="max-w-3xl mx-auto space-y-4">
                                         {messages.map((m) => {
                                             const isVisitor = m.sender_type === 'visitor';
@@ -916,7 +916,7 @@ export default function AgentInbox() {
                                                         key={i}
                                                         type="button"
                                                         onClick={() => selectCannedResponse(r)}
-                                                        className="w-full text-left px-3 py-2 rounded-[10px] text-xs hover:bg-interactive-hover dark:hover:bg-interactive-hover flex items-center justify-between group"
+                                                        className="w-full text-left px-3 py-2 rounded-[10px] text-xs hover:bg-interactive-hover dark:hover:bg-interactive-hover flex flex-wrap items-center justify-between gap-y-2 group"
                                                     >
                                                         <span className="font-bold text-ink group-hover:text-brand-500">
                                                             /{r.shortcode}
@@ -1001,7 +1001,7 @@ export default function AgentInbox() {
 
                             {/* Vena AI Co-Pilot Panel */}
                             {showCopilot && (
-                                <div className="w-96 h-full flex flex-col bg-sunken/20 dark:bg-app overflow-hidden shrink-0 animate-in slide-in-from-right duration-slow border-l border-line">
+                                <div className="w-full lg:w-96 h-96 lg:h-full flex flex-col bg-sunken/20 dark:bg-app overflow-hidden shrink-0 animate-in slide-in-from-right duration-slow border-l border-line">
                                     <div className="p-6 border-b border-line bg-sunken/50 dark:bg-app shrink-0">
                                         <h3 className="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
                                             <VenaLogo className="animate-pulse" size={16} />
@@ -1015,7 +1015,7 @@ export default function AgentInbox() {
                                         <div className="rounded-2xl border border-brand-500/10 bg-brand-500/[0.02] p-4 relative overflow-hidden flex flex-col gap-3">
                                             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-500/5 rounded-full blur-xl pointer-events-none" />
                                             
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                                 <h4 className="text-2xs font-bold text-brand-400 uppercase tracking-wider flex items-center gap-1.5">
                                                     Suggested Draft
                                                 </h4>
@@ -1090,7 +1090,7 @@ export default function AgentInbox() {
                                                 {copilotSimilarKb.length > 0 ? (
                                                     copilotSimilarKb.map((item, idx) => (
                                                         <div key={idx} className="border-b border-line pb-2.5 last:border-b-0 last:pb-0 flex flex-col gap-1">
-                                                            <div className="flex items-center justify-between">
+                                                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                                                 <span className="text-3xs font-bold text-ink truncate max-w-[200px]">
                                                                     Q: {item.question}
                                                                 </span>
@@ -1136,7 +1136,7 @@ export default function AgentInbox() {
             {/* Resolve & AI Learning Log Modal */}
             {showResolveModal && (
                 <div className="fixed inset-0 z-drawer bg-neutral-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-slow">
-                    <div className="w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-8 relative overflow-hidden flex flex-col gap-6 animate-in zoom-in-95 duration-slow">
+                    <div className="w-full max-w-lg bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl p-4 sm:p-8 relative overflow-hidden flex flex-col gap-6 animate-in zoom-in-95 duration-slow">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-[80px] pointer-events-none -mt-32 -mr-32" />
                         
                         <div className="flex items-center gap-3 border-b border-neutral-800 pb-4 shrink-0">

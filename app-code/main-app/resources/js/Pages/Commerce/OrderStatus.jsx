@@ -57,7 +57,7 @@ function PreparationCountdown({ estimatedReadyAt, prepMinutes, fulfilment }) {
     );
 }
 
-export default function OrderStatus({ order, store, events, transfer_url, cancel_url, reorder_url, live_url, history = [], prep_minutes, revision, revision_url, rating_summary, customer }) {
+export default function OrderStatus({ order, store, events, rider = null, transfer_url, cancel_url, reorder_url, live_url, history = [], prep_minutes, revision, revision_url, rating_summary, customer }) {
     const [reorderMsg, setReorderMsg] = useState(null);
     const reorder = async () => {
         setReorderMsg(null);
@@ -67,7 +67,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
             const d = await r.json();
             if (!d.lines.length) { setReorderMsg('None of these items are available right now.'); return; }
             // ids and quantities only; prices are re-checked by the server when the cart opens
-            cartStore.write({ slug: d.slug, lines: d.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity })) });
+            cartStore.write({ slug: d.slug, lines: d.lines.map((l) => ({ item_id: l.item_id, key: `${l.item_id}|${(l.mods || []).map((m) => m.id).sort((a, b) => a - b).join(',')}`, quantity: l.quantity, mods: l.mods || [], name: l.title })) });
             window.location.href = `/shop/${d.slug}`;
         } catch { setReorderMsg('Could not start a new order. Please open the shop and add the items again.'); }
     };
@@ -104,7 +104,8 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
                 if (Number(update.version) !== Number(order.version)
                     || update.status !== order.status
                     || update.payment_status !== order.payment_status
-                    || update.estimated_ready_at !== order.estimated_ready_at) {
+                    || update.estimated_ready_at !== order.estimated_ready_at
+                    || (update.rider_key ?? null) !== (rider?.key ?? null)) {
                     stopped = true;
                     router.reload({ preserveState: true, preserveScroll: true });
                 }
@@ -133,7 +134,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
             controller?.abort();
             document.removeEventListener('visibilitychange', onVisibilityChange);
         };
-    }, [live_url, order.estimated_ready_at, order.payment_status, order.status, order.version]);
+    }, [live_url, order.estimated_ready_at, order.payment_status, order.status, order.version, rider?.key]);
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
@@ -232,6 +233,26 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
             {order.status === 'pending' && <div style={{ marginTop: 16 }}><Alert kind="info">Your order is a request. {store.name} must confirm that the items are available before it is accepted.</Alert></div>}
             {closed && <div style={{ marginTop: 16 }}><Alert kind="error">This order was {order.status === 'expired' ? 'not accepted in time' : order.status}.{order.reason ? ` Reason: ${order.reason}` : ''} {order.payment_status === 'refunded' ? 'The business confirmed your payment has been refunded.' : ['collected', 'transfer_reported'].includes(order.payment_status) ? 'You told us you paid. Please contact the business to get your money back.' : 'You have not been charged.'}</Alert></div>}
 
+            {rider && !closed && (
+                <div className="vqs-card vqs-pad" style={{ marginTop: 20, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                    <span style={{ width: 56, height: 56, borderRadius: 999, overflow: 'hidden', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'var(--vq-accent-quiet, #e6f4f1)', color: 'var(--vq-accent-text, #0b8f7a)', fontWeight: 800, fontSize: 20 }}>
+                        {rider.photo_url ? <img src={rider.photo_url} alt={rider.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : rider.name.charAt(0).toUpperCase()}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', opacity: 0.6 }}>{{ assigned: 'Rider assigned', accepted: 'Rider on the way to the shop', collected: 'Rider has your order', out_for_delivery: 'On the way to you', delivered: 'Delivered' }[rider.stage] || 'Your rider'}</div>
+                        <div style={{ fontSize: 17, fontWeight: 800, marginTop: 2 }}>{rider.name}{rider.vehicle ? <span style={{ fontWeight: 500, fontSize: 13.5, opacity: 0.7 }}> · {rider.vehicle}</span> : null}</div>
+                        <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
+                            {['assigned', 'collected', 'out_for_delivery', 'delivered'].map((st, i) => {
+                                const at = ['assigned', 'accepted', 'collected', 'out_for_delivery', 'delivered'].indexOf(rider.stage);
+                                const need = ['assigned', 'accepted', 'collected', 'out_for_delivery', 'delivered'].indexOf(st);
+                                return <span key={st} style={{ flex: 1, height: 4, borderRadius: 99, background: at >= need ? 'var(--vq-accent-fill, #0BAA8F)' : 'var(--vq-line, #ddd)' }} />;
+                            })}
+                        </div>
+                    </div>
+                    {rider.phone && <a href={`tel:${rider.phone}`} className="vqs-btn" style={{ textDecoration: 'none' }}>{Icon.phone}<span style={{ marginLeft: 6 }}>Call {rider.name}</span></a>}
+                </div>
+            )}
+
             {order.estimated_ready_at && ['confirmed', 'preparing'].includes(order.status) && (
                 <PreparationCountdown estimatedReadyAt={order.estimated_ready_at} prepMinutes={prep_minutes} fulfilment={order.fulfilment} />
             )}
@@ -254,7 +275,7 @@ export default function OrderStatus({ order, store, events, transfer_url, cancel
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         {order.items.map((i, k) => (
                             <li key={k} className="vqs-between" style={{ padding: '10px 0', borderBottom: '1px solid var(--vq-line-soft)', fontSize: 14 }}>
-                                <span>{Number(i.quantity)} × {i.title}</span>
+                                <span>{Number(i.quantity)} × {i.title}{(i.mods || []).length > 0 && <small style={{ display: 'block', opacity: 0.7 }}>{i.mods.map((m) => m.name).join(', ')}</small>}</span>
                                 <span className="vqs-num">{money(i.line_total, sym)}</span>
                             </li>
                         ))}

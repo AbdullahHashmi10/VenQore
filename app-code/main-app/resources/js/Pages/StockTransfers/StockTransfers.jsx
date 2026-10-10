@@ -93,7 +93,7 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  <StockModuleTabs activeTab="transfers" />
 
  {/* Stats Row - Compact Single Line (like Proposals) */}
- <div className="flex items-center justify-between bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
  <div className="flex items-center gap-2">
  <div className="flex items-center gap-3 px-3 py-1">
  <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
@@ -252,7 +252,7 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  <tbody className="divide-y divide-line">
  {transferList.length === 0 ? (
  <tr>
- <td colSpan={6} className="p-12">
+ <td colSpan={6} className="p-5 sm:p-12">
  <div className="flex flex-col items-center justify-center text-center">
  <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
  <ArrowLeftRight size={28} className="text-ink-muted" />

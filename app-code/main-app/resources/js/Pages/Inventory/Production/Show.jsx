@@ -45,7 +45,7 @@ export default function ProductionRunShow({ run, materials = [], outputBatch = n
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4 pt-6 border-t border-line">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-line">
                         <div>
                             <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Date</p>
                             <p className="text-sm font-medium text-ink">{formatDate(run?.date, store)}</p>
@@ -72,7 +72,7 @@ export default function ProductionRunShow({ run, materials = [], outputBatch = n
                     <h3 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-4 flex items-center gap-2">
                         <Wallet size={16} /> Work-In-Progress Balance
                     </h3>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2">
                         <p className="text-sm text-ink-muted">
                             {run?.status === 'completed'
                                 ? 'This run has been completed — WIP was closed out to the finished-goods batch below.'
@@ -127,7 +127,7 @@ export default function ProductionRunShow({ run, materials = [], outputBatch = n
                         <Package size={16} /> Finished Goods Output
                     </h3>
                     {outputBatch ? (
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Qty Produced</p>
                                 <p className="text-sm font-medium text-ink">{outputBatch.remaining_qty ?? outputBatch.original_qty}</p>

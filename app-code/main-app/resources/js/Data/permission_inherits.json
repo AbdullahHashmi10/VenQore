@@ -1,0 +1,17 @@
+{
+  "_about": "Single source for who gets the dedicated online-store / FOH / AI permissions by default. A role or membership that already holds ANY key in 'from' is granted the new key, so nothing changes for existing staff the day this ships; the owner can then untick any of them per employee. Read by config/permissions.php, the backfill migration and the Users screen. Add a new key here, never in three places.",
+  "grants": {
+    "online.store_manage":      { "from": ["admin.settings_manage"] },
+    "online.catalogue_manage":  { "from": ["admin.settings_manage"] },
+    "online.products_manage":   { "from": ["admin.settings_manage"] },
+    "online.promotions_manage": { "from": ["admin.settings_manage"] },
+    "online.orders_view":       { "from": ["sales.view"] },
+    "online.orders_manage":     { "from": ["sales.edit"] },
+    "online.orders_cancel":     { "from": ["sales.void"] },
+    "online.orders_collect":    { "from": ["finance.receive_payment"] },
+    "online.rider_deliveries":  { "from": [] },
+    "foh.manage":               { "from": ["admin.settings_manage"] },
+    "ai.manage":                { "from": ["admin.settings_manage"] },
+    "ai.use":                   { "from": ["*any*"] }
+  }
+}

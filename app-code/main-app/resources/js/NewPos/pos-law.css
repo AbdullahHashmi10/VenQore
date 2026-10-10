@@ -1411,3 +1411,18 @@
     .vq-tender-pane .vq-pay-long { display: none; }
     .vq-tender-pane .vq-pay-short { display: inline; }
 }
+
+
+/* ── Phone fit (added 2026-10-10) ───────────────────────────────────────────
+   1. The Vena island is portalled to <body>, so it outranks any open sheet and
+      sits on the sheet's title. Hide it while a sheet is open on a phone.
+   2. A two-column catalog tile is ~160px wide: stock and price cannot share a
+      row, so the foot wraps instead of ellipsising the stock count. */
+@media (max-width: 599px) {
+    body:has(.vq-sheet[data-open='true']) [data-vq-island] { display: none !important; }
+
+    .vq-tile { padding: 10px; gap: 6px; }
+    .vq-tile-foot { flex-wrap: wrap; gap: 2px 8px; }
+    .vq-tile-stock { overflow: visible; text-overflow: clip; }
+    .vq-tile-meta { letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

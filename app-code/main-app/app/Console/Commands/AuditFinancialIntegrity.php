@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class AuditFinancialIntegrity extends Command
 {
-    protected $signature = 'finance:audit {--tenant= : Run for a specific tenant ID only}';
+    protected $signature = 'finance:audit {--tenant= : Run for a specific tenant ID only} {--fix-payments : Also CREATE the missing sale payment rows (off by default)}';
     protected $description = 'Audits all financial records, finds missing payments, and recalculates cash in hand precisely (per tenant).';
 
     public function handle()
@@ -49,6 +49,7 @@ class AuditFinancialIntegrity extends Command
                 ->whereIn('payment_status', ['paid', 'partial'])
                 ->get();
             $paymentsAdded = 0;
+            $paymentsMissing = [];
 
             foreach ($sales as $sale) {
                 $actualPaymentsIn  = (float) Payment::where('tenant_id', $tenantId)
@@ -67,7 +68,13 @@ class AuditFinancialIntegrity extends Command
 
                 if ($sale->payment_status === 'paid' && $actualPaymentsNet < ($sale->total - 0.01)) {
                     $missingAmount = $sale->total - $actualPaymentsNet;
-                    if ($missingAmount > 0) {
+                    if ($missingAmount > 0 && ! $this->option('fix-payments')) {
+                        // Report only (ZeroDrift Ledger): a payment row made up
+                        // here has no journal entry behind it, so the cash
+                        // reports would drift from the books. Fixing is a
+                        // person's decision: run with --fix-payments.
+                        $paymentsMissing[] = "{$sale->reference_number}: " . number_format($missingAmount, 2, '.', '') . ' short';
+                    } elseif ($missingAmount > 0) {
                         Payment::create([
                             'tenant_id' => $tenantId,
                             'sale_id'   => $sale->id,
@@ -82,7 +89,9 @@ class AuditFinancialIntegrity extends Command
                 } elseif ($sale->payment_status === 'partial' && $sale->tendered_amount > 0
                     && $actualPaymentsNet < ($sale->tendered_amount - 0.01)) {
                     $missingAmount = $sale->tendered_amount - $actualPaymentsNet;
-                    if ($missingAmount > 0) {
+                    if ($missingAmount > 0 && ! $this->option('fix-payments')) {
+                        $paymentsMissing[] = "{$sale->reference_number}: " . number_format($missingAmount, 2, '.', '') . ' short';
+                    } elseif ($missingAmount > 0) {
                         Payment::create([
                             'tenant_id' => $tenantId,
                             'sale_id'   => $sale->id,
@@ -95,6 +104,14 @@ class AuditFinancialIntegrity extends Command
                         $paymentsAdded++;
                     }
                 }
+            }
+
+            if ($paymentsMissing) {
+                $this->warn('   ' . count($paymentsMissing) . ' sale(s) have fewer payment rows than they should (not changed; run with --fix-payments to create them):');
+                foreach (array_slice($paymentsMissing, 0, 50) as $line) {
+                    $this->warn("     {$line}");
+                }
+                Log::warning("Finance Audit [{$tenantId}]: sales missing payment rows (report only)", ['sales' => array_slice($paymentsMissing, 0, 200)]);
             }
 
             if ($paymentsAdded > 0) {

@@ -9,7 +9,7 @@ export default function LoanStatement({ loans }) {
             subtitle="Overview of all active loans and liabilities"
             icon={Landmark}
         >
-            <div className="p-12 text-center">
+            <div className="p-5 sm:p-12 text-center">
                 <div className="w-20 h-20 rounded-2xl bg-app flex items-center justify-center mx-auto mb-6">
                     <Landmark size={40} className="text-neutral-300" />
                 </div>

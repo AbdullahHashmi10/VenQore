@@ -242,6 +242,11 @@ class TenantOverrideController extends Controller
 
         PlanRepository::invalidateTenantCache($tenant->id);
 
+        // The AI meter is a copy of the plan's allowance; keep it in step.
+        if (in_array($validated['override_key'], ['ai_credits_monthly', 'ai_scans_monthly', 'ai_credits_annual'], true)) {
+            \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $tenant->plan);
+        }
+
         if ($validated['notify_user'] ?? true) {
             PlanChangeNotifier::notifyOverride(
                 tenant:        $tenant,
@@ -349,8 +354,13 @@ class TenantOverrideController extends Controller
     {
         abort_unless($override->tenant_id === $tenant->id, 404, 'Override does not belong to this tenant.');
 
+        $key = $override->override_key;
         $override->delete();
         PlanRepository::invalidateTenantCache($tenant->id);
+
+        if (in_array($key, ['ai_credits_monthly', 'ai_scans_monthly', 'ai_credits_annual'], true)) {
+            \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $tenant->plan);
+        }
 
         return back()->with('success', "Override removed. \"{$tenant->name}\" now uses the plan default.");
     }

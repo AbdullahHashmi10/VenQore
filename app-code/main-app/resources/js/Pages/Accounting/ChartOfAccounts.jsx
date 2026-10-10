@@ -94,29 +94,29 @@ export default function ChartOfAccounts({ accounts = [] }) {
 
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg"><Briefcase size={16} /></div>
                             <p className="text-xs font-bold text-ink-muted uppercase">Assets</p>
                         </div>
                         <p className="text-lg font-bold text-brand-600">{formatCurrency(stats.assets)}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg"><ArrowDownCircle size={16} /></div>
                             <p className="text-xs font-bold text-ink-muted uppercase">Liabilities</p>
                         </div>
                         <p className="text-lg font-bold text-rose-600">{formatCurrency(stats.liabilities)}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg"><TrendingUp size={16} /></div>
                             <p className="text-xs font-bold text-ink-muted uppercase">Income (YTD)</p>
                         </div>
                         <p className="text-lg font-bold text-emerald-600">{formatCurrency(stats.income)}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg"><ArrowUpCircle size={16} /></div>
                             <p className="text-xs font-bold text-ink-muted uppercase">Expense (YTD)</p>
@@ -210,7 +210,7 @@ export default function ChartOfAccounts({ accounts = [] }) {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="p-12 text-center text-ink-muted">
+                                    <td colSpan="5" className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center gap-2">
                                             <BookOpen size={24} className="opacity-50" />
                                             <p className="text-sm font-medium">No accounts found</p>

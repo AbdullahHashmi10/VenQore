@@ -93,7 +93,7 @@ export default function StoreSwitcher() {
  {/* Trigger */}
  <button
  onClick={toggle}
- className={`w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl transition-all duration-slow border
+ className={`w-full flex flex-wrap items-center justify-between gap-y-2 gap-2.5 px-3 py-2 rounded-xl transition-all duration-slow border
  ${open
  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
  : 'bg-surface text-ink-secondary dark:text-ink border-line hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md'

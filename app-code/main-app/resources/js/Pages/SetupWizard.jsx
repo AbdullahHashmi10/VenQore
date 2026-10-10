@@ -119,7 +119,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
  <div className="flex justify-center mb-6">
  <img src={store_logo || "/images/logo.png"} alt="VenQore" className="w-20 h-20 object-contain drop-shadow-2xl" />
  </div>
- <h1 className="text-4xl font-bold mb-2 tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">Welcome to VENQORE</h1>
+ <h1 className="text-2xl sm:text-4xl font-bold mb-2 tracking-tight bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">Welcome to VENQORE</h1>
  <p className="text-ink-muted text-lg">Let's tailor the experience for your business.</p>
  </div>
 
@@ -266,7 +266,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
  }
  }}
  disabled={!data.business_name || !data.email || !data.phone || !data.address}
- className="px-8 py-4 bg-gradient-brand text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10"
+ className="px-4 sm:px-8 py-4 bg-gradient-brand text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all border border-white/10"
  >
  Choose Industry <ArrowRight size={20} />
  </button>
@@ -469,7 +469,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
  type="button"
  onClick={() => handleSubmit({ preventDefault: () => { } })}
  disabled={processing}
- className="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+ className="px-4 sm:px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-bold text-lg shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
  >
  {processing ? <Loader2 className="animate-spin" /> : <><RocketIcon size={20} /> Launch System</>}
  </button>
@@ -480,7 +480,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
 
  {/* PROCESSING STATE OVERLAY */}
  {processing && (
- <div className="absolute inset-0 bg-neutral-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center text-center p-8 animate-in fade-in duration-slow">
+ <div className="absolute inset-0 bg-neutral-900/95 backdrop-blur-md z-50 flex flex-col items-center justify-center text-center p-4 sm:p-8 animate-in fade-in duration-slow">
  <div className="relative mb-6">
  <div className="w-20 h-20 border-4 border-neutral-700 rounded-full"></div>
  <div className="w-20 h-20 border-4 border-brand-500 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>

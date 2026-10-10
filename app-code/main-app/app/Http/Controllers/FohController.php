@@ -87,6 +87,7 @@ class FohController extends Controller
             'caps'         => $this->caps($request),
             'bankAccounts' => $bankAccounts,
             'warehouses'   => Warehouse::all(['id', 'name', 'is_default']),
+            'onlineEnabled'=> \Illuminate\Support\Facades\DB::table('storefronts')->where('tenant_id', $tenant->id)->exists(),
             'settings'     => Setting::all()->pluck('value', 'key')->except(self::SECRET_SETTINGS),
         ]);
     }
@@ -190,10 +191,108 @@ class FohController extends Controller
         ]);
     }
 
+
+    /* ── Online store orders ─────────────────────────────────────────────
+       The public online store keeps its orders in commerce_orders (with their
+       own accept / prepare / complete life, and the sale is posted by
+       OrderService::complete). FOH shows the live ones next to the floor and
+       drives that same life through the same service, so nothing is posted
+       twice and the Online Orders inbox stays truthful. */
+    private const ONLINE_LIVE = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'];
+
+    private function onlineShape(object $o, $items): array
+    {
+        $utc = fn ($v) => $v ? \Carbon\Carbon::parse($v, 'UTC')->toIso8601String() : null;
+        return [
+            'id'             => $o->id,
+            'number'         => $o->public_number,
+            'status'         => $o->status,
+            'fulfilment'     => $o->fulfilment,
+            'payment_status' => $o->payment_status,
+            'payment_method' => $o->payment_method,
+            'customer_name'  => $o->customer_name,
+            'phone'          => $o->customer_phone,
+            'address'        => $o->delivery_address,
+            'note'           => $o->customer_note,
+            'delivery_fee'   => (float) $o->delivery_fee,
+            'total'          => (float) $o->total,
+            'version'        => (int) $o->version,
+            'created_at'     => $utc($o->created_at),
+            'accept_by'      => $utc($o->accept_by),
+            'revision_status'=> $o->revision_status ?? null,
+            'items'          => collect($items)->map(fn ($i) => [
+                'title' => $i->title, 'qty' => (float) $i->quantity, 'price' => (float) $i->online_price, 'total' => (float) $i->line_total,
+            ])->values()->all(),
+        ];
+    }
+
+    public function online(Request $request): JsonResponse
+    {
+        $tid = (int) app('current.tenant')->id;
+        if (!\Illuminate\Support\Facades\DB::table('storefronts')->where('tenant_id', $tid)->exists()) {
+            return response()->json(['enabled' => false, 'orders' => []]);
+        }
+        $rows = \Illuminate\Support\Facades\DB::table('commerce_orders')
+            ->where('tenant_id', $tid)->whereIn('status', self::ONLINE_LIVE)
+            ->orderBy('created_at')->limit(80)->get();
+        $items = $rows->isEmpty() ? collect() : \Illuminate\Support\Facades\DB::table('commerce_order_items')
+            ->whereIn('order_id', $rows->pluck('id'))->get(['order_id', 'title', 'quantity', 'online_price', 'line_total'])->groupBy('order_id');
+
+        return response()->json([
+            'enabled' => true,
+            'orders'  => $rows->map(fn ($o) => $this->onlineShape($o, $items->get($o->id, collect())))->values(),
+        ]);
+    }
+
+    public function onlineAct(Request $request, string $id): JsonResponse
+    {
+        $tid = (int) app('current.tenant')->id;
+        $u   = $request->user();
+        $has = fn (string $p) => $u && ($u->isPlatformAdmin() || $u->hasPermission($p));
+        $v = $request->validate([
+            'action'           => 'required|in:accept,reject,preparing,ready,out_for_delivery,complete',
+            'reason'           => 'nullable|string|max:255',
+            'collect_now'      => 'nullable|boolean',
+            'refund_confirmed' => 'nullable|boolean',
+            'version'          => 'nullable|integer',
+        ]);
+        $need = $v['action'] === 'complete' ? 'sales.create' : 'sales.edit';
+        if (!$has($need) && !$has('online.orders_manage')) {
+            return response()->json(['success' => false, 'message' => 'You do not have permission to do that.'], 403);
+        }
+        $svc = app(\App\Services\Commerce\OrderService::class);
+        $ver = $v['version'] ?? null;
+        try {
+            switch ($v['action']) {
+                case 'accept':
+                    $svc->confirm($id, $tid, $u->id, $ver);
+                    break;
+                case 'reject':
+                    if (trim((string) ($v['reason'] ?? '')) === '') {
+                        return response()->json(['success' => false, 'message' => 'Give the customer a short reason.'], 422);
+                    }
+                    $svc->reject($id, $tid, $u->id, $v['reason'], $ver, (bool) ($v['refund_confirmed'] ?? false));
+                    break;
+                case 'complete':
+                    $collect = (bool) ($v['collect_now'] ?? false);
+                    if ($collect && !$has('finance.receive_payment') && !$has('online.orders_collect')) {
+                        return response()->json(['success' => false, 'message' => 'You do not have permission to record payments.'], 403);
+                    }
+                    $svc->complete($id, $tid, $u->id, $collect, $ver);
+                    break;
+                default:
+                    $svc->advance($id, $tid, $u->id, $v['action'], $ver);
+            }
+        } catch (\App\Services\Commerce\CommerceException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+        return response()->json(['success' => true]);
+    }
+
     private function canManage(Request $request): bool
     {
         $u = $request->user();
-        return $u && ($u->isPlatformAdmin() || $u->hasPermission('admin.settings_manage'));
+        return $u && ($u->isPlatformAdmin() || $u->hasPermission('foh.manage'));
     }
 
     /**

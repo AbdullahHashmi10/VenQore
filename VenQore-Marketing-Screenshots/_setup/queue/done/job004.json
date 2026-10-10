@@ -1,0 +1,3 @@
+{"id":"explore-fresh","themes":["light"],"scenarios":[{"folder":"_explore","steps":[
+ {"goto":"/s/{slug}/dashboard","wait":5000},
+ {"xy":[1875,32],"wait":1200},{"xy":[1693,606],"wait":1800},{"preview":"fresh0"},{"dump":"fresh0"}]}]}

@@ -13,7 +13,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -33,7 +34,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -56,7 +58,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -71,7 +74,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -89,7 +93,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -106,7 +111,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "Refund payment authority is deliberately excluded; pos.refund behavior must be reconciled so an integrated payout cannot bypass finance.customer_refund."
   },
@@ -116,7 +122,8 @@
     "group": "Stock & purchasing",
     "purpose": "Check availability and product details without valuation or stock mutations.",
     "permissions": [
-      "inventory.view"
+      "inventory.view",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -133,7 +140,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -150,7 +158,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -166,7 +175,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "reports.stock includes monetary stock valuation in this contract; use Stock lookup assistant when that is inappropriate."
   },
@@ -181,7 +191,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -201,7 +212,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -216,7 +228,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "There is no production-specific grant in the 77-key vocabulary. These grants also allow inventory adjustments outside production. This cannot be a tightly isolated production role without additional record/workflow scoping."
   },
@@ -230,7 +243,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "This grant does not authorize the customer balance directory. Delegate finance.balances separately only if the broader balance access is intended."
   },
@@ -244,7 +258,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -258,7 +273,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -272,7 +288,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "Creating journal entries is powerful accounting authority. This preset does not grant financial statements or approval rights."
   },
@@ -293,7 +310,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -311,7 +329,8 @@
       "finance.balances",
       "finance.transactions",
       "finance.fiscal_year.view",
-      "data.export"
+      "data.export",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -327,7 +346,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "Cheque registers may contain counterparty and cheque amounts. This does not grant all bank balances or duplicate overrides."
   },
@@ -342,7 +362,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "Sensitive delegation. Record-scoped refund sources and amount limits still apply; no general capital, drawings or balance adjustment."
   },
@@ -358,7 +379,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": "Do not auto-include capital injections, drawings, balance adjustments or cheque overrides."
   },
@@ -375,7 +397,8 @@
       "finance.period_reopen",
       "finance.period_exception",
       "reports.financial",
-      "reports.audit"
+      "reports.audit",
+      "ai.use"
     ],
     "caution": "Closing, reopening and exceptions are sensitive. Enforce period eligibility, audit trails and any separation-of-duties rules."
   },
@@ -386,7 +409,8 @@
     "purpose": "Read assigned approval work without making decisions.",
     "permissions": [
       "approvals.view",
-      "approvals.inbox"
+      "approvals.inbox",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -401,7 +425,8 @@
       "approvals.review",
       "approvals.approve",
       "approvals.reject",
-      "approvals.return"
+      "approvals.return",
+      "ai.use"
     ],
     "caution": "Decision grants are incomplete without an explicit allowed-action assignment. They must not mean approval authority over every business operation."
   },
@@ -415,7 +440,8 @@
       "reports.audit",
       "reports.stock",
       "finance.fiscal_year.view",
-      "data.export"
+      "data.export",
+      "ai.use"
     ],
     "caution": "The selected financial and stock report grants expose sensitive values. Restrict tenant/branch and engagement duration."
   },
@@ -427,7 +453,8 @@
     "permissions": [
       "admin.staff_view",
       "admin.staff_manage",
-      "users.manage"
+      "users.manage",
+      "ai.use"
     ],
     "caution": "Prevent self-escalation, owner reassignment and grants beyond the administrator’s delegation ceiling."
   },
@@ -441,7 +468,8 @@
       "admin.settings_manage",
       "admin.receipt_print",
       "admin.taxes_methods",
-      "admin.warehouses"
+      "admin.warehouses",
+      "ai.use"
     ],
     "caution": "Settings access does not authorize tax liabilities, sales revenue or financial statements."
   },
@@ -452,7 +480,8 @@
     "purpose": "Manage marketplace connections and stock sync without channel profit.",
     "permissions": [
       "vensynq.manage",
-      "inventory.view"
+      "inventory.view",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -478,7 +507,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -489,7 +519,8 @@
     "purpose": "Read sales and staff performance without cost, profit or money balances.",
     "permissions": [
       "reports.summary",
-      "reports.performance"
+      "reports.performance",
+      "ai.use"
     ],
     "caution": ""
   },
@@ -507,7 +538,8 @@
       "approvals.view_own",
       "approvals.submit",
       "approvals.withdraw",
-      "approvals.resubmit"
+      "approvals.resubmit",
+      "ai.use"
     ],
     "modules": [
       "pos",
@@ -519,10 +551,51 @@
     "caution": "Cannot take payment: grant the 'Scan & Checkout' permission only to staff who handle money."
   },
   {
+    "id": "online_orders_clerk",
+    "name": "Online orders clerk",
+    "group": "Sales floor",
+    "purpose": "Receive and work online and QR orders without touching store settings, prices, promotions or payments.",
+    "permissions": [
+      "online.orders_view",
+      "online.orders_manage",
+      "sales.view",
+      "inventory.view",
+      "approvals.view_own",
+      "approvals.submit",
+      "approvals.withdraw",
+      "approvals.resubmit",
+      "ai.use"
+    ],
+    "caution": "Cannot cancel an accepted order or record payment: grant 'Cancel Online Orders' and 'Collect Online Payments' only to people you trust with money."
+  },
+  {
+    "id": "online_store_manager",
+    "name": "Online store manager",
+    "group": "Review & administration",
+    "purpose": "Run the web shop and QR menu: products, photos, promotions, publishing and the order inbox. No staff, tax, billing or ledger access.",
+    "permissions": [
+      "online.store_manage",
+      "online.catalogue_manage",
+      "online.products_manage",
+      "online.promotions_manage",
+      "online.orders_view",
+      "online.orders_manage",
+      "online.orders_cancel",
+      "inventory.view",
+      "reports.summary",
+      "approvals.view_own",
+      "approvals.submit",
+      "approvals.withdraw",
+      "approvals.resubmit",
+      "ai.use"
+    ],
+    "caution": "Can publish or unpublish the shop and change online prices visibility. Payment collection stays separate."
+  },
+  {
     "id": "owner",
     "name": "Owner capability reference",
     "group": "Leadership",
-    "purpose": "Reference showing all 78 explicit capabilities; do not assign as an ordinary staff default.",
+    "purpose": "Reference showing all 89 explicit capabilities; do not assign as an ordinary staff default.",
     "permissions": [
       "pos.open_session",
       "pos.checkout",
@@ -601,7 +674,19 @@
       "finance.fiscal_year.close",
       "finance.period_lock",
       "finance.period_reopen",
-      "finance.period_exception"
+      "finance.period_exception",
+      "online.store_manage",
+      "online.catalogue_manage",
+      "online.products_manage",
+      "online.promotions_manage",
+      "online.orders_view",
+      "online.orders_manage",
+      "online.orders_cancel",
+      "online.orders_collect",
+      "online.rider_deliveries",
+      "foh.manage",
+      "ai.manage",
+      "ai.use"
     ],
     "caution": "Reference only. Existing owner semantics remain separate. Sensitive fund changes, permanent deletion, overrides and access delegation require their own execution controls."
   }

@@ -1,0 +1,4 @@
+{"id":"explore-suggest","themes":["light"],"scenarios":[{"folder":"_explore","steps":[
+ {"goto":"/s/{slug}/dashboard","wait":5000},
+ {"xy":[1100,925],"wait":5000},{"preview":"sug0"},
+ {"xy":[325,164],"wait":2000},{"preview":"sug1"},{"dump":"sug1"}]}]}

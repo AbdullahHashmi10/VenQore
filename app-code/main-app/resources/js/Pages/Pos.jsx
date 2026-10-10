@@ -12,7 +12,6 @@ import {
     ScanBarcode,
     MinusCircle,
     PlusCircle,
-    ChefHat,
     Trash2,
     ShoppingCart,
     Receipt,
@@ -38,7 +37,6 @@ import {
     ChevronDown,
     ChevronUp,
     History,
-    ArrowLeft,
     LayoutGrid,
     Settings,
     Users,
@@ -54,7 +52,6 @@ import {
     AlertTriangle,
     Lock,
     Landmark,
-    Tv,
     Columns,
     Rows,
     LayoutList
@@ -62,7 +59,7 @@ import {
 import axios from 'axios';
 import { handleApprovalResponse } from '@/lib/approval-response';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
-import { useOfflineSync } from '@/Hooks/useOfflineSync';
+import { useOfflineSync, newIntentKey, classifyOutcome, QUEUE_STATES } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
 import { printBrowserHtml } from '@/Utils/BrowserPrint';
 import { getProductPrice, shouldStopNegativeStock, isStockMaintenanceEnabled, isWholesalePricingEnabled } from '@/Utils/settings';
@@ -76,6 +73,16 @@ import PaymentModal from '@/Components/Pos/PaymentModal';
 import ApprovalPinModal from '@/Components/Pos/ApprovalPinModal';
 import { parseApprovalRequired, withApproval } from '@/Domain/pos/approval';
 import { computeTotals } from '@/Sell/core/cartMath';
+
+/* Sync Hub badges for queued checkout intents (see Hooks/useOfflineSync). */
+const QUEUE_STATE_LABELS = {
+    pending: 'OFFLINE',
+    uncertain: 'UNCONFIRMED',
+    awaiting_auth: 'SIGN IN',
+    needs_attention: 'NEEDS ATTENTION',
+    conflict: 'KEY CONFLICT',
+    quarantined: 'HELD FOR REVIEW',
+};
 import { buildSalePayload } from '@/Sell/core/salePayload';
 import useShift from '@/Sell/core/useShift';
 
@@ -96,18 +103,7 @@ import SetupWizardModal from '@/NewPos/SetupWizardModal';
 import RegisterSettings, { DEFAULT_SURFACE } from '@/Components/Pos/RegisterSettings';
 import { useAppearance } from '@/Contexts/AppearanceContext';
 
-/* ── THE TABLE TERMINAL ───────────────────────────────────────────────────
-   The register is one screen with two terminals. Everything restaurant-shaped
-   lives in these four modules and is mounted only when the terminal is
-   `table`, so a counter till carries none of it -- not a mock floor, not a
-   dead settings row, not eight hard-coded tables that wrote nowhere. */
-import useTableService, { serverLineToCart, cartLineToServer } from '@/Pos/Table/useTableService';
-import { KitchenPrintService } from '@/Utils/KitchenPrintService';
-import FloorPane, { elapsed as tableElapsed } from '@/Pos/Table/FloorPane';
-import TableBar, { SeatDialog, MoveSheet, NewTicketDialog } from '@/Pos/Table/TableBar';
-import { DeliveryPanel } from '@/Pos/Table/Delivery';
-import { QuickFloorModal } from '@/Pos/Table/QuickFloorSetup';
-import SplitSheet from '@/Pos/Table/SplitSheet';
+import { cartLineToServer } from '@/Pos/Table/useTableService';
 import ModifierSheet from '@/Pos/Table/ModifierSheet';
 
 const POSInterface = ({
@@ -115,128 +111,16 @@ const POSInterface = ({
     recalledSale,
     bankAccounts = [],
     warehouses = [],
-    occupancy = null,
-    /* WHICH TERMINAL THIS IS. Layout Law §10 defines six; five of them are
-       shapes of a counter till and the sixth, Table, is a different unit of
-       work -- "the unit of work is the table, not the sale". Same component,
-       same cart, same tender, same offline queue; the terminal decides which
-       panes exist and which controls make sense. */
-    terminal: initialTerminal = 'counter',
     fohRedirect = false,
-    positions: initialPositions = [],
-    tickets: initialTickets = [],
-    zones: initialZones = [],
-    kitchen: initialKitchen = 0,
 }) => {
     const { auth, store, modules = [] } = usePage().props;
     const isPosStaff = Boolean(!auth?.user?.is_owner && auth?.user?.role !== 'owner' && (auth?.user?.is_pos_staff || auth?.user?.membership_type === 'pos'));
 
-    /* ── WHICH TERMINAL THIS IS ───────────────────────────────────────────
-       This used to be whichever URL you arrived on: /pos was a counter and
-       /tables was a floor. Two routes rendering the same component, which
-       meant a restaurant had a "POS page" and a "Tables page" that were the
-       same screen wearing different props — and switching between them was a
-       full page navigation that threw away the cart.
-
-       It is a REGISTER SETTING now, sitting in the preset picker beside the
-       other seven shapes, because that is what it actually is: the Table
-       preset is the one whose composition has a floor. Turning it on is the
-       same gesture as switching from Grid to Scan, and it happens in place.
-
-       Three things decide it, in order:
-         1. Whether the BUSINESS runs tables at all (`service_mode`). A counter
-            shop is never offered it and can never be put into it.
-         2. What this DEVICE last chose — a phone on the pass and the till by
-            the door can want different answers, which is why it is local and
-            not another store-wide row.
-         3. Failing both, the server's seed: `?view=floor`, or a store whose
-            service mode is tables-only.
-       Read synchronously in the initialiser so the first paint is already
-       right — a flash of the counter before the floor appears reads as a bug. */
-    /* Read straight off `settings` rather than the `serviceMode` STATE further
-       down: this has to be available before the first paint (the terminal
-       initialiser below depends on it) and that state is declared much later.
-       `saveServiceMode` reloads the `settings` prop when it changes, so this
-       stays current without a second source of truth. */
-    const storeServiceMode = settings?.service_mode || 'counter';
-    const storeRunsTables = storeServiceMode === 'tables' || storeServiceMode === 'both';
-
-    /* TURNING TABLE SERVICE ON IS THE SAME GESTURE AS PICKING THE PRESET.
-       The first cut gated the Table preset on `service_mode` already being
-       tables/both — which hid it from every shop that had not already found
-       and flipped a store setting somewhere else. That is the exact
-       chicken-and-egg the whole change was meant to remove: the register had a
-       floor, and the only way to ask for one was to already have asked.
-
-       So the preset is always offered, and choosing it turns the store's
-       service mode on as part of choosing it. `tablesForced` carries the
-       moment between that POST and the `settings` prop coming back, so the
-       "stranded till" effect below does not yank the operator to the counter
-       in the half-second before the server's answer arrives. */
-    const [tablesForced, setTablesForced] = useState(() => {
-        try {
-            const want = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('view') : null;
-            if (want === 'floor') return true;
-        } catch (_) {}
-        return initialTerminal === 'table';
-    });
-    const tablesAvailable = storeRunsTables || tablesForced;
-
-    const [terminal, setTerminalState] = useState(() => {
-        try {
-            const want = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('view') : null;
-            if (want === 'floor') return 'table';
-            if (want === 'counter') return 'counter';
-        } catch (_) { /* no window, or a URL we cannot parse */ }
-        if (!tablesAvailable) return 'counter';
-        try {
-            const saved = localStorage.getItem('pos_terminal_v1');
-            if (saved === 'table' || saved === 'counter') return saved;
-        } catch (_) { /* private mode */ }
-        return initialTerminal === 'table' ? 'table' : (storeServiceMode === 'tables' ? 'table' : 'counter');
-    });
-
-    const setTerminal = React.useCallback((next) => {
-        const t = next === 'table' ? 'table' : 'counter';
-        setTerminalState(t);
-        try { localStorage.setItem('pos_terminal_v1', t); } catch (_) {}
-    }, []);
-
-    /* An explicit ?view= STICKS. Clicking Tables in the sidebar means "I am
-       working the floor now", not "show me the floor once" — so the choice is
-       written through to this device's memory, the same as picking the preset
-       by hand would. Without it the operator gets the floor, walks away, comes
-       back to the register and is on the counter again. */
-    useEffect(() => {
-        let want = null;
-        try { want = new URLSearchParams(window.location.search).get('view'); } catch (_) { return; }
-        if (want !== 'floor' && want !== 'counter') return;
-        if (want === 'floor') {
-            setTablesForced(true);
-            setTerminal('table');
-        } else {
-            setTerminal('counter');
-        }
-    }, [setTerminal]);
-
-    /* One-time notice for a device that last ran the table terminal: tables now
-       live in Front of House. The stranded-till effect below clears the saved key. */
-    useEffect(() => {
-        if (!fohRedirect) return;
-        try {
-            if (localStorage.getItem('pos_terminal_v1') === 'table') {
-                window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message: 'Tables moved to Front of House. Use the FOH button.', type: 'info' } }));
-            }
-        } catch (_) { /* private mode */ }
-    }, [fohRedirect]);
-
-    /* A store that turns table service OFF must not leave a till stranded on a
-       floor it is no longer allowed to draw. */
-    useEffect(() => {
-        if (!tablesAvailable && terminal !== 'counter') setTerminal('counter');
-    }, [tablesAvailable, terminal, setTerminal]);
-
-    const tableMode = terminal === 'table';
+    /* THE TILL IS A COUNTER. Tables, takeaway tickets, delivery and the floor
+       plan live in Front of House (/foh), not here -- the register never draws
+       a floor and never opens a table. `terminal` stays as a constant because
+       the layout hook and the settings panel take it as an argument. */
+    const terminal = 'counter';
     const { t, tp } = useTerms();
     const tt = useTermText();
     // Module-gated surface features. Unlisted modules never hide anything
@@ -257,11 +141,9 @@ const POSInterface = ({
        pos.void_item and pos.refund. It gates in-place rate editing now. */
     const hasPriceOverridePerm = userRole === 'owner' || userRole === 'admin' || userRole === 'manager'
         || userPerms.some(p => p === 'pos.price_override' || p.startsWith('pos.price_override.'));
-    /* Service style, lanes and the floor are STORE-WIDE — rows in `settings`
-       and `positions` that every till in the building reads. The endpoints
-       gate them on admin.settings_manage, so the wizard has to know before it
-       offers the steps: showing a cashier a floor builder that 403s on submit
-       is worse than not showing it. */
+    /* Store-wide settings (kitchen preparation, the settings panel's store
+       rows) are gated on admin.settings_manage, so the wizard and the panel
+       have to know before they offer them. */
     const canManageStore = userRole === 'owner' || userRole === 'admin' || userRole === 'manager'
         || userPerms.some(p => p === 'admin.settings_manage' || p.startsWith('admin.settings_manage.'));
     const posReturnMode = settings?.pos_return_mode || 'reference';
@@ -677,45 +559,6 @@ const POSInterface = ({
         try { localStorage.setItem('pos_catalog_hide_oos', String(v)); } catch (_) {}
     };
 
-    /* ── THE FLOOR, AS THIS DEVICE WANTS TO SEE IT ────────────────────────
-       Four views of the same tables (smart cards, by area, seating chart,
-       list), the order they sort in, how big each card is and which details
-       it carries. Device-level on purpose: the tablet on the floor and the
-       till at the pass are looking at the same room for different reasons. */
-    const readLocal = (key, fallback, allowed) => {
-        try {
-            const v = localStorage.getItem(key);
-            return v !== null && (!allowed || allowed.includes(v)) ? v : fallback;
-        } catch (_) { return fallback; }
-    };
-    const [floorView, setFloorViewState] = useState(() => readLocal('pos_floor_view', 'map', ['map', 'cards', 'sections', 'grid', 'list']));
-    const setFloorView = (v) => { setFloorViewState(v); try { localStorage.setItem('pos_floor_view', v); } catch (_) {} };
-    /* The room drawing behind the Map view — store-wide, so every till sees
-       the same room. Held locally after a save so dragging never waits on an
-       Inertia reload. */
-    const [floorMap, setFloorMap] = useState(() => {
-        const raw = settings?.floor_map;
-        try { return raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null; } catch (_) { return null; }
-    });
-    const saveFloorMap = React.useCallback((tablesLayout) => {
-        const slug = store?.slug;
-        return axios.post(route('store.tables.plan.map', { store_slug: slug }), { tables: tablesLayout })
-            .then(r => { setFloorMap(r.data?.map || { tables: tablesLayout }); return r; });
-    }, [store?.slug]);
-    const [floorSort, setFloorSortState] = useState(() => readLocal('pos_floor_sort', 'attention', ['attention', 'number']));
-    const setFloorSort = (v) => { setFloorSortState(v); try { localStorage.setItem('pos_floor_sort', v); } catch (_) {} };
-    const [floorSize, setFloorSizeState] = useState(() => readLocal('pos_floor_size', 'normal', ['compact', 'normal', 'large']));
-    const setFloorSize = (v) => { setFloorSizeState(v); try { localStorage.setItem('pos_floor_size', v); } catch (_) {} };
-    const [floorShow, setFloorShowState] = useState(() => {
-        try { return { showMoney: true, showTime: true, showServer: true, ...JSON.parse(localStorage.getItem('pos_floor_show') || '{}') }; }
-        catch (_) { return { showMoney: true, showTime: true, showServer: true }; }
-    });
-    const setFloorShow = (v) => { setFloorShowState(v); try { localStorage.setItem('pos_floor_show', JSON.stringify(v)); } catch (_) {} };
-    /* The tip box on a table's bill. On by default -- it was always shown --
-       and a till that never takes tips can now put it away. */
-    const [tipEnabled, setTipEnabledState] = useState(() => readLocal('pos_tip_enabled', 'true') !== 'false');
-    const setTipEnabled = (v) => { setTipEnabledState(v); try { localStorage.setItem('pos_tip_enabled', String(v)); } catch (_) {} };
-
     /* ── RANK-3 OPERATIONAL SETTINGS ──────────────────────────────────────
        Five values that the old page read straight out of `settings` (or, in
        two cases, out of localStorage inside the effect that used them) with no
@@ -833,76 +676,8 @@ const POSInterface = ({
         } catch (_) { /* the browser said no; nothing else to do */ }
     };
 
-    /* Counter, table service, or both. A STORE setting -- two tills in one
-       restaurant must not disagree about whether there is a floor -- so it is
-       written through an endpoint rather than to localStorage, and the local
-       copy is optimistic so the panel does not feel laggy. */
-    const [serviceMode, setServiceMode] = useState(settings?.service_mode || 'counter');
-
-    /* The stepper was reading `settings.service_charge_percent` straight off
-       the Inertia page props -- a value that cannot change without a page
-       load. So every tap posted the right number to the server and then
-       re-rendered the old one, and the control looked broken while working
-       perfectly. It holds its own state now, optimistically, and rolls back
-       if the save is refused. */
-    const [serviceChargeSetting, setServiceChargeState] = useState(
-        () => parseFloat(settings?.service_charge_percent || 0) || 0,
-    );
-
-    const saveServiceCharge = async (pct) => {
-        const value = Math.max(0, Math.min(100, parseFloat(pct) || 0));
-        const previous = serviceChargeSetting;
-        setServiceChargeState(value);
-        try {
-            await axios.post(route('store.tables.service-charge', { store_slug: store?.slug }), { percent: value });
-            addToast(value > 0 ? `Service charge set to ${value}%` : 'Service charge switched off', 'success');
-        } catch (e) {
-            setServiceChargeState(previous);
-            addToast(e?.response?.status === 403
-                ? 'You do not have permission to change the service charge.'
-                : 'That service charge could not be saved.', 'error');
-        }
-    };
-
-    const saveServiceMode = async (mode) => {
-        const previous = serviceMode;
-        setServiceMode(mode);
-        try {
-            await axios.post(route('store.tables.service-mode', { store_slug: store?.slug }), { mode });
-            addToast(mode === 'counter' ? 'Counter service' : mode === 'tables' ? 'Table service' : 'Counter and table service', 'success');
-            /* The nav reads service_mode off the page props, so without this
-               the Tables entry does not appear until the next full page load
-               -- and a switch whose only visible effect is delayed by a reload
-               is a switch the operator concludes did nothing. */
-            router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
-        } catch (e) {
-            setServiceMode(previous);
-            addToast(e?.response?.status === 403
-                ? 'You do not have permission to change the service style.'
-                : 'Could not save the service style.', 'error');
-        }
-    };
-
-    const [preparesOrders, setPreparesOrdersState] = useState(
-        () => (settings?.prepares_orders ?? '1') === '1'
-    );
-
-    const savePreparesOrders = async (enabled) => {
-        const previous = preparesOrders;
-        setPreparesOrdersState(enabled);
-        try {
-            await axios.post(route('store.tables.prepares-orders', { store_slug: store?.slug }), {
-                prepares_orders: enabled ? '1' : '0',
-            });
-            addToast(enabled ? 'Kitchen preparation enabled' : 'Kitchen preparation disabled', 'success');
-            router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
-        } catch (e) {
-            setPreparesOrdersState(previous);
-            addToast(e?.response?.status === 403
-                ? 'You do not have permission to change kitchen settings.'
-                : 'Could not save kitchen setting.', 'error');
-        }
-    };
+    /* Kitchen work (tickets, KDS, TV queue, stations) belongs to Front of
+       House only. The register never offers it, whatever the store setting. */
 
     // Icon Rail Toggle State
     // Fullscreen by default: the rail is hidden unless the cashier asks for
@@ -1008,11 +783,6 @@ const POSInterface = ({
                 setShowCatalogStock(true);
                 setHideOutOfStock(false);
                 setCategoryOrientation('horizontal');
-                setFloorView('cards');
-                setFloorSort('attention');
-                setFloorSize('normal');
-                setFloorShow({ showMoney: true, showTime: true, showServer: true });
-                setTipEnabled(true);
                 setShowItemConverter(true);
                 setSurfaceButtonsState({ ...DEFAULT_SURFACE });
                 setSettingsOpen(false);
@@ -1054,423 +824,12 @@ const POSInterface = ({
         });
     };
 
-    /* ── A TABLE, HANDED OVER TO BE SETTLED ───────────────────────────────
-       Table Service owns the floor; it does not own money. It sends the
-       operator here with an occupancy id and this loads that table's order
-       into a tab, so the tender panel, the journal posting and the offline
-       queue stay in one place. On a completed sale the occupancy is closed,
-       which is what frees the table -- rather than leaving a waiter to
-       remember to do it on another screen. */
-    const [settlingOccupancy, setSettlingOccupancy] = useState(null);
-    const occupancyLoaded = useRef(false);
-
-    useEffect(() => {
-        if (!occupancy || occupancyLoaded.current) return;
-        occupancyLoaded.current = true;
-        /* One translator for both directions and both entry points. This used
-           to be a second inline mapper that knew nothing about modifiers, so a
-           table handed over from elsewhere arrived with its options silently
-           dropped -- and the customer was charged the plain price for a dish
-           the kitchen had cooked with extras. */
-        const lines = (occupancy.cart || []).map(serverLineToCart);
-        if (!lines.length) {
-            addToast(`${occupancy.label || 'That table'} has nothing on it yet.`, 'warning');
-            return;
-        }
-        const isDelivery = (occupancy.order_type === 'delivery') || (occupancy.session_data?.order_type === 'delivery');
-        const deliveryFee = isDelivery
-            ? Number(occupancy.delivery?.fee || occupancy.session_data?.delivery?.fee || occupancy.delivery_fee || 0)
-            : 0;
-
-        updateActiveSale({
-            cart: lines,
-            notes: occupancy.note || occupancy.session_data?.note || '',
-            ...(deliveryFee > 0 ? {
-                additionalCharges: deliveryFee,
-                additionalChargesLabel: 'Delivery Fee',
-                delivery_charge: deliveryFee
-            } : {})
-        });
-        setSettlingOccupancy(occupancy);
-        addToast(`${occupancy.label || (isDelivery ? 'Delivery' : 'Table')} loaded — take the payment`, 'info');
-    }, [occupancy]);
-
-    const releaseSettledTable = async (saleId) => {
-        if (!settlingOccupancy) return;
-        try {
-            await axios.post(route('store.tables.settled', { store_slug: store?.slug }), {
-                occupancy_id: settlingOccupancy.id,
-                sale_id: saleId ?? null,
-            });
-            addToast(`${settlingOccupancy.label || 'Table'} is free`, 'success');
-        } catch (_) {
-            /* The sale is already banked; a table left showing as open is a
-               nuisance, not a loss. Say so rather than failing the sale. */
-            addToast('Sale completed, but the table could not be released. Free it from the floor.', 'warning');
-        } finally {
-            setSettlingOccupancy(null);
-        }
-    };
-
     const [openSheet, setOpenSheet] = useState(null);   // 'catalog' | 'tender' | null
 
-    /* ══════════════════════════════════════════════════════════════════════
-       THE TABLE TERMINAL
-       ══════════════════════════════════════════════════════════════════════
-       In `counter` mode none of this exists: the hook is inert, the panes are
-       not rendered, and the restaurant's controls are not on the surface to be
-       read past. In `table` mode the floor becomes a rank-1 pane and the cart
-       in front of the operator IS the selected table's order -- one cart, one
-       tender, one offline queue, exactly as for a counter till.
-       ══════════════════════════════════════════════════════════════════════ */
-    /* Which lanes this shop runs. A dine-in-only room never sees a Takeaway
-       tab; a dark kitchen sees only those. Both come off the same store
-       settings the Floor Builder writes. */
-    const lanes = {
-        takeaway: String(settings?.lane_takeaway ?? '1') !== '0',
-        delivery: String(settings?.lane_delivery ?? '1') !== '0',
-    };
-
-    const tables = useTableService({
-        enabled: tableMode,
-        storeSlug: store?.slug,
-        initialPositions,
-        initialTickets,
-        initialZones,
-        initialKitchen,
-        lanes,
-        onError: (m) => addToast(m, 'error'),
-        onNotice: (m) => addToast(m, 'success'),
-    });
-
-    /* ONE CLOCK, so every card in a paint agrees what time it is and the
-       alarm sort cannot disagree with the alarm ring. Ticking here rather
-       than inside each tile also means the floor re-sorts as a table crosses
-       its threshold, which is the moment the screen earns its keep. */
-    const [floorNow, setFloorNow] = useState(() => Date.now());
-    useEffect(() => {
-        if (!tableMode) return undefined;
-        const id = setInterval(() => setFloorNow(Date.now()), 20000);
-        return () => clearInterval(id);
-    }, [tableMode]);
-
-    const [newTicketFor, setNewTicketFor] = useState(null);   /* 'takeaway' | 'delivery' */
-
-    /* A TABLE TERMINAL WITH NO TABLES ON IT.
-       Until now that was a floor screen saying "no tables" with no way to have
-       any -- the only route to the builder was a nav entry on a different
-       page, which a restaurant switching the till on for the first time has no
-       reason to look for. It opens itself once, and only for somebody who is
-       actually allowed to create tables; anyone else just sees the empty floor
-       rather than a dialog they cannot submit. */
-    const [quickFloorOpen, setQuickFloorOpen] = useState(false);
-    const floorOffered = useRef(false);
-    useEffect(() => {
-        if (!tableMode || floorOffered.current || !canManageStore) return;
-        if (!tables.loaded) return;
-        if (tables.positions.length > 0) return;
-        if (store?.slug && localStorage.getItem(`quick_floor_dismissed_${store.slug}`)) return;
-        floorOffered.current = true;
-        setQuickFloorOpen(true);
-    }, [tableMode, canManageStore, tables.loaded, tables.positions.length, store?.slug]);
-
-    const dismissQuickFloor = () => {
-        setQuickFloorOpen(false);
-        floorOffered.current = true;
-        if (store?.slug) {
-            try {
-                localStorage.setItem(`quick_floor_dismissed_${store.slug}`, '1');
-            } catch (_) {}
-        }
-    };
-
-    const openFloorPlan = () => router.visit(route('store.tables.plan', { store_slug: store?.slug }));
-    const [seatFor, setSeatFor] = useState(null);      /* a free table being opened */
-    const [movingTable, setMovingTable] = useState(false);
-    const [splitOpen, setSplitOpen] = useState(false);
-    const [splitSeed, setSplitSeed] = useState(null);
     const [modifierFor, setModifierFor] = useState(null);
     const [modifierGroups, setModifierGroups] = useState([]);
     const [modifierLoading, setModifierLoading] = useState(false);
-    const loadedOccupancy = useRef(null);
-
-    const selectedTable = tables.selected;
-    const tableCovers = Number(selectedTable?.covers) || 1;
-    const tableOrderType = selectedTable?.order_type || 'dine_in';
-
-    /* Picking a table LOADS its order. This is the only crossing point between
-       the floor's JSON document and the register's live cart, and it happens
-       once per table -- guarded by a ref rather than by comparing carts,
-       because the 15s poll rewrites `selected.cart` underneath us and a
-       comparison would throw away whatever the waiter had just typed. */
-    useEffect(() => {
-        if (!tableMode) return;
-        const t = tables.selected;
-        if (!t || !t.occupancy_id) return;
-        if (loadedOccupancy.current === t.occupancy_id) return;
-        loadedOccupancy.current = t.occupancy_id;
-        const lines = (t.cart || []).map(serverLineToCart);
-        tables.prime(lines);
-        const isDelivery = t.order_type === 'delivery';
-        const deliveryFee = isDelivery ? Number(t.delivery?.fee || 0) : 0;
-        updateActiveSale({
-            cart: lines,
-            notes: t.note || '',
-            ...(deliveryFee > 0 ? {
-                additionalCharges: deliveryFee,
-                additionalChargesLabel: 'Delivery Fee',
-                delivery_charge: deliveryFee
-            } : {})
-        });
-    }, [tableMode, tables.selectedId, tables.selected?.occupancy_id]);
-
-    /* A QR order can arrive while this same table is already open on the
-       register. The ordinary poll deliberately does not replace an open cart,
-       because doing so would erase a waiter's unsaved edits. Merge only lines
-       whose stable server line id is not present locally; this makes the new
-       customer order appear without disturbing anything staff are typing. */
-    useEffect(() => {
-        if (!tableMode) return;
-        const t = tables.selected;
-        if (!t?.occupancy_id || loadedOccupancy.current !== t.occupancy_id || Number(t.customer_pending) < 1) return;
-        const localIds = new Set(activeSale.cart.map((line) => line.lineId || line.cartItemId));
-        const arrived = (t.cart || [])
-            .filter((line) => line.customer_pending && !localIds.has(line.line_id))
-            .map(serverLineToCart);
-        if (!arrived.length) return;
-        const merged = [...activeSale.cart, ...arrived];
-        tables.prime(merged);
-        updateActiveSale({ cart: merged });
-    }, [tableMode, tables.selected?.occupancy_id, tables.selected?.customer_pending, tables.selected?.cart, activeSale.cart]);
-
-    /* …and every edit to it saves back, debounced. */
-    useEffect(() => {
-        if (!tableMode) return;
-        const t = tables.selected;
-        if (!t || !t.occupancy_id) return;
-        if (loadedOccupancy.current !== t.occupancy_id) return;
-        tables.pushOrder(t.occupancy_id, activeSale.cart, {
-            covers: t.covers,
-            orderType: t.order_type,
-            note: activeSale.remarks || activeSale.notes || '',
-        });
-    }, [tableMode, activeSale.cart]);
-
-    const backToFloor = () => {
-        loadedOccupancy.current = null;
-        tables.select(null);
-        updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
-    };
-
-    /* One entry point for the floor, because a table's state decides what
-       picking it MEANS: an empty one asks how many are sitting down, an
-       occupied one opens its order, and one being cleaned does neither. */
-    const pickTable = (t) => {
-        if (movingTable) return;
-        /* A lane ticket is always open -- there is no "seat it" step, because
-           there is nothing to seat. Picking one is picking its bill. */
-        if (t.kind === 'ticket') {
-            if (tables.selectedId === t.id) { setOpenSheet(null); return; }
-            loadedOccupancy.current = null;
-            tables.select(t.id);
-            setOpenSheet(null);
-            return;
-        }
-        if (t.occupancy_id) {
-            if (tables.selectedId === t.id) { setOpenSheet(null); return; }
-            loadedOccupancy.current = null;
-            tables.select(t.id);
-            setOpenSheet(null);
-            return;
-        }
-        if (t.status === 'cleaning') {
-            addToast(`${t.label || t.code} is being cleaned. Mark it free from the floor first.`, 'warning');
-            return;
-        }
-        setSeatFor(t);
-    };
-
-    const confirmSeat = async ({ covers, orderType }) => {
-        const pos = await tables.openTable(seatFor.id, { covers, orderType });
-        setSeatFor(null);
-        if (pos) {
-            loadedOccupancy.current = pos.occupancy_id;
-            tables.prime([]);
-            updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
-            setOpenSheet(null);
-        }
-    };
-
-    const openingLaneRef = useRef(null);
-    /* In table service mode, if an operator adds an item without picking a table,
-       automatically open a Takeaway lane ticket. This allows swift counter sales
-       without blocking staff or occupying physical dining tables. */
-    const ensureActiveOrder = async (orderType = 'takeaway') => {
-        if (!tableMode || tables.selected) return tables.selected;
-        if (openingLaneRef.current) {
-            return openingLaneRef.current;
-        }
-        const promise = (async () => {
-            try {
-                const ticket = await tables.openLane(orderType);
-                if (ticket) {
-                    loadedOccupancy.current = ticket.occupancy_id;
-                    tables.prime([]);
-                    updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
-                    return ticket;
-                }
-            } catch (err) {
-                console.error('Failed to auto-create takeaway ticket:', err);
-                addToast('Could not start takeaway order. Please select a table or ticket.', 'error');
-                return null;
-            } finally {
-                openingLaneRef.current = null;
-            }
-            return null;
-        })();
-        openingLaneRef.current = promise;
-        return promise;
-    };
-
-    /* Firing must never send a stale order: the debounce is flushed first, so
-       what the kitchen cooks is what is on the screen. */
-    const fireToKitchen = async () => {
-        const t = tables.selected;
-        if (!t?.occupancy_id) return;
-        await tables.flushOrder(t.occupancy_id, activeSale.cart, {
-            covers: t.covers, orderType: t.order_type,
-            note: activeSale.remarks || activeSale.notes || '',
-        });
-        const res = await tables.sendToKitchen(t.occupancy_id);
-        if (res) {
-            /* The lines are now the kitchen's. Marking them here rather than
-               waiting for the next poll keeps the Fire button honest between
-               the tap and the refresh. Note: sendToKitchen already handles KOT printing. */
-            updateActiveSale({
-                cart: activeSale.cart.map(l => ({ ...l, sent: true, sent_qty: Number(l.qty) || 1 })),
-            });
-        }
-    };
-
-    const [firingCounter, setFiringCounter] = useState(false);
-    const handleCounterFire = async () => {
-        const unsent = activeSale.cart.filter(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0));
-        if (unsent.length === 0) return;
-        setFiringCounter(true);
-        try {
-            const { data } = await axios.post(route('store.tables.kitchen.counter-fire', { store_slug: store?.slug }), {
-                cart: activeSale.cart.map(cartLineToServer),
-                order_type: activeSale.order_type || 'takeaway',
-                customer_name: activeSale.customer?.name || (activeSale.walkInName || '').trim() || null,
-                phone: activeSale.customer?.phone || null,
-                note: activeSale.remarks || activeSale.notes || '',
-                party_id: activeSale.customer?.id || null,
-            });
-            if (data?.kots?.length) {
-                data.kots.forEach(kot => KitchenPrintService.printKOT(kot, { printerName: kot.printer_name }));
-            } else if (data?.kot) {
-                KitchenPrintService.printKOT(data.kot);
-            }
-            updateActiveSale({
-                ticket_code: data?.ticket_code || activeSale.ticket_code,
-                cart: activeSale.cart.map(l => ({ ...l, sent: true, sent_qty: Number(l.qty) || 1 })),
-            });
-            addToast(`${data?.sent || unsent.length} item${(data?.sent || unsent.length) === 1 ? '' : 's'} sent to kitchen`, 'success');
-        } catch (err) {
-            addToast(err?.response?.data?.message || 'Could not send order to kitchen', 'error');
-        } finally {
-            setFiringCounter(false);
-        }
-    };
-
-    const dropCheck = async () => {
-        const t = tables.selected;
-        if (!t?.occupancy_id) return;
-        const already = !!t.check_dropped_at;
-        const res = await tables.dropCheck(t.occupancy_id, already);
-        if (res) {
-            addToast(already ? 'Bill taken back' : 'Bill dropped — the pay clock is running', 'info');
-            if (!already) {
-                try {
-                    await PrintService.printBill({ sale: activeSale, total: cartTotal, table: t }, store || settings);
-                } catch (err) {
-                    console.error('[POS] Failed to print bill:', err);
-                }
-            }
-        }
-    };
-
-    const setCovers = (n) => {
-        const t = tables.selected;
-        if (!t?.occupancy_id) return;
-        tables.flushOrder(t.occupancy_id, activeSale.cart, {
-            covers: n, orderType: t.order_type,
-            note: activeSale.remarks || activeSale.notes || '',
-        });
-    };
-
-    const setOrderType = (v) => {
-        const t = tables.selected;
-        if (!t?.occupancy_id) return;
-        tables.flushOrder(t.occupancy_id, activeSale.cart, {
-            covers: t.covers, orderType: v,
-            note: activeSale.remarks || activeSale.notes || '',
-        });
-    };
-
-    const closeSelectedTable = () => {
-        const t = tables.selected;
-        if (!t?.occupancy_id) return;
-        const due = Number(t.order_total) || 0;
-        const finish = async (force) => {
-            const ok = await tables.closeTable(t.occupancy_id, force);
-            if (ok) {
-                loadedOccupancy.current = null;
-                updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
-                addToast(`${t.label || t.code} is free`, 'success');
-            }
-        };
-        if (due > 0) {
-            /* Closing a table with money on it is throwing away a bill. It is
-               allowed -- a walkout is real -- but never by one tap. */
-            setConfirmState({
-                show: true,
-                title: `Close ${t.label || t.code} with ${money(due)} unpaid?`,
-                message: 'Nothing will be charged and the order will be discarded. Use Complete Sale instead if this table is paying.',
-                onConfirm: () => { setConfirmState(s0 => ({ ...s0, show: false })); finish(true); },
-            });
-            return;
-        }
-        finish(false);
-    };
-
-    /* Splitting. "By item" is a genuinely separate bill and becomes a server
-       part; "evenly" and "by amount" are one bill paid by several people,
-       which is what the split-tender panel has always been for. Routing them
-       to two different mechanisms is not an inconsistency -- they are two
-       different things that restaurants both call "split". */
-    const confirmSplit = async (spec) => {
-        const t = tables.selected;
-        if (!t?.occupancy_id) return;
-        setSplitOpen(false);
-
-        if (spec.mode === 'lines') {
-            await tables.flushOrder(t.occupancy_id, activeSale.cart, {
-                covers: t.covers, orderType: t.order_type,
-                note: activeSale.remarks || activeSale.notes || '',
-            });
-            const res = await tables.split(t.occupancy_id, spec);
-            if (!res) return;
-            const ids = new Set(spec.line_ids);
-            const part = activeSale.cart.filter(l => ids.has(l.lineId || l.cartItemId));
-            updateActiveSale({ cart: part, cashReceived: '' });
-            addToast(`${part.length} line${part.length === 1 ? '' : 's'} moved to this bill — take the payment`, 'info');
-            return;
-        }
-
-        setSplitSeed(spec.mode === 'covers' ? { ways: spec.parts } : { amount: spec.amount });
-        setPaymentModalOpen(true);
-    };
+    const [modifierVariant, setModifierVariant] = useState(null); // variant picked before the add-ons sheet
 
     /* Modifiers. Fetched per product, cached for the session: a menu's option
        groups do not change between two taps on the same burger. */
@@ -1501,6 +860,7 @@ const POSInterface = ({
     const addWithOptions = async (product, variant = null) => {
         const groups = await fetchModifierGroups(product);
         if (!groups.length) { addToCart(product, variant); return; }
+        setModifierVariant(variant);
         setModifierGroups(groups);
         setModifierLoading(false);
         setModifierFor(product);
@@ -1812,10 +1172,47 @@ const POSInterface = ({
         syncErrors,
         checkPending,
         saveOfflineSale,
+        beginIntent,
+        settleIntent,
         syncPendingSales,
         getPendingSales,
-        deletePendingSale
+        resolvePendingSale,
+        retryPendingSale,
+        exportUnresolved,
+        exportUnassigned,
+        adoptUnassigned,
+        storagePersisted,
     } = useOfflineSync();
+    const canManageQueue = !!(auth?.user?.is_owner || ['owner', 'admin', 'manager'].includes(auth?.user?.role));
+    const isUnassignedRow = (r) => (r.tenant_id === undefined || r.tenant_id === null) && !r.store_slug;
+
+    /* Force Sync: a person asked, so the back-off is not waited out. Says what
+       happened instead of silently leaving rows where they were. */
+    const handleForceSync = async () => {
+        const before = offlineSales.length;
+        const sent = await syncPendingSales({ force: true });
+        const rows = await getPendingSales();
+        setOfflineSales(rows);
+        await checkPending();
+        if (sent > 0) addToast(`${sent} sale${sent === 1 ? '' : 's'} sent.`, 'success');
+        else if (before > 0) addToast('Nothing could be sent. Each sale below says why.', 'warning');
+    };
+
+    const handleAdoptUnassigned = (sale) => {
+        const hasKey = !!(sale.data?.idempotency_key || sale.intent_key);
+        showConfirm(
+            'Send this sale to this store?',
+            hasKey
+                ? 'It was saved by an older version of the till and does not say which store it belongs to. Only continue if it was rung in THIS store. It keeps its receipt key, so if the server already has it, it will not be posted twice.'
+                : 'It was saved by an older version of the till with no store and no receipt key. FIRST check the Sales list for a sale at this time and amount: if it is already there, mark this one Resolved instead. Only continue if it is NOT in the Sales list and was rung in THIS store.',
+            async () => {
+                const ok = await adoptUnassigned(sale.id, { newKey: hasKey ? null : (crypto?.randomUUID?.() || `adopt-${Date.now()}-${sale.id}`) });
+                if (!ok) { addToast('Could not update this queued sale.', 'error'); return; }
+                await handleForceSync();
+            },
+            true
+        );
+    };
 
     useEffect(() => {
         const handleStatusChange = () => setIsOnline(navigator.onLine);
@@ -1837,6 +1234,13 @@ const POSInterface = ({
 
 
     const handleRecallOfflineSale = async (offlineSale) => {
+        /* Queued sales are saved in server-request shape (`items`), not cart shape.
+           Recalling one would load an empty cart and then delete the queued sale,
+           losing it. Refuse instead; Force Sync posts it as saved. */
+        if (!Array.isArray(offlineSale?.data?.cart) || offlineSale.data.cart.length === 0) {
+            addToast('This queued sale cannot be recalled to the cart. Use Force Sync to post it.', 'error');
+            return;
+        }
         try {
             const newId = Math.max(...sales.map(s => s.id), 1000) + 1;
             setSales(prev => [...prev, {
@@ -1848,7 +1252,7 @@ const POSInterface = ({
                 isFromOffline: true
             }]);
             setActiveSaleId(newId);
-            await deletePendingSale(offlineSale.id);
+            await resolvePendingSale(offlineSale.id, 'Recalled to the cart to be rung again');
             setOfflineSales(prev => prev.filter(s => s.id !== offlineSale.id));
             setShowSyncHub(false);
             addToast('Offline sale loaded back to cart', 'success');
@@ -2174,13 +1578,6 @@ const POSInterface = ({
     };
 
     const handleProductSelect = async (product) => {
-        /* In table service mode, if no table or ticket is selected,
-           automatically open a Takeaway order so counter/takeaway items can be
-           rung up immediately without occupying physical dining tables. */
-        if (tableMode && !selectedTable) {
-            const ticket = await ensureActiveOrder('takeaway');
-            if (!ticket) return;
-        }
         const isService = product.type === 'service' || product.is_service || product.item_type === 'service';
         const isStockTracking = isStockMaintenanceEnabled(settings);
         const hasPreSales = !Array.isArray(modules) || modules.includes('pre_sales');
@@ -2230,7 +1627,7 @@ const POSInterface = ({
 
             // Stock Validation Logic (Bypassed for Services, Auto-manufactured items, table/restaurant mode, or when stock tracking is disabled)
             const canAutoManufacture = product.has_manufacturing_rule === true;
-            const isStockTracking = !tableMode && isStockMaintenanceEnabled(settings);
+            const isStockTracking = isStockMaintenanceEnabled(settings);
 
             if (isStockTracking && !isService && newQty > stock && !canAutoManufacture) {
                 // If setting is undefined, null, or '1' -> BLOCK
@@ -2307,6 +1704,9 @@ const POSInterface = ({
                    item alone; the table service sends that and adds the deltas itself. */
                 original_price: price + modDelta,
                 basePrice: price,
+                /* The server charges a product's own tax rate when it has one
+                   (SaleController / SaleTotals); the till shows the same. */
+                product_tax_rate: product.tax_rate ?? null,
                 mods: mods || [],
                 sent: false,
                 discount: 0,
@@ -2343,11 +1743,7 @@ const POSInterface = ({
                         const variantId = response.data.variant_id;
                         if (variantId && product.variants) {
                             const variant = product.variants.find(v => v.id === variantId);
-                            if (tableMode && !selectedTable) {
-                                const ticket = await ensureActiveOrder('takeaway');
-                                if (!ticket) return;
-                            }
-                            addToCart(product, variant);
+                            await addWithOptions(product, variant);
                         } else {
                             await handleProductSelect(product);
                         }
@@ -2462,7 +1858,7 @@ const POSInterface = ({
                 // Stock Check
                 // BYPASS: Products with manufacturing rules, or when stock maintenance is disabled, or in restaurant table mode
                 const canAutoManufacture = item.has_manufacturing_rule === true;
-                const isStockTracking = !tableMode && isStockMaintenanceEnabled(settings);
+                const isStockTracking = isStockMaintenanceEnabled(settings);
 
                 if (isStockTracking && newQty > item.stock && !canAutoManufacture) {
                     // If setting is undefined, null, or '1' -> BLOCK
@@ -2542,16 +1938,16 @@ const POSInterface = ({
         subtotal, freeItemDiscounts, itemDiscounts, subtotalAfterLineDiscounts,
         globalDiscount, totalDiscounts, taxableAmount, taxAmount,
         additionalCharges, serviceChargePct, serviceCharge, tipAmount,
-        rawCartTotal, cartTotal,
+        rawCartTotal, cartTotal, taxEnabled, billRounding, calcError: totalsCalcError,
     } = computeTotals({
         cart: activeSale.cart,
         sale: activeSale,
         settings,
         enableTax,
         enableFreeQty,
-        tableMode,
-        serviceChargePct: serviceChargeSetting,
-        tipEnabled,
+        tableMode: false, // service charge and tips belong to Front of House
+        serviceChargePct: 0,
+        tipEnabled: false,
         roundOff,
     });
 
@@ -2662,71 +2058,114 @@ const POSInterface = ({
     const processCheckout = async (paymentData, addToLedger = false, approval = null) => {
         setProcessingPayment(true);
 
-        /* The request body is built by Sell/core/salePayload.js (pure; cash lines are
-           clamped to what is owed there). Approval stamping stays here. */
-        const basePayload = buildSalePayload({
-            sale: activeSale,
-            totals: { cartTotal, taxAmount, taxRate, taxInclusive, globalDiscount, additionalCharges, serviceCharge, tipAmount },
-            paymentData,
-            addToLedger,
-            registerShift,
-            settings,
-            warehouseId: selectedWarehouseId,
-        });
+        /* The request body is built by Sell/core/salePayload.js (pure, exact
+           paisa; cash lines are clamped to what is owed and the change is sent
+           separately). Approval stamping stays here. */
+        if (totalsCalcError) {
+            showAlert('Checkout Error', totalsCalcError.message, 'error');
+            setProcessingPayment(false);
+            return false;
+        }
+        /* The receipt key exists BEFORE the first request and is reused for
+           every retry of this same sale, so a lost answer can never ring it
+           twice. It is dropped only once the outcome is definitive. */
+        const intentKey = activeSale.intentKey || newIntentKey();
+        /* When the sale happened travels with the key: every retry and any
+           offline replay carries the same moment (part of the sale's content). */
+        const occurredAt = (activeSale.intentKey && activeSale.intentOccurredAt) || new Date().toISOString();
+        if (!activeSale.intentKey) updateActiveSale({ intentKey, intentOccurredAt: occurredAt });
+        const basePayload = {
+            ...buildSalePayload({
+                sale: activeSale,
+                totals: { cartTotal, taxAmount, taxRate, taxInclusive, taxEnabled, billRounding, globalDiscount, additionalCharges, serviceCharge, tipAmount },
+                paymentData,
+                addToLedger,
+                registerShift,
+                settings,
+                warehouseId: selectedWarehouseId,
+            }),
+            idempotency_key: intentKey,
+            occurred_at: occurredAt,
+        };
         const payload = withApproval(basePayload, approval);
+        const provisional = (state) => ({
+            success: true,
+            reference: (state === QUEUE_STATES.PENDING ? 'OFFLINE-' : 'PENDING-') + intentKey.slice(0, 8).toUpperCase(),
+            idempotency_key: intentKey,
+            created_at: new Date().toISOString(),
+            is_offline: true,
+            status_unconfirmed: true,
+        });
 
         try {
-            let responseData;
-
-            if (isOnline) {
-                const response = await axios.post(route('store.pos.sales.store', { store_slug: store?.slug }), payload);
-                responseData = response.data;
-            } else {
-                throw new Error("Offline");
+            if (!isOnline) {
+                // Deliberate offline checkout: a durable, clearly provisional sale.
+                setApprovalRequest(null);
+                const saved = await saveOfflineSale(basePayload); // never the approval PIN
+                if (saved) {
+                    updateActiveSale({ intentKey: null, intentOccurredAt: null });
+                    finalizeSale(provisional(QUEUE_STATES.PENDING), paymentData);
+                    return true;
+                }
+                showAlert('Checkout Failed', 'Could not save the sale on this device. Nothing was recorded — check device storage.', 'error');
+                return false;
             }
 
-            if (responseData.success) {
+            // Online: persist the intent first (best effort — the key is held in
+            // memory too), then send it.
+            const intentRowId = await beginIntent(basePayload);
+            let decision;
+            try {
+                const response = await axios.post(route('store.pos.sales.store', { store_slug: store?.slug }), payload, { timeout: 30000 });
+                decision = classifyOutcome({ response, intentKey });
+            } catch (error) {
+                // S-011 / S-044: below cost or over the discount limit — ask a manager.
+                const approvalInfo = parseApprovalRequired(error);
+                if (approvalInfo) {
+                    await settleIntent(intentRowId, { state: QUEUE_STATES.RESOLVED, note: 'Manager approval requested; nothing was posted.' });
+                    setApprovalRequest({ info: approvalInfo, paymentData, addToLedger });
+                    return false;
+                }
+                decision = classifyOutcome({ error, intentKey });
+                const status = error?.response?.status;
+                /* 401/403/419 are refused before the sale code runs: nothing was
+                   posted, the cart is still here, sign in and press Pay again. */
+                if (status === 401 || status === 403 || status === 419) decision = { state: 'refused', message: decision.message };
+            }
+
+            if (decision.state === QUEUE_STATES.SYNCED) {
+                await settleIntent(intentRowId, { state: QUEUE_STATES.SYNCED, sale: decision.sale });
                 setApprovalRequest(null);
-                finalizeSale(responseData, paymentData);
+                updateActiveSale({ intentKey: null, intentOccurredAt: null });
+                finalizeSale(decision.sale, paymentData);
                 return true;
             }
-            return false;
-        } catch (error) {
-            console.log("Checkout processing check:", error);
-
-            // S-011 / S-044: below cost or over the discount limit — ask a manager.
-            const approvalInfo = parseApprovalRequired(error);
-            if (approvalInfo) {
-                setApprovalRequest({ info: approvalInfo, paymentData, addToLedger });
-                setProcessingPayment(false);
-                return false;
-            }
-            
-            // Layout Law fix (errors_as_offline): Differentiate network failure from 4xx API errors
-            if (error.response && error.response.status >= 400 && error.response.status < 500) {
-                const errMsg = error.response.data?.message || error.response.data?.error || 'Validation or authorization error occurred.';
+            if (decision.state === QUEUE_STATES.UNCERTAIN) {
+                /* The sale may already be in the books. Keep the intent (same
+                   key) for the sync loop to confirm; hand over a receipt that
+                   SAYS it is unconfirmed — never "not saved", never ring again. */
                 setApprovalRequest(null);
-                showAlert('Checkout Error', errMsg, 'error');
-                setProcessingPayment(false);
+                if (intentRowId) {
+                    await settleIntent(intentRowId, { state: QUEUE_STATES.UNCERTAIN, message: decision.message });
+                    updateActiveSale({ intentKey: null, intentOccurredAt: null });
+                    finalizeSale(provisional(QUEUE_STATES.UNCERTAIN), paymentData);
+                    addToast('Sale status unconfirmed — it will be checked automatically with the same receipt key.', 'warning');
+                    return true;
+                }
+                showAlert('Sale status unconfirmed', `${decision.message} The cart was kept: press Pay again — the same receipt key prevents a double charge.`, 'warning');
                 return false;
             }
-
-            // Save to offline queue for network failures. Never the approval
-            // PIN: it is not stored on the device.
+            if (decision.state === QUEUE_STATES.CONFLICT) {
+                await settleIntent(intentRowId, { state: QUEUE_STATES.CONFLICT, message: decision.message });
+                setApprovalRequest(null);
+                showAlert('Already recorded', decision.message, 'error');
+                return false;
+            }
+            // Definitive: the server refused this sale and wrote nothing.
+            await settleIntent(intentRowId, { state: QUEUE_STATES.RESOLVED, message: decision.message, note: 'Refused online; nothing was posted.' });
             setApprovalRequest(null);
-            const offlineSaved = await saveOfflineSale(basePayload);
-
-            if (offlineSaved) {
-                const offlineResponse = {
-                    success: true,
-                    reference: 'OFFLINE-' + Date.now(),
-                    created_at: new Date().toISOString(),
-                    is_offline: true
-                };
-                finalizeSale(offlineResponse, paymentData);
-                return true;
-            }
-            showAlert('Checkout Failed', 'Could not save sale offline. Please check device storage.', 'error');
+            updateActiveSale({ intentKey: null, intentOccurredAt: null });
+            showAlert('Checkout Error', decision.message || 'Validation or authorization error occurred.', 'error');
             return false;
         } finally {
             setProcessingPayment(false);
@@ -2762,32 +2201,6 @@ const POSInterface = ({
         setTimeout(() => {
             window.dispatchEvent(new CustomEvent('amd:refresh-products'));
         }, 1000);
-
-        /* A settled table frees itself. Doing it here rather than on the floor
-           screen means it happens on the one event that actually proves the
-           money was taken. */
-        if (settlingOccupancy) releaseSettledTable(data.sale_id || data.id);
-
-        /* The same event, for a table being worked in this screen rather than
-           handed over from another one. `pending_settle` is what makes a split
-           bill honest: the server stamps only the lines this payment covered
-           and leaves the rest of the table owing. */
-        if (tableMode && tables.selected?.occupancy_id) {
-            const occ = tables.selected.occupancy_id;
-            const part = tables.selected.pending_settle?.id || null;
-            tables.markSettled(occ, data.sale_id || data.id, part).then(res => {
-                if (res && res.closed) {
-                    loadedOccupancy.current = null;
-                    tables.select(null);
-                    addToast('Table paid and free', 'success');
-                } else if (res) {
-                    /* Part paid. Reload what is left so the next person's
-                       share is the remainder and not the whole bill again. */
-                    loadedOccupancy.current = null;
-                    addToast(`Part paid — ${money(res.remaining_total || 0)} still on the table`, 'info');
-                }
-            });
-        }
 
         /* Pulse the cash drawer on a cash tender. AMDStation.openDrawer() and the
            thermal_open_drawer setting both existed with nothing calling them on a
@@ -3679,77 +3092,12 @@ const POSInterface = ({
 
     const money = (v) => formatCurrency(v, store || settings);
 
-    /* Shared by the Layout page's preset cards and the Tables & floor page's
-       "This register shows" switch -- one path into the table terminal. */
+    /* The Layout page's preset cards. The Table preset is never offered here:
+       the floor belongs to Front of House. */
     const applyPresetFromSettings = (id) => {
-        const wants = LAYOUT_PRESETS.find(p => p.id === id)?.terminal === 'table'
-            ? 'table' : 'counter';
-
-        /* CHANGING THE TERMINAL IS NOT "APPLY A PRESET TOO".
-           Switching loads that terminal's OWN remembered
-           composition — and on a device that has never been on
-           the floor, `loadComposition` already falls back to
-           the Table preset. Calling applyPreset as well would
-           race it: the preset would land under the outgoing
-           terminal's storage key and then be overwritten the
-           moment the switch resolved. So: switch, or apply.
-           Never both in one gesture. */
-        if (wants !== terminal) {
-            if (wants === 'counter') {
-                setTerminal('counter');
-                addToast('Back to the counter', 'success');
-                return;
-            }
-
-            /* Choosing Table on a shop that has never run
-               tables turns table service ON as part of
-               choosing it — `both`, not `tables`, so the
-               counter this till was just using does not
-               disappear out from under it. */
-            if (!tablesAvailable) {
-                if (!canManageStore) {
-                    addToast('Table service is a store-wide setting — ask an owner or manager to turn it on.', 'error');
-                    return;
-                }
-                setTablesForced(true);
-                setTerminal('table');
-                axios.post(route('store.tables.service-mode', { store_slug: store?.slug }), { mode: 'both' })
-                    .then(() => {
-                        addToast('Table service on for this store — the floor is in the register now', 'success');
-                        router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
-                    })
-                    .catch(() => {
-                        /* Undo BOTH halves. A till left on a
-                           floor the store does not run is a
-                           screen whose tables can never load. */
-                        setTablesForced(false);
-                        setTerminal('counter');
-                        addToast('Table service could not be turned on for this store.', 'error');
-                    });
-                return;
-            }
-
-            setTerminal('table');
-            addToast('Table service on — the floor is in the register now', 'success');
-            return;
-        }
-
+        if (LAYOUT_PRESETS.find(p => p.id === id)?.terminal === 'table') return;
         applyPreset(id);
         addToast('Layout applied', 'success');
-    };
-
-    /* "This register shows: Counter / Restaurant screen" in settings. Going to
-       the floor reuses the Table preset's path (which also turns table
-       service on when the store has never run it); coming back is a switch. */
-    const switchTerminalFromSettings = (t) => {
-        if (t === terminal) return;
-        if (t === 'counter') {
-            setTerminal('counter');
-            addToast('This register now shows the counter', 'success');
-            return;
-        }
-        const tablePreset = LAYOUT_PRESETS.find(p => p.terminal === 'table');
-        if (tablePreset) applyPresetFromSettings(tablePreset.id);
     };
 
     const reloadStoreSettings = () => router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
@@ -3784,22 +3132,6 @@ const POSInterface = ({
         } catch (e) {
             addToast(`Test print failed: ${e?.message || 'unknown error'}`, 'error');
         }
-    };
-
-    const handleTestKitchenTicket = async (stationName, printerRole) => {
-        const station = stationName || 'Kitchen';
-        const r = await KitchenPrintService.printKOT({
-            order_number: 'TEST',
-            table_number: 'TEST',
-            order_type: 'dine_in',
-            order_type_badge: 'TEST TICKET',
-            server_name: auth?.user?.name || 'Staff',
-            station,
-            printer_role: printerRole || 'kitchen',
-            fired_at_human: new Date().toLocaleTimeString(),
-            items: [{ name: `Test for ${station}`, qty: 1, notes: 'Nothing to cook', modifiers: [] }],
-        }, { forcePrint: true });
-        if (r?.success) addToast(`Test ticket for ${station} sent`, 'success');
     };
 
 
@@ -4605,28 +3937,14 @@ const POSInterface = ({
             <div className="vq-line-name-cell min-w-0 flex flex-col justify-center">
                 <h4 className="vq-clip-2 font-bold text-ink text-sm sm:text-base leading-snug">
                     {item.name}
-                    {/* FIRED, and PAID. Both are states the waiter must be able
-                        to read off the line itself: one says the kitchen owns
-                        it now, the other says somebody has already settled it
-                        and it must not be charged again. */}
-                    {tableMode && item.sent && !item.paidSaleId && (
-                        <span className="vqt-line-sent">sent</span>
-                    )}
-                    {tableMode && !item.sent && item.sent_qty > 0 && !item.paidSaleId && (
-                        <span className="vqt-line-sent bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                            sent ({item.sent_qty}) · +{item.qty - item.sent_qty} new
-                        </span>
-                    )}
-                    {tableMode && item.paidSaleId && (
-                        <span className="vqt-line-sent vqt-line-paid">paid</span>
-                    )}
                 </h4>
-                {tableMode && Array.isArray(item.mods) && item.mods.length > 0 && (
+                {/* Add-ons ride on the line exactly as they print on the ticket. */}
+                {Array.isArray(item.mods) && item.mods.length > 0 && (
                     <span className="vqt-line-mods">
                         {item.mods.map(m => m.name).join(' · ')}
                     </span>
                 )}
-                {tableMode && item.notes && (
+                {item.notes && (
                     <span className="vqt-line-mods"><i>“{item.notes}”</i></span>
                 )}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -4878,7 +4196,7 @@ const POSInterface = ({
         >
             <header className="vq-pane-h bg-sunken/60 text-ink-muted border-b border-line">
                 <ShoppingCart size={15} className="text-brand-600" />
-                <span>{returnMode ? 'Return' : 'Current order'}</span>
+                <span className="truncate min-w-0">{returnMode ? 'Return' : <><span className="sm:hidden">Order</span><span className="hidden sm:inline">Current order</span></>}</span>
                 {hasDiscountPerm && enableFreeQty && (
                     <label className="ml-3 flex items-center gap-1.5 cursor-pointer select-none normal-case tracking-normal">
                         <input
@@ -4893,8 +4211,8 @@ const POSInterface = ({
                         <span className="text-3xs font-bold">Free qty</span>
                     </label>
                 )}
-                <span className="vq-num ml-auto text-2xs opacity-80 font-bold">
-                    {activeSale.cart.length} lines · {cartQty} qty
+                <span className="vq-num ml-auto text-2xs opacity-80 font-bold whitespace-nowrap shrink-0">
+                    {activeSale.cart.length} lines<span className="hidden sm:inline"> · {cartQty} qty</span>
                 </span>
                 {/* The catalog trigger. It used to be a full-width dock
                     row that cost every pane 72px of height, including the
@@ -4902,48 +4220,7 @@ const POSInterface = ({
                 {renderPaneTriggers()}
             </header>
 
-            {/* The selected table, and the four things you can do to it that
-                are not "take money". It sits above the scan bar because it is
-                the CONTEXT for everything below: which table these lines
-                belong to is not a detail of the order, it is the order. */}
-            {tableMode && selectedTable && (
-                <TableBar
-                    table={selectedTable}
-                    covers={tableCovers}
-                    orderType={tableOrderType}
-                    unsent={activeSale.cart.reduce((sum, l) => sum + Math.max(0, (Number(l.qty) || 0) - (Number(l.sent_qty) || (l.sent ? Number(l.qty) : 0))), 0)}
-                    elapsedLabel={tableElapsed(selectedTable.opened_at)}
-                    onBack={backToFloor}
-                    onCovers={setCovers}
-                    onOrderType={setOrderType}
-                    onFire={fireToKitchen}
-                    onBill={dropCheck}
-                    checkDropped={!!selectedTable.check_dropped_at}
-                    onSplit={() => setSplitOpen(true)}
-                    onMove={() => setMovingTable(true)}
-                    onClose={closeSelectedTable}
-                    busy={tables.busy}
-                    compact={layout.cart && layout.cart.px < 460}
-                />
-            )}
 
-            {/* A DELIVERY KEEPS MOVING AFTER THE KITCHEN IS DONE WITH IT.
-                Dine-in and takeaway end at the counter; a delivery still has a
-                rider to assign, a road to be on and a door to reach. Those
-                controls sit directly under the table strip, above the cart,
-                because "where has it got to" is the question asked about an
-                open delivery and "what is on it" is the question asked about
-                everything else. Nothing renders for the other two types. */}
-            {tableMode && selectedTable?.delivery && (
-                <div className="px-3 pt-3">
-                    <DeliveryPanel
-                        ticket={selectedTable}
-                        money={money}
-                        onUpdate={tables.updateDelivery}
-                        onError={(m) => addToast(m, 'error')}
-                    />
-                </div>
-            )}
 
             {!catalogHostsScan && renderScan()}
             {returnMode && renderReturnBanner()}
@@ -4956,14 +4233,12 @@ const POSInterface = ({
                             <ScanBarcode size={32} strokeWidth={1.75} />
                         </div>
                         <h3 className="font-bold text-ink text-base sm:text-lg mb-1">
-                            {tableMode && !selectedTable ? 'Pick a Table or Start Ringing Items' : 'Scan Barcode or Search Item'}
+                            Scan Barcode or Search Item
                         </h3>
                         <p className="text-xs text-ink-muted max-w-sm mb-6 leading-relaxed">
-                            {tableMode && !selectedTable
-                                ? 'Select a dine-in table from the floor, or scan/add any item to instantly start a Takeaway order.'
-                                : 'Point your handheld barcode scanner or type a product name, SKU, or batch number to start this order.'}
+                            Point your handheld barcode scanner or type a product name, SKU, or batch number to start this order.
                         </p>
-                        <div className="flex flex-wrap items-center justify-center gap-2 max-w-md">
+                        <div className="hidden sm:flex flex-wrap items-center justify-center gap-2 max-w-md">
                             <span className="text-3xs font-bold text-ink-muted bg-surface border border-line px-2.5 py-1 rounded-lg shadow-xs">
                                 <kbd className="font-mono text-ink font-bold">F2</kbd> Focus Barcode
                             </span>
@@ -5455,26 +4730,6 @@ const POSInterface = ({
                             <span className="vq-num text-white font-bold text-base">{money(serviceCharge)}</span>
                         </div>
                     )}
-                    {tableMode && tipEnabled && (
-                        /* The tip is typed on the bill, not chosen from three
-                           preset percentages: a percentage prompt is a nudge,
-                           and a till should not be nudging someone else's
-                           customer on someone else's behalf. */
-                        <div className="flex justify-between items-center gap-2 text-teal-100 text-sm font-semibold">
-                            <label htmlFor="vq-tip" className="cursor-pointer">Tip</label>
-                            <input
-                                id="vq-tip"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                inputMode="decimal"
-                                value={activeSale.tipAmount ?? ''}
-                                onChange={e => updateActiveSale({ tipAmount: e.target.value })}
-                                placeholder="0.00"
-                                className="vq-num w-28 text-right bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-white font-bold text-base placeholder:text-white/40 outline-none focus:border-teal-300"
-                            />
-                        </div>
-                    )}
                     {withCash && (
                         <>
                             <div className="h-px bg-teal-600/40 my-1" />
@@ -5603,20 +4858,7 @@ const POSInterface = ({
             )}
 
             <div className="flex gap-2.5">
-                {/* A TABLE IS A HELD SALE. Holding one would park a park, so in
-                    the table terminal this slot carries the way back to the
-                    floor instead -- which is the control a waiter actually
-                    reaches for after sending an order. */}
-                {tableMode && !returnMode && selectedTable && (
-                    <button
-                        type="button"
-                        onClick={backToFloor}
-                        className="flex-1 bg-surface hover:bg-brand-50 text-ink-secondary hover:text-brand-700 border border-line hover:border-brand-300 active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs"
-                    >
-                        <ArrowLeft size={17} /> Floor
-                    </button>
-                )}
-                {!tableMode && !returnMode && (
+                {!returnMode && (
                     <button
                         type="button"
                         onClick={handleParkBill}
@@ -5624,18 +4866,6 @@ const POSInterface = ({
                         className={`flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 active:scale-[0.98] text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${parkingBill || activeSale.cart.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                         <Pause size={17} /> {parkingBill ? 'Holding…' : 'Hold'}
-                    </button>
-                )}
-                {!tableMode && !returnMode && preparesOrders && (
-                    <button
-                        type="button"
-                        onClick={handleCounterFire}
-                        disabled={firingCounter || activeSale.cart.length === 0 || !activeSale.cart.some(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0))}
-                        className={`flex-1 bg-amber-500 hover:bg-amber-600 text-white active:scale-[0.98] rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all h-12 text-sm sm:text-base cursor-pointer shadow-xs ${firingCounter || activeSale.cart.length === 0 || !activeSale.cart.some(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0)) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        title="Send order to kitchen"
-                    >
-                        {firingCounter ? <Loader2 size={17} className="animate-spin" /> : <ChefHat size={17} />}
-                        <span>{firingCounter ? 'Sending…' : (activeSale.cart.some(l => !l.sent || (Number(l.qty) || 0) > (Number(l.sent_qty) || 0)) ? 'Kitchen' : 'Sent')}</span>
                     </button>
                 )}
                 <button
@@ -5714,10 +4944,6 @@ const POSInterface = ({
     const orderCanHide = (layout.catalog && layout.catalog.mode !== 'overlay' && layout.catalog.mode !== 'off')
         && (tenderIsColumn || tenderIsRow);
     const showOrderPane = composition?.showOrder !== false || !orderCanHide;
-
-    /* The floor could not be given a column of its own at this width, so it
-       becomes the step it is on a phone. */
-    const floorIsStep = tableMode && !(layout.floor && layout.floor.mode === 'left');
 
     const dockOf = (id) => layout.dock.find(d => d.id === id);
     const tenderDock = dockOf('tender');
@@ -5864,7 +5090,7 @@ const POSInterface = ({
         >
             <React.Fragment>
                 <Head title="POS" />
-                {fohRedirect && (
+                {fohRedirect && modulesEnabled.has('table_service') && (
                     <Link
                         href={route('store.foh', { store_slug: store?.slug })}
                         className="fixed bottom-3 left-3 z-40 px-3 py-2 rounded-full bg-surface border border-line text-ink text-sm font-semibold shadow"
@@ -6207,32 +5433,6 @@ const POSInterface = ({
                                 overlapping subsets of the same values. One drawer
                                 now holds every one of them, and the operator no
                                 longer has to guess which button owns which switch. */}
-                            {/* ── KITCHEN DISPLAY & CUSTOMER TV SCREEN QUICK LAUNCH ── */}
-                            {preparesOrders && surfaceButtons.kitchen !== false && (
-                                <a
-                                    href={route('store.restaurant.kitchen', { store_slug: store?.slug })}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="h-11 px-3 rounded-xl bg-surface hover:bg-amber-50 dark:hover:bg-amber-950/30 text-ink-secondary hover:text-amber-600 dark:hover:text-amber-400 flex items-center justify-center gap-1.5 transition-all border border-line hover:border-amber-300 shadow-xs shrink-0 cursor-pointer"
-                                    title="Open Kitchen Display (KDS) in a new tab"
-                                >
-                                    <ChefHat size={17} className="text-amber-500" />
-                                    <span className="text-xs font-bold hidden xl:inline">Kitchen</span>
-                                </a>
-                            )}
-                            {preparesOrders && surfaceButtons.queue !== false && (
-                                <a
-                                    href={route('store.restaurant.queue', { store_slug: store?.slug })}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="h-11 px-3 rounded-xl bg-surface hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-ink-secondary hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center gap-1.5 transition-all border border-line hover:border-emerald-300 shadow-xs shrink-0 cursor-pointer"
-                                    title="Open Customer Order Queue Display (TV Screen) in a new tab"
-                                >
-                                    <Tv size={17} className="text-emerald-500" />
-                                    <span className="text-xs font-bold hidden xl:inline">TV Screen</span>
-                                </a>
-                            )}
-
                             <button
                                 onClick={() => openSettings('layout')}
                                 aria-expanded={settingsOpen}
@@ -6277,58 +5477,7 @@ const POSInterface = ({
                             {tenderIsColumn && tenderSide === 'left' && renderTenderPane()}
                             {cat && cat.mode === 'left' && renderCatalogPane(cat.fit, cat.tiles)}
 
-                            {/* THE FLOOR. Rank 1 in the table terminal and the
-                                pane the whole shift starts from, so it is a
-                                column wherever the width carries one. Below
-                                its measured floor the engine turns it into a
-                                step -- the sheet below -- rather than a strip
-                                too narrow to read a table code in. */}
-                            {tableMode && layout.floor && layout.floor.mode === 'left' && (
-                                <FloorPane
-                                    positions={tables.visible}
-                                    tabs={tables.tabs}
-                                    zone={tables.zone}
-                                    setZone={tables.setZone}
-                                    counts={tables.counts}
-                                    selectedId={tables.selectedId}
-                                    onPick={pickTable}
-                                    onNewTicket={(kind) => setNewTicketFor(kind)}
-                                    onUpdateDelivery={tables.updateDelivery}
-                                    onSetup={openFloorPlan}
-                                    onRefresh={tables.refresh}
-                                    money={money}
-                                    now={floorNow}
-                                    storeSlug={store?.slug}
-                                    variant={layout.floor.fit === 'map' ? 'map' : 'list'}
-                                    view={floorView} setView={setFloorView} sort={floorSort} size={floorSize} show={floorShow}
-                                    floorMap={floorMap} onSaveFloorMap={saveFloorMap} canArrange={canManageStore}
-                                />
-                            )}
-
-                            {tableMode && floorIsStep && !selectedTable
-                                ? (
-                                    <FloorPane
-                                        title="Pick a table"
-                                        positions={tables.visible}
-                                        tabs={tables.tabs}
-                                        zone={tables.zone}
-                                        setZone={tables.setZone}
-                                        counts={tables.counts}
-                                        selectedId={tables.selectedId}
-                                        onPick={pickTable}
-                                        onNewTicket={(kind) => setNewTicketFor(kind)}
-                                        onUpdateDelivery={tables.updateDelivery}
-                                        onSetup={openFloorPlan}
-                                        onRefresh={tables.refresh}
-                                        money={money}
-                                        now={floorNow}
-                                        storeSlug={store?.slug}
-                                        variant={layout.cart && layout.cart.px >= 484 ? 'map' : 'list'}
-                                        view={floorView} setView={setFloorView} sort={floorSort} size={floorSize} show={floorShow}
-                                        floorMap={floorMap} onSaveFloorMap={saveFloorMap} canArrange={canManageStore}
-                                    />
-                                )
-                                : (showOrderPane && renderCartPane())}
+                            {showOrderPane && renderCartPane()}
                             {tenderIsColumn && tenderSide === 'right' && renderTenderPane()}
                             {cat && cat.mode === 'right' && renderCatalogPane(cat.fit, cat.tiles)}
 
@@ -6451,13 +5600,11 @@ const POSInterface = ({
                                 <button
                                     type="button"
                                     key={variant.id}
-                                    onClick={async () => {
-                                        if (tableMode && !tables.selected) {
-                                            const ticket = await ensureActiveOrder('takeaway');
-                                            if (!ticket) return;
-                                        }
-                                        addToCart(selectedProductForVariant, variant);
+                                    onClick={() => {
+                                        const picked = selectedProductForVariant;
                                         setVariantModalOpen(false);
+                                        setSelectedProductForVariant(null);
+                                        addWithOptions(picked, variant);
                                     }}
                                     className="w-full text-left p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl cursor-pointer border border-line mb-2 flex justify-between items-center transition-colors"
                                 >
@@ -6517,100 +5664,14 @@ const POSInterface = ({
 
             <PaymentModal
                 isOpen={paymentModalOpen}
-                onClose={() => { setPaymentModalOpen(false); setSplitSeed(null); }}
+                onClose={() => setPaymentModalOpen(false)}
                 totalAmount={cartTotal}
                 onComplete={handlePaymentComplete}
                 currency={store?.currency_code || settings?.currency || 'PKR'}
                 bankAccounts={bankAccounts}
                 customer={activeSale.customer}
                 defaultPrintReceipt={printOnComplete}
-                seedSplit={splitSeed}
             />
-
-            {/* ── THE TABLE TERMINAL'S OWN LAYERS ──────────────────────── */}
-            {tableMode && newTicketFor && (
-                <NewTicketDialog
-                    orderType={newTicketFor}
-                    storeSlug={store?.slug}
-                    busy={tables.busy}
-                    onCancel={() => setNewTicketFor(null)}
-                    onConfirm={async (meta) => {
-                        const t = await tables.openLane(newTicketFor, meta);
-                        setNewTicketFor(null);
-                        if (t) {
-                            loadedOccupancy.current = t.occupancy_id;
-                            tables.prime([]);
-                            updateActiveSale({ cart: [], cashReceived: '', customer: null, walkInName: '', remarks: '' });
-                            addToast(`${t.code} opened`, 'success');
-                        }
-                    }}
-                />
-            )}
-
-            {tableMode && quickFloorOpen && (
-                <QuickFloorModal
-                    storeSlug={store?.slug}
-                    onClose={dismissQuickFloor}
-                    onError={(m) => addToast(m, 'error')}
-                    onDone={(v) => {
-                        dismissQuickFloor();
-                        addToast(`${v.count} tables added to ${v.zone}`, 'success');
-                        /* The floor is server state, so the new tables arrive
-                           through the hook's own refresh rather than a page
-                           reload that would throw away an in-progress cart. */
-                        tables.refresh?.();
-                    }}
-                />
-            )}
-
-            {tableMode && seatFor && (
-                <SeatDialog
-                    position={seatFor}
-                    busy={tables.busy}
-                    onCancel={() => setSeatFor(null)}
-                    onConfirm={confirmSeat}
-                />
-            )}
-
-            {tableMode && movingTable && selectedTable && (
-                <MoveSheet
-                    from={selectedTable}
-                    positions={tables.positions}
-                    busy={tables.busy}
-                    onCancel={() => setMovingTable(false)}
-                    onTransfer={async (to) => {
-                        setMovingTable(false);
-                        const res = await tables.transfer(selectedTable.occupancy_id, to.id);
-                        if (res) {
-                            loadedOccupancy.current = null;
-                            tables.select(to.id);
-                            addToast(`Moved to ${to.label || to.code}`, 'success');
-                        }
-                    }}
-                    onMerge={async (into) => {
-                        setMovingTable(false);
-                        const res = await tables.merge(selectedTable.occupancy_id, into.occupancy_id);
-                        if (res) {
-                            loadedOccupancy.current = null;
-                            tables.select(into.id);
-                            addToast(`Merged into ${into.label || into.code}`, 'success');
-                        }
-                    }}
-                />
-            )}
-
-            {tableMode && (
-                <SplitSheet
-                    open={splitOpen}
-                    lines={activeSale.cart}
-                    remaining={cartTotal}
-                    covers={tableCovers}
-                    money={money}
-                    busy={tables.busy}
-                    onCancel={() => setSplitOpen(false)}
-                    onConfirm={confirmSplit}
-                />
-            )}
 
             <ModifierSheet
                 open={!!modifierFor}
@@ -6618,12 +5679,14 @@ const POSInterface = ({
                 groups={modifierGroups}
                 loading={modifierLoading}
                 money={money}
-                onCancel={() => { setModifierFor(null); setModifierGroups([]); }}
+                onCancel={() => { setModifierFor(null); setModifierGroups([]); setModifierVariant(null); }}
                 onConfirm={(mods) => {
                     const product = modifierFor;
+                    const variant = modifierVariant;
                     setModifierFor(null);
                     setModifierGroups([]);
-                    addToCart(product, null, mods);
+                    setModifierVariant(null);
+                    addToCart(product, variant, mods);
                 }}
             />
 
@@ -7145,6 +6208,12 @@ const POSInterface = ({
                             </div>
                         )}
 
+                        {storagePersisted === false && offlineSales.length > 0 && (
+                            <div className="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/40 text-sm text-amber-800 dark:text-amber-300">
+                                This browser has not promised to keep these sales if the device runs low on space. Export them, and do not clear site data until they are confirmed.
+                            </div>
+                        )}
+
                         {offlineSales.length === 0 ? (
                             <div className="py-12 text-center">
                                 <div className="w-20 h-20 rounded-full bg-app flex items-center justify-center text-neutral-300 mx-auto mb-4">
@@ -7156,44 +6225,62 @@ const POSInterface = ({
                             <div className="space-y-4">
                                 {offlineSales.map(sale => (
                                     <div key={sale.id} className="p-4 rounded-2xl border border-line hover:border-amber-200 dark:hover:border-amber-900/40 bg-surface/50 dark:bg-app transition-all group">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                            <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <span className="px-2 py-0.5 rounded-md bg-surface border border-line text-2xs font-bold uppercase text-ink-muted tracking-tighter">OFFLINE</span>
-                                                    <span className="font-bold text-ink">{sale.data.customer_name || 'Walk-in Customer'}</span>
+                                                    <span className="px-2 py-0.5 rounded-md bg-surface border border-line text-2xs font-bold uppercase text-ink-muted tracking-tighter">{QUEUE_STATE_LABELS[sale.status] || 'OFFLINE'}</span>
+                                                    <span className="font-bold text-ink">{sale.data.walk_in_name || sale.data.customer_name || 'Walk-in Customer'}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4 text-xs font-bold text-ink-muted">
-                                                    <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-brand-400" /> {sale.data.cart?.length || 0} Items</span>
-                                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0, store || settings)}</span>
+                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-bold text-ink-muted">
+                                                    <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-brand-400" /> {(sale.data.items?.length ?? sale.data.cart?.length) || 0} Items</span>
+                                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.expected_total ?? sale.data.amount_paid ?? sale.data.total_amount ?? 0, store || settings)}</span>
+                                                    {sale.intent_key && <span className="font-mono text-ink-muted">#{String(sale.intent_key).slice(0, 8).toUpperCase()}</span>}
                                                     <span className="flex items-center gap-1.5 text-ink-muted"><Clock size={14} /> {new Date(sale.created_at).toLocaleTimeString()}</span>
                                                     {sale.attempt_count > 0 && (
                                                         <span className="flex items-center gap-1 text-amber-500">&#9888; {sale.attempt_count} attempt{sale.attempt_count !== 1 ? 's' : ''}</span>
                                                     )}
                                                 </div>
                                                 {/* Show sync error message if available */}
-                                                {syncErrors[sale.id] && (
+                                                {(syncErrors[sale.id] || sale.last_error) && (
                                                     <div className="mt-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40">
-                                                        <p className="text-xs font-bold text-red-600 dark:text-red-400">&#9888; Sync Error: {syncErrors[sale.id]}</p>
+                                                        <p className="text-xs font-bold text-red-600 dark:text-red-400">&#9888; {syncErrors[sale.id] || sale.last_error}</p>
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button 
+                                            <div className="flex flex-wrap items-center gap-2 shrink-0">
+                                                {isUnassignedRow(sale) && canManageQueue && (
+                                                    <button
+                                                        onClick={() => handleAdoptUnassigned(sale)}
+                                                        className="h-9 px-4 rounded-xl bg-brand-600 text-white hover:bg-brand-700 text-xs font-bold whitespace-nowrap shadow-sm"
+                                                    >
+                                                        Send to this store
+                                                    </button>
+                                                )}
+                                                {Array.isArray(sale.data?.cart) && sale.data.cart.length > 0 && <button
                                                     onClick={() => handleRecallOfflineSale(sale)}
                                                     className="h-9 px-4 rounded-xl bg-surface border border-line text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-xs font-bold transition-all shadow-sm"
                                                 >
                                                     Recall to Cart
-                                                </button>
-                                                <button 
+                                                </button>}
+                                                {['needs_attention', 'quarantined', 'conflict'].includes(sale.status) && (
+                                                    <button
+                                                        onClick={async () => { await retryPendingSale(sale.id); loadOfflineSales(); }}
+                                                        className="h-9 px-4 rounded-xl bg-surface border border-line text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 text-xs font-bold transition-all shadow-sm"
+                                                    >
+                                                        Check &amp; send again
+                                                    </button>
+                                                )}
+                                                <button
+                                                    title="Mark resolved (kept on this device for audit)"
                                                     onClick={() => {
-                                                        showConfirm('Delete Offline Sale', 'This will permanently erase this sale from local storage. Are you sure?', async () => {
-                                                            await deletePendingSale(sale.id);
+                                                        showConfirm('Mark this sale resolved?', 'Only do this after checking the Sales list: the sale may already be on the server. It will stop syncing but stays on this device for audit. Export first if unsure.', async () => {
+                                                            await resolvePendingSale(sale.id, 'Marked resolved by the cashier from the Sync Hub');
                                                             setOfflineSales(prev => prev.filter(s => s.id !== sale.id));
                                                         }, true);
                                                     }}
-                                                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-surface border border-line text-red-500 hover:bg-red-50 transition-all shadow-sm"
+                                                    className="h-9 px-3 flex items-center gap-1.5 rounded-xl bg-surface border border-line text-ink-secondary hover:bg-interactive-hover text-xs font-bold whitespace-nowrap transition-all shadow-sm"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Check size={14} /> Resolve
                                                 </button>
                                             </div>
                                         </div>
@@ -7204,22 +6291,52 @@ const POSInterface = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="p-6 bg-app border-t border-line flex items-center justify-between">
+                    <div className="p-4 sm:p-6 bg-app border-t border-line flex flex-wrap items-center justify-between gap-3">
                         <div className="text-xs text-ink-muted font-bold">
                             {lastSyncTime ? `Last checked: ${lastSyncTime.toLocaleTimeString()}` : 'Syncing enabled'}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+                            {offlineSales.length > 0 && (() => {
+                                const download = (json, name) => {
+                                    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+                                    const a = document.createElement('a');
+                                    a.href = url; a.download = name; a.click();
+                                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                                };
+                                const canExportUnassigned = !!(auth?.user?.is_owner || ['owner', 'admin', 'manager'].includes(auth?.user?.role));
+                                const hasUnassigned = offlineSales.some(r => (r.tenant_id === undefined || r.tenant_id === null) && !r.store_slug);
+                                return (
+                                    <>
+                                        {/* This store's sales only. */}
+                                        <button
+                                            onClick={async () => download(await exportUnresolved(), `venqore-unsent-sales-${store?.slug || 'store'}-${Date.now()}.json`)}
+                                            className="px-4 h-11 rounded-2xl border border-line bg-surface font-bold text-sm text-ink whitespace-nowrap"
+                                        >
+                                            Export
+                                        </button>
+                                        {/* Old rows that name no store: owner/manager only, never mixed into a store export. */}
+                                        {hasUnassigned && canExportUnassigned && (
+                                            <button
+                                                onClick={async () => download(await exportUnassigned(), `venqore-unassigned-sales-${Date.now()}.json`)}
+                                                className="px-4 h-11 rounded-2xl border border-line bg-surface font-bold text-sm text-ink whitespace-nowrap"
+                                            >
+                                                Export unassigned
+                                            </button>
+                                        )}
+                                    </>
+                                );
+                            })()}
                             <button 
-                                onClick={() => syncPendingSales()}
+                                onClick={handleForceSync}
                                 disabled={isSyncing || !isOnline}
-                                className={`px-6 h-12 rounded-2xl flex items-center gap-2 font-bold transition-all ${
+                                className={`px-5 h-11 rounded-2xl flex items-center gap-2 font-bold text-sm whitespace-nowrap transition-all ${
                                     isSyncing || !isOnline 
                                     ? 'bg-sunken text-ink-muted dark:bg-surface cursor-not-allowed' 
                                     : 'bg-brand-600 text-white shadow-lg  hover:bg-brand-700 hover:-translate-y-0.5 active:translate-y-0'
                                 }`}
                             >
                                 <RefreshCcw size={18} className={isSyncing ? 'animate-spin' : ''} />
-                                <span>{isSyncing ? 'SYNCING...' : 'FORCE SYNC NOW'}</span>
+                                <span>{isSyncing ? 'Syncing…' : 'Force Sync'}</span>
                             </button>
                         </div>
                     </div>
@@ -7407,27 +6524,10 @@ const POSInterface = ({
                     presetId={currentPresetId}
                     composition={composition}
                     layout={layout}
-                    /* A PRESET CAN NOW CHANGE THE TERMINAL.
-                       The Table preset is the one whose composition carries a
-                       floor, so choosing it IS choosing table service on this
-                       device — there is no second switch and no navigation.
-                       The order matters: the terminal is set first so the
-                       layout hook reads the right stored composition and the
-                       right localStorage key when the preset lands. */
                     onApplyPreset={applyPresetFromSettings}
-                    tablesAvailable={tablesAvailable}
                     canManageStore={canManageStore}
                     onUpdateComposition={updateComposition}
-                    serviceMode={serviceMode}
-                    setServiceMode={saveServiceMode}
-                    preparesOrders={preparesOrders}
-                    setPreparesOrders={savePreparesOrders}
-                    serviceCharge={serviceChargeSetting}
-                    onOpenFloorPlan={() => {
-                        setSettingsOpen(false);
-                        router.visit(route('store.tables.plan', { store_slug: store?.slug }));
-                    }}
-                    setServiceCharge={saveServiceCharge}
+                    preparesOrders={false}
                     terminal={terminal}
                     surface={surfaceButtons}
                     setSurface={setSurfaceButtons}
@@ -7510,9 +6610,8 @@ const POSInterface = ({
                     /* The restaurant pages only exist for a store with the Table &
                        Floor module (its routes are gated on it); a shop without it
                        never sees them, per "irrelevant modules stay invisible". */
-                    restaurantAvailable={!modulesEnabled.size || modulesEnabled.has('table_service')}
-                    restaurantRelevant={(!modulesEnabled.size || modulesEnabled.has('table_service'))
-                        && (preparesOrders || storeRunsTables || tableMode || serviceMode !== 'counter')}
+                    restaurantAvailable={false}
+                    restaurantRelevant={false}
                     storeSettings={settings}
                     storeSlug={store?.slug}
                     storeName={store?.name}
@@ -7521,14 +6620,6 @@ const POSInterface = ({
                     money={money}
                     sampleProducts={sortedCategoryProducts}
                     categories={categories}
-                    positions={tableMode ? tables.positions : initialPositions}
-                    lanes={lanes}
-                    onSwitchTerminal={switchTerminalFromSettings}
-                    floorView={floorView} setFloorView={setFloorView}
-                    floorSort={floorSort} setFloorSort={setFloorSort}
-                    floorSize={floorSize} setFloorSize={setFloorSize}
-                    floorShow={floorShow} setFloorShow={setFloorShow}
-                    tipEnabled={tipEnabled} setTipEnabled={setTipEnabled}
                     appearanceMode={appearance?.mode}
                     setAppearanceMode={(mode) => updateAppearance({ mode })}
                     station={{
@@ -7541,7 +6632,6 @@ const POSInterface = ({
                         problemFor,
                     }}
                     onTestReceipt={handleTestReceipt}
-                    onTestKitchenTicket={handleTestKitchenTicket}
                     isPosStaff={isPosStaff}
                     registerShift={registerShift}
                     onOpenShift={() => { setSettingsOpen(false); setShowOpenShiftModal(true); }}
@@ -7557,21 +6647,9 @@ const POSInterface = ({
                     store={store}
                     settings={settings}
                     canManageStore={canManageStore}
-                    /* Choosing table service on a COUNTER terminal has no
-                       visible effect until the page that owns the floor is
-                       loaded -- the operator would set it up and be left
-                       looking at the same till. So the wizard's answer decides
-                       where they land. */
-                    /* No navigation. Table service is a shape this register
-                       takes, not a page it goes to — so the wizard turns the
-                       floor on where the operator already is, and `settings`
-                       is reloaded so `service_mode` (which gates the preset
-                       being offered at all) is current. */
-                    onDone={({ service }) => {
-                        /* Switch only — the terminal change loads the floor
-                           composition by itself. See onApplyPreset above for
-                           why applying the preset on top would race it. */
-                        if (service !== 'counter') setTerminal('table');
+                    onDone={() => {
+                        /* Kitchen preparation is a store setting; reload so the
+                           register reads what the wizard just saved. */
                         router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
                     }}
                 />
@@ -7581,8 +6659,7 @@ const POSInterface = ({
 };
 
 export default function Pos({
-    settings, bankAccounts, recalledSale, warehouses = [], occupancy = null,
-    terminal = 'counter', positions = [], tickets = [], zones = [], kitchen = 0,
+    settings, bankAccounts, recalledSale, warehouses = [], fohRedirect = false,
 }) {
     const { store } = usePage().props;
     return (
@@ -7596,12 +6673,7 @@ export default function Pos({
                 recalledSale={recalledSale}
                 bankAccounts={bankAccounts}
                 warehouses={warehouses}
-                occupancy={occupancy}
-                terminal={terminal}
-                positions={positions}
-                tickets={tickets}
-                zones={zones}
-                kitchen={kitchen}
+                fohRedirect={fohRedirect}
             />
             <PosTourGuide store={store} />
         </>

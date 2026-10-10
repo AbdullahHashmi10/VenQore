@@ -149,6 +149,7 @@ class DataImportService
         $customerMap = []; 
         $supplierMap = [];
         $unitMap = [];
+        $vyAccountMap = []; // Vyapar other_accounts.id => our accounts.id
 
         DB::beginTransaction();
 
@@ -611,10 +612,10 @@ class DataImportService
             // ──────────────────────────────────────────────────────────
             $oaTable = $this->findTable($tables, ['other_accounts']);
             if ($oaTable) {
-                $this->safeImport($pdo, "SELECT * FROM \"$oaTable\"", function ($row) use (&$counters) {
+                $this->safeImport($pdo, "SELECT * FROM \"$oaTable\"", function ($row) use (&$counters, &$vyAccountMap) {
                     $name = $row['name'] ?? null;
                     if ($name) {
-                        Account::updateOrCreate(
+                        $acc = Account::updateOrCreate(
                             ['name' => $name],
                             [
                                 'code' => 'VY-ACC-' . ($row['id'] ?? Str::random(4)),
@@ -622,6 +623,9 @@ class DataImportService
                                 'balance' => (float)($row['opening_balance'] ?? 0),
                             ]
                         );
+                        if (isset($row['id'])) {
+                            $vyAccountMap[(string) $row['id']] = $acc->id;
+                        }
                         $counters['accounts']++;
                     }
                 }, 'Other Accounts');
@@ -736,52 +740,87 @@ class DataImportService
                     $jeLineStmt = $pdo->prepare("SELECT * FROM \"$jeliTable\" WHERE \"journal_entry_id\" = ?");
                 }
 
-                $this->safeImport($pdo, "SELECT * FROM \"$jeTable\"", function ($row) use (&$counters, $user, $jeLineStmt) {
+                $this->safeImport($pdo, "SELECT * FROM \"$jeTable\"", function ($row) use (&$counters, $user, $jeLineStmt, &$vyAccountMap) {
                     $date = $this->parseDate($row['date'] ?? null);
                     $ref = $row['reference_number'] ?? ('VY-JE-' . ($row['id'] ?? Str::random(4)));
 
                     if (app()->bound('current.tenant') && app('current.tenant')) {
-                        app(\App\Services\Accounting\AccountingPeriodGuard::class)->validateTransactionDate(
-                            app('current.tenant')->id,
-                            $date,
-                            $user
+                        // (This called a method that does not exist, so no Vyapar
+                        // journal was ever imported: every one threw here.)
+                        app(\App\Services\Accounting\AccountingPeriodGuard::class)->enforce(
+                            tenantId: app('current.tenant')->id,
+                            accountingDate: \Carbon\Carbon::parse($date)->toDateString(),
+                            operationType: 'create',
+                            actor: auth()->user() ?? $user,
+                            postingSource: 'import'
                         );
+                    }
+
+                    // Gather the lines first: an imported entry must pass the same
+                    // ZeroDrift Ledger gate as everything else, or it is not written.
+                    // Every line must name an account we imported (Vyapar's
+                    // other_accounts → our VY-ACC-<id>). A line whose account cannot
+                    // be found refuses the whole entry: the import never guesses an
+                    // account (it used to put every line on the store's first
+                    // account, which posted nothing real and hid the entry).
+                    $importLines = [];
+                    $unmapped = null;
+                    if ($jeLineStmt && isset($row['id'])) {
+                        $jeLineStmt->execute([$row['id']]);
+                        while ($li = $jeLineStmt->fetch(\PDO::FETCH_ASSOC)) {
+                            $amount = $li['amount'] ?? 0;
+                            $amountType = (int)($li['amount_type'] ?? 0); // 0=debit, 1=credit typically
+
+                            $vyAcc = $li['account_id'] ?? $li['other_account_id'] ?? $li['acc_id'] ?? null;
+                            $accountId = $vyAcc === null || $vyAcc === '' ? null
+                                : ($vyAccountMap[(string) $vyAcc] ?? Account::where('code', 'VY-ACC-' . $vyAcc)->value('id'));
+                            if (! $accountId) {
+                                $unmapped = $vyAcc === null || $vyAcc === '' ? 'a line names no account' : "account {$vyAcc} was not imported";
+                                break;
+                            }
+                            $importLines[] = [
+                                'account_id' => $accountId,
+                                'debit' => $amountType == 0 ? $amount : 0,
+                                'credit' => $amountType == 1 ? $amount : 0,
+                            ];
+                        }
+                    }
+                    if ($unmapped !== null) {
+                        $counters['journals_unmapped'] = ($counters['journals_unmapped'] ?? 0) + 1;
+                        \Illuminate\Support\Facades\Log::warning('Vyapar import: journal skipped, its account could not be matched', ['reference' => $ref, 'reason' => $unmapped]);
+                        return;
+                    }
+                    if ($importLines) {
+                        try {
+                            $importLines = \App\Engines\Ledger\ZeroDrift::seal($importLines, ['reference_type' => 'import', 'reference' => $ref]);
+                        } catch (\App\Engines\Ledger\ZeroDriftException $e) {
+                            $counters['journals_refused'] = ($counters['journals_refused'] ?? 0) + 1;
+                            \Illuminate\Support\Facades\Log::warning('Vyapar import: journal refused by the ZeroDrift Ledger', ['reference' => $ref, 'rule' => $e->rule, 'error' => $e->getMessage()]);
+                            return;
+                        }
+                    }
+
+                    if (! $importLines) {
+                        return; // an entry with no lines posts nothing
                     }
 
                     $je = JournalEntry::create([
                         'date' => $date,
+                        'reference_type' => 'import',
                         'reference' => $ref,
                         'description' => $row['description'] ?? 'Imported from Vyapar',
-                        'user_id' => $user->id,
+                        'user_id' => auth()->id() ?? $user->id,
                         'created_at' => $date,
                         'updated_at' => $date,
                     ]);
-
-                    // Import line items for this journal entry
-                    if ($jeLineStmt && isset($row['id'])) {
-                        $jeLineStmt->execute([$row['id']]);
-                        while ($li = $jeLineStmt->fetch(\PDO::FETCH_ASSOC)) {
-                            $amount = (float)($li['amount'] ?? 0);
-                            $amountType = (int)($li['amount_type'] ?? 0); // 0=debit, 1=credit typically
-
-                            // We need an account - use default or find/create
-                            $defaultAccount = Account::first();
-                            if (!$defaultAccount) {
-                                $defaultAccount = Account::create([
-                                    'name' => 'General',
-                                    'code' => 'GEN-001',
-                                    'type' => 'asset',
-                                ]);
-                            }
-
-                            JournalItem::create([
-                                'journal_entry_id' => $je->id,
-                                'account_id' => $defaultAccount->id,
-                                'debit' => $amountType == 0 ? $amount : 0,
-                                'credit' => $amountType == 1 ? $amount : 0,
-                                'description' => 'Vyapar Import',
-                            ]);
-                        }
+                    foreach ($importLines as $line) {
+                        JournalItem::create([
+                            'journal_entry_id' => $je->id,
+                            'account_id' => $line['account_id'],
+                            'debit' => $line['debit'],
+                            'credit' => $line['credit'],
+                            'description' => 'Vyapar Import',
+                        ]);
                     }
                     $counters['journals']++;
                 }, 'Journal Entries');
@@ -798,7 +837,11 @@ class DataImportService
                 . "{$counters['batches']} batches, {$counters['serials']} serials, "
                 . "{$counters['taxes']} tax codes, {$counters['journals']} journals, "
                 . "{$counters['warehouses']} warehouses, {$counters['accounts']} accounts, "
-                . "{$counters['charges']} charges, {$counters['settings']} settings.";
+                . "{$counters['charges']} charges, {$counters['settings']} settings."
+                . (($counters['journals_refused'] ?? 0) + ($counters['journals_unmapped'] ?? 0) > 0
+                    ? ' Journals NOT imported: ' . ($counters['journals_refused'] ?? 0) . ' unbalanced, '
+                        . ($counters['journals_unmapped'] ?? 0) . ' with an account that could not be matched (see the log).'
+                    : '');
 
             Log::info("Vyapar Import Complete: $summary");
             return ['success' => true, 'message' => $summary];

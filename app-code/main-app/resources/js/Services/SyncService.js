@@ -184,56 +184,74 @@ export const SyncService = {
     },
 
     /**
-     * Uploads pending offline orders
+     * Uploads pending offline orders (the generic queue).
+     *
+     * Only rows that name THIS store are sent, and a row becomes 'synced' only
+     * when the server's per-order result says that order was committed. A
+     * batch status or a count cannot say WHICH order succeeded, so neither is
+     * ever used to mark rows (sale-reliability plan §4).
      */
     async syncOrders() {
-        const pendingOrders = await db.orders.where('status').equals('pending').toArray();
+        const slug = this.getStoreSlug();
+        if (!slug) return;
+        const pendingOrders = (await db.orders.where('status').equals('pending').toArray())
+            .filter(o => o.store_slug === slug || (o.store_slug === undefined && o.tenant_slug === slug));
         if (pendingOrders.length === 0) return;
 
         const chunkSize = 50;
         for (let i = 0; i < pendingOrders.length; i += chunkSize) {
             const batch = pendingOrders.slice(i, i + chunkSize);
+            let response;
             try {
-                const slug = this.getStoreSlug();
-                if (!slug) break;
-
-                // Determine API endpoint based on data type if needed, or send to generic
-                await axios.post(route('store.api.sync.orders.batch', { store_slug: slug }), { orders: batch }, { _skipGlobalErrorHandler: true });
-
-                // Mark as synced
-                await db.transaction('rw', db.orders, async () => {
-                    for (const order of batch) {
-                        await db.orders.update(order.id, { status: 'synced' });
-                    }
-                });
+                response = await axios.post(route('store.api.sync.orders.batch', { store_slug: slug }), { orders: batch }, { _skipGlobalErrorHandler: true, timeout: 60000 });
             } catch (error) {
                 console.error('[Sync] Order upload failed:', error);
                 throw error;
+            }
+            const results = Array.isArray(response?.data?.results) ? response.data.results : [];
+            const byId = new Map(results.map(r => [String(r.client_sale_id), r]));
+            for (const order of batch) {
+                const r = byId.get(String(order.client_sale_id ?? order.id));
+                if (r && r.outcome === 'committed' && r.sale_id) {
+                    await db.orders.update(order.id, { status: 'synced', sale_id: r.sale_id, synced_at: new Date().toISOString() });
+                } else if (r && r.outcome === 'rejected') {
+                    await db.orders.update(order.id, { status: 'needs_attention', last_error: r.message || r.code || 'Rejected' });
+                } else {
+                    await db.orders.update(order.id, { last_error: r?.message || 'Not confirmed by the server; will retry with the same id.' });
+                }
             }
         }
     },
 
     /**
-     * "Fetch Everything" - User Request
-     * Downloads full catalog for offline supremacy.
+     * "Fetch Everything" — downloads the catalog for offline use.
+     * Each table is replaced ATOMICALLY (clear + write in one transaction), so a
+     * failed download or a storage error leaves the previous usable catalog in
+     * place instead of an empty one. A resource the server withholds (empty
+     * because of a plan gate, or not implemented — taxes) never wipes data.
      */
     async hydrate() {
         const resources = ['products', 'customers', 'suppliers', 'inventory', 'taxes'];
+        const mayBeWithheld = new Set(['inventory', 'taxes']);
         const slug = this.getStoreSlug();
         if (!slug) return;
 
         for (const resource of resources) {
             try {
-                // Map resource to route name
                 const routeName = `store.api.sync.${resource}`;
                 const response = await axios.get(route(routeName, { store_slug: slug }), { _skipGlobalErrorHandler: true });
-                if (response.data && Array.isArray(response.data)) {
-                    await db[resource].clear(); // Full refresh strategy for simplicity. Delta sync is complex.
+                if (!response.data || !Array.isArray(response.data)) continue;
+                if (response.data.length === 0 && mayBeWithheld.has(resource)) continue;
+                await db.transaction('rw', db[resource], async () => {
+                    await db[resource].clear();
                     await db[resource].bulkPut(response.data);
-                    console.log(`[Sync] ${resource} hydrated: ${response.data.length} items.`);
-                }
+                });
+                try {
+                    await db.settings?.put?.({ key: `catalog_${resource}_synced_at`, value: { store: slug, at: Date.now(), count: response.data.length } });
+                } catch { /* metadata is best effort */ }
+                console.log(`[Sync] ${resource} hydrated: ${response.data.length} items.`);
             } catch (e) {
-                console.warn(`[Sync] Failed to hydrate ${resource}:`, e.message);
+                console.warn(`[Sync] Failed to hydrate ${resource}; kept the previous copy:`, e.message);
             }
         }
 
@@ -248,8 +266,10 @@ export const SyncService = {
 
             const response = await axios.get(route('store.api.sync.users', { store_slug: slug }), { _skipGlobalErrorHandler: true });
             if (response.data && Array.isArray(response.data)) {
-                await db.users.clear();
-                await db.users.bulkPut(response.data);
+                await db.transaction('rw', db.users, async () => {
+                    await db.users.clear();
+                    await db.users.bulkPut(response.data);
+                });
             }
         } catch (e) {
             console.error('[Sync] Staff download failed:', e);

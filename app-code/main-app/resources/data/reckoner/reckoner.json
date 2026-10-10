@@ -238,7 +238,7 @@
       "key": "aging_sums_to_total",
       "kind": "shape",
       "rule": "Every aging breakdown's buckets sum to its headline total.",
-      "note": "Applies to receivables, payables and udhaar aging."
+      "note": "Applies to receivables, payables and credit aging."
     },
     {
       "key": "breakdown_sums_to_parent",

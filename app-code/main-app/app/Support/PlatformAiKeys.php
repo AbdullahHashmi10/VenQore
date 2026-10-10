@@ -140,9 +140,41 @@ class PlatformAiKeys
             return [null, null, false];
         }
 
-        $provider = $fallbackProvider ?: 'gemini';
+        $provider = $this->usablePaidProvider($fallbackProvider ?: 'gemini') ?: ($fallbackProvider ?: 'gemini');
 
         return [$this->paidKey($provider), $provider, false];
+    }
+
+    /**
+     * The paid provider that can actually be called right now.
+     *
+     * The dashboard's chosen provider wins when it has a key. If it does not
+     * (owner switched provider but only saved the old provider's key, or saved
+     * a key under a different provider), fall back to any provider that does
+     * have a key instead of failing every managed-AI call with "no key".
+     * Returns null only when NO paid key exists anywhere.
+     */
+    public function usablePaidProvider(?string $preferred = null): ?string
+    {
+        $candidates = array_values(array_unique(array_filter([
+            $preferred ? strtolower($preferred) : null,
+            $this->paidProvider(),
+            ...self::PROVIDERS,
+        ])));
+
+        foreach ($candidates as $provider) {
+            if (in_array($provider, self::PROVIDERS, true) && $this->paidKey($provider)) {
+                return $provider;
+            }
+        }
+
+        return null;
+    }
+
+    /** True when at least one key (free or paid) can serve a platform-funded call. */
+    public function hasAnyPlatformKey(): bool
+    {
+        return (bool) ($this->freeKey() || $this->usablePaidProvider());
     }
 
     // ── Dashboard helpers ────────────────────────────────────────────────
@@ -165,6 +197,7 @@ class PlatformAiKeys
         };
 
         return [
+            'usable' => $this->hasAnyPlatformKey(),
             'free' => array_merge($slot(self::FREE_KEY, $this->clean(config('smartcapture.free_api_key'))), [
                 'model'           => $this->freeModel(),
                 'fallback_to_paid'=> $this->freeFallsBackToPaid(),

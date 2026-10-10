@@ -145,7 +145,7 @@ export default function BalanceSheet({
                     </div>
 
                     {/* ── Accounting Equation Card ────────────────────────── */}
-                    <div className="p-8 rounded-2xl bg-brand-600 text-white shadow-xl 
+                    <div className="p-4 sm:p-8 rounded-2xl bg-brand-600 text-white shadow-xl 
  flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
@@ -154,7 +154,7 @@ export default function BalanceSheet({
                             <p className="text-brand-100 text-xs font-bold uppercase tracking-widest mb-2">
                                 Total Assets
                             </p>
-                            <h3 className="text-4xl font-bold tabular-nums">
+                            <h3 className="text-2xl sm:text-4xl font-bold tabular-nums">
                                 {formatCurrency(total_assets)}
                             </h3>
                         </div>

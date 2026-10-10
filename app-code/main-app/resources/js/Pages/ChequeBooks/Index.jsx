@@ -52,7 +52,7 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
 
                 {/* Line 2: 4 Compact KPI Cards Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <BookOpen size={16} />
@@ -62,7 +62,7 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
                         <p className="text-base font-bold text-ink">{totalBooks}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle2 size={16} />
@@ -72,7 +72,7 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
                         <p className="text-base font-bold text-emerald-600">{activeBooks}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <FileText size={16} />
@@ -82,7 +82,7 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
                         <p className="text-base font-bold text-blue-600">{availableLeaves}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
                                 <Clock size={16} />
@@ -295,7 +295,7 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="p-12 text-center text-ink-muted">
+                                    <td colSpan={6} className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center justify-center">
                                             <BookOpen size={40} className="mb-2 opacity-40 text-ink-muted" />
                                             <p className="text-sm font-bold text-ink">No chequebooks found</p>

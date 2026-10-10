@@ -91,7 +91,7 @@ export default function StoreSwitcherModal({ isOpen, onClose }) {
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="p-5 border-b border-line flex items-center justify-between">
+                <div className="p-5 border-b border-line flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400">
                             <Store size={22} />
@@ -166,7 +166,7 @@ export default function StoreSwitcherModal({ isOpen, onClose }) {
                                 <div
                                     key={s.store_id}
                                     onClick={() => handleSwitch(s)}
-                                    className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer group ${
+                                    className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-3.5 rounded-xl border transition-all cursor-pointer group ${
                                         isCurrent
                                             ? 'border-brand-500/40 bg-brand-50/40 dark:bg-brand-950/20 shadow-xs ring-1 ring-brand-500/20'
                                             : 'border-line bg-surface hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-sm'
@@ -231,7 +231,7 @@ export default function StoreSwitcherModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-line bg-app/50 flex items-center justify-between">
+                <div className="p-4 border-t border-line bg-app/50 flex flex-wrap items-center justify-between gap-y-2">
                     {currentStore && (
                         <button
                             onClick={() => {

@@ -222,7 +222,7 @@ export default function Appearance({ canManageStoreDefault, storeSlug }) {
                                             : 'border-line bg-app hover:bg-interactive-hover',
                                     ].join(' ')}
                                 >
-                                    <span className="flex items-center justify-between gap-2">
+                                    <span className="flex flex-wrap items-center justify-between gap-y-2 gap-2">
                                         <span className="font-semibold text-ink">{option.title}</span>
                                         {selected && <Check className="h-4 w-4 text-brand-500" aria-hidden="true" />}
                                     </span>

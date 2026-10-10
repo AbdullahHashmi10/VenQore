@@ -142,6 +142,7 @@ class BuilderController extends Controller
             'success'   => true,
             'module'    => $module,
             'at_stake'  => ModuleService::dataAtStake($tenant, $module),
+            'pending'   => ModuleService::pendingWork($tenant, $module),
             'cascade'   => $this->resolver->disableCascade(ModuleService::allEnabled($tenant), $module),
         ]);
     }

@@ -237,7 +237,7 @@ export default function DashboardTourGuide({ store }) {
                         )}
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 mt-auto">
                         {currentStep > 0 ? (
                             <button
                                 onClick={() => setCurrentStep(currentStep - 1)}

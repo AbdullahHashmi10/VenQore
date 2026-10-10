@@ -165,7 +165,7 @@ const ManufacturingRules = () => {
 
             <div className="p-6 max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
                     <div>
                         <h1 className="text-3xl font-bold text-ink flex items-center gap-3">
                             <Beaker className="text-brand-500" size={32} />
@@ -184,7 +184,7 @@ const ManufacturingRules = () => {
                 {/* Rules List */}
                 <div className="grid gap-4">
                     {rules.length === 0 ? (
-                        <div className="bg-surface rounded-2xl p-12 text-center border border-line">
+                        <div className="bg-surface rounded-2xl p-5 sm:p-12 text-center border border-line">
                             <Beaker size={64} className="mx-auto text-neutral-300 mb-4" />
                             <h3 className="text-xl font-bold text-ink-secondary mb-2">No Manufacturing Rules Yet</h3>
                             <p className="text-ink-muted mb-4">Create your first rule to enable auto-deduction of ingredients</p>
@@ -305,7 +305,7 @@ const ManufacturingRules = () => {
 
                                 {/* Ingredients */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-2">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                                         <label className="block text-sm font-bold text-ink-secondary">Ingredients *</label>
                                         <button
                                             onClick={addIngredient}
@@ -317,8 +317,8 @@ const ManufacturingRules = () => {
 
                                     <div className="space-y-3">
                                         {newRule.ingredients.map((ing, i) => (
-                                            <div key={i} className="grid grid-cols-12 gap-2 items-center p-3 bg-app rounded-lg">
-                                                <div className="col-span-6">
+                                            <div key={i} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center p-3 bg-app rounded-lg">
+                                                <div className="md:col-span-6">
                                                     <select
                                                         value={ing.ingredient_product_id}
                                                         onChange={(e) => updateIngredient(i, 'ingredient_product_id', e.target.value)}
@@ -330,7 +330,7 @@ const ManufacturingRules = () => {
                                                         ))}
                                                     </select>
                                                 </div>
-                                                <div className="col-span-3">
+                                                <div className="md:col-span-3">
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -341,7 +341,7 @@ const ManufacturingRules = () => {
                                                         className="w-full px-3 py-2 text-sm rounded-lg border border-line dark:border-line bg-surface"
                                                     />
                                                 </div>
-                                                <div className="col-span-2">
+                                                <div className="md:col-span-2">
                                                     <select
                                                         value={ing.unit}
                                                         onChange={(e) => updateIngredient(i, 'unit', e.target.value)}
@@ -354,7 +354,7 @@ const ManufacturingRules = () => {
                                                         <option value="pcs">pcs</option>
                                                     </select>
                                                 </div>
-                                                <div className="col-span-1">
+                                                <div className="md:col-span-1">
                                                     <button
                                                         onClick={() => removeIngredient(i)}
                                                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
@@ -440,7 +440,7 @@ const ManufacturingRules = () => {
 
                                 {simulationResult && (
                                     <div className="space-y-4 pt-4 border-t border-line">
-                                        <div className="flex items-center justify-between p-4 rounded-xl border font-bold text-sm bg-app border-line">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-xl border font-bold text-sm bg-app border-line">
                                             <div className="text-ink">
                                                 Status: {simulationResult.feasible ? (
                                                     <span className="text-emerald-600 dark:text-emerald-400 font-bold ml-1">✅ FEASIBLE — Enough stock available</span>

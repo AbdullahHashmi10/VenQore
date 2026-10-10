@@ -1,0 +1,1 @@
+{"id": "foh-look", "themes": ["light"], "scenarios": [{"folder": "_explore", "steps": [{"goto": "/s/{slug}/foh/tables", "wait": 5000}, {"preview": "fohE"}]}]}

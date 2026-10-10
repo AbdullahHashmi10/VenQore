@@ -155,7 +155,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  <div className={`bg-surface rounded-lg border border-line shadow-sm overflow-hidden flex flex-col h-full ${className}`}>
  {/* Header */}
  <div className="p-4 sm:p-5 border-b border-line bg-sunken">
- <div className="flex items-center justify-between gap-3">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
  <div className="flex items-center gap-3 min-w-0">
  <div className="w-9 h-9 rounded-xl bg-gradient-brand text-white flex items-center justify-center shadow-xs shrink-0">
  <Sparkles size={17} />
@@ -194,7 +194,7 @@ const TodaysOpportunities = ({ className = '' }) => {
 
  {/* 4 Summary Mini-Pills (2x2 Grid) */}
  <div className="grid grid-cols-2 gap-2 mt-3.5">
- <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex items-center justify-between">
+ <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex flex-wrap items-center justify-between gap-y-2">
  <div className="min-w-0 pr-1">
  <p className="text-3xs font-bold uppercase tracking-wider text-ink-muted truncate">{tt('Customers Due')}</p>
  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{stats.customers_due || 0}</p>
@@ -204,7 +204,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  </div>
  </div>
 
- <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex items-center justify-between">
+ <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex flex-wrap items-center justify-between gap-y-2">
  <div className="min-w-0 pr-1">
  <p className="text-3xs font-bold uppercase tracking-wider text-ink-muted truncate">Stock Risks</p>
  <p className="text-sm font-bold text-amber-600 dark:text-amber-400 mt-0.5">{stats.stock_risks || 0}</p>
@@ -214,7 +214,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  </div>
  </div>
 
- <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex items-center justify-between">
+ <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex flex-wrap items-center justify-between gap-y-2">
  <div className="min-w-0 pr-1">
  <p className="text-3xs font-bold uppercase tracking-wider text-ink-muted truncate">At Risk</p>
  <p className="text-sm font-bold text-rose-600 dark:text-rose-400 mt-0.5">{stats.churn_risks || 0}</p>
@@ -224,7 +224,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  </div>
  </div>
 
- <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex items-center justify-between">
+ <div className="bg-white/80 dark:bg-surface rounded-xl p-2.5 border border-line flex flex-wrap items-center justify-between gap-y-2">
  <div className="min-w-0 pr-1">
  <p className="text-3xs font-bold uppercase tracking-wider text-ink-muted truncate">Overdue</p>
  <p className="text-sm font-bold text-blue-600 dark:text-blue-400 mt-0.5">{stats.overdue_invoices || 0}</p>
@@ -267,7 +267,7 @@ const TodaysOpportunities = ({ className = '' }) => {
  </div>
 
  <div className="flex-1 min-w-0">
- <div className="flex items-center justify-between gap-1.5 mb-0.5">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 gap-1.5 mb-0.5">
  <span className={`px-1.5 py-0.5 text-3xs font-bold uppercase tracking-wider rounded-md border ${getTypeBadgeClass(rec.type)}`}>
  {getTypeLabel(rec.type)}
  </span>

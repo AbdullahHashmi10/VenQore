@@ -17,6 +17,7 @@ import {
     Filter,
     ChevronDown
 } from 'lucide-react';
+import MobileStats from '@/Components/MobileStats';
 
 export default function ApprovalsInbox({ documents = { data: [] }, filters = {}, stats = {} }) {
     const { store } = usePage().props;
@@ -142,25 +143,15 @@ export default function ApprovalsInbox({ documents = { data: [] }, filters = {},
                 <ApprovalsModuleTabs activeTab="inbox" pendingCount={stats?.pending_count ?? allDocs.length} />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    {!isStatsExpanded && (
-                        <div className="flex items-center gap-2 text-xs font-bold">
-                            <span className="text-amber-600">Pending: {renderCurrency(stats?.pending_amount || 0)}</span>
-                            <span className="text-neutral-300 dark:text-ink-secondary">|</span>
-                            <span className="text-ink">Items: {stats?.pending_count ?? allDocs.length}</span>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Pending Review', value: renderCurrency(stats?.pending_amount || 0), tone: 'amber' },
+  { label: 'Needs Correction', value: stats?.returned_count || 0, tone: 'orange' },
+  { label: 'Approved & Posted', value: renderCurrency(stats?.approved_amount || 0), tone: 'emerald' },
+  { label: 'Total Submissions', value: stats?.total_count ?? allDocs.length, tone: 'ink' }
+]} />
 
                 {/* 2. Compact Stats Cards Section - Matches Sales Structure and Minimal Vertical Space */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
@@ -255,7 +246,7 @@ export default function ApprovalsInbox({ documents = { data: [] }, filters = {},
 
                 {/* 3. Header Area - Mobile Layout */}
                 <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
                         <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             APPROVAL <span className="text-brand-600">INBOX</span>
                         </h1>

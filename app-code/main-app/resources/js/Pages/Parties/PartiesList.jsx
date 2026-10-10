@@ -13,6 +13,7 @@ import { useAlert } from '@/Contexts/AlertContext';
 import PlanGate from '@/Components/PlanGate';
 import { useTerms, useTermText } from '@/lib/terms';
 import axios from 'axios';
+import MobileStats from '@/Components/MobileStats';
 
 export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  const { showAlert, showConfirm } = useAlert();
@@ -353,26 +354,16 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  <ContactsModuleTabs activeTab={activeTab} />
 
  {/* Mobile Stats Toggle/Summary */}
- <div className="sm:hidden flex items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
- <button
- onClick={() => setIsStatsExpanded(!isStatsExpanded)}
- className="flex items-center gap-1 text-2xs font-bold text-ink-muted uppercase shrink-0 mr-2"
- >
- <span>Stats Summary</span>
- <ChevronDown size={14} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
- </button>
- {!isStatsExpanded && (
- <div className="text-2xs font-bold text-ink-muted truncate">
- <span className="text-emerald-600">Rec: {formatCurrency(stats.receivables)}</span>
- <span className="mx-1">|</span>
- <span className="text-rose-600">Pay: {formatCurrency(stats.payables)}</span>
- </div>
- )}
- </div>
+ <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Parties', value: stats.total || 0, tone: 'ink' },
+  { label: tp('customer', 'Customers'), value: stats.customers || 0, tone: 'blue' },
+  { label: 'To Receive', value: formatCurrency(stats.receivables), tone: 'emerald' },
+  { label: 'Payables', value: formatCurrency(stats.payables), tone: 'rose' }
+]} />
 
  {/* Stats Cards - Responsive Grid */}
  <PlanGate feature="outstanding_balance_grid" showUpgradeBadge={false}>
- <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
+ <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
  <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
  <div className="flex items-center gap-1.5 shrink-0">
  <div className="p-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
@@ -414,7 +405,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
 
  {/* Mobile Toolbar (sm:hidden) */}
  <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex items-center justify-between px-3 py-2">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
  <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
  {activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : 'All'} <span className="text-brand-600">Contacts</span>
  </h1>
@@ -495,7 +486,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  {/* Desktop Header Bar (sm:flex, hidden on mobile) */}
  <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
  {/* Left: Title + Filter Pills */}
- <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 sm:justify-start gap-2 w-full sm:w-auto">
  <div className="flex items-center gap-2">
  <h1 className="text-sm sm:text-lg font-bold text-ink uppercase tracking-tight shrink-0">
  {activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : 'All'} <span className="text-brand-600">Contacts</span>
@@ -528,7 +519,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  </div>
 
  {/* Right: Search + Actions + Add Button */}
- <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 sm:justify-end gap-2 w-full sm:w-auto">
  <div className="relative flex-1 sm:flex-none">
  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
  <input
@@ -562,7 +553,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  
  {/* Bulk Actions Bar */}
  {selectedParties.length > 0 && (
- <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2 shrink-0">
+ <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex flex-wrap items-center justify-between gap-y-2 shadow-lg animate-in slide-in-from-top-2 shrink-0">
  <span className="font-bold text-sm">{selectedParties.length} Selected</span>
  <div className="flex items-center gap-2">
  <button
@@ -728,7 +719,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  })
  ) : (
  <tr>
- <td colSpan={7} className="p-12">
+ <td colSpan={7} className="p-5 sm:p-12">
  <div className="flex flex-col items-center justify-center text-center">
  <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
  <Users size={28} className="text-ink-muted" />
@@ -805,7 +796,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  </div>
  </div>
  
- <div className="flex items-center justify-between text-2xs text-ink-muted bg-surface/50 dark:bg-app p-1.5 rounded-lg border border-line">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs text-ink-muted bg-surface/50 dark:bg-app p-1.5 rounded-lg border border-line">
  <span>Limit: {party.credit_limit ? formatCurrency(party.credit_limit) : '-'}</span>
  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
  <button onClick={() => handleViewLedger(party)} className="p-1 text-ink-muted hover:text-brand-600 rounded">
@@ -823,7 +814,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  );
  })
  ) : (
- <div className="p-12 text-center text-ink-muted text-xs">
+ <div className="p-5 sm:p-12 text-center text-ink-muted text-xs">
  <Users size={24} className="mx-auto mb-2 opacity-50" />
  No contacts available
  </div>
@@ -916,7 +907,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  </FormField>
  </div>
 
- <div className="grid grid-cols-3 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
  <div className="col-span-2 grid grid-cols-2 gap-2">
  <FormField label="Opening Balance" hint="Initial balance">
  <FormInput

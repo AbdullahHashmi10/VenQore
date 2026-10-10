@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Tenant;
 use App\Services\Growth\GrowthEngine;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -28,9 +29,6 @@ class RunGrowthEngineForTenant implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /** Analysis is heavy but not urgent — keep it off the default queue. */
-    public $queue = 'growth';
-
     public $tries = 2;
 
     /** A very large tenant should still finish comfortably. */
@@ -44,6 +42,11 @@ class RunGrowthEngineForTenant implements ShouldQueue, ShouldBeUnique
         public readonly string $mode = 'deep',
         public readonly bool $force = false,
     ) {
+        // Analysis is heavy but not urgent — keep it off the default queue.
+        // (Set here rather than as a `public $queue` property: redeclaring it
+        // with a default is a fatal "incompatible property" clash with the
+        // Queueable trait.)
+        $this->onQueue('growth');
     }
 
     public function uniqueId(): string

@@ -184,7 +184,7 @@ export const DOCUMENTS = {
         /* The keys the screen this replaces saved its preferences under. */
         legacyKeys: { comp: 'invoice_composition_v2', fields: 'invoice_fields_v1',
                       stock: 'invoice_show_stock' },
-        columns: ['idx', 'item', 'qty', 'free', 'uom', 'rate', 'disc', 'total', 'del'],
+        columns: ['idx', 'item', 'qty', 'free', 'uom', 'pickbatch', 'rate', 'disc', 'total', 'del'],
         /* The only document where every part of the money model is on: goods
            are sold, tax is charged, carriage is added and cash changes hands
            at the counter. Everything else below is this, minus something. */

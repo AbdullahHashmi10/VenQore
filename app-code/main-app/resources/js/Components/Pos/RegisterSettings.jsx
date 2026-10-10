@@ -48,10 +48,10 @@ import { Button } from '@/Components/Pos/Settings/primitives';
 import { LayoutPage, CatalogPage, ScreenPage, ButtonsPage } from '@/Components/Pos/Settings/sections/Register';
 import { CheckoutPage } from '@/Components/Pos/Settings/sections/Checkout';
 import { RestaurantPage, KitchenPage, useKitchenRouting } from '@/Components/Pos/Settings/sections/Restaurant';
-import { ReceiptsPage, StockPage, MoneyPage, CashPage } from '@/Components/Pos/Settings/sections/Business';
+import { StockPage, MoneyPage, CashPage } from '@/Components/Pos/Settings/sections/Business';
 import { HardwarePage, KeysPage } from '@/Components/Pos/Settings/sections/Devices';
 import RegisterLivePreview, { PREVIEW_DEVICES, plainNotes } from '@/Components/Pos/Settings/previews/RegisterLivePreview';
-import { FloorPreview, TicketsPreview, ReceiptPreview, PaymentPreview, HardwarePreview, KeysPreview } from '@/Components/Pos/Settings/previews/Previews';
+import { FloorPreview, TicketsPreview, PaymentPreview, HardwarePreview, KeysPreview } from '@/Components/Pos/Settings/previews/Previews';
 import { composeFor } from '@/Layout/usePosLayout';
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -143,7 +143,10 @@ export default function RegisterSettings(props) {
     const mainRef = useRef(null);
 
     const restaurantRelevant = !!p.restaurantRelevant;
-    const visible = useMemo(() => CATEGORIES.filter(c => !c.restaurant || restaurantRelevant), [restaurantRelevant]);
+    /* Tables, floor and lanes live in Front of House now, so the till never
+       shows the "Tables & floor" page. Kitchen tickets stay, for a counter that
+       prepares what it sells (a bakery, a juice bar). */
+    const visible = useMemo(() => CATEGORIES.filter(c => c.id !== 'restaurant' && (!c.restaurant || restaurantRelevant)), [restaurantRelevant]);
     const visibleIds = useMemo(() => new Set(visible.map(c => c.id)), [visible]);
     const resolveTab = useCallback(t => {
         const id = TAB_ALIASES[t] || t;
@@ -310,7 +313,6 @@ export default function RegisterSettings(props) {
             case 'checkout': return <CheckoutPage />;
             case 'restaurant': return <RestaurantPage />;
             case 'kitchen': return <KitchenPage kitchen={kitchen} setKitchen={setKitchen} />;
-            case 'receipts': return <ReceiptsPage />;
             case 'stock': return <StockPage />;
             case 'money': return <MoneyPage />;
             case 'cash': return <CashPage />;
@@ -383,20 +385,6 @@ export default function RegisterSettings(props) {
                 ),
             };
             case 'kitchen': return { title: 'Where an order goes', cap: 'A sample order, split exactly the way the kitchen will receive it.', body: <TicketsPreview routing={kitchen.routing} products={p.sampleProducts} categories={kitchen.categories} /> };
-            case 'receipts': return {
-                title: 'Printed receipt', cap: 'Uses your business name and details.',
-                body: <ReceiptPreview money={money} products={p.sampleProducts} autoPrint={p.printOnComplete}
-                                      s={new Proxy({}, { get: (_, k) => {
-                                          const v = storeVal(String(k), undefined);
-                                          const bools = ['thermal_use_bold', 'thermal_auto_cut', 'thermal_show_barcode', 'thermal_show_headers', 'thermal_show_sno', 'thermal_show_units', 'thermal_show_mrp', 'thermal_show_description', 'thermal_show_batch', 'thermal_show_expiry'];
-                                          if (bools.includes(k)) return v === undefined ? ['thermal_use_bold', 'thermal_auto_cut', 'thermal_show_barcode'].includes(k) : (v === true || v === '1' || v === 1);
-                                          if (k === 'business_name') return v || storeVal('store_name', '') || p.storeName;
-                                          if (k === 'default_print_type') return v || 'regular';
-                                          if (k === 'thermal_extra_lines') return v === undefined ? 3 : v;
-                                          if (k === 'thermal_copies') return v === undefined ? 1 : v;
-                                          return v;
-                                      } })} />,
-            };
             case 'hardware': return { title: 'This till’s devices', cap: 'What is connected right now.', body: <HardwarePreview station={p.station} isOnline={p.isOnline} pendingCount={p.pendingCount} /> };
             case 'keys': return { title: 'Keyboard', cap: 'Press any key to see what it does.', body: <KeysPreview lastKey={lastKey} keymap={POS_KEYMAP} /> };
             default: return null;

@@ -32,6 +32,7 @@ import axios from 'axios';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
 import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
+import MobileStats from '@/Components/MobileStats';
 
 export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} }) {
  const {
@@ -208,29 +209,16 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <SellModuleTabs activeTab="returns" />
 
  {/* Mobile Stats Toggle/Summary */}
- <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
- <button
- onClick={() => setIsStatsExpanded(!isStatsExpanded)}
- className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
- >
- <span>Stats Summary</span>
- <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
- </button>
- 
- {!isStatsExpanded && (
- <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
- <div className="flex items-center gap-2">
- <span className="text-brand-600 dark:text-brand-400">Total: {stats?.total_returns || 0}</span>
- <span className="text-neutral-300 dark:text-ink-secondary">|</span>
- <span className="text-emerald-600">Refunded: {formatCurrency(stats?.total_refunded || 0)}</span>
- </div>
- </div>
- )}
- </div>
+ <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Returns', value: stats?.total_returns || 0, tone: 'ink' },
+  { label: 'This Month', value: stats?.this_month || 0, tone: 'amber' },
+  { label: 'Items Returned', value: stats?.items_returned || 0, tone: 'ink' },
+  { label: 'Total Refunded', value: formatCurrency(stats?.total_refunded || 0), tone: 'emerald' }
+]} />
 
  {/* Stats Cards Section */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
  <RefreshCcw size={16} />
@@ -239,7 +227,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  </div>
  <p className="text-base font-bold text-ink">{stats?.total_returns || 0}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
  <History size={16} />
@@ -248,7 +236,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  </div>
  <p className="text-base font-bold text-amber-600">{stats?.this_month || 0}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
  <Package size={16} />
@@ -257,7 +245,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  </div>
  <p className="text-base font-bold text-ink">{stats?.items_returned || 0}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
  <CheckSquare size={16} />
@@ -330,7 +318,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
 
  {/* Mobile Layout Header Area */}
  <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex items-center justify-between w-full">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
  Returns History
  </h1>
@@ -420,7 +408,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  <tbody className="divide-y divide-line">
  {sortedReturns.length === 0 ? (
  <tr>
- <td colSpan={tableColumns.length} className="p-12">
+ <td colSpan={tableColumns.length} className="p-5 sm:p-12">
  <div className="flex flex-col items-center justify-center text-center">
  <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
  <RefreshCcw size={32} className="text-ink-muted" />
@@ -505,7 +493,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  {/* Mobile View - Cards List */}
  <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
  {sortedReturns.length === 0 ? (
- <div className="bg-surface rounded-xl p-8 text-center border border-line">
+ <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line">
  <RefreshCcw size={32} className="mx-auto text-ink-muted mb-2" />
  <p className="text-sm font-bold text-ink-secondary">No returns found</p>
  </div>
@@ -574,7 +562,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
  className="quick-view-modal w-full max-w-2xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
  onClick={(e) => e.stopPropagation()}
  >
- <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
  <div>
  <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Return Details</p>
  <h3 className="text-xl font-bold text-brand-600">{quickViewReturn.reference_number || `RET-${quickViewReturn.id}`}</h3>

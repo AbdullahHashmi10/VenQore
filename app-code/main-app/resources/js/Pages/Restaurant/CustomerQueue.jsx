@@ -98,7 +98,7 @@ export default function CustomerQueue({ storeSlug, businessName = 'Restaurant', 
         return (
             <div className="min-h-screen bg-neutral-950 text-white font-sans flex flex-col justify-between p-6">
                 <Head title="Order TV Screen — Disabled" />
-                <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-neutral-800">
                     <div className="flex items-center gap-3">
                         <Link
                             href={route('store.restaurant.settings', { store_slug: storeSlug })}
@@ -145,7 +145,7 @@ export default function CustomerQueue({ storeSlug, businessName = 'Restaurant', 
             <Head title={`Order Status — ${businessName}`} />
 
             {/* Top Display Bar */}
-            <header className="px-6 py-4 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between shadow-lg">
+            <header className="px-6 py-4 bg-neutral-900 border-b border-neutral-800 flex flex-wrap items-center justify-between gap-y-2 shadow-lg">
                 <div className="flex items-center gap-4">
                     <Link
                         href={route('store.restaurant.settings', { store_slug: storeSlug })}
@@ -215,7 +215,7 @@ export default function CustomerQueue({ storeSlug, businessName = 'Restaurant', 
             <main className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 sm:p-6">
                 {/* ── LEFT: PREPARING ────────────────────────────────────────── */}
                 <section className="bg-neutral-900/90 rounded-2xl border border-neutral-800 flex flex-col overflow-hidden shadow-2xl">
-                    <div className="px-6 py-4 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between">
+                    <div className="px-6 py-4 bg-amber-500/10 border-b border-amber-500/20 flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-3">
                             <span className="w-4 h-4 rounded-full bg-amber-500 animate-pulse" />
                             <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-amber-400">
@@ -256,7 +256,7 @@ export default function CustomerQueue({ storeSlug, businessName = 'Restaurant', 
 
                 {/* ── RIGHT: READY FOR PICKUP ───────────────────────────────── */}
                 <section className="bg-neutral-900/90 rounded-2xl border-2 border-emerald-500/30 flex flex-col overflow-hidden shadow-2xl relative">
-                    <div className="px-6 py-4 bg-emerald-500/15 border-b border-emerald-500/30 flex items-center justify-between">
+                    <div className="px-6 py-4 bg-emerald-500/15 border-b border-emerald-500/30 flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-3">
                             <span className="w-4 h-4 rounded-full bg-emerald-400 animate-ping" />
                             <h2 className="text-xl sm:text-2xl font-black uppercase tracking-wider text-emerald-400 flex items-center gap-2">

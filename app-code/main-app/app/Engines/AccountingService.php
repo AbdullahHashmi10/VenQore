@@ -79,61 +79,19 @@ class AccountingService
     }
 
     /**
-     * Create a balanced double-entry journal entry.
+     * Create a balanced double-entry journal entry. Every entry passes the
+     * ZeroDrift Ledger gate first (App\Engines\Ledger\ZeroDrift).
      */
     public function createEntry(array $data, array $lines): JournalEntry
     {
-        // Round all line items to 2 decimal places first
-        $normalizedLines = array_map(function($line) {
-            $line['debit']  = round((float)($line['debit']  ?? 0), 2);
-            $line['credit'] = round((float)($line['credit'] ?? 0), 2);
-            return $line;
-        }, $lines);
-
-        // Filter out zero-value lines only if there is at least one non-zero line
-        $hasNonZeroLine = false;
-        foreach ($normalizedLines as $line) {
-            if ($line['debit'] > 0 || $line['credit'] > 0) {
-                $hasNonZeroLine = true;
-                break;
-            }
-        }
-
-        if ($hasNonZeroLine) {
-            $normalizedLines = array_filter($normalizedLines, function($line) {
-                return $line['debit'] > 0 || $line['credit'] > 0;
-            });
-        }
-
-        // Rule 1 — an entry with no lines at all would be a line-less header.
-        if (count($normalizedLines) === 0) {
-            throw new \InvalidArgumentException('Journal entry must have at least one line.');
-        }
-
-        $totalDebit  = array_sum(array_column($normalizedLines, 'debit'));
-        $totalCredit = array_sum(array_column($normalizedLines, 'credit'));
-
-        if (abs($totalDebit - $totalCredit) > 0.001) {
-            throw new \InvalidArgumentException(
-                "Journal entry is unbalanced. Debits: {$totalDebit}, Credits: {$totalCredit}"
-            );
-        }
-
-        foreach ($normalizedLines as $line) {
-            $debit  = $line['debit'];
-            $credit = $line['credit'];
-
-            if ($debit > 0 && $credit > 0) {
-                throw new \InvalidArgumentException(
-                    "A journal_items row cannot have both debit and credit > 0. Account: " . ($line['account_code'] ?? $line['account_id'])
-                );
-            }
-            if ($debit === 0.0 && $credit === 0.0) {
-                throw new \InvalidArgumentException(
-                    "A journal_items row must have either debit > 0 or credit > 0. Account: " . ($line['account_code'] ?? $line['account_id'])
-                );
-            }
-        }
+        // ── ZeroDrift Ledger: the strict ledger gate ──────────────────────
+        // Nothing reaches the books unless every amount is a finite,
+        // non-negative currency amount and debits equal credits to the exact
+        // paisa. No tolerance, no adjustment. See App\Engines\Ledger\ZeroDrift.
+        $normalizedLines = \App\Engines\Ledger\ZeroDrift::seal($lines, $data);
+        // Totals for the audit snapshot, from the exact paisa sums.
+        $totalDebit  = \App\Support\Money::toFloat(array_sum(array_column($normalizedLines, '__debit_minor')));
+        $totalCredit = \App\Support\Money::toFloat(array_sum(array_column($normalizedLines, '__credit_minor')));
 
         $tenantId = $this->getTenantId();
 

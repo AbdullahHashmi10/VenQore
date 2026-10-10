@@ -1,0 +1,1 @@
+{"id":"dash-classic-d2","themes":["dark"],"scenarios":[{"folder":"01-Dashboard","steps":[{"goto":"/s/{slug}/dashboard","wait":9000},{"shot":"dashboard-classic-frame-overview"}]}]}

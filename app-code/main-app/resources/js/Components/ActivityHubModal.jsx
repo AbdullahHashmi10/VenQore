@@ -53,7 +53,7 @@ export default function ActivityHubModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Modal Header */}
-                <div className="p-5 border-b border-line flex items-center justify-between">
+                <div className="p-5 border-b border-line flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400">
                             <Activity size={22} className={totalActiveOps > 0 ? "animate-pulse" : ""} />
@@ -90,7 +90,7 @@ export default function ActivityHubModal({
                     {/* Active Invoices */}
                     {visibleInvoices.length > 0 && (
                         <div>
-                            <div className="flex items-center justify-between mb-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2.5">
                                 <span className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                                     <ShoppingCart size={14} className="text-blue-500" />
                                     Active Sales Invoices ({visibleInvoices.length})
@@ -102,7 +102,7 @@ export default function ActivityHubModal({
                                     return (
                                         <div
                                             key={inv.id}
-                                            className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
+                                            className={`flex flex-wrap items-center justify-between gap-y-2 p-3.5 rounded-xl border transition-all ${
                                                 isCurrent
                                                     ? 'bg-blue-50/60 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
                                                     : 'bg-surface border-line hover:border-brand-200 dark:hover:border-brand-800'
@@ -140,7 +140,7 @@ export default function ActivityHubModal({
                     {/* Active POS Sessions */}
                     {userPosSessions.length > 0 && (
                         <div>
-                            <div className="flex items-center justify-between mb-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2.5">
                                 <span className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                                     <Zap size={14} className="text-emerald-500" />
                                     Active POS Register Sessions ({userPosSessions.length})
@@ -152,7 +152,7 @@ export default function ActivityHubModal({
                                     return (
                                         <div
                                             key={pos.id}
-                                            className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
+                                            className={`flex flex-wrap items-center justify-between gap-y-2 p-3.5 rounded-xl border transition-all ${
                                                 isCurrent
                                                     ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800'
                                                     : 'bg-surface border-line hover:border-brand-200 dark:hover:border-brand-800'
@@ -190,7 +190,7 @@ export default function ActivityHubModal({
                     {/* Active Purchases */}
                     {visiblePurchases.length > 0 && (
                         <div>
-                            <div className="flex items-center justify-between mb-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2.5">
                                 <span className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                                     <ShoppingBag size={14} className="text-amber-500" />
                                     Active Purchases & Orders ({visiblePurchases.length})
@@ -202,7 +202,7 @@ export default function ActivityHubModal({
                                     return (
                                         <div
                                             key={pur.id}
-                                            className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
+                                            className={`flex flex-wrap items-center justify-between gap-y-2 p-3.5 rounded-xl border transition-all ${
                                                 isCurrent
                                                     ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
                                                     : 'bg-surface border-line hover:border-brand-200 dark:hover:border-brand-800'
@@ -277,7 +277,7 @@ export default function ActivityHubModal({
                 </div>
 
                 {/* Modal Footer */}
-                <div className="p-4 border-t border-line bg-surface/50 dark:bg-white/[0.02] flex items-center justify-between text-xs text-ink-muted">
+                <div className="p-4 border-t border-line bg-surface/50 dark:bg-white/[0.02] flex flex-wrap items-center justify-between gap-y-2 text-xs text-ink-muted">
                     <span>Press <kbd className="px-1.5 py-0.5 rounded bg-sunken font-mono text-2xs">ESC</kbd> to close</span>
                     <button
                         onClick={onClose}

@@ -421,7 +421,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
  return (
  <div key={i}
  onClick={handleActivityClick}
- className="flex items-center justify-between group cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+ className="flex flex-wrap items-center justify-between gap-y-2 group cursor-pointer px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
  >
  <div className="flex items-center gap-3">
  {/* Color-coded activity indicator */}

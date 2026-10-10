@@ -55,7 +55,7 @@ export default function CashFlow({ operating, investing, financing, filters = {}
                 </div>
             </div>
 
-            <div className="p-8 space-y-8">
+            <div className="p-4 sm:p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
                         <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Operating Activities</p>
@@ -71,10 +71,10 @@ export default function CashFlow({ operating, investing, financing, filters = {}
                     </div>
                 </div>
 
-                <div className="bg-neutral-900 text-white p-8 rounded-2xl flex justify-between items-center shadow-lg">
+                <div className="bg-neutral-900 text-white p-4 sm:p-8 rounded-2xl flex justify-between items-center shadow-lg">
                     <div>
                         <h3 className="text-lg font-bold text-ink-muted uppercase tracking-widest mb-1">Net Cash Flow</h3>
-                        <p className="text-4xl font-bold text-white">{formatCurrency(netCashFlow, store)}</p>
+                        <p className="text-2xl sm:text-4xl font-bold text-white">{formatCurrency(netCashFlow, store)}</p>
                     </div>
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${netCashFlow >= 0 ? 'bg-emerald-500' : 'bg-red-500'} shadow-lg`}>
                         <RefreshCw size={32} className="text-white" />

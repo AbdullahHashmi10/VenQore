@@ -235,7 +235,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  return (
  <ReportsLayout title="Secure Vault Locked" showSidebar={false}>
  <div className="min-h-[85vh] flex items-center justify-center p-4">
- <div className="text-center p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl max-w-sm">
+ <div className="text-center p-4 sm:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl max-w-sm">
  <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4 animate-pulse" />
  <h2 className="text-2xl font-bold text-white mb-2">Vault Unconfigured</h2>
  <p className="text-ink-muted text-sm">
@@ -257,7 +257,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  </div>
 
  <div className={`relative z-10 w-full max-w-md ${shake ? 'animate-bounce' : ''}`} style={shake ? { animation: 'shake 0.4s ease-in-out' } : {}}>
- <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="emerald" secondaryColor="indigo">
+ <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-4 sm:p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="emerald" secondaryColor="indigo">
  <div className="text-center mb-8">
  <div className="inline-flex p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400 mb-4 animate-bounce">
  <Shield size={32} />
@@ -298,7 +298,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
  placeholder="••••••••"
  />
- <div className="grid grid-cols-3 gap-3">
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(key => (
  <button
  key={key}
@@ -334,7 +334,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
  placeholder="••••••••"
  />
- <div className="grid grid-cols-3 gap-3">
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(key => (
  <button
  key={key}
@@ -386,7 +386,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  </div>
 
  <div className={`relative z-10 w-full max-w-md ${shake ? 'animate-bounce' : ''}`} style={shake ? { animation: 'shake 0.4s ease-in-out' } : {}}>
- <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="indigo" secondaryColor="purple">
+ <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-4 sm:p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="indigo" secondaryColor="purple">
 
  {/* Vault Icon Header */}
  <div className="text-center mb-8">
@@ -443,7 +443,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  )}
 
  {/* Tactile Virtual Keypad */}
- <div className="grid grid-cols-3 gap-3 my-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
  {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map((key) => {
  const isFlash = activeKey === key;
  return (
@@ -734,7 +734,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
 
  </div>
  ) : (
- <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 text-center text-ink-muted">
+ <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 sm:p-8 text-center text-ink-muted">
  <AlertCircle className="w-12 h-12 text-ink-secondary mx-auto mb-3" />
  <h3 className="text-white font-bold text-lg">No Financial Snapshots Yet</h3>
  <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
@@ -855,7 +855,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  </p>
  <div className="space-y-1.5">
  {payload.map((item, i) => (
- <div key={i} className="flex items-center justify-between gap-6 text-xs">
+ <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 gap-6 text-xs">
  <div className="flex items-center gap-1.5 text-ink-muted">
  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
  <span>{item.name}:</span>

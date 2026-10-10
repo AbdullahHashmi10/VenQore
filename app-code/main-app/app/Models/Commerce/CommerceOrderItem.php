@@ -11,5 +11,5 @@ class CommerceOrderItem extends Model
 
     protected $table = 'commerce_order_items';
     protected $guarded = [];
-    protected $casts = ['price_includes_tax' => 'boolean'];
+    protected $casts = ['price_includes_tax' => 'boolean', 'mods' => 'array'];
 }

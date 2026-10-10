@@ -51,7 +51,7 @@ export default function RefundReasons({ reasons = [] }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={3} className="p-12 text-center text-ink-muted">
+                                    <td colSpan={3} className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center justify-center">
                                             <FileText className="w-12 h-12 mb-2 text-neutral-300 dark:text-ink-secondary" />
                                             <p className="font-semibold">No refund records found.</p>

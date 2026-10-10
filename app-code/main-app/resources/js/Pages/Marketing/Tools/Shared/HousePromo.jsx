@@ -30,7 +30,7 @@ import { Check, ArrowRight } from 'lucide-react';
 export default function HousePromo() {
     const points = [
         'Describe your business — Blueprint proposes the system',
-        '46 modules in, only the ones you use out',
+        '48 modules in, only the ones you use out',
         'Every document here, issued automatically from live stock',
         'One Core Ledger, so no two screens disagree on a number',
         'A photo of a bill in, a posted transaction out',
@@ -51,7 +51,7 @@ export default function HousePromo() {
                 <p className="vq-tools-promo__body">
                     VenQore is the AI ERP builder. Describe your business in a sentence and it assembles
                     a working system — till, stock, purchasing and a real double-entry ledger — from the
-                    46 modules it ships with. No consultant, no implementation fee.
+                    48 modules it ships with. No consultant, no implementation fee.
                 </p>
 
                 <ul className="vq-tools-promo__list">

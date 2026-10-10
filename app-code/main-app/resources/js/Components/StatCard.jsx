@@ -64,7 +64,7 @@ export default function StatCard({
             {/* Content */}
             <div className="relative z-10">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
                     <div className="flex items-center gap-3">
                         {Icon && (
                             <div className={`p-2.5 rounded-xl ${colorClasses[iconColor]} shadow-sm`}>

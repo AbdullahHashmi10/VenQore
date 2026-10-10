@@ -498,7 +498,7 @@ export default function ChatWidget({ embedded = false }) {
  const renderChatBody = () => (
  <>
  {!started ? (
- <div className="flex-1 p-8 flex flex-col items-center justify-center relative z-10 text-center space-y-4">
+ <div className="flex-1 p-4 sm:p-8 flex flex-col items-center justify-center relative z-10 text-center space-y-4">
  {connectionError ? (
  <>
  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-1 ${
@@ -635,7 +635,7 @@ export default function ChatWidget({ embedded = false }) {
 
  // ── Shared header ────────────────────────────────────────────────────────
  const renderHeader = (closeFn) => (
- <div className="px-5 py-4 bg-neutral-900 text-white shrink-0 relative flex items-center justify-between border-b border-neutral-800/80">
+ <div className="px-5 py-4 bg-neutral-900 text-white shrink-0 relative flex flex-wrap items-center justify-between gap-y-2 border-b border-neutral-800/80">
  <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-15 pointer-events-none" />
 
  {/* Left: branding */}
@@ -720,7 +720,7 @@ export default function ChatWidget({ embedded = false }) {
  {/* Sidebar panel — slides in from right edge */}
  <div
  className={`fixed top-0 right-0 h-full z-command flex flex-col bg-surface border-l border-line shadow-2xl transition-all duration-slow ease-out font-sans ${
- isExpanded ? 'translate-x-0 w-[420px]' : 'translate-x-full w-[420px]'
+ isExpanded ? 'translate-x-0 w-full sm:w-[420px]' : 'translate-x-full w-full sm:w-[420px]'
  }`}
  style={{ isolation: 'isolate' }}
  >
@@ -737,7 +737,7 @@ export default function ChatWidget({ embedded = false }) {
 
  {/* Compact popup panel — hidden when sidebar is open */}
  {isOpen && !isExpanded && (
- <div className="mb-4 w-96 h-[520px] bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-slow relative">
+ <div className="mb-4 w-[calc(100vw-3rem)] sm:w-96 h-[520px] max-h-[70vh] bg-surface border border-line rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-slow relative">
  {/* Glow blobs */}
  <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/5 rounded-full blur-[50px] pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/5 rounded-full blur-[50px] pointer-events-none" />

@@ -172,7 +172,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                                     />
                                 </div>
 
-                                <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 pt-1">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs text-neutral-500 dark:text-neutral-400 pt-1">
                                     <span>0 scans</span>
                                     {warningState === 'limit' && (
                                         <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
@@ -193,7 +193,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex items-center justify-between gap-4">
+                            <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 flex flex-wrap items-center justify-between gap-y-2 gap-4">
                                 <div className="flex items-center gap-3">
                                     <Key className="text-emerald-600 dark:text-emerald-400 shrink-0" size={20} />
                                     <div>
@@ -218,7 +218,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
 
                         {/* Free Tier Notice */}
                         {isNone && !isByok && (
-                            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between gap-4">
+                            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-xs text-amber-800 dark:text-amber-300 flex flex-wrap items-center justify-between gap-y-2 gap-4">
                                 <div>
                                     <strong>Free Trial Allowance:</strong> You are currently on the free {free_scan_allowance}-scan preview.
                                     Upgrade your plan or purchase a top-up pack to unlock ongoing monthly allowances.
@@ -241,7 +241,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
 
                     {/* Secondary Meter: AI Assistant Queries */}
                     <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-6 shadow-sm dark:shadow-xl backdrop-blur-sm space-y-4 transition-colors">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div className="flex items-center gap-2.5">
                                 <Zap className="text-sky-500" size={18} />
                                 <h3 className="font-bold text-neutral-900 dark:text-white text-base">Assistant & OmniSearch</h3>
@@ -278,7 +278,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                     {/* Top-up Add-on Card */}
                     <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-6 shadow-sm dark:shadow-xl backdrop-blur-sm flex flex-col justify-between space-y-4 transition-colors">
                         <div>
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                                 <div className="flex items-center gap-2.5">
                                     <ShoppingCart className="text-[#0BAA8F]" size={18} />
                                     <h3 className="font-bold text-neutral-900 dark:text-white text-base">Instant AI Top-Up</h3>
@@ -313,7 +313,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* AI Structural Rebuilds */}
-                    <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-5 shadow-sm dark:shadow-xl backdrop-blur-sm flex items-center justify-between opacity-80 transition-colors">
+                    <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-5 shadow-sm dark:shadow-xl backdrop-blur-sm flex flex-wrap items-center justify-between gap-y-2 opacity-80 transition-colors">
                         <div>
                             <div className="flex items-center gap-2">
                                 <Database size={16} className="text-purple-500" />
@@ -329,7 +329,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                     </div>
 
                     {/* AI Product Descriptions */}
-                    <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-5 shadow-sm dark:shadow-xl backdrop-blur-sm flex items-center justify-between transition-colors">
+                    <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-5 shadow-sm dark:shadow-xl backdrop-blur-sm flex flex-wrap items-center justify-between gap-y-2 transition-colors">
                         <div>
                             <div className="flex items-center gap-2">
                                 <FileText size={16} className="text-[#0BAA8F]" />
@@ -348,7 +348,7 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
 
                 {/* ── Recent Activity Audit Table ───────────────────────────── */}
                 <div className="bg-white dark:bg-[#0D1322]/90 rounded-2xl border border-neutral-200 dark:border-white/[0.08] p-6 shadow-sm dark:shadow-xl backdrop-blur-sm space-y-4 transition-colors">
-                    <div className="flex items-center justify-between border-b border-neutral-200 dark:border-white/[0.08] pb-4">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-neutral-200 dark:border-white/[0.08] pb-4">
                         <div className="flex items-center gap-2.5">
                             <Clock size={16} className="text-neutral-400" />
                             <h3 className="font-bold text-neutral-900 dark:text-white text-base">Recent AI Activity Log</h3>

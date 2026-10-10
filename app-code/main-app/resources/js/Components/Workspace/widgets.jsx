@@ -123,7 +123,7 @@ function Rows({ items, renderItem, empty }) {
 /** `name … value` — the shape most of these cards want. */
 function RowLine({ label, sublabel, value, tone = 'ink' }) {
     return (
-        <div className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-interactive-hover">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3 rounded-lg px-2 py-1.5 hover:bg-interactive-hover">
             <div className="min-w-0">
                 <p className="truncate text-sm text-ink">{label}</p>
                 {sublabel && <p className="truncate text-2xs text-ink-muted">{sublabel}</p>}

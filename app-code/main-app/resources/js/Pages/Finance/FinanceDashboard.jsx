@@ -120,7 +120,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                         </div>
                                     </div>
                                 )) : (
-                                    <div className="p-12 text-center text-ink-muted">
+                                    <div className="p-5 sm:p-12 text-center text-ink-muted">
                                         No recent transactions found.
                                     </div>
                                 )}
@@ -140,7 +140,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                             </div>
                             <div className="p-4 space-y-4">
                                 {topReceivables.length > 0 ? topReceivables.map((party) => (
-                                    <div key={party.id} className="flex items-center justify-between group">
+                                    <div key={party.id} className="flex flex-wrap items-center justify-between gap-y-2 group">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 font-bold">
                                                 {party.name.charAt(0)}
@@ -171,7 +171,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                             </div>
                             <div className="p-4 space-y-4">
                                 {topPayables.length > 0 ? topPayables.map((party) => (
-                                    <div key={party.id} className="flex items-center justify-between group">
+                                    <div key={party.id} className="flex flex-wrap items-center justify-between gap-y-2 group">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 font-bold">
                                                 {party.name.charAt(0)}

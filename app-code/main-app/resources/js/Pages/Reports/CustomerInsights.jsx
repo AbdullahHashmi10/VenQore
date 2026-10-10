@@ -161,7 +161,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             valPrefix = "$ ";
                         }
                         return (
-                            <div key={i} className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center justify-between">
+                            <div key={i} className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                                 <div>
                                     <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{s.label}</p>
                                     <h3 className="text-xl font-bold text-ink tracking-tight mt-1">{valPrefix}{s.value}</h3>
@@ -339,7 +339,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                             {/* Modal Body */}
                             <div className="p-6 space-y-6 overflow-y-auto flex-1">
                                 {/* Financial KPIs */}
-                                <div className="grid grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                     <div className="bg-app p-4 rounded-xl border border-line">
                                         <p className="text-xs font-bold text-ink-muted uppercase">Total Spent in Period</p>
                                         <p className="text-2xl font-bold text-ink mt-1">{formatCurrency(selectedCustomer.total_spend, store)}</p>
@@ -366,7 +366,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                         <div className="md:col-span-6 flex flex-col">
                                             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Clock size={13} /> Invoice Purchase History</h4>
                                             {modalDetails.invoices.length === 0 ? (
-                                                <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
+                                                <div className="p-4 sm:p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                     No invoice transaction logs found in this period.
                                                 </div>
                                             ) : (
@@ -400,7 +400,7 @@ export default function CustomerInsights({ data = [], stats = [], filters = {} }
                                         <div className="md:col-span-6 flex flex-col">
                                             <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><ShoppingBag size={13} /> {tt('Product Buying Preferences')}</h4>
                                             {modalDetails.top_items.length === 0 ? (
-                                                <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
+                                                <div className="p-4 sm:p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                     {tt('No products purchases found.')}
                                                 </div>
                                             ) : (

@@ -85,7 +85,7 @@ function Ticket({ order, onBump, onRecall, onReprint, onDismiss, busy }) {
     if (isCancelled) {
         return (
             <article className="kds-ticket border-2 border-red-500 bg-red-50 dark:bg-red-950/40 shadow-sm rounded-2xl overflow-hidden">
-                <header className="kds-ticket-h bg-red-600 text-white p-3 flex items-center justify-between">
+                <header className="kds-ticket-h bg-red-600 text-white p-3 flex flex-wrap items-center justify-between gap-y-2">
                     <span className="kds-ticket-where flex items-center gap-2 text-white font-bold text-sm">
                         <XCircle size={16} aria-hidden="true" />
                         <b className="text-white">{order.position_code || order.table_number || order.order_number}</b>
@@ -279,7 +279,7 @@ function EightySixModal({ storeSlug, orders, eightySixIds, onToggle, onClose }) 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
             <div className="w-full max-w-lg bg-surface border border-line rounded-3xl p-6 shadow-2xl relative max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line mb-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-2xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 shrink-0">
                             <XCircle size={22} />
@@ -337,7 +337,7 @@ function EightySixModal({ storeSlug, orders, eightySixIds, onToggle, onClose }) 
                                     key={id}
                                     type="button"
                                     onClick={() => onToggle(id)}
-                                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-left ${
+                                    className={`w-full flex flex-wrap items-center justify-between gap-y-2 px-4 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-left ${
                                         is86
                                             ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700/50 text-red-700 dark:text-red-300'
                                             : 'bg-sunken border-line text-ink hover:border-brand-500 hover:bg-surface'
@@ -388,7 +388,7 @@ function KitchenPerformanceModal({ storeSlug, onClose }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
             <div className="w-full max-w-xl bg-surface border border-line rounded-3xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line mb-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-2xl bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 shrink-0">
                             <BarChart3 size={22} />
@@ -619,7 +619,7 @@ export default function RestaurantKitchen({ storeSlug, orders: initial = [], pre
         return (
             <div className="kds min-h-screen bg-app text-ink p-6 flex flex-col justify-between">
                 <Head title="Kitchen Display — Disabled" />
-                <div className="flex items-center justify-between pb-4 border-b border-line">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line">
                     <div className="flex items-center gap-3">
                         <Link
                             href={route('store.restaurant.settings', { store_slug: storeSlug })}

@@ -58,7 +58,7 @@ export default function LimitGraceBanner() {
 
     // Premium styling: Harmony with light/dark modes
     return (
-        <div className="w-full bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-amber-500/10 border-b border-amber-500/25 px-4 py-2.5 text-sm font-medium text-amber-800 dark:text-amber-300 flex items-center justify-between shrink-0 shadow-sm transition-all duration-slow">
+        <div className="w-full bg-gradient-to-r from-amber-500/10 via-amber-600/10 to-amber-500/10 border-b border-amber-500/25 px-4 py-2.5 text-sm font-medium text-amber-800 dark:text-amber-300 flex flex-wrap items-center justify-between gap-y-2 shrink-0 shadow-sm transition-all duration-slow">
             <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
                     <AlertTriangle size={16} className="animate-pulse" />

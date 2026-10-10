@@ -81,16 +81,23 @@ class OnlinePricing
         ];
     }
 
-    /** Line math mirrors SaleService (gross = round(qty*unit,2); tax from TaxService) so order total == posted sale total. */
+    /**
+     * Line math IS the posting engine's: the same exact SaleTotals calculation
+     * SaleService::post() runs on completion (net q(qty × net unit), exclusive
+     * tax per line, half-up), so the order total equals the posted sale total
+     * to the paisa — by construction, not by tolerance.
+     */
     public function line(array $price, float $qty): array
     {
-        $lineNet = round($qty * $price['net_unit_price'], 2);
-        $tax = app(TaxService::class)->calculateLineTax($lineNet, $price['tax_rate'], false)['tax'];
+        $r = \App\Services\Sales\SaleTotals::calculate([
+            'lines' => [['unit_price' => $price['net_unit_price'], 'qty' => $qty, 'tax_rate' => $price['tax_rate'] ?? 0]],
+            'tax'   => ['enabled' => true, 'inclusive' => false, 'default_rate' => 0],
+        ], false)['lines'][0];
 
         return [
-            'line_net' => $lineNet,
-            'tax_amount' => round($tax, 2),
-            'line_total' => round($lineNet + $tax, 2),
+            'line_net' => \App\Support\Money::toFloat($r['net']),
+            'tax_amount' => \App\Support\Money::toFloat($r['tax']),
+            'line_total' => \App\Support\Money::toFloat($r['net'] + $r['tax']),
         ];
     }
 

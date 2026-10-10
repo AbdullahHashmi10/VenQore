@@ -164,6 +164,25 @@ class ModuleService
         return array_values(array_filter($registry, fn ($key) => (bool) ($map[$key] ?? false)));
     }
 
+    /**
+     * Does this business run its shop from Front of House (a restaurant or cafe)?
+     *
+     * Unlike enabled(), this is TRUE only on an explicit table_service row. A tenant
+     * with no module configuration at all (the "everything on" safety rail) does NOT
+     * count, because redirecting such a tenant away from the till would lock a
+     * long-standing retail customer out of their own POS.
+     */
+    public static function runsFrontOfHouse(?Tenant $tenant): bool
+    {
+        if (!$tenant || !$tenant->id) {
+            return false;
+        }
+
+        $map = self::allFor($tenant);
+
+        return $map !== [] && ($map['table_service'] ?? false) === true;
+    }
+
     /** Enabled AND live AND permitted — what the shell should actually render. */
     public static function allVisible(?Tenant $tenant, $user = null): array
     {
@@ -236,6 +255,48 @@ class ModuleService
         }
 
         return $counts;
+    }
+
+    /**
+     * Live work that switching a module off would strand. Unlike dataAtStake()
+     * (history, which stays safe), this is customers waiting right now: orders
+     * nobody has handled yet. Returned as [['label' => ..., 'count' => n]].
+     * Never throws: a warning must not become an error.
+     */
+    public static function pendingWork(Tenant $tenant, string $moduleKey): array
+    {
+        $out = [];
+        $add = function (string $label, int $count) use (&$out) {
+            if ($count > 0) {
+                $out[] = ['label' => $label, 'count' => $count];
+            }
+        };
+
+        try {
+            $schema = \Illuminate\Support\Facades\Schema::class;
+
+            if ($moduleKey === 'online_store' && $schema::hasTable('commerce_orders')) {
+                $add('online orders still being handled', DB::table('commerce_orders')
+                    ->where('tenant_id', $tenant->id)
+                    ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'])
+                    ->count());
+            }
+
+            if ($moduleKey === 'onsite_catalogue' && $schema::hasTable('occupancies') && $schema::hasColumn('occupancies', 'source_type')) {
+                $add('QR orders still open on the floor', DB::table('occupancies')
+                    ->where('tenant_id', $tenant->id)->whereNull('closed_at')
+                    ->whereIn('source_type', ['table_qr', 'counter_qr'])->count());
+            }
+
+            if ($moduleKey === 'table_service' && $schema::hasTable('occupancies')) {
+                $add('open tables and tabs', DB::table('occupancies')
+                    ->where('tenant_id', $tenant->id)->whereNull('closed_at')->count());
+            }
+        } catch (\Throwable) {
+            // a warning must never crash the dialog
+        }
+
+        return $out;
     }
 
     /**

@@ -48,6 +48,7 @@ import {
  ArrowRight,
  ShoppingBag,
  Package,
+ Award,
  Settings2,
  Wallet,
  TrendingUp,
@@ -230,7 +231,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  // Auto-retract sidebar for invoice/purchase creation
  const isInvoiceCreate = url.includes('/sales/invoice/create') || url.includes('/purchases/create');
- const isPosRoute = url.includes('/pos');
+ const isPosRoute = url.includes('/pos') || (props?.runs_foh === true && /\/foh(\/|\?|$)/.test(url));
 
  // Make settings available globally for legacy/utility functions (Synchronous population)
  // Definitive Plan: merge store-level currency so formatCurrency() auto-uses per-store currency
@@ -267,6 +268,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+ // Flag on <html> so the portalled Vena pill hides while the phone menu is open
+ useEffect(() => {
+  if (mobileSidebarOpen) document.documentElement.setAttribute('data-vq-drawer', 'open');
+  else document.documentElement.removeAttribute('data-vq-drawer');
+  return () => document.documentElement.removeAttribute('data-vq-drawer');
+ }, [mobileSidebarOpen]);
  useEffect(() => {
      const openNavigation = () => setMobileSidebarOpen(true);
      window.addEventListener('vq:open-navigation', openNavigation);
@@ -401,6 +408,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
  const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+ // Phone/tablet (<lg) — drives the compact top bar (menu · Ask Vena · store · profile)
+ const [isPhoneBar, setIsPhoneBar] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches);
+ useEffect(() => {
+  const mq = window.matchMedia('(max-width: 1023px)');
+  const on = () => setIsPhoneBar(mq.matches);
+  mq.addEventListener?.('change', on);
+  return () => mq.removeEventListener?.('change', on);
+ }, []);
  const [expandedMenu, setExpandedMenu] = useState(null);
  const userMenuRef = useRef(null);
  const notificationRef = useRef(null);
@@ -514,7 +529,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  case 'dashboard':
  return [
  { label: 'Business Dashboard', href: 'store.dashboard', icon: <LayoutDashboard size={14} /> },
- { label: 'Point of Sale (POS)', href: 'store.pos', icon: <Monitor size={14} /> },
+ { label: runsFoh ? 'POS' : 'Point of Sale (POS)', href: runsFoh ? 'store.foh' : 'store.pos', icon: <Monitor size={14} /> },
  /* Table service is NOT a separate screen any more -- it is the
 				   register wearing its Table preset. This entry survives as a
 				   shortcut that opens the POS straight onto the floor (the route
@@ -523,7 +538,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  business that runs one. A counter-only shop seeing a Tables
  entry it can never use is the kind of noise that makes people
  stop reading a menu. */
- ...(['tables', 'both'].includes(serviceMode)
+ ...(!runsFoh && ['tables', 'both'].includes(serviceMode)
  ? [{ label: 'FOH', href: 'store.foh', icon: <Armchair size={14} /> }]
  : []),
  { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
@@ -733,8 +748,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 	);
 
 	const isOnlineStoreActive = Boolean(
-		enabledModuleSet && enabledModuleSet.has('online_store')
+		enabledModuleSet && (enabledModuleSet.has('online_store') || enabledModuleSet.has('onsite_catalogue'))
 	);
+	const isShopActive = Boolean(enabledModuleSet && enabledModuleSet.has('online_store'));
+	const isCatalogueActive = Boolean(enabledModuleSet && enabledModuleSet.has('onsite_catalogue'));
+	// Restaurants and cafes use Front of House as their POS (server decides).
+	const runsFoh = props?.runs_foh === true;
 
  const appMenuItemsRaw = [
  {
@@ -762,7 +781,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		name: 'Restaurant',
 		icon: UtensilsCrossed,
 		subs: [
-			{ group: 'Front of House', items: ['FOH'] },
+			{ group: runsFoh ? 'Point of Sale' : 'Front of House', items: [runsFoh ? 'POS' : 'FOH'] },
 			{ group: 'Kitchen & Display', items: ['Kitchen', 'Order TV Screen'] },
 			{ group: 'Setup', items: ['Floor Plan', 'Riders', 'FOH Settings'] },
 		],
@@ -835,7 +854,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { label: 'Online Orders', route: 'store.commerce.orders' },
  { label: 'Online Products', route: 'store.commerce.products' },
  { label: 'Offers & Coupons', route: 'store.commerce.promotions' },
- { label: 'Onsite Catalogue', route: 'store.commerce.catalogue' },
+ { label: 'QR Menu & Catalogue', route: 'store.commerce.catalogue' },
  { label: 'Store Settings', route: 'store.commerce.settings' },
  ] },
  ],
@@ -913,11 +932,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Restaurant Settings': 'table_service',
 		'Reservations': 'table_service',
 		'Reservations (Coming Soon)': 'table_service',
-		'Store Overview': 'online_store',
-		'Online Orders': 'online_store',
 		'Online Products': 'online_store',
 		'Offers & Coupons': 'online_store',
-		'Onsite Catalogue': 'online_store',
+		'QR Menu & Catalogue': 'onsite_catalogue',
+		'POS': 'table_service',
 		'Service Jobs': 'services',
 		'Dispatch Calendar': 'services',
 		'Tools & Equipment': 'services',
@@ -1034,7 +1052,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		'Online Orders': ['store.commerce.orders'],
 		'Online Products': ['store.commerce.products'],
 		'Offers & Coupons': ['store.commerce.promotions'],
-		'Onsite Catalogue': ['store.commerce.catalogue'],
+		'QR Menu & Catalogue': ['store.commerce.catalogue'],
+		'POS': ['store.foh'],
 		'Service Jobs': ['store.service-jobs.index', 'store.service-jobs.create', 'store.service-jobs.show', 'store.service-jobs.calendar'],
 		'Dispatch Calendar': ['store.service-jobs.calendar'],
 		'Tools & Equipment': ['store.tools.index'],
@@ -1095,14 +1114,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		}
 
 		// Restaurant sub-items: visible if restaurant is active
-		const restaurantItems = ['FOH', 'FOH Settings', 'Add-ons', 'Floor', 'Floor Plan', 'Kitchen', 'Order TV Screen', 'TV Screen', 'Dispatch', 'Riders', 'Restaurant Settings', 'Reservations', 'Reservations (Coming Soon)'];
+		const restaurantItems = ['POS', 'FOH', 'FOH Settings', 'Add-ons', 'Floor', 'Floor Plan', 'Kitchen', 'Order TV Screen', 'TV Screen', 'Dispatch', 'Riders', 'Restaurant Settings', 'Reservations', 'Reservations (Coming Soon)'];
 		if (restaurantItems.includes(label)) {
 			return isRestaurantActive;
 		}
 
 		// Online Store sub-items: visible if online store is active
-		const onlineStoreItems = ['Store Overview', 'Online Orders', 'Online Products', 'Offers & Coupons', 'Onsite Catalogue'];
+		const onlineStoreItems = ['Store Overview', 'Online Orders', 'Online Products', 'Offers & Coupons', 'QR Menu & Catalogue'];
 		if (onlineStoreItems.includes(label)) {
+			if (label === 'QR Menu & Catalogue') return isCatalogueActive;
+			if (label === 'Online Products' || label === 'Offers & Coupons') return isShopActive;
 			return isOnlineStoreActive;
 		}
 
@@ -1181,6 +1202,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { name: 'Plans & Limits', icon: Layers, subs: [], route: 'platform.plans.index' },
  { name: 'Platforms', icon: Database, subs: [], route: 'platform.platforms.index' },
  { name: 'Coupons', icon: Ticket, subs: [], route: 'platform.coupons.index' },
+ { name: 'Store Badges', icon: Award, subs: [], route: 'platform.store-badges.index' },
  { name: 'Tenant Overrides', icon: Zap, subs: [], route: 'platform.tenants.overrides' },
  { name: 'Stores', icon: ShoppingBag, subs: [], route: 'platform.stores' },
  { name: 'Platform Users', icon: UserCog, subs: [], route: 'platform.users' },
@@ -1270,6 +1292,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  'Plans & Limits': [],
  'Platforms': [],
  'Coupons': [],
+ 'Store Badges': [],
  'Tenant Overrides': [],
  'Stores': [],
  'Platform Users': [],
@@ -1551,7 +1574,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {/* --- SIDEBAR --- */}
  {mobileSidebarOpen && (
- <div className="fixed inset-0 bg-black/50 z-drawer lg:hidden" onClick={() => setMobileSidebarOpen(false)} />
+ <div data-vq-drawer-scrim="" className="fixed inset-0 lg:hidden" style={{ zIndex: 1500, background: 'rgba(13,20,18,0.45)', opacity: 1, pointerEvents: 'auto' }} onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />
  )}
  {!fullScreen && !hideSidebar && (
  <aside
@@ -1559,7 +1582,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  onMouseLeave={handleSidebarMouseLeave}
  onClick={handleSidebarInteraction}
  className={`
-  fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer lg:z-40
+  fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-full shrink-0 z-drawer max-lg:z-[1600] lg:z-40
   transform lg:transform-none transition-all duration-slow lg:duration-slower lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
   flex flex-col amd-no-drag
   ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -1573,6 +1596,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  `}
   >
 
+
+  {/* Phone: close the menu */}
+  <button
+  type="button"
+  onClick={(e) => { e.stopPropagation(); setMobileSidebarOpen(false); }}
+  aria-label="Close menu"
+  className="lg:hidden absolute top-2 right-2 z-20 h-9 w-9 flex items-center justify-center rounded-lg bg-app border border-line text-ink-secondary"
+  >
+  <X size={18} />
+  </button>
 
   {/* Logo */}
   <div className="h-24 flex items-center justify-center shrink-0 relative z-10">
@@ -1695,11 +1728,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      "did you ask for one" — so a solo plumber who built a workspace with no
      counter still had Open POS as the biggest button on his screen. */}
  {store && !(isPlatformAdmin && !store)
-   && (!enabledModuleSet || enabledModuleSet.has('pos'))
+   && (!enabledModuleSet || enabledModuleSet.has('pos') || runsFoh)
    && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos')) && (
  <Link
  href={store
- ? (isPosRoute ? route('store.dashboard', {store_slug: store.slug}) : route('store.pos', {store_slug: store.slug}))
+ ? (isPosRoute ? route('store.dashboard', {store_slug: store.slug}) : route(runsFoh ? 'store.foh' : 'store.pos', {store_slug: store.slug}))
  : '#'
  }
  className={`
@@ -1734,7 +1767,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
      setIsUserMenuOpen(false);
      setIsChecklistModalOpen(true);
     }}
-    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex items-center justify-between group shadow-xs cursor-pointer"
+    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex flex-wrap items-center justify-between gap-y-2 group shadow-xs cursor-pointer"
    >
     <div className="flex items-center gap-2.5">
      <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
@@ -1758,7 +1791,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 									setIsUserMenuOpen(false);
 									setIsStoreSwitcherModalOpen(true);
 								}}
-								className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
+								className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink group mb-1"
 							>
 								<div className="flex items-center gap-2.5">
 									<Store size={16} className="text-brand-500 group-hover:scale-110 transition-transform" />
@@ -1775,7 +1808,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </Link>
  )}
   {store && (
-  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex items-center justify-between w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
       <div className="flex items-center gap-3">
           <Sparkles size={16} className="text-[#0BAA8F]" />
           <span>AI Usage</span>
@@ -1850,7 +1883,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )}
 
  {/* --- MAIN CONTENT --- */}
- <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-[var(--vq-bg)] transition-opacity duration-slower ease-in-out opacity-100`}>
+ <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-[var(--vq-bg)] transition-opacity duration-slower ease-in-out opacity-100 ${(fullScreen || hideHeader) ? 'max-lg:pt-14' : ''}`}>
  <DemoBanner />
 
  {/* Limit Grace Countdown Banner */}
@@ -1886,7 +1919,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  }
 
  return (
- <div className={`w-full px-4 py-2 text-sm font-medium flex items-center justify-between shrink-0 border-b ${bannerColor}`}>
+ <div className={`w-full px-4 py-2 text-sm font-medium flex flex-wrap items-center justify-between gap-y-2 shrink-0 border-b ${bannerColor}`}>
  <div className="flex items-center gap-2">
  <Activity size={16} className={isUrgent ? 'animate-pulse' : ''} />
  <span>
@@ -1905,7 +1938,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  // If suspended (e.g. they somehow bypassed the middleware or it's degraded mode)
  if (store.status === 'suspended') {
  return (
- <div className="w-full px-4 py-2 text-sm font-bold bg-neutral-900 text-white flex items-center justify-between shrink-0">
+ <div className="w-full px-4 py-2 text-sm font-bold bg-neutral-900 text-white flex flex-wrap items-center justify-between gap-y-2 shrink-0">
  <div className="flex items-center gap-2">
  <X size={16} className="text-red-500" />
  <span>Your subscription has expired. The system is in locked mode.</span>
@@ -1937,10 +1970,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Header */}
   {!hideHeader && !fullScreen && (
-  <header className="h-16 px-6 flex items-center justify-between z-nav relative shrink-0">
+  <header className="h-16 px-6 flex flex-wrap items-center justify-between gap-y-2 z-nav relative shrink-0 max-lg:h-auto max-lg:flex-nowrap max-lg:gap-1.5 max-lg:px-1.5 max-lg:pt-1.5 max-lg:pb-0">
   {/* LEFT SECTION */}
-  <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10">
-  <button className="lg:hidden h-11 w-11 flex items-center justify-center rounded-xl text-ink-muted hover:text-brand-600 hover:bg-brand-50 transition-colors border border-line"
+  <div className="flex items-center gap-3 text-ink-muted min-w-[100px] z-10 max-lg:min-w-0 max-lg:shrink-0">
+  <button aria-label="Open menu" className="lg:hidden h-11 w-11 max-lg:h-10 max-lg:w-10 flex items-center justify-center rounded-lg text-ink-secondary bg-surface hover:text-brand-600 transition-colors border border-line"
   onClick={() => setMobileSidebarOpen(true)}>
   <Menu size={20} />
   </button>
@@ -1949,14 +1982,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   </div>
 
   {/* CENTER SECTION - THE AI ISLAND (Always Dead-Center of the Screen) */}
-  <div id="tour-omnisearch" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center">
+  <div id="tour-omnisearch" className="absolute left-1/2 top-1/2 max-lg:top-[calc(50%+3px)] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center justify-center">
       <div className="pointer-events-auto">
-          <AiIsland />
+          <AiIsland compact={isPhoneBar} phone={isPhoneBar} />
       </div>
   </div>
 
   {/* RIGHT SECTION */}
-  <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10">
+  <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10 max-lg:min-w-0 max-lg:ml-auto max-lg:gap-1.5 max-lg:shrink-0">
   {isTrial && !is_demo && (
   <Link
   href={route('store.billing', { store_slug: store?.slug })}
@@ -1985,7 +2018,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* Header Calculator */}
   {(settings?.header_calculator_enabled === '1' || settings?.header_calculator_enabled === true) && (
-      <div className="relative">
+      <div className="relative max-lg:hidden">
           <HeaderCalculatorButton
               ref={calculatorButtonRef}
               isOpen={isCalculatorOpen}
@@ -2048,7 +2081,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
               <button
                   onClick={toggleClockVisibility}
-                  className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+                  className="w-full flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
               >
                   <div className="flex items-center gap-2.5">
                       <Clock size={16} className="text-brand-500 shrink-0" />
@@ -2059,7 +2092,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                   </div>
               </button>
 
-              <div className="w-full flex items-center justify-between p-2 rounded-xl text-ink-secondary transition-all">
+              <div className="w-full flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl text-ink-secondary transition-all">
                   <div className="flex items-center gap-2.5">
                       <Calculator size={16} className="text-brand-500 shrink-0" />
                       <span className="text-sm font-semibold">Header Calculator</span>
@@ -2078,7 +2111,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                           settings: { ...settings, senior_mode: newValue }
                       }, { preserveScroll: true });
                   }}
-                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${settings?.senior_mode === '1'
+                  className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl transition-all ${settings?.senior_mode === '1'
                       ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
                       : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
               >
@@ -2093,7 +2126,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
               <button
                   onClick={toggleCharityVisibility}
-                  className={`w-full flex items-center justify-between p-2 rounded-xl transition-all ${charityEnabled
+                  className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl transition-all ${charityEnabled
                       ? 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
                       : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
               >
@@ -2109,7 +2142,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
               <div className="h-px bg-line my-1" />
 
               {/* Dashboard Layout Actions */}
-              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+              <div className="px-2 pt-1 pb-1 text-3xs font-bold uppercase tracking-wider text-ink-muted flex flex-wrap items-center justify-between gap-y-2">
                   <span>Dashboard Customizer</span>
               </div>
 
@@ -2164,7 +2197,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                           setIsDisplayMenuOpen(false);
                           setIsStoreSwitcherModalOpen(true);
                       }}
-                      className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
+                      className="w-full flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-all"
                   >
                       <div className="flex items-center gap-2.5">
                           <Store size={16} className="text-brand-500 shrink-0" />
@@ -2179,30 +2212,59 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
       )}
   </div>
 
-  {/* Mobile Options Dropdown (lg:hidden) */}
+  {/* Phone: Online Store shortcut with new-order badge */}
+  {store && isShopActive && (
+      <Link
+          href={route('store.commerce.home', { store_slug: store.slug })}
+          className="lg:hidden relative h-10 w-10 flex items-center justify-center rounded-lg bg-surface border border-line text-ink-secondary hover:text-brand-600 transition-colors"
+          aria-label="Online store"
+          title="Online store"
+      >
+          <Store size={18} />
+          {(props.auth?.online_orders_pending || 0) > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-[18px] text-center ring-2 ring-[var(--vq-bg)]">
+                  {props.auth.online_orders_pending > 99 ? '99+' : props.auth.online_orders_pending}
+              </span>
+          )}
+      </Link>
+  )}
+
+  {/* Phone: Profile menu (profile, settings, theme, log out) */}
   <div className="lg:hidden relative" ref={mobileMenuRef}>
       <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className={`h-11 w-11 flex items-center justify-center rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
-              ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 border-brand-200 dark:border-brand-800'
-              : 'bg-surface text-ink-secondary hover:text-brand-600 hover:shadow-md border-line'}`}
-          title="More Options"
+          className={`relative h-10 w-10 flex items-center justify-center rounded-full bg-gradient-brand text-white text-xs font-bold transition-all ${isMobileMenuOpen ? 'ring-2 ring-brand-300' : ''}`}
+          aria-label="Profile and account"
+          title="Profile"
       >
-          <MoreVertical size={18} />
+          {(() => {
+              const name = props.auth?.user?.name || '';
+              const email = props.auth?.user?.email || '?';
+              if (name) {
+                  const parts = name.trim().split(/\s+/);
+                  return (parts.length >= 2 ? parts[0][0] + parts[1][0] : name.substring(0, 2)).toUpperCase();
+              }
+              return email.substring(0, 2).toUpperCase();
+          })()}
+          {showSetupBadge && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold leading-[18px] text-center ring-2 ring-[var(--vq-bg)]">
+                  {setupRemainingCount}
+              </span>
+          )}
       </button>
 
       {isMobileMenuOpen && (
           <div className="absolute right-0 top-full mt-2 w-64 bg-surface rounded-[14px] shadow-xl border border-line z-dropdown overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
               {/* Store Switcher & Charity Button Row */}
               {(props.auth?.my_stores_count > 1 || charityEnabled) && (
-                  <div className="p-2 border-b border-line flex items-center justify-between gap-3">
+                  <div className="p-2 border-b border-line flex flex-wrap items-center justify-between gap-y-2 gap-3">
                       {props.auth?.my_stores_count > 1 ? (
                           <button
                               onClick={() => {
                                   setIsMobileMenuOpen(false);
                                   setIsStoreSwitcherModalOpen(true);
                               }}
-                              className="flex-1 flex items-center justify-between p-2 rounded-xl bg-app border border-line hover:border-brand-400 text-ink-secondary hover:text-brand-600 transition-all text-left"
+                              className="flex-1 flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl bg-app border border-line hover:border-brand-400 text-ink-secondary hover:text-brand-600 transition-all text-left"
                           >
                               <div className="flex items-center gap-2">
                                   <Store size={15} className="text-brand-500" />
@@ -2283,7 +2345,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                               settings: { ...settings, senior_mode: newValue }
                           }, { preserveScroll: true });
                       }}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
+                      className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
                           ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
                           : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
                   >
@@ -2298,7 +2360,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                   <button
                       onClick={toggleAppTheme}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isEffectiveDarkMode
+                      className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-xl transition-all ${isEffectiveDarkMode
                           ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600'
                           : 'hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary'}`}
                   >
@@ -2320,7 +2382,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                               setIsMobileMenuOpen(false);
                               setIsChecklistModalOpen(true);
                           }}
-                          className="w-full flex items-center justify-between p-2.5 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left group"
+                          className="w-full flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left group"
                       >
                           <div className="flex items-center gap-2.5">
                               <Sparkles size={16} className="text-brand-500 shrink-0 animate-pulse" />
@@ -2337,7 +2399,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                       </Link>
                   )}
                   {store && (
-                  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex items-center justify-between w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+                  <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
                       <div className="flex items-center gap-3">
                           <Sparkles size={16} className="text-[#0BAA8F]" />
                           <span>AI Usage</span>
@@ -2365,7 +2427,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
  {/* DYNAMIC CONTENT AREA */}
- <div className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-6'}`}>
+ <div data-vq-content className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-1.5 md:p-6'}`}>
  {children}
  {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
  {showMobileNavBar && (
@@ -2378,18 +2440,18 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  {
  isIdle && (
  <div className="fixed inset-0 z-drawer bg-neutral-900/90 backdrop-blur-sm flex items-center justify-center animate-in fade-in duration-slower">
- <div className="text-center text-white space-y-6 max-w-lg p-8">
+ <div className="text-center text-white space-y-6 max-w-lg p-4 sm:p-8">
  <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
  <Clock size={48} className="text-brand-400" />
  </div>
- <h2 className="text-4xl font-bold tracking-tight">Session Paused</h2>
+ <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">Session Paused</h2>
  <p className="text-xl text-neutral-300">
  We haven't detected any activity for {parseInt(settings?.auto_logout) || 60} minutes.
  Your session has been paused to secure your work.
  </p>
  <button
  onClick={() => setIsIdle(false)}
- className="px-8 py-4 bg-brand-600 hover:bg-brand-500 !text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
+ className="px-4 sm:px-8 py-4 bg-brand-600 hover:bg-brand-500 !text-white rounded-2xl font-bold text-lg shadow-lg transition-all"
  style={{ color: '#ffffff' }}
  >
  I'm Back, Resume Work
@@ -2429,7 +2491,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
          setCurrentPosId(id);
          setIsActivityHubModalOpen(false);
          if (!url.startsWith('/pos')) {
-             router.visit(route('store.pos', { store_slug: store?.slug }));
+             router.visit(route(runsFoh ? 'store.foh' : 'store.pos', { store_slug: store?.slug }));
          }
      }}
      visiblePurchases={visiblePurchases}

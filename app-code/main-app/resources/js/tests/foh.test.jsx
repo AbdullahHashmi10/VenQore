@@ -46,7 +46,9 @@ describe('FOH payment', () => {
         let out;
         await act(async () => { out = await result.current.complete({ payments: [], totalPaid: 0, change: 0 }, { card: { occupancy_id: 1 }, sale: { cart: [] }, totals: { cartTotal: 0 }, partId: null }); });
         expect(out).toBe(false);
-        expect(onToast).toHaveBeenCalledWith(expect.stringContaining('NOT recorded'), 'error');
+        // Sale-reliability plan: a lost answer is "unconfirmed", never "NOT recorded"
+        // (the request may have reached the books); still never queued offline.
+        expect(onToast).toHaveBeenCalledWith(expect.stringContaining('unconfirmed'), 'error');
     });
 });
 

@@ -169,7 +169,7 @@ export default function BuilderIndex({
                 route('store.builder.data-at-stake', routeArgs({ module: mod.key }))
             );
             if (data.success) {
-                setPendingDisable({ module: mod, atStake: data.at_stake || {}, cascade: data.cascade || [mod.key] });
+                setPendingDisable({ module: mod, atStake: data.at_stake || {}, pending: data.pending || [], cascade: data.cascade || [mod.key] });
             }
         } catch (e) {
             setError(e?.response?.data?.message || "Couldn't check that module — try again.");
@@ -427,7 +427,7 @@ export default function BuilderIndex({
 
                 {/* ── Highlighted missing module banner ────────────────────────── */}
                 {highlightMod && !moduleState[highlightMod.key] && (
-                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-brand-500/40 bg-brand-500/10 shadow-sm animate-pulse">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4 p-4 rounded-2xl border border-brand-500/40 bg-brand-500/10 shadow-sm animate-pulse">
                         <div className="flex items-center gap-3">
                             <ShieldAlert size={22} className="text-brand-600 shrink-0" />
                             <div>
@@ -475,7 +475,7 @@ export default function BuilderIndex({
                     </form>
                     {modifyResult && (
                         <div
-                            className={`mt-2.5 text-xs rounded-xl px-3 py-2 flex items-center justify-between ${
+                            className={`mt-2.5 text-xs rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-y-2 ${
                                 modifyResult.success
                                     ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30'
                                     : 'bg-red-500/10 text-red-600 border border-red-500/30'
@@ -685,7 +685,7 @@ export default function BuilderIndex({
                                 >
                                     <div>
                                         {/* Card Header: Icon + Group + Toggle */}
-                                        <div className="flex items-center justify-between gap-3 mb-3">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3 mb-3">
                                             <div className="flex items-center gap-2.5">
                                                 <div
                                                     className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
@@ -791,7 +791,7 @@ export default function BuilderIndex({
                 </div>
 
                 {filteredModules.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-line bg-surface p-12 text-center space-y-3">
+                    <div className="rounded-2xl border border-dashed border-line bg-surface p-5 sm:p-12 text-center space-y-3">
                         <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-ink-muted mx-auto">
                             <Search size={20} />
                         </div>
@@ -875,6 +875,18 @@ export default function BuilderIndex({
                                 <p className="text-xs text-ink-muted">Review data impact before proceeding</p>
                             </div>
                         </div>
+
+                        {(pendingDisable.pending || []).length > 0 && (
+                            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-ink space-y-1.5">
+                                <span className="font-bold text-red-600">Customers are waiting right now</span>
+                                <ul className="text-ink-secondary space-y-1">
+                                    {pendingDisable.pending.map((p) => (
+                                        <li key={p.label}><strong className="text-ink font-numeric">{p.count}</strong> {p.label}</li>
+                                    ))}
+                                </ul>
+                                <p className="text-ink-secondary">Finish or reject these first. Once this is off you will not be able to open them from the menu, and new customers will not be able to order.</p>
+                            </div>
+                        )}
 
                         {Object.keys(pendingDisable.atStake).length > 0 ? (
                             <div className="p-3.5 rounded-xl bg-sunken border border-line space-y-2">

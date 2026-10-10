@@ -473,20 +473,26 @@ class SalesOrderController extends Controller
                     ->where('sales_order_id', $order->id)
                     ->get();
 
-                foreach ($items as $item) {
-                    $qty = (float)$item->quantity_requested;
-                    $unitPrice = (float)$item->unit_price;
-                    $itemDiscount = (float)($item->discount ?? 0);
-                    
-                    $subtotalGross += $qty * $unitPrice;
-                    $totalDiscount += $itemDiscount;
-                    
-                    $net = ($qty * $unitPrice) - $itemDiscount;
-                    $product = Product::find($item->product_id);
-                    $taxRate = (float) ($product->tax_rate ?? 0);
-                    $taxAmount = $net * ($taxRate / 100);
-                    $totalTax += $taxAmount;
-                }
+                // ── Totals: the shared exact calculation (SaleTotals, contract v2) ──
+                // The same sequence the POS and the V3 engine post with: line
+                // gross q(qty × price), line discount, exclusive tax per line,
+                // typed charges — all integer paisa, so the conversion's journal
+                // balances by construction (ZeroDrift Ledger).
+                $items = $items->values();
+                $calc = \App\Services\Sales\SaleTotals::calculate([
+                    'lines' => $items->map(fn ($item) => [
+                        'unit_price' => $item->unit_price ?? 0,
+                        'qty'        => $item->quantity_requested ?? 0,
+                        'discount'   => $item->discount ?? 0,
+                        'tax_rate'   => Product::find($item->product_id)?->tax_rate ?? 0,
+                    ])->all(),
+                    'tax'     => ['enabled' => true, 'inclusive' => false, 'default_rate' => 0],
+                    'charges' => ['delivery' => $order->delivery_charge ?? 0, 'extra' => $order->extra_charge_value ?? 0],
+                ], false);
+                $F = fn (int $m) => \App\Support\Money::toFloat($m);
+                $subtotalGross = $F($calc['subtotal_gross']);
+                $totalDiscount = $F($calc['item_discounts']);
+                $totalTax      = $F($calc['tax']);
 
                 // ── S-011: below-cost lines need a manager approval ──────────
                 // The same rule, through the same helper, as the POS checkout
@@ -526,11 +532,10 @@ class SalesOrderController extends Controller
                     true
                 );
 
-                $deliveryCharge = (float)($order->delivery_charge ?? 0);
-                $extraCharge = (float)($order->extra_charge_value ?? 0);
-
-                $netSales = $subtotalGross - $totalDiscount;
-                $invoiceTotal = $netSales + $totalTax + $deliveryCharge + $extraCharge;
+                $deliveryCharge = $F($calc['delivery']);
+                $extraCharge    = $F($calc['extra']);
+                $netSales       = $F($calc['revenue']);
+                $invoiceTotal   = $F($calc['invoice']);
 
                 // withoutEvents: SaleObserver::created() books a stand-in
                 // "DR 1000 / CR income" entry for any posted sale that has no
@@ -564,8 +569,9 @@ class SalesOrderController extends Controller
 
                 $fifo = app(\App\Engines\FifoService::class);
                 $totalCogs = 0.0;
+                $cogsM = 0;
 
-                foreach ($items as $item) {
+                foreach ($items as $lineIndex => $item) {
                     $totalQty = (float)$item->quantity_requested;
                     $product = Product::find($item->product_id);
 
@@ -624,16 +630,17 @@ class SalesOrderController extends Controller
                         ]);
                     }
 
-                    $totalCogs += $lineCogs;
+                    // COGS quantized once per line; the journal posts the exact sum.
+                    $cogsM += \App\Support\Money::parseMinor(number_format((float) $lineCogs, 6, '.', ''), 'cogs', false);
+                    $totalCogs = $F($cogsM);
 
-                    $qty = (float)$item->quantity_requested;
-                    $unitPrice = (float)$item->unit_price;
-                    $itemDiscount = (float)($item->discount ?? 0);
-                    $gross = $qty * $unitPrice;
-                    $net = $gross - $itemDiscount;
-                    $taxRate = (float) ($product->tax_rate ?? 0);
-                    $taxAmount = $net * ($taxRate / 100);
-                    $lineTotal = $net + $taxAmount;
+                    $r = $calc['lines'][$lineIndex];
+                    $gross        = $F($r['gross']);
+                    $itemDiscount = $F($r['discount']);
+                    $net          = $F($r['net']);
+                    $taxRate      = (float) ($product->tax_rate ?? 0);
+                    $taxAmount    = $F($r['tax']);
+                    $lineTotal    = $F($r['net'] + $r['tax']);
 
                     $saleItem = SaleItem::create([
                         'sale_id' => $sale->id,

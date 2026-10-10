@@ -303,6 +303,19 @@ class MigrateV3Ledger extends Command
                 $arAmount = (float) $sale->unpaid;
 
                 // DR 1000 (Cash) amount_paid / DR 1200 (AR) unpaid / CR 4000 (Revenue) total
+                // Checked by the ZeroDrift Ledger BEFORE anything is written: a
+                // legacy sale whose paid + unpaid is not its total is reported and
+                // skipped, never written unbalanced.
+                $lines = [];
+                if ($cashAmount > 0) {
+                    $lines[] = ['account_id' => $cashAccount->id, 'debit' => $cashAmount, 'credit' => 0, 'party_id' => $sale->party_id];
+                }
+                if ($arAmount > 0) {
+                    $lines[] = ['account_id' => $arAccount->id, 'debit' => $arAmount, 'credit' => 0, 'party_id' => $sale->party_id];
+                }
+                $lines[] = ['account_id' => $revenueAccount->id, 'debit' => 0, 'credit' => $total, 'party_id' => null];
+                $lines = \App\Engines\Ledger\ZeroDrift::seal($lines, ['reference_type' => 'sale', 'reference' => $sale->id]);
+
                 $jeId = (string) Str::orderedUuid();
                 DB::table('journal_entries')->insert([
                     'id' => $jeId,
@@ -315,15 +328,9 @@ class MigrateV3Ledger extends Command
                     'created_at' => $sale->created_at ?: now(),
                     'updated_at' => $sale->updated_at ?: now(),
                 ]);
-
-                // Items
-                if ($cashAmount > 0) {
-                    $this->insertJournalItem($jeId, $cashAccount->id, $cashAmount, 0, $sale->party_id);
+                foreach ($lines as $line) {
+                    $this->insertJournalItem($jeId, $line['account_id'], $line['debit'], $line['credit'], $line['party_id']);
                 }
-                if ($arAmount > 0) {
-                    $this->insertJournalItem($jeId, $arAccount->id, $arAmount, 0, $sale->party_id);
-                }
-                $this->insertJournalItem($jeId, $revenueAccount->id, 0, $total, null);
 
                 $migrated++;
             } catch (Throwable $e) {
@@ -395,6 +402,11 @@ class MigrateV3Ledger extends Command
 
     private function createDoubleEntry($amount, $drAccountId, $crAccountId, $type, $partyId, $desc, $reference)
     {
+        // Same ZeroDrift Ledger gate as every other entry (valid, positive, paisa).
+        $amount = \App\Engines\Ledger\ZeroDrift::seal([
+            ['account_id' => $drAccountId, 'debit' => $amount, 'credit' => 0],
+            ['account_id' => $crAccountId, 'debit' => 0, 'credit' => $amount],
+        ], ['reference_type' => $type, 'reference' => $reference])[0]['debit'];
         $jeId = (string) Str::orderedUuid();
         DB::table('journal_entries')->insert([
             'id' => $jeId,

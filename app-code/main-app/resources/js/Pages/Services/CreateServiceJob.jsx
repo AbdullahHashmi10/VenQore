@@ -326,7 +326,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
 
                     {/* Billable Lines */}
                     <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                        <div className="mb-4 flex items-center justify-between">
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-y-2">
                             <div>
                                 <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
                                     <DollarSign size={16} className="text-accent-text" />
@@ -406,7 +406,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                         </div>
 
                         {/* Subtotal Banner */}
-                        <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-sm">
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-3 text-sm">
                             <span className="font-semibold text-ink-secondary">{tt('Estimated Work Order Total')}</span>
                             <span className="font-mono text-lg font-bold text-ink">{formatCurrency(subtotal)}</span>
                         </div>
@@ -431,7 +431,7 @@ export default function CreateServiceJob({ parties = [], services = [], employee
                                             key={tool.id}
                                             type="button"
                                             onClick={() => toggleTool(tool)}
-                                            className={`flex items-center justify-between gap-2 rounded-lg border p-2.5 text-left transition-all ${
+                                            className={`flex flex-wrap items-center justify-between gap-y-2 gap-2 rounded-lg border p-2.5 text-left transition-all ${
                                                 isChecked
                                                     ? 'border-accent bg-accent-quiet/40 text-ink shadow-xs'
                                                     : 'border-line bg-app text-ink-secondary hover:bg-sunken'

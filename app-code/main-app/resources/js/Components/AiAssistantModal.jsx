@@ -174,7 +174,7 @@ export default function AiAssistantModal({
  {/* Chat Container */}
  <div className="relative w-full max-w-3xl h-[80vh] flex flex-col bg-neutral-900/80 backdrop-blur-2xl rounded-2xl border border-neutral-700/50 shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in zoom-in-95 duration-slow">
  {/* Header */}
- <div className="flex items-center justify-between p-5 border-b border-neutral-800/50 bg-brand-900/30">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-5 border-b border-neutral-800/50 bg-brand-900/30">
  					<div className="flex items-center gap-4">
 						<div className="p-2.5 bg-brand-500/20 border border-brand-500/30 rounded-2xl shadow-lg flex items-center justify-center">
 							<VenaLogo size={28} />

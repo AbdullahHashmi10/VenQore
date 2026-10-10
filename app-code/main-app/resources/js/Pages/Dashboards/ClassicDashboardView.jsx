@@ -183,7 +183,7 @@ export default function ClassicDashboardView({
                                 >
                                     <div className="absolute -right-4 -top-4 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl transition-transform duration-slower pointer-events-none" />
                                     
-                                    <div className="flex items-center justify-between gap-2 relative z-10">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 relative z-10">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                                                 <TrendingUp size={15} />
@@ -219,7 +219,7 @@ export default function ClassicDashboardView({
                                 >
                                     <div className="absolute -right-4 -top-4 w-16 h-16 bg-brand-500/10 rounded-full blur-xl transition-transform duration-slower pointer-events-none" />
                                     
-                                    <div className="flex items-center justify-between gap-2 relative z-10">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 relative z-10">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="p-1.5 rounded-xl bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 shrink-0">
                                                 <Percent size={15} />
@@ -255,7 +255,7 @@ export default function ClassicDashboardView({
                                 >
                                     <div className="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/10 rounded-full blur-xl transition-transform duration-slower pointer-events-none" />
                                     
-                                    <div className="flex items-center justify-between gap-2 relative z-10">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 relative z-10">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shrink-0">
                                                 <ArrowDownLeft size={15} />
@@ -291,7 +291,7 @@ export default function ClassicDashboardView({
                                 >
                                     <div className="absolute -right-4 -top-4 w-16 h-16 bg-amber-500/10 rounded-full blur-xl transition-transform duration-slower pointer-events-none" />
                                     
-                                    <div className="flex items-center justify-between gap-2 relative z-10">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 relative z-10">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
                                                 <ArrowUpRight size={15} />
@@ -327,7 +327,7 @@ export default function ClassicDashboardView({
                                 >
                                     <div className="absolute -right-4 -top-4 w-16 h-16 bg-teal-500/10 rounded-full blur-xl transition-transform duration-slower pointer-events-none" />
                                     
-                                    <div className="flex items-center justify-between gap-2 relative z-10">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 relative z-10">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20 shrink-0">
                                                 <Wallet size={15} />
@@ -365,7 +365,7 @@ export default function ClassicDashboardView({
                                 >
                                     <div className="absolute -right-4 -top-4 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl transition-transform duration-slower pointer-events-none" />
                                     
-                                    <div className="flex items-center justify-between gap-2 relative z-10">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 relative z-10">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <div className="p-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0">
                                                 <Activity size={15} />
@@ -486,7 +486,7 @@ export default function ClassicDashboardView({
 
                                     <div className="flex-1 min-h-0 pr-1 space-y-2.5">
                                         {lowStockItems.map((item) => (
-                                            <div key={item.id} className="flex items-center justify-between p-2.5 bg-rose-50/70 dark:bg-rose-950/20 rounded-xl border border-rose-100 dark:border-rose-900/30 gap-2">
+                                            <div key={item.id} className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 bg-rose-50/70 dark:bg-rose-950/20 rounded-xl border border-rose-100 dark:border-rose-900/30 gap-2">
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs font-bold text-ink-secondary dark:text-ink-faint truncate">{item.name}</p>
                                                     <p className="text-3xs text-rose-600 dark:text-rose-400 font-semibold mt-0.5">Stock: {formatNumber(item.stock)} / Min: {formatNumber(item.alert)}</p>
@@ -542,7 +542,7 @@ export default function ClassicDashboardView({
                                             <div
                                                 key={item.id}
                                                 onClick={() => router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: item.id }))}
-                                                className="flex items-center justify-between p-2.5 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/30 hover:border-amber-300 dark:hover:border-amber-800 transition-colors cursor-pointer gap-2"
+                                                className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 bg-amber-50/60 dark:bg-amber-950/20 rounded-xl border border-amber-100 dark:border-amber-900/30 hover:border-amber-300 dark:hover:border-amber-800 transition-colors cursor-pointer gap-2"
                                             >
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-xs font-bold text-ink-secondary dark:text-ink-faint truncate">{item.supplier_name}</p>

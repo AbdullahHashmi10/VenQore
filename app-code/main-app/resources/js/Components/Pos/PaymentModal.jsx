@@ -72,7 +72,7 @@ const PaymentModal = ({
         { id: 'bank', name: 'Bank Transfer', icon: Smartphone, color: 'bg-brand-500' },
         { id: 'card', name: 'Card', icon: CreditCard, color: 'bg-blue-500' },
         { id: 'upi', name: 'UPI / QR', icon: Smartphone, color: 'bg-brand-500' },
-        { id: 'credit', name: 'Credit (Udhaar)', icon: CheckCircle, color: 'bg-amber-500' },
+        { id: 'credit', name: 'Credit (Pay Later)', icon: CheckCircle, color: 'bg-amber-500' },
     ].filter(m => m.id !== 'credit' || customer !== null); // Filter out credit if no customer
 
     const totalPaid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
@@ -155,9 +155,9 @@ const PaymentModal = ({
                 <div className="flex-1 overflow-y-auto p-6">
 
                     {/* Total Amount Display */}
-                    <div className="flex items-center justify-between mb-8 bg-brand-50 dark:bg-brand-900/20 p-6 rounded-2xl border border-brand-100 dark:border-brand-500/30">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-8 bg-brand-50 dark:bg-brand-900/20 p-6 rounded-2xl border border-brand-100 dark:border-brand-500/30">
                         <span className="text-lg font-medium text-brand-900 dark:text-brand-300">Total Payable</span>
-                        <span className="text-4xl font-bold text-brand-600 dark:text-brand-400">{formatCurrency(totalAmount)}</span>
+                        <span className="text-2xl sm:text-4xl font-bold text-brand-600 dark:text-brand-400">{formatCurrency(totalAmount)}</span>
                     </div>
 
                     {/* Payment Methods List */}
@@ -183,7 +183,7 @@ const PaymentModal = ({
                                                 setActiveMethodDropdownIndex(activeMethodDropdownIndex === index ? null : index);
                                                 setActiveAccountDropdownIndex(null);
                                             }}
-                                            className="w-full h-12 pl-10 pr-8 bg-app border border-line rounded-xl outline-none focus:ring-2 ring-brand-500/20 font-medium text-ink-secondary dark:text-ink flex items-center justify-between cursor-pointer"
+                                            className="w-full h-12 pl-10 pr-8 bg-app border border-line rounded-xl outline-none focus:ring-2 ring-brand-500/20 font-medium text-ink-secondary dark:text-ink flex flex-wrap items-center justify-between gap-y-2 cursor-pointer"
                                         >
                                             <span className="truncate">
                                                 {paymentMethods.find(m => m.id === payment.method)?.name || 'Method'}
@@ -240,7 +240,7 @@ const PaymentModal = ({
                                                      setActiveAccountDropdownIndex(activeAccountDropdownIndex === index ? null : index);
                                                      setActiveMethodDropdownIndex(null);
                                                  }}
-                                                 className="w-full bg-sunken rounded-lg py-1.5 px-3 text-2xs font-bold text-ink-secondary focus:ring-1 focus:ring-brand-500/50 outline-none flex items-center justify-between cursor-pointer transition-all"
+                                                 className="w-full bg-sunken rounded-lg py-1.5 px-3 text-2xs font-bold text-ink-secondary focus:ring-1 focus:ring-brand-500/50 outline-none flex flex-wrap items-center justify-between gap-y-2 cursor-pointer transition-all"
                                              >
                                                  <span>
                                                      {bankAccounts.find(acc => String(acc.id) === String(payment.account_id))?.name || bankAccounts[0]?.name || 'Select Account'}

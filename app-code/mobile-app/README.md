@@ -1,5 +1,7 @@
 # VenQore mobile pilot
 
+Current build: **1.1.2+4**
+
 Version one is a Business-only Flutter shell around the existing VenQore web
 application. It adds native V6 launch chrome, loading/error handling, and a
 same-origin navigation policy that blocks public marketing pages and arbitrary
@@ -42,6 +44,19 @@ Dashboard actions dispatch page events without reloading the WebView. More
 includes the full business navigation, and layout edits show saving, saved,
 or retry feedback. App-only card editing uses the full available viewport.
 
+## Launcher icon
+
+Android launcher icons are generated from the canonical VenQore mark at
+`assets/brand/venqore-icon.svg`. After changing that source, regenerate every
+legacy, round, and adaptive density with:
+
+```sh
+node tools/make-android-icons.js
+```
+
+The adaptive icon uses the V6 pine background and keeps the mark within
+Android's safe mask area.
+
 ## Run
 
 Production defaults to `https://venqore.com`:
@@ -65,7 +80,8 @@ must use HTTPS.
 - The website remains responsible for login, OTP/MFA, store selection,
   permissions, and business transactions.
 - Public-site navigation and external origins are blocked.
-- Google authentication and external payment/provider handoffs require a
-  separately reviewed navigation exception before they are part of the pilot.
+- Google authentication has a scoped exception for the exact Google Accounts
+  origin during the VenQore OAuth flow. Other provider handoffs still require
+  separate review.
 - Offline sales, native printing/scanning, push notifications, and the customer
   shopping mode are not included in version one.

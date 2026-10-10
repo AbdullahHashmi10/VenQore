@@ -199,7 +199,7 @@ export default function VenSynQDashboard({
                     minHeight: channels.length === 0 ? '60vh' : 'auto'
                 }}>
                     {channels.length === 0 ? (
-                        <div className="relative overflow-hidden bg-neutral-900/90 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.25)] p-8 max-w-2xl text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-slow">
+                        <div className="relative overflow-hidden bg-neutral-900/90 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.25)] p-4 sm:p-8 max-w-2xl text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-slow">
                             {/* Background glows */}
                             <div className="absolute top-0 right-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
                             <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-500/10 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3" />
@@ -222,7 +222,7 @@ export default function VenSynQDashboard({
                                 <div className="pt-4">
                                     <a
                                         href={route('store.vensynq.settings', { store_slug: store?.slug })}
-                                        className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl border border-brand-500/30 bg-brand-600 hover:bg-brand-500 text-white font-bold transition-all duration-slow shadow-lg active:scale-[0.98] cursor-pointer text-sm"
+                                        className="inline-flex items-center gap-2.5 px-4 sm:px-8 py-4 rounded-xl border border-brand-500/30 bg-brand-600 hover:bg-brand-500 text-white font-bold transition-all duration-slow shadow-lg active:scale-[0.98] cursor-pointer text-sm"
                                     >
                                         <Link2 size={18} />
                                         <span>Connect Your First Channel</span>

@@ -54,8 +54,7 @@ export const CASES = [
         settings: { round_off_total: '0' },
     },
     {
-        id: '09-service-and-tip', name: '09 service charge 10% + tip (table terminal)',
-        terminal: 'table',
+        id: '09-service-and-tip', name: '09 service charge + tip settings are ignored at the counter till (tables live in Front of House)',
         cart: [line(1, 'Karahi', 1800, 1), line(2, 'Naan', 40, 4)],
         sale: { taxRate: 16, taxInclusive: false, tipAmount: 150 },
         settings: { service_charge_percent: '10', service_mode: 'tables' },

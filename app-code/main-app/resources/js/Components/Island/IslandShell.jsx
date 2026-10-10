@@ -79,6 +79,7 @@ export default function IslandShell({
   onScrimClick,
   children,
   slotClassName = '',
+  centerWhenOpen = false,
   ariaLabel = 'VenQore Island',
 }) {
   const slotRef = useRef(null);
@@ -161,7 +162,7 @@ export default function IslandShell({
         className="fixed z-command"
         style={{
           zIndex: isOpen ? 'var(--vq-z-command, 1000)' : 'var(--vq-z-nav, 30)',
-          left: anchor.cx,
+          left: centerWhenOpen && isOpen ? '50%' : anchor.cx,
           top: anchor.top,
           transform: 'translateX(-50%)',
           pointerEvents: 'none',

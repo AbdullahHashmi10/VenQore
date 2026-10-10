@@ -12,7 +12,10 @@ import {
     Clipboard,
     Search,
     ChevronRight,
-    Box
+    Box,
+    ChevronDown,
+    Check,
+    X
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
@@ -32,7 +35,9 @@ const itemModuleMap = {
     cookbook: 'cookbook',
 };
 
-export default function StockModuleTabs({ activeTab }) {
+// Single source for the Stock section's navigation groups (module-filtered).
+// The page header dropdown on /inventory/list reads this too — do not copy it.
+export function useStockNavGroups() {
     const { store, modules } = usePage().props;
     const tt = useTermText();
     // Define the structure
@@ -92,6 +97,11 @@ export default function StockModuleTabs({ activeTab }) {
             })
         })).filter(group => group.items.length > 0);
     }, [rawGroups, modules]);
+    return groups;
+}
+
+export default function StockModuleTabs({ activeTab }) {
+    const groups = useStockNavGroups();
 
     // Determine initial group based on activeTab
     const getInitialGroup = () => {
@@ -112,27 +122,71 @@ export default function StockModuleTabs({ activeTab }) {
         }
     }, [activeTab, groups]);
 
+    const currentItem = groups.flatMap(g => g.items.map(i => ({ ...i, group: g.label }))).find(i => i.id === activeTab);
+    const CurrentIcon = currentItem?.icon || Layers;
+
+    useEffect(() => {
+        if (isCollapsed) return;
+        const onKey = (e) => e.key === 'Escape' && setIsCollapsed(true);
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isCollapsed]);
+
     return (
-        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
-            {/* Mobile Header Toggle */}
-            <div className="flex lg:hidden items-center justify-between w-full px-1.5 py-1">
-                <div className="flex items-center gap-2">
-                    <Layers size={14} className="text-ink-muted" />
-                    <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Stock Navigation Menu</span>
-                </div>
+        <>
+        {/* Phone/tablet: current section as a dropdown that opens downward in place */}
+        <div className="lg:hidden relative shrink-0 z-40">
+            {!isCollapsed && <div className="fixed inset-0 z-[-1]" onClick={() => setIsCollapsed(true)} aria-hidden="true" />}
+            <div className="bg-surface border border-line rounded-xl shadow-sm">
                 <button
                     type="button"
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    aria-label="Toggle Stock Navigation Menu"
+                    aria-haspopup="listbox"
                     aria-expanded={!isCollapsed}
-                    className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
+                    className="w-full flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 text-left active:bg-app"
                 >
-                    <ChevronRight size={16} className={`transition-transform duration-normal ${isCollapsed ? 'rotate-90' : '-rotate-90'}`} />
+                    <span className="h-8 w-8 rounded-lg bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                        <CurrentIcon size={16} />
+                    </span>
+                    <span className="flex-1 min-w-0">
+                        <span className="block text-[11px] font-medium text-ink-muted leading-tight">Stock · {currentItem?.group || 'Catalog'}</span>
+                        <span className="block text-sm font-semibold text-ink leading-tight truncate">{currentItem?.label || 'Inventory'}</span>
+                    </span>
+                    <ChevronDown size={16} className={`text-ink-muted shrink-0 transition-transform duration-200 ${isCollapsed ? '' : 'rotate-180'}`} />
                 </button>
-            </div>
 
+            </div>
+                {!isCollapsed && (
+                    <div className="absolute left-0 right-0 top-full mt-1 bg-surface border border-line rounded-xl shadow-xl max-h-[58vh] overflow-y-auto overscroll-contain animate-[vqDrop_0.16s_ease-out] origin-top">
+                        {groups.map(group => (
+                            <div key={group.id}>
+                                <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-muted">{group.label}</div>
+                                {group.items.map(item => {
+                                    const Icon = item.icon;
+                                    const on = item.id === activeTab;
+                                    return (
+                                        <Link
+                                            key={item.id}
+                                            href={item.href}
+                                            onClick={() => setIsCollapsed(true)}
+                                            className={`flex items-center gap-3 px-3 py-2 text-sm ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-app'}`}
+                                        >
+                                            <Icon size={15} className={on ? '' : 'text-ink-muted'} />
+                                            <span className="flex-1 truncate">{item.label}</span>
+                                            {on && <Check size={15} />}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                        <div className="h-1.5" />
+                    </div>
+                )}
+        </div>
+
+        <div className="hidden lg:flex lg:flex-row lg:items-center gap-2 lg:gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
             {/* Collapsible Area */}
-            <div className={`flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full lg:w-auto lg:flex-1 ${isCollapsed ? 'hidden lg:flex' : 'flex'}`}>
+            <div className={`flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full lg:w-auto lg:flex-1 hidden lg:flex`}>
                 {/* Level 1: Category Selector (Left Side) */}
                 <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full w-full lg:w-auto">
                     {groups.map((group) => {
@@ -191,5 +245,6 @@ export default function StockModuleTabs({ activeTab }) {
                 </div>
             </div>
         </div>
+        </>
     );
 }

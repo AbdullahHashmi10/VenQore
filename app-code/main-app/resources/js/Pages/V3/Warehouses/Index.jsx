@@ -26,7 +26,7 @@ export default function WarehouseIndex({ warehouses, errors }) {
                 </div>
             )}
 
-            <table className="w-full border-collapse border border-line">
+            <div className="overflow-x-auto -mx-1 px-1"><table className="w-full border-collapse border border-line">
                 <thead className="bg-sunken">
                     <tr>
                         <th className="border border-line px-4 py-2 text-left">Name</th>
@@ -78,7 +78,7 @@ export default function WarehouseIndex({ warehouses, errors }) {
                         </tr>
                     ))}
                 </tbody>
-            </table>
+            </table></div>
         </div>
     )
 }

@@ -32,7 +32,7 @@ export default function CustomersSuppliersSection({ data, setData }) {
 
                         {data.loyalty_enabled && (
                             <div className="py-3 animate-in fade-in slide-in-from-top-1">
-                                <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-500/20 flex items-center justify-between text-xs text-brand-700 dark:text-brand-300">
+                                <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-500/20 flex flex-wrap items-center justify-between gap-y-2 text-xs text-brand-700 dark:text-brand-300">
                                     <span>Fine-tune point conversion ratios &amp; tier perks</span>
                                     <a
                                         href={`/s/${store?.slug}/growth-engine/settings`}
@@ -71,7 +71,7 @@ export default function CustomersSuppliersSection({ data, setData }) {
 
                 {/* Third Card: Contact Role Controls (Full Width) */}
                 <div className="md:col-span-2 bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <div className="flex items-center justify-between border-b border-line pb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                         <div>
                             <h3 className="text-sm font-bold text-ink">Contact Role Separation</h3>
                             <p className="text-2xs text-ink-muted mt-0.5">Control whether contacts can operate as both a customer and supplier simultaneously</p>

@@ -209,13 +209,13 @@ export default function AdminDatabase({ stats, backups }) {
                         <div className="bg-surface border border-line rounded-2xl p-6 shadow-sm">
                             <h3 className="font-bold text-sm text-ink mb-4 uppercase tracking-wide">Backup Settings</h3>
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-xl">
                                     <div className="flex gap-2 items-center text-sm font-bold text-ink-secondary">
                                         <Mail size={16} className="text-ink-muted" /> Auto-Email
                                     </div>
                                     <div className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-2xs font-bold uppercase rounded">Enabled</div>
                                 </div>
-                                <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-xl">
                                     <div className="flex gap-2 items-center text-sm font-bold text-ink-secondary">
                                         <Clock size={16} className="text-ink-muted" /> Schedule
                                     </div>

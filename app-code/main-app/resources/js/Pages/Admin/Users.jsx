@@ -19,6 +19,7 @@ import {
 import { getCurrencySymbol } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 import STAFF_PRESETS from '@/data/staff_presets.json';
+import PERMISSION_INHERITS from '@/data/permission_inherits.json';
 
 import { vq } from '@/theme/runtime';
 // ─── Role definitions ──────────────────────────────────────────────────────
@@ -107,6 +108,18 @@ const ROLE_PERMISSIONS = {
     custom: []
 };
 
+// Online store / QR catalogue / Front-of-House management / AI keys have their own
+// permissions. A role that already holds an "ancestor" key gets the new one, exactly
+// like config/permissions.php (both read resources/js/Data/permission_inherits.json).
+Object.keys(ROLE_PERMISSIONS).forEach((role) => {
+    const base = ROLE_PERMISSIONS[role];
+    if (!Array.isArray(base) || base.length === 0) return;
+    const extra = Object.entries(PERMISSION_INHERITS.grants)
+        .filter(([, rule]) => rule.from.includes('*any*') || rule.from.some((k) => base.includes(k)))
+        .map(([key]) => key);
+    ROLE_PERMISSIONS[role] = Array.from(new Set([...base, ...extra]));
+});
+
 const PERMISSION_CATEGORIES = [
     {
         id: 'pos_register',
@@ -117,6 +130,7 @@ const PERMISSION_CATEGORIES = [
             { id: 'pos.open_session', name: 'Open Register Session', desc: 'Start POS shifts and record opening float balances' },
             { id: 'pos.checkout', name: 'Scan & Checkout', desc: 'Process sales and payments at the register' },
             { id: 'foh.access', name: 'Restaurant Front of House', desc: 'Open the FOH screen: tables, takeaway and delivery orders' },
+            { id: 'foh.manage', name: 'Manage Front of House Setup', desc: 'Change FOH settings, table layout options, riders and kitchen rules' },
             { id: 'pos.discounts', name: 'Apply Cart Discounts', desc: 'Apply discounts to active shopping cart items' },
             { id: 'pos.void_item', name: 'Void Cart Items', desc: 'Void scanned items and clear active carts' },
             { id: 'pos.refund', name: 'Register Refunds', desc: 'Process customer returns & refunds directly at the POS' },
@@ -256,6 +270,33 @@ const PERMISSION_CATEGORIES = [
         ]
     },
     {
+        id: 'online_store',
+        name: 'Online Store & QR Menu',
+        desc: 'The public web shop, QR menu / catalogue, and the online orders that come in',
+        icon: ShoppingCart,
+        permissions: [
+            { id: 'online.orders_view', name: 'See Online Orders', desc: 'Open the online and QR order inbox and get new-order alerts' },
+            { id: 'online.orders_manage', name: 'Work Online Orders', desc: 'Accept, change, reject, advance and complete online orders; block a phone number' },
+            { id: 'online.orders_collect', name: 'Collect Online Payments', desc: 'Record cash or transfer received against an online order' },
+            { id: 'online.rider_deliveries', name: 'Rider: My Deliveries', desc: 'For delivery riders only: see own rides, move them along, see own earnings and cash to hand in. Nothing else' },
+            { id: 'online.orders_cancel', name: 'Cancel Online Orders', desc: 'Cancel an order that was already accepted' },
+            { id: 'online.store_manage', name: 'Online Store Settings', desc: 'Store profile, delivery, payments, publish or unpublish the shop' },
+            { id: 'online.catalogue_manage', name: 'QR Menu & Table Codes', desc: 'Set up the QR menu, table QR codes and print them' },
+            { id: 'online.products_manage', name: 'Choose Online Products', desc: 'Pick which products customers see, add photos, bulk-edit' },
+            { id: 'online.promotions_manage', name: 'Online Promotions', desc: 'Create, switch on/off and delete online offers and discounts' },
+        ]
+    },
+    {
+        id: 'ai_assistant',
+        name: 'Vena & AI',
+        desc: 'The AI assistant, Smart Capture and the store\'s own AI key',
+        icon: Sparkles,
+        permissions: [
+            { id: 'ai.use', name: 'Use Vena & Smart Capture', desc: 'Ask Vena questions and scan documents (only what their other permissions allow)' },
+            { id: 'ai.manage', name: 'Manage AI Key & Settings', desc: 'Add or change the store\'s own AI key, provider and model' },
+        ]
+    },
+    {
         id: 'store_admin',
         name: 'Store Administration',
         desc: 'Staff recruitments, VAT configurations, integrations and backups',
@@ -312,7 +353,7 @@ const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = fa
                 return (
                     <div key={cat.id} className="bg-surface border border-line rounded-2xl p-4 md:p-5 transition-all hover:border-line-strong shadow-sm">
                         {/* Category Header */}
-                        <div className="flex items-center justify-between gap-4 mb-3.5 pb-3.5 border-b border-line">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4 mb-3.5 pb-3.5 border-b border-line">
                             <div className="flex items-center gap-3.5">
                                 <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-app dark:bg-neutral-800 text-brand-600 dark:text-brand-400 border border-line shrink-0">
                                     <CatIcon size={18} />
@@ -396,7 +437,7 @@ const StaffPresetPicker = ({ onApplyPreset, disabled = false }) => {
 
     return (
         <div className="mb-4 relative z-20">
-            <div className="flex items-center justify-between gap-3 bg-app/80 dark:bg-neutral-800/80 border border-line p-2.5 rounded-2xl shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3 bg-app/80 dark:bg-neutral-800/80 border border-line p-2.5 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-2.5 pl-1">
                     <div className="w-7 h-7 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                         <Zap size={14} />
@@ -465,7 +506,7 @@ const StaffPresetPicker = ({ onApplyPreset, disabled = false }) => {
                                 className="p-3 bg-app/50 hover:bg-app border border-line hover:border-line-strong rounded-xl flex flex-col justify-between gap-2.5 transition-all"
                             >
                                 <div>
-                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 mb-1">
                                         <h5 className="text-xs font-bold text-ink">{tt(preset.name)}</h5>
                                         <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 whitespace-nowrap">
                                             {preset.permissions.length} perms
@@ -1121,7 +1162,7 @@ export default function AdminUsers({
 
                         {/* Seat Capacity Overview */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                            <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex items-center justify-between gap-3">
+                            <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0">
                                         <ShoppingCart size={16} />
@@ -1150,7 +1191,7 @@ export default function AdminUsers({
                                 )}
                             </div>
 
-                            <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex items-center justify-between gap-3">
+                            <div className="bg-surface p-3 rounded-xl border border-line shadow-xs flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                     <div className="w-8 h-8 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0">
                                         <Crown size={16} />
@@ -1317,7 +1358,7 @@ export default function AdminUsers({
                                             </div>
 
                                             <div className="space-y-2">
-                                                <div className="flex items-center justify-between p-2 rounded-xl bg-app">
+                                                <div className="flex flex-wrap items-center justify-between gap-y-2 p-2 rounded-xl bg-app">
                                                     <div className="flex items-center gap-2 text-ink-muted">
                                                         <DollarSign size={13} />
                                                         <span className="text-xs font-medium">Total Sales</span>
@@ -1346,7 +1387,7 @@ export default function AdminUsers({
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center justify-between pt-2 border-t border-line text-xs text-ink-muted">
+                                                <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2 border-t border-line text-xs text-ink-muted">
                                                     <div className="flex items-center gap-1">
                                                         <Clock size={11} />
                                                         Last Active:
@@ -1567,7 +1608,7 @@ export default function AdminUsers({
 
                                                     {/* Usage meter */}
                                                     <div className="p-3 bg-app rounded-xl border border-line space-y-1.5">
-                                                        <div className="flex items-center justify-between text-2xs font-bold">
+                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-bold">
                                                             <span className="text-ink">
                                                                 {posCap.active} active + {posCap.reserved} invitation reserved / {posCap.effective_limit} available seats
                                                             </span>
@@ -1583,7 +1624,7 @@ export default function AdminUsers({
                                                                 style={{ width: `${Math.min(100, Math.round(((posCap.active + posCap.reserved) / Math.max(1, posCap.effective_limit)) * 100))}%` }}
                                                             />
                                                         </div>
-                                                        <div className="flex items-center justify-between text-3xs text-ink-muted font-medium pt-0.5">
+                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-3xs text-ink-muted font-medium pt-0.5">
                                                             <span>Included in plan: {posCap.plan_limit} seats</span>
                                                             <span>Purchased add-on: {posCap.purchased} seats</span>
                                                         </div>
@@ -1610,7 +1651,7 @@ export default function AdminUsers({
                                                     </div>
                                                 ) : posCap.available <= 0 ? (
                                                     <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2">
-                                                        <div className="flex items-center justify-between text-2xs font-bold text-red-600">
+                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-bold text-red-600">
                                                             <span>POS Staff Capacity Reached</span>
                                                             <span className="text-3xs font-black uppercase px-1.5 py-0.5 rounded bg-red-500/10">Full</span>
                                                         </div>
@@ -1643,7 +1684,7 @@ export default function AdminUsers({
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex items-center justify-between pt-1 text-2xs">
+                                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1 text-2xs">
                                                         <span className="font-semibold text-emerald-600 flex items-center gap-1">
                                                             <CheckCircle size={13} /> Capacity available
                                                         </span>
@@ -1704,7 +1745,7 @@ export default function AdminUsers({
 
                                                     {/* Usage meter */}
                                                     <div className="p-3 bg-app rounded-xl border border-line space-y-1.5">
-                                                        <div className="flex items-center justify-between text-2xs font-bold">
+                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-bold">
                                                             <span className="text-ink">
                                                                 {fullCap.active} active + {fullCap.reserved} invitation reserved / {fullCap.effective_limit} available seats
                                                             </span>
@@ -1720,7 +1761,7 @@ export default function AdminUsers({
                                                                 style={{ width: `${Math.min(100, Math.round(((fullCap.active + fullCap.reserved) / Math.max(1, fullCap.effective_limit)) * 100))}%` }}
                                                             />
                                                         </div>
-                                                        <div className="flex items-center justify-between text-3xs text-ink-muted font-medium pt-0.5">
+                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-3xs text-ink-muted font-medium pt-0.5">
                                                             <span>Included in plan: {fullCap.plan_limit} seats</span>
                                                             <span>Purchased add-on: {fullCap.purchased} seats</span>
                                                         </div>
@@ -1730,7 +1771,7 @@ export default function AdminUsers({
                                                 {/* Bottom action / warning */}
                                                 {fullCap.available <= 0 ? (
                                                     <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-xl space-y-2">
-                                                        <div className="flex items-center justify-between text-2xs font-bold text-red-600">
+                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-bold text-red-600">
                                                             <span>Full Staff Capacity Reached</span>
                                                             <span className="text-3xs font-black uppercase px-1.5 py-0.5 rounded bg-red-500/10">Full</span>
                                                         </div>
@@ -1763,7 +1804,7 @@ export default function AdminUsers({
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex items-center justify-between pt-1 text-2xs">
+                                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1 text-2xs">
                                                         <span className="font-semibold text-emerald-600 flex items-center gap-1">
                                                             <CheckCircle size={13} /> Capacity available
                                                         </span>
@@ -1777,7 +1818,7 @@ export default function AdminUsers({
                                     {/* Section 2 (POS Staff): Exactly 3 capabilities and location assignment */}
                                     {data.membership_type === 'pos' && (
                                         <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs space-y-4">
-                                            <div className="px-5 sm:px-6 py-4 border-b border-line flex items-center justify-between bg-app/20">
+                                            <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-app/20">
                                                 <div className="flex items-center gap-3.5">
                                                     <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
                                                         2
@@ -1792,7 +1833,7 @@ export default function AdminUsers({
                                             <div className="p-5 sm:p-6 space-y-6">
                                                 {/* Capabilities Checkboxes */}
                                                 <div className="space-y-3">
-                                                    <div className="flex items-center justify-between">
+                                                    <div className="flex flex-wrap items-center justify-between gap-y-2">
                                                         <label className="text-xs font-bold uppercase tracking-wider text-ink">
                                                             Enabled Capabilities (Select at least 1) <span className="text-red-500">*</span>
                                                         </label>
@@ -1840,7 +1881,7 @@ export default function AdminUsers({
                                                                     }`}
                                                                 >
                                                                     <div className="space-y-2">
-                                                                        <div className="flex items-center justify-between gap-2">
+                                                                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2">
                                                                             <div className="flex items-center gap-2">
                                                                                 <CapIcon size={16} className={isChecked ? 'text-purple-600 dark:text-purple-400' : 'text-ink-muted'} />
                                                                                 <h5 className="text-xs font-bold text-ink">{cap.title}</h5>
@@ -2108,7 +2149,7 @@ export default function AdminUsers({
                                                         const CatIcon = cat.icon;
 
                                                         return (
-                                                            <div key={cat.id} className="p-3.5 rounded-xl bg-app/40 border border-line flex items-center justify-between gap-3">
+                                                            <div key={cat.id} className="p-3.5 rounded-xl bg-app/40 border border-line flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                                                 <div className="flex items-center gap-3 min-w-0">
                                                                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
                                                                         isFull
@@ -2163,7 +2204,7 @@ export default function AdminUsers({
                                         <button
                                             type="button"
                                             onClick={() => setActiveStep2Accordion(activeStep2Accordion === 1 ? null : 1)}
-                                            className="w-full h-14 px-5 sm:px-6 flex items-center justify-between gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
+                                            className="w-full h-14 px-5 sm:px-6 flex flex-wrap items-center justify-between gap-y-2 gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
                                         >
                                             <div className="flex items-center gap-3.5 min-w-0">
                                                 <div className="w-8 h-8 rounded-xl bg-brand-500/10 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
@@ -2197,7 +2238,7 @@ export default function AdminUsers({
                                                             approvalAdminEnabled ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-amber-500/20 border-amber-500/30'
                                                         }`}
                                                     >
-                                                        <span className="absolute inset-0 flex items-center justify-between px-3.5 text-3xs font-black uppercase tracking-wider pointer-events-none select-none">
+                                                        <span className="absolute inset-0 flex flex-wrap items-center justify-between gap-y-2 px-3.5 text-3xs font-black uppercase tracking-wider pointer-events-none select-none">
                                                             <span className={!approvalAdminEnabled ? 'opacity-0' : 'text-emerald-700 dark:text-emerald-300 font-bold'}>OFF</span>
                                                             <span className={approvalAdminEnabled ? 'opacity-0' : 'text-amber-700 dark:text-amber-300 font-bold'}>ON</span>
                                                         </span>
@@ -2217,7 +2258,7 @@ export default function AdminUsers({
                                         <button
                                             type="button"
                                             onClick={() => setActiveStep2Accordion(activeStep2Accordion === 2 ? null : 2)}
-                                            className="w-full h-14 px-5 sm:px-6 flex items-center justify-between gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
+                                            className="w-full h-14 px-5 sm:px-6 flex flex-wrap items-center justify-between gap-y-2 gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
                                         >
                                             <div className="flex items-center gap-3.5 min-w-0">
                                                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-xs ${
@@ -2417,7 +2458,7 @@ export default function AdminUsers({
                                                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                                                     {actionGroups.map((group, gIdx) => (
                                                                         <div key={gIdx} className="p-4 rounded-xl bg-surface border border-line flex flex-col gap-3 shadow-xs">
-                                                                            <div className="flex items-center justify-between pb-2 border-b border-line">
+                                                                            <div className="flex flex-wrap items-center justify-between gap-y-2 pb-2 border-b border-line">
                                                                                 <div className="flex items-center gap-2">
                                                                                     <span className="w-2 h-2 rounded-full bg-brand-500 shrink-0" />
                                                                                     <span className="text-2xs font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400">
@@ -2432,7 +2473,7 @@ export default function AdminUsers({
                                                                                 {group.items.map(action => {
                                                                                     const currentVal = data.approval_overrides?.[action.key] || 'inherit';
                                                                                     return (
-                                                                                        <div key={action.key} className="flex items-center justify-between p-2.5 rounded-lg bg-app/60 border border-line hover:border-line-strong transition-colors gap-3">
+                                                                                        <div key={action.key} className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-lg bg-app/60 border border-line hover:border-line-strong transition-colors gap-3">
                                                                                             <span className="text-xs font-medium text-ink truncate min-w-0" title={action.label}>
                                                                                                 {action.label}
                                                                                             </span>
@@ -2471,7 +2512,7 @@ export default function AdminUsers({
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveStep2Accordion(activeStep2Accordion === 3 ? null : 3)}
-                                                className="w-full h-14 px-5 sm:px-6 flex items-center justify-between gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
+                                                className="w-full h-14 px-5 sm:px-6 flex flex-wrap items-center justify-between gap-y-2 gap-4 text-left hover:bg-interactive-hover/60 transition-colors select-none"
                                             >
                                                 <div className="flex items-center gap-3.5 min-w-0">
                                                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-extrabold text-xs transition-colors ${
@@ -2525,7 +2566,7 @@ export default function AdminUsers({
                                                                             : [...curr, approver.id];
                                                                         setData('assigned_approvers', next);
                                                                     }}
-                                                                    className={`p-3.5 rounded-xl border text-left transition-all flex items-center justify-between gap-3 ${
+                                                                    className={`p-3.5 rounded-xl border text-left transition-all flex flex-wrap items-center justify-between gap-y-2 gap-3 ${
                                                                         isSelected
                                                                             ? 'bg-brand-50/80 dark:bg-brand-950/40 border-brand-500 ring-2 ring-brand-500/20 shadow-xs'
                                                                             : 'bg-surface border-line hover:border-line-strong hover:bg-interactive-hover/40'
@@ -2570,7 +2611,7 @@ export default function AdminUsers({
 
                                     {/* Section 1: Member Credentials & Contact */}
                                     <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
-                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex items-center justify-between bg-app/20">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-app/20">
                                             <div className="flex items-center gap-3.5">
                                                 <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
                                                     1
@@ -2653,7 +2694,7 @@ export default function AdminUsers({
 
                                     {/* Section 2: ID & Security Vault (Optional) */}
                                     <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-xs">
-                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex items-center justify-between bg-app/20">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-app/20">
                                             <div className="flex items-center gap-3.5">
                                                 <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 border border-brand-500/20 flex items-center justify-center shrink-0 font-extrabold text-xs">
                                                     2
@@ -2718,7 +2759,7 @@ export default function AdminUsers({
                                             {data.documents && data.documents.length > 0 && (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-2">
                                                     {data.documents.map(doc => (
-                                                        <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-xl bg-surface border border-line text-xs">
+                                                        <div key={doc.id} className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-xl bg-surface border border-line text-xs">
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <div className="w-7 h-7 rounded-lg bg-brand-50 dark:bg-brand-950/50 text-brand-600 flex items-center justify-center shrink-0">
                                                                     {doc.type === 'image' ? <FileText size={14} /> : <Paperclip size={14} />}
@@ -2744,7 +2785,7 @@ export default function AdminUsers({
 
                                     {/* Section 3: Pre-Flight Invitation Summary (Full Review Card) */}
                                     <div className="bg-gradient-to-br from-surface to-brand-500/5 rounded-2xl border border-brand-500/30 overflow-hidden shadow-xs">
-                                        <div className="px-5 sm:px-6 py-4 border-b border-brand-500/20 flex items-center justify-between bg-brand-500/5">
+                                        <div className="px-5 sm:px-6 py-4 border-b border-brand-500/20 flex flex-wrap items-center justify-between gap-y-2 bg-brand-500/5">
                                             <div className="flex items-center gap-3.5">
                                                 <div className="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shrink-0 font-extrabold text-xs shadow-xs">
                                                     <CheckCircle size={16} />
@@ -2872,7 +2913,7 @@ export default function AdminUsers({
                         )}
 
                         {/* BOTTOM MODAL FOOTER */}
-                        <div className="px-6 py-4 md:px-8 border-t border-line bg-surface flex items-center justify-between gap-4 shrink-0">
+                        <div className="px-6 py-4 md:px-8 border-t border-line bg-surface flex flex-wrap items-center justify-between gap-y-2 gap-4 shrink-0">
                             <div>
                                 {inviteStep === 1 && (
                                     <button
@@ -2914,7 +2955,7 @@ export default function AdminUsers({
                                                 type="submit"
                                                 form="invite-step3-form"
                                                 disabled={processing || !data.invitee_name?.trim() || !data.invitee_email?.trim() || !data.pos_capabilities?.length}
-                                                className="px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
+                                                className="px-4 sm:px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
                                             >
                                                 <Send size={15} />
                                                 <span>{processing ? 'Sending...' : 'Send POS Invitation'}</span>
@@ -2953,7 +2994,7 @@ export default function AdminUsers({
                                                 type="submit"
                                                 form="invite-step3-form"
                                                 disabled={processing || !data.invitee_name?.trim() || !data.invitee_email?.trim()}
-                                                className="px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
+                                                className="px-4 sm:px-8 py-3 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center gap-2.5"
                                             >
                                                 <Send size={15} />
                                                 <span>{processing ? 'Sending...' : 'Send Invitation'}</span>
@@ -3015,7 +3056,7 @@ export default function AdminUsers({
                         </div>
 
                         <div className="space-y-2">
-                            <div className="text-3xs font-bold uppercase tracking-wider text-ink-muted px-1 flex items-center justify-between">
+                            <div className="text-3xs font-bold uppercase tracking-wider text-ink-muted px-1 flex flex-wrap items-center justify-between gap-y-2">
                                 <span>Configured Members ({activeApprovalMembers.length})</span>
                                 <span>Active Rule</span>
                             </div>
@@ -3023,7 +3064,7 @@ export default function AdminUsers({
                                 {activeApprovalMembers.map((user) => (
                                     <div
                                         key={user.id}
-                                        className="flex items-center justify-between p-2.5 rounded-xl bg-app/80 border border-line gap-3"
+                                        className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-xl bg-app/80 border border-line gap-3"
                                     >
                                         <div className="min-w-0 flex items-center gap-2.5">
                                             <div className="w-8 h-8 rounded-xl bg-brand-500/10 text-brand-600 dark:text-brand-400 font-bold text-xs flex items-center justify-center shrink-0 border border-brand-500/20">
@@ -3354,7 +3395,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
     return typeof document !== 'undefined' ? createPortal(
         <div className="fixed inset-0 bg-neutral-950/80 dark:bg-black/85 backdrop-blur-md z-[99999] flex items-center justify-center p-4">
             <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl border border-line overflow-hidden flex flex-col h-[650px]">
-                <div className="px-8 py-6 bg-sunken/50 dark:bg-app border-b border-line flex justify-between items-center shrink-0">
+                <div className="px-4 sm:px-8 py-6 bg-sunken/50 dark:bg-app border-b border-line flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-brand-600 flex items-center justify-center text-white font-bold text-xl shadow-lg ">
                             {user.name.charAt(0).toUpperCase()}
@@ -3382,7 +3423,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                         </button>
                     </div>
                 </div>
-                <div className="flex-1 p-8 overflow-y-auto">
+                <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
                     <div className="space-y-8 h-full flex flex-col">
                         <div className="flex justify-between items-end">
                             <div>
@@ -3445,7 +3486,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                                 </ResponsiveContainer>
                             </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                             <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Zap size={14} className="text-brand-500" />
@@ -3598,7 +3639,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                                                 : 'bg-app border-line hover:border-line-strong text-ink-muted'
                                         }`}
                                     >
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                                             <span className="text-xs font-bold text-ink">POS Staff Seat</span>
                                             {data.membership_type === 'pos' && <Check size={14} className="text-purple-600 dark:text-purple-400" />}
                                         </div>
@@ -3614,7 +3655,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                                                 : 'bg-app border-line hover:border-line-strong text-ink-muted'
                                         }`}
                                     >
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                                             <span className="text-xs font-bold text-ink">Full Staff Seat</span>
                                             {data.membership_type === 'full' && <Check size={14} className="text-brand-600 dark:text-brand-400" />}
                                         </div>
@@ -3663,7 +3704,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                         {/* POS Mode Capabilities & Station Location */}
                         {data.membership_type === 'pos' && (
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
                                         <ShoppingCart size={15} className="text-purple-600 dark:text-purple-400" /> POS Capabilities
                                     </h4>
@@ -3683,7 +3724,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                                             <div
                                                 key={cap.key}
                                                 onClick={() => togglePosCapability(cap.key)}
-                                                className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 cursor-pointer transition-all ${
+                                                className={`p-3.5 rounded-xl border flex flex-wrap items-center justify-between gap-y-2 gap-3 cursor-pointer transition-all ${
                                                     isChecked
                                                         ? 'bg-purple-500/10 border-purple-500 ring-1 ring-purple-500/30'
                                                         : 'bg-app border-line hover:border-line-strong'
@@ -3723,7 +3764,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                         {/* Full Staff Roles */}
                         {data.membership_type === 'full' && (
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                 <h4 className="flex items-center gap-2 text-xs font-bold text-ink-secondary uppercase tracking-wider">
                                     <Crown size={15} className="text-brand-500" /> Assign Role
                                 </h4>
@@ -3853,7 +3894,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                                             ? 'bg-amber-500/5 border-amber-500/50 ring-2 ring-amber-500/20'
                                             : 'bg-app/40 border-line'
                                     }`}>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                                             <div className="flex items-center gap-2">
                                                 <UserCheck size={14} className="text-brand-500" />
                                                 <span className="text-xs font-bold text-ink uppercase tracking-wider">
@@ -3891,7 +3932,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                                                                 : [...curr, approver.id];
                                                             setData('assigned_approvers', next);
                                                         }}
-                                                        className={`p-2.5 rounded-lg border text-left transition-all flex items-center justify-between gap-2 ${
+                                                        className={`p-2.5 rounded-lg border text-left transition-all flex flex-wrap items-center justify-between gap-y-2 gap-2 ${
                                                             isSelected
                                                                 ? 'bg-brand-50/90 dark:bg-brand-950/60 border-brand-500 ring-1 ring-brand-500/30'
                                                                 : 'bg-surface border-line hover:border-line-strong'
@@ -3948,7 +3989,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                                         ].map(action => {
                                             const currentVal = data.approval_overrides?.[action.key] || 'inherit';
                                             return (
-                                                <div key={action.key} className="flex items-center justify-between p-2.5 rounded-xl bg-app border border-line dark:bg-neutral-800/50 dark:border-neutral-700">
+                                                <div key={action.key} className="flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-xl bg-app border border-line dark:bg-neutral-800/50 dark:border-neutral-700">
                                                     <span className="text-xs font-medium text-ink">{action.label}</span>
                                                     <select
                                                         value={currentVal}
@@ -3980,7 +4021,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
 
                     {data.membership_type === 'pos' ? (
                         <div className="space-y-6 relative z-10 flex-1">
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
                                 <div className="space-y-1">
                                     <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
                                         <ShoppingCart size={16} className="text-purple-600 dark:text-purple-400" /> POS Staff Access Boundary
@@ -4034,7 +4075,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                     ) : (
                         <div className="relative z-10 flex-1 flex flex-col justify-between">
                             <div>
-                                <div className="flex items-center justify-between mb-6">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
                                     <div className="space-y-1">
                                         <h4 className="flex items-center gap-2 text-xs font-bold text-ink uppercase tracking-wider">
                                             <Shield size={16} className="text-brand-600 dark:text-brand-400" /> System Visibility & Access
@@ -4060,7 +4101,7 @@ function EditMemberModal({ member, onClose, users = [], locations = [], seatCapa
                     )}
 
                     {/* Bottom Footer Actions inside Right Panel */}
-                    <div className="mt-6 pt-6 border-t border-line flex items-center justify-between relative z-10">
+                    <div className="mt-6 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-y-2 relative z-10">
                         <div className="space-y-0.5">
                             <div className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                                 Summary
@@ -4217,7 +4258,7 @@ function MemberProfileModal({ member, onClose }) {
 
                     {/* Employee Security Documents Vault */}
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <h4 className="text-xs font-extrabold text-ink uppercase tracking-wider flex items-center gap-1.5">
                                 <Paperclip size={14} className="text-brand-500" /> Employee Documents & Security Vault
                             </h4>
@@ -4233,7 +4274,7 @@ function MemberProfileModal({ member, onClose }) {
                             ].map((doc, idx) => {
                                 const DocIcon = doc.icon;
                                 return (
-                                    <div key={idx} className="p-3.5 rounded-2xl bg-surface border border-line flex items-center justify-between hover:border-brand-500/40 transition-all">
+                                    <div key={idx} className="p-3.5 rounded-2xl bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2 hover:border-brand-500/40 transition-all">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
                                                 <DocIcon size={18} />
@@ -4442,7 +4483,7 @@ function MembersTable({ users, store, locations = [], seatCapacity = null }) {
 // ─── StatCard ──────────────────────────────────────────────────────────────
 function StatCard({ title, value, icon, color, subtext }) {
     return (
-        <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+        <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2 group hover:shadow-md transition-all">
             <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center text-white shrink-0 shadow-md `}>
                     {icon}

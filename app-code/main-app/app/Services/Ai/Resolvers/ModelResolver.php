@@ -32,7 +32,25 @@ class ModelResolver implements AiResolver
         );
 
         if (empty($keyConfig['api_key'])) {
-            return AiResult::failure('no_key', 'No API key configured for provider: ' . ($keyConfig['provider'] ?? 'unknown'));
+            $mode = $keyConfig['key_mode'] ?? null;
+            // Say WHOSE key is missing. A store on the monthly quota is never
+            // told to "add a key": the missing key is VenQore's, and the owner
+            // must fix it in the Hashmi Dashboard.
+            $message = $mode === 'byok'
+                ? 'Your own AI key is missing. Add it in AI settings.'
+                : 'No platform AI key is available for provider: ' . ($keyConfig['provider'] ?? 'unknown');
+            \Illuminate\Support\Facades\Log::error('AiGateway: no usable API key', [
+                'feature'  => $request->feature,
+                'provider' => $keyConfig['provider'] ?? null,
+                'key_mode' => $mode,
+                'tenant'   => $request->tenant?->id,
+                'hint'     => 'Hashmi Dashboard → Platform Settings → AI keys: save a paid key (or the free key for free-tier calls).',
+            ]);
+            $failure = AiResult::failure('no_key', $message);
+            $failure->keyMode = $mode;
+            $failure->provider = 'none';
+
+            return $failure;
         }
 
         $provider = $this->getProvider($keyConfig['provider'] ?? 'gemini');

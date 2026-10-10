@@ -43,15 +43,24 @@ class SettlementService
                 ->where('status', 'active')
                 ->firstOrFail();
 
-            $partialMonthSalary = (float) ($data['partial_month_salary'] ?? 0);
-            $gratuity           = (float) ($data['gratuity']             ?? 0);
-            $noticePay          = (float) ($data['notice_pay']           ?? 0);
-            $leaveEncashment    = (float) ($data['leave_encashment']     ?? 0);
-            $advanceDeduction   = (float) ($data['advance_deduction']    ?? 0);
+            // ZeroDrift Ledger: every component is quantized to the paisa once
+            // and the totals are exact integer sums, so accrual = payout + advance
+            // recovered, to the paisa.
+            $M = fn ($k) => max(0, \App\Support\Money::parseMinor($data[$k] ?? 0, $k, false));
+            $F = fn (int $m) => \App\Support\Money::toFloat($m);
+            $salaryM    = $M('partial_month_salary');
+            $severanceM = $M('gratuity') + $M('notice_pay') + $M('leave_encashment');
+            $advanceM   = $M('advance_deduction');
+            $accruedM   = $salaryM + $severanceM;
+            if ($advanceM > $accruedM) {
+                throw new \InvalidArgumentException('The advance to recover is more than the settlement.');
+            }
 
-            $severanceTotal = $gratuity + $noticePay + $leaveEncashment;
-            $totalAccrued   = $partialMonthSalary + $severanceTotal;
-            $netPaid        = round($totalAccrued - $advanceDeduction, 2);
+            $partialMonthSalary = $F($salaryM);
+            $severanceTotal     = $F($severanceM);
+            $advanceDeduction   = $F($advanceM);
+            $totalAccrued       = $F($accruedM);
+            $netPaid            = $F($accruedM - $advanceM);
             $cashAccount    = ($data['payment_method'] ?? 'cash') === 'bank'
                               ? '1010' : '1000';
 

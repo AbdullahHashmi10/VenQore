@@ -365,7 +365,6 @@ return [
         'routes'       => [
             'store.pos',        // EXACT name — 'store.pos.*' does NOT match it
             'store.pos.*',      // store.pos.search and friends
-            'store.new-pos',
             'store.sales.store',
             'store.sales.lookup',
             'store.v3.sales.store',
@@ -1739,15 +1738,27 @@ return [
         'requires'     => ['products'],
         'requires_one' => [],
         'enhances'     => ['inventory', 'pricing_tiers', 'table_service'],
+        // Explicit names, NOT 'store.commerce.*': the QR menu & catalogue pages live under the
+        // same prefix but belong to the separate onsite_catalogue module, so the shop and the
+        // catalogue can be switched on and off independently. Products is shared on purpose
+        // (it is where you choose what customers see and add photos).
         'routes'       => [
-            'store.commerce.*', 'store.online-store.*',
+            'store.commerce.home', 'store.commerce.settings', 'store.commerce.settings.save',
+            'store.commerce.publish', 'store.commerce.unpublish', 'store.commerce.intake',
+            'store.commerce.products', 'store.commerce.products.*',
+            'store.commerce.orders', 'store.commerce.orders.*',
+            'store.commerce.alerts', 'store.commerce.alerts.read',
+            'store.commerce.promotions', 'store.commerce.promotions.*',
+            'store.commerce.deliveries', 'store.commerce.deliveries.*', 'store.commerce.riders.*',
+            'store.commerce.my-rides', 'store.commerce.my-rides.*',
+            'store.online-store.*',
         ],
-        'pages'        => ['Commerce/Directory.jsx', 'OnlineStore/Home.jsx'],
-        'permissions'  => ['admin.settings_manage', 'sales.view'],
+        'pages'        => ['Commerce/Directory.jsx', 'OnlineStore/Home.jsx', 'OnlineStore/Deliveries.jsx', 'Commerce/RiderDeliveries.jsx'],
+        'permissions'  => ['online.store_manage', 'online.products_manage', 'online.promotions_manage', 'online.orders_view'],
         'cards'        => [],
         'terms'        => ['order'],
         'nav'          => [
-            ['route' => 'store.commerce.home', 'term' => 'order', 'icon' => 'Store', 'order' => 85],
+            ['route' => 'store.commerce.home', 'icon' => 'Store', 'order' => 85],
         ],
         'aliases'      => ['online store', 'ecommerce', 'web store', 'digital storefront', 'online orders', 'web shop', 'digital catalog'],
         'billing'      => 'included',
@@ -1755,8 +1766,46 @@ return [
         'status'       => 'live',
         'verify'       => [],
         'features'     => [],
-        'opens'        => 'Retailers and food businesses wanting a public web shop or QR ordering.',
+        'opens'        => 'Retailers and food businesses wanting a public web shop with online ordering.',
         'owns_data'    => ['commerce_orders'],
         'history_probe' => ['sales'],
+    ],
+
+    'onsite_catalogue' => [
+        'id'           => 48,
+        'group'        => 'B',
+        'label'        => 'QR Menu & Catalogue',
+        'description'  => 'A scannable menu or product catalogue for the counter and the tables, with optional ordering from the customer\'s own phone.',
+        'requires'     => ['products'],
+        'requires_one' => [],
+        'enhances'     => ['table_service', 'online_store', 'inventory'],
+        // Products is shared with online_store on purpose: it is where you pick what customers
+        // see and add photos, and a catalogue-only business has no other way to do that.
+        'routes'       => [
+            'store.commerce.catalogue', 'store.commerce.catalogue.*',
+            'store.commerce.products', 'store.commerce.products.*',
+            // Shared with online_store: the order inbox, alerts and store
+            // settings serve QR/table orders too, so a catalogue-only
+            // merchant can still receive and process what customers send.
+            'store.commerce.home', 'store.commerce.settings', 'store.commerce.settings.save',
+            'store.commerce.orders', 'store.commerce.orders.*',
+            'store.commerce.alerts', 'store.commerce.alerts.read',
+        ],
+        'pages'        => ['OnsiteCatalogue/Setup.jsx', 'OnlineStore/Products.jsx'],
+        'permissions'  => ['online.catalogue_manage', 'online.products_manage'],
+        'cards'        => [],
+        'terms'        => [],
+        'nav'          => [
+            ['route' => 'store.commerce.catalogue', 'icon' => 'QrCode', 'order' => 86],
+        ],
+        'aliases'      => ['qr menu', 'digital menu', 'menu card', 'scan to order', 'table qr', 'qr ordering', 'offline catalogue', 'onsite catalogue', 'qr code menu', 'menu qr'],
+        'billing'      => 'included',
+        'legacy_gate'  => null,
+        'status'       => 'live',
+        'verify'       => [],
+        'features'     => [],
+        'opens'        => 'Cafes, restaurants and shops that want customers to scan a code and browse or order from their phone.',
+        'owns_data'    => [],
+        'history_probe' => [],
     ],
 ];

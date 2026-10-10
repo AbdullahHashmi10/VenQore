@@ -1,0 +1,3 @@
+{"id":"explore-foh2","themes":["light"],"scenarios":[
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/foh/tables","wait":5000},{"text":"T1","wait":2500},{"preview":"fohA"},{"dump":"fohA"},{"text":"Bose QuietComfort","wait":700},{"text":"Sony WH-1000XM5","wait":900},{"preview":"fohB"},{"dump":"fohB"}]}
+]}

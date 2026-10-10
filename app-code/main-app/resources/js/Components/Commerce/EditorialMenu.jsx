@@ -35,7 +35,7 @@ export default function EditorialMenu({ store, items, categories, filters, pagin
                 <header className="vqe-course-heading"><h3>{category}</h3><span aria-hidden="true" className="vqe-course-rule" /><span>{entries.length} {entries.length === 1 ? 'selection' : 'selections'}</span></header>
                 <ul className="vqe-dishes">{entries.map((raw) => {
                     const item = pick(raw);
-                    const quantity = cart.lines.find((line) => line.item_id === item.id)?.quantity || 0;
+                    const quantity = cart.lines.filter((line) => line.item_id === item.id).reduce((n, line) => n + line.quantity, 0);
                     const hasPhoto = showImages && Boolean(item.image_url);
                     return <li key={raw.id} className={`vqe-dish ${hasPhoto ? 'vqe-dish--pictured' : 'vqe-dish--type'} ${item.stock === 'out' ? 'vqe-dish--unavailable' : ''}`}>
                         {hasPhoto && <button type="button" className="vqe-dish-photo" aria-label={`View ${item.name}`} onClick={() => onDetail(item)}><img src={item.image_url} alt="" loading="lazy" /><span>Take a closer look</span></button>}
@@ -45,7 +45,7 @@ export default function EditorialMenu({ store, items, categories, filters, pagin
                             {item.description && <p className="vqe-description">{item.description}</p>}
                             {renderOptions(item)}
                             <div className="vqe-dish-actions"><button type="button" className="vqe-details" onClick={() => onDetail(item)}>{item.options?.length > 1 ? 'Options & details' : 'View details'}</button>
-                                {quantity > 0 ? <div className="vqe-quantity"><button type="button" aria-label={`Remove one ${item.name}`} onClick={() => setQty(item.id, quantity - 1)}><Minus size={14} /></button><span aria-live="polite">{quantity}</span><button type="button" aria-label={`Add one ${item.name}`} disabled={!canAdd || item.stock === 'out' || quantity >= maxQty} onClick={() => add(item)}><Plus size={14} /></button></div> : <button type="button" className="vqe-add" disabled={!canAdd || item.stock === 'out'} aria-label={`Add ${item.name} to order`} onClick={() => add(item)}><Plus size={14} />{item.stock === 'out' ? 'Unavailable' : 'Add to order'}</button>}
+                                {quantity > 0 ? <div className="vqe-quantity"><button type="button" aria-label={`Remove one ${item.name}`} onClick={() => { const last = [...cart.lines].reverse().find((line) => line.item_id === item.id); if (last) setQty(last.key || last.item_id, last.quantity - 1); }}><Minus size={14} /></button><span aria-live="polite">{quantity}</span><button type="button" aria-label={`Add one ${item.name}`} disabled={!canAdd || item.stock === 'out' || quantity >= maxQty} onClick={() => add(item)}><Plus size={14} /></button></div> : <button type="button" className="vqe-add" disabled={!canAdd || item.stock === 'out'} aria-label={`Add ${item.name} to order`} onClick={() => add(item)}><Plus size={14} />{item.stock === 'out' ? 'Unavailable' : 'Add to order'}</button>}
                             </div>
                         </div>
                     </li>;

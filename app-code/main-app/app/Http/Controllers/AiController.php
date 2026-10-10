@@ -10,6 +10,7 @@ use App\Reckoner\Reckoner;
 use App\Reckoner\ReckonerRequest;
 use App\Services\Ai\AiGateway;
 use App\Services\Ai\AiRequest;
+use App\Services\Vena\VenaKnowledge;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,6 +40,28 @@ class AiController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 403);
         }
 
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $user   = auth()->user();
+
+        // ── Vena's product knowledge (guides, modules, screens) ───────────────
+        // "How do I turn on the online store?" is answered from the product's
+        // own registries — instantly, with links, no model call, no quota. When
+        // the match is weaker, the best entries ground the model's answer below
+        // instead of leaving it to guess where things are.
+        $knowledge = ['direct' => null, 'context' => '', 'non_english' => false, 'confident' => false];
+        try {
+            $knowledge = app(VenaKnowledge::class)->consult($userQuery, $tenant, $user);
+        } catch (\Throwable $e) {
+            Log::warning('Vena knowledge lookup failed: ' . $e->getMessage());
+        }
+        $guideAnswer = $knowledge['direct'];
+
+        // A question in Urdu / Roman Urdu is better answered in that language by
+        // the model (grounded by the guide); every other confident match is final.
+        if ($guideAnswer && !$knowledge['non_english']) {
+            return $this->guideResponse($guideAnswer);
+        }
+
         // Local SQL intent matching (T1-10) — 0 LLM cost for standard reports
         $lowerQuery = mb_strtolower(trim($userQuery));
         $intents = config('ai_intents.intents', []);
@@ -57,15 +80,22 @@ class AiController extends Controller
             }
         }
 
-        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
-        $user   = auth()->user();
-
         // ── AI monetization gate ─────────────────────────────────────────────
         $tools        = $this->getToolDefinitions();
         $toolExecutor = fn (string $name, array $args) => $this->executeFunction($name, $args);
 
-        $systemPrompt = 'You are a helpful POS assistant. Today: ' . Carbon::today()->format('Y-m-d') . '. '
-            . 'When the user asks about data, call the appropriate tool. Respond clearly and concisely.';
+        $systemPrompt = 'You are Vena, the in-app assistant for VenQore (a POS and ERP for small businesses). Today: ' . Carbon::today()->format('Y-m-d') . '. '
+            . 'When the user asks about their data, call the appropriate tool. '
+            . 'Reply in the language the user wrote in, clearly and concisely.';
+
+        if ($knowledge['context'] !== '') {
+            $systemPrompt .= "\n\nVENQORE KNOWLEDGE (verified facts about this product and this store):\n"
+                . $knowledge['context']
+                . "\n\nFor any how-to, where-is or can-I question, answer ONLY from the knowledge above: give short numbered steps and name the screen. "
+                . 'Never invent a screen, button or setting. If the knowledge does not cover it, say you are not sure and suggest contacting VenQore support from the Help area.';
+        } else {
+            $systemPrompt .= ' If asked how to do something in VenQore and you do not know for certain, say so and suggest the Help area or VenQore support instead of guessing.';
+        }
 
         $aiRequest = AiRequest::for('query')
             ->tenant($tenant)
@@ -92,13 +122,21 @@ class AiController extends Controller
                 ]);
             }
 
+            // The AI itself is unavailable (quota used up, no key, busy, spend
+            // cap) but the product knowledge already has the answer: give it.
+            // How-to help must keep working when the AI is locked.
+            if ($guideAnswer) {
+                return $this->guideResponse($guideAnswer, $this->failureNotice($code, $result));
+            }
+
             if ($code === 'rate_limited') {
                 return response()->json([
                     'error' => 'AI Assistant is experiencing high traffic. Please wait a few seconds and try again.',
+                    'message' => 'Vena is busy right now. Please wait a few seconds and try again.',
                 ], 429);
             }
 
-            if (in_array($code, ['not_allowed', 'spend_capped', 'plan_locked'], true)) {
+            if (in_array($code, ['not_allowed', 'spend_capped', 'plan_locked', 'limit_reached', 'free_limit_reached', 'no_addon', 'no_tenant'], true)) {
                 return response()->json([
                     'success' => false,
                     'code'    => 'ai_locked',
@@ -108,17 +146,56 @@ class AiController extends Controller
             }
 
             if ($code === 'no_key') {
+                // Whose key is missing decides what the person is told: a store
+                // on its own key must add one; a store on the monthly quota can
+                // do nothing — the platform key is VenQore's to fix.
+                $ownKey = ($result->keyMode ?? null) === 'byok';
+
                 return response()->json([
-                    'error' => 'API Key missing. Please configure your AI settings.',
-                ], 400);
+                    'success' => false,
+                    'code'    => $ownKey ? 'byok_key_missing' : 'ai_unavailable',
+                    'error'   => $this->failureNotice($code, $result),
+                    'message' => $this->failureNotice($code, $result),
+                ], $ownKey ? 400 : 503);
             }
 
             return response()->json([
-                'error' => $result->errorMessage ?? 'AI request failed.',
+                'error'   => $result->errorMessage ?? 'AI request failed.',
+                'message' => $result->errorMessage ?? 'Vena could not answer that just now. Please try again.',
             ], 500);
         }
 
-        return response()->json(['answer' => $result->value, 'type' => 'ai_response']);
+        return response()->json(array_filter([
+            'answer' => $result->value,
+            'type'   => 'ai_response',
+            'links'  => $guideAnswer['links'] ?? null,
+        ], fn ($v) => $v !== null));
+    }
+
+    /** A finished answer from the product knowledge (no model call). */
+    private function guideResponse(array $answer, ?string $notice = null)
+    {
+        return response()->json(array_filter([
+            'answer' => $answer['text'],
+            'type'   => 'guide',
+            'source' => $answer['source'] ?? 'vena_guide',
+            'links'  => $answer['links'] ?? [],
+            'notice' => $notice,
+        ], fn ($v) => $v !== null && $v !== []));
+    }
+
+    /** Plain-words explanation of why the AI could not run, for the person using Vena. */
+    private function failureNotice(string $code, $result): string
+    {
+        return match ($code) {
+            'no_key' => ($result->keyMode ?? null) === 'byok'
+                ? 'Your own AI key is missing or empty. Add it under Smart Capture → AI Settings, or switch to your monthly AI quota.'
+                : 'Vena\'s AI service is not switched on yet — this is on VenQore\'s side, not yours. Please try again later or contact support.',
+            'limit_reached', 'free_limit_reached' => $result->errorMessage ?: 'You have used all your AI allowance for this period. Buy more AI credits or add your own key.',
+            'spend_capped' => 'Vena has reached its limit for today. Please try again tomorrow.',
+            'rate_limited' => 'Vena is busy right now. Please try again in a few seconds.',
+            default => $result->errorMessage ?: 'Vena could not use AI just now.',
+        };
     }
 
     private function checkAccess(?Request $request = null)

@@ -5,7 +5,7 @@ import { Plus, Search, Edit, Trash2, X, Save, User, Phone, Mail, MapPin } from '
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
 import { useTermText } from '@/lib/terms';
 
-export default function CustomersIndex({ customers, filters }) {
+export default function CustomersIndex({ customers, filters = {} }) {
     const { store } = usePage().props;
     const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -188,7 +188,7 @@ export default function CustomersIndex({ customers, filters }) {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" className="p-8 text-center text-ink-muted">
+                                        <td colSpan="5" className="p-4 sm:p-8 text-center text-ink-muted">
                                             {tt('No customers found.')}
                                         </td>
                                     </tr>
@@ -298,7 +298,7 @@ export default function CustomersIndex({ customers, filters }) {
                                 </label>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4 pt-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                                 <div>
                                     <label className="block text-sm font-medium text-ink-secondary mb-1">Credit Limit</label>
                                     <input

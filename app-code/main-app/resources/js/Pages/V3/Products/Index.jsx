@@ -23,7 +23,7 @@ export default function ProductIndex({ products }) {
                 </Link>
             </div>
 
-            <table className="w-full border-collapse border border-line">
+            <div className="overflow-x-auto -mx-1 px-1"><table className="w-full border-collapse border border-line">
                 <thead className="bg-sunken">
                     <tr>
                         <th className="border border-line px-4 py-2 text-left">SKU</th>
@@ -65,7 +65,7 @@ export default function ProductIndex({ products }) {
                         </tr>
                     ))}
                 </tbody>
-            </table>
+            </table></div>
 
             {products.length === 0 && (
                 <p className="text-center text-ink-muted py-8">

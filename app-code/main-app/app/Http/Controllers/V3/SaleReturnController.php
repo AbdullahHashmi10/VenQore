@@ -32,6 +32,11 @@ class SaleReturnController extends Controller
         $tenant = app('current.tenant');
         $user   = auth()->user();
 
+        $saleRow = \Illuminate\Support\Facades\DB::table('sales')->where('tenant_id', $tenant->id)->where('id', $saleId)->first();
+        if ($saleRow && !empty($saleRow->stock_at_dispatch) && ($saleRow->delivery_status ?? 'delivered') !== 'delivered') {
+            return back()->withErrors(['error' => 'Some goods on this invoice have not been dispatched yet. Finish the dispatch, or void the invoice.']);
+        }
+
         // ── Approval interception ─────────────────────────────────────────────
         // R09 FIX: Compute the actual return amount server-side before the policy
         // decision. The old code hardcoded $returnAmount = 0, meaning threshold

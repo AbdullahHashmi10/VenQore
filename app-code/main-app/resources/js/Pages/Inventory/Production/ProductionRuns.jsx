@@ -173,7 +173,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
 
                 {/* Stats Cards - Compact Single Line */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <Play size={16} />
@@ -182,7 +182,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                         </div>
                         <p className="text-base font-bold text-ink">{stats.in_progress || 0}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle size={16} />
@@ -191,7 +191,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                         </div>
                         <p className="text-base font-bold text-emerald-600">{stats.completed_today || 0}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Factory size={16} />
@@ -200,7 +200,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                         </div>
                         <p className="text-base font-bold text-ink">{stats.month_count || 0}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Package size={16} />
@@ -294,7 +294,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                         <tbody className="divide-y divide-line">
                             {sortedData.length === 0 ? (
                                 <tr>
-                                    <td colSpan={tableColumns.length} className="p-12">
+                                    <td colSpan={tableColumns.length} className="p-5 sm:p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
                                             <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
                                                 <Factory size={32} className="text-ink-muted" />

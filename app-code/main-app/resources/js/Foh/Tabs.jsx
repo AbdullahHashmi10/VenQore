@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ShoppingBag, Bike, Plus, PackageCheck, Clock, Bell, Receipt, Flame, Link2 } from 'lucide-react';
+import { Globe, ShoppingBag, Bike, Plus, PackageCheck, Clock, Bell, Receipt, Flame, Link2 } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 import FloorPane from '@/Pos/Table/FloorPane';
 import { SeatDialog, NewTicketDialog } from '@/Pos/Table/TableBar';
@@ -9,6 +9,11 @@ import { DELIVERY_META, DELIVERY_STATES, isLate, elapsedLabel } from '@/Pos/Tabl
 import OrderPane from './OrderPane';
 import { toast } from './useFoh';
 import RidersDrawer from './RidersDrawer';
+import { onlineStage } from './OnlineOrderPane';
+import { setKitchenOn, cookWord, kitchenOn } from '@/Pos/Table/kitchenWord';
+
+/* One word for "being made", set once from the store's kitchen setting. */
+export { setKitchenOn, cookWord };
 
 /* A paid lane ticket is waiting on the kitchen / the customer, not on the till. */
 export const kitchenDone = (c) => {
@@ -17,9 +22,9 @@ export const kitchenDone = (c) => {
 };
 export const laneBadge = (c) => {
     if (c.collected_at) return { text: 'Collected', tone: 'ok' };
-    if (c.paid_at) return kitchenDone(c) ? { text: 'Ready to collect', tone: 'go' } : { text: 'Paid · cooking', tone: 'warn' };
+    if (c.paid_at) return kitchenDone(c) ? { text: 'Ready to collect', tone: 'go' } : { text: `Paid · ${cookWord().toLowerCase()}`, tone: 'warn' };
     if (c.check_dropped_at) return { text: 'Bill dropped', tone: 'warn' };
-    if (c.unsent > 0) return { text: `${c.unsent} to fire`, tone: 'warn' };
+    if (c.unsent > 0 && kitchenOn()) return { text: `${c.unsent} to fire`, tone: 'warn' };
     return { text: c.lines ? 'Open' : 'Empty', tone: 'quiet' };
 };
 
@@ -33,14 +38,24 @@ const MiniCard = ({ card, sub, tone, money, goto }) => (
     </button></li>
 );
 
-export function OverviewTab({ tables, money, goto, fohSettings }) {
+const OnlineMini = ({ o, money, go }) => {
+    const st = onlineStage(o, kitchenOn());
+    return <li><button type="button" data-tone={st.tone} onClick={() => go?.(o)}>
+        <b>{o.number}</b><span className="foh-t-n"><Globe size={12} aria-hidden="true" /> {st.text}</span><i className="vq-num">{money(o.total)}</i>
+    </button></li>;
+};
+
+export function OverviewTab({ tables, money, goto, fohSettings, online = [], gotoOnline }) {
     const now = Date.now();
     const seated = tables.positions.filter((p) => p.occupancy_id);
     const lane = (k) => tables.tickets.filter((t) => t.order_type === k && !t.collected_at);
     const take = lane('takeaway');
     const del = lane('delivery');
+    const onTake = online.filter((o) => o.fulfilment !== 'delivery');
+    const onDel = online.filter((o) => o.fulfilment === 'delivery');
+    const newOnline = online.filter((o) => o.status === 'pending').length;
     const c = tables.counts || {};
-    const needs = [...seated, ...take, ...del].filter((x) => alertAge(x, now) > 0 || x.customer_pending > 0 || x.state === 'check_dropped' || (x.paid_at && kitchenDone(x)) || isLate(x.delivery, fohSettings?.delivery_grace)).length;
+    const needs = newOnline + [...seated, ...take, ...del].filter((x) => alertAge(x, now) > 0 || x.customer_pending > 0 || x.guest_call || x.state === 'check_dropped' || (x.paid_at && kitchenDone(x)) || isLate(x.delivery, fohSettings?.delivery_grace)).length;
     const cooking = [...seated, ...take, ...del].filter((x) => x.state === 'in_kitchen').length;
     const showTables = fohSettings?.tables !== false, showTake = fohSettings?.takeaway !== false, showDel = fohSettings?.delivery !== false;
     const lateCount = del.filter((t) => isLate(t.delivery, fohSettings?.delivery_grace)).length;
@@ -48,11 +63,11 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
     return (
         <div className="foh-overview">
             <p className="foh-today">
-                {showTables && <span>{seated.length}/{tables.positions.length} tables</span>}
-                <span>{c.covers ?? 0} guests</span>
-                <span>{money(c.due ?? 0)} on the floor</span>
-                <span data-hot={needs ? '1' : '0'}>{needs} need someone</span>
-                <span>{cooking} cooking</span>
+                {showTables && <span><b className="vq-num">{seated.length}/{tables.positions.length}</b>Tables in use</span>}
+                <span><b className="vq-num">{c.covers ?? 0}</b>Guests</span>
+                <span><b className="vq-num">{money(c.due ?? 0)}</b>On the floor</span>
+                <span data-hot={needs ? '1' : '0'}><b className="vq-num">{needs}</b>Need someone</span>
+                <span><b className="vq-num">{cooking}</b>{cookWord()}</span>
             </p>
             <div className="foh-cols" data-n={[showTables, showTake, showDel].filter(Boolean).length}>
                 {showTables && (
@@ -60,23 +75,25 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
                         <ul className="foh-attn">
                             {seated.slice().sort((a, b) => alertAge(b, now) - alertAge(a, now)).map((t) => {
                                 const age = alertAge(t, now);
-                                const sub = t.customer_pending > 0 ? 'Guest added items' : t.state === 'check_dropped' ? 'Waiting to pay' : age ? `${t.state.replace('_', ' ')} ${age}m` : t.state.replace('_', ' ');
-                                return <MiniCard key={t.id} card={t} sub={sub} tone={age || t.state === 'check_dropped' ? 'warn' : 'quiet'} money={money} goto={goto} />;
+                                const sub = t.guest_call === 'bill' ? 'Guest wants the bill' : t.guest_call ? 'Guest called a waiter' : t.customer_pending > 0 ? 'Guest added items' : t.state === 'check_dropped' ? 'Waiting to pay' : age ? `${t.state.replace('_', ' ')} ${age}m` : t.state.replace('_', ' ');
+                                return <MiniCard key={t.id} card={t} sub={sub} tone={age || t.guest_call || t.state === 'check_dropped' ? 'warn' : 'quiet'} money={money} goto={goto} />;
                             })}
                             {seated.length === 0 && <li className="foh-empty">No table is open.</li>}
                         </ul>
                     </Col>
                 )}
                 {showTake && (
-                    <Col title="Takeaway" Icon={ShoppingBag} n={take.length}>
+                    <Col title="Takeaway" Icon={ShoppingBag} n={take.length + onTake.length}>
+                        <ul className="foh-attn">{onTake.map((o) => <OnlineMini key={o.id} o={o} money={money} go={gotoOnline} />)}</ul>
                         <ul className="foh-attn">
                             {take.map((t) => { const b = laneBadge(t); return <MiniCard key={t.id} card={t} sub={b.text} tone={b.tone} money={money} goto={goto} />; })}
-                            {take.length === 0 && <li className="foh-empty">No takeaway orders.</li>}
+                            {take.length + onTake.length === 0 && <li className="foh-empty">No takeaway orders.</li>}
                         </ul>
                     </Col>
                 )}
                 {showDel && (
-                    <Col title="Delivery" Icon={Bike} n={del.length}>
+                    <Col title="Delivery" Icon={Bike} n={del.length + onDel.length}>
+                        <ul className="foh-attn">{onDel.map((o) => <OnlineMini key={o.id} o={o} money={money} go={gotoOnline} />)}</ul>
                         {lateCount > 0 && <p className="foh-late">{lateCount} late</p>}
                         <ul className="foh-attn">
                             {del.map((t) => {
@@ -84,7 +101,7 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
                                 const late = isLate(t.delivery, fohSettings?.delivery_grace);
                                 return <MiniCard key={t.id} card={t} sub={`${DELIVERY_META[st]?.label || st}${t.delivery?.status_at ? ' · ' + elapsedLabel(t.delivery.status_at) : ''}${late ? ' · LATE' : ''}`} tone={late ? 'warn' : 'quiet'} money={money} goto={goto} />;
                             })}
-                            {del.length === 0 && <li className="foh-empty">No deliveries.</li>}
+                            {del.length + onDel.length === 0 && <li className="foh-empty">No deliveries.</li>}
                         </ul>
                     </Col>
                 )}
@@ -97,6 +114,17 @@ export function OverviewTab({ tables, money, goto, fohSettings }) {
 export function TablesTab({ tables, order, money, storeSlug, canManage, fohSettings }) {
     const [seatFor, setSeatFor] = useState(null);
     const [quick, setQuick] = useState(false);
+    const [floorView, setFloorView] = useState(() => {
+        try { return localStorage.getItem('foh_floor_view') || 'map'; } catch { return 'map'; }
+    });
+    const changeFloorView = (view) => {
+        setFloorView(view);
+        try { localStorage.setItem('foh_floor_view', view); } catch { /* private browsing */ }
+    };
+    const floorMap = useMemo(() => {
+        const raw = order.settings?.floor_map;
+        try { return raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null; } catch { return null; }
+    }, [order.settings?.floor_map]);
     const card = tables.selected && tables.selected.kind !== 'ticket' ? tables.selected : null;
     const now = useNow();
 
@@ -137,7 +165,8 @@ export function TablesTab({ tables, order, money, storeSlug, canManage, fohSetti
                 <FloorPane
                     embedded title="Tables" positions={tables.visible.filter((p) => p.kind !== 'ticket')} tabs={tables.tabs.filter((t) => !['takeaway', 'delivery'].includes(t.id || t.key))}
                     zone={tables.zone} setZone={tables.setZone} counts={tables.counts} selectedId={tables.selectedId}
-                    onPick={pick} onRefresh={tables.refresh} money={money} now={now} storeSlug={storeSlug} variant="list"
+                    onPick={pick} onRefresh={tables.refresh} money={money} now={now} storeSlug={storeSlug}
+                    variant="map" view={floorView} setView={changeFloorView} floorMap={floorMap}
                     onSetup={() => setQuick(true)} canArrange={false}
                 />
             )}
@@ -181,20 +210,29 @@ export function LaneTab({ kind, tables, order, money, storeSlug, caps, fohSettin
     };
 
     if (card) {
-        if (card.paid_at) {
-            const b = laneBadge(card);
-            return (
-                <div className="foh-paid">
+        const b = laneBadge(card);
+        return (
+            <div className="foh-with-rail foh-lane-workspace">
+                <nav className="foh-rail" aria-label={`${isDelivery ? 'Delivery' : 'Takeaway'} orders`}>
+                    {list.map((ticket) => (
+                        <button key={ticket.id} type="button" data-on={ticket.id === card.id ? '1' : '0'} data-busy="1"
+                            onClick={() => tables.select(ticket.id)} title={`${ticket.code} · ${laneBadge(ticket).text}`}>
+                            <b>{ticket.code}</b><i>{laneBadge(ticket).text}</i>
+                        </button>
+                    ))}
+                </nav>
+                <div className="foh-rail-body">
+                    {card.paid_at ? <div className="foh-paid">
                     <button type="button" className="vqt-back" onClick={() => tables.select(null)}>← {card.code}</button>
                     <h2>{b.text}</h2>
                     <p>{card.label} · paid {money(card.paid_total)}</p>
                     {kitchenDone(card)
                         ? <button type="button" className="vqt-btn vqt-btn-go" disabled={tables.busy} onClick={() => tables.collected(card.occupancy_id)}><PackageCheck size={16} /> {isDelivery ? 'Handed to rider' : 'Handed to customer'}</button>
-                        : <p className="foh-muted">The kitchen is still cooking. Collect it when it is ready.</p>}
+                        : <p className="foh-muted">The order is still being made. Collect it when it is ready.</p>}
+                    </div> : <OrderPane {...order} card={card} onBack={leave} />}
                 </div>
-            );
-        }
-        return <OrderPane {...order} card={card} onBack={leave} />;
+            </div>
+        );
     }
 
     return (

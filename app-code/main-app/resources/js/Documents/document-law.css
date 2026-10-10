@@ -1464,3 +1464,14 @@ select.vqdoc-in { width: auto; min-width: calc(140px * var(--d-scale)); height: 
         transition-duration: .01ms !important;
     }
 }
+
+
+/* ── Phone bar (added 2026-10-10) ───────────────────────────────────────────
+   Rail toggle + title + tools + settings + close cannot share one 375px row:
+   the title was left ~17px wide. Below 600px the bar wraps; the title keeps the
+   first row and the tools take their own row underneath. Desktop is unchanged. */
+@media (max-width: 599px) {
+    .vqdoc-bar { flex-wrap: wrap; row-gap: var(--d-s2); }
+    .vqdoc-ident { flex: 1 1 0; min-width: 0; }
+    .vqdoc-tools { flex: 1 1 100%; margin-left: 0 !important; justify-content: flex-end; flex-wrap: wrap; }
+}

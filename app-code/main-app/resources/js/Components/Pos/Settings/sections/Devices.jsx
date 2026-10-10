@@ -11,7 +11,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import {
     Cable, Keyboard, Printer, Unlock, ScanBarcode, Scale, Tv, CreditCard, CloudUpload, CheckCircle2,
-    Loader2, Download, Wifi, WifiOff, ChefHat,
+    Loader2, Download, Wifi, WifiOff, ChefHat, FileText, ExternalLink,
 } from 'lucide-react';
 import { useSettingsCtx } from '../context';
 import { Page, Section, Row, Switch, Select, Button, Callout, Tag, Kbd, Field } from '../primitives';
@@ -57,6 +57,8 @@ export function HardwarePage() {
     });
 
     const problem = st.problemFor ? st.problemFor('receipt') : null;
+    let printingLink = null;
+    try { printingLink = `${route('store.settings', { store_slug: p.storeSlug })}#printer_device`; } catch (_) { /* route not generated */ }
 
     return (
         <Page icon={Cable} title="Hardware"
@@ -104,8 +106,16 @@ export function HardwarePage() {
                             onClick={() => run('receipt', () => p.onTestReceipt?.())}>Print test</Button>
                 </Row>
                 <Row flash={flash} title="Print after every sale"
-                     desc="Prints the receipt automatically when a sale is paid. Change what the receipt shows in Receipts.">
+                     desc="Prints the receipt automatically when a sale is paid on this till.">
                     <Switch label="Print after every sale" checked={!!p.printOnComplete} onChange={p.setPrintOnComplete} />
+                </Row>
+                <Row sid="receipt.where" flash={flash} title="Receipt look and paper"
+                     desc="Paper type and width, copies, what each line shows, the thank-you message, your logo and the full invoice design are all in Settings → Printing & Sharing, so there is one place to change them.">
+                    {printingLink && (
+                        <a className="vqs-btn" data-v="s" href={printingLink} target="_blank" rel="noopener noreferrer">
+                            <FileText size={16} /> Open printing settings <ExternalLink size={14} />
+                        </a>
+                    )}
                 </Row>
             </Section>
 
@@ -120,32 +130,36 @@ export function HardwarePage() {
                 </Row>
             </Section>
 
-            <Section title="Kitchen and bar printers" scope="device"
-                     desc="Which printer each kind of ticket goes to on this computer. Change these in VenQore Station → Printers.">
-                <Row sid="hw.kitchen-printers" stacked flash={flash} title="Where each job prints">
-                    {connected ? (
-                        roles.length ? (
-                            <div className="vqs-list" style={{ width: '100%' }}>
-                                {roles.map(r => (
-                                    <div key={r.role} className="vqs-list-row">
-                                        <span className="vqs-grow"><b>{ROLE_NAMES[r.role] || r.role}</b></span>
-                                        <span className="vqs-muted">{r.printer || 'Same as receipts'}</span>
-                                        {r.backup && <Tag>backup: {r.backup}</Tag>}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : <span className="vqs-muted" style={{ fontSize: 14 }}>This version of Station sends every job to the receipt printer.</span>
-                    ) : (
-                        <span className="vqs-muted" style={{ fontSize: 14 }}>Without Station, kitchen tickets open the browser print window.</span>
-                    )}
-                </Row>
-                {p.preparesOrders && (
-                    <Row sid="hw.kitchen-printers" flash={flash} title="Test a kitchen ticket"
-                         desc="Prints a sample kitchen ticket the same way a real order does.">
-                        <Button v="s" icon={ChefHat} onClick={() => p.onTestKitchenTicket?.()}>Print test ticket</Button>
+            {/* Kitchen and bar tickets are Front of House only; the register's own
+                settings never list them. */}
+            {p.restaurantRelevant && (
+                <Section title="Kitchen and bar printers" scope="device"
+                         desc="Which printer each kind of ticket goes to on this computer. Change these in VenQore Station → Printers.">
+                    <Row sid="hw.kitchen-printers" stacked flash={flash} title="Where each job prints">
+                        {connected ? (
+                            roles.length ? (
+                                <div className="vqs-list" style={{ width: '100%' }}>
+                                    {roles.map(r => (
+                                        <div key={r.role} className="vqs-list-row">
+                                            <span className="vqs-grow"><b>{ROLE_NAMES[r.role] || r.role}</b></span>
+                                            <span className="vqs-muted">{r.printer || 'Same as receipts'}</span>
+                                            {r.backup && <Tag>backup: {r.backup}</Tag>}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : <span className="vqs-muted" style={{ fontSize: 14 }}>This version of Station sends every job to the receipt printer.</span>
+                        ) : (
+                            <span className="vqs-muted" style={{ fontSize: 14 }}>Without Station, kitchen tickets open the browser print window.</span>
+                        )}
                     </Row>
-                )}
-            </Section>
+                    {p.preparesOrders && (
+                        <Row sid="hw.kitchen-printers" flash={flash} title="Test a kitchen ticket"
+                             desc="Prints a sample kitchen ticket the same way a real order does.">
+                            <Button v="s" icon={ChefHat} onClick={() => p.onTestKitchenTicket?.()}>Print test ticket</Button>
+                        </Row>
+                    )}
+                </Section>
+            )}
 
             <Section title="Scanner, scale and screens" scope="device">
                 <ScannerTest p={p} flash={flash} />

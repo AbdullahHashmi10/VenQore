@@ -151,7 +151,7 @@ export default function LabelsIndex({ products }) {
                                         <tbody className="divide-y divide-line">
                                             {selectedItems.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan="3" className="p-8 text-center text-ink-muted">
+                                                    <td colSpan="3" className="p-4 sm:p-8 text-center text-ink-muted">
                                                         {tt('No items selected. Search and add products above.')}
                                                     </td>
                                                 </tr>
@@ -273,7 +273,7 @@ export default function LabelsIndex({ products }) {
                             {/* Preview (Visual approximation) */}
                             <div className="bg-surface p-6 rounded-xl border border-line">
                                 <div className="mb-4 text-ink font-bold text-sm">Preview</div>
-                                <div className="flex justify-center bg-sunken p-8 rounded-lg">
+                                <div className="flex justify-center bg-sunken p-4 sm:p-8 rounded-lg">
                                     <div
                                         className="bg-white border border-line shadow-sm flex flex-col items-center justify-center p-2 text-center overflow-hidden"
                                         style={{

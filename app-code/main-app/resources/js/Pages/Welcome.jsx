@@ -163,7 +163,7 @@ const FeatureCard = ({ icon: Icon, title, description, colorClass, glowColor }) 
             {/* Card Content */}
             <div
                 ref={cardRef}
-                className="relative h-full w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-8 flex flex-col items-center text-center transition-transform duration-fast ease-out will-change-transform shadow-xl"
+                className="relative h-full w-full bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-8 flex flex-col items-center text-center transition-transform duration-fast ease-out will-change-transform shadow-xl"
                 style={{ transformStyle: 'preserve-3d' }}
             >
                 <div ref={glowRef} className="absolute inset-0 transition-opacity duration-slow pointer-events-none opacity-0 mix-blend-soft-light z-20 rounded-2xl" />
@@ -233,7 +233,7 @@ export default function Welcome() {
             <CustomCursor />
 
             {/* Navigation */}
-            <nav className="fixed top-0 left-0 w-full p-8 z-50 flex justify-center pointer-events-none">
+            <nav className="fixed top-0 left-0 w-full p-4 sm:p-8 z-50 flex justify-center pointer-events-none">
                 <div className="flex items-center gap-3 px-6 py-3 rounded-full pointer-events-auto">
                     {/* Replaced text logo with Image */}
                     <img
@@ -459,7 +459,7 @@ export default function Welcome() {
                     {/* CTA BUTTON */}
                     <Link
                         href={safeRoute('login')}
-                        className="group relative inline-flex items-center gap-4 px-12 py-6 bg-white text-black hover:bg-brand-50 rounded-full font-bold text-xl md:text-2xl transition-all duration-slow hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.6)] mt-8"
+                        className="group relative inline-flex items-center gap-4 px-4 sm:px-12 py-6 bg-white text-black hover:bg-brand-50 rounded-full font-bold text-xl md:text-2xl transition-all duration-slow hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.6)] mt-8"
                     >
                         <span>Start Your Journey</span>
                         <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform duration-slow">

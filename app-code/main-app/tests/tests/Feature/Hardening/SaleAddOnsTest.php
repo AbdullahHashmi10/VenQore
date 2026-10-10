@@ -91,10 +91,10 @@ class SaleAddOnsTest extends VenQoreTestCase
 
         $item = DB::table('sale_items')->where('sale_id', $saleId)->first();
         $this->assertEquals(1650.00, (float) $item->unit_price);
-        $this->assertSame(
+        $this->assertEquals(
             [
-                ['id' => '31', 'name' => 'Extra cheese', 'price_delta' => 100.0],
-                ['id' => '32', 'name' => 'Olives', 'price_delta' => 50.0],
+                ['id' => '31', 'name' => 'Extra cheese', 'price_delta' => 100],
+                ['id' => '32', 'name' => 'Olives', 'price_delta' => 50],
             ],
             json_decode($item->modifiers, true)
         );

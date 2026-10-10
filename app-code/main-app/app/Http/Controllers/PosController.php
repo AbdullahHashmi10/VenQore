@@ -36,6 +36,13 @@ class PosController extends Controller
             ]));
         }
 
+        // A restaurant or cafe has no separate till: Front of House IS its POS. Anyone
+        // who still opens /pos (old bookmark, shortcut, command palette) lands there.
+        // Recalling a finished bill is the one thing FOH cannot do yet, so ?recall= passes.
+        if ($fohOn && \App\Services\ModuleService::runsFrontOfHouse($fohTenant) && !$request->has('recall')) {
+            return redirect()->route('store.foh', ['store_slug' => $fohTenant->slug]);
+        }
+
         // Only load the recalled sale if requested (inline bill recall)
         $recalledSale = null;
         if ($request->has('recall')) {

@@ -369,6 +369,99 @@ class KitchenTicketService
     }
 
     /**
+     * Send an accepted ONLINE order (the public shop, not the table QR) to the
+     * kitchen. Online orders live in their own table and never had a floor tab,
+     * so nothing used to tell the kitchen they existed. This writes the same
+     * kitchen work orders the register does, routed by the same station rules,
+     * but without inventing a table or a till tab: the order stays owned by the
+     * online-orders inbox, which still decides payment and hand-over.
+     *
+     * Safe to call twice (it will not duplicate) and never throws for the
+     * caller's sake: the order is already accepted, the kitchen ticket must not
+     * be able to undo that.
+     *
+     * @return WorkOrder[] the tickets created (empty when nothing was needed)
+     */
+    public function fireOnlineOrder(\App\Models\Commerce\CommerceOrder $order): array
+    {
+        $tenantId = (int) $order->tenant_id;
+
+        $alreadySent = DB::table('commerce_order_events')
+            ->where('order_id', $order->id)->where('type', 'kitchen_sent')->exists();
+        if ($alreadySent) {
+            return [];
+        }
+
+        $prepares = Setting::where('tenant_id', $tenantId)->where('key', 'prepares_orders')->value('value');
+        if ((string) $prepares === '0') {
+            return [];
+        }
+
+        $lines = [];
+        foreach ($order->items()->orderBy('created_at')->get() as $it) {
+            $mods = $it->mods ?? [];
+            if (is_string($mods)) {
+                $mods = json_decode($mods, true) ?: [];
+            }
+            $lines[] = [
+                'id'    => (string) $it->product_id,
+                'name'  => (string) $it->title,
+                'qty'   => (float) $it->quantity,
+                'notes' => (string) ($it->notes ?? ''),
+                'mods'  => array_values($mods),
+            ];
+        }
+        if (empty($lines)) {
+            return [];
+        }
+
+        $stationFor = $this->stationResolver($tenantId, $lines);
+        $groups = [];
+        foreach ($lines as $line) {
+            $st = $stationFor($line);
+            $key = md5($st['name']);
+            $groups[$key] ??= ['station' => $st['name'], 'lines' => []];
+            $groups[$key]['lines'][] = $line;
+        }
+
+        $orderType = $order->fulfilment === 'delivery' ? 'delivery' : 'takeaway';
+        $workOrders = [];
+
+        DB::transaction(function () use ($tenantId, $order, $orderType, $groups, &$workOrders) {
+            foreach ($groups as $group) {
+                $workOrders[] = WorkOrder::create([
+                    'tenant_id'     => $tenantId,
+                    'kind'          => 'kitchen',
+                    'order_type'    => $orderType,
+                    'occupancy_id'  => null,
+                    'position_code' => 'ONLINE',
+                    'station'       => $group['station'],
+                    'course'        => 1,
+                    'order_number'  => (string) $order->public_number,
+                    'items'         => array_map(fn ($l) => [
+                        'name'      => $l['name'],
+                        'qty'       => $l['qty'],
+                        'notes'     => $l['notes'],
+                        'course'    => 1,
+                        'mods'      => $l['mods'],
+                        'modifiers' => array_map(fn ($m) => (string) ($m['name'] ?? ''), $l['mods']),
+                    ], $group['lines']),
+                    'status'        => 'pending',
+                    'fired_at'      => now(),
+                ]);
+            }
+            DB::table('commerce_order_events')->insert([
+                'order_id' => $order->id, 'tenant_id' => $tenantId, 'type' => 'kitchen_sent',
+                'from_status' => $order->status, 'to_status' => $order->status,
+                'actor_type' => 'system', 'note' => count($workOrders) . ' kitchen ticket(s)',
+                'created_at' => now(),
+            ]);
+        });
+
+        return $workOrders;
+    }
+
+    /**
      * Format a clean KOT docket payload ready for ESC/POS or browser thermal printing.
      * STRICTLY NO PRICES. Bold legible hierarchy for kitchen environments.
      */

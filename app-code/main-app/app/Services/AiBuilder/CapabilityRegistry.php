@@ -305,16 +305,16 @@ class CapabilityRegistry
 
             'hospitality_dining' => [
                 'table_and_kot_management' => [
-                    'name'              => 'Dine-In Table Layout & Kitchen Printing (KOT)',
-                    'short'             => 'People eating in',
+                    'name'              => 'Front of House: Tables, Takeaway, Delivery & Kitchen Orders',
+                    'short'             => 'Eating in, takeaway or delivery',
                     'impact'            => 95,
                     'triggers'          => ['restaurant', 'cafe', 'food', 'dining', 'bistro', 'eatery', 'bar', 'pizzeria', 'ریسٹورنٹ', 'کھانا'],
                     'requires_caps'     => [],
                     'implies_modules'   => ['table_service', 'park_recall', 'pos'],
-                    'consequences'      => ['You get a table plan, orders sent straight to the kitchen, and bills you can split between people.'],
-                    'question_template' => 'Do people sit down and eat in, with their orders going through to your kitchen?',
+                    'consequences'      => ['Your till becomes a Front of House screen: a live table plan, takeaway and delivery orders, orders sent straight to the kitchen, and bills you can split between people.'],
+                    'question_template' => 'Do you serve food that people eat in, take away or have delivered, with orders going through to your kitchen?',
                     'options'           => [
-                        ['key' => 'yes', 'label' => 'Yes, people eat in', 'desc' => 'Tables, kitchen orders and split bills.', 'implies' => 'table_and_kot_management'],
+                        ['key' => 'yes', 'label' => 'Yes, people eat in', 'desc' => 'A table plan, kitchen orders, takeaway, delivery and split bills.', 'implies' => 'table_and_kot_management'],
                         ['key' => 'counter_only', 'label' => 'Counter and takeaway', 'desc' => 'They order at the counter and take it away.', 'implies' => 'counter_dining'],
                         ['key' => 'delivery_only', 'label' => 'Delivery only', 'desc' => 'No dining area — everything goes out.', 'implies' => 'delivery_management'],
                     ],
@@ -325,8 +325,8 @@ class CapabilityRegistry
                     'impact'            => 70,
                     'triggers'          => ['delivery', 'riders', 'dispatch', 'home delivery', 'ڈلیوری', 'رائڈر'],
                     'requires_caps'     => [],
-                    'implies_modules'   => ['sales_orders', 'pos'],
-                    'consequences'      => ['You give each order to a rider and can see what is out for delivery and what has arrived.'],
+                    'implies_modules'   => ['table_service', 'park_recall', 'sales_orders', 'pos'],
+                    'consequences'      => ['You give each order to a rider and can see what is out for delivery and what has arrived, on the Front of House Delivery tab.'],
                     'question_template' => 'Do you deliver to people yourself, with your own riders?',
                     'options'           => [
                         ['key' => 'yes', 'label' => 'Yes, my own riders', 'desc' => 'Hand orders to riders and follow them out.', 'implies' => 'food_delivery_dispatch'],

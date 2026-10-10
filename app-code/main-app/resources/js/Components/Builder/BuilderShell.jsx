@@ -145,7 +145,7 @@ function PublicBuilderFrame({ children, step, total, eyebrow, onBack, footer, wi
             <MeshBackdrop />
             <div className="relative flex min-h-screen flex-col">
                 <header className="shrink-0 px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">
-                    <div className={`mx-auto flex items-center justify-between gap-3 ${shellWidth}`}>
+                    <div className={`mx-auto flex flex-wrap items-center justify-between gap-y-2 gap-3 ${shellWidth}`}>
                         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                             {onBack ? (
                                 <button
@@ -268,7 +268,7 @@ function AppBuilderFrame({
             <div className="relative flex min-h-screen flex-col">
                 <header className="shrink-0 px-5 pt-5 sm:px-8 sm:pt-7">
                     <div
-                        className={`mx-auto flex items-center justify-between gap-4 ${
+                        className={`mx-auto flex flex-wrap items-center justify-between gap-y-2 gap-4 ${
                             wide ? 'max-w-7xl' : 'max-w-6xl'
                         }`}
                     >

@@ -19,7 +19,7 @@ export default function AlertModal({ show, onClose, type = 'error', title, messa
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="sm">
-            <div className={`p-8 text-center rounded-2xl transition-all duration-slow ${isSaleCompleted ? 'bg-neutral-900 text-white' : ''}`}>
+            <div className={`p-4 sm:p-8 text-center rounded-2xl transition-all duration-slow ${isSaleCompleted ? 'bg-neutral-900 text-white' : ''}`}>
                 <div className="flex justify-center mb-5">
                     <div className={`p-4 rounded-full bg-opacity-10 ${
                         type === 'error' ? 'bg-red-500' :

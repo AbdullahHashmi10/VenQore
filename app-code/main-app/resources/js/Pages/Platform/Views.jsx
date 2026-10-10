@@ -1219,6 +1219,12 @@ function AiKeysPanel({ t, aiKeys }) {
                 Keys are stored encrypted and never shown again. A store's own key (BYOK) always wins over these.
                 Owner only.
             </p>
+            {k.usable === false && (
+                <div role="alert" style={{ margin: '0 0 16px', padding: '10px 12px', borderRadius: 12, fontSize: 12.5, fontWeight: 700,
+                    background: 'rgba(239,68,68,.12)', color: '#ef4444', boxShadow: 'inset 0 0 0 1px rgba(239,68,68,.35)' }}>
+                    No usable platform AI key. Stores on a monthly AI allowance and free-tier users cannot use Vena or Smart Capture until you save a key below.
+                </div>
+            )}
 
             <form onSubmit={save} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,340px),1fr))', gap: 20 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

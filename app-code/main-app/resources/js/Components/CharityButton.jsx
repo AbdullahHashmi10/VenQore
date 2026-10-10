@@ -142,7 +142,7 @@ export default function CharityButton({ showLabel = false, charityEnabled = fals
 
     if (showLabel) {
         return (
-            <div className="p-1 border-b border-line flex items-center justify-between">
+            <div className="p-1 border-b border-line flex flex-wrap items-center justify-between gap-y-2">
                 <span className="text-xs font-semibold text-ink-secondary pl-2">Charity Donations</span>
                 <div className="relative">
                     {buttonContent}

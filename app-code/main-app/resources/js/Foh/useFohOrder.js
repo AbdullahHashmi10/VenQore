@@ -100,6 +100,8 @@ export default function useFohOrder({ tables, card }) {
                 sent: false, sent_qty: 0, discount: 0, qty: 1, freeQuantity: 0,
                 stock: Number.MAX_SAFE_INTEGER, unit: product.base_unit || product.unit || 'pcs',
                 tax_rate: Number(product.tax_rate) || 0,
+                // The server charges a product's own rate when it has one; the total shown must too.
+                product_tax_rate: product.tax_rate ?? null,
                 category: product.category_name || product.category?.name || 'General',
                 course: 1, notes: '',
             }];

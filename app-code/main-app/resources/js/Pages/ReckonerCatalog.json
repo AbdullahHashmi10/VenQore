@@ -330,8 +330,8 @@
         "modules": [],
         "short": "Receivables",
         "extra": false,
-        "desc": "The total money that customers owe you on credit (your Khata balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
-        "insight": "The total money that customers owe you on credit (your Khata balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
+        "desc": "The total money that customers owe you on credit (your customer credit balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
+        "insight": "The total money that customers owe you on credit (your customer credit balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
         "weight": 95,
         "topic": "receivable",
         "periods": [
@@ -7827,16 +7827,16 @@
     },
     {
         "key": "khata.receivable_total",
-        "label": "Udhaar Out",
+        "label": "Customer Credit Outstanding",
         "shape": "STAT",
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
-        "short": "Udhaar Out",
+        "short": "Customer Credit Outstanding",
         "extra": false,
         "desc": "Total credit sitting with customers.",
         "insight": "Total credit sitting with customers.",
@@ -7857,16 +7857,16 @@
     },
     {
         "key": "khata.payable_total",
-        "label": "Udhaar In",
+        "label": "Supplier Credit Outstanding",
         "shape": "STAT",
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
-        "short": "Udhaar In",
+        "short": "Supplier Credit Outstanding",
         "extra": false,
         "desc": "Total credit you have taken from suppliers.",
         "insight": "Total credit you have taken from suppliers.",
@@ -7887,16 +7887,16 @@
     },
     {
         "key": "khata.net_position",
-        "label": "Net Khata Position",
+        "label": "Net Credit Position",
         "shape": "STAT",
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
-        "short": "Net Khata Position",
+        "short": "Net Credit Position",
         "extra": false,
         "desc": "What you are owed minus what you owe, on credit alone.",
         "insight": "What you are owed minus what you owe, on credit alone.",
@@ -7926,7 +7926,7 @@
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
@@ -7955,16 +7955,16 @@
     },
     {
         "key": "khata.overdue_total",
-        "label": "Overdue Udhaar",
+        "label": "Overdue Customer Credit",
         "shape": "STAT",
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
-        "short": "Overdue Udhaar",
+        "short": "Overdue Customer Credit",
         "extra": false,
         "desc": "Credit that has crossed its agreed date.",
         "insight": "Credit that has crossed its agreed date.",
@@ -7985,16 +7985,16 @@
     },
     {
         "key": "khata.aging",
-        "label": "Udhaar Aging",
+        "label": "Customer Credit Aging",
         "shape": "BREAKDOWN",
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
-        "short": "Udhaar Aging",
+        "short": "Customer Credit Aging",
         "extra": false,
         "desc": "Your credit split by how old it is. Past 90 days, most of it never comes.",
         "insight": "Your credit split by how old it is. Past 90 days, most of it never comes.",
@@ -8019,16 +8019,16 @@
     },
     {
         "key": "khata.collected",
-        "label": "Udhaar Collected",
+        "label": "Credit Collected",
         "shape": "STAT",
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
-        "short": "Udhaar Collected",
+        "short": "Credit Collected",
         "extra": false,
         "desc": "How much old credit you actually recovered in the period.",
         "insight": "How much old credit you actually recovered in the period.",
@@ -8058,7 +8058,7 @@
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],
@@ -8092,7 +8092,7 @@
         "unit": "currency",
         "precision": 2,
         "area": "Customers",
-        "module": "Khata Credit",
+        "module": "Customer Credit",
         "modules": [
             "khata_credit"
         ],

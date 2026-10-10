@@ -119,10 +119,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 // Never let the logger crash the app
             }
 
-            // CRITICAL FIX: In Laravel 11, a custom report closure MUST return false
-            // if you want the exception to STILL be logged to the default logger (laravel.log).
-            // Without this, Laravel assumes this closure completely handled the reporting.
-            return false;
+            // Sale-reliability fix (8 Oct 2026): this closure used to `return false`,
+            // which in Laravel means "STOP" — the exception then never reached
+            // laravel.log (Handler::reportThrowable stops when a reportable callback
+            // returns false). Returning nothing lets the default logger record it
+            // as well, so an error_logs outage can no longer hide a failure.
         });
 
         // ── L020 / L040: Error monitoring / APM (Sentry) ─────────────────────

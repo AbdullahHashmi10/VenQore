@@ -153,7 +153,7 @@ export default function AppsIndex({ tenant, apps }) {
                                 <Download size={16} />
                                 <span>Download Station Setup (.exe)</span>
                             </a>
-                            <div className="flex items-center justify-between text-3xs text-ink-muted mt-3 px-1">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 text-3xs text-ink-muted mt-3 px-1">
                                 <span>Installer size: ~{windowsApp.file_size}</span>
                                 <span>Requirements: {windowsApp.min_os}</span>
                             </div>
@@ -245,7 +245,7 @@ export default function AppsIndex({ tenant, apps }) {
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-between text-3xs text-ink-muted mt-3 px-1">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 text-3xs text-ink-muted mt-3 px-1">
                                 <span>Platform availability: Android 10+ &amp; iOS 16+</span>
                                 <span>Target Beta: {mobileApp.target_date}</span>
                             </div>

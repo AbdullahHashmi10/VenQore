@@ -1,0 +1,3 @@
+{"id":"explore-dashboard","themes":["light"],"scenarios":[{"folder":"_explore","steps":[
+ {"goto":"/s/{slug}/dashboard","wait":6000},{"preview":"dash0"},{"dump":"dash0"},
+ {"xy":[1875,32],"wait":1500},{"preview":"dash1"},{"dump":"dash1"}]}]}

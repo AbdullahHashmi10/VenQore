@@ -192,7 +192,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
             {/* Side-by-Side Editing Modal */}
             {editingContext && (
                 <div className="fixed inset-0 z-sticky flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-normal">
+                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-4 sm:p-8 w-full max-w-4xl shadow-2xl animate-in zoom-in-95 duration-normal">
                         <div className="flex justify-between items-start mb-6">
                             <div>
                                 <h3 className="text-2xl font-bold text-white">Resolve Data Conflict</h3>
@@ -256,7 +256,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
             )}
 
             <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
-                <div className="flex items-center justify-between shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 shrink-0">
                     <div className="flex items-center space-x-4">
                         <Link href={route('store.admin.data', { store_slug: store.slug })} className="text-ink-muted hover:text-white transition-colors">
                             <ArrowLeft className="w-6 h-6" />
@@ -342,7 +342,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     <button
                                         type="button"
                                         onClick={() => setImportAction('truncate')}
-                                        className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
+                                        className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex flex-wrap items-center justify-between gap-y-2
                                             ${importAction === 'truncate'
                                                 ? 'border-brand-500 bg-brand-500/10 text-white'
                                                 : 'border-white/10 bg-white/5 text-ink-muted hover:border-white/20'}`}
@@ -359,7 +359,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                     <button
                                         type="button"
                                         onClick={() => setImportAction('import_all')}
-                                        className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
+                                        className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex flex-wrap items-center justify-between gap-y-2
                                             ${importAction === 'import_all'
                                                 ? 'border-amber-500 bg-amber-500/10 text-white'
                                                 : 'border-white/10 bg-white/5 text-ink-muted hover:border-white/20'}`}
@@ -415,7 +415,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                                 </h3>
                                 <div className="space-y-3">
                                     {validationData.warnings.map((warn, i) => (
-                                        <div key={i} className="flex items-center justify-between gap-4 text-xs text-amber-200/70 border-b border-amber-500/10 pb-2 last:border-0 group">
+                                        <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 gap-4 text-xs text-amber-200/70 border-b border-amber-500/10 pb-2 last:border-0 group">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-bold text-amber-400">Row {warn.row}:</span>

@@ -101,7 +101,7 @@ export default function CreateProductionRun({ products = [], warehouses = [] }) 
                     ]}
                 />
 
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     {/* Form Card */}
                     <div className="col-span-2 bg-surface rounded-2xl border border-line p-6 relative overflow-hidden">
                         {/* Background Effect */}
@@ -140,7 +140,7 @@ export default function CreateProductionRun({ products = [], warehouses = [] }) 
                                 </FormSelect>
                             </FormField>
 
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <FormField label="Quantity to Produce" required error={errors.planned_qty?.[0]}>
                                     <FormInput
                                         type="number"
@@ -194,7 +194,7 @@ export default function CreateProductionRun({ products = [], warehouses = [] }) 
                         {selectedBom ? (
                             <div className="space-y-3">
                                 {requirements.map((ing) => (
-                                    <div key={ing.product_id} className="flex items-center justify-between p-3 bg-app rounded-lg">
+                                    <div key={ing.product_id} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-lg">
                                         <div>
                                             <p className="font-medium text-ink">{ing.name}</p>
                                             <p className="text-xs text-ink-muted">{ing.sku}</p>

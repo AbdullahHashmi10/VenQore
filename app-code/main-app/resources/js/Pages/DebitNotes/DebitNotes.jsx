@@ -30,6 +30,7 @@ import {
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
 import { useTermText } from '@/lib/terms';
+import MobileStats from '@/Components/MobileStats';
 
 export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats = {} }) {
     const tt = useTermText();
@@ -233,29 +234,15 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                 <PurchaseModuleTabs activeTab="debit-notes" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {!isStatsExpanded && (
-                        <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
-                            <div className="flex items-center gap-2">
-                                <span className="text-brand-600 dark:text-brand-400">Total: {formatCurrency(computedStats.totalAmount, store)}</span>
-                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
-                                <span className="text-blue-600 dark:text-blue-400">Txns: {computedStats.total}</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Notes', value: computedStats.total, tone: 'ink' },
+  { label: 'Total Value', value: formatCurrency(computedStats.totalAmount, store), tone: 'emerald' },
+  { label: 'Open Credits', value: computedStats.open, tone: 'blue' }
+]} />
 
                 {/* Stats Cards - Compact */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
                                 <FileMinus size={16} />
@@ -265,7 +252,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         <p className="text-base font-bold text-ink">{computedStats.total}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <DollarSign size={16} />
@@ -275,7 +262,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         <p className="text-base font-bold text-emerald-600">{formatCurrency(computedStats.totalAmount, store)}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <ArrowUpRight size={16} />
@@ -359,7 +346,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
 
                 {/* Mobile Layout Header Area */}
                 <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
                         <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             Debit Notes
                         </h1>
@@ -454,7 +441,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         <tbody className="divide-y divide-line">
                             {sortedData.length === 0 ? (
                                 <tr>
-                                    <td colSpan={tableColumns.length} className="p-12">
+                                    <td colSpan={tableColumns.length} className="p-5 sm:p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
                                             <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
                                                 <FileMinus size={32} className="text-ink-muted" />
@@ -555,7 +542,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                     {/* Mobile View - Cards List */}
                     <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
                         {sortedData.length === 0 ? (
-                            <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                            <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line">
                                 <FileMinus size={32} className="mx-auto text-ink-muted mb-2" />
                                 <p className="text-sm font-bold text-ink-secondary">No debit notes found</p>
                             </div>
@@ -607,7 +594,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         </div>
 
                                         {/* Row 3: Totals & Action Icons */}
-                                        <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-2 mt-1">
                                             <div className="flex items-center gap-6">
                                                 <div>
                                                     <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Amount</span>
@@ -651,7 +638,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         className="quick-view-modal w-full max-w-2xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
                             <div>
                                 <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Note Details</p>
                                 <h3 className="text-xl font-bold text-red-600">{quickViewItem.reference_number || `DN-${quickViewItem.id}`}</h3>

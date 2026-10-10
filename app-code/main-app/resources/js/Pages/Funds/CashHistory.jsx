@@ -41,7 +41,7 @@ export default function CashHistory({ balance, ledger, store }) {
             <div className="flex flex-col h-full bg-sunken dark:bg-app overflow-hidden">
                 
                 {/* Top Toolbar (Similar to screenshot) */}
-                <div className="bg-surface border-b border-line px-6 py-3 flex items-center justify-between shadow-sm shrink-0">
+                <div className="bg-surface border-b border-line px-6 py-3 flex flex-wrap items-center justify-between gap-y-2 shadow-sm shrink-0">
                     <div className="flex items-center gap-4">
                         <Link href={route('store.funds.index', { store_slug: store.slug })} className="text-ink-muted hover:text-ink-secondary">
                             <ArrowLeft size={20} />
@@ -93,16 +93,16 @@ export default function CashHistory({ balance, ledger, store }) {
                                 <thead className="bg-sunken dark:bg-surface border-b border-line">
                                     <tr>
                                         <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
-                                            <div className="flex items-center justify-between">Type <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2">Type <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
                                         <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
-                                            <div className="flex items-center justify-between">Name <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2">Name <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
                                         <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
-                                            <div className="flex items-center justify-between">Date <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2">Date <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
                                         <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight text-right w-48">
-                                            <div className="flex items-center justify-between">Amount <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2">Amount <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
                                         <th className="w-12"></th>
                                     </tr>

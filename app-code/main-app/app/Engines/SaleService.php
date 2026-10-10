@@ -75,6 +75,10 @@ class SaleService
     public function post(array $data): object
     {
         $idempotencyKey = $data['idempotency_key'] ?? $data['client_sale_id'] ?? null;
+        // Bound to the business content (sale-reliability contract): the same key
+        // with the same content returns the original sale; with different content
+        // it is refused (409) and nothing changes.
+        $requestHash = \App\Services\Sales\CheckoutIntent::requestHash($data);
 
         // Idempotency pre-check (S-048 / Offline Sync / L038)
         if (!empty($data['client_sale_id'])) {
@@ -83,7 +87,7 @@ class SaleService
                 ->where('client_sale_id', $data['client_sale_id'])
                 ->first();
             if ($existing) {
-                return Sale::find($existing->id);
+                return $this->replayed($existing, $requestHash);
             }
         }
         if (!empty($data['idempotency_key'])) {
@@ -92,13 +96,13 @@ class SaleService
                 ->where('idempotency_key', $data['idempotency_key'])
                 ->first();
             if ($existing) {
-                return Sale::find($existing->id);
+                return $this->replayed($existing, $requestHash);
             }
         }
 
-        return \App\Services\CanonicalPostingScope::run(function () use ($data, $idempotencyKey) {
+        return \App\Services\CanonicalPostingScope::run(function () use ($data, $idempotencyKey, $requestHash) {
             try {
-                return DB::transaction(function () use ($data) {
+                return DB::transaction(function () use ($data, $requestHash) {
                     $data['customer_id']    = $data['customer_id'] ?? $data['party_id'] ?? null;
                     $data['payment_method'] = $data['payment_method'] ?? 'cash';
             $data['warehouse_id']   = $data['warehouse_id'] ?? DB::table('warehouses')->where('tenant_id', $this->tenantId)->value('id');
@@ -107,10 +111,11 @@ class SaleService
             $saleId        = Str::uuid()->toString();
             $invoiceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
 
-            // ── 1. Calculate line totals and deduct stock ─────────────
-            $subtotalGross      = 0.00;
-            $totalItemDiscounts = 0.00;
-            $taxTotal           = 0.00;
+            // ── 1. Totals — calculation contract v2 (App\Services\Sales\SaleTotals) ──
+            // One exact calculation, the same one the till and the POS route use:
+            // line gross q(qty × unit), a line % discount quantized once, exclusive
+            // tax per line, half-up. Every persisted amount and journal line below
+            // comes from this result; stock/COGS is worked out per line as before.
             $cogsTotal          = 0.00;
             $lineItems          = [];
 
@@ -126,28 +131,24 @@ class SaleService
             }
             $data['items'] = $expandedItems;
 
-            foreach ($data['items'] as $item) {
-                $qty           = (float) $item['qty'];
-                $unitPrice     = (float) $item['unit_price'];
-                $discountPct   = (float) ($item['discount_percent'] ?? 0);
-                $taxRate       = (float) ($item['tax_rate'] ?? 0);
-                $isPromotional = !empty($item['is_promotional']);
+            $calc = \App\Services\Sales\SaleTotals::calculate([
+                'lines' => array_map(function ($item) {
+                    $promo = !empty($item['is_promotional']); // Promotional items are Rs.0 — S-040
+                    return [
+                        'unit_price'       => $promo ? 0 : ($item['unit_price'] ?? 0),
+                        'qty'              => $item['qty'] ?? 0,
+                        'discount_percent' => $promo ? 0 : ($item['discount_percent'] ?? 0),
+                        'tax_rate'         => $item['tax_rate'] ?? 0,
+                    ];
+                }, $data['items']),
+                'tax'           => ['enabled' => true, 'inclusive' => false, 'default_rate' => 0],
+                'bill_rounding' => ['apply' => false],
+            ], false); // internal callers pass stored decimals: bounded legacy parse
+            $money = fn (int $minor) => \App\Support\Money::toFloat($minor);
 
-                // Promotional items are Rs.0 — S-040
-                if ($isPromotional) {
-                    $unitPrice   = 0.00;
-                    $discountPct = 0.00;
-                }
-
-                $lineGross   = round($qty * $unitPrice, 2);
-                $discountAmt = round($lineGross * $discountPct / 100, 2);
-                $lineNet     = $lineGross - $discountAmt;
-
-                $taxCalc = $this->tax->calculateLineTax(
-                    amount:           $lineNet,
-                    taxRate:          $taxRate,
-                    priceIncludesTax: false
-                );
+            foreach ($data['items'] as $lineIndex => $item) {
+                $qty      = (float) $item['qty'];
+                $calcLine = $calc['lines'][$lineIndex];
 
                 // Fetch product type to support service products bypass rule
                 $productType = DB::table('products')
@@ -226,7 +227,8 @@ class SaleService
                             warehouseId: $data['warehouse_id'],
                             qty:         $baseQty,
                             saleUom:     $saleUom,
-                            ownOrderId:  $data['source_order_id'] ?? null
+                            ownOrderId:  $data['source_order_id'] ?? null,
+                            preferredBatchId: $item['batch_id'] ?? null
                         );
                         $lineCogs = array_sum(array_column($deductions, 'total_cost'));
                     }
@@ -234,23 +236,40 @@ class SaleService
 
                 $cogsTotal += $lineCogs;
 
-                $subtotalGross      += $lineGross;
-                $totalItemDiscounts += $discountAmt;
-                $taxTotal           += $taxCalc['tax'];
-
                 $lineItems[] = [
-                    'item'       => $item,
-                    'base_qty'   => $baseQty,
-                    'line_net'   => $lineNet,
-                    'line_total' => round($lineNet + $taxCalc['tax'], 2),
-                    'tax_amount' => $taxCalc['tax'],
-                    'cogs'       => $lineCogs,
-                    'deductions' => $deductions,
+                    'item'           => $item,
+                    'base_qty'       => $baseQty,
+                    'gross_amount'   => $money($calcLine['gross']),
+                    'discount_amount'=> $money($calcLine['discount']),
+                    'line_net'       => $money($calcLine['net']),
+                    'line_total'     => $money($calcLine['net'] + $calcLine['tax']),
+                    'tax_amount'     => $money($calcLine['tax']),
+                    'cogs'           => $lineCogs,
+                    'deductions'     => $deductions,
                 ];
             }
 
-            $netSales     = round($subtotalGross - $totalItemDiscounts, 2);
-            $invoiceTotal = round($netSales + $taxTotal, 2);
+            $subtotalGross      = $money($calc['subtotal_gross']);
+            $totalItemDiscounts = $money($calc['item_discounts']);
+            $taxTotal           = $money($calc['tax']);
+            $netSales           = $money($calc['revenue']);
+            $invoiceTotal       = $money($calc['invoice']);
+
+            // ── Payment: explicit allocation (App\Services\Sales\PaymentAllocation) ──
+            // Engine semantics are unchanged: 'credit' opens a receivable; cash/bank
+            // records amount_received (default: the invoice); less than the invoice
+            // leaves the rest on AR; more is held as a Customer Advance (2060).
+            $method = $data['payment_method'];
+            $allocation = \App\Services\Sales\PaymentAllocation::allocate([
+                'invoice'          => $calc['invoice'],
+                'payments'         => null,
+                'payment_method'   => $method,
+                'amount_paid'      => $method === 'credit' ? null : ($data['amount_received'] ?? \App\Support\Money::toString($calc['invoice'])),
+                'add_to_ledger'    => true,
+                'has_customer'     => true,
+                'walk_in_must_pay' => false,
+                'strict'           => false,
+            ]);
 
             // ── Credit Limit Check ──
             if (!empty($data['customer_id'])) {
@@ -261,15 +280,7 @@ class SaleService
                     ->first();
 
                 if ($customer && $customer->credit_limit !== null) {
-                    $creditPortion = 0.00;
-                    if ($data['payment_method'] === 'credit') {
-                        $creditPortion = $invoiceTotal;
-                    } else {
-                        $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
-                        if (round($amountReceived, 2) < round($invoiceTotal, 2)) {
-                            $creditPortion = round($invoiceTotal - $amountReceived, 2);
-                        }
-                    }
+                    $creditPortion = $money($allocation['receivable']);
 
                     if ($creditPortion > 0) {
                         $currentBalance = (float) DB::table('journal_items as ji')
@@ -304,76 +315,50 @@ class SaleService
                 }
             }
 
-            // ── 3. Build journal lines ─────────────────────────────────
-            // Revenue recognised as net_sales (pre-tax)
-            $journalLines = [
-                ['account_code' => '4000', 'debit' => 0,         'credit' => $netSales,   'party_id' => $data['customer_id']],
-                ['account_code' => '5000', 'debit' => $cogsTotal, 'credit' => 0],
-                ['account_code' => '1100', 'debit' => 0,         'credit' => $cogsTotal],
+            // ── 3. Build journal lines (integer paisa, then checked) ───
+            // Revenue recognised as net sales (pre-tax). COGS is quantized once and
+            // posted on both sides. Every amount comes from $calc / $allocation.
+            $cogsMinor = \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format($cogsTotal, 6, '.', '')));
+            $minorLines = [
+                ['account_code' => '4000', 'debit' => 0,          'credit' => $calc['revenue'], 'party_id' => $data['customer_id']],
+                ['account_code' => '5000', 'debit' => $cogsMinor, 'credit' => 0],
+                ['account_code' => '1100', 'debit' => 0,          'credit' => $cogsMinor],
             ];
-
-            if ($taxTotal > 0) {
-                $journalLines[] = [
-                    'account_code' => '2100', // Sales Tax Payable (was 2200 = Loans Payable — M1-06b fix)
-                    'debit'        => 0,
-                    'credit'       => $taxTotal,
-                ];
+            if ($calc['tax'] > 0) {
+                // Sales Tax Payable (was 2200 = Loans Payable — M1-06b fix)
+                $minorLines[] = ['account_code' => '2100', 'debit' => 0, 'credit' => $calc['tax']];
             }
-
-            $paymentStatus = 'unpaid';
-
-            if ($data['payment_method'] === 'credit') {
-                // B2 — AR open
-                $journalLines[] = [
-                    'account_code' => '1200',
-                    'debit'        => $invoiceTotal,
-                    'credit'       => 0,
-                    'party_id'     => $data['customer_id'],
-                ];
-                $paymentStatus = 'unpaid';
-            } else {
-                // B1 — cash or bank
-                $cashAccount    = $data['payment_method'] === 'bank' ? '1010' : '1000';
-                $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
-                $bankAccountId  = ($data['payment_method'] === 'bank') ? ($data['bank_account_id'] ?? null) : null;
-
-                $journalLines[] = [
-                    'account_code'    => $cashAccount,
-                    'debit'           => $amountReceived,
+            foreach ($allocation['lines'] as $payLine) {
+                // B1 — cash or bank (the whole amount received, advance included)
+                $minorLines[] = [
+                    'account_code'    => $payLine['method'] === 'bank' ? '1010' : '1000',
+                    'debit'           => $payLine['amount'],
                     'credit'          => 0,
-                    'bank_account_id' => $bankAccountId,
+                    'bank_account_id' => $payLine['method'] === 'bank' ? ($data['bank_account_id'] ?? null) : null,
                 ];
-
-                if (round($amountReceived, 2) < round($invoiceTotal, 2)) {
-                    // Split — part cash, remainder on AR
-                    $remainder = round($invoiceTotal - $amountReceived, 2);
-                    $journalLines[] = [
-                        'account_code' => '1200',
-                        'debit'        => $remainder,
-                        'credit'       => 0,
-                        'party_id'     => $data['customer_id'],
-                    ];
-                    $paymentStatus = 'partial';
-                } elseif (round($amountReceived, 2) > round($invoiceTotal, 2)) {
-                    // Overpayment — the whole amount received is in the till, and the
-                    // surplus is the customer's money held on account: a Customer
-                    // Advance (rulebook B1 "Customer Advance"). In this chart that is
-                    // 2060 — 2100 is Sales Tax Payable, and parking the surplus there
-                    // inflated the tax report by every rupee of unreturned change.
-                    // Held on 2060 against the customer it is consumable by a later
-                    // sale's advance settlement (step 8 below, S-048).
-                    $surplus = round($amountReceived - $invoiceTotal, 2);
-                    $journalLines[] = [
-                        'account_id'   => $this->accounting->getAccountByCode('2060', 'Customer Advances', 'liability')->id,
-                        'debit'        => 0,
-                        'credit'       => $surplus,
-                        'party_id'     => $data['customer_id'],
-                    ];
-                    $paymentStatus = 'paid';
-                } else {
-                    $paymentStatus = 'paid';
-                }
             }
+            if ($allocation['receivable'] > 0) {
+                // B2 / split — what is still owed sits on AR
+                $minorLines[] = ['account_code' => '1200', 'debit' => $allocation['receivable'], 'credit' => 0, 'party_id' => $data['customer_id']];
+            }
+            if ($allocation['advance'] > 0) {
+                // Overpayment — the surplus is the customer's money held on account:
+                // a Customer Advance (2060; 2100 is Sales Tax Payable in this chart).
+                // Consumable by a later sale's advance settlement (step 8, S-048).
+                $minorLines[] = [
+                    'account_id' => $this->accounting->getAccountByCode('2060', 'Customer Advances', 'liability')->id,
+                    'debit'      => 0,
+                    'credit'     => $allocation['advance'],
+                    'party_id'   => $data['customer_id'],
+                ];
+            }
+            $dr = array_sum(array_column($minorLines, 'debit'));
+            $cr = array_sum(array_column($minorLines, 'credit'));
+            if ($dr !== $cr) {
+                throw new \LogicException("Sale journal does not balance: debits {$dr} vs credits {$cr} (minor units).");
+            }
+            $journalLines = array_map(fn ($l) => array_merge($l, ['debit' => $money($l['debit']), 'credit' => $money($l['credit'])]), $minorLines);
+            $paymentStatus = $allocation['payment_status'];
 
             // ── 4. Post journal ────────────────────────────────────────
             $journalEntry = $this->accounting->createEntry([
@@ -405,14 +390,14 @@ class SaleService
                     ->value('id');
             }
 
-            DB::table('sales')->insert([
+            DB::table('sales')->insert(\App\Services\Sales\CheckoutIntent::withIntentColumns([
                 'id'                   => $saleId,
                 'tenant_id'            => $tenantId,  // WOUND 2 FIX — explicit tenant stamp
                 'register_shift_id'    => $shiftId,
                 'client_sale_id'       => $data['client_sale_id'] ?? null,
                 'idempotency_key'      => $data['idempotency_key'] ?? $data['client_sale_id'] ?? null,
                 'reference_number'     => $invoiceNumber,
-                'source'               => ($data['source'] ?? null) === 'pos' ? 'pos' : 'manual',
+                'source'               => in_array($data['source'] ?? null, ['pos', 'online'], true) ? $data['source'] : 'manual',
                 'party_id'             => $data['customer_id'],
                 'warehouse_id'         => $data['warehouse_id'],
                 'subtotal'             => $subtotalGross,
@@ -432,15 +417,18 @@ class SaleService
                 'user_id'              => $data['user_id'] ?? auth()->id() ?? $data['approved_by'] ?? DB::table('tenant_users')->where('tenant_id', $tenantId)->value('user_id') ?? DB::table('users')->value('id'),
                 'created_at'           => $data['sale_date'] ?? now(),
                 'updated_at'           => now(),
-            ]);
+            ], [
+                'idempotency_request_hash' => (!empty($data['idempotency_key']) || !empty($data['client_sale_id'])) ? $requestHash : null,
+                'calculation_version'      => \App\Services\Sales\SaleTotals::VERSION,
+            ]));
 
             // ── 6. Write sale_items + sale_item_batches ────────────────
             foreach ($lineItems as $lineData) {
                 $item       = $lineData['item'];
                 $saleItemId = Str::uuid()->toString();
 
-                $grossAmount = round($item['qty'] * $item['unit_price'], 2);
-                $discountAmount = round($grossAmount - $lineData['line_net'], 2);
+                $grossAmount    = $lineData['gross_amount'];
+                $discountAmount = $lineData['discount_amount'];
 
                 DB::table('sale_items')->insert([
                     'id'               => $saleItemId,
@@ -460,7 +448,11 @@ class SaleService
                     'free_quantity'    => !empty($item['is_promotional']) ? $item['qty'] : 0,
                     'created_at'       => now(),
                     'updated_at'       => now(),
-                ]);
+                ] + (\App\Services\Sales\CheckoutIntent::lineColumnsAvailable() ? [
+                    // What this line BOOKED (no bill discount on this channel).
+                    'revenue_amount'      => $lineData['line_net'],
+                    'bill_discount_share' => 0,
+                ] : []));
 
                 foreach ($lineData['deductions'] as $deduction) {
                     DB::table('sale_item_batches')->insert([
@@ -499,12 +491,9 @@ class SaleService
             }
 
             // ── 7. Allocate payment if cash/bank ──────────────────────
-            if ($data['payment_method'] !== 'credit') {
-                $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
-                $allocateAmount = min($amountReceived, $invoiceTotal);
-
+            if ($allocation['applied'] > 0) {
                 $this->payments->allocate($journalEntry->id, [
-                    ['sale_id' => $saleId, 'amount' => $allocateAmount],
+                    ['sale_id' => $saleId, 'amount' => $money($allocation['applied'])],
                 ]);
             }
 
@@ -597,6 +586,21 @@ class SaleService
     }
 
     /**
+     * A sale with this key already exists. Same content → that sale (a retry is
+     * harmless). Different content → refuse: the key belongs to another sale.
+     * Sales saved before the content hash existed are returned as before.
+     */
+    private function replayed(object $existing, string $requestHash): Sale
+    {
+        $stored = $existing->idempotency_request_hash ?? null;
+        if ($stored && !hash_equals($stored, $requestHash)) {
+            \App\Support\SaleEvents::record('idempotency_conflict', ['sale_id' => $existing->id, 'channel' => 'engine'], 'warning');
+            throw new \App\Exceptions\IdempotencyConflictException($existing->id, $existing->reference_number ?? null);
+        }
+        return Sale::find($existing->id);
+    }
+
+    /**
      * Fully reverse a posted sale (B9 — Sale Return).
      * Restores stock to original FIFO batches and reverses the journal.
      *
@@ -680,8 +684,14 @@ class SaleService
                 // What the customer still owes on THIS invoice, before this return.
                 $owedBefore = $this->receivableOutstanding($sale);
 
-                $revenueTotal = 0.0;
-                $taxTotal     = 0.0;
+                // What each line BOOKED (ReturnValuation) — refunds are a share of
+                // that, never a re-pricing. Integer paisa.
+                $booked = \App\Services\Sales\ReturnValuation::booked(
+                    $sale,
+                    DB::table('sale_items')->where('tenant_id', $this->tenantId)->where('sale_id', $sale->id)->whereNull('deleted_at')->get()
+                );
+                $revenueMinor = 0;
+                $taxMinor     = 0;
                 $costTotal    = 0.0;
                 $touched      = false;
 
@@ -708,22 +718,12 @@ class SaleService
                     }
                     $touched = true;
 
-                    // ── Revenue and tax share (cumulative pro-rata) ──────────
-                    $originalQty = max(0.0001, (float)$originalItem->quantity);
-                    $lineNet     = (float)$originalItem->net_amount;
-                    $lineTax     = (float)($originalItem->tax_amount ?? 0);
-                    $isFreeLine  = (float)($originalItem->free_quantity ?? 0) >= (float)$originalItem->quantity - 0.0001;
-
-                    if ($lineNet <= 0 && !$isFreeLine) {
-                        // Legacy row from before the waterfall columns: no net_amount
-                        // recorded, so value the units at their unit price.
-                        $lineNet = round((float)$originalItem->unit_price * $originalQty, 2);
-                    }
-
-                    $after  = min($originalQty, $alreadyReturnedQty + $qty) / $originalQty;
-                    $before = $alreadyReturnedQty / $originalQty;
-                    $revenueTotal += round($lineNet * $after, 2) - round($lineNet * $before, 2);
-                    $taxTotal     += round($lineTax * $after, 2) - round($lineTax * $before, 2);
+                    // ── Revenue and tax share (cumulative, exact) ────────────
+                    // value(returned after) − value(returned before): the pieces of
+                    // a line returned in parts add up to exactly what it booked.
+                    $b = $booked[(string) $originalItem->id] ?? ['revenue' => 0, 'tax' => 0];
+                    $revenueMinor += \App\Services\Sales\ReturnValuation::share($b['revenue'], $originalItem->quantity, $originalItem->returned_quantity ?? 0, $qty);
+                    $taxMinor     += \App\Services\Sales\ReturnValuation::share($b['tax'], $originalItem->quantity, $originalItem->returned_quantity ?? 0, $qty);
 
                     // ── Restore FIFO stock, newest deduction first ────────────
                     $activeBatches = DB::table('sale_item_batches')
@@ -817,21 +817,24 @@ class SaleService
                     throw new \LogicException("Nothing left to return on this sale.");
                 }
 
-                $revenueTotal = round($revenueTotal, 2);
-                $taxTotal     = round($taxTotal, 2);
-                $costTotal    = round($costTotal, 2);
-                $returnValue  = round($revenueTotal + $taxTotal, 2);
+                $costMinor    = \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format($costTotal, 6, '.', '')));
+                $returnMinor  = $revenueMinor + $taxMinor;
+                $owedMinor    = max(0, \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format($owedBefore, 6, '.', ''))));
 
                 // The credit goes first against what is still owed on this
                 // invoice (a part-paid cash sale's remainder sits on 1200); only
                 // the rest leaves the drawer / bank. A credit sale's return always
                 // lands on the customer's account.
-                if ($refundAccountCode === '1200') {
-                    $toReceivable = $returnValue;
-                } else {
-                    $toReceivable = round(min($returnValue, max(0.0, $owedBefore)), 2);
-                }
-                $toRefund = round($returnValue - $toReceivable, 2);
+                $toReceivableMinor = $refundAccountCode === '1200' ? $returnMinor : min($returnMinor, $owedMinor);
+                $toRefundMinor     = $returnMinor - $toReceivableMinor;
+
+                $m            = fn (int $x) => \App\Support\Money::toFloat($x);
+                $revenueTotal = $m($revenueMinor);
+                $taxTotal     = $m($taxMinor);
+                $costTotal    = $m($costMinor);
+                $returnValue  = $m($returnMinor);
+                $toReceivable = $m($toReceivableMinor);
+                $toRefund     = $m($toRefundMinor);
 
                 $journalItems = [];
                 if ($revenueTotal > 0) {

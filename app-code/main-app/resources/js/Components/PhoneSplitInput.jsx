@@ -113,7 +113,7 @@ export default function PhoneSplitInput({ value = '', onChange }) {
             <div
                 ref={dropdownRef}
                 onClick={() => setIsOpen(!isOpen)}
-                className="h-11 w-32 sm:w-36 shrink-0 flex items-center justify-between px-3 bg-app hover:bg-surface border border-line rounded-xl cursor-pointer transition-all shadow-xs select-none hover:border-brand-500/40 active:scale-[0.98]"
+                className="h-11 w-32 sm:w-36 shrink-0 flex flex-wrap items-center justify-between gap-y-2 px-3 bg-app hover:bg-surface border border-line rounded-xl cursor-pointer transition-all shadow-xs select-none hover:border-brand-500/40 active:scale-[0.98]"
             >
                 <div className="flex items-baseline gap-1.5 min-w-0">
                     <span className="text-xs font-bold text-ink uppercase tracking-tight">{selectedCountry.iso}</span>
@@ -165,7 +165,7 @@ export default function PhoneSplitInput({ value = '', onChange }) {
                                 <div
                                     key={item.iso + item.code}
                                     onClick={() => handleDialChange(item.code)}
-                                    className={`flex items-center justify-between px-3 py-2 text-xs cursor-pointer transition-colors ${
+                                    className={`flex flex-wrap items-center justify-between gap-y-2 px-3 py-2 text-xs cursor-pointer transition-colors ${
                                         isSelected ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 font-bold' : 'hover:bg-app text-ink'
                                     }`}
                                 >

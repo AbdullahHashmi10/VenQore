@@ -122,7 +122,7 @@ export default function SidebarItem({
                         )}
                     </div>
                     {isExpanded && (
-                        <div className="flex-1 flex items-center justify-between min-w-0 pr-1">
+                        <div className="flex-1 flex flex-wrap items-center justify-between gap-y-2 min-w-0 pr-1">
                             <span className={`whitespace-nowrap overflow-hidden transition-colors duration-fast ${
                                 compact ? 'text-xs' : 'text-sm'
                             } ${
@@ -373,7 +373,7 @@ export default function SidebarItem({
                                             ) : isPlanLocked ? (
                                                 <Link
                                                     href={window.route && store?.slug ? window.route('store.billing', { store_slug: store.slug }) : '/billing'}
-                                                    className="flex items-center justify-between pl-4 pr-3 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 group/lock"
+                                                    className="flex flex-wrap items-center justify-between gap-y-2 pl-4 pr-3 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 group/lock"
                                                     title="Upgrade to unlock this report"
                                                 >
                                                     <span className="flex items-center gap-1.5 truncate">
@@ -429,7 +429,7 @@ export default function SidebarItem({
                             {isPlanLocked ? (
                                 <Link
                                     href={window.route && store?.slug ? window.route('store.billing', { store_slug: store.slug }) : '/billing'}
-                                    className="flex items-center justify-between pl-4 pr-3 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 group/lock"
+                                    className="flex flex-wrap items-center justify-between gap-y-2 pl-4 pr-3 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400 group/lock"
                                     title="Upgrade to unlock this report"
                                 >
                                     <span className="flex items-center gap-1.5 truncate">

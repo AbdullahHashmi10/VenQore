@@ -45,7 +45,7 @@
  * full rationale and the decisions confirmed with the store owner.
  */
 
-return [
+$roles = [
 
     'owner' => [
         // POS & Register
@@ -250,3 +250,27 @@ return [
     'custom' => [],
 
 ];
+
+/*
+ * Online store, QR catalogue, Front of House management and AI keys got their own
+ * permissions (2026-10-07). Roles keep working exactly as before: any role that
+ * already holds an "ancestor" key is granted the new one. The map lives in
+ * resources/js/Data/permission_inherits.json so the Users screen, the backfill
+ * migration and this file can never disagree. "*any*" means every non-empty role.
+ */
+$inherits = json_decode((string) @file_get_contents(base_path('resources/js/Data/permission_inherits.json')), true)['grants'] ?? [];
+
+foreach ($roles as $role => $perms) {
+    if ($perms === []) {
+        continue;
+    }
+    foreach ($inherits as $newKey => $rule) {
+        $from = $rule['from'] ?? [];
+        if (in_array('*any*', $from, true) || array_intersect($from, $perms)) {
+            $roles[$role][] = $newKey;
+        }
+    }
+    $roles[$role] = array_values(array_unique($roles[$role]));
+}
+
+return $roles;

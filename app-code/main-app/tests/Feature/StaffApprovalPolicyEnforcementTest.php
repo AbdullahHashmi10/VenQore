@@ -153,6 +153,13 @@ class StaffApprovalPolicyEnforcementTest extends TestCase
     {
         $resolver = app(ApprovalPolicyResolver::class);
 
+        // The store master switch must be ON; when it is off the resolver
+        // returns direct for everything (see ApprovalPolicyResolver step 3).
+        Setting::withoutGlobalScopes()->updateOrCreate(
+            ['tenant_id' => $this->tenant->id, 'key' => 'approval_admin_enabled'],
+            ['value' => '1']
+        );
+
         // Set user threshold at 2000
         Setting::withoutGlobalScopes()->updateOrCreate(
             ['tenant_id' => $this->tenant->id, 'key' => "approval_threshold_user_{$this->cashier->id}"],

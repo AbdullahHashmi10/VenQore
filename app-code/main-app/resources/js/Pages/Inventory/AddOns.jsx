@@ -97,7 +97,7 @@ export default function AddOns({ storeSlug, groups: initial = [], categories = [
                 </div>
 
                 {groups.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-line p-10 text-center text-ink-muted text-sm">
+                    <div className="rounded-2xl border border-dashed border-line p-4 sm:p-10 text-center text-ink-muted text-sm">
                         No add-on groups yet. Create one, for example "Pizza toppings", and attach it to your Pizza category.
                     </div>
                 )}
@@ -136,7 +136,7 @@ export default function AddOns({ storeSlug, groups: initial = [], categories = [
             {editing && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
                     <div className="bg-surface border border-line rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-4 border-b border-line">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line">
                             <h2 className="font-bold text-ink">{editing.id ? 'Edit add-on group' : 'New add-on group'}</h2>
                             <button type="button" aria-label="Close" onClick={() => setEditing(null)} className="p-2 rounded-lg hover:bg-sunken"><X size={16} /></button>
                         </div>

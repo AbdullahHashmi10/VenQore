@@ -317,6 +317,8 @@ export function linePayload({ doc, items, totals }) {
            the quantity against it; a cap enforced only here is not a cap. */
         if (i.source_line_id) line[K.source || 'source_line_id'] = i.source_line_id;
         if (i.batch) line.batch_number = i.batch;
+        /* The seller chose which stock batch this line comes out of. */
+        if (i.pickBatchId) line.batch_id = i.pickBatchId;
         if (i.expiry) line.expiry_date = i.expiry;
         return line;
     });

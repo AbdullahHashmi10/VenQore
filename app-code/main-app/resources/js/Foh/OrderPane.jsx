@@ -151,7 +151,7 @@ export default function OrderPane({
     const due = totals.cartTotal;
 
     return (
-        <div className="foh-order" data-mobile-tab={mobileTab}>
+        <div className="foh-order" data-mobile-tab={mobileTab} data-order-type={card.order_type || 'dine_in'}>
             <OrderHeader
                 card={card} covers={card.covers || 1} unsent={unsent} busy={tables.busy || offline}
                 elapsedLabel={null} checkDropped={!!card.check_dropped_at} enabledTypes={enabledTypes}

@@ -239,7 +239,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                         if (s.label.includes('Value')) colorClass = "text-emerald-500 bg-emerald-500/10";
                         if (s.label.includes('Quantity')) colorClass = "text-blue-500 bg-blue-500/10";
                         return (
-                            <div key={i} className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center justify-between">
+                            <div key={i} className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                                 <div>
                                     <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{s.label}</p>
                                     <h3 className="text-xl font-bold text-ink tracking-tight mt-1">{s.value}</h3>
@@ -408,7 +408,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                 {/* Dynamic Audit Result */}
                                 {auditResult ? (
                                     <div className="space-y-3 animate-in fade-in duration-slow">
-                                        <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/10">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 bg-white/5 p-3 rounded-xl border border-white/10">
                                             <div>
                                                 <span className="text-2xs text-ink-muted font-bold block uppercase">Health Score</span>
                                                 <span className="text-2xl font-bold text-emerald-400">{auditResult.score}/100</span>
@@ -494,7 +494,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                 {/* Modal Body */}
                                 <div className="p-6 space-y-6 overflow-y-auto flex-1 text-sm">
                                     {/* Financial Details KPIs */}
-                                    <div className="grid grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                         <div className="bg-app p-4 rounded-xl border border-line">
                                             <p className="text-xs font-bold text-ink-muted uppercase">Stock Quantity</p>
                                             <p className="text-2xl font-bold text-ink mt-1">{selectedItem.quantity}</p>
@@ -526,7 +526,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                             <div className="md:col-span-6 flex flex-col">
                                                 <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Layers size={13} /> Active FIFO Cost Layers</h4>
                                                 {modalDetails.batches.length === 0 ? (
-                                                    <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
+                                                    <div className="p-4 sm:p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                         No cost layers—item is out of stock.
                                                     </div>
                                                 ) : (
@@ -562,7 +562,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                             <div className="md:col-span-6 flex flex-col">
                                                 <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Activity size={13} /> Reconstruction Audit Trail</h4>
                                                 {modalDetails.ledger.length === 0 ? (
-                                                    <div className="p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
+                                                    <div className="p-4 sm:p-8 rounded-xl bg-app border border-dashed border-line text-center text-ink-muted italic">
                                                         No stock movement ledger transactions found.
                                                     </div>
                                                 ) : (

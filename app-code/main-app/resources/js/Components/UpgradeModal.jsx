@@ -144,7 +144,7 @@ export default function UpgradeModal() {
                     <X size={14} />
                 </button>
 
-                <div className="relative z-10 p-8">
+                <div className="relative z-10 p-4 sm:p-8">
                     {/* Header */}
                     <div className="flex items-start gap-5 mb-8">
                         <div className="w-16 h-16 bg-gradient-to-br from-amber-400/20 to-orange-600/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-lg">

@@ -111,7 +111,7 @@ export default function DecisionModal({
                 </div>
 
                 {/* Amount preview pill */}
-                <div className="p-3 rounded-xl bg-sunken/60 border border-line flex items-center justify-between text-xs">
+                <div className="p-3 rounded-xl bg-sunken/60 border border-line flex flex-wrap items-center justify-between gap-y-2 text-xs">
                     <span className="text-ink-muted font-medium">Document Amount:</span>
                     <span className="font-bold text-ink tabular-nums text-sm">
                         {formatCurrency(amount, store)}

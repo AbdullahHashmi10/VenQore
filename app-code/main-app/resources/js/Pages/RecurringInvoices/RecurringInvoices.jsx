@@ -25,6 +25,7 @@ import {
 import { useAlert } from '@/Contexts/AlertContext';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import { useTermText } from '@/lib/terms';
+import MobileStats from '@/Components/MobileStats';
 
 export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
     const tt = useTermText();
@@ -114,29 +115,16 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                 <SellModuleTabs activeTab="recurring" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {!isStatsExpanded && (
-                        <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
-                            <div className="flex items-center gap-2">
-                                <span className="text-brand-600 dark:text-brand-400">Total: {stats.total}</span>
-                                <span className="text-neutral-300 dark:text-ink-secondary">|</span>
-                                <span className="text-emerald-600">Active: {stats.active}</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total', value: stats.total, tone: 'ink' },
+  { label: 'Active', value: stats.active, tone: 'emerald' },
+  { label: 'Paused', value: stats.paused, tone: 'amber' },
+  { label: 'Monthly Revenue', value: (stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0), tone: 'brand' }
+]} />
 
                 {/* Stats Cards Section - Compact Single Line */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Repeat size={16} />
@@ -145,7 +133,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         </div>
                         <p className="text-base font-bold text-ink">{stats.total}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Play size={16} />
@@ -154,7 +142,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         </div>
                         <p className="text-base font-bold text-emerald-600">{stats.active}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <Pause size={16} />
@@ -163,7 +151,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         </div>
                         <p className="text-base font-bold text-amber-600">{stats.paused}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <DollarSign size={16} />
@@ -225,7 +213,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
 
                 {/* Mobile Layout Header Area */}
                 <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
                         <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
                             Recurring Invoices
                         </h1>
@@ -397,7 +385,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                     {/* Mobile View - Cards List */}
                     <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
                         {filteredInvoices.length === 0 ? (
-                            <div className="bg-surface rounded-xl p-8 text-center border border-line">
+                            <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line">
                                 <Repeat size={32} className="mx-auto text-ink-muted mb-2" />
                                 <p className="text-sm font-bold text-ink-secondary">No recurring invoices found</p>
                             </div>

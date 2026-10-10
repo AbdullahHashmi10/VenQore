@@ -79,8 +79,8 @@ export default function BatchTracking({ batches, stats, filters }) {
                 <StockModuleTabs activeTab="batch" />
 
                 {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className="grid grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Package size={16} />
@@ -89,7 +89,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                         </div>
                         <p className="text-lg font-bold text-ink">{stats?.total_batches || 0}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <Clock size={16} />
@@ -98,7 +98,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                         </div>
                         <p className="text-lg font-bold text-amber-600">{stats?.expiring_soon || 0}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <AlertTriangle size={16} />
@@ -107,7 +107,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                         </div>
                         <p className="text-lg font-bold text-rose-600">{stats?.expired || 0}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Package size={16} />
@@ -282,7 +282,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="p-12">
+                                    <td colSpan={6} className="p-5 sm:p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
                                             <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
                                                 <Package size={28} className="text-ink-muted" />

@@ -393,7 +393,7 @@ export default function Home({ recentActivity = [], systemLogs = [] }) {
                                         return (
                                             <div
                                                 key={activity.id || i}
-                                                className="flex items-center justify-between p-4 rounded-xl bg-surface dark:bg-white/5 hover:bg-neutral-50 dark:hover:bg-white/10 border border-line dark:border-white/5 transition-colors group"
+                                                className="flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-xl bg-surface dark:bg-white/5 hover:bg-neutral-50 dark:hover:bg-white/10 border border-line dark:border-white/5 transition-colors group"
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div
@@ -453,7 +453,7 @@ export default function Home({ recentActivity = [], systemLogs = [] }) {
                                     {systemLogs.map((log, i) => (
                                         <div
                                             key={log.id || i}
-                                            className="flex items-center justify-between p-4 rounded-xl bg-surface dark:bg-white/5 hover:bg-neutral-50 dark:hover:bg-white/10 border border-line dark:border-white/5 transition-colors group"
+                                            className="flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-xl bg-surface dark:bg-white/5 hover:bg-neutral-50 dark:hover:bg-white/10 border border-line dark:border-white/5 transition-colors group"
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">

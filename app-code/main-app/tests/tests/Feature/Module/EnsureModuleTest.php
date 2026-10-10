@@ -54,7 +54,7 @@ class EnsureModuleTest extends VenQoreTestCase
             );
         }
 
-        $this->assertCount(46, ModuleService::allEnabled($tenant));
+        $this->assertCount(count(config('modules')), ModuleService::allEnabled($tenant));
     }
 
     #[Test]

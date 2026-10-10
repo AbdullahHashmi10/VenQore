@@ -68,7 +68,7 @@ export default function WidgetLibrary({ open, catalog, activeIds, onAdd, onClose
                 ].join(' ')}
             >
                 <header className="shrink-0 border-b border-line px-5 pb-3 pt-4">
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
                         <h2 className="text-base font-semibold text-ink">Add a card</h2>
                         <button
                             type="button"

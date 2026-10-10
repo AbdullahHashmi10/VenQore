@@ -13,6 +13,8 @@ use App\Services\Commerce\OnlinePricing;
 use App\Services\Commerce\OnsiteOrderService;
 use App\Services\Commerce\OrderService;
 use App\Services\Commerce\ProductReadiness;
+use App\Services\Commerce\OpeningHours;
+use App\Services\Commerce\StorefrontBadges;
 use App\Services\Commerce\StorefrontPresenter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,9 +64,11 @@ class PublicStoreController extends Controller
             'customer_name' => ['nullable', 'string', 'max:120'],
             'customer_note' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1', 'max:' . CheckoutService::MAX_LINES],
-            'items.*.item_id' => ['required', 'string', 'max:36', 'distinct'],
+            'items.*.item_id' => ['required', 'string', 'max:36'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY],
             'items.*.notes' => ['nullable', 'string', 'max:300'],
+            'items.*.mods' => ['nullable', 'array', 'max:20'],
+            'items.*.mods.*' => ['integer'],
         ]);
         $position = null;
         if (! empty($data['table_token'])) {
@@ -74,7 +78,7 @@ class PublicStoreController extends Controller
             abort_unless($store->counter_qr_enabled, 404);
         }
         try {
-            $result = $orders->place($store, $position, $data);
+            $result = $orders->place($store, $position, $data + ['client_ip' => (string) $request->ip()]);
         } catch (CommerceException $e) {
             return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason] + $e->payload, $e->httpStatus);
         }
@@ -85,9 +89,40 @@ class PublicStoreController extends Controller
         ], $result['replayed'] ? 200 : 201);
     }
 
+    /** What the guest sees after sending: where their order stands, from the table's own lines. */
+    public function onsiteOrderStatus(Request $request, string $slug, string $number, OnsiteOrderService $orders)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        abort_unless($store->isAcceptingOnsiteOrders(), 404);
+        $status = $orders->status($store, $number);
+        abort_unless($status, 404);
+
+        return response()->json($status)->header('Cache-Control', 'no-store');
+    }
+
+    /** "Call a waiter" / "Request the bill" from a table's own QR. */
+    public function onsiteCall(Request $request, string $slug, OnsiteOrderService $orders)
+    {
+        $store = Storefront::where('slug', $slug)->firstOrFail();
+        abort_unless($store->isAcceptingOnsiteOrders(), 404);
+        $data = $request->validate(['table_token' => ['required', 'string', 'size:40'], 'kind' => ['required', 'in:waiter,bill']]);
+        $position = Position::withoutGlobalScopes()->where('tenant_id', $store->tenant_id)->where('customer_order_token', $data['table_token'])
+            ->where('customer_ordering_enabled', 1)->firstOrFail();
+        try {
+            DB::transaction(fn () => $orders->call($store, $position, $data['kind']));
+        } catch (CommerceException $e) {
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason], $e->httpStatus);
+        }
+
+        return response()->json(['message' => $data['kind'] === 'bill' ? 'We will bring your bill shortly.' : 'A member of staff is on the way.']);
+    }
+
     private function published(string $slug): Storefront
     {
-        return Storefront::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        $store = Storefront::where('slug', $slug)->where('status', 'published')->firstOrFail();
+        abort_unless($store->moduleOn('online_store'), 404);
+
+        return $store;
     }
 
     /** An old slug 301s to the current one (printed QR codes and shared links keep working). */
@@ -100,23 +135,14 @@ class PublicStoreController extends Controller
 
     public function directory(Request $request)
     {
-        $countries = DB::table('commerce_countries')->where('is_active', 1)->orderBy('name')->get(['id', 'code', 'name']);
-        $country = $countries->firstWhere('code', strtoupper((string) $request->query('country'))) ?? ($countries->count() === 1 ? $countries->first() : null);
-        $cities = $country ? DB::table('commerce_cities')->where('country_id', $country->id)->where('is_active', 1)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'slug']) : collect();
-        $city = $country ? $cities->firstWhere('slug', (string) $request->query('city')) : null;
+        $u = $request->user();
+        $admin = $u && method_exists($u, 'isPlatformAdmin') && $u->isPlatformAdmin();
 
-        $stores = null;
-        if ($city) {
-            $page = Storefront::where('status', 'published')->where('city_id', $city->id)
-                ->orderBy('display_name')->orderBy('id')->paginate(12)->withQueryString();
-            $stores = [
-                'data' => collect($page->items())->map(fn ($s) => StorefrontPresenter::card($s))->values(),
-                'current' => $page->currentPage(), 'last' => $page->lastPage(), 'total' => $page->total(),
-            ];
-        }
-
-        return Inertia::render('Commerce/Directory', [
-            'countries' => $countries, 'country' => $country, 'cities' => $cities, 'city' => $city, 'stores' => $stores,
+        return Inertia::render('Commerce/Directory', app(\App\Services\Commerce\MarketplaceDirectory::class)->build($request) + [
+            'images' => \App\Http\Controllers\Commerce\PageImagesController::forMarketplace(),
+            // Platform admin on /shop?edit=1 gets Add photo on every marketplace photo spot.
+            'edit_photos' => $admin && $request->boolean('edit') ? ['upload' => route('superadmin.marketplace-images.upload'), 'remove' => route('superadmin.marketplace-images.remove'), 'back' => url('/shop')] : null,
+            'can_edit_photos' => $admin,
         ]);
     }
 
@@ -130,6 +156,9 @@ class PublicStoreController extends Controller
             $preview = true;
         } else {
             $store = Storefront::where('slug', $slug)->where('status', 'published')->first();
+            if ($store && ! $store->moduleOn('online_store')) {
+                $store = null;   // the business switched its Online Store module off
+            }
             if (! $store) {
                 if ($r = $this->movedSlug($slug)) {
                     return $r;
@@ -139,11 +168,13 @@ class PublicStoreController extends Controller
         }
         $q = trim((string) $request->query('q', ''));
         $cat = (string) $request->query('category', '');
+        // Each dish can be shown on the online store, on the QR menu, or both.
+        $chanCol = $request->attributes->get('onsite_context') ? 'sp.show_onsite' : 'sp.show_online';
         $base = fn () => DB::table('storefront_products as sp')
             ->join('products as p', function ($j) {
                 $j->on('p.id', '=', 'sp.product_id')->on('p.tenant_id', '=', 'sp.tenant_id');
             })
-            ->where('sp.storefront_id', $store->id)->where('sp.tenant_id', $store->tenant_id)->where('sp.is_published', 1)
+            ->where('sp.storefront_id', $store->id)->where('sp.tenant_id', $store->tenant_id)->where('sp.is_published', 1)->where($chanCol, 1)
             ->whereNull('p.deleted_at');
         $categories = $base()->join('categories as c', 'c.id', '=', 'p.category_id')
             ->groupBy('c.id', 'c.name')->orderBy('c.name')
@@ -153,7 +184,7 @@ class PublicStoreController extends Controller
             ->join('products as p', function ($j) {
                 $j->on('p.id', '=', 'sp.product_id')->on('p.tenant_id', '=', 'sp.tenant_id');
             })
-            ->where('sp.storefront_id', $store->id)->where('sp.tenant_id', $store->tenant_id)->where('sp.is_published', 1)
+            ->where('sp.storefront_id', $store->id)->where('sp.tenant_id', $store->tenant_id)->where('sp.is_published', 1)->where($chanCol, 1)
             ->whereNull('p.deleted_at')
             ->where(fn ($w) => $w->whereNull('sp.option_group')->orWhereRaw('sp.id = (select min(sp2.id) from storefront_products sp2 join products p2 on p2.id = sp2.product_id and p2.deleted_at is null where sp2.storefront_id = sp.storefront_id and sp2.option_group = sp.option_group and sp2.is_published = 1)'))
             ->when($cat !== '', fn ($w) => $w->where('p.category_id', $cat))
@@ -162,11 +193,12 @@ class PublicStoreController extends Controller
                 $x->where('p.name', 'like', $like)->orWhere('sp.public_name', 'like', $like);
             }))
             ->orderByDesc('sp.is_featured')->orderBy('sp.sort_order')->orderBy('p.name')->orderBy('sp.id')
-            ->select(['sp.is_featured', 'p.category_id', 'sp.id as listing_id', 'sp.public_name', 'sp.public_description', 'sp.override_price', 'sp.allow_below_cost', 'sp.product_id',
+            ->select(['sp.is_featured', 'p.category_id', 'sp.id as listing_id', 'sp.public_name', 'sp.public_name_ur', 'sp.diet_tags', 'sp.allergens', 'sp.public_description', 'sp.override_price', 'sp.allow_below_cost', 'sp.product_id',
                 'sp.offline_reserve_qty', 'sp.online_stock_limit',
                 'sp.image_path as listing_image', 'sp.option_group', 'sp.option_label', 'p.id', 'p.tenant_id', 'p.name', 'p.description', 'p.image_path', 'p.price', 'p.cost_price', 'p.tax_rate', 'p.price_includes_tax',
                 'p.base_unit', 'p.unit', 'p.is_active', 'p.type', 'p.has_variants', 'p.is_weighted', 'p.track_serial'])
-            ->paginate(24)->withQueryString();
+            // the QR menu is read top to bottom, so it is never split into pages
+            ->paginate($request->attributes->get('onsite_context') ? 400 : 24)->withQueryString();
 
         $pricing = app(OnlinePricing::class);
         $promos = app(\App\Services\Commerce\Promotions::class);
@@ -174,7 +206,8 @@ class PublicStoreController extends Controller
         $catNames = $categories->pluck('name', 'id');
         $stockSvc = app(\App\Services\Commerce\StockAvailability::class);
         $onsiteMode = (bool) $request->attributes->get('onsite_context');
-        $build = function ($r) use ($pricing, $store, $promos, $plan, $catNames, $stockSvc, $onsiteMode) {
+        $addOnMap = [];
+        $build = function ($r) use ($pricing, $store, $promos, $plan, $catNames, $stockSvc, $onsiteMode, &$addOnMap) {
             if (ProductReadiness::reason($r) !== null) {
                 return null;
             }
@@ -190,7 +223,8 @@ class PublicStoreController extends Controller
                     $price = $d;
                 }
             }
-            $rawLeft = $store->warehouse_id ? $stockSvc->available($store->tenant_id, $r->id, $store->warehouse_id) : null;
+            $rawLeft = ($store->warehouse_id && ! $stockSvc->sellsWithoutStock((int) $store->tenant_id, (string) $r->id))
+                ? $stockSvc->available($store->tenant_id, $r->id, $store->warehouse_id) : null;
             $left = null;
             if ($rawLeft !== null) {
                 $offline = (float) ($r->offline_reserve_qty ?? 0);
@@ -211,6 +245,9 @@ class PublicStoreController extends Controller
                 'was_price' => $was,
                 'id' => $r->listing_id,
                 'name' => $r->public_name ?: $r->name,
+                'name_alt' => $r->public_name_ur ?: null,
+                'tags' => array_values(array_filter(explode(',', (string) ($r->diet_tags ?? '')))),
+                'allergens' => $r->allergens ?: null,
                 'description' => $r->public_description ?: $r->description,
                 'image_url' => ($onsiteMode ? $store->onsite_show_images : $store->show_images)
                     ? ($onsiteMode && ($r->listing_image ?: $r->image_path) && ! preg_match('#^https?://#i', $r->listing_image ?: $r->image_path)
@@ -220,21 +257,26 @@ class PublicStoreController extends Controller
                 'price' => $price['online_price'],
                 'unit' => $r->base_unit ?: $r->unit,
                 'option_label' => $r->option_label,
+                'addons' => $addOnMap[$r->id] ?? [],
             ];
         };
-        $cols = ['sp.is_featured', 'p.category_id', 'sp.id as listing_id', 'sp.public_name', 'sp.public_description', 'sp.override_price', 'sp.allow_below_cost', 'sp.product_id',
+        $cols = ['sp.is_featured', 'p.category_id', 'sp.id as listing_id', 'sp.public_name', 'sp.public_name_ur', 'sp.diet_tags', 'sp.allergens', 'sp.public_description', 'sp.override_price', 'sp.allow_below_cost', 'sp.product_id',
             'sp.offline_reserve_qty', 'sp.online_stock_limit',
             'sp.image_path as listing_image', 'sp.option_group', 'sp.option_label', 'p.id', 'p.tenant_id', 'p.name', 'p.description', 'p.image_path', 'p.price', 'p.cost_price', 'p.tax_rate', 'p.price_includes_tax',
             'p.base_unit', 'p.unit', 'p.is_active', 'p.type', 'p.has_variants', 'p.is_weighted', 'p.track_serial'];
         $groups = collect($rows->items())->pluck('option_group')->filter()->unique()->values()->all();
         $sibRows = $groups ? DB::table('storefront_products as sp')
             ->join('products as p', fn ($j) => $j->on('p.id', '=', 'sp.product_id')->on('p.tenant_id', '=', 'sp.tenant_id'))
-            ->where('sp.storefront_id', $store->id)->where('sp.tenant_id', $store->tenant_id)->where('sp.is_published', 1)
+            ->where('sp.storefront_id', $store->id)->where('sp.tenant_id', $store->tenant_id)->where('sp.is_published', 1)->where($chanCol, 1)
             ->whereIn('sp.option_group', $groups)->whereNull('p.deleted_at')
             ->orderBy('sp.option_label')->orderBy('sp.id')->select($cols)->get()->groupBy('option_group') : collect();
         if ($store->warehouse_id) {
             $stockSvc->prime($store->tenant_id, $store->warehouse_id, array_merge(collect($rows->items())->pluck('id')->all(), $sibRows->flatten(1)->pluck('id')->all()));
         }
+        $addOnMap = app(\App\Services\Commerce\OnlineAddOns::class)->forProducts(
+            (int) $store->tenant_id,
+            collect($rows->items())->concat($sibRows->flatten(1))->mapWithKeys(fn ($r) => [(string) $r->id => $r->category_id])->all()
+        );
         $items = collect($rows->items())->map(function ($r) use ($build, $sibRows) {
             $item = $build($r);
             if (! $item || ! $r->option_group) {
@@ -243,7 +285,7 @@ class PublicStoreController extends Controller
             // every published option of this group, each priced and stocked as its own product
             $sibs = ($sibRows[$r->option_group] ?? collect())->map($build)->filter()->map(fn ($o) => [
                     'id' => $o['id'], 'label' => $o['option_label'] ?: $o['name'], 'price' => $o['price'], 'was_price' => $o['was_price'],
-                    'stock' => $o['stock'], 'left' => $o['left'], 'image_url' => $o['image_url'],
+                    'stock' => $o['stock'], 'left' => $o['left'], 'image_url' => $o['image_url'], 'addons' => $o['addons'] ?? [],
                 ])->values();
             $item['options'] = $sibs->count() > 1 ? $sibs : [];
             if ($sibs->count() > 1) {
@@ -251,6 +293,38 @@ class PublicStoreController extends Controller
             }
             return $item;
         })->filter()->values();
+
+        // Showcase (featured, best sellers, top categories, offers) on the shop's front page only.
+        $showcase = null;
+        if (! $request->attributes->get('onsite_context') && $q === '' && $cat === '' && (int) $request->query('page', 1) <= 1) {
+            $since = now()->subDays(90)->toDateTimeString();
+            $sold = DB::table('commerce_order_items as i')->join('commerce_orders as o', 'o.id', '=', 'i.order_id')
+                ->where('o.storefront_id', $store->id)->where('o.tenant_id', $store->tenant_id)->where('o.status', 'completed')->where('o.created_at', '>=', $since)
+                ->groupBy('i.product_id')->selectRaw('i.product_id as pid, SUM(i.quantity) as qty')->orderByDesc('qty')->limit(40)->get()->pluck('qty', 'pid');
+            $loose = fn () => $base()->whereNull('sp.option_group');
+            $featRows = $loose()->where('sp.is_featured', 1)->orderBy('sp.sort_order')->orderBy('p.name')->limit(8)->select($cols)->get();
+            $bestRows = $sold->isEmpty() ? collect() : $loose()->whereIn('p.id', $sold->keys()->all())->select($cols)->get()
+                ->sortByDesc(fn ($r) => $sold[$r->id] ?? 0)->take(8)->values();
+            $extra = $featRows->concat($bestRows);
+            if ($extra->isNotEmpty()) {
+                if ($store->warehouse_id) {
+                    $stockSvc->prime($store->tenant_id, $store->warehouse_id, $extra->pluck('id')->unique()->all());
+                }
+                $addOnMap = $addOnMap + app(\App\Services\Commerce\OnlineAddOns::class)->forProducts((int) $store->tenant_id, $extra->mapWithKeys(fn ($r) => [(string) $r->id => $r->category_id])->all());
+            }
+            $feat = $featRows->map($build)->filter()->values();
+            $best = $bestRows->map(fn ($r) => ($b = $build($r)) ? $b + ['sold' => (int) round($sold[$r->id] ?? 0)] : null)->filter()->values();
+            $catSold = $sold->isEmpty() ? collect() : DB::table('products')->whereIn('id', $sold->keys()->all())->where('tenant_id', $store->tenant_id)->pluck('category_id', 'id')
+                ->groupBy(fn ($c) => (string) $c)->map(fn ($g) => $g->keys()->sum(fn ($pid) => (float) ($sold[$pid] ?? 0)));
+            $topCats = $categories->sortByDesc(fn ($c) => ($catSold[(string) $c['id']] ?? 0) * 100000 + $c['count'])->take(8)->values()->map(function ($c) use ($loose) {
+                $img = $loose()->where('p.category_id', $c['id'])->whereRaw("coalesce(sp.image_path, p.image_path, '') <> ''")->orderByDesc('sp.is_featured')->value(DB::raw('coalesce(sp.image_path, p.image_path)'));
+                return $c + ['image_url' => $img ? StorefrontPresenter::mediaUrl($img) : null];
+            });
+            $showcase = [
+                'featured' => $feat, 'best_sellers' => $best, 'top_categories' => $topCats,
+                'offers' => $plan['auto']->map(fn ($pr) => ['name' => $pr->name, 'label' => rtrim(rtrim(number_format((float) $pr->percent, 1, '.', ''), '0'), '.') . '% off'])->values(),
+            ];
+        }
 
         $avgRating = StorefrontReview::where('storefront_id', $store->id)->avg('rating');
         $reviewCount = StorefrontReview::where('storefront_id', $store->id)->count();
@@ -325,16 +399,20 @@ class PublicStoreController extends Controller
                 'logo_url' => ($p = $store->onsite_logo_path ?: $store->logo_path) && ! preg_match('#^https?://#i', $p) ? '/storage/' . ltrim($p, '/') : StorefrontPresenter::mediaUrl($p),
                 'banner_url' => ($p = $store->onsite_banner_path ?: $store->banner_path) && ! preg_match('#^https?://#i', $p) ? '/storage/' . ltrim($p, '/') : StorefrontPresenter::mediaUrl($p),
                 'catalogue_theme' => $onsiteTheme,
-                'accepting_orders' => $store->isAcceptingOnsiteOrders(),
+                'accepting_orders' => $store->isAcceptingOnsiteOrders() && $store->onsiteHoldReason() === null,
+                'onsite_hold' => $store->onsiteHoldReason(),
+                'alt_lang' => $store->altLang(),
             ]);
         }
-        return Inertia::render('Commerce/Store', [
+        $page = $request->attributes->get('onsite_context') ? 'Commerce/OnsiteMenu' : 'Commerce/Store';
+        return Inertia::render($page, [
             'store' => $publicStore,
             'preview' => $preview,
             'items' => $items,
             'pagination' => ['current' => $rows->currentPage(), 'last' => $rows->lastPage(), 'total' => $rows->total()],
             'limits' => ['max_qty' => CheckoutService::MAX_QTY],
             'categories' => $categories,
+            'showcase' => $showcase,
             'filters' => ['q' => $q, 'category' => $cat],
             'show_images' => $request->attributes->get('onsite_context') ? (bool) $store->onsite_show_images : (bool) $store->show_images,
             'has_coupons' => $promos->live($store)->contains(fn ($p) => $p->code !== null),
@@ -352,7 +430,7 @@ class PublicStoreController extends Controller
     {
         $store = $this->published($slug);
         abort_if(($store->customer_mode ?: 'ordering') === 'catalogue', 404);
-        $data = $request->validate(['items' => ['required', 'array', 'max:' . CheckoutService::MAX_LINES], 'items.*.item_id' => ['required', 'string', 'max:36'], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY], 'fulfilment' => ['nullable', 'in:pickup,delivery'], 'delivery_zone' => ['nullable', 'string', 'max:120'], 'coupon' => ['nullable', 'string', 'max:40']]);
+        $data = $request->validate(['items' => ['required', 'array', 'max:' . CheckoutService::MAX_LINES], 'items.*.item_id' => ['required', 'string', 'max:36'], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY], 'items.*.mods' => ['nullable', 'array', 'max:20'], 'items.*.mods.*' => ['integer'], 'items.*.notes' => ['nullable', 'string', 'max:200'], 'fulfilment' => ['nullable', 'in:pickup,delivery'], 'delivery_zone' => ['nullable', 'string', 'max:120'], 'coupon' => ['nullable', 'string', 'max:40']]);
         try {
             $q = $this->checkout->quote($store, $data['items'], $data['fulfilment'] ?? 'pickup', ['zone' => $data['delivery_zone'] ?? null, 'coupon' => $data['coupon'] ?? null]);
         } catch (CommerceException $e) {
@@ -382,6 +460,9 @@ class PublicStoreController extends Controller
             'items' => ['required', 'array', 'min:1', 'max:' . CheckoutService::MAX_LINES],
             'items.*.item_id' => ['required', 'string', 'max:36'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY],
+            'items.*.mods' => ['nullable', 'array', 'max:20'],
+            'items.*.mods.*' => ['integer'],
+            'items.*.notes' => ['nullable', 'string', 'max:200'],
         ]);
         // bot check: a filled honeypot or a checkout submitted within 3 seconds of opening is not a person
         if (! empty($data['company_site']) || (! empty($data['opened_at']) && (now()->getTimestampMs() - (int) $data['opened_at']) < 3000 && (now()->getTimestampMs() - (int) $data['opened_at']) >= 0)) {
@@ -425,9 +506,10 @@ class PublicStoreController extends Controller
                 'bank_receipt_url' => $order->bank_receipt_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($order->bank_receipt_path) : null,
                 'discount_total' => $order->discount_total, 'promo_name' => $order->promo_name, 'promo_code' => $order->promo_code,
                 'estimated_ready_at' => $estimatedReadyAt,
-                'items' => $order->items()->get(['title', 'quantity', 'online_price', 'line_total'])->map(fn ($i) => $i->only(['title', 'quantity', 'online_price', 'line_total'])),
+                'items' => $order->items()->get(['title', 'quantity', 'online_price', 'line_total', 'mods', 'notes'])->map(fn ($i) => $i->only(['title', 'quantity', 'online_price', 'line_total', 'mods', 'notes'])),
             ],
             'events' => $publicEvents,
+            'rider' => $this->riderFor($order),
             'store' => ['name' => $store->display_name, 'phone' => $store->phone, 'address' => $store->address_line, 'slug' => $store->slug,
                 'bank_instructions' => ($order->payment_method === 'bank' && $order->payment_status !== 'collected') ? $store->bank_instructions : null],
             'history' => $order->purged_at ? [] : DB::table('commerce_orders')->where('storefront_id', $order->storefront_id)->where('customer_phone', $order->customer_phone)
@@ -460,6 +542,36 @@ class PublicStoreController extends Controller
         return $resp;
     }
 
+    /**
+     * Who is bringing a delivery order, once a rider is assigned and until it is delivered:
+     * first name, optional photo, phone to call and vehicle. Nothing for pickup orders.
+     */
+    private function riderFor($order): ?array
+    {
+        if ($order->fulfilment !== 'delivery' || ! \Illuminate\Support\Facades\Schema::hasTable('commerce_deliveries')) {
+            return null;
+        }
+        $d = DB::table('commerce_deliveries')->where('order_id', $order->id)->whereNotNull('rider_id')
+            ->whereIn('status', ['assigned', 'accepted', 'collected', 'out_for_delivery', 'delivered'])->orderByDesc('updated_at')->first();
+        if (! $d) {
+            return null;
+        }
+        $cols = \Illuminate\Support\Facades\Schema::hasColumn('employees', 'rider_photo_path') ? ['name', 'rider_photo_path', 'rider_phone', 'rider_vehicle'] : ['name'];
+        $e = DB::table('employees')->where('id', $d->rider_id)->first($cols);
+        if (! $e) {
+            return null;
+        }
+
+        return [
+            'key' => $d->id . ':' . $d->status,
+            'name' => trim(explode(' ', (string) $e->name)[0]) ?: 'Your rider',
+            'photo_url' => ($e->rider_photo_path ?? null) ? StorefrontPresenter::mediaUrl($e->rider_photo_path) : null,
+            'phone' => $d->status === 'delivered' ? null : ($e->rider_phone ?? null),
+            'vehicle' => $e->rider_vehicle ?? null,
+            'stage' => $d->status,
+        ];
+    }
+
     /** Small polling response used by the customer's open status screen. */
     public function liveStatus(string $token)
     {
@@ -471,6 +583,7 @@ class PublicStoreController extends Controller
             'status' => $order->status,
             'payment_status' => $order->payment_status,
             'estimated_ready_at' => $this->estimatedReadyAt($order, $store),
+            'rider_key' => ($r = $this->riderFor($order)) ? $r['key'] : null,
         ])->withHeaders([
             'Cache-Control' => 'no-store, private',
             'X-Robots-Tag' => 'noindex, nofollow, noarchive',
@@ -558,7 +671,7 @@ class PublicStoreController extends Controller
     private function publicQuote(array $q): array
     {
         return [
-            'items' => collect($q['items'])->map(fn ($i) => ['item_id' => $i['item_id'], 'title' => $i['title'], 'quantity' => $i['quantity'], 'price' => $i['online_price'], 'line_total' => $i['line_total']])->values(),
+            'items' => collect($q['items'])->map(fn ($i) => ['item_id' => $i['item_id'], 'title' => $i['title'], 'quantity' => $i['quantity'], 'price' => $i['online_price'], 'line_total' => $i['line_total'], 'mods' => $i['mods'] ?? []])->values(),
             'subtotal' => $q['subtotal'], 'tax_total' => $q['tax_total'], 'delivery_fee' => $q['delivery_fee'], 'total' => $q['total'],
             'currency_symbol' => $q['currency_symbol'],
             'discount_total' => $q['discount_total'], 'promo_name' => $q['promo_name'], 'promo_code' => $q['promo_code'],
@@ -571,12 +684,13 @@ class PublicStoreController extends Controller
     {
         $order = $this->orderByToken($token);
         $store = Storefront::find($order->storefront_id);
-        abort_unless($store && $store->status === 'published', 404);
+        abort_unless($store && $store->isVisible(), 404);
         $lines = DB::table('commerce_order_items as i')
             ->join('storefront_products as sp', fn ($j) => $j->on('sp.product_id', '=', 'i.product_id')->where('sp.storefront_id', $store->id)->where('sp.is_published', 1))
             ->where('i.order_id', $order->id)
-            ->get(['sp.id as item_id', 'i.quantity', 'i.title'])
-            ->map(fn ($l) => ['item_id' => $l->item_id, 'quantity' => (int) max(1, min(CheckoutService::MAX_QTY, $l->quantity)), 'title' => $l->title]);
+            ->get(['sp.id as item_id', 'i.quantity', 'i.title', 'i.mods'])
+            ->map(fn ($l) => ['item_id' => $l->item_id, 'quantity' => (int) max(1, min(CheckoutService::MAX_QTY, $l->quantity)), 'title' => $l->title,
+                'mods' => collect(json_decode((string) $l->mods, true) ?: [])->map(fn ($m) => ['id' => $m['id'], 'name' => $m['name'], 'price_delta' => $m['price_delta'] ?? 0])->values()->all()]);
         $resp = response()->json(['slug' => $store->slug, 'lines' => $lines, 'skipped' => max(0, $order->items()->count() - $lines->count())]);
         $resp->headers->set('Cache-Control', 'no-store, private');
         return $resp;

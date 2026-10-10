@@ -52,7 +52,7 @@ function AddConnectionModal({ storeSlug, onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md border border-line">
-                <div className="flex items-center justify-between p-5 border-b border-line">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 p-5 border-b border-line">
                     <div>
                         <h2 className="font-bold text-ink">Add WooCommerce Connection</h2>
                         <p className="text-xs text-ink-muted mt-0.5">$10/month per connection, billed to your store.</p>

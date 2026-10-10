@@ -63,7 +63,7 @@ export default function CashDrawerCountSheet({
 
     return (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 text-slate-100">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 pb-3 mb-3 border-b border-slate-800">
                 <div className="flex items-center space-x-2">
                     <Calculator className="w-5 h-5 text-indigo-400" />
                     <span className="font-semibold text-sm tracking-wide text-slate-200">
@@ -91,7 +91,7 @@ export default function CashDrawerCountSheet({
                     return (
                         <div
                             key={d.value}
-                            className="flex items-center justify-between bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 hover:border-slate-600 transition"
+                            className="flex flex-wrap items-center justify-between gap-y-2 bg-slate-800/60 border border-slate-700/50 rounded-lg p-2 hover:border-slate-600 transition"
                         >
                             <div className="flex items-center space-x-2 w-32">
                                 {d.isNote ? (

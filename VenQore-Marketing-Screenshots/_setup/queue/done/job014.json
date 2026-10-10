@@ -1,0 +1,1 @@
+{"id":"dash-prev","themes":["light"],"scenarios":[{"folder":"_explore","steps":[{"goto":"/s/{slug}/dashboard","wait":8000},{"preview":"classic-v2"}]}]}

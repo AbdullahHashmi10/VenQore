@@ -320,10 +320,22 @@ export default function AdminDashboard({
                     animation: vq-shine-sweep 3.5s linear infinite;
                     display: inline-block;
                 }
+                /* Phone / tablet: the desktop board is a fixed-height two-column
+                   canvas. Below 1024px it becomes one scrolling column. Desktop
+                   is untouched: nothing here applies above that width. */
+                @media (max-width: 1023px) {
+                    .exec-wrap { flex-direction: column !important; height: auto !important; min-height: 100%; overflow: visible !important; padding: 12px !important; padding-bottom: 96px !important; }
+                    .exec-main { flex: none !important; overflow: visible !important; }
+                    .exec-g3 { grid-template-columns: 1fr !important; }
+                    .exec-charts { grid-template-columns: 1fr !important; grid-template-rows: none !important; flex: none !important; overflow: visible !important; }
+                    .exec-charts > * { min-height: 260px; }
+                    .exec-side { width: 100% !important; height: auto !important; flex: none !important; overflow: visible !important; }
+                    .exec-feed { max-height: 360px; flex: none !important; }
+                }
 `}</style>
 
             {/* ═══ PAGE WRAPPER ═══ */}
-            <div style={{
+            <div className="exec-wrap" style={{
                 display: 'flex', gap: '14px', height: '100%', width: '100%',
                 padding: '14px 18px', overflow: 'hidden', boxSizing: 'border-box',
                 fontFamily: 'var(--vq-font-sans)',
@@ -331,7 +343,7 @@ export default function AdminDashboard({
             }}>
 
                 {/* ═══ LEFT + CENTRE ═══ */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, overflow: 'hidden' }}>
+                <div className="exec-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', minWidth: 0, overflow: 'hidden' }}>
 
                     {/* ── Page header ── */}
                     <div className="exec-fade" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -366,7 +378,7 @@ export default function AdminDashboard({
                     </div>
 
                     {/* ── TOP KPI ROW ── */}
-                    <div className="exec-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', flexShrink: 0 }}>
+                    <div className="exec-fade exec-g3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', flexShrink: 0 }}>
                         {/* Pending Actions */}
                         <Link href={route('store.reports.low-stock', { store_slug: store.slug })} style={{ textDecoration: 'none', display: 'block' }}>
                             <Card style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', cursor: 'pointer' }}>
@@ -429,7 +441,7 @@ export default function AdminDashboard({
                     </div>
 
                     {/* ── CHARTS GRID ── */}
-                    <div className="exec-fade" style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '3fr 2fr', gridTemplateRows: '1fr 1fr', gap: '12px', overflow: 'hidden' }}>
+                    <div className="exec-fade exec-charts" style={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: '3fr 2fr', gridTemplateRows: '1fr 1fr', gap: '12px', overflow: 'hidden' }}>
 
                         {/* Purchases Trend — top left */}
                         <Card hover={false} pad="16px 18px" style={{ display: 'flex', flexDirection: 'column' }}>
@@ -559,7 +571,7 @@ export default function AdminDashboard({
                     </div>
 
                     {/* ── BOTTOM KPI ROW ── */}
-                    <div className="exec-fade" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', flexShrink: 0 }}>
+                    <div className="exec-fade exec-g3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px', flexShrink: 0 }}>
                         <Card pad="14px 18px">
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -595,7 +607,7 @@ export default function AdminDashboard({
                 </div>
 
                 {/* ═══ RIGHT PANEL — LaserFlow backlit hero + feed ═══ */}
-                <div style={{
+                <div className="exec-side" style={{
                     width: '286px', flexShrink: 0, height: '100%',
                     display: 'flex', flexDirection: 'column', gap: '10px',
                     overflow: 'hidden',
@@ -717,7 +729,7 @@ export default function AdminDashboard({
                                 View All
                             </Link>
                         </div>
-                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+                        <div className="exec-feed" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
                             {recentActivity.length > 0 ? recentActivity.map((act, i) => (
                                 <ActivityRow key={i} act={act} />
                             )) : (

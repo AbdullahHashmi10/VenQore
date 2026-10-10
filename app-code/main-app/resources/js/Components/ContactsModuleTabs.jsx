@@ -100,7 +100,7 @@ export default function ContactsModuleTabs({ activeTab }) {
     return (
         <div className="flex flex-col gap-1 shrink-0">
             {/* Mobile Header Toggle Bar - Visible on mobile/tablet, hidden on lg */}
-            <div className="lg:hidden flex items-center justify-between bg-surface border border-line p-2.5 rounded-xl shadow-sm">
+            <div className="lg:hidden flex flex-wrap items-center justify-between gap-y-2 bg-surface border border-line p-2.5 rounded-xl shadow-sm">
                 <div className="flex items-center gap-2">
                     <Handshake size={16} className="text-brand-500" />
                     <span className="text-xs font-bold text-ink-muted uppercase tracking-tight">

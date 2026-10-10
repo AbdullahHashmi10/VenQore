@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Home,
@@ -39,7 +39,10 @@ import {
     Sparkles,
     Globe,
     Circle,
+    Plus,
+    Settings,
 } from 'lucide-react';
+import PhoneActionMenu from '@/Components/PhoneActionMenu';
 import { cn } from '@/lib/utils';
 import { useTermText } from '@/lib/terms';
 
@@ -132,6 +135,8 @@ export default function BottomNavBar({
         // Fallback
     }
 
+    const [actionsOpen, setActionsOpen] = useState(false);
+
     // Explicit hide
     if (hide) return null;
 
@@ -167,154 +172,32 @@ export default function BottomNavBar({
         return '#';
     };
 
-    // Build items up to 5 slots max
+    // Fixed phone nav: Dashboard · Contacts · [+ actions] · Stock · Settings
+    const has = (m) => !Array.isArray(modules) || modules.includes(m);
     const items = [];
+    const isUrl = (frag) => path.includes(frag);
 
-    if (Array.isArray(rawMobileNav) && rawMobileNav.length > 0) {
-        // Dynamic server-resolved MobileNav
-        for (const navItem of rawMobileNav) {
-            const isItemHome = navItem.id === 'home';
-            const isItemMore = navItem.id === 'more';
-            const IconComponent = ICON_MAP[navItem.icon] || (isItemHome ? Home : (isItemMore ? Menu : Circle));
-
-            let href = '#';
-            let isActive = false;
-
-            if (isItemHome) {
-                href = storeSlug
-                    ? resolveRoute(navItem.route || 'store.dashboard', { store_slug: storeSlug })
-                    : resolveRoute(navItem.route || 'dashboard');
-                isActive =
-                    propActiveItem === 'home' ||
-                    isRouteActive('store.dashboard') ||
-                    isRouteActive('store.home') ||
-                    isRouteActive('store.new-dashboard') ||
-                    isRouteActive('dashboard') ||
-                    path === '/' ||
-                    path.endsWith('/dashboard');
-            } else if (isItemMore) {
-                href = null;
-                isActive = propActiveItem === 'more';
-            } else {
-                href = storeSlug
-                    ? resolveRoute(navItem.route, { store_slug: storeSlug })
-                    : resolveRoute(navItem.route);
-                isActive =
-                    propActiveItem === navItem.id ||
-                    (navItem.route && isRouteActive(navItem.route + '*')) ||
-                    (navItem.module && path.includes('/' + navItem.module));
-            }
-
-            items.push({
-                id: navItem.id,
-                label: tt(navItem.label),
-                href,
-                icon: IconComponent,
-                isActive,
-                isAction: isItemMore,
-                onClick: isItemMore ? onOpenMore : undefined,
-                ariaLabel: isItemMore ? tt('Open navigation menu') : undefined,
-            });
-        }
-    } else {
-        // Client fallback when mobileNav prop is absent (e.g. isolated test environments)
-        const hasModule = (name) => !Array.isArray(modules) || modules.includes(name);
-
-        const isHomeActive =
-            propActiveItem === 'home' ||
-            isRouteActive('store.dashboard') ||
-            isRouteActive('store.home') ||
-            isRouteActive('store.new-dashboard') ||
-            isRouteActive('dashboard') ||
-            path === '/' ||
-            path.endsWith('/dashboard');
-
-        items.push({
-            id: 'home',
-            label: tt('Home'),
-            href: storeSlug
-                ? resolveRoute('store.dashboard', { store_slug: storeSlug })
-                : resolveRoute('dashboard'),
-            icon: Home,
-            isActive: isHomeActive,
-        });
-
-        if (hasModule('pos')) {
-            const isPosActive =
-                propActiveItem === 'sell' ||
-                isRouteActive('store.pos*') ||
-                path.includes('/pos');
-            items.push({
-                id: 'sell',
-                label: tt('Sell'),
-                href: storeSlug ? resolveRoute('store.pos', { store_slug: storeSlug }) : '/pos',
-                icon: ShoppingCart,
-                isActive: isPosActive,
-            });
-        } else if (hasModule('invoicing')) {
-            const isInvoiceActive =
-                propActiveItem === 'sell' ||
-                isRouteActive('store.sales.*') ||
-                isRouteActive('store.orders.*') ||
-                path.includes('/sales');
-            items.push({
-                id: 'sell',
-                label: tt('Sell'),
-                href: storeSlug
-                    ? resolveRoute('store.sales.invoice.create', { store_slug: storeSlug })
-                    : '#',
-                icon: ShoppingCart,
-                isActive: isInvoiceActive,
-            });
-        }
-
-        if (hasModule('products') || hasModule('inventory')) {
-            const isStockActive =
-                propActiveItem === 'stock' ||
-                isRouteActive('store.inventory.*') ||
-                isRouteActive('store.products.*') ||
-                path.includes('/inventory') ||
-                path.includes('/products');
-            items.push({
-                id: 'stock',
-                label: tt('Stock'),
-                href: storeSlug
-                    ? resolveRoute('store.inventory.index', { store_slug: storeSlug })
-                    : resolveRoute('store.products.index', { store_slug: storeSlug }),
-                icon: Box,
-                isActive: isStockActive,
-            });
-        }
-
-        if (hasModule('customers') || hasModule('suppliers')) {
-            const isContactsActive =
-                propActiveItem === 'contacts' ||
-                isRouteActive('store.customers.*') ||
-                isRouteActive('store.suppliers.*') ||
-                path.includes('/customers') ||
-                path.includes('/suppliers');
-            const contactsHref = hasModule('customers')
-                ? (storeSlug ? resolveRoute('store.customers.index', { store_slug: storeSlug }) : '#')
-                : (storeSlug ? resolveRoute('store.suppliers.index', { store_slug: storeSlug }) : '#');
-            items.push({
-                id: 'contacts',
-                label: tt('Contacts'),
-                href: contactsHref,
-                icon: Users,
-                isActive: isContactsActive,
-            });
-        }
-
-        items.push({
-            id: 'more',
-            label: tt('More'),
-            isAction: true,
-            onClick: onOpenMore,
-            icon: Menu,
-            isActive: propActiveItem === 'more',
-            ariaLabel: tt('Open navigation menu'),
-        });
-    }
+    items.push({
+        id: 'home', label: tt('Dashboard'), icon: Home,
+        href: storeSlug ? resolveRoute('store.dashboard', { store_slug: storeSlug }) : resolveRoute('dashboard'),
+        isActive: propActiveItem === 'home' || isRouteActive('store.dashboard') || isRouteActive('store.new-dashboard') || path.endsWith('/dashboard'),
+    });
+    items.push({
+        id: 'contacts', label: tt('Contacts'), icon: Users,
+        href: storeSlug ? resolveRoute(has('customers') ? 'store.customers.index' : 'store.suppliers.index', { store_slug: storeSlug }) : '#',
+        isActive: isUrl('/customers') || isUrl('/suppliers') || isUrl('/parties'),
+    });
+    items.push({ id: 'actions', label: tt('Actions'), icon: Plus, isAction: true, isPrimary: true, onClick: () => setActionsOpen(true), ariaLabel: tt('Open quick actions') });
+    items.push({
+        id: 'stock', label: tt('Stock'), icon: Package,
+        href: storeSlug ? resolveRoute('store.inventory.index', { store_slug: storeSlug }) : '#',
+        isActive: isUrl('/inventory') || isUrl('/stock') || isUrl('/categories') || isUrl('/attributes') || isUrl('/labels') || isUrl('/warehouses') || isUrl('/batches') || isUrl('/serials') || isUrl('/production') || isUrl('/cookbook'),
+    });
+    items.push({
+        id: 'settings', label: tt('Settings'), icon: Settings, 
+        href: storeSlug ? resolveRoute('store.settings', { store_slug: storeSlug }) : '#',
+        isActive: isUrl('/settings'),
+    });
 
     // Part C: If fewer than 3 items resolve, render nothing
     if (items.length < 3) {
@@ -322,6 +205,8 @@ export default function BottomNavBar({
     }
 
     return (
+        <>
+        <PhoneActionMenu isOpen={actionsOpen} onClose={() => setActionsOpen(false)} />
         <nav
             aria-label={tt('Mobile navigation')}
             className={cn(
@@ -354,6 +239,20 @@ export default function BottomNavBar({
                             </span>
                         </>
                     );
+
+                    if (item.isPrimary) {
+                        return (
+                            <button
+                                key={item.id}
+                                type="button"
+                                onClick={item.onClick}
+                                aria-label={item.ariaLabel || item.label}
+                                className="relative -mt-5 h-14 w-14 shrink-0 rounded-full bg-gradient-brand text-white shadow-lg ring-4 ring-[var(--vq-bg)] flex items-center justify-center active:scale-95 transition-transform"
+                            >
+                                <Plus size={28} strokeWidth={2.4} />
+                            </button>
+                        );
+                    }
 
                     const commonClasses = cn(
                         "relative flex items-center justify-center min-h-[44px] min-w-[44px] px-3 py-2 rounded-full transition-all duration-normal text-xs font-medium select-none outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50",
@@ -390,5 +289,6 @@ export default function BottomNavBar({
                 })}
             </div>
         </nav>
+        </>
     );
 }

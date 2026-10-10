@@ -229,7 +229,7 @@ export default function RestaurantRiders({
             <OneGlanceLayout>
                 <Head title="Delivery Riders — Feature Disabled" />
                 <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
-                    <div className="flex items-center justify-between pb-4 border-b border-line">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400">
                                 <Bike size={24} />
@@ -313,7 +313,7 @@ export default function RestaurantRiders({
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                             <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Total Riders</span>
                             <span className="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400"><Bike size={16} /></span>
                         </div>
@@ -322,7 +322,7 @@ export default function RestaurantRiders({
                     </div>
 
                     <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                             <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Active On Duty</span>
                             <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={16} /></span>
                         </div>
@@ -331,7 +331,7 @@ export default function RestaurantRiders({
                     </div>
 
                     <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                             <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Out on Delivery</span>
                             <span className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"><Clock size={16} /></span>
                         </div>
@@ -340,7 +340,7 @@ export default function RestaurantRiders({
                     </div>
 
                     <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                             <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Seat Licenses</span>
                             <span className="p-2 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"><ShieldCheck size={16} /></span>
                         </div>
@@ -547,7 +547,7 @@ export default function RestaurantRiders({
             {addModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="w-full max-w-md bg-surface border border-line rounded-3xl p-6 shadow-2xl relative">
-                        <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line mb-4">
                             <div className="flex items-center gap-2.5">
                                 <div className="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400">
                                     <Bike size={20} />
@@ -663,7 +663,7 @@ export default function RestaurantRiders({
             {editRider && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
                     <div className="w-full max-w-md bg-surface border border-line rounded-3xl p-6 shadow-2xl relative">
-                        <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line mb-4">
                             <div className="flex items-center gap-2.5">
                                 <div className="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400">
                                     <Edit3 size={20} />

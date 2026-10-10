@@ -59,6 +59,12 @@ class SaleReversalService
     public function reverse(Sale $sale, string $type, string $reason, string $userId): array
     {
         // ─── Guard: Only posted (or partly returned) sales can be reversed ────
+        // Re-read the status UNDER A ROW LOCK: two cancellations of the same sale
+        // arriving together must not both pass the check and reverse it twice.
+        $lockedStatus = DB::table('sales')->where('id', $sale->id)->lockForUpdate()->value('status');
+        if ($lockedStatus !== null) {
+            $sale->status = $lockedStatus;
+        }
         if (!in_array($sale->status, ['posted', 'partially_returned'], true)) {
             throw new \RuntimeException(
                 "Cannot reverse Sale {$sale->reference_number}: " .
@@ -139,6 +145,17 @@ class SaleReversalService
             ]);
         } else {
             Log::warning("SaleReversalService: No journal entry found for {$sale->reference_number}. Stock will still be restored.");
+        }
+
+        // Deliver-later sales book their cost of goods when goods are dispatched,
+        // as separate entries. Undo those too, or the books keep a cost for
+        // stock that has just been put back.
+        $dispatchEntries = JournalEntry::where('reference_type', 'sale_dispatch')
+            ->where('reference', $sale->id)
+            ->where('is_reversed', 0)
+            ->get();
+        foreach ($dispatchEntries as $de) {
+            app(\App\Engines\AccountingService::class)->reverseEntry($de->id, "[{$type}] Reversal of dispatch cost for {$sale->reference_number}: {$reason}");
         }
 
         // ─── Step 1.5: Create Proportional Counter-Balancing Payments ─────────
@@ -226,7 +243,10 @@ class SaleReversalService
             } else {
                 // No FIFO records — this item predates the FIFO engine.
                 // Fall back to simple stock counter restoration.
-                $this->restoreStockSimple($saleItem);
+                // A deliver-later line that was never dispatched has nothing to put back.
+                if (empty($sale->stock_at_dispatch)) {
+                    $this->restoreStockSimple($saleItem);
+                }
             }
         }
 

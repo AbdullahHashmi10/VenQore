@@ -68,11 +68,11 @@ export default function BlogPostsIndex({ posts = [] }) {
     };
 
     return (
-        <div className="min-h-screen bg-neutral-950 text-neutral-100 p-8">
+        <div className="min-h-screen bg-neutral-950 text-neutral-100 p-4 sm:p-8">
             <Head title="SuperAdmin — Blog Engine" />
 
             <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between mb-8 pb-6 border-b border-neutral-800">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-8 pb-6 border-b border-neutral-800">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
                             <BookOpen className="text-brand-500" size={32} />
@@ -91,7 +91,7 @@ export default function BlogPostsIndex({ posts = [] }) {
                 {/* Form Drawer / Modal */}
                 {(isCreating || editingPost) && (
                     <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 mb-8 shadow-2xl">
-                        <div className="flex items-center justify-between pb-4 border-b border-neutral-800 mb-6">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-neutral-800 mb-6">
                             <h2 className="text-xl font-bold text-white">
                                 {editingPost ? `Edit Post: ${editingPost.title}` : 'Create New Blog Post'}
                             </h2>
@@ -206,7 +206,7 @@ export default function BlogPostsIndex({ posts = [] }) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-4">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 pt-4">
                                 <label className="flex items-center gap-3 cursor-pointer">
                                     <input
                                         type="checkbox"
@@ -254,7 +254,7 @@ export default function BlogPostsIndex({ posts = [] }) {
                         <tbody className="divide-y divide-neutral-800/60 text-sm">
                             {posts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-ink-muted">
+                                    <td colSpan={6} className="p-4 sm:p-8 text-center text-ink-muted">
                                         No blog posts found. Click "New Blog Post" to publish one.
                                     </td>
                                 </tr>

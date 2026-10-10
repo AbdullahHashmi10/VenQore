@@ -47,7 +47,7 @@ export default function Promotions({ store, promotions, categories, urls }) {
                 <ul className="grid sm:grid-cols-2 xl:grid-cols-3 gap-1">
                     {promotions.map((p) => (
                         <li key={p.id} className={`relative flex flex-col overflow-hidden rounded-xl border bg-surface shadow-sm ${p.state === 'live' ? 'border-brand-200 dark:border-brand-800' : 'border-line'}`}>
-                            <div className={`flex items-center justify-between gap-3 px-4 py-3 ${p.state === 'live' ? 'bg-gradient-to-r from-brand-600 to-brand-700 text-white' : 'bg-sunken text-ink'}`}>
+                            <div className={`flex flex-wrap items-center justify-between gap-y-2 gap-3 px-4 py-3 ${p.state === 'live' ? 'bg-gradient-to-r from-brand-600 to-brand-700 text-white' : 'bg-sunken text-ink'}`}>
                                 <span className="text-2xl font-extrabold tracking-tight">{p.kind === 'amount' ? `${store.currency_symbol} ${Number(p.amount).toLocaleString()}` : `${Number(p.percent)}%`}<span className="ml-1 text-sm font-semibold opacity-80">off</span></span>
                                 <Pill tone={p.state === 'live' ? 'bg-white/20 text-white' : STATE[p.state][1]}>{STATE[p.state][0]}</Pill>
                             </div>

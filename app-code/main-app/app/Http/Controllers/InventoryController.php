@@ -110,6 +110,21 @@ class InventoryController extends Controller
             ->with(['category.modifierGroups', 'brand', 'images', 'variants', 'barcodes', 'modifierGroups.modifiers', 'requiredTools'])
             ->whereNull('deleted_at');
 
+        // Module truth (2026-10-10): a store with Services switched off must not list
+        // services, and a store with Products off must not list products. The page
+        // used to show both regardless of the module switches.
+        $enabledModules = \App\Services\ModuleService::allVisible(app('current.tenant'), $request->user());
+        $hasProducts = in_array('products', $enabledModules, true);
+        $hasServices = in_array('services', $enabledModules, true);
+        $scopeByModule = function ($q) use ($hasProducts, $hasServices) {
+            if ($hasProducts && !$hasServices) {
+                $q->where(fn ($w) => $w->where('products.type', '!=', 'service')->orWhereNull('products.type'));
+            } elseif ($hasServices && !$hasProducts) {
+                $q->where('products.type', 'service');
+            }
+        };
+        $scopeByModule($query);
+
         if ($request->filled('category_id') && $request->category_id !== 'all') {
             $query->where('category_id', $request->category_id);
         }
@@ -132,6 +147,9 @@ class InventoryController extends Controller
                 }
             });
         }
+
+        // Per-column filters (header filter popovers on the list page)
+        $this->applyColumnFilters($query, $request->input('col_filters'), $tenantId);
 
         // Global Sorting
         $sortBy = $request->input('sort_by', 'name');
@@ -346,9 +364,18 @@ class InventoryController extends Controller
 
         return Inertia::render('Inventory/InventoryList', [
             'products' => $products,
-            'filters' => $request->only(['search', 'category_id']),
+            'filters' => $request->only(['search', 'category_id', 'col_filters']),
             'stats' => [
-                'total_products' => $products->total(),
+                // Unfiltered, module-scoped counts — they used to follow the search/filter box.
+                'total_products' => tap(Product::query()->whereNull('deleted_at'), $scopeByModule)->count(),
+                'total_services' => tap(Product::query()->whereNull('deleted_at'), $scopeByModule)->where('products.type', 'service')->count(),
+                'avg_service_rate' => (float) tap(Product::query()->whereNull('deleted_at'), $scopeByModule)->where('products.type', 'service')->avg('products.price'),
+                'out_of_stock_count' => ($isStockEnabled && $hasProducts)
+                    ? tap(Product::query()->whereNull('deleted_at'), $scopeByModule)
+                        ->where(fn ($w) => $w->where('products.type', '!=', 'service')->orWhereNull('products.type'))
+                        ->whereRaw('(' . $this->stockOnHandSql() . ') = 0', [$tenantId, $tenantId])
+                        ->count()
+                    : 0,
                 'stock_maintenance' => (bool)$isStockEnabled,
                 'low_stock_count' => $isStockEnabled ? DB::table('products as p')
                     ->leftJoin('inventory_batches as ib', function($join) use ($tenantId) {
@@ -386,6 +413,74 @@ class InventoryController extends Controller
                 ->orderBy('name')
                 ->get(),
         ]);
+    }
+
+    /** On-hand units for a product row: simple stocks + variant stock (mirrors the list's own total). Bindings: tenantId x2. */
+    private function stockOnHandSql(): string
+    {
+        return "(SELECT COALESCE(SUM(s.quantity),0) FROM stocks s WHERE s.product_id = products.id AND s.tenant_id = ?)"
+             . " + (SELECT COALESCE(SUM(v.stock),0) FROM product_variants v WHERE v.product_id = products.id AND v.tenant_id = ?)";
+    }
+
+    /**
+     * Header-filter support. $raw is a JSON object { column: {op, value} }.
+     * Every column and operator is whitelisted; values are bound, never concatenated.
+     */
+    private function applyColumnFilters($query, $raw, $tenantId): void
+    {
+        if (!is_string($raw) || $raw === '') return;
+        $filters = json_decode($raw, true);
+        if (!is_array($filters)) return;
+
+        $numericOps = ['eq' => '=', 'gte' => '>=', 'lte' => '<='];
+        $like = fn ($v) => '%' . str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], (string) $v) . '%';
+
+        foreach ($filters as $col => $f) {
+            if (!is_array($f)) continue;
+            $op = $f['op'] ?? '';
+            $val = $f['value'] ?? null;
+            if ($val === null || $val === '') continue;
+
+            switch ($col) {
+                case 'name':
+                    $query->where('products.name', 'like', $like($val));
+                    break;
+                case 'sku':
+                    $query->where('products.sku', 'like', $like($val));
+                    break;
+                case 'category':
+                    $query->whereIn('products.category_id', fn ($q) => $q->select('id')->from('categories')->where('name', 'like', $like($val)));
+                    break;
+                case 'price':
+                case 'cost_price':
+                    if (isset($numericOps[$op]) && is_numeric($val)) {
+                        $query->where('products.' . $col, $numericOps[$op], (float) $val);
+                    }
+                    break;
+                case 'available_stock':
+                    if (isset($numericOps[$op]) && is_numeric($val)) {
+                        $query->where('products.type', '!=', 'service')
+                            ->whereRaw('(' . $this->stockOnHandSql() . ') ' . $numericOps[$op] . ' ?', [$tenantId, $tenantId, (float) $val]);
+                    }
+                    break;
+                case 'status':
+                    $t = '(' . $this->stockOnHandSql() . ')';
+                    $nonService = fn ($q) => $q->where(fn ($w) => $w->where('products.type', '!=', 'service')->orWhereNull('products.type'));
+                    if ($val === 'Available') {
+                        $query->where('products.type', 'service');
+                    } elseif ($val === 'Out of Stock') {
+                        $nonService($query);
+                        $query->whereRaw("$t = 0", [$tenantId, $tenantId]);
+                    } elseif ($val === 'Low Stock') {
+                        $nonService($query);
+                        $query->whereRaw("$t > 0 AND $t <= products.min_stock_alert", [$tenantId, $tenantId, $tenantId, $tenantId]);
+                    } elseif ($val === 'In Stock') {
+                        $nonService($query);
+                        $query->whereRaw("$t > products.min_stock_alert", [$tenantId, $tenantId]);
+                    }
+                    break;
+            }
+        }
     }
 
     public function store(Request $request)

@@ -85,7 +85,7 @@ export default function DocumentShell({
                         {showRail ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
                     </button>
 
-                    <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', marginRight: 6 }}>
+                    <div className="vqdoc-ident" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', marginRight: 6 }}>
                         <span className="vqdoc-title">{title}</span>
                         <span className="vqdoc-sub">{subtitle}</span>
                     </div>
@@ -135,7 +135,7 @@ export default function DocumentShell({
                         </button>
                     )}
 
-                    <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div className="vqdoc-tools" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                         {tools}
                         <button type="button" className="vqdoc-icon" title="Screen settings" onClick={() => setSettingsOpen(true)}>
                             <Settings size={17} />

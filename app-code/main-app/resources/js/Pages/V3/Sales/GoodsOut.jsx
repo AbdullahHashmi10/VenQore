@@ -21,7 +21,7 @@ import axios from 'axios';
 
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 
-export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
+export default function GoodsOut({ pendingSales = [], selectedSaleId = null, warehouses = [], availability = {} }) {
     const { store, settings } = usePage().props;
     const currency = getCurrencySymbol(store || settings);
 
@@ -32,6 +32,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
     const [notes, setNotes] = useState('');
     const [linesState, setLinesState] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [warehouseId, setWarehouseId] = useState('');
 
     // Filter pending sales
     const filteredSales = useMemo(() => {
@@ -46,6 +47,10 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
     const activeSale = useMemo(() => {
         return pendingSales.find(s => String(s.id) === String(selectedId)) || null;
     }, [pendingSales, selectedId]);
+
+    // Dispatch from the invoice's warehouse unless the user picks another one.
+    const dispatchWarehouseId = warehouseId || activeSale?.warehouse_id || warehouses[0]?.id || '';
+    const stockHere = (productId) => num(availability?.[productId]?.[dispatchWarehouseId]);
 
     // Initialize line quantities when activeSale changes
     const items = useMemo(() => {
@@ -111,6 +116,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
 
         axios.post(url, {
             items: payloadItems,
+            warehouse_id: dispatchWarehouseId || null,
             carrier_name: carrierName || null,
             tracking_number: trackingNumber || null,
             notes: notes || null
@@ -118,6 +124,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
         .then(res => {
             const msg = res.data?.message || 'Goods delivery dispatched and stock deducted successfully!';
             fireToast(msg, 'success');
+            if (res.data?.challan_url) window.open(res.data.challan_url, '_blank');
             router.visit(route('store.sales.index', { store_slug: store?.slug }));
         })
         .catch(err => {
@@ -161,7 +168,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                 </div>
 
                 {pendingSales.length === 0 ? (
-                    <div className="p-12 text-center bg-surface border border-line rounded-2xl space-y-3">
+                    <div className="p-5 sm:p-12 text-center bg-surface border border-line rounded-2xl space-y-3">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 mx-auto flex items-center justify-center">
                             <CheckCircle2 size={24} />
                         </div>
@@ -182,7 +189,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                         {/* Left Column: Pending Sales Selector (Span 4) */}
                         <div className="lg:col-span-4 bg-surface rounded-2xl border border-line p-4 space-y-4 shadow-xs">
                             <div>
-                                <div className="flex items-center justify-between mb-2">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-ink-muted">
                                         Pending Deliveries ({filteredSales.length})
                                     </h3>
@@ -225,7 +232,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                                                     #{s.reference_number || 'INV'}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between text-2xs text-ink-muted mt-2">
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs text-ink-muted mt-2">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar size={11} /> {s.created_at ? s.created_at.slice(0, 10) : 'Today'}
                                                 </span>
@@ -288,6 +295,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                                                         <tr key={item.id} className="hover:bg-interactive-hover transition-colors">
                                                             <td className="p-3">
                                                                 <span className="font-semibold text-ink block">{item.product_name}</span>
+                                                                <span className={`text-2xs ${stockHere(item.product_id) < num(item.dispatching_qty) ? 'text-red-600' : 'text-ink-muted'}`}>In this warehouse: {stockHere(item.product_id)}</span>
                                                                 <span className="text-2xs font-mono text-ink-muted">{item.sku || 'No SKU'} • {item.base_unit || 'pcs'}</span>
                                                             </td>
                                                             <td className="p-3 text-right font-mono font-medium text-ink-muted">
@@ -317,13 +325,20 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                                         </div>
                                     </div>
 
+                                    <div className="mb-4">
+                                <label className="block text-xs font-semibold text-ink-muted mb-1">Dispatch from warehouse</label>
+                                <select value={dispatchWarehouseId} onChange={e => setWarehouseId(e.target.value)}
+                                    className="w-full h-11 px-3 rounded-xl bg-surface border border-line text-sm">
+                                    {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}{w.location ? ` — ${w.location}` : ''}</option>)}
+                                </select>
+                            </div>
                                     {/* Logistics & Carrier Fields */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-2xs font-bold uppercase tracking-wider text-ink-muted mb-1.5">
                                                 Carrier / Rider Name
                                             </label>
-                                            <div className="relative">
+                                                                        <div className="relative">
                                                 <Truck size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                                                 <input
                                                     type="text"
@@ -367,7 +382,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                                     </div>
 
                                     {/* Action Bar */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-line">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pt-4 border-t border-line">
                                         <button
                                             type="button"
                                             onClick={() => router.visit(route('store.sales.index', { store_slug: store?.slug }))}
@@ -386,7 +401,7 @@ export default function GoodsOut({ pendingSales = [], selectedSaleId = null }) {
                                     </div>
                                 </form>
                             ) : (
-                                <div className="p-8 text-center text-ink-muted text-xs">
+                                <div className="p-4 sm:p-8 text-center text-ink-muted text-xs">
                                     Select a pending sales invoice from the left list to dispatch goods.
                                 </div>
                             )}

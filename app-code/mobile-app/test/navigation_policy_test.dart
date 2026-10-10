@@ -54,4 +54,37 @@ void main() {
       NavigationAction.replaceWithLogin,
     );
   });
+
+  test('recognizes only the scoped Google OAuth navigation', () {
+    expect(
+      policy.isGoogleOAuthStart(
+        Uri.parse('https://venqore.com/auth/google'),
+      ),
+      isTrue,
+    );
+    expect(
+      policy.isGoogleOAuthProvider(
+        Uri.parse('https://accounts.google.com/o/oauth2/v2/auth?client_id=x'),
+      ),
+      isTrue,
+    );
+    expect(
+      policy.isGoogleOAuthCallback(
+        Uri.parse('https://venqore.com/auth/google/callback?code=x&state=y'),
+      ),
+      isTrue,
+    );
+    expect(
+      policy.isGoogleOAuthProvider(
+        Uri.parse('https://google.com/search?q=venqore'),
+      ),
+      isFalse,
+    );
+    expect(
+      policy.isGoogleOAuthProvider(
+        Uri.parse('https://accounts.google.com.evil.example/o/oauth2/auth'),
+      ),
+      isFalse,
+    );
+  });
 }

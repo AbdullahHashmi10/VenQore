@@ -63,6 +63,7 @@ class StorefrontPresenter
             'pickup' => (bool) $s->supports_pickup,
             'delivery' => (bool) $s->supports_delivery,
             'url' => self::publicUrl($s),
+            'badges' => StorefrontBadges::forStorefront((string) $s->id),
         ];
     }
 
@@ -79,6 +80,8 @@ class StorefrontPresenter
             'currency_code' => $s->currency_code,
             'customer_mode' => $s->customer_mode ?: 'ordering',
             'catalogue_theme' => $s->catalogue_theme ?: 'visual-grid',
+            'brand_color' => $s->getAttributes()['brand_color'] ?? null,
+            'brand_color_2' => $s->getAttributes()['brand_color_2'] ?? null,
             'ordering_enabled' => ($s->customer_mode ?: 'ordering') === 'ordering',
             'onsite_ordering_enabled' => (bool) $s->onsite_ordering_enabled,
             'counter_qr_enabled' => (bool) $s->counter_qr_enabled,
@@ -97,6 +100,7 @@ class StorefrontPresenter
             'orders_outside_hours' => (bool) $s->orders_outside_hours,
             'announcement' => $s->announcement,
             'banner_url' => self::mediaUrl($s->banner_path),
+            'images' => \App\Http\Controllers\Commerce\PageImagesController::forStore($s),
             'prep_minutes' => $s->prep_minutes,
             'delivery_zones' => collect($s->delivery_zones ?? [])->map(fn ($z) => ['name' => $z['name'], 'fee' => (float) $z['fee'], 'min_order' => (float) ($z['min_order'] ?? 0)])->values(),
         ];

@@ -355,7 +355,7 @@ const MasterReport = ({
             {stats.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
                     {stats.map((stat, idx) => (
-                        <div key={idx} className="bg-surface border border-line rounded-xl p-3 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                        <div key={idx} className="bg-surface border border-line rounded-xl p-3 flex flex-wrap items-center justify-between gap-y-2 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
                             {/* Decorative Background */}
                             <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-neutral-50 to-transparent dark:from-neutral-800/50 opacity-50 group-hover:w-24 transition-all duration-slower" />
 
@@ -534,7 +534,7 @@ const MasterReport = ({
 
                 {/* Pagination Footer */}
                 {!enableInfiniteScroll && totalPages > 1 && (
-                    <div className="px-6 py-4 border-t border-line bg-sunken/50 dark:bg-surface flex items-center justify-between shrink-0">
+                    <div className="px-6 py-4 border-t border-line bg-sunken/50 dark:bg-surface flex flex-wrap items-center justify-between gap-y-2 shrink-0">
                         <span className="text-xs font-bold text-ink-muted">
                             Page {currentPage} of {totalPages}
                         </span>

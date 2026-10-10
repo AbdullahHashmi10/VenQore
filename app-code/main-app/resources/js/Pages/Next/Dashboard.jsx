@@ -145,7 +145,7 @@ function StatCard({ label, value, footnote, tone = 'muted', href }) {
 function Panel({ title, action, actionHref, children }) {
     return (
         <div style={{ background: '#fff', border: '1px solid #e6e3da', borderRadius: 14, padding: '18px 20px' }}>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-y-2">
                 <span style={{ font: "500 13.5px 'Instrument Sans',sans-serif", color: '#16150f' }}>{title}</span>
                 {action && (
                     actionHref ? (
@@ -635,7 +635,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                 className="flex-1"
                                 style={{ background: '#fff', border: '1px solid #e6e3da', borderRadius: 16, padding: '18px 20px' }}
                             >
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <span style={{ font: "500 13.5px 'Instrument Sans',sans-serif", color: '#16150f' }}>
                                         Needs you today
                                     </span>
@@ -866,7 +866,7 @@ export default function FullyFunctionalNextDashboard(props) {
             {sheetOpen && (
                 <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-xs" onClick={() => setSheetOpen(false)}>
                     <div className="w-full max-w-md bg-sunken h-full shadow-2xl p-6 overflow-y-auto border-l border-line flex flex-col" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between pb-4 border-b border-line">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line">
                             <div>
                                 <h3 className="font-semibold text-ink text-base">Add a card</h3>
                                 <p className="text-xs text-ink-muted">Pick what matters to your business. Drag to reorder.</p>
@@ -888,7 +888,7 @@ export default function FullyFunctionalNextDashboard(props) {
                                 { title: tt('Staff Performance'), desc: 'Daily sales per cashier and shift breakdown' },
                                 { title: 'AI Opportunities', desc: 'Smart re-order points and slow-moving items' }
                             ].map((card, i) => (
-                                <div key={i} className="bg-white p-4 rounded-xl border border-line flex items-center justify-between">
+                                <div key={i} className="bg-white p-4 rounded-xl border border-line flex flex-wrap items-center justify-between gap-y-2">
                                     <div>
                                         <div className="font-medium text-ink text-sm">{card.title}</div>
                                         <div className="text-xs text-ink-muted mt-0.5">{card.desc}</div>

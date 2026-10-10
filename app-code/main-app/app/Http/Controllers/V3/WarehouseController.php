@@ -15,6 +15,7 @@ class WarehouseController extends Controller
     public function index()
     {
         $warehouses = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
+            ->whereNull('deleted_at')
             ->where('tenant_id', app('current.tenant')->id)
             ->select('id', 'name', 'location as address', 'is_default', 'is_active', 'created_at', 'updated_at')
             ->orderByDesc('is_default')
@@ -164,12 +165,17 @@ class WarehouseController extends Controller
             ]);
         }
 
-        DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
-            ->where('tenant_id', $tenantId)
-            ->where('id', $id)
-            ->delete();
+        // Anything that ever pointed at this warehouse keeps its history:
+        // deactivate instead of deleting.
+        $used = DB::table('sales')->where('tenant_id', $tenantId)->where('warehouse_id', $id)->exists()
+            || DB::table('inventory_batches')->where('tenant_id', $tenantId)->where('warehouse_id', $id)->exists();
+
+        DB::table('warehouses')->where('tenant_id', $tenantId)->where('id', $id)
+            ->update($used
+                ? ['is_active' => 0, 'updated_at' => now()]
+                : ['deleted_at' => now(), 'is_active' => 0, 'updated_at' => now()]);
 
         return redirect()->route('store.v3.warehouses.index', ['store_slug' => app('current.tenant')->slug])
-            ->with('success', 'Warehouse deleted.');
+            ->with('success', 'Warehouse deactivated.');
     }
 }

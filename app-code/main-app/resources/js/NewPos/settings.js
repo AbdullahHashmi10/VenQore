@@ -55,12 +55,6 @@ export function buildProfiles(tt = (s) => s) {
             note: 'The product is the interface. Café, QSR, boutique.',
             family: { desk: 'grid', short: 'stack', tablet: 'row', phone: 'counter' },
         },
-        {
-            id: 'table',
-            name: tt('Table service'),
-            note: tt('The unit of work is the table, not the sale.'),
-            family: { desk: 'table', short: 'table', tablet: 'table', phone: 'counter' },
-        },
     ];
 }
 
@@ -146,16 +140,6 @@ export const BUSINESS_SUGGESTIONS = [
         preset: 'column',
         ops: { senior: true, autoPrint: true, autoFillCash: true },
     },
-    {
-        id: 'table',
-        title: 'Restaurant & Table Service',
-        tag: 'Dine-In',
-        icon: '🍽️',
-        desc: 'Table floor plan management, hold/recall orders by table, and bill splitting. Best for dine-in restaurants & salons.',
-        profile: 'table',
-        preset: 'table',
-        ops: { senior: false, autoPrint: true },
-    },
 ];
 
 export const DEFAULTS = {
@@ -183,16 +167,13 @@ export function autoPreset(profileId, vw, vh) {
 }
 
 /**
- * Auto's answer as a full composition. The floor plan is the one thing Auto
- * upgrades beyond the preset: a floor is a STEP on anything smaller than a very
- * wide desktop, and a column only where the width carries one for free. The law
- * demotes it back if that turns out to be optimistic.
+ * Auto's answer as a full composition. The till never has a floor plan, so the
+ * floor is always off.
  */
 export function autoComposition(profileId, vw, vh) {
     const id = autoPreset(profileId, vw, vh);
     const comp = presetComposition(id);
-    if (profileId === 'table') comp.floor = vw >= 1900 ? 'left' : 'overlay';
-    else comp.floor = 'off';
+    comp.floor = 'off'; // the till has no floor; tables live in Front of House
     return { preset: id, comp };
 }
 

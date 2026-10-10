@@ -115,6 +115,9 @@ class PosReturnController extends Controller
                 'reference' => $result['reference'],
                 'total'     => $result['total'],
             ]);
+        } catch (\App\Exceptions\IdempotencyConflictException $e) {
+            // Same receipt key, different return: refused, nothing written.
+            return $e->render($request);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

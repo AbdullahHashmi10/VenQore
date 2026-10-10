@@ -432,7 +432,7 @@ export default function MasterSales() {
             </div>
 
             {/* 2. THE WORKBENCH */}
-            <div className="flex-1 flex overflow-hidden relative">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden relative">
 
                 {/* LEFT: THE INVOICE SHEET */}
                 <div className="flex-1 flex flex-col bg-neutral-900 relative">
@@ -561,7 +561,7 @@ export default function MasterSales() {
                                     </div>
                                     <div className="border-t border-neutral-700 my-2 pt-2 flex justify-between items-end">
                                         <span className="text-sm font-bold text-neutral-300">TOTAL DUE</span>
-                                        <span className="text-4xl font-bold text-white">{formatCurrency(currentInvoice?.total || 0, store)}</span>
+                                        <span className="text-2xl sm:text-4xl font-bold text-white">{formatCurrency(currentInvoice?.total || 0, store)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -580,7 +580,7 @@ export default function MasterSales() {
                 </div>
 
                 {/* RIGHT: THE CONTROL TOWER (SIDEBAR) */}
-                <div className="w-[350px] bg-neutral-950 border-l border-neutral-800 flex flex-col z-30 shadow-2xl">
+                <div className="w-full lg:w-[350px] shrink-0 bg-neutral-950 border-t lg:border-t-0 lg:border-l border-neutral-800 flex flex-col z-30 shadow-2xl">
 
                     {/* MODE TOGGLE */}
                     <div className="p-2 grid grid-cols-2 gap-2 bg-neutral-900 border-b border-neutral-800">

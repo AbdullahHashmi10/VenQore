@@ -121,7 +121,7 @@ export default function FormModal({
 
                     {/* Header: Elevated with glass effect - Compact & Readable */}
                     <div className="px-6 py-4 border-b border-line shrink-0 relative z-10 bg-white/80 dark:bg-app backdrop-blur-xl">
-                        <div className="flex items-center justify-between gap-4">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4">
                             <div>
                                 <h2 className="text-xl md:text-2xl font-bold text-ink tracking-tight flex items-center gap-3">
                                     <span className="w-2 h-6 bg-gradient-to-b from-brand-500 to-brand-700 rounded-full" />

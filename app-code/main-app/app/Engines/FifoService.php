@@ -36,7 +36,8 @@ class FifoService
         string|int $warehouseId,
         float $qty,
         string $saleUom = 'PCS',
-        ?string $ownOrderId = null
+        ?string $ownOrderId = null,
+        ?string $preferredBatchId = null
     ): array {
         // If UOM conversion is needed, caller passes already-converted base qty.
         $type = DB::table('products')->where('tenant_id', $this->getTenantId())->where('id', $productId)->value('type');
@@ -44,7 +45,7 @@ class FifoService
             return [];
         }
 
-        return DB::transaction(function () use ($productId, $warehouseId, $qty, $ownOrderId) {
+        return DB::transaction(function () use ($productId, $warehouseId, $qty, $ownOrderId, $preferredBatchId) {
 
             // Lock batches for this product+warehouse, oldest first
             $batches = DB::table('inventory_batches')
@@ -56,6 +57,16 @@ class FifoService
                 ->orderBy('seq', 'ASC')        // deterministic tiebreaker for same-timestamp batches
                 ->lockForUpdate()
                 ->get();
+
+            // The seller picked a batch: take from it first, then fall back to
+            // FIFO for anything it cannot cover. Sorting is stable, so the rest
+            // keep their oldest-first order.
+            if ($preferredBatchId) {
+                if (!$batches->contains('id', $preferredBatchId)) {
+                    throw new \DomainException('The selected batch has no stock left in this warehouse. Pick another batch.');
+                }
+                $batches = $batches->sortBy(fn ($b) => $b->id === $preferredBatchId ? 0 : 1)->values();
+            }
 
             $totalAvailable = (float) $batches->sum('remaining_qty');
             \App\Services\Commerce\HoldGuard::assertUnderLock((string) $productId, (string) $warehouseId, $qty, $totalAvailable, $ownOrderId);

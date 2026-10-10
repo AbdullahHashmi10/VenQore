@@ -53,6 +53,10 @@ class SaleItem extends Model
            on this list the column was never written, so the cap on how much
            could be returned had nothing to measure against and never fired. */
         'original_sale_item_id',
+        /* What this line booked (sale-reliability): revenue ex tax after its
+           exact bill-discount share. Returns/cancellations refund from these. */
+        'revenue_amount',
+        'bill_discount_share',
     ];
 
     protected $casts = [
@@ -69,6 +73,8 @@ class SaleItem extends Model
         'subtotal'        => 'decimal:4',
         'returned_quantity' => 'decimal:4',
         'modifiers'       => 'array',
+        'revenue_amount'      => 'decimal:4',
+        'bill_discount_share' => 'decimal:4',
     ];
 
     // ─── Computed Attributes ──────────────────────────────────────────────────

@@ -66,7 +66,7 @@ class OrderService
     /** Accept: re-check live availability atomically, then hold stock for this order. */
     public function confirm(string $orderId, int $tenantId, ?int $actor, ?int $expectedVersion = null): CommerceOrder
     {
-        return DB::transaction(function () use ($orderId, $tenantId, $actor, $expectedVersion) {
+        $confirmed = DB::transaction(function () use ($orderId, $tenantId, $actor, $expectedVersion) {
             $o = $this->lock($orderId, $tenantId, $expectedVersion);
             if ($o->status !== 'pending') {
                 throw new CommerceException('Only a pending order can be accepted.', 'bad_state', [], 409);
@@ -100,7 +100,8 @@ class OrderService
             $short = [];
             foreach ($need as $pid => $qty) {
                 $avail = $this->stock->available($tenantId, $pid, $warehouse, $o->id, true); // locking read: latest committed state
-                if ($avail + 0.00001 < $qty) {
+                // Sold without stock on purpose: accept it; the owner sources the goods before completing.
+                if ($avail + 0.00001 < $qty && ! $this->stock->sellsWithoutStock($tenantId, (string) $pid)) {
                     $title = $items->firstWhere('product_id', $pid)->title;
                     $short[] = $title . ' (need ' . rtrim(rtrim(number_format($qty, 4, '.', ''), '0'), '.') . ', available ' . rtrim(rtrim(number_format(max($avail, 0), 4, '.', ''), '0'), '.') . ')';
                 }
@@ -110,6 +111,13 @@ class OrderService
             }
 
             foreach ($need as $pid => $qty) {
+                // Hold only what really exists; the rest of a sell-without-stock line is still to be sourced.
+                if ($this->stock->sellsWithoutStock($tenantId, (string) $pid)) {
+                    $qty = min($qty, max(0.0, $this->stock->available($tenantId, $pid, $warehouse, $o->id, true)));
+                    if ($qty <= 0) {
+                        continue;
+                    }
+                }
                 DB::table('commerce_stock_holds')->insert([
                     'id' => (string) Str::uuid(), 'order_id' => $o->id, 'tenant_id' => $tenantId,
                     'product_id' => $pid, 'warehouse_id' => $warehouse, 'quantity' => $qty,
@@ -119,6 +127,28 @@ class OrderService
             $this->move($o, 'confirmed', 'confirmed', $actor, null, ['confirmed_at' => now()]);
             return $o->fresh(['items']);
         });
+
+        $this->sendToKitchen($confirmed);
+
+        return $confirmed;
+    }
+
+    /**
+     * A restaurant that runs Front of House also wants an accepted online order
+     * on the kitchen screen. Anything else (a shop, a service business) is
+     * untouched. A kitchen hiccup must never undo an accepted order.
+     */
+    private function sendToKitchen(CommerceOrder $o): void
+    {
+        try {
+            $tenant = Tenant::find($o->tenant_id);
+            if (! \App\Services\ModuleService::runsFrontOfHouse($tenant)) {
+                return;
+            }
+            app(\App\Services\KitchenTicketService::class)->fireOnlineOrder($o);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**
@@ -358,6 +388,7 @@ class OrderService
                     'payment_method' => $method,
                     'amount_received' => $paid ? (float) $o->total : null,
                     'idempotency_key' => 'commerce-' . $o->id,
+                    'source' => 'online', // shows the Online tag in the Sales list
                     'source_order_id' => $o->id, // engine flag: keep the locked order prices (no tier re-pricing)
                     'user_id' => $actor,
                     'items' => $lines,
@@ -371,11 +402,13 @@ class OrderService
                 } catch (\App\Exceptions\BelowCostSaleException $e) {
                     throw new CommerceException('A line is priced below cost. Allow below-cost pricing for that product in Online Store > Products, or adjust the price.', 'below_cost', [], 422);
                 } catch (\App\Exceptions\InsufficientStockException $e) {
-                    throw new CommerceException('Stock is no longer sufficient to complete this order. It stays open; fix stock and retry.', 'insufficient_stock', [], 409);
+                    throw new CommerceException('Stock is not enough to complete this order yet. It stays open: if you sold an item without stock, receive it first (Purchases), then complete the order.', 'insufficient_stock', [], 409);
                 }
 
-                if (abs((float) $sale->invoice_total - (float) $o->total) > 0.01) {
-                    // Should be impossible (shared math); refuse rather than book a different amount than the customer agreed.
+                $paisa = fn ($v) => \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format((float) $v, 6, '.', '')));
+                if ($paisa($sale->invoice_total) !== $paisa($o->total)) {
+                    // Impossible with the shared exact calculation; refuse — to the paisa, no
+                    // tolerance — rather than book a different amount than the customer agreed.
                     throw new CommerceException('Posted total differs from the agreed order total. Nothing was completed.', 'total_mismatch', ['sale_total' => (float) $sale->invoice_total, 'order_total' => (float) $o->total], 500);
                 }
 

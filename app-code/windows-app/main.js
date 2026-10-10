@@ -42,6 +42,11 @@ const { WinSpool } = require('./lib/winspool');
 const { PrinterService } = require('./lib/printers');
 const { SerialManager } = require('./lib/serial');
 const renderer = require('./lib/renderer');
+const {
+    isGoogleOAuthProviderUrl,
+    isGoogleOAuthStartUrl,
+    isGoogleOAuthCallbackUrl,
+} = require('./lib/oauth-navigation');
 
 // ─── SEALED CLOUD ORIGIN ──────────────────────────────────────────────────────
 // The only site Station will load. Command-line flags cannot change it in an installed build.
@@ -104,6 +109,23 @@ let updateState = { state: PORTABLE ? 'portable' : 'idle' };
 
 const originOf = (u) => { try { return new URL(u).origin; } catch { return null; } };
 const isTrustedUrl = (u) => TRUSTED_ORIGINS.has(originOf(u));
+const oauthContents = new WeakSet();
+function isAllowedGuestNavigation(contents, url) {
+    if (isTrustedUrl(url)) {
+        if (isGoogleOAuthStartUrl(url, TRUSTED_ORIGINS)) oauthContents.add(contents);
+        if (isGoogleOAuthCallbackUrl(url, TRUSTED_ORIGINS)) oauthContents.delete(contents);
+        return true;
+    }
+    if (!isGoogleOAuthProviderUrl(url)) return false;
+    if (oauthContents.has(contents)) return true;
+    // A server redirect can be observed before /auth/google commits. The
+    // current trusted URL still proves that VenQore initiated this flow.
+    if (isGoogleOAuthStartUrl(contents.getURL(), TRUSTED_ORIGINS)) {
+        oauthContents.add(contents);
+        return true;
+    }
+    return false;
+}
 // Public marketing pages live on the same origin as the app. A till should never end up there
 // (a logo click, a stray link). Customer receipts (/r/…) and the app (/s/…, /login…) are not on this list.
 const MARKETING_ROOTS = new Set(['features', 'roadmap', 'solutions', 'compare', 'pricing', 'about', 'contact', 'vensynq', 'smartcapture',
@@ -183,7 +205,7 @@ app.on('web-contents-created', (_e, contents) => {
             return;
         }
         if (contents.getType() !== 'webview' && !isDocWindow(contents)) return;
-        if (url !== 'about:blank' && !isTrustedUrl(url)) {
+        if (url !== 'about:blank' && !isAllowedGuestNavigation(contents, url)) {
             event.preventDefault();
             console.warn('[Security] Blocked navigation to', url);
             if (/^https:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
@@ -191,7 +213,7 @@ app.on('web-contents-created', (_e, contents) => {
     });
 
     contents.on('will-redirect', (event, url) => {
-        if (contents.getType() === 'webview' && url !== 'about:blank' && !isTrustedUrl(url)) {
+        if (contents.getType() === 'webview' && url !== 'about:blank' && !isAllowedGuestNavigation(contents, url)) {
             event.preventDefault();
             console.warn('[Security] Blocked redirect to', url);
         }
@@ -367,7 +389,7 @@ function attachGuest(wc) {
     // POS view must stay on the sealed origin. (Calling stop() from
     // did-start-navigation crashes Electron 44 — preventDefault here instead.)
     guest.on('will-frame-navigate', (details) => {
-        if (details.isMainFrame && details.url !== 'about:blank' && !isTrustedUrl(details.url)) {
+        if (details.isMainFrame && details.url !== 'about:blank' && !isAllowedGuestNavigation(guest, details.url)) {
             details.preventDefault();
             console.warn('[Security] Blocked POS navigation to', details.url);
             if (/^https:\/\//i.test(details.url)) shell.openExternal(details.url).catch(() => {});

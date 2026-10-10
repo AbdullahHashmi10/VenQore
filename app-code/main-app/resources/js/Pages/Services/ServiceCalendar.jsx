@@ -353,7 +353,7 @@ export default function ServiceCalendar({
                                         </div>
                                     ) : (
                                         employees.map((emp) => (
-                                            <div key={emp.id} className="flex items-center justify-between border-r border-line p-3 last:border-r-0">
+                                            <div key={emp.id} className="flex flex-wrap items-center justify-between gap-y-2 border-r border-line p-3 last:border-r-0">
                                                 <div className="flex items-center gap-2 truncate">
                                                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-quiet text-xs font-bold text-accent-text">
                                                         {emp.name.charAt(0)}
@@ -436,7 +436,7 @@ export default function ServiceCalendar({
                                                                                     {job.number}
                                                                                 </span>
                                                                             </div>
-                                                                            <div className="mt-1 flex items-center justify-between text-2xs text-ink-secondary">
+                                                                            <div className="mt-1 flex flex-wrap items-center justify-between gap-y-2 text-2xs text-ink-secondary">
                                                                                 <span className="truncate">{job.party?.name || 'Walk-in'}</span>
                                                                                 {job.estimated_total > 0 && (
                                                                                     <span className="font-semibold">{formatCurrency(job.estimated_total)}</span>
@@ -548,7 +548,7 @@ export default function ServiceCalendar({
                     {viewMode === 'agenda' && (
                         <div className="rounded-xl border border-line bg-surface shadow-sm overflow-hidden">
                             {filteredJobs.length === 0 ? (
-                                <div className="p-12 text-center">
+                                <div className="p-5 sm:p-12 text-center">
                                     <Briefcase size={36} className="mx-auto text-ink-muted/50 mb-3" />
                                     <p className="text-sm font-semibold text-ink">No scheduled appointments found</p>
                                     <p className="mt-1 text-xs text-ink-secondary">{tt('Schedule a new job using Quick Book or Work Orders.')}</p>
@@ -634,7 +634,7 @@ export default function ServiceCalendar({
             {isQuickBookOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
                     <div className="w-full max-w-xl rounded-2xl border border-line bg-surface p-6 shadow-2xl animate-in fade-in zoom-in-95">
-                        <div className="flex items-center justify-between border-b border-line pb-4">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-4">
                             <div>
                                 <h3 className="font-display text-lg font-semibold text-ink flex items-center gap-2">
                                     <Sparkles size={18} className="text-accent-text" />
@@ -816,7 +816,7 @@ export default function ServiceCalendar({
                 <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs">
                     <div className="w-full max-w-md h-full bg-surface border-l border-line p-6 shadow-2xl flex flex-col justify-between animate-in slide-in-from-right duration-fast">
                         <div>
-                            <div className="flex items-center justify-between border-b border-line pb-4">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-4">
                                 <div>
                                     <span className="text-2xs font-mono font-bold text-accent-text">{selectedJob.number}</span>
                                     <h3 className="font-display text-lg font-semibold text-ink">{selectedJob.title}</h3>
@@ -872,7 +872,7 @@ export default function ServiceCalendar({
                             </div>
                         </div>
 
-                        <div className="border-t border-line pt-4 flex items-center justify-between">
+                        <div className="border-t border-line pt-4 flex flex-wrap items-center justify-between gap-y-2">
                             <span className="text-xs font-semibold text-ink">
                                 Value: {formatCurrency(selectedJob.estimated_total || 0)}
                             </span>

@@ -505,9 +505,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/status/{job_id}', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'jobStatus'])->name('smart-capture.job-status');
             Route::post('/confirm',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->middleware('permission:purchases.create,finance.expenses')->middleware('throttle:30,1')->name('smart-capture.confirm');
             Route::get('/settings',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'settings'])->name('smart-capture.settings');
-            Route::post('/settings', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'saveSettings'])->middleware('permission:admin.settings_manage')->name('smart-capture.settings.save');
-            Route::post('/settings/test', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'testSettings'])->middleware('permission:admin.settings_manage')->middleware('throttle:10,1')->name('smart-capture.settings.test');
-            Route::post('/settings/models', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'models'])->middleware('permission:admin.settings_manage')->middleware('throttle:10,1')->name('smart-capture.settings.models');
+            Route::post('/settings', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'saveSettings'])->middleware('permission:ai.manage')->name('smart-capture.settings.save');
+            Route::post('/settings/test', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'testSettings'])->middleware('permission:ai.manage')->middleware('throttle:10,1')->name('smart-capture.settings.test');
+            Route::post('/settings/models', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'models'])->middleware('permission:ai.manage')->middleware('throttle:10,1')->name('smart-capture.settings.models');
             // Learning memory (per-store, shared by all staff)
             Route::get('/aliases',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'aliases'])->name('smart-capture.aliases');
             Route::post('/aliases/forget', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'forgetAlias'])->middleware('permission:admin.settings_manage')->middleware('throttle:60,1')->name('smart-capture.aliases.forget');
@@ -522,12 +522,17 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/foh/{tab?}', [\App\Http\Controllers\FohController::class, 'index'])
             ->where('tab', 'overview|tables|takeaway|delivery')
             ->middleware('permission:foh.access,pos.checkout')->name('foh');
+        Route::get('/foh-online', [\App\Http\Controllers\FohController::class, 'online'])
+            ->middleware('permission:foh.access,pos.checkout')->name('foh.online');
+        Route::post('/foh-online/{id}', [\App\Http\Controllers\FohController::class, 'onlineAct'])
+            ->where('id', '[0-9a-fA-F-]{36}')
+            ->middleware('permission:foh.access,pos.checkout')->name('foh.online.act');
         Route::get('/foh-settings', [\App\Http\Controllers\FohController::class, 'settings'])
-            ->middleware('permission:admin.settings_manage')->name('foh.settings');
+            ->middleware('permission:foh.manage')->name('foh.settings');
         Route::post('/foh-settings', [\App\Http\Controllers\FohController::class, 'saveSettings'])
-            ->middleware('permission:admin.settings_manage')->name('foh.settings.save');
+            ->middleware('permission:foh.manage')->name('foh.settings.save');
         Route::post('/foh-settings/untrack-stock', [\App\Http\Controllers\FohController::class, 'untrackStock'])
-            ->middleware('permission:admin.settings_manage')->name('foh.settings.untrack');
+            ->middleware('permission:foh.manage')->name('foh.settings.untrack');
         Route::get('/restaurant/kitchen', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchen'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.kitchen');
         // The same queue as JSON. A pass screen is left open all service, so it
         // polls rather than reloading an Inertia page every few seconds.
@@ -557,13 +562,13 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/riders', [\App\Http\Controllers\RiderController::class, 'list'])->middleware('permission:pos.checkout,foh.access')->name('riders.list');
         Route::post('/riders/{id}/toggle-rider', [\App\Http\Controllers\RiderController::class, 'toggleRider'])->middleware('permission:admin.settings_manage')->name('riders.toggle');
 
-        Route::get('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'index'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.riders');
-        Route::post('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'store'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.store');
-        Route::put('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'update'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.update');
-        Route::delete('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'destroy'])->middleware('permission:pos.checkout,admin.settings_manage')->name('restaurant.riders.destroy');
+        Route::get('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'index'])->middleware('permission:pos.checkout,foh.access,foh.manage')->name('restaurant.riders');
+        Route::post('/restaurant/riders', [\App\Http\Controllers\RiderController::class, 'store'])->middleware('permission:foh.manage')->name('restaurant.riders.store');
+        Route::put('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'update'])->middleware('permission:foh.manage')->name('restaurant.riders.update');
+        Route::delete('/restaurant/riders/{id}', [\App\Http\Controllers\RiderController::class, 'destroy'])->middleware('permission:foh.manage')->name('restaurant.riders.destroy');
 
-        Route::get('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'settings'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.settings');
-        Route::post('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateSettings'])->middleware('permission:admin.settings_manage')->name('restaurant.settings.update');
+        Route::get('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'settings'])->middleware('permission:pos.checkout,foh.access,foh.manage')->name('restaurant.settings');
+        Route::post('/restaurant/settings', [\App\Http\Controllers\RestaurantDashboardController::class, 'updateSettings'])->middleware('permission:foh.manage')->name('restaurant.settings.update');
 
         // ── Phase 4: Reservations & Restaurant Analytics ───────────────────
         Route::get('/restaurant/reports/kitchen-performance', [\App\Http\Controllers\RestaurantDashboardController::class, 'kitchenPerformance'])->middleware('permission:pos.checkout,foh.access')->name('restaurant.reports.kitchen-performance');
@@ -845,6 +850,13 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
             Route::post('/',             [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'store'])->name('store');
             Route::put('/{blogPost}',    [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'update'])->name('update');
             Route::delete('/{blogPost}', [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'destroy'])->name('destroy');
+        });
+
+        // ── Store badges (early merchant, fastest growing, most reviewed ...) ─────
+        Route::prefix('store-badges')->name('store-badges.')->group(function () {
+            Route::get('/',                         [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'index'])->name('index');
+            Route::post('/refresh',                 [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'refresh'])->name('refresh');
+            Route::post('/{storefront}',            [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'update'])->where('storefront', '[0-9a-fA-F-]{36}')->name('update');
         });
 
         Route::prefix('coupons')->name('coupons.')->group(function () {
@@ -1373,6 +1385,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         /* "The bill is printed and they have not paid yet." A stamp, not a
            status: the escalation state on the floor is derived from it. */
         Route::post('/check',     [\App\Http\Controllers\TableServiceController::class, 'check'])->name('check');
+        Route::post('/table/{position}/guest-call/clear', [\App\Http\Controllers\TableServiceController::class, 'clearGuestCall'])->whereNumber('position')->name('guest-call.clear');
+        Route::post('/table/{position}/guest-line-reason', [\App\Http\Controllers\TableServiceController::class, 'guestLineReason'])->whereNumber('position')->name('guest-line-reason');
 
         /* ── THE FLOOR BUILDER ────────────────────────────────────────────
            Until this, Position::create existed in exactly one place in the
@@ -1662,11 +1676,11 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // Global Search
     Route::get('/global-search', [\App\Http\Controllers\SearchController::class, 'search'])->name('global.search');
     // AI Query
-    Route::get('/ai/query', [\App\Http\Controllers\AiController::class, 'query'])->name('ai.query');
-    Route::post('/ai/test-connection', [\App\Http\Controllers\AiController::class, 'testConnection'])->middleware('permission:admin.settings_manage')->name('ai.test');
-    Route::get('/ai/recommendations', [\App\Http\Controllers\AiController::class, 'recommendations'])->name('ai.recommendations');
-    Route::get('/ai/smart-reorder', [\App\Http\Controllers\AiController::class, 'smartReorder'])->name('ai.smart-reorder');
-    Route::get('/ai/cash-flow-forecast', [\App\Http\Controllers\AiController::class, 'cashFlowForecast'])->name('ai.cash-flow-forecast');
+    Route::get('/ai/query', [\App\Http\Controllers\AiController::class, 'query'])->middleware('permission:ai.use')->name('ai.query');
+    Route::post('/ai/test-connection', [\App\Http\Controllers\AiController::class, 'testConnection'])->middleware('permission:ai.manage')->name('ai.test');
+    Route::get('/ai/recommendations', [\App\Http\Controllers\AiController::class, 'recommendations'])->middleware('permission:ai.use')->name('ai.recommendations');
+    Route::get('/ai/smart-reorder', [\App\Http\Controllers\AiController::class, 'smartReorder'])->middleware('permission:inventory.view,purchases.view')->name('ai.smart-reorder');
+    Route::get('/ai/cash-flow-forecast', [\App\Http\Controllers\AiController::class, 'cashFlowForecast'])->middleware('permission:finance.balances,reports.financial')->name('ai.cash-flow-forecast');
 
 
 
@@ -2012,9 +2026,17 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
     Route::get('/sales-goods-out', [\App\Http\Controllers\V3\SaleController::class, 'goodsOut'])->name('sales.goods-out');
     Route::post('/sales/{sale}/dispatch', [\App\Http\Controllers\V3\SaleController::class, 'storeDispatch'])->name('sales.dispatch.store');
+    Route::get('/sales/{saleId}/challan', [\App\Http\Controllers\DeliveryChallanController::class, 'previewForSale'])->middleware('permission:sales.view')->name('sales.challan');
+    Route::get('/delivery-challans/{challan}/print', [\App\Http\Controllers\DeliveryChallanController::class, 'print'])->middleware('permission:sales.view')->name('delivery-challans.print');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->middleware(['permission:sales.create,pos.checkout', \App\Http\Middleware\EnforceTransactionLimit::class])->name('sales.store');
     // Dedicated Trusted POS Route (Server-verified shift boundary)
     Route::post('/pos/sales', [\App\Http\Controllers\PosSaleController::class, 'store'])->middleware(['permission:pos.checkout,sales.create', \App\Http\Middleware\EnforceTransactionLimit::class])->name('pos.sales.store');
+    // Sale reliability: did the sale with this receipt key reach the books? Read-only,
+    // this store only. The till asks this after a lost response instead of ringing again.
+    Route::get('/pos/sales/intent/{intentKey}', [\App\Http\Controllers\PosSaleController::class, 'intentStatus'])->middleware('permission:pos.checkout,sales.create')->where('intentKey', '[A-Za-z0-9_\-:.]{6,100}')->name('pos.sales.intent');
+    // Sale reliability: on reconnect a till reports how many queued sales it still
+    // holds and how old the oldest is (counts only, no sale content).
+    Route::post('/pos/queue-status', [\App\Http\Controllers\PosSaleController::class, 'queueStatus'])->middleware(['permission:pos.checkout,sales.create', 'throttle:30,1'])->name('pos.queue-status');
 
     // Approval Workflow Routes
     Route::get('/approvals', [\App\Http\Controllers\ApprovalDocumentController::class, 'index'])
@@ -2124,8 +2146,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     })->name('api.categories.general');
 
     Route::get('/api/warehouses', function () {
-        return \response()->json(\App\Models\Warehouse::all());
+        return \response()->json(\App\Models\Warehouse::where('is_active', true)->get());
     })->name('api.warehouses');
+    Route::get('/api/products/{productId}/batches', [\App\Http\Controllers\V3\SaleController::class, 'productBatches'])
+        ->middleware('permission:sales.create,pos.checkout,sales.view')->name('api.product-batches');
 
     // Finance Routes
     Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.balances')->name('finance');
@@ -2203,6 +2227,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             return redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug, 'tab' => 'backups']);
         })->name('backups.index');
         Route::post('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+        Route::get('/admin-panel/backups/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->where('filename', 'backup-[0-9-]+\.sql')->name('backups.download');
         Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
         Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->name('backups.import');
         Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->name('backups.progress');

@@ -41,6 +41,9 @@ class PostLoginRedirect
 
         if ($memberships->count() === 1) {
             $m = $memberships->first();
+            if (self::isRider($m)) {
+                return redirect()->route('store.commerce.my-rides', ['store_slug' => $m->tenant->slug]);
+            }
             if ($m->isPosStaff()) {
                 return redirect()->route('store.pos', ['store_slug' => $m->tenant->slug]);
             }
@@ -50,6 +53,9 @@ class PostLoginRedirect
         if ($user->last_store_id) {
             $last = $memberships->firstWhere('tenant_id', $user->last_store_id);
             if ($last && $last->tenant) {
+                if (self::isRider($last)) {
+                    return redirect()->route('store.commerce.my-rides', ['store_slug' => $last->tenant->slug]);
+                }
                 if ($last->isPosStaff()) {
                     return redirect()->route('store.pos', ['store_slug' => $last->tenant->slug]);
                 }
@@ -58,5 +64,12 @@ class PostLoginRedirect
         }
 
         return redirect()->route('hub');
+    }
+
+    /** A Custom-role member linked to a rider employee opens straight on their rides. */
+    private static function isRider(TenantUser $m): bool
+    {
+        return $m->role === 'custom'
+            && \Illuminate\Support\Facades\DB::table('commerce_rider_accounts')->where('tenant_id', $m->tenant_id)->where('user_id', $m->user_id)->exists();
     }
 }

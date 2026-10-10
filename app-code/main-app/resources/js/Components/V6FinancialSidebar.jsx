@@ -344,7 +344,7 @@ export default function V6FinancialSidebar({
         type="button"
         aria-label="View Cash in Hand Details"
         onClick={() => setIsCashModalOpen(true)}
-        className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-3 flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
+        className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-3 flex flex-wrap items-center justify-between gap-y-2 transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
       >
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0">
@@ -365,7 +365,7 @@ export default function V6FinancialSidebar({
         type="button"
         aria-label="View Stock Inventory Details"
         onClick={() => handleNavigate('store.inventory.index')}
-        className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-3 flex items-center justify-between transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
+        className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-3 flex flex-wrap items-center justify-between gap-y-2 transition-all duration-200 cursor-pointer shadow-sm relative overflow-hidden group shrink-0"
       >
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-xl bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-700 dark:text-teal-400 shrink-0">
@@ -383,7 +383,7 @@ export default function V6FinancialSidebar({
 
       {/* 5. Bank Accounts Section (Shows ALL banks with NO inner scrolling) */}
       {canViewBalances && <div className="shrink-0 flex flex-col">
-        <div className="flex items-center justify-between px-1 mb-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 px-1 mb-1.5">
           <p className="text-[10px] font-extrabold text-slate-700 dark:text-neutral-400 uppercase tracking-widest">
             BANK ACCOUNTS
           </p>
@@ -407,7 +407,7 @@ export default function V6FinancialSidebar({
                 className="w-full text-left bg-black/[0.03] hover:bg-black/[0.06] dark:bg-white/[0.04] dark:hover:bg-white/[0.08] border border-black/[0.06] hover:border-black/[0.12] dark:border-white/[0.08] dark:hover:border-white/[0.16] rounded-[20px] p-2.5 flex flex-col gap-1 transition-all duration-200 cursor-pointer group shadow-sm shrink-0"
               >
                 {/* Line 1: Bank Name on left, Account last digits on right */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-teal-500/15 border border-teal-500/25 text-teal-700 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0">
                       <Building2 size={13} strokeWidth={2} />
@@ -469,7 +469,7 @@ export default function V6FinancialSidebar({
               return (
                 <div
                   key={i}
-                  className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] border border-black/[0.03] dark:border-transparent transition-colors cursor-pointer group"
+                  className="flex flex-wrap items-center justify-between gap-y-2 px-2 py-1.5 rounded-xl bg-black/[0.02] hover:bg-black/[0.05] dark:bg-white/[0.02] dark:hover:bg-white/[0.05] border border-black/[0.03] dark:border-transparent transition-colors cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
                     <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${isSale ? 'bg-teal-500/20 text-teal-800 dark:bg-teal-500/20 dark:text-teal-300 border border-teal-500/30 dark:border-teal-500/30' : 'bg-amber-500/20 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/30'}`}>

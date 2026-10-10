@@ -126,7 +126,7 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
                 </div>
 
                 {/* Total Stats Card */}
-                <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
+                <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                     <div>
                         <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Total Returned Amount</span>
                         <div className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">

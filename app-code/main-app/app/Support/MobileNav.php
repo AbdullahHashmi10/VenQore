@@ -46,6 +46,10 @@ class MobileNav
         $presetsConfig = config('ai_builder.presets', []);
         $modulesConfig = config('modules', []);
 
+        // Restaurants and cafes run the shop from Front of House: it is their "POS".
+        $frontOfHouse = $tenant && in_array('table_service', $enabledModules, true)
+            && ModuleService::runsFrontOfHouse($tenant);
+
         // 1. Determine pinned modules for preset
         $rawPins = $presetKey && isset($presetsConfig[$presetKey]['nav_pin'])
             ? (array) $presetsConfig[$presetKey]['nav_pin']
@@ -72,6 +76,14 @@ class MobileNav
                 }
                 foreach ($modulesConfig[$pinMod]['nav'] as $navEntry) {
                     $route = $navEntry['route'] ?? null;
+                    if ($frontOfHouse && $route === 'store.pos') {
+                        continue;
+                    }
+                    if ($frontOfHouse && $route === 'store.foh') {
+                        $navEntry['label_override'] = 'POS';
+                        $navEntry['icon'] = 'ShoppingCart';
+                        $navEntry['order'] = 10;
+                    }
                     if ($route && Route::has($route)) {
                         $navEntry['module'] = $pinMod;
                         $pinnedCandidates[] = $navEntry;
@@ -91,6 +103,14 @@ class MobileNav
                 }
                 foreach ($modulesConfig[$modKey]['nav'] as $navEntry) {
                     $route = $navEntry['route'] ?? null;
+                    if ($frontOfHouse && $route === 'store.pos') {
+                        continue;
+                    }
+                    if ($frontOfHouse && $route === 'store.foh') {
+                        $navEntry['label_override'] = 'POS';
+                        $navEntry['icon'] = 'ShoppingCart';
+                        $navEntry['order'] = 10;
+                    }
                     if ($route && Route::has($route)) {
                         $navEntry['module'] = $modKey;
                         $normalCandidates[] = $navEntry;
@@ -132,7 +152,7 @@ class MobileNav
         foreach ($topThree as $cand) {
             $items[] = [
                 'id'     => $cand['module'],
-                'label'  => self::label($cand, $modulesConfig[$cand['module']] ?? [], $tenant),
+                'label'  => $cand['label_override'] ?? self::label($cand, $modulesConfig[$cand['module']] ?? [], $tenant),
                 'route'  => $cand['route'],
                 'icon'   => $cand['icon'] ?? 'Package',
                 'module' => $cand['module'],

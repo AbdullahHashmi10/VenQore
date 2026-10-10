@@ -21,6 +21,7 @@ import {
     MessageCircle
 } from 'lucide-react';
 import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
+import MobileStats from '@/Components/MobileStats';
 
 export default function PartyLedger({ party = {}, transactions = [], stats = {} }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -75,7 +76,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                 <ContactsModuleTabs activeTab="ledgers" />
 
                 {isOverdue && (
-                    <div className="bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50 p-3 rounded-xl flex items-center justify-between shrink-0 mb-1">
+                    <div className="bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50 p-3 rounded-xl flex flex-wrap items-center justify-between gap-y-2 shrink-0 mb-1">
                         <div className="flex items-center gap-2 text-rose-800 dark:text-rose-400">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -87,23 +88,14 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                 )}
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="sm:hidden flex items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-2xs font-bold text-ink-muted uppercase shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={14} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    {!isStatsExpanded && (
-                        <div className="text-2xs font-bold text-ink-muted truncate">
-                            <span className="text-emerald-600">Net: {formatCurrency(stats.final_balance || 0, store)}</span>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Opening', value: formatCurrency(stats.opening_balance, store), tone: 'ink' },
+  { label: 'Credits', value: formatCurrency(stats.total_credit, store), tone: 'emerald' },
+  { label: 'Debits', value: formatCurrency(stats.total_debit, store), tone: 'red' }
+]} />
 
                 {/* Stats Cards - Responsive Grid */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
+                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
                     <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-sunken text-ink-secondary rounded-lg shrink-0">
@@ -148,7 +140,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
 
                 {/* Mobile Toolbar (sm:hidden) */}
                 <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
                         <div className="flex flex-col">
                             <div className="flex items-center gap-1.5">
                                 <h1 className="text-xs font-bold text-ink uppercase tracking-tight truncate max-w-[120px]">
@@ -363,7 +355,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="p-12 text-center text-ink-muted">
+                                        <td colSpan={6} className="p-5 sm:p-12 text-center text-ink-muted">
                                             <div className="flex flex-col items-center gap-2">
                                                 <FileText size={24} className="opacity-50" />
                                                 <p className="text-sm font-medium">No transactions found</p>
@@ -384,7 +376,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
 
                                 return (
                                     <div key={index} className="p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover flex flex-col gap-1.5">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                                             <span className="text-2xs text-ink-muted font-medium font-mono">
                                                 {new Date(t.date).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                                             </span>
@@ -397,7 +389,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                             <p className="text-xs font-bold text-ink break-all">{t.reference || '-'}</p>
                                             {t.description && <p className="text-2xs text-ink-muted mt-0.5">{t.description}</p>}
                                         </div>
-                                        <div className="flex items-center justify-between text-1xs pt-1.5 border-t border-dashed border-line mt-1">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-1xs pt-1.5 border-t border-dashed border-line mt-1">
                                             <div className="flex gap-2">
                                                 {t.debit > 0 && (
                                                     <span className="text-red-600 dark:text-red-400 font-mono font-bold">Gave: {formatCurrency(t.debit, store)}</span>
@@ -421,7 +413,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                 );
                             })
                         ) : (
-                            <div className="p-12 text-center text-ink-muted text-xs">
+                            <div className="p-5 sm:p-12 text-center text-ink-muted text-xs">
                                 <FileText size={20} className="mx-auto mb-1.5 opacity-50" />
                                 No transactions found
                             </div>

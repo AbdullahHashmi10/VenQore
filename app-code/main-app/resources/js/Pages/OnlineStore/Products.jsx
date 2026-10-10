@@ -1,15 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StoreTabs from '@/Components/Commerce/StoreTabs';
-import { Alert, Button, Card, Pager, Pill, inputCls } from '@/Components/Commerce/ui';
+import { Alert, Button, Pill, StatCard, inputCls } from '@/Components/Commerce/ui';
 import Checkbox from '@/Components/Checkbox';
 import PremiumSelect from '@/Components/PremiumSelect';
 import { getCurrencySymbol } from '@/Utils/format';
 import { money } from '@/lib/commerce';
-import { ShieldCheck, Package, Store, Sparkles, SlidersHorizontal, X } from 'lucide-react';
+import { ShieldCheck, Package, Store, Sparkles, SlidersHorizontal, X, ArrowUp, ArrowDown, ArrowUpDown, Search, ChevronDown, Settings2 } from 'lucide-react';
 
-export default function Products({ store, products, pagination, filters, skipped, urls }) {
+/** Renders a popup on the page body so no header, clock or assistant bar can sit above it. */
+const Overlay = ({ children }) => (typeof document === 'undefined' ? null : createPortal(children, document.body));
+
+const MenuItem = ({ children, onClick, disabled }) => (
+    <button type="button" role="menuitem" disabled={disabled} onClick={onClick}
+        className="w-full text-left px-3 py-2 text-ink hover:bg-interactive-hover disabled:opacity-40 disabled:cursor-not-allowed">{children}</button>
+);
+
+export default function Products({ alt_lang = null, store, products: pageProducts, pagination, filters, skipped, urls, stats = { total: 0, published: 0, backorder: 0 } }) {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
+    // Pages are appended as you scroll (infinite scroll); page 1 (new search/sort/filter) replaces the list.
+    const [products, setProducts] = useState(pageProducts);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [allMatching, setAllMatching] = useState(false);
+    const sentinel = useRef(null);
+    useEffect(() => {
+        setProducts((prev) => {
+            if (pagination.current <= 1) return pageProducts;
+            const seen = new Set(prev.map((x) => x.id));
+            return [...prev, ...pageProducts.filter((x) => !seen.has(x.id))];
+        });
+        setLoadingMore(false);
+    }, [pageProducts]);
+    useEffect(() => { setAllMatching(false); }, [filters.q, filters.filter]);
+    const hasMore = pagination.current < pagination.last;
+    useEffect(() => {
+        const el = sentinel.current;
+        if (!el || !hasMore || typeof IntersectionObserver === 'undefined') return undefined;
+        const io = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !loadingMore) {
+                setLoadingMore(true);
+                router.get(urls.products, { ...filters, page: pagination.current + 1 }, {
+                    preserveScroll: true, preserveState: true, replace: true, only: ['products', 'pagination'],
+                    onError: () => setLoadingMore(false),
+                });
+            }
+        }, { rootMargin: '600px' });
+        io.observe(el);
+        return () => io.disconnect();
+    }, [hasMore, loadingMore, pagination.current, filters.q, filters.filter, filters.sort, filters.dir]);
+
+    const sortBy = (key) => router.get(urls.products, { ...filters, sort: key, dir: filters.sort === key && filters.dir === 'asc' ? 'desc' : 'asc', page: 1 }, { preserveScroll: true, preserveState: true });
+    const SortTh = ({ k, children, right }) => {
+        const on = filters.sort === k;
+        const Icon = !on ? ArrowUpDown : filters.dir === 'desc' ? ArrowDown : ArrowUp;
+        return (
+            <th className={`p-3.5 ${right ? 'text-right' : ''}`} aria-sort={on ? (filters.dir === 'desc' ? 'descending' : 'ascending') : 'none'}>
+                <button type="button" onClick={() => sortBy(k)} className={`inline-flex items-center gap-1 font-semibold hover:text-ink ${on ? 'text-ink' : ''}`}>
+                    {children}<Icon className={`w-3.5 h-3.5 ${on ? '' : 'opacity-40'}`} aria-hidden="true" />
+                </button>
+            </th>
+        );
+    };
     const { errors, settings } = usePage().props;
     const sym = getCurrencySymbol(settings) || store?.currency_symbol || 'Rs.';
     const [sel, setSel] = useState([]);
@@ -34,8 +88,12 @@ export default function Products({ store, products, pagination, filters, skipped
         }
     };
 
+    const selCount = allMatching ? pagination.total : sel.length;
     const bulk = (action, extra = {}) =>
-        router.post(urls.products_bulk, { ids: sel, action, ...extra }, { preserveScroll: true, onSuccess: () => { setSel([]); setBulkReserveOpen(false); } });
+        router.post(urls.products_bulk, allMatching
+            ? { select_all: true, q: filters.q || '', filter: filters.filter || 'all', action, ...extra }
+            : { ids: sel, action, ...extra },
+        { preserveScroll: true, onStart: () => setMenuOpen(false), onSuccess: () => { setSel([]); setAllMatching(false); setBulkReserveOpen(false); go({ page: 1 }); } });
 
     const saveEdit = () => {
         router.post(urls.products_bulk, {
@@ -44,13 +102,19 @@ export default function Products({ store, products, pagination, filters, skipped
             override_price: edit.override_price === '' ? null : edit.override_price,
             clear_override: edit.override_price === '' || edit.override_price == null,
             public_name: edit.public_name || '',
+            public_name_ur: edit.public_name_ur || '',
+            diet_tags: edit.diet_tags || [],
+            allergens: edit.allergens || '',
+            show_online: edit.show_online !== false,
+            show_onsite: edit.show_onsite !== false,
             public_description: edit.public_description || '',
             allow_below_cost: !!edit.allow_below_cost,
+            sell_without_stock: !!edit.sell_without_stock,
             option_group: edit.option_group || '',
             option_label: edit.option_group ? (edit.option_label || '') : '',
             offline_reserve_qty: edit.offline_reserve === '' ? 0 : edit.offline_reserve,
             online_stock_limit: edit.online_stock_limit === '' ? null : edit.online_stock_limit,
-        }, { preserveScroll: true, onSuccess: () => setEdit(null) });
+        }, { preserveScroll: true, onSuccess: () => { setEdit(null); go({ page: 1 }); } });
     };
 
     return (
@@ -59,14 +123,11 @@ export default function Products({ store, products, pagination, filters, skipped
             <div className="flex flex-col min-h-full min-w-0 gap-6">
                 <StoreTabs active="products" urls={urls} status={store.status} />
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm text-ink-muted">
-                    <p>
-                        Default online price: <strong className="text-ink">{store.pricing_mode === 'same' ? 'Same as regular' : `${store.pricing_mode} ${Number(store.pricing_percent)}%`}</strong>.
-                        A fixed online price on a product overrides it.
-                    </p>
-                    <div className="text-xs text-ink-secondary bg-surface px-3 py-1.5 rounded-xl border border-line shadow-xs">
-                        Store Currency: <strong className="text-ink">{sym}</strong>
-                    </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <StatCard icon={Package} tone="brand" label="Products" hint="in your catalogue" value={stats.total.toLocaleString()} href={urls.products} />
+                    <StatCard icon={Store} tone="emerald" label="Live online" hint="customers can order" value={stats.published.toLocaleString()} href={`${urls.products}?filter=published`} valueClass="text-emerald-600" />
+                    <StatCard icon={SlidersHorizontal} tone="amber" label="Not published" hint="hidden from the shop" value={Math.max(0, stats.total - stats.published).toLocaleString()} href={`${urls.products}?filter=unpublished`} />
+                    <StatCard icon={Sparkles} tone="sky" label="Sell without stock" hint="source on order" value={stats.backorder.toLocaleString()} />
                 </div>
 
                 {errors?.ids && <Alert kind="error">{errors.ids}</Alert>}
@@ -81,16 +142,13 @@ export default function Products({ store, products, pagination, filters, skipped
                     </Alert>
                 )}
 
-                {/* Filter and Actions Bar */}
-                <Card className="flex flex-wrap items-center gap-3 !py-3">
-                    <form onSubmit={(e) => { e.preventDefault(); go({ q, page: 1 }); }} className="flex gap-2 w-full sm:w-auto">
-                        <input
-                            className={inputCls}
-                            placeholder="Search name or SKU"
-                            value={q}
-                            onChange={(e) => setQ(e.target.value)}
-                            aria-label="Search products"
-                        />
+                {/* Search, filter and actions */}
+                <div className="flex flex-wrap items-center gap-3 bg-surface border border-line rounded-2xl shadow-sm p-3">
+                    <form onSubmit={(e) => { e.preventDefault(); go({ q, page: 1 }); }} className="flex gap-2 flex-1 min-w-[220px] max-w-xl">
+                        <div className="relative flex-1">
+                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" aria-hidden="true" />
+                            <input className={`${inputCls} !pl-9`} placeholder="Search name or SKU" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search products" />
+                        </div>
                         <Button type="submit" variant="secondary" onClick={() => {}}>Search</Button>
                     </form>
 
@@ -107,39 +165,77 @@ export default function Products({ store, products, pagination, filters, skipped
                         />
                     </div>
 
-                    <span className="w-full lg:w-auto lg:ml-auto flex flex-wrap items-center gap-2">
-                        {sel.length > 0 && (
+                    <div className="ml-auto flex items-center gap-2">
+                        {selCount > 0 && (
                             <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
-                                {sel.length} selected
+                                {selCount} selected
                             </span>
                         )}
-                        <Button
-                            variant="secondary"
-                            onClick={() => handleSelectAllToggle(!allSelected)}
-                        >
-                            {allSelected ? 'Deselect page' : `Select all on page (${selectableIds.length})`}
-                        </Button>
-                        <Button disabled={!sel.length} onClick={() => bulk('publish')}>
-                            Publish ({sel.length})
-                        </Button>
-                        <Button variant="secondary" disabled={!sel.length} onClick={() => bulk('unpublish')}>
-                            Unpublish
-                        </Button>
-                        <Button variant="secondary" disabled={!sel.length} onClick={() => setBulkReserveOpen(true)}>
-                            Reserve for offline…
-                        </Button>
-                        <Button variant="secondary" disabled={!sel.length} onClick={() => bulk('feature')}>
-                            Feature
-                        </Button>
-                        <Button variant="secondary" disabled={!sel.length} onClick={() => bulk('unfeature')}>
-                            Unfeature
-                        </Button>
-                    </span>
-                </Card>
+                        <Button disabled={!selCount} onClick={() => bulk('publish')}>Publish</Button>
+                        <div className="relative">
+                            <Button variant="secondary" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
+                                Actions <ChevronDown size={14} aria-hidden="true" />
+                            </Button>
+                            {menuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                                    <div role="menu" className="absolute right-0 mt-2 w-64 z-50 rounded-2xl border border-line bg-surface shadow-lg py-1.5 text-sm max-h-[70vh] overflow-y-auto">
+                                        <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Select</div>
+                                        <MenuItem onClick={() => { handleSelectAllToggle(!allSelected); setAllMatching(false); }}>{allSelected ? 'Deselect page' : `Select all on page (${selectableIds.length})`}</MenuItem>
+                                        {pagination.total > selectableIds.length && (
+                                            <MenuItem onClick={() => { setAllMatching(!allMatching); setSel([]); }}>{allMatching ? 'Clear selection' : `Select all ${pagination.total.toLocaleString()} matching`}</MenuItem>
+                                        )}
+                                        <div className="my-1 border-t border-line" />
+                                        <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Apply to selected</div>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('publish')}>Publish</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('unpublish')}>Unpublish</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { sell_without_stock: true })}>Sell without stock</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { sell_without_stock: false })}>Stop selling without stock</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => { setMenuOpen(false); setBulkReserveOpen(true); }}>Reserve for offline…</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('feature')}>Feature</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('unfeature')}>Unfeature</MenuItem>
+                                        <div className="my-1 border-t border-line" />
+                                        <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Where it shows</div>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: true, show_onsite: true })}>Show everywhere</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: false, show_onsite: true })}>QR menu only</MenuItem>
+                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: true, show_onsite: false })}>Online only</MenuItem>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Products page settings" title="Settings"
+                            className="h-10 w-10 grid place-items-center rounded-xl border border-line bg-surface text-ink-secondary hover:text-ink hover:bg-interactive-hover">
+                            <Settings2 size={18} aria-hidden="true" />
+                        </button>
+                    </div>
+                </div>
+
+                {settingsOpen && (
+                    <Overlay>
+                        <div className="fixed inset-0 z-[200] grid place-items-center p-6 bg-black/40" role="dialog" aria-modal="true" aria-label="Products settings" onClick={() => setSettingsOpen(false)}>
+                            <div className="w-full max-w-md rounded-2xl bg-surface border border-line shadow-xl p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
+                                    <h2 className="text-base font-bold text-ink">Products settings</h2>
+                                    <button type="button" onClick={() => setSettingsOpen(false)} aria-label="Close" className="text-ink-muted hover:text-ink"><X size={18} /></button>
+                                </div>
+                                <div className="text-sm text-ink-muted flex flex-col gap-2">
+                                    <p>Default online price: <strong className="text-ink">{store.pricing_mode === 'same' ? 'Same as regular' : `${store.pricing_mode} ${Number(store.pricing_percent)}%`}</strong>. A fixed online price on a product overrides it.</p>
+                                    <p>Store currency: <strong className="text-ink">{sym}</strong></p>
+                                    <p>Sorting: <strong className="text-ink">{filters.sort || 'name'} ({filters.dir === 'desc' ? 'Z to A / high to low' : 'A to Z / low to high'})</strong></p>
+                                </div>
+                                <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-line">
+                                    <Button variant="secondary" onClick={() => { setSettingsOpen(false); go({ sort: 'name', dir: 'asc', page: 1 }); }}>Reset sorting</Button>
+                                    {urls.settings && <Button variant="secondary" onClick={() => router.visit(urls.settings)}>Store settings</Button>}
+                                    {urls.promotions && <Button variant="secondary" onClick={() => router.visit(urls.promotions)}>Offers</Button>}
+                                </div>
+                            </div>
+                        </div>
+                    </Overlay>
+                )}
 
                 {/* Mobile Select All & List */}
                 <div className="md:hidden flex flex-col gap-3">
-                    <div className="flex items-center justify-between p-3 bg-surface border border-line rounded-xl shadow-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-surface border border-line rounded-xl shadow-xs">
                         <Checkbox
                             checked={allSelected}
                             indeterminate={someSelected}
@@ -195,6 +291,10 @@ export default function Products({ store, products, pagination, filters, skipped
                                 </div>
                             </div>
 
+                            {p.made_to_order ? (
+                                <div className="p-2.5 bg-sunken rounded-xl text-center text-xs text-ink-secondary"><b>Not tracked</b> · made to order, always available</div>
+                            ) : (
+                                <>
                             {/* Stock & Availability Breakdown on Mobile */}
                             <div className="grid grid-cols-3 gap-2 p-2.5 bg-sunken rounded-xl text-center text-xs">
                                 <div>
@@ -207,13 +307,15 @@ export default function Products({ store, products, pagination, filters, skipped
                                 </div>
                                 <div>
                                     <div className="text-3xs uppercase font-bold text-ink-muted">Online Available</div>
-                                    <div className={`font-bold ${Number(p.online_available) <= 0 ? 'text-rose-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                    <div className={`font-bold ${p.online_available != null && Number(p.online_available) <= 0 ? 'text-rose-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
                                         {p.online_available ?? '—'}
                                     </div>
                                 </div>
                             </div>
+                                </>
+                            )}
 
-                            <div className="flex items-center justify-between pt-1 border-t border-line text-xs">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 pt-1 border-t border-line text-xs">
                                 <div>
                                     {p.blocked_reason ? (
                                         <Pill tone="bg-sunken text-ink-secondary">Can&apos;t sell online</Pill>
@@ -252,20 +354,20 @@ export default function Products({ store, products, pagination, filters, skipped
                                         onChange={handleSelectAllToggle}
                                     />
                                 </th>
-                                <th className="p-3.5">Product</th>
-                                <th className="p-3.5 text-right">Regular</th>
+                                <SortTh k="name">Product</SortTh>
+                                <SortTh k="price" right>Regular</SortTh>
                                 <th className="p-3.5 text-right">Online price</th>
                                 <th className="p-3.5 text-right">In Inventory</th>
                                 <th className="p-3.5 text-right">Offline Reserve</th>
                                 <th className="p-3.5 text-right">Online Available</th>
-                                <th className="p-3.5">Status</th>
+                                <SortTh k="published">Status</SortTh>
                                 <th className="p-3.5 text-right"><span className="sr-only">Actions</span></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
                             {products.length === 0 && (
                                 <tr>
-                                    <td colSpan={9} className="p-8 text-center text-ink-muted">
+                                    <td colSpan={9} className="p-4 sm:p-8 text-center text-ink-muted">
                                         No products match the filter or search query.
                                     </td>
                                 </tr>
@@ -318,6 +420,13 @@ export default function Products({ store, products, pagination, filters, skipped
                                             </div>
                                         )}
                                     </td>
+                                    {p.made_to_order ? (
+                                        <td colSpan={3} className="p-3.5 pt-4 text-center">
+                                            <span className="text-xs font-semibold text-ink-secondary">Not tracked</span>
+                                            <span className="block text-2xs text-ink-muted">Made to order: always available</span>
+                                        </td>
+                                    ) : (
+                                        <>
                                     {/* In Inventory Column */}
                                     <td className="p-3.5 text-right tabular-nums pt-4">
                                         {p.physical_stock == null ? (
@@ -364,8 +473,13 @@ export default function Products({ store, products, pagination, filters, skipped
                                             </div>
                                         )}
                                     </td>
+                                        </>
+                                    )}
                                     {/* Status Column */}
                                     <td className="p-3.5 pt-4">
+                                        {p.sell_without_stock && (
+                                            <div className="mb-1"><Pill tone="bg-sky-100 text-sky-800">Sells without stock</Pill></div>
+                                        )}
                                         {p.blocked_reason ? (
                                             <span title={p.blocked_reason}>
                                                 <Pill tone="bg-neutral-200 text-neutral-700">Unavailable</Pill>
@@ -400,17 +514,20 @@ export default function Products({ store, products, pagination, filters, skipped
                     </table>
                 </div>
 
-                <Pager current={pagination.current} last={pagination.last} onGo={(p) => go({ page: p })} />
+                <div ref={sentinel} className="py-4 text-center text-xs text-ink-muted" aria-live="polite">
+                    {hasMore ? (loadingMore ? 'Loading more products…' : 'Scroll for more') : `Showing all ${products.length} of ${pagination.total} products`}
+                </div>
 
                 {/* Bulk Offline Reserve Modal */}
                 {bulkReserveOpen && (
-                    <dialog
+                    <Overlay><dialog
                         open
-                        className="fixed inset-0 z-50 m-0 h-full w-full max-w-none max-h-none bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 text-inherit"
+                        className="fixed inset-0 m-0 h-full w-full max-w-none max-h-none bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 text-inherit"
+                        style={{ zIndex: 100000 }}
                         aria-modal="true"
                     >
                         <div className="bg-surface border border-line rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                 <div className="flex items-center gap-2">
                                     <Store size={18} className="text-brand-600" />
                                     <h2 className="font-bold text-lg text-ink">Reserve Offline Stock</h2>
@@ -420,7 +537,7 @@ export default function Products({ store, products, pagination, filters, skipped
                                 </button>
                             </div>
                             <p className="text-xs text-ink-muted leading-relaxed">
-                                Set how many units to keep reserved for walk-in shop customers across the <strong className="text-ink">{sel.length} selected products</strong>. Online orders will only be able to purchase remaining inventory.
+                                Set how many units to keep reserved for walk-in shop customers across the <strong className="text-ink">{selCount} selected products</strong>. Online orders will only be able to purchase remaining inventory.
                             </p>
                             <label className="block text-sm font-semibold text-ink">
                                 Quantity reserved for offline shop
@@ -441,23 +558,24 @@ export default function Products({ store, products, pagination, filters, skipped
                             <div className="flex justify-end gap-2 pt-2">
                                 <Button variant="secondary" onClick={() => setBulkReserveOpen(false)}>Cancel</Button>
                                 <Button onClick={() => bulk('set_reserve', { offline_reserve_qty: bulkReserveQty })}>
-                                    Apply to {sel.length} items
+                                    Apply to {selCount} items
                                 </Button>
                             </div>
                         </div>
-                    </dialog>
+                    </dialog></Overlay>
                 )}
 
                 {/* Edit Product Modal */}
                 {edit && (
-                    <dialog
+                    <Overlay><dialog
                         open
-                        className="fixed inset-0 z-50 m-0 h-full w-full max-w-none max-h-none bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 text-inherit"
+                        className="fixed inset-0 m-0 h-full w-full max-w-none max-h-none bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 text-inherit"
+                        style={{ zIndex: 100000 }}
                         aria-modal="true"
                         aria-label={`Edit ${edit.name}`}
                     >
                         <div className="bg-surface border border-line rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
-                            <div className="flex items-center justify-between pb-2 border-b border-line">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 pb-2 border-b border-line">
                                 <div>
                                     <h2 className="font-bold text-lg text-ink leading-tight">{edit.name}</h2>
                                     <div className="text-xs text-ink-muted">SKU: {edit.sku}</div>
@@ -500,9 +618,14 @@ export default function Products({ store, products, pagination, filters, skipped
                                 </div>
                             </div>
 
-                            {/* INVENTORY ALLOCATION & OFFLINE RESERVE SECTION */}
-                            <div className="rounded-xl border border-line p-3.5 space-y-3 bg-sunken/40">
-                                <div className="flex items-center justify-between">
+                            {/* INVENTORY ALLOCATION & OFFLINE RESERVE SECTION: only for items whose stock is tracked */}
+                            {edit.made_to_order ? (
+                                <div className="rounded-xl border border-line p-3.5 bg-sunken/40 text-xs text-ink-secondary">
+                                    <b className="text-ink">Inventory tracking is off</b> for this item, so it is made to order and always available. There is no stock, reserve or limit to set.
+                                </div>
+                            ) : (
+                                                        <div className="rounded-xl border border-line p-3.5 space-y-3 bg-sunken/40">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <div className="flex items-center gap-2">
                                         <Store size={16} className="text-brand-600 dark:text-brand-400" />
                                         <span className="text-sm font-bold text-ink">Inventory & Offline Reservation</span>
@@ -542,13 +665,14 @@ export default function Products({ store, products, pagination, filters, skipped
                                         <span className="text-3xs text-ink-muted mt-1 block">Max units published</span>
                                     </label>
                                 </div>
-                                <div className="p-2.5 rounded-lg bg-surface border border-line flex items-center justify-between text-xs">
+                                <div className="p-2.5 rounded-lg bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2 text-xs">
                                     <span className="text-ink-secondary">Available for online orders:</span>
                                     <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
                                         {Math.max(0, (Number(edit.physical_stock) || 0) - (Number(edit.offline_reserve) || 0))} units
                                     </span>
                                 </div>
                             </div>
+                            )}
 
                             <label className="block text-sm font-semibold text-ink">
                                 Public name (optional)
@@ -559,6 +683,42 @@ export default function Products({ store, products, pagination, filters, skipped
                                     onChange={(e) => setEdit({ ...edit, public_name: e.target.value })}
                                 />
                             </label>
+
+                            {alt_lang && (
+                                <label className="block text-sm font-semibold text-ink">
+                                    Name in {alt_lang.label} (optional)
+                                    <input
+                                        className={inputCls + ' mt-1'}
+                                        dir={alt_lang.rtl ? 'rtl' : undefined}
+                                        value={edit.public_name_ur || ''}
+                                        onChange={(e) => setEdit({ ...edit, public_name_ur: e.target.value })}
+                                    />
+                                    <span className="mt-1 block text-xs font-normal text-ink-muted">Shown on the QR menu when a guest switches to {alt_lang.label}. Change the language in QR Menu &amp; Catalogue.</span>
+                                </label>
+                            )}
+
+                            <div className="rounded-xl border border-line p-3 space-y-2">
+                                <div className="text-sm font-semibold text-ink">Dietary tags (shown on the QR menu)</div>
+                                <div className="flex flex-wrap gap-2">
+                                    {[['veg', 'Vegetarian'], ['vegan', 'Vegan'], ['halal', 'Halal'], ['spicy', 'Spicy'], ['gluten_free', 'Gluten free'], ['contains_nuts', 'Contains nuts'], ['contains_dairy', 'Contains dairy']].map(([k, label]) => {
+                                        const on = (edit.diet_tags || []).includes(k);
+                                        return <button type="button" key={k} aria-pressed={on} onClick={() => setEdit({ ...edit, diet_tags: on ? edit.diet_tags.filter((x) => x !== k) : [...(edit.diet_tags || []), k] })} className={`rounded-full border px-3 py-1 text-xs font-bold ${on ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-line text-ink-muted'}`}>{label}</button>;
+                                    })}
+                                </div>
+                                <input className={inputCls} maxLength={190} value={edit.allergens || ''} placeholder="Allergen note, e.g. made with sesame" onChange={(e) => setEdit({ ...edit, allergens: e.target.value })} />
+                            </div>
+
+                            <div className="rounded-xl border border-line p-3 space-y-2">
+                                <div className="text-sm font-semibold text-ink">Where this item appears</div>
+                                <label className="flex items-center gap-2 text-sm text-ink">
+                                    <input type="checkbox" checked={edit.show_online !== false} onChange={(e) => setEdit({ ...edit, show_online: e.target.checked })} />
+                                    Online store
+                                </label>
+                                <label className="flex items-center gap-2 text-sm text-ink">
+                                    <input type="checkbox" checked={edit.show_onsite !== false} onChange={(e) => setEdit({ ...edit, show_onsite: e.target.checked })} />
+                                    QR menu (tables and counter)
+                                </label>
+                            </div>
 
                             <label className="block text-sm font-semibold text-ink">
                                 Public description (optional)
@@ -627,12 +787,20 @@ export default function Products({ store, products, pagination, filters, skipped
                                 />
                             </div>
 
+                            <div className="pt-1">
+                                <Checkbox
+                                    checked={!!edit.sell_without_stock}
+                                    label="Keep selling online even when out of stock (I will source it for the customer)"
+                                    onChange={(checked) => setEdit({ ...edit, sell_without_stock: checked })}
+                                />
+                            </div>
+
                             <div className="flex justify-end gap-2 pt-3 border-t border-line">
                                 <Button variant="secondary" onClick={() => setEdit(null)}>Cancel</Button>
                                 <Button onClick={saveEdit}>Save changes</Button>
                             </div>
                         </div>
-                    </dialog>
+                    </dialog></Overlay>
                 )}
             </div>
         </OneGlanceLayout>

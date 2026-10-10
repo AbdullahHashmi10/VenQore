@@ -1,0 +1,4 @@
+{"id":"explore-picker","themes":["light"],"scenarios":[{"folder":"_explore","steps":[
+ {"goto":"/s/{slug}/dashboard","wait":5000},
+ {"xy":[890,123],"wait":1200},{"preview":"per0"},
+ {"press":"Escape"},{"xy":[470,485],"wait":2000},{"preview":"pick0"},{"dump":"pick0"}]}]}

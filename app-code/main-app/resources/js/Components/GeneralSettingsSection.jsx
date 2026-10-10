@@ -84,7 +84,7 @@ export default function GeneralSettingsSection({ data, setData }) {
                                 disabled={true}
                             />
 
-                            <div className="py-3.5 flex items-center justify-between">
+                            <div className="py-3.5 flex flex-wrap items-center justify-between gap-y-2">
                                 <div className="flex items-center gap-3.5 pr-4">
                                     <div className="w-9 h-9 rounded-xl bg-app text-ink-muted flex items-center justify-center shrink-0">
                                         <Lock size={18} />

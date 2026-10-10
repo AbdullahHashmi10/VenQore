@@ -421,6 +421,8 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
     const [verifyingKey, setVerifyingKey] = useState(false);
     const [verificationResult, setVerificationResult] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    // Phone: the section list and a section are two screens, not two panes.
+    const [mobileDetail, setMobileDetail] = useState(() => typeof window !== 'undefined' && window.location.hash.length > 1);
     const [expandedCategories, setExpandedCategories] = useState(['business', 'selling', 'inventory', 'printing_sharing', 'operations', 'access_data']);
     const [pendingSectionId, setPendingSectionId] = useState(null);
     const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -752,6 +754,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
     };
 
     const handleSectionChange = (sectionId) => {
+        setMobileDetail(true);
         if (sectionId === 'backup') {
             router.visit(route('store.admin.data', { store_slug: store?.slug, tab: 'backups' }));
             return;
@@ -896,7 +899,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                 return <TerminalPairingSection storeSlug={store?.slug} />;
             case 'backup':
                 return (
-                    <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-2xl border border-line p-12 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+                    <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-2xl border border-line p-5 sm:p-12 animate-in fade-in slide-in-from-bottom-2 duration-slow">
                         <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg">
                             <Database size={32} />
                         </div>
@@ -908,7 +911,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                         </div>
                         <a
                             href={route('store.admin.data', { store_slug: store?.slug, tab: 'backups' })}
-                            className="inline-flex items-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95"
+                            className="inline-flex items-center gap-2 px-4 sm:px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95"
                         >
                             <span>Go to Data &amp; Backup Hub</span>
                             <ChevronRight size={18} />
@@ -934,18 +937,21 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         <OneGlanceLayout title="Settings" activeMenu="Settings" noPadding={true}>
             <Head title="Settings" />
 
-            <div className="h-full flex gap-6 overflow-hidden px-6 pb-6 pt-3.5">
+            <div className="h-full flex flex-col lg:flex-row gap-3 lg:gap-6 overflow-hidden px-3 sm:px-6 pb-6 pt-3.5">
                 {/* Main Content Area (Left) */}
-                <div className="flex-1 min-w-0 bg-surface rounded-2xl border border-line shadow-xs flex flex-col overflow-hidden relative">
+                <div className={`${mobileDetail ? '' : 'max-lg:hidden'} flex-1 min-w-0 min-h-0 bg-surface rounded-2xl border border-line shadow-xs flex flex-col overflow-hidden relative`}>
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
                     <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
+                        <button type="button" onClick={() => setMobileDetail(false)} className="lg:hidden shrink-0 flex items-center gap-2 px-4 py-3 text-sm font-bold text-brand-600 border-b border-line bg-surface">
+                            <span aria-hidden>&larr;</span> All settings
+                        </button>
                         {/* Sleek Slim Header (Single-line height aligned) */}
                         <div className="px-6 py-3.5 border-b border-line shrink-0 bg-surface/90 backdrop-blur-md">
-                            <div className="flex items-center justify-between gap-4">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4">
                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    <span className="px-2.5 py-1 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-wider rounded-md shrink-0">
+                                    <span className="max-sm:hidden px-2.5 py-1 bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-3xs font-bold uppercase tracking-wider rounded-md shrink-0">
                                         {activeSection === 'security'
                                             ? 'Account Scope'
                                             : activeSection === 'terminals'
@@ -954,8 +960,8 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                             ? 'Register Scope'
                                             : 'Store Scope'}
                                     </span>
-                                    <span className="h-3.5 w-px bg-line shrink-0" />
-                                    <h2 className="text-base font-bold text-ink tracking-tight shrink-0">
+                                    <span className="max-sm:hidden h-3.5 w-px bg-line shrink-0" />
+                                    <h2 className="text-base font-bold text-ink tracking-tight min-w-0 truncate sm:shrink-0">
                                         {currentSection?.name}
                                     </h2>
                                     <span className="hidden md:inline-block text-xs text-ink-muted truncate font-medium">
@@ -992,7 +998,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                         </div>
 
                         {/* Content Scroll Container */}
-                        <div className="flex-1 custom-scrollbar p-6 overflow-y-auto">
+                        <div className="flex-1 custom-scrollbar p-4 sm:p-6 overflow-y-auto">
                             <div className="mx-auto max-w-5xl pb-10 transition-all duration-slow">
                                 {errors && Object.keys(errors).length > 0 && (
                                     <div role="alert" className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
@@ -1017,7 +1023,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
 
                 {/* Settings Side Panel (Right) - V6 Standalone Mesh Background Styled */}
                 <div
-                    className={`${sidebarCollapsed ? 'w-16' : 'w-72 sm:w-80'} rounded-2xl border border-white/10 dark:border-white/10 shadow-lg p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}
+                    className={`${sidebarCollapsed ? 'w-full lg:w-16' : 'w-full lg:w-80'} ${mobileDetail ? 'max-lg:hidden' : 'max-lg:flex-1 max-lg:min-h-0'} rounded-2xl border border-white/10 dark:border-white/10 shadow-lg p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}
                     style={{
                         background: 'radial-gradient(52% 62% at 16% 10%, rgba(35,196,166,0.30), transparent 68%), radial-gradient(46% 54% at 84% 80%, rgba(7,107,94,0.34), transparent 66%), radial-gradient(38% 42% at 62% 26%, rgba(93,165,176,0.14), transparent 70%), #0A0F0E'
                     }}
@@ -1093,7 +1099,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                                 e.stopPropagation();
                                                 toggleCategory(category.id);
                                             }}
-                                            className="w-full flex items-center justify-between px-2.5 py-1.5 text-2xs font-bold uppercase tracking-[0.18em] text-neutral-400 hover:text-emerald-300 transition-colors group"
+                                            className="w-full flex flex-wrap items-center justify-between gap-y-2 px-2.5 py-1.5 text-2xs font-bold uppercase tracking-[0.18em] text-neutral-400 hover:text-emerald-300 transition-colors group"
                                         >
                                             <div className="flex items-center gap-2">
                                                 <CatIcon size={12} className="text-neutral-400 group-hover:text-emerald-300" />

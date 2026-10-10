@@ -80,7 +80,7 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
                 <MoneyModuleTabs activeTab="bank-accounts" />
 
                 {/* Header */}
-                <div className="flex items-center justify-between bg-surface p-3 rounded-xl border border-line shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 bg-surface p-3 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-3">
                         <Link href={route('store.bank-accounts.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
                             <ArrowLeft size={18} className="text-ink-muted" />
@@ -115,7 +115,7 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
                         <tbody className="divide-y divide-line">
                             {allTransactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="p-12 text-center text-ink-muted">
+                                    <td colSpan="5" className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center gap-2">
                                             <FileText size={32} className="opacity-50" />
                                             <p className="font-medium">No transactions found for this account</p>

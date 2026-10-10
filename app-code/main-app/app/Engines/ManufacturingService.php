@@ -130,6 +130,10 @@ class ManufacturingService
                 }
             }
 
+            // Quantized once here and stored as such, so step 3 closes exactly
+            // the amount step 1 opened (ZeroDrift Ledger).
+            $materialCost = \App\Support\Money::toFloat(\App\Support\Money::parseMinor(number_format((float) $materialCost, 6, '.', ''), 'material cost', false));
+
             // Post Step 1 journal — DR 6400 / CR 1100
             $step1Entry = $this->accounting->createEntry([
                 'date'     => $data['run_date'],
@@ -142,7 +146,7 @@ class ManufacturingService
             ]);
 
             // ── Step 2: Record labor ───────────────────────────────────
-            $laborCost = (float) ($data['labor_cost'] ?? 0);
+            $laborCost = \App\Support\Money::toFloat(\App\Support\Money::parseMinor($data['labor_cost'] ?? 0, 'labor cost', false));
             $laborType = $data['labor_type'] ?? null; // 'external' or 'internal'
             $step2EntryId = null;
 
@@ -295,9 +299,16 @@ class ManufacturingService
             }
 
             // Net cost of finished good = total cost minus by-product NRV
-            $finishedGoodCost    = round(
-                $materialCost + $laborCost - $byproductCostReduction, 2
-            );
+            // ZeroDrift Ledger: each part quantized once; finished goods is their
+            // exact difference, so DR 1100 (finished + by-product) = CR 6400 + 6410.
+            $pM = fn ($v) => \App\Support\Money::parseMinor(number_format((float) $v, 6, '.', ''), 'cost', false);
+            $materialM  = $pM($materialCost);
+            $laborM     = $pM($laborCost);
+            $byproductM = min($pM($byproductCostReduction), $materialM + $laborM);
+            $materialCost           = \App\Support\Money::toFloat($materialM);
+            $laborCost              = \App\Support\Money::toFloat($laborM);
+            $byproductCostReduction = \App\Support\Money::toFloat($byproductM);
+            $finishedGoodCost       = \App\Support\Money::toFloat($materialM + $laborM - $byproductM);
             $unitCostFinished    = $actualQty > 0
                 ? round($finishedGoodCost / $actualQty, 4)
                 : 0;
@@ -596,10 +607,18 @@ class ManufacturingService
                 ['account_code' => '1100', 'debit' => 0, 'credit' => $totalSetCost],
             ];
 
-            foreach ($components as $component) {
-                $componentCost = round(
-                    $totalSetCost * ($component->allocation_percent / 100), 2
-                );
+            // ZeroDrift Ledger: the set's cost is split over its components by
+            // largest remainder on their allocation percentages, so the parts
+            // always add back to exactly what left the set (CR 1100 = Σ DR 1100).
+            $setM = \App\Support\Money::parseMinor(number_format((float) $totalSetCost, 6, '.', ''), 'set cost', false);
+            $totalSetCost = \App\Support\Money::toFloat($setM);
+            $journalLines[0]['credit'] = $totalSetCost;
+            $components = collect($components)->values();
+            $shares = \App\Support\Money::allocate($setM, $components->map(
+                fn ($c) => max(0, (int) round(((float) $c->allocation_percent) * 10000))
+            )->all());
+            foreach ($components as $ci => $component) {
+                $componentCost = \App\Support\Money::toFloat($shares[$ci]);
 
                 // Create component batch at allocated cost
                 $this->fifo->receiveBatch(

@@ -59,7 +59,7 @@ export default function WhatIsIncluded() {
  </div>
 
  {/* Nav */}
- <nav className="relative z-10 flex items-center justify-between gap-3 px-4 sm:px-8 py-5 sm:py-6 border-b border-white/5">
+ <nav className="relative z-10 flex flex-wrap items-center justify-between gap-y-2 gap-3 px-4 sm:px-8 py-5 sm:py-6 border-b border-white/5">
  <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
  <img src="/images/logo.png" alt="VenQore" className="h-8 sm:h-9 object-contain shrink-0" />
  <span className="font-bold text-base sm:text-lg text-white truncate">VenQore<span className="text-brand-400">.</span></span>
@@ -200,7 +200,7 @@ export default function WhatIsIncluded() {
  <div className="text-center">
  <Link
  href={route('redeem')}
- className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-brand text-white font-bold text-base transition-all hover:shadow-lg"
+ className="inline-flex items-center gap-3 px-4 sm:px-8 py-4 rounded-full bg-gradient-brand text-white font-bold text-base transition-all hover:shadow-lg"
  >
  <Tag size={16} /> Redeem Your Code <ArrowRight size={16} />
  </Link>

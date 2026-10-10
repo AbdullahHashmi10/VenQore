@@ -28,7 +28,7 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
 `}</style>
 
             <div className="p-6 max-w-4xl mx-auto space-y-6">
-                <div className="flex items-center justify-between no-print">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 no-print">
                     <div className="flex items-center gap-3">
                         <Link href="#" onClick={(e) => { e.preventDefault(); window.history.back(); }} className="p-2 text-ink-muted hover:text-ink-secondary rounded-lg">
                             <ArrowLeft size={20} />
@@ -64,7 +64,7 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                             <p className="text-2xl font-bold text-red-600">{formatCurrency(Math.abs(returnData?.total || 0), store)}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 pt-6 border-t border-line">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-line">
                         <div>
                             <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Date</p>
                             <p className="text-sm font-medium text-ink">{formatDate(returnData?.created_at, store)}</p>
@@ -148,7 +148,7 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                         <Receipt size={16} /> Refund
                     </h3>
                     {creditNotePayment ? (
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div>
                                 <p className="text-sm font-bold text-ink">Store Credit Issued</p>
                                 <p className="text-xs text-ink-muted">{creditNotePayment.reference || 'Credit note'} — {formatDate(creditNotePayment.date, store)}</p>
@@ -156,7 +156,7 @@ export default function ReturnShow({ return: returnData, restockMovements = [] }
                             <p className="font-bold text-blue-600">{formatCurrency(Math.abs(creditNotePayment.amount), store)}</p>
                         </div>
                     ) : cashRefundPayment ? (
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div>
                                 <p className="text-sm font-bold text-ink">Cash Refund</p>
                                 <p className="text-xs text-ink-muted">{cashRefundPayment.reference || 'Cash refund'} — {formatDate(cashRefundPayment.date, store)}</p>

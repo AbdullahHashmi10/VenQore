@@ -122,6 +122,7 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
             'discount_percent' => (float)($item['discount_percent'] ?? 0),
             'tax_rate'         => (float)($item['tax_rate'] ?? 0),
             'sale_uom'         => $item['sale_uom'] ?? 'pcs',
+            'batch_id'         => $item['batch_id'] ?? null,
         ], $payload['items']);
 
         $saleData = [
@@ -170,6 +171,7 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
             '_path'           => 'dispatch',
             'sale_id'         => $saleId,
             'items'           => $items,
+            'warehouse_id'    => $payload['warehouse_id'] ?? null,
             'tracking_number' => $payload['tracking_number'] ?? null,
             'carrier_name'    => $payload['carrier_name'] ?? null,
             'notes'           => $payload['notes'] ?? null,
@@ -179,62 +181,30 @@ class SalesInvoiceApprovalAdapter implements ApprovalAdapterInterface
     private function postDispatch(array $payload, Tenant $tenant, User $reviewer): array
     {
         $saleId = $payload['sale_id'];
-        $items  = $payload['items'];
-        $tenantId = $tenant->id;
+        $sale = \Illuminate\Support\Facades\DB::table('sales')->where('tenant_id', $tenant->id)->where('id', $saleId)->firstOrFail();
 
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($tenantId, $saleId, $items, $reviewer) {
-            $sale = \Illuminate\Support\Facades\DB::table('sales')->where('tenant_id', $tenantId)->where('id', $saleId)->firstOrFail();
-            $saleItems = \Illuminate\Support\Facades\DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $saleId)->get()->keyBy('id');
+        $result = app(\App\Services\DeliveryChallanService::class)->dispatch(
+            (int) $tenant->id,
+            (string) $saleId,
+            (array) $payload['items'],
+            $payload['warehouse_id'] ?? null,
+            [
+                'carrier_name'    => $payload['carrier_name'] ?? null,
+                'tracking_number' => $payload['tracking_number'] ?? null,
+                'notes'           => $payload['notes'] ?? null,
+            ],
+            (int) $reviewer->id
+        );
 
-            foreach ($items as $line) {
-                $item = $saleItems[$line['sale_item_id']] ?? null;
-                if (!$item) continue;
-                $dispatchQty = (float)($line['dispatching_qty'] ?? 0);
-                if ($dispatchQty <= 0) continue;
-
-                $remaining = (float)$item->quantity - (float)($item->delivered_qty ?? 0);
-                if ($dispatchQty > $remaining + 0.0001) {
-                    throw new \DomainException("Cannot dispatch {$dispatchQty} — only {$remaining} remaining on item.");
-                }
-
-                app(\App\Engines\FifoService::class)->deductStock(
-                    productId: $item->product_id,
-                    qty: $dispatchQty,
-                    saleItemId: $item->id,
-                    warehouseId: $sale->warehouse_id
-                );
-
-                \Illuminate\Support\Facades\DB::table('sale_items')
-                    ->where('tenant_id', $tenantId)
-                    ->where('id', $item->id)
-                    ->update([
-                        'delivered_qty' => (float)($item->delivered_qty ?? 0) + $dispatchQty,
-                        'updated_at'    => now(),
-                    ]);
-            }
-
-            $fresh = \Illuminate\Support\Facades\DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $saleId)->get();
-            $allDelivered = $fresh->every(fn($i) => (float)($i->delivered_qty ?? 0) >= (float)$i->quantity - 0.0001);
-            $anyDelivered = $fresh->contains(fn($i) => (float)($i->delivered_qty ?? 0) > 0);
-            $newStatus = $allDelivered ? 'delivered' : ($anyDelivered ? 'partial' : 'pending');
-
-            \Illuminate\Support\Facades\DB::table('sales')
-                ->where('tenant_id', $tenantId)
-                ->where('id', $saleId)
-                ->update([
-                    'delivery_status' => $newStatus,
-                    'updated_at'      => now(),
-                ]);
-
-            return [
-                'type'            => 'sale_dispatch',
-                'id'              => $sale->id,
-                'reference'       => $sale->reference_number ?? ($sale->invoice_number ?? null),
-                'invoice_number'  => $sale->reference_number ?? ($sale->invoice_number ?? null),
-                'total'           => (float)($sale->total ?? 0),
-                'delivery_status' => $newStatus,
-            ];
-        });
+        return [
+            'type'            => 'sale_dispatch',
+            'id'              => $sale->id,
+            'reference'       => $sale->reference_number ?? ($sale->invoice_number ?? null),
+            'invoice_number'  => $sale->reference_number ?? ($sale->invoice_number ?? null),
+            'total'           => (float)($sale->total ?? 0),
+            'delivery_status' => $result->delivery_status,
+            'challan_id'      => $result->challan_id,
+        ];
     }
 
     public function reviewerEligibilityPermissions(): array

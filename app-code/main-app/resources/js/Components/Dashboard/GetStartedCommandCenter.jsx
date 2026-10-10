@@ -48,7 +48,7 @@ export default function GetStartedCommandCenter({ storeSlug, initialCompleted = 
         <div className="w-full p-6 bg-gradient-to-r from-neutral-900 via-brand-950/60 to-neutral-900 border border-brand-500/30 rounded-2xl space-y-4 shadow-2xl relative overflow-hidden animate-fadeIn mb-8">
             <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-y-2">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-brand-500/20 border border-brand-500/40 rounded-2xl text-brand-300">
                         <Sparkles size={20} />
@@ -88,7 +88,7 @@ export default function GetStartedCommandCenter({ storeSlug, initialCompleted = 
                             }`}
                         >
                             <div className="space-y-3">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <div className={`p-2.5 rounded-xl border ${
                                         isDone
                                             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'

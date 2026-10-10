@@ -24,7 +24,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
             </div>
 
             {/* Nav */}
-            <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <header className="relative z-10 flex flex-wrap items-center justify-between gap-y-2 px-6 py-4 border-b border-white/5">
                 <div className="flex items-center gap-2">
                     <img src="/images/logo.png" alt="VenQore" className="h-8 w-8 object-contain" />
                     <span className="font-bold text-lg text-white">VenQore<span className="text-brand-400">.</span></span>
@@ -48,7 +48,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                             <Sparkles size={14} />
                             {has_license ? `${license_plan.charAt(0).toUpperCase() + license_plan.slice(1)} plan ready` : 'Welcome to VenQore'}
                         </div>
-                        <h1 className="text-4xl font-bold tracking-tight text-white mb-3">
+                        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-3">
                             Let's get you started
                         </h1>
                         <p className="text-ink-muted text-lg">

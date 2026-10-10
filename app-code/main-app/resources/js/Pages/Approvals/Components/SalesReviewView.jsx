@@ -222,7 +222,7 @@ export default function SalesReviewView({
 
             {/* Document Line Items Table */}
             <div className="rounded-xl bg-surface border border-line shadow-xs overflow-hidden">
-                <div className="px-4 py-2.5 border-b border-line bg-sunken/40 flex items-center justify-between">
+                <div className="px-4 py-2.5 border-b border-line bg-sunken/40 flex flex-wrap items-center justify-between gap-y-2">
                     <h3 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-2">
                         <span>Line Items</span>
                         <span className="px-1.5 py-0.2 rounded-full text-3xs font-bold bg-sunken text-ink">
@@ -405,33 +405,33 @@ export default function SalesReviewView({
 
                 {/* Financial Summary Card (Span 5) */}
                 <div className="lg:col-span-5 p-4 rounded-xl bg-surface border border-line shadow-xs space-y-2 text-xs">
-                    <div className="flex items-center justify-between text-ink-muted">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 text-ink-muted">
                         <span>Items Subtotal:</span>
                         <span className="font-semibold text-ink tabular-nums">{formatCurrency(subtotal, store)}</span>
                     </div>
 
                     {deliveryCharge > 0 && (
-                        <div className="flex items-center justify-between text-ink-muted">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-ink-muted">
                             <span>Delivery / Shipping:</span>
                             <span className="font-semibold text-ink tabular-nums">+{formatCurrency(deliveryCharge, store)}</span>
                         </div>
                     )}
 
                     {taxTotal > 0 && (
-                        <div className="flex items-center justify-between text-ink-muted">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-ink-muted">
                             <span>Tax Total:</span>
                             <span className="font-semibold text-ink tabular-nums">+{formatCurrency(taxTotal, store)}</span>
                         </div>
                     )}
 
                     {extraCharge > 0 && (
-                        <div className="flex items-center justify-between text-ink-muted">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-ink-muted">
                             <span>Packing / Extra:</span>
                             <span className="font-semibold text-ink tabular-nums">+{formatCurrency(extraCharge, store)}</span>
                         </div>
                     )}
 
-                    <div className="pt-2 border-t border-line flex items-center justify-between">
+                    <div className="pt-2 border-t border-line flex flex-wrap items-center justify-between gap-y-2">
                         <span className="text-sm font-bold text-ink">Grand Total:</span>
                         <span className="text-base sm:text-lg font-bold text-ink tabular-nums">
                             {formatCurrency(grandTotal, store)}

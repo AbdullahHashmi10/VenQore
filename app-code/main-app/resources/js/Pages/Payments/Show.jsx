@@ -38,7 +38,7 @@ export default function PaymentShow({ payment, allocations = [] }) {
 `}</style>
 
             <div className="p-6 max-w-4xl mx-auto space-y-6">
-                <div className="flex items-center justify-between no-print">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 no-print">
                     <div className="flex items-center gap-3">
                         <Link href="#" onClick={(e) => { e.preventDefault(); window.history.back(); }} className="p-2 text-ink-muted hover:text-ink-secondary rounded-lg">
                             <ArrowLeft size={20} />
@@ -83,7 +83,7 @@ export default function PaymentShow({ payment, allocations = [] }) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 pt-6 border-t border-line">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-line">
                         <div>
                             <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Date</p>
                             <p className="text-sm font-medium text-ink">{formatDate(payment?.date, store)}</p>

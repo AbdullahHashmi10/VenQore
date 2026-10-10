@@ -49,7 +49,7 @@ export default function RecycleBin({ items = [] }) {
                             <tbody className="divide-y divide-line">
                                 {items.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="p-12 text-center text-ink-muted">
+                                        <td colSpan="4" className="p-5 sm:p-12 text-center text-ink-muted">
                                             <Trash2 size={48} className="mx-auto mb-3 opacity-20" />
                                             <p>Recycle Bin is empty</p>
                                         </td>

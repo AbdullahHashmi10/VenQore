@@ -180,7 +180,7 @@ function StatCard({ label, value, footnote, tone = 'muted' }) {
 function Panel({ title, action, children }) {
     return (
         <div style={{ background: '#fff', border: '1px solid #e6e3da', borderRadius: 14, padding: '18px 20px' }}>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-y-2">
                 <span style={{ font: "500 13.5px 'Instrument Sans',sans-serif", color: '#16150f' }}>{title}</span>
                 {action && (
                     <span style={{ font: "500 12px 'Instrument Sans',sans-serif", color: '#8b877a' }}>{action}</span>
@@ -570,7 +570,7 @@ export default function Overview({ hero, extras, catalog, greetingName, storeNam
                                 className="flex-1"
                                 style={{ background: '#fff', border: '1px solid #e6e3da', borderRadius: 16, padding: '18px 20px' }}
                             >
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <span style={{ font: "500 13.5px 'Instrument Sans',sans-serif", color: '#16150f' }}>
                                         Needs you today
                                     </span>

@@ -538,7 +538,7 @@ const SmartCombobox = ({
 
  {/* Results Count Header */}
  {filteredItems.length > 0 && (
- <div className="px-4 py-2 bg-app border-b border-line flex items-center justify-between">
+ <div className="px-4 py-2 bg-app border-b border-line flex flex-wrap items-center justify-between gap-y-2">
  <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
  {filteredItems.length} Result{filteredItems.length !== 1 ? 's' : ''}
  </span>

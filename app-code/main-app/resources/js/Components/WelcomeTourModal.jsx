@@ -304,7 +304,7 @@ export default function WelcomeTourModal({ store }) {
  <X size={16} />
  </button>
 
- <div className="p-8 flex flex-col items-center text-center relative z-10">
+ <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
  <div className="w-16 h-16 bg-gradient-brand rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
  <Sparkles className="text-white w-8 h-8" />
  </div>
@@ -367,7 +367,7 @@ export default function WelcomeTourModal({ store }) {
  <X size={16} />
  </button>
 
- <div className="p-8 flex flex-col items-center text-center relative z-10">
+ <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
  <div className="w-16 h-16 bg-gradient-brand rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
  <Sparkles className="text-white w-8 h-8" />
  </div>
@@ -430,7 +430,7 @@ export default function WelcomeTourModal({ store }) {
  <X size={16} />
  </button>
 
- <div className="p-8 flex flex-col items-center text-center relative z-10">
+ <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
  <div className="w-16 h-16 bg-gradient-brand rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
  <Sparkles className="text-white w-8 h-8" />
  </div>
@@ -494,7 +494,7 @@ export default function WelcomeTourModal({ store }) {
  <X size={16} />
  </button>
 
- <div className="p-8 flex flex-col items-center text-center relative z-10">
+ <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
  <Sparkles className="text-white w-8 h-8" />
  </div>
@@ -558,7 +558,7 @@ export default function WelcomeTourModal({ store }) {
  <X size={16} />
  </button>
 
- <div className="p-8 flex flex-col items-center text-center relative z-10">
+ <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
  <div className="w-16 h-16 bg-gradient-brand rounded-2xl flex items-center justify-center shadow-lg mb-6 animate-bounce">
  <Sparkles className="text-white w-8 h-8" />
  </div>

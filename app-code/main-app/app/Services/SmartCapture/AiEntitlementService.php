@@ -70,6 +70,12 @@ class AiEntitlementService
         }
 
         $tenant = app('current.tenant');
+
+        // Make sure the meter matches the plan (see PlanAiAllowance). Without
+        // this a plan customer whose allowance was never written falls through
+        // to the 10-chance free tier and is told the AI is locked.
+        \App\Services\PlanAiAllowance::healIfNeeded($tenant);
+
         $status = $tenant->ai_status ?? 'none';
 
         $usedCol  = $type === 'scan' ? 'ai_pages_used'  : 'ai_queries_used';
@@ -224,9 +230,9 @@ class AiEntitlementService
         $limit = $check['pages_limit'] ?? $check['scans_limit'] ?? 0;
 
         return match ($check['reason']) {
-            'free_limit_reached'=> "You've used all your 10 free AI chances. Subscribe to one of our managed plans, or purchase the Bring-Your-Own-Key lifetime unlock.",
+            'free_limit_reached'=> "You've used all your " . ($limit ?: self::freeScanAllowance()) . " free AI chances. Subscribe to one of our managed plans, or purchase the Bring-Your-Own-Key lifetime unlock.",
             'no_addon'      => "{$feature} requires the AI add-on. Buy managed AI usage from us, or purchase the Bring-Your-Own-Key unlock and use your own API key.",
-            'no_key'        => "You have the Bring-Your-Own-Key unlock, but no API key is configured yet. Add your Gemini / OpenAI / Claude / DeepSeek key in AI settings.",
+            'no_key'        => "You chose to use your own AI key, but none is saved for this store yet. Add your Gemini / OpenAI / Claude / DeepSeek key in AI settings (or switch to your monthly AI quota if your plan includes one).",
             'limit_reached' => "You've used all your included AI usage for this month ({$used}/{$limit}). Upgrade your AI tier, or add your own API key to continue without limits.",
             'no_tenant'     => 'No active store context.',
             default         => "{$feature} is not available.",

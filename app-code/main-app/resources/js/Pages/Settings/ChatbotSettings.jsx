@@ -77,17 +77,17 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  <OneGlanceLayout mode="admin" title="Chatbot Settings" activeMenu="Chatbot Settings">
  <Head title="Chatbot Settings" />
 
- <div className="h-full flex gap-6 overflow-hidden">
+ <div className="h-full flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-y-auto lg:overflow-hidden">
  {/* Clean settings form container */}
- <div className="flex-[2] bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative">
+ <div className="flex-[2] min-h-[640px] lg:min-h-0 bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative">
  {/* Midnight Nebula glow elements */}
  <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
  <form onSubmit={handleSubmit} className="flex flex-col h-full relative z-10">
  {/* Header */}
- <div className="p-10 border-b border-line shrink-0 bg-white/85 dark:bg-app backdrop-blur-xl">
- <div className="flex items-center justify-between">
+ <div className="p-5 sm:p-10 border-b border-line shrink-0 bg-white/85 dark:bg-app backdrop-blur-xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <div>
  <div className="flex items-center gap-3 mb-2">
  <div className="w-9 h-9 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center p-1.5 shadow-sm">
@@ -111,7 +111,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  <button
  type="submit"
  disabled={processing}
- className="relative group px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl"
+ className="relative group px-4 sm:px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl"
  >
  {/* Nebula Background for Button */}
  <div className="absolute inset-0 bg-neutral-900 z-0">
@@ -144,17 +144,17 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  </div>
 
  {/* Section Content */}
- <div className="flex-1 overflow-y-auto p-10 custom-scrollbar">
+ <div className="flex-1 overflow-y-auto p-4 sm:p-10 custom-scrollbar">
  <div className="max-w-3xl mx-auto space-y-8">
  {/* API Key Settings Box */}
- <div className="bg-surface/50 dark:bg-surface border border-line p-8 rounded-2xl">
+ <div className="bg-surface/50 dark:bg-surface border border-line p-4 sm:p-8 rounded-2xl">
  <SectionHeader
  title="AI Integration"
  description="Enter your API key to power the chatbot. We default to Google Gemini."
  />
 
  <div className="mt-6 space-y-4">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">
  Gemini API Key
  </label>
@@ -216,7 +216,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  </div>
 
  {/* Custom Prompts/Rules */}
- <div className="bg-surface/50 dark:bg-surface border border-line p-8 rounded-2xl">
+ <div className="bg-surface/50 dark:bg-surface border border-line p-4 sm:p-8 rounded-2xl">
  <SectionHeader
  title="Chatbot Personalization Rules"
  description={isPlatform
@@ -247,7 +247,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  </div>
 
  {/* Token Usage & Billing Dashboard Side Panel */}
- <div className="w-96 bg-surface rounded-2xl border border-line shadow-2xl p-8 flex flex-col overflow-hidden relative shrink-0">
+ <div className="w-full lg:w-96 bg-surface rounded-2xl border border-line shadow-2xl p-5 sm:p-8 flex flex-col overflow-hidden relative shrink-0">
  {/* Midnight Nebula glow elements */}
  <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
@@ -289,7 +289,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  </h4>
 
  {/* Input Tokens */}
- <div className="flex items-center justify-between p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
  <div className="flex items-center gap-3">
  <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
  <ArrowUpRight size={16} />
@@ -307,7 +307,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  </div>
 
  {/* Output Tokens */}
- <div className="flex items-center justify-between p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
  <div className="flex items-center gap-3">
  <div className="p-2 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
  <ArrowDownLeft size={16} />
@@ -325,7 +325,7 @@ export default function ChatbotSettings({ settings, context, usageStats }) {
  </div>
 
  {/* Total Tokens */}
- <div className="flex items-center justify-between p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-surface/50 dark:bg-surface border border-line dark:border-line rounded-2xl transition-transform duration-normal">
  <div className="flex items-center gap-3">
  <div className="p-2 bg-brand-50 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-lg">
  <Cpu size={16} />

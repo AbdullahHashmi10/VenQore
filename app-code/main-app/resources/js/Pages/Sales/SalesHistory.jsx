@@ -37,6 +37,7 @@ import SellModuleTabs from '@/Components/SellModuleTabs';
 import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
+import MobileStats from '@/Components/MobileStats';
 
 const AmazonLogo = ({ size = 12 }) => (
  <svg viewBox="0 0 16 16" style={{ width: size, height: size, display: 'block' }}>
@@ -68,7 +69,7 @@ const EbayLogo = ({ size = 12 }) => {
  );
 };
 
-export default function SalesIndex({ sales, filters, stats }) {
+export default function SalesIndex({ sales, filters, stats, open_online_orders = [] }) {
  const { t, tp } = useTerms();
  const tt = useTermText();
  const { auth, flash, store, settings, vensynq_enabled } = usePage().props;
@@ -130,6 +131,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  // UI State
  const [searchTerm, setSearchTerm] = useState(params.get('search') || '');
  const [activeFilter, setActiveFilter] = useState(params.get('filter') || 'all');
+ const [channel, setChannel] = useState(params.get('channel') || 'all');
  const [dateRange, setDateRange] = useState({
  from: params.get('from_date') || '',
  to: params.get('to_date') || ''
@@ -186,6 +188,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  router.get(route('store.sales.index', { store_slug: store?.slug }), {
  search: searchTerm,
  filter: activeFilter,
+ channel,
  from_date: dateRange.from,
  to_date: dateRange.to,
  sort_by: sortConfig.key,
@@ -320,35 +323,15 @@ export default function SalesIndex({ sales, filters, stats }) {
  <SellModuleTabs activeTab="orders" />
 
  {/* Mobile Stats Toggle/Summary (Visible below md) */}
- <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
- <button
- onClick={() => setIsStatsExpanded(!isStatsExpanded)}
- className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
- >
- <span>Stats Summary</span>
- <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
- </button>
- 
- {!isStatsExpanded && (
- <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
- {/* Top line: Sales & Txns */}
- <div className="flex items-center gap-2">
- <span className="text-brand-600 dark:text-brand-400">Sale: {formatCurrency(stats?.total_sale || 0, store)}</span>
- <span className="text-neutral-300 dark:text-ink-secondary">|</span>
- <span className="text-blue-600 dark:text-blue-400">Txns: {stats?.transaction_count || 0}</span>
- </div>
- {/* Bottom line: Paid & Due */}
- <div className="flex items-center gap-2">
- <span className="text-emerald-600">Paid: {formatCurrency(stats?.total_paid || 0, store)}</span>
- <span className="text-neutral-300 dark:text-ink-secondary">|</span>
- <span className="text-rose-600">Due: {formatCurrency(stats?.total_unpaid || 0, store)}</span>
- </div>
- </div>
- )}
- </div>
+ <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Sale', value: formatCurrency(stats?.total_sale || 0, store), tone: 'ink' },
+  { label: 'Paid Amount', value: formatCurrency(stats?.total_paid || 0, store), tone: 'emerald' },
+  { label: 'Unpaid (Due)', value: formatCurrency(stats?.total_unpaid || 0, store), tone: 'rose' },
+  { label: 'Transactions', value: stats?.transaction_count || 0, tone: 'ink' }
+]} />
 
  {/* Stats Cards Section */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
+ <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
  <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
@@ -394,6 +377,16 @@ export default function SalesIndex({ sales, filters, stats }) {
  <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
  {tp('sale', 'Sales')} <span className="text-brand-600">Transactions</span>
  </h1>
+ <div className="h-4 w-px bg-sunken mx-1"></div>
+ <div className="flex items-center gap-1 shrink-0">
+ {[['all', 'All'], ['online', 'Online'], ['pos', 'POS'], ['manual', 'Invoice']].map(([k, label]) => (
+ <button
+ key={k}
+ onClick={() => { setChannel(k); applyFilters({ channel: k }); }}
+ className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${channel === k ? (k === 'online' ? 'bg-teal-600 text-white' : 'bg-brand-600 text-white') : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
+ >{label}</button>
+ ))}
+ </div>
  <div className="h-4 w-px bg-sunken mx-1"></div>
  <button
  onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
@@ -456,7 +449,7 @@ export default function SalesIndex({ sales, filters, stats }) {
 
  {/* 1. Header Area - Mobile Layout (4 Buttons) */}
  <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex items-center justify-between w-full">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
  {tp('sale', 'Sales')} <span className="text-brand-600">Transactions</span>
  </h1>
@@ -551,7 +544,7 @@ export default function SalesIndex({ sales, filters, stats }) {
 
  {/* Bulk Action Bar */}
  {selectedSales.length > 0 && (
- <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg mb-2 animate-in slide-in-from-top-2">
+ <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex flex-wrap items-center justify-between gap-y-2 shadow-lg mb-2 animate-in slide-in-from-top-2">
  <span className="font-bold text-sm">{selectedSales.length} Selected</span>
  <div className="flex items-center gap-2">
  {isSuperAdmin && (
@@ -612,9 +605,34 @@ export default function SalesIndex({ sales, filters, stats }) {
  </tr>
  </thead>
  <tbody className="divide-y divide-line">
- {sortedSales.length === 0 ? (
+ {open_online_orders.map((o) => (
+ <tr
+ key={`online-${o.id}`}
+ onClick={() => router.visit(route('store.commerce.orders.show', { store_slug: store?.slug, id: o.id }))}
+ className="cursor-pointer bg-teal-50/40 dark:bg-teal-900/10 border-l-4 border-teal-500 hover:bg-teal-50"
+ >
+ <td className="p-2 md:p-4 w-8 md:w-10 sticky left-0 z-10 bg-surface" />
+ {tableColumns.map((col) => (
+ <td key={`on-${o.id}-${col.key}`} className={`p-2 md:p-4 text-xs md:text-sm text-ink-secondary ${col.className || ''}`}>
+ {col.key === 'date' && <span className="font-medium">{formatDate(o.created_at)}</span>}
+ {col.key === 'reference' && (
+ <div className="flex items-center gap-2">
+ <span className="font-mono text-teal-700 font-semibold">{o.number}</span>
+ <span className="text-2xs font-bold bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded uppercase">Online</span>
+ </div>
+ )}
+ {col.key === 'party_name' && <p className="font-semibold">{o.customer_name}</p>}
+ {col.key === 'transaction' && <span className="capitalize">{o.fulfilment}</span>}
+ {col.key === 'payment_method' && <span className="capitalize">{o.payment_status.replace('_', ' ')}</span>}
+ {col.key === 'amount' && <span className="font-semibold">{formatCurrency(o.total)}</span>}
+ {col.key === 'status' && <span className="text-2xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded uppercase">{o.status.replace('_', ' ')} · not yet a sale</span>}
+ </td>
+ ))}
+ </tr>
+ ))}
+ {sortedSales.length === 0 && open_online_orders.length === 0 ? (
  <tr>
- <td colSpan={tableColumns.length} className="p-12">
+ <td colSpan={tableColumns.length} className="p-5 sm:p-12">
  <div className="flex flex-col items-center justify-center text-center">
  <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
  <FileText size={32} className="text-ink-muted" />
@@ -639,6 +657,8 @@ export default function SalesIndex({ sales, filters, stats }) {
  hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group cursor-pointer
  ${row.source === 'pos'
  ? 'bg-orange-50/30 dark:bg-orange-900/5 border-l-4 border-orange-500'
+ : row.source === 'online'
+ ? 'bg-teal-50/30 dark:bg-teal-900/5 border-l-4 border-teal-500'
  : 'border-l-4 border-transparent hover:border-brand-400'
  }
  ${quickViewSale?.id === row.id ? 'ring-2 ring-brand-500 ring-inset bg-brand-50 dark:bg-brand-900/20' : ''}
@@ -663,6 +683,9 @@ export default function SalesIndex({ sales, filters, stats }) {
  <span className="font-mono text-brand-600 dark:text-brand-400 font-semibold">{row.reference_number}</span>
  {row.source === 'pos' && (
  <span className="text-2xs font-bold bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded uppercase">POS</span>
+ )}
+ {row.source === 'online' && (
+ <span className="text-2xs font-bold bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 px-1.5 py-0.5 rounded uppercase">Online</span>
  )}
  {row.is_dropship && (
  <span className="text-2xs font-bold bg-brand-50 border border-brand-100/50 text-brand-600 dark:bg-brand-950/40 dark:border-brand-900/40 dark:text-brand-400 px-1.5 py-0.5 rounded uppercase tracking-wide flex items-center gap-1.5">
@@ -759,7 +782,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  )}
 
  {/* 3. Preview Delivery Challan */}
- <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Truck size={14} /> Preview Delivery Challan</button>
+ <a href={route().has('store.sales.challan') ? route('store.sales.challan', { store_slug: store?.slug, saleId: row.id }) : '#'} target="_blank" rel="noreferrer" className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Truck size={14} /> Preview Delivery Challan</a>
 
  {/* 4. Payment History */}
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><History size={14} /> Payment History</button>
@@ -820,8 +843,25 @@ export default function SalesIndex({ sales, filters, stats }) {
 
  {/* Mobile View - Cards List */}
  <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
- {sortedSales.length === 0 ? (
- <div className="bg-surface rounded-xl p-8 text-center border border-line">
+ {open_online_orders.map((o) => (
+ <Link
+ key={`m-online-${o.id}`}
+ href={route('store.commerce.orders.show', { store_slug: store?.slug, id: o.id })}
+ className="bg-teal-50/50 rounded-xl p-3 border border-teal-200 border-l-4 border-l-teal-500 flex flex-wrap items-center justify-between gap-y-2 gap-2"
+ >
+ <div className="min-w-0">
+ <div className="flex items-center gap-2">
+ <span className="font-mono text-xs font-semibold text-teal-700">{o.number}</span>
+ <span className="text-2xs font-bold bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded uppercase">Online</span>
+ </div>
+ <p className="text-sm font-semibold text-ink truncate">{o.customer_name}</p>
+ <p className="text-2xs text-ink-muted uppercase">{o.status.replace('_', ' ')} · not yet a sale</p>
+ </div>
+ <span className="text-sm font-bold text-ink shrink-0">{formatCurrency(o.total)}</span>
+ </Link>
+ ))}
+ {sortedSales.length === 0 && open_online_orders.length === 0 ? (
+ <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line">
  <FileText size={32} className="mx-auto text-ink-muted mb-2" />
  <p className="text-sm font-bold text-ink-secondary">No sales found</p>
  </div>
@@ -867,6 +907,10 @@ export default function SalesIndex({ sales, filters, stats }) {
  <span className="text-3xs font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
  Return
  </span>
+ ) : row.source === 'online' ? (
+ <span className="text-3xs font-bold uppercase bg-teal-100 text-teal-700 px-2 py-0.5 rounded border border-teal-200/30">
+ Online Sale
+ </span>
  ) : isPos ? (
  <span className="text-3xs font-bold uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
  POS Sale
@@ -898,7 +942,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  </div>
 
  {/* Row 3: Totals & Action Icons */}
- <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-2 mt-1">
  <div className="flex items-center gap-6">
  <div>
  <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Total</span>
@@ -974,9 +1018,7 @@ export default function SalesIndex({ sales, filters, stats }) {
  <Link href={route('store.sales.show', { store_slug: store?.slug, sale: row.id }) + '?action=return'} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
  <RefreshCcw size={14} /> Convert To Return
  </Link>
- <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
- <Truck size={14} /> Preview Delivery Challan
- </button>
+ <a href={route().has('store.sales.challan') ? route('store.sales.challan', { store_slug: store?.slug, saleId: row.id }) : '#'} target="_blank" rel="noreferrer" className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary"><Truck size={14} /> Preview Delivery Challan</a>
  <button className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
  <History size={14} /> Payment History
  </button>

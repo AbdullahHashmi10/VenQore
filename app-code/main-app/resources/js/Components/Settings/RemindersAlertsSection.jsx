@@ -33,7 +33,7 @@ export default function RemindersAlertsSection({ data, setData }) {
 
             {/* Customer Overdue Payment Window */}
             <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-line pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                     <div>
                         <h3 className="text-sm font-bold text-ink">Overdue payment reminders</h3>
                         <p className="text-xs text-ink-muted">Choose when an unpaid customer bill should appear for follow-up.</p>
@@ -93,7 +93,7 @@ export default function RemindersAlertsSection({ data, setData }) {
                 <div className="divide-y divide-line">
                     {(data.service_reminders || []).length > 0 ? (
                         (data.service_reminders || []).map((reminder, idx) => (
-                            <div key={reminder.id} className="p-4 flex items-center justify-between hover:bg-app/40 transition-colors group">
+                            <div key={reminder.id} className="p-4 flex flex-wrap items-center justify-between gap-y-2 hover:bg-app/40 transition-colors group">
                                 <div className="flex items-center gap-4 flex-1">
                                     <div className="w-9 h-9 rounded-xl bg-app text-ink-muted flex items-center justify-center shrink-0">
                                         <Clock size={18} />

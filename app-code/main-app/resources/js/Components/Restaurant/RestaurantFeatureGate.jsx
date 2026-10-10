@@ -69,7 +69,7 @@ export default function RestaurantFeatureGate({
     if (active) {
         // If already active and in banner mode, render a sleek status bar with quick toggle-off
         return (
-            <div className="flex items-center justify-between px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 rounded-2xl text-xs text-emerald-800 dark:text-emerald-300">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50 rounded-2xl text-xs text-emerald-800 dark:text-emerald-300">
                 <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="font-semibold text-emerald-900 dark:text-emerald-200">{title.replace(' is Disabled', '') || 'Feature'} Active</span>
@@ -113,7 +113,7 @@ export default function RestaurantFeatureGate({
                         type="button"
                         disabled={loading}
                         onClick={() => handleToggle(true)}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-60 cursor-pointer"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-4 sm:px-8 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 text-white font-bold text-sm shadow-sm transition-all disabled:opacity-60 cursor-pointer"
                     >
                         {loading ? (
                             <>

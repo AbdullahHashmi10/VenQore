@@ -304,7 +304,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-4 bg-app rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
+                                <div className="p-4 bg-app rounded-xl border border-line flex flex-wrap items-center justify-between gap-y-2 col-span-1 md:col-span-2">
                                     <div>
                                         <h4 className="text-sm font-bold text-ink">Two-Factor Authentication (2FA)</h4>
                                         <p className="text-xs text-ink-muted">Set up Authenticator App (TOTP) verification for account logins.</p>
@@ -316,7 +316,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                         <span>Manage in Profile</span>
                                     </a>
                                 </div>
-                                <div className="p-4 bg-app rounded-xl border border-line flex items-center justify-between col-span-1 md:col-span-2">
+                                <div className="p-4 bg-app rounded-xl border border-line flex flex-wrap items-center justify-between gap-y-2 col-span-1 md:col-span-2">
                                     <div>
                                         <h4 className="text-sm font-bold text-ink">Staff Roles &amp; Discount Authority</h4>
                                         <p className="text-xs text-ink-muted">Configure staff roles (admin, manager, cashier), per-role maximum discount limits, and team access.</p>
@@ -519,7 +519,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
 
                         {/* Stripe Integration Card */}
                         <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs opacity-75">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                 <div className="flex items-center gap-3.5">
                                     <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0">
                                         <Wifi size={20} />

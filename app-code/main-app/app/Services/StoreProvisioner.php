@@ -317,6 +317,18 @@ class StoreProvisioner
                 return (config("modules.{$key}.status") ?? 'live') === 'live';
             }));
 
+            // Pull in anything the chosen modules depend on (e.g. Cash Register
+            // needs POS). Without this the module guard rejects the set and
+            // signup fails with a 500.
+            try {
+                $resolved = app(\App\Engines\ModuleDependencyResolver::class)->resolve($modules);
+                if (!empty($resolved['modules'])) {
+                    $modules = array_values($resolved['modules']);
+                }
+            } catch (\Throwable $e) {
+                report($e);
+            }
+
             if ($idempotencyKey) {
                 \Illuminate\Support\Facades\Cache::put('provision_idem:' . $user->id . ':' . $idempotencyKey, $tenant->id, 300);
             }

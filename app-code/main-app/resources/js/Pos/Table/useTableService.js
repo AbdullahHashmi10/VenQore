@@ -20,6 +20,7 @@
      the REGISTER owns the cart in front of the operator and the payment.
    ========================================================================== */
 
+import { kitchenOn } from './kitchenWord';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { KitchenPrintService } from '@/Utils/KitchenPrintService';
@@ -55,7 +56,7 @@ export const STATES = {
     free:          { label: 'Free',        tone: 'free' },
     seated:        { label: 'Seated',      tone: 'seated',  alertAfter: 8 * 60000 },
     ordered:       { label: 'Ordered',     tone: 'ordered' },
-    in_kitchen:    { label: 'In kitchen',  tone: 'kitchen' },
+    in_kitchen:    { get label() { return kitchenOn() ? 'In kitchen' : 'Preparing'; }, tone: 'kitchen' },
     served:        { label: 'Served',      tone: 'served' },
     check_dropped: { label: 'Check',       tone: 'check',   alertAfter: 12 * 60000 },
     cleaning:      { label: 'Cleaning',    tone: 'cleaning' },
@@ -112,6 +113,7 @@ export function serverLineToCart(l, i) {
         sent: !!l.sent && sentQty >= qty,
         course: Number(l.course) || 1,
         paidSaleId: l.paid_sale_id || null,
+        fromGuest: !!l.customer_request_id,
         /* The kitchen has already committed the stock for a fired line, and a
            waiter cannot be blocked mid-service by a stock ceiling they have no
            way to clear. Stock is enforced when the sale posts. */

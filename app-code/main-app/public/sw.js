@@ -1,4 +1,4 @@
-const CACHE_NAME = 'venqore-pos-v3.3';
+const CACHE_NAME = 'venqore-pos-v3.4';
 
 const STATIC_ASSETS = [
     '/favicon.ico',
@@ -58,6 +58,11 @@ self.addEventListener('fetch', event => {
         return;
     }
 
+    // Generated images (table QR codes etc.) change per request and need the live server.
+    if (url.pathname.endsWith('/qr.svg') || url.pathname.includes('/qr') || url.search) {
+        return;
+    }
+
     // Build assets (/build/*): No caching in SW. 
     // Hashed filenames ensure correct browser caching, SW interference causes stale chunk errors.
     if (url.pathname.startsWith('/build/')) {
@@ -79,6 +84,8 @@ self.addEventListener('fetch', event => {
             });
         }).catch(error => {
             console.error('[SW] Fetch failed for', event.request.url, error);
+            // respondWith needs a Response; a bare return made the browser throw a second error.
+            return Response.error();
         })
     );
 });

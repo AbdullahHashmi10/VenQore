@@ -222,7 +222,7 @@ function InnerGlobalLayout({ children, settings }) {
 
  {showUpdateOverlay && (
  <div className="fixed inset-0 z-command bg-neutral-950/80 backdrop-blur-2xl flex items-center justify-center p-6 select-none">
- <div className="max-w-md w-full bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden">
+ <div className="max-w-md w-full bg-neutral-900/90 border border-neutral-800/80 rounded-2xl p-4 sm:p-8 text-center shadow-2xl relative overflow-hidden">
  {/* Glow and Loader */}
  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(99,102,241,0.15),transparent_60%)] pointer-events-none" />
  

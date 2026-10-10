@@ -32,6 +32,7 @@ import {
     ChevronRight,
     Filter
 } from 'lucide-react';
+import MobileStats from '@/Components/MobileStats';
 
 export default function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {}, store }) {
     const { settings } = usePage().props;
@@ -176,25 +177,15 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                 <MoneyModuleTabs activeTab="all" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="sm:hidden flex items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-2xs font-bold text-ink-muted uppercase shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={14} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    {!isStatsExpanded && (
-                        <div className="text-2xs font-bold text-ink-muted truncate">
-                            <span className="text-emerald-600">Sales: {formatCurrency(stats.total_debit || 0, store)}</span>
-                            <span className="mx-1">|</span>
-                            <span className="text-red-600 dark:text-red-400">Due: {formatCurrency(stats.total_balance_due || 0, store)}</span>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Count', value: stats.count || 0, tone: 'ink' },
+  { label: 'Total Sales', value: formatCurrency(stats.total_debit || 0, store), tone: 'emerald' },
+  { label: 'Received', value: formatCurrency(stats.total_credit || 0, store), tone: 'blue' },
+  { label: 'Unpaid / Due', value: formatCurrency(stats.total_balance_due || 0, store), tone: 'red' }
+]} />
 
                 {/* Stats Cards - Responsive Grid */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
+                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
                     <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
@@ -235,7 +226,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
 
                 {/* Mobile Toolbar (sm:hidden) */}
                 <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
                         <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
                             Transactions <span className="text-brand-600">History</span>
                         </h1>
@@ -473,7 +464,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
+                                        <td colSpan={tableColumns.length + 1} className="p-5 sm:p-12 text-center text-ink-muted">
                                             <div className="flex flex-col items-center gap-2">
                                                 <FileText size={24} className="opacity-50" />
                                                 <p className="text-sm font-medium">No transactions found</p>
@@ -494,7 +485,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
 
                                 return (
                                     <div key={row.id + '-' + row.type} className="p-3 hover:bg-interactive-hover dark:hover:bg-interactive-hover flex flex-col gap-1.5">
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                                             <span className="text-2xs text-ink-muted font-medium font-mono">
                                                 {formatDate(row.date)}
                                             </span>
@@ -511,7 +502,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                                 {row.party?.name || 'Walk-in Customer'}
                                             </p>
                                         </div>
-                                        <div className="flex items-center justify-between text-1xs pt-1.5 border-t border-dashed border-line mt-1">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-1xs pt-1.5 border-t border-dashed border-line mt-1">
                                             <div className="flex gap-2">
                                                 <span className="text-ink font-mono font-bold">Amt: {formatCurrency(row.amount, store)}</span>
                                                 {row.balance_due > 0 && (
@@ -553,7 +544,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                 );
                             })
                         ) : (
-                            <div className="p-12 text-center text-ink-muted text-xs">
+                            <div className="p-5 sm:p-12 text-center text-ink-muted text-xs">
                                 <FileText size={20} className="mx-auto mb-1.5 opacity-50" />
                                 No transactions found
                             </div>
@@ -566,7 +557,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between px-2 bg-surface py-2 rounded-xl border border-line shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 px-2 bg-surface py-2 rounded-xl border border-line shrink-0">
                     <div className="text-xs text-ink-muted font-medium">
                         Showing {allTransactions.length} of {transactions.total} records (Filtered: {processData.length})
                     </div>

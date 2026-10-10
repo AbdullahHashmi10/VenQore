@@ -664,7 +664,7 @@
     "period": false,
     "weight": 95,
     "topic": "receivable",
-    "insight": "The total money that customers owe you on credit (your Khata balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
+    "insight": "The total money that customers owe you on credit (your customer credit balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
     "unit": "currency",
     "precision": 2,
     "streams": [
@@ -14038,7 +14038,7 @@
   },
   "khata.receivable_total": {
     "key": "khata.receivable_total",
-    "title": "Udhaar Out",
+    "title": "Customer Credit Outstanding",
     "viz": "stat",
     "shape": "stat",
     "module": "khata_credit",
@@ -14095,7 +14095,7 @@
   },
   "khata.payable_total": {
     "key": "khata.payable_total",
-    "title": "Udhaar In",
+    "title": "Supplier Credit Outstanding",
     "viz": "stat",
     "shape": "stat",
     "module": "khata_credit",
@@ -14152,7 +14152,7 @@
   },
   "khata.net_position": {
     "key": "khata.net_position",
-    "title": "Net Khata Position",
+    "title": "Net Credit Position",
     "viz": "stat",
     "shape": "stat",
     "module": "khata_credit",
@@ -14270,7 +14270,7 @@
   },
   "khata.overdue_total": {
     "key": "khata.overdue_total",
-    "title": "Overdue Udhaar",
+    "title": "Overdue Customer Credit",
     "viz": "stat",
     "shape": "stat",
     "module": "khata_credit",
@@ -14325,7 +14325,7 @@
   },
   "khata.aging": {
     "key": "khata.aging",
-    "title": "Udhaar Aging",
+    "title": "Customer Credit Aging",
     "viz": "breakdown",
     "shape": "breakdown",
     "module": "khata_credit",
@@ -14386,7 +14386,7 @@
   },
   "khata.collected": {
     "key": "khata.collected",
-    "title": "Udhaar Collected",
+    "title": "Credit Collected",
     "viz": "stat",
     "shape": "stat",
     "module": "khata_credit",

@@ -112,8 +112,8 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                 <ContactsModuleTabs activeTab="attendance" />
 
                 {/* Stats Cards - 5 Separate Cards in Row */}
-                <div className="grid grid-cols-5 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 shrink-0">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <UserCheck size={16} />
@@ -122,7 +122,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         </div>
                         <p className="text-lg font-bold text-ink">{stats.totalStaff}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle size={16} />
@@ -131,7 +131,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         </div>
                         <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
                                 <XCircle size={16} />
@@ -140,7 +140,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         </div>
                         <p className="text-lg font-bold text-red-600">{stats.absent}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <AlertTriangle size={16} />
@@ -149,7 +149,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         </div>
                         <p className="text-lg font-bold text-amber-600">{stats.pendingGaps}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Timer size={16} />
@@ -342,7 +342,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan={8} className="p-12">
+                                        <td colSpan={8} className="p-5 sm:p-12">
                                             <div className="flex flex-col items-center justify-center text-center">
                                                 <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
                                                     <UserCheck size={28} className="text-ink-muted" />
@@ -416,7 +416,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="p-12">
+                                        <td colSpan={6} className="p-5 sm:p-12">
                                             <div className="flex flex-col items-center justify-center text-center">
                                                 <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-3">
                                                     <Shield size={28} className="text-ink-muted" />
@@ -437,7 +437,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
             {selectedScreenshotId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-neutral-900 border border-neutral-800 rounded-2xl w-full max-w-4xl p-6 shadow-2xl flex flex-col gap-4 animate-in zoom-in-95 duration-fast">
-                        <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-neutral-800 pb-3">
                             <div className="flex items-center gap-2">
                                 <Shield className="text-brand-500" size={20} />
                                 <div>

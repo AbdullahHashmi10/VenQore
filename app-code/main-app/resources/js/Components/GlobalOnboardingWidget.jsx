@@ -190,7 +190,7 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
 
                 {/* Progress Bar */}
                 <div className="mb-4">
-                    <div className="flex items-center justify-between text-2xs font-semibold text-ink-muted mb-1.5">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-semibold text-ink-muted mb-1.5">
                         <span>{completedCount} of {checklist.length} completed</span>
                         <span className="font-bold text-brand-600 dark:text-brand-400">{progressPercent}%</span>
                     </div>
@@ -209,7 +209,7 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
                             key={idx}
                             onClick={() => handleStepClick(item)}
                             disabled={item.isDone}
-                            className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all text-left group border ${
+                            className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-xl transition-all text-left group border ${
                                 item.isDone
                                     ? 'bg-surface border-line/60 opacity-95 cursor-default'
                                     : 'bg-surface border-line hover:border-brand-400/80 hover:bg-brand-50/40 dark:hover:bg-brand-900/20 cursor-pointer shadow-xs'

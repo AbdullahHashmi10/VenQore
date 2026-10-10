@@ -180,7 +180,7 @@ export default function CloseShiftModal({
                             </div>
 
                             {/* Reconciliation Alert Banner */}
-                            <div className={`p-4 rounded-xl border flex items-center justify-between ${
+                            <div className={`p-4 rounded-xl border flex flex-wrap items-center justify-between gap-y-2 ${
                                 variance === 0
                                     ? 'bg-emerald-950/40 border-emerald-800/80 text-emerald-200'
                                     : variance > 0

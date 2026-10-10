@@ -117,7 +117,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
 
                 {/* Stats Cards Section - Compact Single Line */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Landmark size={16} />
@@ -126,7 +126,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                         </div>
                         <p className="text-base font-bold text-ink">{formatCurrency(stats.total_balance)}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Wallet size={16} />
@@ -135,7 +135,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                         </div>
                         <p className="text-base font-bold text-emerald-600">{formatCurrency(stats.cash_balance)}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <TrendingUp size={16} />
@@ -144,7 +144,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                         </div>
                         <p className="text-base font-bold text-blue-600">{formatCurrency(stats.today_in)}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <TrendingDown size={16} />
@@ -203,7 +203,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                         <tbody className="divide-y divide-line">
                             {filteredAccounts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="p-12 text-center text-ink-muted">
+                                    <td colSpan={5} className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center justify-center">
                                             <Landmark size={32} className="mb-2 opacity-50" />
                                             <p className="text-sm">No accounts found</p>

@@ -232,7 +232,7 @@ export default function DocumentReviewHeader({
 
             {/* Editing mode banner */}
             {isEditing && (
-                <div className="max-w-7xl mx-auto mt-2 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex items-center justify-between text-xs text-indigo-900 dark:text-indigo-300">
+                <div className="max-w-7xl mx-auto mt-2 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex flex-wrap items-center justify-between gap-y-2 text-xs text-indigo-900 dark:text-indigo-300">
                     <div className="flex items-center gap-2">
                         <AlertCircle size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
                         <span><strong>In-Place Edit Active:</strong> You are adjusting document values. When done, click <strong>Save & Approve to Ledger</strong> to create an approval revision and post immediately.</span>

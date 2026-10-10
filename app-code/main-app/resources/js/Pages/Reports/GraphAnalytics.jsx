@@ -202,7 +202,7 @@ export default function GraphAnalytics({ trendData = [], paymentStatus = [], sta
 
                     {/* A. SALES TREND */}
                     <div className="bg-surface p-3 rounded-2xl border border-line shadow-sm flex flex-col relative overflow-hidden flex-[1.2]">
-                        <div className="flex items-center justify-between mb-2 shrink-0">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2 shrink-0">
                             <div>
                                 <h3 className="text-xs font-bold text-ink uppercase tracking-tight">Sales Trend Analysis</h3>
                             </div>
@@ -260,13 +260,13 @@ export default function GraphAnalytics({ trendData = [], paymentStatus = [], sta
 
                     {/* B. PAYMENT STATUS & RECOVERY - Adjusted Ratio & Internal Sizing */}
                     <div className="bg-surface p-3 rounded-2xl border border-line shadow-sm relative overflow-hidden flex-1 flex flex-col">
-                        <div className="flex items-center justify-between mb-2 shrink-0">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2 shrink-0">
                             <div>
                                 <h3 className="text-xs font-bold text-ink uppercase tracking-tight">Payment Recovery</h3>
                             </div>
                         </div>
 
-                        <div className="flex-1 flex items-center justify-between min-h-0">
+                        <div className="flex-1 flex flex-wrap items-center justify-between gap-y-2 min-h-0">
                             {/* Left: Chart - Bigger */}
                             <div className="relative h-full flex-1">
                                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
@@ -307,7 +307,7 @@ export default function GraphAnalytics({ trendData = [], paymentStatus = [], sta
                             {/* Right: Detailed Breakdown - More Spacing & Larger Text */}
                             <div className="flex flex-col justify-center gap-3 pr-6 flex-[1.2]">
                                 {paymentStatus.map((status, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-app">
+                                    <div key={idx} className="flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-xl bg-app">
                                         <div className="flex items-center gap-3">
                                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: status.fill }}></div>
                                             <div>
@@ -345,7 +345,7 @@ function StatCard({ title, value, icon, color }) {
     };
 
     return (
-        <div className="bg-surface border border-line rounded-xl p-2.5 flex items-center justify-between shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+        <div className="bg-surface border border-line rounded-xl p-2.5 flex flex-wrap items-center justify-between gap-y-2 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
             {/* Decorative Background */}
             <div className="absolute right-0 top-0 w-16 h-full bg-gradient-to-l from-neutral-50 to-transparent dark:from-neutral-800/50 opacity-50 group-hover:w-24 transition-all duration-slower" />
 

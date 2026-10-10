@@ -146,7 +146,7 @@ export default function FilterPanel({
         <div className={`bg-surface rounded-xl border border-line overflow-hidden ${compact ? 'mb-2 shadow-sm' : 'mb-6'}`}>
             {/* Header */}
             <div
-                className={`flex items-center justify-between ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-3'} ${collapsible ? 'cursor-pointer' : ''} border-b border-line`}
+                className={`flex flex-wrap items-center justify-between gap-y-2 ${compact ? 'px-3 py-1.5 text-xs' : 'px-4 py-3'} ${collapsible ? 'cursor-pointer' : ''} border-b border-line`}
                 onClick={() => collapsible && setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-2">

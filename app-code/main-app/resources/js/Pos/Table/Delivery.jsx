@@ -20,6 +20,7 @@
    clock that starts when they move it.
    ========================================================================== */
 
+import { cookWord } from './kitchenWord';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
@@ -34,7 +35,7 @@ export const DELIVERY_STATES = ['placed', 'preparing', 'out', 'delivered'];
 
 export const DELIVERY_META = {
     placed:    { label: 'Placed',     short: 'Placed',    icon: StickyNote,   tone: 'idle' },
-    preparing: { label: 'Preparing',  short: 'Cooking',   icon: ChefHat,      tone: 'work' },
+    preparing: { label: 'Preparing',  get short() { return cookWord(); },   icon: ChefHat,      tone: 'work' },
     out:       { label: 'On the way', short: 'On the way', icon: Bike,        tone: 'live' },
     delivered: { label: 'Delivered',  short: 'Delivered', icon: PackageCheck, tone: 'done' },
 };

@@ -96,10 +96,7 @@ class PurchaseService
             $lineItems       = $allocation['lineItems'];
             $landedCostTotal = $allocation['total'];
 
-            $grandTotal = round(
-                $totals['subtotal'] - $totals['discount'] + $totals['taxTotal'] + $totals['roundOff'],
-                2
-            );
+            $grandTotal = self::exactSum([$totals['subtotal'], -$totals['discount'], $totals['taxTotal'], $totals['roundOff']]);
 
             $journalEntryId = null;
 
@@ -227,10 +224,7 @@ class PurchaseService
             $lineItems       = $allocation['lineItems'];
             $landedCostTotal = $allocation['total'];
 
-            $grandTotal = round(
-                $totals['subtotal'] - $totals['discount'] + $totals['taxTotal'] + $totals['roundOff'],
-                2
-            );
+            $grandTotal = self::exactSum([$totals['subtotal'], -$totals['discount'], $totals['taxTotal'], $totals['roundOff']]);
 
             $journalEntryId = null;
             /* An edit reverses the old entry and posts a fresh one, so the paid
@@ -251,10 +245,11 @@ class PurchaseService
                the counter take more than is still owed after those payments and
                any debit notes. */
             $settled = app(PaymentService::class)->purchaseSettlementSummary($purchaseId);
-            $amountPaid = round(max(0.0, min(
-                $amountPaid - $settled['allocated'],
-                $grandTotal - $settled['returned'] - $settled['allocated']
-            )), 2);
+            $pm = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+            $amountPaid = \App\Support\Money::toFloat(max(0, min(
+                $pm($amountPaid) - $pm($settled['allocated']),
+                $pm($grandTotal) - $pm($settled['returned']) - $pm($settled['allocated'])
+            )));
             if ($isReceived) {
                 $journalEntry = $this->postPurchaseJournal(
                     purchaseId:    $purchaseId,
@@ -484,6 +479,15 @@ class PurchaseService
 
         return DB::transaction(function () use ($data, $purchase, $purchaseId) {
             $tenantId        = $this->tenantId();
+            // ZeroDrift Ledger: everything below is exact paisa. Each line's
+            // value, landed cost and tax come back as a CUMULATIVE share of what
+            // the purchase booked for that line, so a line returned in pieces
+            // gives back exactly what it brought in — nothing stranded on 1100,
+            // 2300 or 6000, and never more than was booked.
+            $booked        = $this->bookedPurchaseLines($purchaseId);
+            $trackReturned = \Illuminate\Support\Facades\Schema::hasColumn('purchase_items', 'returned_qty');
+            $goodsM = $landedM = $itcM = $expM = 0;
+            $returnedNow = [];
             $totalReturnCost = 0.00;
             // Input tax claimed on the returned goods goes back with them: the
             // supplier's debit note is for the goods AND the tax on them.
@@ -522,39 +526,29 @@ class PurchaseService
                     );
                 }
 
-                $lineCost         = round($returnQty * (float) $batch->unit_cost, 2);
-                $totalReturnCost += $lineCost;
+                $before = ($trackReturned ? (float) ($pi->returned_qty ?? 0) : 0.0) + ($returnedNow[$pi->id] ?? 0.0);
+                if ($trackReturned && $returnQty > (float) $pi->qty - $before + 0.00001) {
+                    throw new \InvalidArgumentException(
+                        "Return qty {$returnQty} is more than the " . max(0, (float) $pi->qty - $before) . ' still returnable on this purchase line.'
+                    );
+                }
+                $returnedNow[$pi->id] = ($returnedNow[$pi->id] ?? 0.0) + $returnQty;
+                $b = $booked[$pi->id] ?? ['goods' => 0, 'landed' => 0, 'itc' => 0, 'exp' => 0];
+                $share = fn (int $whole) => \App\Services\Sales\ReturnValuation::share($whole, $pi->qty, $before, $returnQty);
 
-                /* The batch cost includes the landed-cost share, which the
-                   purchase journal credited to Accounts Payable with NO party —
-                   it is owed to the carrier / customs, not to this supplier. The
-                   supplier's debit note only covers their own (discounted)
-                   price, so only that comes off their payable. The landed cost
-                   on the returned units was spent and cannot be sent back with
-                   them: it is expensed (6000) and the carrier's accrual is left
-                   alone. Stock still leaves 1100 at the full batch cost, so the
-                   ledger keeps agreeing with the FIFO layers. */
-                $supplierUnit  = $lineCosts[$pi->id]['net'] ?? (float) $batch->unit_cost;
-                $supplierGoods = min($lineCost, round($returnQty * $supplierUnit, 2));
-                $totalLandedCost += round($lineCost - $supplierGoods, 2);
-
-                /* The purchase posted this line's tax as DR 2300 (recoverable
-                   share) and DR 6000 (non-recoverable share), all owed to the
-                   supplier. Returning part of the line must take back the same
-                   proportion of each — otherwise 2300 keeps an input-tax claim
-                   on goods we no longer have and the supplier's payable stays
-                   overstated by the tax on them. */
-                $lineQty = (float) $pi->qty;
-                if ($lineQty > 0 && (float) $pi->tax_rate > 0) {
-                    $lineTax = $this->tax->calculateLineTax(
-                        amount:           (float) $pi->line_total,
-                        taxRate:          (float) $pi->tax_rate,
-                        priceIncludesTax: false
-                    )['tax'];
-                    $returnedTax     = round($lineTax * ($returnQty / $lineQty), 2);
-                    $recoverable     = round($returnedTax * ((float) ($pi->business_pct ?? 100) / 100), 2);
-                    $totalReturnItc += $recoverable;
-                    $totalReturnExp += round($returnedTax - $recoverable, 2);
+                /* The supplier's debit note covers their own (discounted) price
+                   and the tax on it. The landed cost (freight, customs …) rode
+                   along in the batch but is owed to the carrier, not to this
+                   supplier: it was spent and cannot be sent back, so it is
+                   expensed (6000) and the carrier's accrual is left alone.
+                   Stock leaves 1100 at goods + landed — exactly what the
+                   purchase put there for these units. */
+                $goodsM  += $share($b['goods']);
+                $landedM += $share($b['landed']);
+                $itcM    += $share($b['itc']);
+                $expM    += $share($b['exp']);
+                if ($trackReturned) {
+                    DB::table('purchase_items')->where('tenant_id', $tenantId)->where('id', $pi->id)->increment('returned_qty', $returnQty);
                 }
 
                 DB::table('inventory_batches')->where('tenant_id', $tenantId)
@@ -598,13 +592,14 @@ class PurchaseService
             $isCashPurchase    = ($purchase->payment_method ?? null) === 'cash';
             $offsetAccountCode = $isCashPurchase ? self::ACC_CASH : self::ACC_PAYABLE;
 
-            $totalReturnCost  = round($totalReturnCost, 2);
-            $totalReturnItc   = round($totalReturnItc, 2);
-            $totalReturnExp   = round($totalReturnExp, 2);
-            $totalLandedCost  = round($totalLandedCost, 2);
-            $totalSupplierGoods = round($totalReturnCost - $totalLandedCost, 2);
+            $F = fn (int $m) => \App\Support\Money::toFloat($m);
+            $totalReturnCost    = $F($goodsM + $landedM);
+            $totalReturnItc     = $F($itcM);
+            $totalReturnExp     = $F($expM);
+            $totalLandedCost    = $F($landedM);
+            $totalSupplierGoods = $F($goodsM);
             // The debit note: the supplier's price for the goods plus the tax on it.
-            $totalReturnValue = round($totalSupplierGoods + $totalReturnItc + $totalReturnExp, 2);
+            $totalReturnValue   = $F($goodsM + $itcM + $expM);
 
             $journalLines = [
                 [
@@ -742,6 +737,13 @@ class PurchaseService
                 }
             }
 
+            // Units that left THIS bill's batches count against its lines, so
+            // the per-line return cap and the return valuation in
+            // createReturn() see them (ZeroDrift Ledger).
+            if ($batches->isNotEmpty()) {
+                $this->markLinesReturned($tenantId, $purchaseId, $productId, $deductions);
+            }
+
             // Aggregates move by what actually left the batches, per warehouse.
             $byWarehouse = [];
             foreach ($deductions as $d) {
@@ -785,7 +787,7 @@ class PurchaseService
             }
 
             return [
-                'cost'       => round(array_sum(array_column($deductions, 'total_cost')), 2),
+                'cost'       => self::exactSum(array_column($deductions, 'total_cost')),
                 'deductions' => $deductions,
             ];
         });
@@ -794,6 +796,60 @@ class PurchaseService
     // ═════════════════════════════════════════════════════════════════════════
     // INTERNALS
     // ═════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Add returned units to a bill's lines: first to the line whose batch the
+     * units left, then (for anything left over) to the bill's other lines of
+     * the same product in order, never past a line's own quantity.
+     *
+     * @param array<int, array{batch_id?: string, qty_taken: float}> $deductions
+     */
+    private function markLinesReturned($tenantId, string $purchaseId, string $productId, array $deductions): void
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('purchase_items', 'returned_qty')) {
+            return;
+        }
+        $lines = DB::table('purchase_items')
+            ->where('tenant_id', $tenantId)
+            ->where('purchase_id', $purchaseId)
+            ->where('product_id', $productId)
+            ->orderBy('created_at')->orderBy('id')
+            ->lockForUpdate()
+            ->get(['id', 'qty', 'returned_qty', 'inventory_batch_id']);
+        if ($lines->isEmpty()) {
+            return;
+        }
+        $room = [];
+        foreach ($lines as $l) {
+            $room[$l->id] = max(0.0, (float) $l->qty - (float) ($l->returned_qty ?? 0));
+        }
+        $add = [];
+        $left = 0.0;
+        foreach ($deductions as $d) {
+            $take = (float) $d['qty_taken'];
+            $line = isset($d['batch_id']) ? $lines->firstWhere('inventory_batch_id', $d['batch_id']) : null;
+            if ($line) {
+                $n = min($take, $room[$line->id]);
+                $add[$line->id] = ($add[$line->id] ?? 0) + $n;
+                $room[$line->id] -= $n;
+                $take -= $n;
+            }
+            $left += $take;
+        }
+        foreach ($room as $id => $r) {
+            $n = min($left, $r);
+            if ($n <= 0) {
+                continue;
+            }
+            $add[$id] = ($add[$id] ?? 0) + $n;
+            $left -= $n;
+        }
+        foreach ($add as $id => $n) {
+            if ($n > 0) {
+                DB::table('purchase_items')->where('tenant_id', $tenantId)->where('id', $id)->increment('returned_qty', $n);
+            }
+        }
+    }
 
     private function tenantId()
     {
@@ -896,74 +952,144 @@ class PurchaseService
      * Line maths + header discount + round-off. Tax is computed per line so the
      * recoverable/non-recoverable ITC split is preserved.
      */
+    /** Sum currency amounts exactly (integer paisa) and return the currency value. */
+    private static function exactSum(array $amounts): float
+    {
+        $m = 0;
+        foreach ($amounts as $a) {
+            $m += \App\Support\Money::parseMinor($a, 'amount', false);
+        }
+        return \App\Support\Money::toFloat($m);
+    }
+
+    /** Tax on a base in paisa at a decimal rate (exclusive), half-up, once. */
+    private static function taxMinor(int $baseM, mixed $rate): int
+    {
+        $r = \App\Support\Money::parse($rate ?? 0, 'tax rate', false);
+        if (!$r->isPositive() || $baseM <= 0) {
+            return 0;
+        }
+        return \App\Support\Money::divRound($r->getUnscaledValue()->multipliedBy($baseM), \Brick\Math\BigInteger::ten()->power($r->getScale())->multipliedBy(100));
+    }
+
+    /** The recoverable part of a line's tax at a business-use percentage. */
+    private static function recoverableMinor(int $taxM, mixed $businessPct): int
+    {
+        $p = \App\Support\Money::parse($businessPct ?? 100, 'business %', false);
+        $r = \App\Support\Money::divRound($p->getUnscaledValue()->multipliedBy($taxM), \Brick\Math\BigInteger::ten()->power($p->getScale())->multipliedBy(100));
+        return max(0, min($taxM, $r));
+    }
+
+    /**
+     * Line maths + header discount + round-off, in exact paisa (ZeroDrift
+     * Ledger). Each amount is quantized once, half-up; totals are integer sums,
+     * so the purchase journal built from them balances by construction. Tax is
+     * computed per line so the recoverable/non-recoverable split is preserved.
+     */
     private function calculateTotals(array $validated): array
     {
-        $subtotal  = 0.00;
-        $taxTotal  = 0.00;
-        $itcTotal  = 0.00;
-        $expTotal  = 0.00;
+        $minor = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+        $toF   = fn (int $m) => \App\Support\Money::toFloat($m);
+        $subtotalM = $taxM = $itcM = $expM = 0;
         $lineItems = [];
 
         foreach ($validated['items'] as $item) {
-            $qty         = (float) ($item['qty'] ?? $item['quantity'] ?? 0);
-            $unitCost    = (float) ($item['unit_cost'] ?? $item['price'] ?? 0);
+            $qtyRaw       = $item['qty'] ?? $item['quantity'] ?? 0;
+            $costRaw      = $item['unit_cost'] ?? $item['price'] ?? 0;
+            $qty          = (float) $qtyRaw;
+            $unitCost     = (float) $costRaw;
             $lineDiscount = (float) ($item['discount_amount'] ?? 0);
             /* A line discount larger than the line is worth nothing, not a
-               negative. Both validators already measure the goods this way; the
-               subtotal did not, so an over-discounted line pulled the subtotal
-               below what the header discount had been checked against and the
-               journal came out unbalanced. */
-            $lineCost    = max(0.0, round(($qty * $unitCost) - $lineDiscount, 2));
+               negative (both validators measure the goods the same way). */
+            $grossDec  = \App\Support\Money::parse($qtyRaw, 'qty', false)->multipliedBy(\App\Support\Money::parse($costRaw, 'unit cost', false));
+            $lineCostM = max(0, \App\Support\Money::toMinor($grossDec) - $minor($item['discount_amount'] ?? 0));
 
-            $businessPct = isset($item['business_pct']) ? (float) $item['business_pct'] : 100.0;
+            $businessPct     = isset($item['business_pct']) ? (float) $item['business_pct'] : 100.0;
+            $taxLineM        = self::taxMinor($lineCostM, $item['tax_rate'] ?? 0);
+            $recoverableM    = self::recoverableMinor($taxLineM, $item['business_pct'] ?? 100);
+            $nonRecoverableM = $taxLineM - $recoverableM;
 
-            $taxCalc = $this->tax->calculateLineTax(
-                amount:           $lineCost,
-                taxRate:          $item['tax_rate'] ?? 0,
-                priceIncludesTax: false
-            );
-
-            $recoverableTax    = round($taxCalc['tax'] * ($businessPct / 100), 2);
-            $nonRecoverableTax = round($taxCalc['tax'] - $recoverableTax, 2);
-
-            $subtotal += $taxCalc['net'];
-            $taxTotal += $taxCalc['tax'];
-            $itcTotal += $recoverableTax;
-            $expTotal += $nonRecoverableTax;
+            $subtotalM += $lineCostM;
+            $taxM      += $taxLineM;
+            $itcM      += $recoverableM;
+            $expM      += $nonRecoverableM;
 
             $lineItems[] = array_merge($item, [
                 'qty'                => $qty,
                 'unit_cost'          => $unitCost,
                 'variant_id'         => $item['variant_id'] ?? null,
                 'discount_amount'    => $lineDiscount,
-                'line_total'         => $lineCost,
-                'tax_amount'         => $taxCalc['tax'],
-                'recoverable_tax'    => $recoverableTax,
-                'nonrecoverable_tax' => $nonRecoverableTax,
+                'line_total'         => $toF($lineCostM),
+                'tax_amount'         => $toF($taxLineM),
+                'recoverable_tax'    => $toF($recoverableM),
+                'nonrecoverable_tax' => $toF($nonRecoverableM),
                 'business_pct'       => $businessPct,
             ]);
         }
 
         /* Round-off adjusts the last paisa of a bill; it cannot rewrite it. It
-           is bounded here so the total it produces can never fall below zero —
-           a negative total posts a credit with no debit behind it, and the
-           ledger refuses the whole entry rather than storing it. */
-        $discount    = round((float) ($validated['discount'] ?? 0), 2);
-        $beforeRound = round($subtotal, 2) - $discount + round($taxTotal, 2);
-        $roundOff    = round((float) ($validated['round_off'] ?? 0), 2);
-        if ($beforeRound + $roundOff < 0) {
-            $roundOff = round(-$beforeRound, 2);
+           is bounded so the total can never fall below zero — a negative total
+           posts a credit with no debit behind it. */
+        $discountM    = $minor($validated['discount'] ?? 0);
+        $beforeRoundM = $subtotalM - $discountM + $taxM;
+        $roundOffM    = $minor($validated['round_off'] ?? 0);
+        if ($beforeRoundM + $roundOffM < 0) {
+            $roundOffM = -$beforeRoundM;
         }
 
         return [
-            'subtotal'  => round($subtotal, 2),
-            'taxTotal'  => round($taxTotal, 2),
-            'itcTotal'  => round($itcTotal, 2),
-            'expTotal'  => round($expTotal, 2),
-            'discount'  => $discount,
-            'roundOff'  => $roundOff,
-            'lineItems' => $this->withNetUnitCosts($lineItems, $discount),
+            'subtotal'  => $toF($subtotalM),
+            'taxTotal'  => $toF($taxM),
+            'itcTotal'  => $toF($itcM),
+            'expTotal'  => $toF($expM),
+            'discount'  => $toF($discountM),
+            'roundOff'  => $toF($roundOffM),
+            'lineItems' => $this->withNetUnitCosts($lineItems, $toF($discountM)),
         ];
+    }
+
+    /**
+     * What each line of a stored purchase BOOKED, in exact paisa — the same
+     * amounts the purchase journal posted, split per line:
+     *   goods   line value after its share of the header discount (largest remainder)
+     *   landed  its share of the landed costs (by value or quantity, as entered)
+     *   itc/exp its recoverable / non-recoverable tax, as calculateTotals() computed it
+     * Σ goods + Σ landed = the 1100 debit; Σ itc = 2300; Σ exp = the tax part of 6000.
+     *
+     * @return array<string, array{goods:int, landed:int, itc:int, exp:int}>
+     */
+    private function bookedPurchaseLines(string $purchaseId): array
+    {
+        $tenantId = $this->tenantId();
+        $purchase = DB::table('purchases')->where('tenant_id', $tenantId)->where('id', $purchaseId)->first();
+        $items    = DB::table('purchase_items')->where('tenant_id', $tenantId)->where('purchase_id', $purchaseId)->orderBy('created_at')->orderBy('id')->get()->values();
+        $M = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+
+        $lineM = $items->map(fn ($i) => max(0, $M($i->line_total)))->all();
+        $discountM = min(max(0, $M($purchase->discount ?? 0)), array_sum($lineM));
+        $discShare = \App\Support\Money::allocate($discountM, $lineM);
+
+        $landed = array_fill(0, count($lineM), 0);
+        $extras = DB::table('expenses')->where('tenant_id', $tenantId)->where('purchase_id', $purchaseId)->where('is_landed_cost', true)->get(['amount', 'allocation_method']);
+        $qtyW = $items->map(fn ($i) => (int) round(((float) $i->qty) * 10000))->all();
+        foreach ($extras as $e) {
+            $amt = max(0, $M($e->amount));
+            $weights = ($e->allocation_method ?: 'value') === 'quantity' ? $qtyW : array_map(fn ($l, $d) => $l - $d, $lineM, $discShare);
+            if (array_sum($weights) <= 0) {
+                $weights = $qtyW;
+            }
+            foreach (\App\Support\Money::allocate($amt, $weights) as $k => $v) {
+                $landed[$k] += $v;
+            }
+        }
+
+        $out = [];
+        foreach ($items as $k => $i) {
+            $taxM = self::taxMinor($lineM[$k], $i->tax_rate ?? 0);
+            $itc  = self::recoverableMinor($taxM, $i->business_pct ?? 100);
+            $out[$i->id] = ['goods' => $lineM[$k] - $discShare[$k], 'landed' => $landed[$k], 'itc' => $itc, 'exp' => $taxM - $itc];
+        }
+        return $out;
     }
 
     /**
@@ -1058,10 +1184,7 @@ class PurchaseService
      */
     private function allocateLandedCosts(array $lineItems, array $extras): array
     {
-        $total = 0.0;
-        foreach ($extras as $extra) {
-            $total += (float) ($extra['amount'] ?? 0);
-        }
+        $total = self::exactSum(array_map(fn ($e) => $e['amount'] ?? 0, $extras));
 
         /* The base is what the goods cost from the supplier AFTER discounts
            (withNetUnitCosts), both for the batch price and for spreading the
@@ -1102,7 +1225,7 @@ class PurchaseService
         }
         unset($item);
 
-        return ['lineItems' => $lineItems, 'total' => round($total, 2)];
+        return ['lineItems' => $lineItems, 'total' => $total];
     }
 
     /**
@@ -1122,10 +1245,12 @@ class PurchaseService
      */
     private function paidNow(array $validated, float $grandTotal): float
     {
+        $grandM = \App\Support\Money::parseMinor($grandTotal, 'total', false);
         if (array_key_exists('amount_paid', $validated) && $validated['amount_paid'] !== null && $validated['amount_paid'] !== '') {
-            return round(max(0.0, min((float) $validated['amount_paid'], $grandTotal)), 2);
+            $paidM = \App\Support\Money::parseMinor($validated['amount_paid'], 'amount paid', false);
+            return \App\Support\Money::toFloat(max(0, min($paidM, $grandM)));
         }
-        return ($validated['payment_method'] ?? null) === 'cash' ? round($grandTotal, 2) : 0.0;
+        return ($validated['payment_method'] ?? null) === 'cash' ? \App\Support\Money::toFloat($grandM) : 0.0;
     }
 
     private function postPurchaseJournal(
@@ -1144,7 +1269,10 @@ class PurchaseService
            the last place before the ledger and an unbalanced entry is not
            something to discover later. If the goods come to nothing, they come
            to nothing on both sides. */
-        $inventoryDebit = max(0.0, round($totals['subtotal'] - $totals['discount'] + $landedCost, 2));
+        $M = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+        $F = fn (int $m) => \App\Support\Money::toFloat($m);
+        $landedM = $M($landedCost);
+        $inventoryDebit = $F(max(0, $M($totals['subtotal']) - $M($totals['discount']) + $landedM));
 
         $lines = [
             ['account_code' => self::ACC_INVENTORY, 'debit' => $inventoryDebit, 'credit' => 0],
@@ -1178,11 +1306,13 @@ class PurchaseService
            line stayed, and the entry came out unbalanced. */
         /* Clamped together with the inventory debit by the caller, so this is
            only ever reached with a bill of zero or more. */
-        $billable = max(0.0, round($grandTotal, 2));
-        $paid = $amountPaid === null
-            ? ($paymentMethod === 'cash' ? $billable : 0.0)
-            : round(max(0.0, min((float) $amountPaid, $billable)), 2);
-        $owed = round($billable - $paid, 2);
+        $billableM = max(0, $M($grandTotal));
+        $paidM = $amountPaid === null
+            ? ($paymentMethod === 'cash' ? $billableM : 0)
+            : max(0, min($M($amountPaid), $billableM));
+        $billable = $F($billableM);
+        $paid = $F($paidM);
+        $owed = $F($billableM - $paidM); // exact: paid + owed = the bill
 
         if ($paid > 0.0001) {
             /* Out of the account the operator named, or the till if they named
@@ -1241,7 +1371,7 @@ class PurchaseService
             $lines[] = [
                 'account_code' => self::ACC_PAYABLE,
                 'debit'        => 0,
-                'credit'       => round($landedCost, 2),
+                'credit'       => $F($landedM),
             ];
         }
 
@@ -1555,11 +1685,11 @@ class PurchaseService
 
     private function landedCostTotal(string $purchaseId): float
     {
-        return (float) DB::table('expenses')
+        return self::exactSum(DB::table('expenses')
             ->where('tenant_id', $this->tenantId())
             ->where('purchase_id', $purchaseId)
             ->where('is_landed_cost', true)
-            ->sum('amount');
+            ->pluck('amount')->all());
     }
 
     /** Rebuild the tax/subtotal split from stored item rows (used by receive()). */
@@ -1570,32 +1700,23 @@ class PurchaseService
             ->where('purchase_id', $purchaseId)
             ->get();
 
-        $subtotal = 0.0;
-        $itc      = 0.0;
-        $exp      = 0.0;
-
+        // Exact paisa, the same per-line tax as calculateTotals().
+        $subM = $itcM = $expM = 0;
         foreach ($items as $item) {
-            $lineCost = (float) $item->line_total;
-            $taxCalc  = $this->tax->calculateLineTax(
-                amount:           $lineCost,
-                taxRate:          (float) $item->tax_rate,
-                priceIncludesTax: false
-            );
-
-            $businessPct    = (float) ($item->business_pct ?? 100);
-            $recoverable    = round($taxCalc['tax'] * ($businessPct / 100), 2);
-            $nonRecoverable = round($taxCalc['tax'] - $recoverable, 2);
-
-            $subtotal += $taxCalc['net'];
-            $itc      += $recoverable;
-            $exp      += $nonRecoverable;
+            $lineM = max(0, \App\Support\Money::parseMinor($item->line_total ?? 0, 'line total', false));
+            $taxM  = self::taxMinor($lineM, $item->tax_rate ?? 0);
+            $recM  = self::recoverableMinor($taxM, $item->business_pct ?? 100);
+            $subM += $lineM;
+            $itcM += $recM;
+            $expM += $taxM - $recM;
         }
+        $F = fn (int $m) => \App\Support\Money::toFloat($m);
 
         return [
-            'subtotal' => round($subtotal, 2),
-            'taxTotal' => round($itc + $exp, 2),
-            'itcTotal' => round($itc, 2),
-            'expTotal' => round($exp, 2),
+            'subtotal' => $F($subM),
+            'taxTotal' => $F($itcM + $expM),
+            'itcTotal' => $F($itcM),
+            'expTotal' => $F($expM),
             'discount' => $discount,
             'roundOff' => $roundOff,
         ];

@@ -26,6 +26,18 @@ class RunDepreciation extends Command
     protected $description = 'Calculate and post daily depreciation for fixed assets';
 
     /**
+     * One day's depreciation in paisa: balance × rate% ÷ 365, worked out on
+     * the exact stored decimals and rounded half-up to the paisa once.
+     */
+    public static function dailyMinor($balance, $ratePercent): int
+    {
+        $b = \App\Support\Money::parse($balance, 'balance', false);
+        $r = \App\Support\Money::parse($ratePercent, 'rate', false);
+        // paisa = balance × 100 × rate / 100 / 365 = balance × rate / 365
+        return $b->multipliedBy($r)->dividedBy(365, 0, \Brick\Math\RoundingMode::HALF_UP)->toInt();
+    }
+
+    /**
      * Execute the console command.
      */
     public function handle()
@@ -66,14 +78,23 @@ class RunDepreciation extends Command
                 continue;
             }
 
+            // One run per tenant per day: a scheduler retry or a second manual
+            // run must not depreciate the same day twice.
+            $reference = 'DEP-' . $date->format('Ymd');
+            if (DB::table('journal_entries')->where('tenant_id', $tenant->id)->where('reference', $reference)->exists()) {
+                $this->info("   Depreciation for {$date->toDateString()} is already posted ({$reference}).");
+                continue;
+            }
+
             DB::beginTransaction();
             try {
                 $totalDepreciation = 0;
+                $totalDepreciationM = 0;
                 $journalLines = [];
 
                 foreach ($assets as $asset) {
-                    $annualDepreciation = $asset->balance * ($asset->depreciation_rate / 100);
-                    $dailyDepreciation = round($annualDepreciation / 365, 2);
+                    $dailyM = self::dailyMinor($asset->balance ?? 0, $asset->depreciation_rate ?? 0);
+                    $dailyDepreciation = \App\Support\Money::toFloat($dailyM);
 
                     if ($dailyDepreciation <= 0) {
                         continue;
@@ -86,7 +107,8 @@ class RunDepreciation extends Command
                     ];
 
                     $asset->decrement('balance', $dailyDepreciation);
-                    $totalDepreciation += $dailyDepreciation;
+                    $totalDepreciationM += $dailyM;
+                    $totalDepreciation = \App\Support\Money::toFloat($totalDepreciationM);
                 }
 
                 if ($totalDepreciation > 0) {
@@ -99,7 +121,7 @@ class RunDepreciation extends Command
                     app(\App\Engines\AccountingService::class)->createEntry([
                         'date'           => $date->toDateString(),
                         'reference_type' => 'manual',
-                        'reference'      => 'DEP-' . $date->format('Ymd'),
+                        'reference'      => $reference,
                         'description'    => 'Daily Depreciation Run',
                     ], $journalLines);
 

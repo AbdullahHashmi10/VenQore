@@ -140,7 +140,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                     onChange={(e) => setNote(e.target.value)}
                                 />
                                 <div className="flex justify-end mt-4">
-                                    <button className="py-4 px-10 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold shadow-xl transition-all active:scale-95">
+                                    <button className="py-4 px-4 sm:px-10 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold shadow-xl transition-all active:scale-95">
                                         Save Note
                                     </button>
                                 </div>
@@ -155,8 +155,8 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                     { user: 'Abdullah', date: '2 hours ago', text: 'Spoke with the owner. They are on vacation until next week—outreach will resume then.' },
                                     { user: 'AI Brain', date: 'Yesterday', text: 'Detected a 15% revenue drop across their top 3 essential items.' }
                                 ].map((n, i) => (
-                                    <div key={i} className="p-8 bg-surface border border-line rounded-xl shadow-sm">
-                                        <div className="flex items-center justify-between mb-4">
+                                    <div key={i} className="p-4 sm:p-8 bg-surface border border-line rounded-xl shadow-sm">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 bg-sunken rounded-full flex items-center justify-center text-2xs font-bold">{n.user.charAt(0)}</div>
                                                 <span className="text-xs font-bold dark:text-white uppercase tracking-tight">{n.user}</span>
@@ -172,7 +172,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
 
                     {/* Opportunity Status Sidebar */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-app p-8 rounded-2xl border border-line">
+                        <div className="bg-app p-4 sm:p-8 rounded-2xl border border-line">
                             <h4 className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-6">Current Status</h4>
                             <div className="space-y-3">
                                 {[
@@ -204,7 +204,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-slower">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     {/* Revenue Loss Projection */}
-                    <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-10 rounded-2xl relative overflow-hidden group shadow-lg">
+                    <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 p-4 sm:p-10 rounded-2xl relative overflow-hidden group shadow-lg">
                         <div className="relative z-10 space-y-8">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-red-600 rounded-2xl text-white shadow-lg ">
@@ -233,7 +233,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     </div>
 
                     {/* Inventory Matching */}
-                    <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-10 rounded-2xl relative overflow-hidden shadow-lg">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-4 sm:p-10 rounded-2xl relative overflow-hidden shadow-lg">
                         <div className="relative z-10 space-y-8">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-emerald-600 rounded-2xl text-white shadow-lg ">
@@ -249,7 +249,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                                     { name: 'Premium Basmati Rice', stock: '250 KG', color: 'text-emerald-600' },
                                     { name: 'White Sugar (50kg)', stock: '12 Bags', color: 'text-emerald-600' },
                                 ].map((item, i) => (
-                                    <div key={i} className="flex items-center justify-between p-5 bg-white/80 dark:bg-app rounded-2xl border border-emerald-100/50 dark:border-emerald-900/30">
+                                    <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 p-5 bg-white/80 dark:bg-app rounded-2xl border border-emerald-100/50 dark:border-emerald-900/30">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center text-emerald-600">
                                                 <CheckCircle size={20} />
@@ -265,8 +265,8 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 </div>
 
                 {/* Market Segment Trend */}
-                <div className="p-10 bg-app border border-line rounded-2xl relative overflow-hidden group">
-                    <div className="flex items-center justify-between mb-8">
+                <div className="p-4 sm:p-10 bg-app border border-line rounded-2xl relative overflow-hidden group">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-8">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-neutral-800 rounded-2xl text-white">
                                 <BarChart2 size={24} />
@@ -329,11 +329,11 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
 
                     {/* Right Side Stats Panel */}
                     <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-app p-8 rounded-2xl border border-line shadow-sm">
+                        <div className="bg-app p-4 sm:p-8 rounded-2xl border border-line shadow-sm">
                             <div className="space-y-8">
                                 <div>
                                     <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-3">Recovery Luck</p>
-                                    <p className="text-4xl font-bold text-emerald-500">80%</p>
+                                    <p className="text-2xl sm:text-4xl font-bold text-emerald-500">80%</p>
                                     <p className="text-xs text-ink-muted font-bold mt-1 uppercase italic">High Re-engagement Rate</p>
                                 </div>
                                 <div className="h-0.5 bg-sunken rounded-full" />
@@ -358,7 +358,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-slower">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* WhatsApp Action Card */}
-                    <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-8 rounded-2xl flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-slow">
+                    <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 p-4 sm:p-8 rounded-2xl flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-slow">
                         <div>
                             <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6 transition-transform">
                                 <MessageSquare size={32} />
@@ -377,7 +377,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     </div>
 
                     {/* Proposal Action Card */}
-                    <div className="bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-900/30 p-8 rounded-2xl flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-slow">
+                    <div className="bg-brand-50 dark:bg-brand-900/10 border border-brand-100 dark:border-brand-900/30 p-4 sm:p-8 rounded-2xl flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-slow">
                         <div>
                             <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6 transition-transform">
                                 <FileText size={32} />
@@ -396,7 +396,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     </div>
 
                     {/* Follow-up Action Card */}
-                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-8 rounded-2xl flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-slow">
+                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 sm:p-8 rounded-2xl flex flex-col justify-between group hover:shadow-xl hover:-translate-y-1 transition-all duration-slow">
                         <div>
                             <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6 transition-transform">
                                 <Calendar size={32} />
@@ -416,14 +416,14 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 </div>
 
                 {/* Message Preview */}
-                <div className="bg-app border border-line rounded-2xl p-10 relative overflow-hidden">
+                <div className="bg-app border border-line rounded-2xl p-4 sm:p-10 relative overflow-hidden">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="p-2 bg-brand-600 rounded-xl text-white">
                             <Sparkles size={18} />
                         </div>
                         <h4 className="text-xs font-bold text-ink-muted uppercase tracking-[0.3em]">AI-Authored WhatsApp Draft</h4>
                     </div>
-                    <div className="p-8 bg-surface rounded-xl border border-line shadow-inner">
+                    <div className="p-4 sm:p-8 bg-surface rounded-xl border border-line shadow-inner">
                         <p className="text-xl font-bold text-ink leading-relaxed italic">
                             "{draft}"
                         </p>
@@ -454,7 +454,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
         return (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-slower">
                 {/* REWROTTEN: AI EXPLANATION SECTION - SIMPLER & SMALLER */}
-                <div className="p-8 bg-app border border-line rounded-2xl relative overflow-hidden group transition-all duration-slower">
+                <div className="p-4 sm:p-8 bg-app border border-line rounded-2xl relative overflow-hidden group transition-all duration-slower">
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="p-2 bg-brand-600 rounded-xl text-white">
@@ -526,7 +526,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     <div className="space-y-4">
                         <p className="text-2xs text-ink-muted font-bold uppercase tracking-widest mb-2 ml-2">{tt('Mostly Purchased Products')}</p>
                         {realProducts.map((prod, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 bg-surface border border-line rounded-2xl group">
+                            <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-surface border border-line rounded-2xl group">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/40 rounded-xl flex items-center justify-center text-brand-600 font-bold text-xs">
                                         {prod.charAt(0)}
@@ -551,8 +551,8 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
             <div className={`relative w-full max-w-6xl h-[85vh] bg-surface rounded-2xl shadow-[0_40px_100px_-15px_rgba(0,0,0,0.6)] border border-line flex flex-col transition-all duration-slower overflow-hidden animate-in zoom-in-95 fade-in slide-in-from-bottom-12 duration-slower ease-out`}>
                 
                 {/* REFINED HEADER: FIXED CUSTOMER NAME */}
-                <div className="px-10 py-8 bg-app border-b border-line shrink-0">
-                    <div className="flex items-center justify-between">
+                <div className="px-4 sm:px-10 py-8 bg-app border-b border-line shrink-0">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-6">
                             <div className="p-4 bg-brand-600 rounded-lg text-white shadow-xl ">
                                 <User size={28} />
@@ -580,7 +580,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
 
                 <div className="flex-1 flex flex-col min-h-0">
                     {/* Horizontal Tabs Selector */}
-                    <div className="flex border-b border-line bg-surface px-10 overflow-x-auto custom-scrollbar shrink-0">
+                    <div className="flex border-b border-line bg-surface px-4 sm:px-10 overflow-x-auto custom-scrollbar shrink-0">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
@@ -599,7 +599,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     </div>
 
                     {/* Scrollable Content */}
-                    <div className="flex-1 overflow-y-auto p-12 custom-scrollbar bg-surface">
+                    <div className="flex-1 overflow-y-auto p-5 sm:p-12 custom-scrollbar bg-surface">
                         {activeTab === 'intelligence' && renderIntelligenceTab()}
                         {activeTab === 'action' && renderActionTab()}
                         {activeTab === 'history' && renderHistoryTab()}
@@ -609,8 +609,8 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                 </div>
 
                 {/* REFINED FOOTER: URGENCY ON LEFT, RECOMMENDATION CENTER */}
-                <div className="p-10 bg-app border-t border-line shrink-0">
-                    <div className="flex items-center justify-between">
+                <div className="p-4 sm:p-10 bg-app border-t border-line shrink-0">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-4">
                             <div className={`px-4 py-2 rounded-xl text-2xs font-bold uppercase tracking-widest border ${
                                 recommendation.priority === 'urgent' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-orange-50 text-orange-600 border-orange-200'
@@ -622,7 +622,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                             </div>
                         </div>
 
-                        <div className="flex-1 px-10 text-center">
+                        <div className="flex-1 px-4 sm:px-10 text-center">
                             <div className="inline-flex items-center gap-4 p-4 bg-surface rounded-2xl border border-line shadow-sm">
                                 <Sparkles size={16} className="text-brand-500 animate-pulse" />
                                 <p className="text-sm font-bold text-ink italic">
@@ -633,7 +633,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
 
                         <button 
                             onClick={() => setActiveTab('action')}
-                            className="flex items-center justify-center gap-3 py-4 px-10 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold shadow-xl transition-all active:scale-95 group"
+                            className="flex items-center justify-center gap-3 py-4 px-4 sm:px-10 bg-brand-600 hover:bg-brand-500 text-white rounded-2xl font-bold shadow-xl transition-all active:scale-95 group"
                         >
                             Take Action
                             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />

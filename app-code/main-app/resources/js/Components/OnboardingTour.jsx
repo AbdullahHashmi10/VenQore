@@ -124,7 +124,7 @@ const OnboardingTour = ({ onComplete }) => {
  </div>
 
  {/* Content */}
- <div className="p-8 text-center">
+ <div className="p-4 sm:p-8 text-center">
  {/* Icon */}
  <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-brand flex items-center justify-center text-white shadow-lg ">
  <StepIcon size={36} />
@@ -166,7 +166,7 @@ const OnboardingTour = ({ onComplete }) => {
  </div>
 
  {/* Footer */}
- <div className="px-8 py-4 border-t border-line flex items-center justify-between bg-app">
+ <div className="px-4 sm:px-8 py-4 border-t border-line flex flex-wrap items-center justify-between gap-y-2 bg-app">
  {currentStep > 0 ? (
  <button
  onClick={handlePrev}

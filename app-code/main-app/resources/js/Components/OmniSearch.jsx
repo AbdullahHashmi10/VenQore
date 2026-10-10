@@ -43,7 +43,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  const userRole = auth.user?.role;
  const userPerms = auth.user?.permissions || [];
 
- const vensynq_enabled = usePage().props.vensynq_enabled;
+ const smartcapture_enabled = usePage().props.smartcapture_enabled;
  const isFullAccess = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'platform_admin';
 
  // Global listener to trigger Smart Capture/AI Scan from sidebar or elsewhere
@@ -56,7 +56,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  window.addEventListener('amd:open-smart-capture', handleOpenScan);
  return () => window.removeEventListener('amd:open-smart-capture', handleOpenScan);
  }, []);
- const canUseSmartCapture = vensynq_enabled && (isFullAccess || userPerms.some(p => p.startsWith('pos') || p.startsWith('sales') || p.startsWith('purchases')));
+ const canUseSmartCapture = (smartcapture_enabled ?? true) && (isFullAccess || userPerms.some(p => p.startsWith('pos') || p.startsWith('sales') || p.startsWith('purchases')));
 
  const checkPerm = (required) => {
  if (userRole === 'platform_admin') return true;
@@ -407,7 +407,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
  {/* Empty State */}
  {query.length > 2 && results.length === 0 && dbResults.length === 0 && !isSearchingDb && (
- <div className="p-8 text-center">
+ <div className="p-4 sm:p-8 text-center">
  <p className="text-sm text-ink-muted font-medium">No results found</p>
  </div>
  )}
@@ -425,7 +425,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  <button
  key={idx}
  onClick={() => { shortcut.action(); setIsOpen(false); }}
- className="flex items-center justify-between p-3 rounded-xl bg-surface:50 dark:bg-surface hover:bg-interactive-hover dark:hover:bg-interactive-hover border border-line transition-all group"
+ className="flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-xl bg-surface:50 dark:bg-surface hover:bg-interactive-hover dark:hover:bg-interactive-hover border border-line transition-all group"
  >
  <span className="text-xs font-medium text-ink-secondary">{shortcut.label}</span>
  <div className="flex gap-1">
@@ -465,7 +465,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
  </div>
 
  {/* Footer */}
- <div className="flex items-center justify-between px-4 py-2 bg-sunken/80 dark:bg-app border-t border-line">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-sunken/80 dark:bg-app border-t border-line">
  <div className="flex items-center gap-3 text-2xs text-ink-muted">
  <span><kbd className="font-sans">↑↓</kbd> navigate</span>
  <span><kbd className="font-sans">↵</kbd> select</span>

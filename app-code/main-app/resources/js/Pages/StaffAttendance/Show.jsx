@@ -24,7 +24,7 @@ export default function Show({ staffMember, attendanceHistory }) {
 
             <div className="max-w-5xl mx-auto space-y-6 p-4">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-4">
                         <Link href={route('store.staff-attendance.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-full text-ink-muted transition-colors">
                             <ArrowLeft size={20} />

@@ -112,6 +112,27 @@ class MarketingSeo
             }
         }
 
+        // A single product page: its own title, description and picture for search results and link previews.
+        if ($route->getName() === 'commerce.store.product' && ! request()->query('preview')) {
+            $shop = \App\Models\Commerce\Storefront::where('slug', (string) $route->parameter('slug'))->where('status', 'published')->first();
+            $row = $shop ? \Illuminate\Support\Facades\DB::table('storefront_products as sp')
+                ->join('products as p', fn ($j) => $j->on('p.id', '=', 'sp.product_id')->on('p.tenant_id', '=', 'sp.tenant_id'))
+                ->where('sp.id', (string) $route->parameter('id'))->where('sp.storefront_id', $shop->id)->where('sp.is_published', 1)
+                ->first(['sp.public_name', 'sp.public_description', 'sp.image_path as listing_image', 'p.name', 'p.description', 'p.image_path']) : null;
+            if ($row) {
+                $pname = $row->public_name ?: $row->name;
+                $pdesc = \Illuminate\Support\Str::limit(trim(strip_tags((string) ($row->public_description ?: $row->description ?: ''))) ?: ('Order ' . $pname . ' from ' . $shop->display_name . ' on VenQore.'), 155);
+                $pimg = ($row->listing_image ?: $row->image_path) ? \App\Services\Commerce\StorefrontPresenter::mediaUrl($row->listing_image ?: $row->image_path) : null;
+                return [
+                    'title' => $pname . ' — ' . $shop->display_name,
+                    'description' => $pdesc,
+                    'og_image' => $pimg ?: ($shop->logo_path ? \App\Services\Commerce\StorefrontPresenter::mediaUrl($shop->logo_path) : url('/images/logo.png')),
+                    'canonical' => url('/shop/' . $shop->slug . '/p/' . $route->parameter('id')),
+                    'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem"><h1>' . htmlspecialchars($pname) . '</h1><p>' . htmlspecialchars($pdesc) . '</p></main>',
+                ];
+            }
+        }
+
         // Help Centre articles (2026-09-10): these pages had no server-written
         // title or description, so all 20 shared "VenQore POS" in search results.
         if ($route->getName() === 'help.show') {

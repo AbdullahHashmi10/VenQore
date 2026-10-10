@@ -56,7 +56,7 @@ export default function PlanUsageBanner() {
     return (
         <div
             id="plan-usage-banner"
-            className={`flex items-center justify-between gap-4 px-5 py-2.5 border-b text-sm font-medium shrink-0 ${bgColor} ${textColor}`}
+            className={`flex flex-wrap items-center justify-between gap-y-2 gap-4 px-5 py-2.5 border-b text-sm font-medium shrink-0 ${bgColor} ${textColor}`}
         >
             <div className="flex items-center gap-2.5">
                 <AlertTriangle size={14} className={`shrink-0 ${isCapped ? 'animate-pulse' : ''}`} />

@@ -979,3 +979,95 @@ html:not(.dark) .blog-prose hr {
 html:not(.dark) .blog-prose h2 {
     border-bottom-color: rgba(0, 0, 0, 0.08);
 }
+
+/* ─── Phone-width safety net (added 2026-10-10) ──────────────────────────
+   Page-level fixes live in the JSX; this catches rounded "card" wrappers that
+   use overflow-hidden and would clip a wide table on a phone. The wrapper
+   scrolls sideways instead. */
+@media (max-width: 767px) {
+    .overflow-hidden:has(> table),
+    .overflow-hidden:has(> div > table),
+    [style*="overflow: hidden"]:has(> table),
+    [style*="overflow:hidden"]:has(> table) {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Wide tables keep readable columns and scroll sideways instead of
+       squeezing every cell to a few characters. Only tables whose direct
+       wrapper scrolls are touched, so nothing can be clipped. */
+    .overflow-x-auto > table:has(tr > :nth-child(5)),
+    .overflow-auto > table:has(tr > :nth-child(5)),
+    .overflow-hidden > table:has(tr > :nth-child(5)),
+    .overflow-x-auto > div > table:has(tr > :nth-child(5)),
+    .overflow-hidden > div > table:has(tr > :nth-child(5)),
+    .vq-scroll > table:has(tr > :nth-child(5)),
+    [style*="overflow-x"] > table:has(tr > :nth-child(5)) { min-width: 720px; }
+    .overflow-x-auto > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))),
+    .overflow-auto > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))),
+    .overflow-hidden > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))),
+    .overflow-x-auto > div > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))),
+    .overflow-hidden > div > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))),
+    .vq-scroll > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))),
+    [style*="overflow-x"] > table:has(tr > :nth-child(4)):not(:has(tr > :nth-child(5))) { min-width: 560px; }
+}
+
+/* Phone gutters: keep side margins tiny (<=8px) on phones only */
+@media (max-width: 767px) {
+  .vq-canvas { padding: 8px 6px !important; }
+  .vq-shell.is-native-app .vq-canvas { padding: 8px 6px 112px !important; }
+  .vqdoc-scroll { padding-left: 6px !important; padding-right: 6px !important; }
+}
+@media (max-width: 767px) {
+  /* page-root wrappers (and one nested level) inside the shell content area */
+  [data-vq-content] > div, [data-vq-content] > div > div:only-child {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* Phone: native-feel horizontal chip/tab rows (not tables) */
+@media (max-width: 767px) {
+  .overflow-x-auto:not(:has(table)):not(:has(canvas)) {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 8px;
+  }
+  .overflow-x-auto:not(:has(table)):not(:has(canvas))::-webkit-scrollbar { display: none; }
+  .overflow-x-auto:not(:has(table)):not(:has(canvas)) > * > button,
+  .overflow-x-auto:not(:has(table)):not(:has(canvas)) > button,
+  .overflow-x-auto:not(:has(table)):not(:has(canvas)) > a { scroll-snap-align: start; }
+  .overflow-x-auto.custom-scrollbar:not(:has(table)) {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+  }
+}
+
+/* Phone: max 12px corner radius on everything except pills/circles */
+@media (max-width: 767px) {
+  :root, [data-vq-theme], [data-vq-theme][data-vq-radius] {
+    --vq-radius-xs: 4px !important;
+    --vq-radius-sm: 6px !important;
+    --vq-radius-md: 8px !important;
+    --vq-radius-lg: 8px !important;
+    --vq-radius-xl: 12px !important;
+    --vq-radius-2xl: 12px !important;
+    --vq-radius-3xl: 12px !important;
+  }
+  .vq-no-scrollbar { scrollbar-width: none; }
+  .vq-no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+@keyframes vqSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+/* Phone: hide the Vena pill while the slide-out menu is open */
+@media (max-width: 1023px) {
+  html[data-vq-drawer="open"] body > [data-vq-island] { display: none !important; }
+  html[data-vq-drawer="open"] nav.z-nav { display: none !important; }
+}
+
+@keyframes vqPop { from { opacity: 0; transform: translateY(10px) scale(.92); } to { opacity: 1; transform: none; } }
+
+@keyframes vqDrop { from { opacity: 0; transform: scaleY(.96); } to { opacity: 1; transform: none; } }

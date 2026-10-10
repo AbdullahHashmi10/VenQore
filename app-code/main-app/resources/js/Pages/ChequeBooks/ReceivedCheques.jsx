@@ -131,7 +131,7 @@ export default function ReceivedChequesIndex({
 
                 {/* Line 2: 4 Compact KPI Cards Row */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <Clock size={16} />
@@ -141,7 +141,7 @@ export default function ReceivedChequesIndex({
                         <p className="text-base font-bold text-amber-600">{formatCurrency(stats.total_received || 0)}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <Building2 size={16} />
@@ -151,7 +151,7 @@ export default function ReceivedChequesIndex({
                         <p className="text-base font-bold text-blue-600">{formatCurrency(stats.total_deposited || 0)}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle2 size={16} />
@@ -161,7 +161,7 @@ export default function ReceivedChequesIndex({
                         <p className="text-base font-bold text-emerald-600">{formatCurrency(stats.total_cleared || 0)}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <AlertTriangle size={16} />
@@ -374,7 +374,7 @@ export default function ReceivedChequesIndex({
                 {isCreateOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6 max-w-lg w-full shadow-xl space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                 <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">
                                     Record Received Customer Cheque
                                 </h3>

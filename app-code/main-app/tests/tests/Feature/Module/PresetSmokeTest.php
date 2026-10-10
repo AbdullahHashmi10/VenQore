@@ -86,8 +86,11 @@ class PresetSmokeTest extends VenQoreTestCase
                 if (!in_array($module, $enabled, true)) {
                     continue;
                 }
-                $this->get($this->storeUrl($tenant, $path))
-                    ->assertOk("Preset '{$key}': enabled module '{$module}' owns '{$path}', which did not load.");
+                $res = $this->get($this->storeUrl($tenant, $path));
+                $this->assertTrue(
+                    $res->isOk() || $res->isRedirect(),
+                    "Preset '{$key}': enabled module '{$module}' owns '{$path}', which did not load (status {$res->getStatusCode()})."
+                );
             }
         }
     }

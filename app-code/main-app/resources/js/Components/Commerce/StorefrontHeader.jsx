@@ -27,6 +27,7 @@ export default function StorefrontHeader({
     ratingSummary: initialRatingSummary,
     customer: initialCustomer,
     onsite = false,
+    headless = false,
 }) {
     const [scrolled, setScrolled] = useState(false);
     const [ratingSummary, setRatingSummary] = useState(initialRatingSummary || { average: null, count: 0, reviews: [] });
@@ -61,6 +62,18 @@ export default function StorefrontHeader({
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    // Pages with their own header open these modals by event: 'account' | 'rating' | 'track'.
+    useEffect(() => {
+        const open = (e) => {
+            const what = e.detail;
+            if (what === 'rating') setShowRatingModal(true);
+            if (what === 'track') setShowTrackModal(true);
+            if (what === 'account') setShowCustomerModal(true);
+        };
+        window.addEventListener('vqs-header-open', open);
+        return () => window.removeEventListener('vqs-header-open', open);
     }, []);
 
     // Sync initial props if they change
@@ -191,7 +204,7 @@ export default function StorefrontHeader({
 
     return (
         <>
-            <header
+            {!headless && <header
                 className={`vq-sh vq-sh--storefront${scrolled ? ' is-scrolled' : ''}`}
                 data-site-header=""
             >
@@ -294,7 +307,7 @@ export default function StorefrontHeader({
                         ))}
                     </div>
                 </div>
-            </header>
+            </header>}
 
             {/* MODAL 1: Store Rating & Reviews Modal */}
             {showRatingModal && (

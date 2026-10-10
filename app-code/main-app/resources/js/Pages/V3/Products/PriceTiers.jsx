@@ -89,7 +89,7 @@ export default function PriceTiers({ product, tiers }) {
             <div className="border rounded p-4 bg-sunken">
                 <h2 className="font-medium mb-4">Add Price Tier</h2>
                 <form onSubmit={submit}>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                         <div>
                             <label className="block text-sm font-medium mb-1">Min Qty *</label>
                             <input

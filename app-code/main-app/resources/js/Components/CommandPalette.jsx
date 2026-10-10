@@ -247,7 +247,7 @@ const CommandPalette = () => {
                     {/* Results */}
                     <div ref={listRef} className="max-h-[400px] overflow-y-auto p-2">
                         {Object.keys(groupedCommands).length === 0 ? (
-                            <div className="p-8 text-center text-ink-muted">
+                            <div className="p-4 sm:p-8 text-center text-ink-muted">
                                 <p className="font-medium">No commands found</p>
                                 <p className="text-sm">Try a different search term</p>
                             </div>
@@ -291,7 +291,7 @@ const CommandPalette = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="px-4 py-3 border-t border-line flex items-center justify-between text-xs text-ink-muted">
+                    <div className="px-4 py-3 border-t border-line flex flex-wrap items-center justify-between gap-y-2 text-xs text-ink-muted">
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
                                 <kbd className="px-1.5 py-0.5 bg-sunken rounded font-mono">↑</kbd>

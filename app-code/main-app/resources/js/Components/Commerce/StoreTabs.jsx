@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { BadgePercent, Bell, ChevronDown, ChevronRight, ExternalLink, Eye, LayoutDashboard, Package, QrCode, Settings2, ShoppingBag, Store } from 'lucide-react';
+import { BadgePercent, Bell, ChevronDown, ChevronRight, ExternalLink, Eye, LayoutDashboard, Package, QrCode, Settings2, ShoppingBag, Store, Bike } from 'lucide-react';
 import { ORDER_ALERT_EVENT } from '@/Components/Commerce/OrderAlertWatcher';
 
 
@@ -9,8 +9,10 @@ export default function StoreTabs({ active, urls, status, action }) {
     const [open, setOpen] = useState(false);
     const page = usePage();
     const { flash } = page.props;
-    const storePrefix = page.url?.match(/^\/s\/[^/?#]+/)?.[0];
-    const catalogueHref = urls?.catalogue || (storePrefix ? `${storePrefix}/online-store/catalogue` : null);
+    // The shop and the QR menu & catalogue are separate modules: a tab only shows when the
+    // server gave it a link (it sends null for anything this business has switched off).
+    const catalogueHref = urls?.catalogue || null;
+    const hasShop = !!urls?.home;
     const [alerts, setAlerts] = useState({ unread: 0, latest: [] });
 
     useEffect(() => {
@@ -22,9 +24,10 @@ export default function StoreTabs({ active, urls, status, action }) {
     const tabs = [
         ['home', 'Overview', urls?.home, LayoutDashboard],
         ['orders', 'Orders', urls?.orders, ShoppingBag],
+        ['deliveries', 'Deliveries', urls?.orders ? urls.orders.replace(/\/orders$/, '/deliveries') : null, Bike],
         ['products', 'Products', urls?.products, Package],
         ['promotions', 'Offers', urls?.promotions, BadgePercent],
-        ['catalogue', 'Onsite Catalogue', catalogueHref, QrCode],
+        ['catalogue', 'QR Menu & Catalogue', catalogueHref, QrCode],
         ['settings', 'Settings', urls?.settings, Settings2],
     ].filter(([, , href]) => !!href);
     const live = status === 'published';
@@ -69,9 +72,9 @@ export default function StoreTabs({ active, urls, status, action }) {
                     {/* level 1: module + live state */}
                     <div className="flex items-center gap-2 bg-sunken p-1.5 rounded-xl shrink-0">
                         <span className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold bg-sunken text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
-                            <Store size={14} aria-hidden="true" />Online Store
+                            <Store size={14} aria-hidden="true" />{hasShop ? 'Online Store' : 'QR Menu & Catalogue'}
                         </span>
-                        {status && (
+                        {status && hasShop && (
                             <span className={`inline-flex items-center gap-1.5 pr-2 text-xs font-bold ${live ? 'text-emerald-700 dark:text-emerald-300' : status === 'suspended' ? 'text-rose-700' : 'text-ink-muted'}`}>
                                 <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-400'}`} aria-hidden="true" />
                                 {live ? 'Live' : status === 'suspended' ? 'Suspended' : 'Not live'}
@@ -80,7 +83,7 @@ export default function StoreTabs({ active, urls, status, action }) {
                     </div>
                     <div className="hidden lg:flex items-center text-neutral-300 dark:text-ink-secondary" aria-hidden="true"><ChevronRight size={16} /></div>
                     {/* level 2: pages */}
-                    <nav aria-label="Online Store" className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto flex-1">
+                    <nav aria-label={hasShop ? 'Online Store' : 'QR Menu & Catalogue'} className="flex items-center gap-2 overflow-x-auto w-full lg:w-auto flex-1">
                         {tabs.map(([key, label, href, Icon]) => (
                             <Link key={key} href={href} aria-current={active === key ? 'page' : undefined}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm border whitespace-nowrap transition-all ${active === key

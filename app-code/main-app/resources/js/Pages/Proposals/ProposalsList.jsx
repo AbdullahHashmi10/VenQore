@@ -31,6 +31,7 @@ import {
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
 import { useTermText } from '@/lib/terms';
+import MobileStats from '@/Components/MobileStats';
 
 export default function ProposalsList({ proposals = [], filters = {}, stats = {} }) {
  const { store } = usePage().props;
@@ -234,34 +235,16 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  <SellModuleTabs activeTab="proposals" />
 
  {/* Mobile Stats Toggle/Summary */}
- <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
- <button
- onClick={() => setIsStatsExpanded(!isStatsExpanded)}
- className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
- >
- <span>Stats Summary</span>
- <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
- </button>
- 
- {!isStatsExpanded && (
- <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
- <div className="flex items-center gap-2">
- <span className="text-brand-600 dark:text-brand-400">Proposal: {stats?.total_count || sortedData.length}</span>
- <span className="text-neutral-300 dark:text-ink-secondary">|</span>
- <span className="text-emerald-600">Accepted: {stats?.accepted_count || 0}</span>
- </div>
- <div className="flex items-center gap-2">
- <span className="text-amber-600">Pending: {stats?.pending_count || 0}</span>
- <span className="text-neutral-300 dark:text-ink-secondary">|</span>
- <span className="text-blue-600">Value: {formatCurrency(stats?.total_value || 0, store)}</span>
- </div>
- </div>
- )}
- </div>
+ <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Proposals', value: stats?.total_count || sortedData.length, tone: 'ink' },
+  { label: 'Accepted', value: stats?.accepted_count || 0, tone: 'emerald' },
+  { label: 'Pending', value: stats?.pending_count || 0, tone: 'amber' },
+  { label: 'Total Value', value: formatCurrency(stats?.total_value || 0, store), tone: 'ink' }
+]} />
 
  {/* Stats Cards Section */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
  <FileText size={16} />
@@ -270,7 +253,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  </div>
  <p className="text-base font-bold text-ink">{stats?.total_count || sortedData.length}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
  <CheckSquare size={16} />
@@ -279,7 +262,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  </div>
  <p className="text-base font-bold text-emerald-600">{stats?.accepted_count || 0}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
  <Clock size={16} />
@@ -288,7 +271,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  </div>
  <p className="text-base font-bold text-amber-600">{stats?.pending_count || 0}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
  <History size={16} />
@@ -378,7 +361,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
 
  {/* Mobile Layout Header Area */}
  <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex items-center justify-between w-full">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
  Proposals
  </h1>
@@ -474,7 +457,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  <tbody className="divide-y divide-line">
  {sortedData.length === 0 ? (
  <tr>
- <td colSpan={tableColumns.length} className="p-12">
+ <td colSpan={tableColumns.length} className="p-5 sm:p-12">
  <div className="flex flex-col items-center justify-center text-center">
  <div className="w-20 h-20 bg-sunken rounded-full flex items-center justify-center mb-4">
  <FileText size={32} className="text-ink-muted" />
@@ -596,7 +579,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  {/* Mobile View - Cards List */}
  <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
  {sortedData.length === 0 ? (
- <div className="bg-surface rounded-xl p-8 text-center border border-line">
+ <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line">
  <FileText size={32} className="mx-auto text-ink-muted mb-2" />
  <p className="text-sm font-bold text-ink-secondary">No proposals found</p>
  </div>
@@ -672,7 +655,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  onClick={(e) => e.stopPropagation()}
  >
  {/* Header */}
- <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
  <div className="flex items-center gap-4">
  <div>
  <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Proposal Preview</p>
@@ -717,7 +700,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  {/* Content */}
  <div className="flex-1 overflow-auto p-4">
  {/* Top Info Row */}
- <div className="grid grid-cols-4 gap-3 mb-4">
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
  <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink text-sm">{quickViewItem.customer?.name || 'Walk-in'}</p>

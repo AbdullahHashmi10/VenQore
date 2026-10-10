@@ -622,20 +622,26 @@ class ExpenseController extends Controller
      */
     private function foldExpenseLines(array $v, ?Expense $existing = null): array
     {
+        // ZeroDrift Ledger: each figure is quantized to the paisa once; the
+        // voucher total is the exact sum of its quantized lines, so the lines
+        // shown and the amount posted can never disagree by a paisa.
+        $M = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+        $F = fn (int $m) => \App\Support\Money::toFloat($m);
         $lines = $v['items'] ?? [];
         if (! empty($lines)) {
-            $v['amount']     = round(array_sum(array_map(fn ($l) => (float) ($l['amount'] ?? 0), $lines)), 2);
+            $v['amount']     = $F(array_sum(array_map(fn ($l) => $M($l['amount'] ?? 0), $lines)));
             /* Only where the lines actually carry tax. The screen asks for it
                once, on the voucher, because there is no per-line tax column —
                and summing an absent key would have zeroed what was sent. */
-            $lineTax = round(array_sum(array_map(fn ($l) => (float) ($l['tax_amount'] ?? 0), $lines)), 2);
+            $lineTax = $F(array_sum(array_map(fn ($l) => $M($l['tax_amount'] ?? 0), $lines)));
             if ($lineTax > 0.0001) $v['tax_amount'] = $lineTax;
             /* The row's own category stays the first line's, so every list,
                filter and report that groups by it keeps working. */
             $v['expense_category_id'] = $lines[0]['expense_category_id'] ?? $v['expense_category_id'];
         }
-        $v['tax_amount']  = round((float) ($v['tax_amount'] ?? 0), 2);
-        $v['grand_total'] = round((float) $v['amount'] + $v['tax_amount'], 2);
+        $v['amount']      = $F($M($v['amount'] ?? 0));
+        $v['tax_amount']  = $F($M($v['tax_amount'] ?? 0));
+        $v['grand_total'] = $F($M($v['amount']) + $M($v['tax_amount']));
         /* Nothing said means paid in full — which is what an expense has
            always meant here, so no existing caller changes behaviour. */
         /* Nothing said means paid in full on a NEW voucher — which is what an
@@ -644,7 +650,7 @@ class ExpenseController extends Controller
            taking silence as paid-in-full credited cash that never left the
            till and wiped what was still owed to the payee. */
         $v['amount_paid'] = array_key_exists('amount_paid', $v) && $v['amount_paid'] !== null
-            ? round(min((float) $v['amount_paid'], $v['grand_total']), 2)
+            ? $F(max(0, min($M($v['amount_paid']), $M($v['grand_total']))))
             : ($existing !== null && (float) $existing->grand_total > 0.0001
                 /* Only where the row was written by something that knew about
                    these columns. Half a dozen services create expenses
@@ -654,7 +660,7 @@ class ExpenseController extends Controller
                    into an unpayable liability the first time somebody edited
                    its description. `grand_total` is the tell: nothing else
                    writes it. */
-                ? round(min((float) $existing->amount_paid, $v['grand_total']), 2)
+                ? $F(max(0, min($M($existing->amount_paid), $M($v['grand_total']))))
                 : $v['grand_total']);
         return $v;
     }
@@ -666,8 +672,8 @@ class ExpenseController extends Controller
             $expense->items()->create([
                 'expense_category_id' => $l['expense_category_id'],
                 'description' => $l['description'] ?? null,
-                'amount'      => round((float) ($l['amount'] ?? 0), 2),
-                'tax_amount'  => round((float) ($l['tax_amount'] ?? 0), 2),
+                'amount'      => \App\Support\Money::toFloat(\App\Support\Money::parseMinor($l['amount'] ?? 0, 'amount', false)),
+                'tax_amount'  => \App\Support\Money::toFloat(\App\Support\Money::parseMinor($l['tax_amount'] ?? 0, 'tax', false)),
             ]);
         }
     }
@@ -678,10 +684,16 @@ class ExpenseController extends Controller
            landed cost is already inside the purchase's own journal entry. */
         if ($expense->is_landed_cost) return;
 
-        $net = round((float) $expense->amount, 2);
-        $tax = round((float) ($expense->tax_amount ?? 0), 2);
-        $total = round($net + $tax, 2);
-        if ($total <= 0) return;
+        // Exact paisa: net + tax = paid + unpaid, to the paisa (ZeroDrift Ledger).
+        $M = fn ($v) => \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+        $F = fn (int $m) => \App\Support\Money::toFloat($m);
+        $netM = $M($expense->amount);
+        $taxM = $M($expense->tax_amount ?? 0);
+        $totalM = $netM + $taxM;
+        $net = $F($netM);
+        $tax = $F($taxM);
+        $total = $F($totalM);
+        if ($totalM <= 0) return;
 
         // Resolve the expense GL account
         $expenseAccount = \App\Models\Account::where('code', '6000')->first()
@@ -710,8 +722,9 @@ class ExpenseController extends Controller
         /* What was actually handed over. The rest is owed, and it is owed to
            somebody — posting the whole voucher out of the till on the day it
            was written is how an unpaid bill came to reduce the cash balance. */
-        $paid   = round(min((float) ($expense->amount_paid ?? $total), $total), 2);
-        $unpaid = round($total - $paid, 2);
+        $paidM  = max(0, min($M($expense->amount_paid ?? $total), $totalM));
+        $paid   = $F($paidM);
+        $unpaid = $F($totalM - $paidM);
 
         $lines = [
             ['account_id' => $expenseAccount->id, 'debit' => $net, 'credit' => 0,

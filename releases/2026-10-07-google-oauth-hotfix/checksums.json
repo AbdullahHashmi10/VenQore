@@ -1,0 +1,26 @@
+[
+  {
+    "File": "latest.yml",
+    "Bytes": 359,
+    "SizeMB": 0.0,
+    "SHA256": "C1EA3E5402210606B0D3F58EACFD4FEEF773312C028CDE8BA6DAD344338512E8"
+  },
+  {
+    "File": "VenQore-Mobile-1.1.1-build3.apk",
+    "Bytes": 46972157,
+    "SizeMB": 44.8,
+    "SHA256": "0F65EF2913CDCF1AC4083B7EB8BEA1AC19E30269AD1901CA61BDD9944C8FA938"
+  },
+  {
+    "File": "VenQore-Station-3.1.4-Portable.exe",
+    "Bytes": 103755358,
+    "SizeMB": 98.95,
+    "SHA256": "94B12CE5C4E449B99574FAB7344E2C40B2D0C0FC16697557A1081C03AF0B6C28"
+  },
+  {
+    "File": "VenQore-Station-Setup-3.1.4.exe",
+    "Bytes": 104077619,
+    "SizeMB": 99.26,
+    "SHA256": "25BBB4536658AEB8D95E95535A28688DE5552A7D635117CEBE83752F197583F1"
+  }
+]

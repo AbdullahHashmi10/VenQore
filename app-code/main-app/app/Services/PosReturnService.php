@@ -56,6 +56,14 @@ class PosReturnService
         $reason         = $data['reason'] ?? 'POS Open Return';
         $refundMethod   = $data['refund_method'] ?? 'cash';
 
+        // Exact line values (calculation contract v2): q(price × qty) per line,
+        // totals in integer paisa. An open return has no original sale to take
+        // booked amounts from, so the entered price is the value (no tax).
+        $calc = \App\Services\Sales\SaleTotals::calculate([
+            'lines' => array_map(fn ($i) => ['unit_price' => $i['price'] ?? 0, 'qty' => $i['quantity'] ?? 0], array_values($items)),
+        ], false);
+        $requestHash = \App\Services\Sales\CheckoutIntent::requestHash(['items' => $items, 'warehouse_id' => $warehouseId, 'payment_method' => $refundMethod]);
+
         // ── Idempotency ────────────────────────────────────────────────────────
         if ($idempotencyKey) {
             $existingEntry = \App\Models\JournalEntry::where('tenant_id', $tenant->id)
@@ -67,6 +75,10 @@ class PosReturnService
                     ->where('id', $existingEntry->reference)
                     ->first();
                 if ($existingSale) {
+                    $stored = $existingSale->getAttribute('idempotency_request_hash');
+                    if ($stored && !hash_equals($stored, $requestHash)) {
+                        throw new \App\Exceptions\IdempotencyConflictException($existingSale->id, $existingSale->reference_number);
+                    }
                     return [
                         'success'   => true,
                         'reference' => $existingSale->reference_number,
@@ -92,9 +104,10 @@ class PosReturnService
 
             DB::transaction(function () use (
                 $items, $warehouseId, $idempotencyKey, $reason, $refundMethod,
-                $tenant, $user, &$returnTotal, &$returnRef
+                $tenant, $user, &$returnTotal, &$returnRef, $calc, $requestHash
             ) {
-                $returnTotal = collect($items)->sum(fn ($i) => $i['price'] * $i['quantity']);
+                $returnTotal = \App\Support\Money::toFloat($calc['invoice']);
+                $items = array_values($items);
                 $returnRef   = 'RET-' . strtoupper(uniqid());
                 $tenantId    = $tenant->id;
 
@@ -104,7 +117,7 @@ class PosReturnService
                     ->latest('id')
                     ->value('id');
 
-                $sale = Sale::create([
+                $sale = Sale::create(\App\Services\Sales\CheckoutIntent::withIntentColumns([
                     'tenant_id'         => $tenantId,
                     'user_id'           => $user->id,
                     'register_shift_id' => $activeShiftId,
@@ -124,19 +137,23 @@ class PosReturnService
                     'notes'            => $reason,
                     'refund_reason'    => $reason,
                     'posted_at'        => now(),
-                ]);
+                ], [
+                    'idempotency_request_hash' => $idempotencyKey ? $requestHash : null,
+                    'calculation_version'      => \App\Services\Sales\SaleTotals::VERSION,
+                ]));
 
                 $returnCogs = 0.0;
 
-                foreach ($items as $item) {
+                foreach ($items as $idx => $item) {
+                    $lineValue = \App\Support\Money::toFloat($calc['lines'][$idx]['net']);
                     $saleItem = SaleItem::create([
                         'sale_id'    => $sale->id,
                         'product_id' => $item['product_id'],
                         'quantity'   => $item['quantity'],
                         'unit_price' => $item['price'],
-                        'net_amount' => -(float)($item['price'] * $item['quantity']),
-                        'subtotal'   => -(float)($item['price'] * $item['quantity']),
-                        'line_total' => -(float)($item['price'] * $item['quantity']),
+                        'net_amount' => -$lineValue,
+                        'subtotal'   => -$lineValue,
+                        'line_total' => -$lineValue,
                     ]);
 
                     $product = \App\Models\Product::find($item['product_id']);

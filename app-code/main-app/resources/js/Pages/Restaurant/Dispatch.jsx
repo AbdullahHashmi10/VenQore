@@ -62,7 +62,7 @@ function RiderCashUpModal({ storeSlug, riders, onClose }) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
             <div className="w-full max-w-2xl bg-surface border border-line rounded-3xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between pb-4 border-b border-line mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line mb-4">
                     <h2 className="text-lg font-bold text-ink flex items-center gap-2">
                         <Wallet size={20} className="text-brand-600 dark:text-brand-400" />
                         <span>Rider Shift Cash-Up & Reconciliation</span>
@@ -430,7 +430,7 @@ export default function Dispatch({
         return (
             <div className="min-h-screen bg-app text-ink p-6 flex flex-col justify-between">
                 <Head title="Delivery Dispatch — Disabled" />
-                <div className="flex items-center justify-between pb-4 border-b border-line">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 pb-4 border-b border-line">
                     <div className="flex items-center gap-3">
                         <Link
                             href={route('store.restaurant.settings', { store_slug: storeSlug })}

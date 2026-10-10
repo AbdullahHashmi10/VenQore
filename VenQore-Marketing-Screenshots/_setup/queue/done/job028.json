@@ -1,0 +1,4 @@
+{"id":"explore-pos","themes":["light"],"scenarios":[
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/pos","wait":6000},{"text":"Anker 735 Charger","wait":800},{"text":"Apple AirPods Pro","wait":800},{"text":"Apple MacBook Air","wait":1000},{"preview":"pos1"},{"dump":"pos1"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/foh/tables","wait":5000},{"text":"Create tables","wait":4000},{"preview":"foh1"},{"dump":"foh1"}]}
+]}

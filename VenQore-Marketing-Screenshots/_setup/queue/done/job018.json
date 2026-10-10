@@ -1,0 +1,1 @@
+{"id":"dash-command-l","themes":["light"],"scenarios":[{"folder":"01-Dashboard","steps":[{"goto":"/s/{slug}/dashboard","wait":9000},{"shot":"dashboard-command-centre-frame"}]}]}

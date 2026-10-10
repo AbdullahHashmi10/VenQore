@@ -47,46 +47,54 @@ class BackupController extends Controller
         ]);
     }
 
+    /**
+     * A database snapshot holds EVERY store on this server, so only the
+     * platform owner/admin may make one. Inside a store this used to throw a
+     * "SECURITY VIOLATION" that the page reported as success, and nothing
+     * ever appeared in Snapshot History. A store owner backs up their own
+     * store with Full System Backup (.vq).
+     */
     public function store(Request $request)
     {
-        // Increase timeout for backup creation
-        set_time_limit(300);
+        $user = $request->user();
+        if (! $user || ! $user->isPlatformAdmin()) {
+            $msg = 'Database snapshots include every store on the server, so only the platform owner can make them. '
+                 . 'To back up this store, use Full System Backup (.vq).';
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $msg], 403)
+                : back()->with('error', $msg);
+        }
 
+        // The snapshot is of the whole server, not of the store being viewed.
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        app()->forgetInstance('current.tenant');
         try {
             $result = $this->backupService->createBackup();
-            
-            if ($result['success']) {
-                if ($request->wantsJson()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Backup created successfully.',
-                        'filename' => $result['filename']
-                    ]);
-                }
-                return back()->with('success', 'Backup created successfully: ' . $result['filename']);
+        } catch (\Throwable $e) {
+            $result = ['success' => false, 'message' => $e->getMessage()];
+        } finally {
+            if ($tenant) {
+                app()->instance('current.tenant', $tenant);
             }
-            
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Backup failed: ' . $result['message']
-                ], 500);
-            }
-            return back()->withErrors(['error' => 'Backup failed: ' . $result['message']]);
-
-        } catch (\Exception $e) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Backup Exception: ' . $e->getMessage()
-                ], 500);
-            }
-            return back()->withErrors(['error' => 'Backup Exception: ' . $e->getMessage()]);
         }
+
+        if ($result['success']) {
+            Log::info('Database snapshot created', ['file' => $result['filename'], 'size' => $result['size'], 'by' => $user->id]);
+            return $request->wantsJson()
+                ? response()->json(['success' => true, 'message' => 'Snapshot created.', 'filename' => $result['filename']])
+                : back()->with('success', 'Snapshot created: ' . $result['filename']);
+        }
+
+        return $request->wantsJson()
+            ? response()->json(['success' => false, 'message' => 'Snapshot failed: ' . $result['message']], 500)
+            : back()->with('error', 'Snapshot failed: ' . $result['message']);
     }
 
-    public function download($filename)
+    public function download($store_slug = null, $filename = null)
     {
+        $filename = $filename ?? $store_slug;
+        abort_unless(auth()->user()?->isPlatformAdmin(), 403);
+        $filename = basename((string) $filename); // never a path outside backups/
         $path = 'backups/' . $filename;
         if (Storage::disk('local')->exists($path)) {
             return Storage::disk('local')->download($path);

@@ -133,15 +133,15 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                         <p className="text-blue-100 mb-6 text-sm">Manage your finances.</p>
 
                         <div className="space-y-3">
-                            <Link href={route('store.accounting.index', { store_slug: store.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
+                            <Link href={route('store.accounting.index', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
                                 <span className="font-medium">Chart of Accounts</span>
                                 <ArrowRight size={16} />
                             </Link>
-                            <Link href={route('store.accounting.pnl', { store_slug: store.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
+                            <Link href={route('store.accounting.pnl', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
                                 <span className="font-medium">Profit & Loss</span>
                                 <ArrowRight size={16} />
                             </Link>
-                            <Link href={route('store.accounting.balance-sheet', { store_slug: store.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
+                            <Link href={route('store.accounting.balance-sheet', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white">
                                 <span className="font-medium">Balance Sheet</span>
                                 <ArrowRight size={16} />
                             </Link>

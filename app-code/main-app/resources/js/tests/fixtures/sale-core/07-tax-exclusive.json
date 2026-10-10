@@ -36,18 +36,28 @@
       }
     ],
     "amount_paid": 392.35,
+    "tendered_amount": 392.35,
+    "cash_tendered": 392.35,
+    "change_return": 0,
     "tax": 59.85,
     "tax_rate": 18,
     "tax_inclusive": false,
+    "tax_exempt": false,
     "discount": 17.5,
     "delivery_charge": 0,
     "extra_charge_value": 0,
     "extra_charge_label": null,
     "service_charge": 0,
     "tip_amount": 0,
+    "bill_rounding": false,
+    "expected_total": 392.35,
+    "calculation_version": 2,
     "notes": "",
     "add_to_ledger": false,
     "source": "pos",
     "is_dropship": false
-  }
+  },
+  "contract_v2_changes": [
+    "added: tendered_amount, cash_tendered, change_return, tax_exempt, bill_rounding, expected_total, calculation_version"
+  ]
 }

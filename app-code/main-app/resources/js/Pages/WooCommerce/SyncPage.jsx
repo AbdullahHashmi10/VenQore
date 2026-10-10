@@ -432,7 +432,7 @@ export default function SyncPage({
                 {/* Staged Queue (new products not yet linked) */}
                 {staged_queue.length > 0 && (
                     <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-2xl overflow-hidden">
-                        <div className="flex items-center justify-between p-4 border-b border-amber-200 dark:border-amber-800">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-amber-200 dark:border-amber-800">
                             <div className="flex items-center gap-2">
                                 <Clock size={16} className="text-amber-600" />
                                 <span className="font-bold text-ink text-sm">
@@ -508,7 +508,7 @@ export default function SyncPage({
 
                     {/* Pagination */}
                     {links.last_page > 1 && (
-                        <div className="flex items-center justify-between px-4 py-3 border-t border-line">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-3 border-t border-line">
                             <span className="text-xs text-ink-muted">
                                 Showing {links.from}–{links.to} of {links.total} products
                             </span>

@@ -91,7 +91,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             <button
                                 onClick={() => handleSync('Products Export')}
                                 disabled={isSyncing}
-                                className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300 transition-colors text-ink-secondary"
+                                className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300 transition-colors text-ink-secondary"
                             >
                                 <span>Export to WooCommerce</span>
                                 <Upload size={16} />
@@ -99,7 +99,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             <button
                                 onClick={() => handleSync('Products Import')}
                                 disabled={isSyncing}
-                                className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300 transition-colors text-ink-secondary"
+                                className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300 transition-colors text-ink-secondary"
                             >
                                 <span>Import from WooCommerce</span>
                                 <Download size={16} />
@@ -118,7 +118,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             <button
                                 onClick={() => handleSync('Orders Import')}
                                 disabled={isSyncing}
-                                className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-ink-secondary"
+                                className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-ink-secondary"
                             >
                                 <span>{tt('Import New Orders')}</span>
                                 <Download size={16} />
@@ -126,7 +126,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             <button
                                 onClick={() => handleSync('Order Status Update')}
                                 disabled={isSyncing}
-                                className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-ink-secondary"
+                                className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-ink-secondary"
                             >
                                 <span>Update Statuses</span>
                                 <RefreshCw size={16} />
@@ -145,7 +145,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             <button
                                 onClick={() => handleSync('Customers Import')}
                                 disabled={isSyncing}
-                                className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-ink-secondary"
+                                className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-ink-secondary"
                             >
                                 <span>{tt('Import Customers')}</span>
                                 <Download size={16} />
@@ -153,7 +153,7 @@ export default function WooCommerceSyncIndex({ settings = {}, lastSync = null })
                             <button
                                 onClick={() => handleSync('Customers Export')}
                                 disabled={isSyncing}
-                                className="flex items-center justify-between px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-ink-secondary"
+                                className="flex flex-wrap items-center justify-between gap-y-2 px-4 py-2 bg-app rounded-lg text-sm font-medium hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors text-ink-secondary"
                             >
                                 <span>{tt('Export Customers')}</span>
                                 <Upload size={16} />

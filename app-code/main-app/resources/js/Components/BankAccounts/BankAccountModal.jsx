@@ -141,7 +141,7 @@ export default function BankAccountModal({
             size="wide"
             errors={errors}
             footer={
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4">
                     <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-ink-muted">
                         <Sparkles size={14} className="text-brand-500 shrink-0" />
                         <span>V6 Banking Engine • Multi-tenant Ledger</span>
@@ -195,7 +195,7 @@ export default function BankAccountModal({
                                         <Icon size={18} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-1">
+                                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-1">
                                             <p className="font-bold text-xs text-ink truncate">{type.name}</p>
                                             {isSelected && (
                                                 <CheckCircle2 size={14} className="text-brand-500 shrink-0" />
@@ -270,7 +270,7 @@ export default function BankAccountModal({
                         {/* If editing and has existing chequebooks, show them cleanly */}
                         {editingAccount && (editingAccount.cheque_books?.length > 0 || editingAccount.chequeBooks?.length > 0) && (
                             <div className="bg-surface p-4 rounded-xl border border-line shadow-2xs space-y-3">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <h4 className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                                         <BookOpen size={13} className="text-brand-500" /> Registered Cheque Books ({((editingAccount.cheque_books || editingAccount.chequeBooks) || []).length})
                                     </h4>
@@ -290,7 +290,7 @@ export default function BankAccountModal({
 
                                         return (
                                             <div key={book.id} className="p-3 rounded-xl bg-app border border-line space-y-2">
-                                                <div className="flex items-center justify-between gap-2">
+                                                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2">
                                                     <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-ink">
                                                         <Hash size={13} className="text-brand-500 shrink-0" />
                                                         <span>{start} <span className="text-brand-500">→</span> {end}</span>
@@ -320,7 +320,7 @@ export default function BankAccountModal({
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <div className="flex items-center justify-between text-4xs text-ink-muted">
+                                                    <div className="flex flex-wrap items-center justify-between gap-y-2 text-4xs text-ink-muted">
                                                         <span>Utilization</span>
                                                         <span>{pctUsed}% used</span>
                                                     </div>
@@ -346,7 +346,7 @@ export default function BankAccountModal({
                             {/* Toggle Header */}
                             <div
                                 onClick={() => setFormData(prev => ({ ...prev, add_cheque_book: !prev.add_cheque_book }))}
-                                className="flex items-center justify-between cursor-pointer group"
+                                className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer group"
                             >
                                 <div className="flex items-center gap-2.5">
                                     <div className={`p-2 rounded-lg transition-colors ${formData.add_cheque_book ? 'bg-brand-600 text-white shadow-xs' : 'bg-sunken text-ink-muted group-hover:text-brand-500'}`}>
@@ -428,7 +428,7 @@ export default function BankAccountModal({
                                     </div>
 
                                     {/* Live Range & Leaf Counter Badge */}
-                                    <div className="p-2.5 rounded-lg bg-surface/90 border border-brand-500/20 flex items-center justify-between gap-2 text-2xs">
+                                    <div className="p-2.5 rounded-lg bg-surface/90 border border-brand-500/20 flex flex-wrap items-center justify-between gap-y-2 gap-2 text-2xs">
                                         <div className="flex items-center gap-1.5 font-mono">
                                             <Hash size={12} className="text-brand-500 shrink-0" />
                                             <span className="text-ink-muted">Preview:</span>

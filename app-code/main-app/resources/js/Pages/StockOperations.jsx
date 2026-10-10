@@ -365,7 +365,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
         <div className="flex flex-col h-full p-2 gap-1 overflow-hidden">
             {/* Stats Cards - Compact Single Line (like Sales page) */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                             <Box size={16} />
@@ -374,7 +374,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                     </div>
                     <p className="text-base font-bold text-ink">{totalProducts}</p>
                 </div>
-                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                             <CheckSquare size={16} />
@@ -383,7 +383,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                     </div>
                     <p className="text-base font-bold text-emerald-600">{totalStock.toLocaleString()}</p>
                 </div>
-                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                             <AlertTriangle size={16} />
@@ -392,7 +392,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                     </div>
                     <p className="text-base font-bold text-amber-600">{lowStock}</p>
                 </div>
-                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                             <XCircle size={16} />
@@ -452,8 +452,8 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                             {/* Form Content - Optimized Grid */}
                             <div className="p-4 flex-1 flex flex-col gap-4">
                                 {/* Row 1: Product + Warehouse */}
-                                <div className="grid grid-cols-12 gap-3">
-                                    <div className={hasMultipleWarehouses ? "col-span-8" : "col-span-12"}>
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                    <div className={hasMultipleWarehouses ? "md:col-span-8" : "md:col-span-12"}>
                                         <label className="block text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">
                                             {tt('Select Product')} <span className="text-red-500">*</span>
                                         </label>
@@ -465,7 +465,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                     </div>
 
                                     {hasMultipleWarehouses && (
-                                        <div className="col-span-4">
+                                        <div className="md:col-span-4">
                                             <label className="block text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">
                                                 Warehouse <span className="text-red-500">*</span>
                                             </label>
@@ -481,8 +481,8 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                 </div>
 
                                 {/* Row 2: Quantity + Reason + Notes */}
-                                <div className="grid grid-cols-12 gap-3">
-                                    <div className="col-span-2">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                    <div className="md:col-span-2">
                                         <label className="block text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">
                                             Quantity <span className="text-red-500">*</span>
                                         </label>
@@ -498,7 +498,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                         {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
                                     </div>
 
-                                    <div className="col-span-3">
+                                    <div className="md:col-span-3">
                                         <label className="block text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">
                                             Reason <span className="text-red-500">*</span>
                                         </label>
@@ -512,7 +512,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                         {errors.reason && <p className="text-red-500 text-xs mt-1">{errors.reason}</p>}
                                     </div>
 
-                                    <div className="col-span-5">
+                                    <div className="md:col-span-5">
                                         <label className="block text-2xs font-bold text-ink-muted uppercase tracking-wider mb-1">
                                             Notes <span className="text-ink-muted font-normal">(optional)</span>
                                         </label>
@@ -525,7 +525,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
                                         />
                                     </div>
 
-                                    <div className="col-span-2 flex items-end">
+                                    <div className="md:col-span-2 flex items-end">
                                         <PremiumButton type="submit" disabled={processing} className="w-full py-2">
                                             {processing ? (
                                                 <RefreshCcw size={16} className="animate-spin" />
@@ -883,7 +883,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                 </div>
             )}
 
-            <div className={`h-full overflow-y-auto p-6 space-y-6 transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-50 bg-app p-8' : ''}`}>
+            <div className={`h-full overflow-y-auto p-6 space-y-6 transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-50 bg-app p-4 sm:p-8' : ''}`}>
                 <div className={isFullScreen ? 'max-w-7xl mx-auto h-full flex flex-col' : ''}>
                     {/* Header Logic */}
                     {isFullScreen ? (
@@ -917,10 +917,10 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
                     )}
 
                     {isFullScreen && (
-                        <div className="fixed inset-0 z-50 bg-sunken flex animate-in fade-in duration-slow">
+                        <div className="fixed inset-0 z-50 bg-sunken flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden animate-in fade-in duration-slow">
                             {/* Left Sidebar: Header & Search */}
-                            <div className="w-80 bg-surface border-r border-line flex flex-col shadow-xl z-20">
-                                <div className="p-8">
+                            <div className="w-full lg:w-80 shrink-0 bg-surface lg:border-r border-b lg:border-b-0 border-line flex flex-col shadow-xl z-20">
+                                <div className="p-4 sm:p-8">
                                     <h2 className="text-2xl font-bold text-ink leading-tight mb-2">
                                         Physical Inventory
                                     </h2>
@@ -958,7 +958,7 @@ function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehous
 
                             {/* Center: Table */}
                             <div className="flex-1 overflow-hidden relative bg-sunken">
-                                <div className="absolute inset-0 overflow-y-auto p-8">
+                                <div className="absolute inset-0 overflow-y-auto p-4 sm:p-8">
                                     <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden min-h-full">
                                         {selectedWarehouse ? (
                                             <ProductTable />

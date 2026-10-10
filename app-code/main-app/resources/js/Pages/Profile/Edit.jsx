@@ -390,7 +390,7 @@ export default function Edit({ mustVerifyEmail, status }) {
 
  <div className="p-6 space-y-4">
  {/* Dark Mode Toggle */}
- <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-app rounded-2xl">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
  {preferences.dark_mode ? <Moon size={20} className="text-brand-500" /> : <Sun size={20} className="text-amber-500" />}
@@ -410,7 +410,7 @@ export default function Edit({ mustVerifyEmail, status }) {
  </div>
 
  {/* Senior Mode Toggle */}
- <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-app rounded-2xl">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
  <Type size={20} className="text-brand-500" />
@@ -457,7 +457,7 @@ export default function Edit({ mustVerifyEmail, status }) {
  )}
 
  {/* Enable Passcode Toggle */}
- <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-app rounded-2xl">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
  <Shield size={20} className="text-brand-600" />
@@ -576,7 +576,7 @@ export default function Edit({ mustVerifyEmail, status }) {
  )}
 
  {/* Enable Security PIN Toggle */}
- <div className="flex items-center justify-between p-4 bg-app rounded-2xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-app rounded-2xl">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
  <Lock size={20} className="text-brand-600" />

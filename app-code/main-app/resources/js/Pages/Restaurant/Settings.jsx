@@ -180,7 +180,7 @@ export default function RestaurantSettings({
                                 <StatusBadge enabled={is('prepares_orders')} />
                             </div>
                             <Divider />
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                 <span className="text-xs text-ink-muted">
                                     {is('prepares_orders') ? 'Active for POS & Tables' : 'Orders bypass kitchen queue'}
                                 </span>
@@ -213,7 +213,7 @@ export default function RestaurantSettings({
                                 </span>
                             </div>
                             <Divider />
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                 <span className="text-xs text-ink-muted">Audio alert feedback</span>
                                 <ToggleButton
                                     enabled={is('pos_sound_alert')}
@@ -302,7 +302,7 @@ export default function RestaurantSettings({
                                 <StatusBadge enabled={is('lane_delivery')} />
                             </div>
                             <Divider />
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                 <span className="text-xs text-ink-muted">
                                     {is('lane_delivery') ? 'Delivery lane active' : 'Delivery lane hidden'}
                                 </span>
@@ -329,7 +329,7 @@ export default function RestaurantSettings({
                                 <StatusBadge enabled={is('lane_takeaway')} />
                             </div>
                             <Divider />
-                            <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3">
                                 <span className="text-xs text-ink-muted">
                                     {is('lane_takeaway') ? 'Takeaway lane active' : 'Takeaway lane hidden'}
                                 </span>
@@ -369,7 +369,7 @@ export default function RestaurantSettings({
 
                         <Divider />
 
-                        <div className="flex items-center justify-between gap-4">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4">
                             <div>
                                 <label className="block text-xs font-semibold text-ink-secondary mb-1.5">
                                     Service charge rate

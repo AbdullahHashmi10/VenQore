@@ -17,7 +17,7 @@ export default function Toggle({
     const isDisabled = upcoming || comingSoon || disabled;
 
     return (
-        <div className={`flex items-center justify-between py-3.5 ${isDisabled ? 'opacity-60 grayscale-[0.5]' : ''} ${className}`}>
+        <div className={`flex flex-wrap items-center justify-between gap-y-2 py-3.5 ${isDisabled ? 'opacity-60 grayscale-[0.5]' : ''} ${className}`}>
             <div className="flex items-center gap-3.5 flex-1 pr-4 min-w-0">
                 {Icon && (
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${

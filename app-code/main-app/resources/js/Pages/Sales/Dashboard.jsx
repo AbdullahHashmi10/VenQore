@@ -26,7 +26,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
     if (!stats) {
         return (
             <OneGlanceLayout title="Sell Command Center" activeMenu="Sell">
-                <div className="p-10 text-center text-ink-muted">Loading stats...</div>
+                <div className="p-4 sm:p-10 text-center text-ink-muted">Loading stats...</div>
             </OneGlanceLayout>
         );
     }
@@ -120,7 +120,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                     <section className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:h-full min-h-0">
                         {/* Top Selling */}
                         <div className="xl:col-span-2 flex flex-col xl:h-full xl:min-h-0 min-h-[300px]">
-                            <div className="flex items-center justify-between shrink-0 mb-2">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 shrink-0 mb-2">
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
                                     <h2 className="text-sm font-bold uppercase tracking-widest text-ink-muted">Top Selling Today</h2>
@@ -131,7 +131,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                     {topSelling && topSelling.length > 0 ? (
                                         <div className="space-y-3">
                                             {topSelling.map((item, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors">
+                                                <div key={idx} className="flex flex-wrap items-center justify-between gap-y-2 p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30`}>
                                                             #{idx + 1}
@@ -167,7 +167,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                 <div className="space-y-4 overflow-y-auto custom-scrollbar pr-1">
                                     {salesByMethod && salesByMethod.length > 0 ? salesByMethod.map((method, idx) => (
                                         <div key={idx} className="space-y-1">
-                                            <div className="flex items-center justify-between text-2xs font-bold uppercase tracking-wider">
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs font-bold uppercase tracking-wider">
                                                 <span className="text-ink-muted">{method.payment_method}</span>
                                                 <span className="text-ink">{formatCurrency(Number(method.total || 0), store)}</span>
                                             </div>

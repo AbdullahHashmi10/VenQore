@@ -34,7 +34,7 @@ const DualStatCard = ({
             >
                 <div className={`absolute -right-6 -top-6 w-20 h-20 ${bgClass} opacity-10 rounded-full blur-2xl transition-transform duration-slower ease-in-out`}></div>
 
-                <div className="flex items-center justify-between relative z-10 w-full">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 relative z-10 w-full">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-xl ${bgOpacityClass} dark:bg-opacity-10 ${textClass}`}>
                             <Icon size={18} className="text-current" />

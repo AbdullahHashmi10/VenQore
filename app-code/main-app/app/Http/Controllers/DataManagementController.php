@@ -36,7 +36,10 @@ class DataManagementController extends Controller
         // Backups list + auto-backup toggle — merged in from BackupController::index()
         // and AdminController::settings() so the "Backups" tab here has everything it
         // needs without re-fetching from three different places.
-        $files = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
+        // Server snapshots hold every store: listed for the platform owner only.
+        $files = auth()->user()?->isPlatformAdmin()
+            ? \Illuminate\Support\Facades\Storage::disk('local')->files('backups')
+            : [];
         $backups = [];
         foreach ($files as $file) {
             $backups[] = [
@@ -53,6 +56,7 @@ class DataManagementController extends Controller
 
         return Inertia::render('Admin/DataManagement', [
             'mode' => 'admin',
+            'canSnapshot' => (bool) auth()->user()?->isPlatformAdmin(),
             'googleBackups' => $googleBackups,
             'backups' => $backups,
             'autoBackupEnabled' => $autoBackupSetting === null ? true : ($autoBackupSetting === '1' || $autoBackupSetting === true),

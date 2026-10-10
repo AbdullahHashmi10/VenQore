@@ -264,6 +264,11 @@ export default function SiteHeader({ bag, storeTitle, storeSlug } = {}) {
                         )}
                         <ThemeButton />
                         <a className="vq-btn-plain vq-sh__link vq-sh__signin" href={accountLink.href}>{accountLink.label}</a>
+                        {/* Shoppers: straight to the marketplace of VenQore stores */}
+                        <a className="vq-btn vq-btn--secondary vq-sh__cta vq-sh__shop" href="/shop" title="Shop online from local stores">
+                            <Store size={15} aria-hidden="true" />
+                            <span className="vq-sh__shop-lbl">Shop online</span>
+                        </a>
                         <a className="vq-btn vq-btn--primary vq-sh__cta" href={PRIMARY_CTA.href}>
                             {PRIMARY_CTA.label}
                             <span className="vq-btn__arrow"><ArrowRight size={15} aria-hidden="true" /></span>
@@ -271,6 +276,7 @@ export default function SiteHeader({ bag, storeTitle, storeSlug } = {}) {
                     </div>
 
                     <div className="vq-sh__mobile-actions">
+                        <a className="vq-sh__shopmini" href="/shop" aria-label="Shop online"><Store size={15} aria-hidden="true" /><span>Shop</span></a>
                         {bag && (
                             <button
                                 type="button"
@@ -376,6 +382,9 @@ export default function SiteHeader({ bag, storeTitle, storeSlug } = {}) {
                             <span>View Bag ({bag.count} items)</span>
                         </button>
                     )}
+                    <a href="/shop" className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <Store size={17} aria-hidden="true" /><span>Shop online</span>
+                    </a>
                     <a href={accountLink.href} className="vq-btn vq-btn--secondary vq-btn--lg vq-btn--block">{accountLink.label}</a>
                     <a href={PRIMARY_CTA.href} className="vq-btn vq-btn--primary vq-btn--lg vq-btn--block">
                         {PRIMARY_CTA.label}

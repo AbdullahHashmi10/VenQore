@@ -227,7 +227,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                     <div className="space-y-6 lg:col-span-2">
                         {/* Job Details Card */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                 <h2 className="text-sm font-semibold text-ink">{tt('Job & Customer Details')}</h2>
                                 <button
                                     type="button"
@@ -337,7 +337,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                         {/* Phase 4/5: Checked-Out Tools & Field Equipment */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                 <div>
                                     <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
                                         <Wrench size={16} className="text-accent-text" />
@@ -403,7 +403,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                         {/* Phase 6: Direct Job Expenses & Costing */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                 <div>
                                     <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
                                         <DollarSign size={16} className="text-rose-500" />
@@ -424,7 +424,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                 {expenses.map((exp) => (
                                     <div
                                         key={exp.id}
-                                        className="flex items-center justify-between rounded-lg border border-line bg-app p-3 text-xs"
+                                        className="flex flex-wrap items-center justify-between gap-y-2 rounded-lg border border-line bg-app p-3 text-xs"
                                     >
                                         <div>
                                             <p className="font-semibold text-ink">{exp.description || exp.expense_category?.name || 'Expense'}</p>
@@ -491,7 +491,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                         -{formatCurrency(expensesTotal)}
                                     </span>
                                 </div>
-                                <div className="border-t border-line pt-2.5 flex items-center justify-between">
+                                <div className="border-t border-line pt-2.5 flex flex-wrap items-center justify-between gap-y-2">
                                     <div>
                                         <p className="text-xs font-bold text-ink">{tt('Net Job Margin')}</p>
                                         <p className="text-3xs text-ink-muted">{marginPercentage}% profit margin</p>
@@ -535,7 +535,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
 
                         {/* Assigned Staff & Technicians */}
                         <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                 <h2 className="text-sm font-semibold text-ink flex items-center gap-2">
                                     <User size={16} className="text-accent-text" />
                                     {tt('Assigned Staff')}
@@ -553,7 +553,7 @@ export default function ServiceJobDetail({ job, employees = [], tools = [] }) {
                                 {(job.assignments || []).map((a) => (
                                     <div
                                         key={a.id}
-                                        className="flex items-center justify-between rounded-lg border border-line bg-app p-2.5 text-xs"
+                                        className="flex flex-wrap items-center justify-between gap-y-2 rounded-lg border border-line bg-app p-2.5 text-xs"
                                     >
                                         <div className="flex items-center gap-2">
                                             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-quiet text-3xs font-bold text-accent-text">

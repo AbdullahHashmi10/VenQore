@@ -65,7 +65,7 @@ export default function Backups({ backups: initialBackups = [] }) {
  {/* Header Section */}
  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
  <div>
- <h2 className="text-4xl font-bold text-ink tracking-tight flex items-center gap-3">
+ <h2 className="text-2xl sm:text-4xl font-bold text-ink tracking-tight flex items-center gap-3">
  <Database className="text-brand-500" size={36} />
  Database Safety
  </h2>
@@ -84,7 +84,7 @@ export default function Backups({ backups: initialBackups = [] }) {
  <button 
  onClick={createBackup}
  disabled={creating}
- className="relative group px-8 py-3 rounded-2xl bg-sunken border border-neutral-800 shadow-xl overflow-hidden active:scale-95 transition-all"
+ className="relative group px-4 sm:px-8 py-3 rounded-2xl bg-sunken border border-neutral-800 shadow-xl overflow-hidden active:scale-95 transition-all"
  >
  <div className="absolute inset-0 bg-gradient-brand opacity-90 group-hover:opacity-100 transition-opacity"></div>
  <div className="relative z-10 flex items-center gap-2 text-white font-bold text-sm">
@@ -132,7 +132,7 @@ export default function Backups({ backups: initialBackups = [] }) {
  <div className="bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden relative">
  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
  
- <div className="px-8 py-6 border-b border-line bg-sunken/50 dark:bg-surface flex items-center justify-between">
+ <div className="px-4 sm:px-8 py-6 border-b border-line bg-sunken/50 dark:bg-surface flex flex-wrap items-center justify-between gap-y-2">
  <h3 className="text-xl font-bold text-ink flex items-center gap-2">
  <Clock className="text-ink-muted" size={20} /> Snapshot History
  </h3>
@@ -145,16 +145,16 @@ export default function Backups({ backups: initialBackups = [] }) {
  <table className="w-full">
  <thead>
  <tr className="text-left border-b border-line">
- <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot Name</th>
- <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created Date</th>
- <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">File Size</th>
- <th className="px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
+ <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot Name</th>
+ <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created Date</th>
+ <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">File Size</th>
+ <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-line">
  {backups.length === 0 ? (
  <tr>
- <td colSpan="4" className="px-8 py-20 text-center">
+ <td colSpan="4" className="px-4 sm:px-8 py-20 text-center">
  <div className="flex flex-col items-center justify-center text-ink-muted">
  <HardDrive size={48} className="mb-4 opacity-20" />
  <p className="font-bold text-lg text-ink-secondary">No snapshots yet</p>
@@ -165,7 +165,7 @@ export default function Backups({ backups: initialBackups = [] }) {
  ) : (
  backups.map((backup) => (
  <tr key={backup.name} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
- <td className="px-8 py-5">
+ <td className="px-4 sm:px-8 py-5">
  <div className="flex items-center gap-4">
  <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center text-brand-600 dark:text-brand-400">
  <FileText size={20} />
@@ -176,15 +176,15 @@ export default function Backups({ backups: initialBackups = [] }) {
  </div>
  </div>
  </td>
- <td className="px-8 py-5">
+ <td className="px-4 sm:px-8 py-5">
  <p className="text-sm font-medium text-ink-secondary">{backup.date}</p>
  </td>
- <td className="px-8 py-5">
+ <td className="px-4 sm:px-8 py-5">
  <span className="px-2 py-1 bg-sunken rounded-lg text-xs font-bold text-ink-secondary">
  {backup.size}
  </span>
  </td>
- <td className="px-8 py-5">
+ <td className="px-4 sm:px-8 py-5">
  <div className="flex items-center justify-end">
  <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-semibold">
  Encrypted & Stored

@@ -54,7 +54,7 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                 <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
 
                 {/* Line 2: Compact Header */}
-                <div className="flex items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
                     <div className="flex items-center gap-2">
                         <Link
                             href={route('store.banking.cheque-books.index', { store_slug: storeSlug })}
@@ -202,7 +202,7 @@ export default function ChequeBookCreate({ bankAccounts = [] }) {
                     {/* Preview Box */}
                     {previewSerials && (
                         <div className="p-4 rounded-2xl bg-brand-50/80 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-800/40">
-                            <div className="flex items-center justify-between mb-2">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                                 <span className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300 flex items-center gap-1.5">
                                     <CheckCircle2 className="w-4 h-4 text-brand-600" />
                                     Range Preview ({totalLeaves} leaves)

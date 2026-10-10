@@ -320,7 +320,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                         </div>
 
                         {productFilter.length > 0 && (
-                            <div className="px-5 py-2 bg-brand-50 dark:bg-brand-900/10 border-b border-brand-100 dark:border-brand-900/30 flex items-center justify-between text-xs">
+                            <div className="px-5 py-2 bg-brand-50 dark:bg-brand-900/10 border-b border-brand-100 dark:border-brand-900/30 flex flex-wrap items-center justify-between gap-y-2 text-xs">
                                 <span className="text-brand-600 dark:text-brand-400 font-bold">{productFilter.length} product(s) selected</span>
                                 <button onClick={clearProductFilter} className="text-brand-500 hover:text-brand-700 font-bold underline">Clear filter</button>
                             </div>
@@ -558,7 +558,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                     </div>
 
                                     {/* Financial KPIs */}
-                                    <div className="grid grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                         <div className="bg-app p-4 rounded-xl border border-line">
                                             <p className="text-xs font-bold text-ink-muted uppercase">Revenue in Period</p>
                                             <p className="text-3xl font-bold text-ink mt-1">{formatCurrency(activeProduct.revenue, store)}</p>
@@ -619,7 +619,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                                 <Users size={14} /> {tt('Customer Purchase Detail')}
                                             </div>
                                             {customers.length === 0 ? (
-                                                <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center">
+                                                <div className="p-5 sm:p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center">
                                                     <p className="text-sm text-ink-muted italic">{tt('No customer-attributed purchases in this period.')}</p>
                                                 </div>
                                             ) : (

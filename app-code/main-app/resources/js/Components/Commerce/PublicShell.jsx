@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Link } from '@inertiajs/react';
+import React, { createContext, useEffect, useRef, useState } from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import { Check } from 'lucide-react';
 import StorefrontHeader from '@/Components/Commerce/StorefrontHeader';
 import SiteHeader from '@/Components/Site/SiteHeader';
@@ -9,6 +9,9 @@ import { money } from '@/lib/commerce';
 const KEY = 'vqs-theme';
 const read = () => { try { const v = localStorage.getItem(KEY); if (v === 'light' || v === 'dark') return v; } catch { /* storage blocked */ } return null; };
 const device = () => (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+/** Current shopper theme + toggle, for pages that draw their own header (bare mode). */
+export const ShellThemeContext = createContext({ theme: 'light', toggle: () => {} });
 
 /** Fire a small confirmation toast from anywhere in the shop. */
 export const shopToast = (text) => { try { window.dispatchEvent(new CustomEvent('vqs-toast', { detail: text })); } catch { /* ignore */ } };
@@ -81,9 +84,28 @@ export function useCommerceShell() {
     }, []);
 }
 
+/** #RRGGBB -> CSS variables that override the template accent. */
+function brandVars(hex, theme, hex2) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex || '')) return undefined;
+    const n = parseInt(hex.slice(1), 16);
+    const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const on = lum > 0.62 ? '#14110f' : '#ffffff';
+    const mix = (t) => `rgb(${Math.round(r * (1 - t))} ${Math.round(g * (1 - t))} ${Math.round(b * (1 - t))})`;
+    const lift = (t) => `rgb(${Math.round(r + (255 - r) * t)} ${Math.round(g + (255 - g) * t)} ${Math.round(b + (255 - b) * t)})`;
+    const text = theme === 'dark' ? lift(0.35) : (lum > 0.55 ? mix(0.45) : hex);
+    return {
+        '--vq-accent': hex, '--vq-accent-fill': hex, '--vq-accent-text': text, '--vq-on-accent': on,
+        '--vqs-grad': /^#[0-9a-fA-F]{6}$/.test(hex2 || '') ? `linear-gradient(135deg, ${hex}, ${hex2})` : hex, '--vqs-on-grad': on,
+        '--vq-accent-quiet': `rgb(${r} ${g} ${b} / .12)`, '--vq-accent-quiet-line': `rgb(${r} ${g} ${b} / .35)`,
+    };
+}
+
 /** Shopper shell (VenQore Shops design): uses StorefrontHeader on storefronts, SiteHeader on generic pages. */
-export default function PublicShell({ children, title, bag, storeSlug, ratingSummary, customer, catalogueTheme = 'visual-grid', catalogueOnly = false, onsite = false }) {
+export default function PublicShell({ children, title, bag, storeSlug, ratingSummary, customer, catalogueTheme = 'visual-grid', catalogueOnly = false, onsite = false, bare = false, headless = false }) {
     useCommerceShell();
+    const brand = usePage().props?.store?.brand_color;
+    const brand2 = usePage().props?.store?.brand_color_2;
     const [theme, setTheme] = useState(() => read() || device());
     const [toasts, setToasts] = useState([]);
     const [bump, setBump] = useState(false);
@@ -115,8 +137,23 @@ export default function PublicShell({ children, title, bag, storeSlug, ratingSum
         prev.current = c; return undefined;
     }, [bag?.count]);
 
+    const toggleTheme = () => setTheme((t) => { const n = t === 'dark' ? 'light' : 'dark'; try { localStorage.setItem(KEY, n); } catch { /* storage blocked */ } return n; });
+
+    // Bare: the page draws its own header, footer and toasts (VenQore storefront design). The account,
+    // rating and track-order modals still come from StorefrontHeader, rendered headless.
+    if (bare) {
+        return (
+            <div className={`vqs-shop vqs-shop--bare vqs-template--${catalogueTheme}`} style={brandVars(brand, theme, brand2)} data-theme={theme} data-customer-mode={catalogueOnly ? 'catalogue' : 'ordering'}>
+                <ShellThemeContext.Provider value={{ theme, toggle: toggleTheme }}>
+                    {children}
+                </ShellThemeContext.Provider>
+                {storeSlug && headless && <StorefrontHeader headless storeTitle={title} storeSlug={storeSlug} ratingSummary={ratingSummary} customer={customer} />}
+            </div>
+        );
+    }
+
     return (
-        <div className={`vqs-shop vqs-template--${catalogueTheme} ${onsite ? 'vqs-catalogue-studio' : ''}`} data-theme={theme} data-customer-mode={catalogueOnly ? 'catalogue' : 'ordering'}>
+        <div className={`vqs-shop vqs-template--${catalogueTheme} ${onsite ? 'vqs-catalogue-studio' : ''}`} style={brandVars(brand, theme, brand2)} data-theme={theme} data-customer-mode={catalogueOnly ? 'catalogue' : 'ordering'}>
             {!onsite && <Ambient theme={theme} />}
             {storeSlug ? (
                 <StorefrontHeader

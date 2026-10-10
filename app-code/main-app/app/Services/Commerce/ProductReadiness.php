@@ -13,8 +13,10 @@ class ProductReadiness
         if (! $p->is_active) {
             return 'Product is inactive.';
         }
-        if (($p->type ?? 'standard') !== 'standard') {
-            return 'Only standard stock products can be sold online in this release (' . $p->type . ' is not supported yet).';
+        // A blank type is a plain stock item (older and imported rows have none).
+        $type = trim((string) ($p->type ?? '')) ?: 'standard';
+        if ($type !== 'standard') {
+            return 'Only standard stock products can be sold online in this release (' . $type . ' is not supported yet).';
         }
         if (! empty($p->has_variants)) {
             return 'Products with variants are not supported online yet.';

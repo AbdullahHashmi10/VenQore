@@ -200,7 +200,7 @@ export default function GrowthSettings({ settings, scorecard, catalog, learned }
                     ) : (
                         <div className="rounded-2xl border border-line divide-y divide-line bg-surface">
                             {mutedTypes.map((t) => (
-                                <div key={t.type} className="px-5 py-4 flex items-center justify-between gap-4">
+                                <div key={t.type} className="px-5 py-4 flex flex-wrap items-center justify-between gap-y-2 gap-4">
                                     <div className="min-w-0">
                                         <p className="font-semibold text-sm text-ink">{t.label}</p>
                                         <p className="text-[12px] text-ink-muted mt-0.5">{t.mute_reason}</p>

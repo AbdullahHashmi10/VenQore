@@ -12,7 +12,7 @@ const TYPE_LABEL = { dine_in: 'Dine-in', takeaway: 'Takeaway', delivery: 'Delive
  */
 export default function OrderHeader({
     card, covers, unsent, busy, elapsedLabel, checkDropped, enabledTypes,
-    onBack, onCovers, onFire, onBill, onSplit, onMove, onClose, onConvert, canDiscard = true,
+    onBack, onCovers, onFire, onBill, onSplit, onMove, onClose, onConvert, canDiscard = true, kitchen = true,
 }) {
     const [menu, setMenu] = useState(false);
     const type = card.order_type || (card.kind === 'ticket' ? 'takeaway' : 'dine_in');
@@ -65,11 +65,11 @@ export default function OrderHeader({
             </span>
 
             <span className="vqt-strip-acts">
-                <button type="button" className="vqt-act" data-primary={unsent > 0 ? '1' : '0'} onClick={onFire} disabled={busy || unsent === 0}
+                {kitchen && <button type="button" className="vqt-act" data-primary={unsent > 0 ? '1' : '0'} onClick={onFire} disabled={busy || unsent === 0}
                     title={unsent ? `Send ${unsent} new item${unsent === 1 ? '' : 's'} to the kitchen` : 'Everything has been sent'}>
                     <Send size={14} aria-hidden="true" /><span className="vqt-act-l">Fire</span>
                     {unsent > 0 && <span className="vqt-act-n vq-num">{unsent}</span>}
-                </button>
+                </button>}
                 <button type="button" className="vqt-act" data-on={checkDropped ? '1' : '0'} onClick={onBill} disabled={busy}
                     title={checkDropped ? 'Bill already dropped: tap to undo' : 'Print the bill and start the pay clock'}>
                     <ReceiptText size={14} aria-hidden="true" /><span className="vqt-act-l">Bill</span>

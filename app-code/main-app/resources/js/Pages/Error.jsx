@@ -166,7 +166,7 @@ export default function Error({ status = 500, message }) {
 
                     {/* User Context Footer (if logged in) */}
                     {auth?.user && (
-                        <div className="mt-6 pt-4 border-t border-line/60 flex items-center justify-between text-2xs text-ink-muted">
+                        <div className="mt-6 pt-4 border-t border-line/60 flex flex-wrap items-center justify-between gap-y-2 text-2xs text-ink-muted">
                             <span>Signed in as <strong className="text-ink-secondary">{auth.user.name}</strong></span>
                             {auth.user.role && (
                                 <span className="capitalize">{auth.user.role}</span>

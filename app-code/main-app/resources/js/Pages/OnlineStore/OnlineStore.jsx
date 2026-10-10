@@ -85,7 +85,7 @@ export default function OnlineStoreIndex() {
  </div>
 
  {/* Coming Soon Section */}
- <div className="p-8 bg-app rounded-2xl border border-dashed border-line dark:border-line text-center">
+ <div className="p-4 sm:p-8 bg-app rounded-2xl border border-dashed border-line dark:border-line text-center">
  <h3 className="text-lg font-bold text-ink-secondary">More Features Coming Soon</h3>
  <p className="text-ink-muted mt-2">Themes, Custom Domain, and Advanced SEO tools will be available in the next update.</p>
  </div>

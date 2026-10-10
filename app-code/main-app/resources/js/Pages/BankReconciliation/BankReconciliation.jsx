@@ -62,7 +62,7 @@ export default function BankReconciliationIndex({
 
                 {/* Stats Cards Section - Compact Single Line */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <FileText size={16} />
@@ -71,7 +71,7 @@ export default function BankReconciliationIndex({
                         </div>
                         <p className="text-base font-bold text-ink">{stats.totalTransactions}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckCircle size={16} />
@@ -80,7 +80,7 @@ export default function BankReconciliationIndex({
                         </div>
                         <p className="text-base font-bold text-emerald-600">{stats.matched}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
                                 <Clock size={16} />
@@ -89,7 +89,7 @@ export default function BankReconciliationIndex({
                         </div>
                         <p className="text-base font-bold text-amber-600">{stats.unmatched}</p>
                     </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className={`p-1.5 rounded-lg ${stats.difference === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'}`}>
                                 <DollarSign size={16} />
@@ -187,7 +187,7 @@ export default function BankReconciliationIndex({
                                 </div>
                                 <div className="flex-1 overflow-y-auto">
                                     {bankList.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-ink-muted p-8">
+                                        <div className="h-full flex flex-col items-center justify-center text-ink-muted p-4 sm:p-8">
                                             <CheckCircle size={32} className="mb-2 text-emerald-400 opacity-50" />
                                             <p className="text-sm font-medium">All bank records matched</p>
                                         </div>
@@ -221,7 +221,7 @@ export default function BankReconciliationIndex({
                                 </div>
                                 <div className="flex-1 overflow-y-auto">
                                     {systemList.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-ink-muted p-8">
+                                        <div className="h-full flex flex-col items-center justify-center text-ink-muted p-4 sm:p-8">
                                             <CheckCircle size={32} className="mb-2 text-emerald-400 opacity-50" />
                                             <p className="text-sm font-medium">All system records matched</p>
                                         </div>

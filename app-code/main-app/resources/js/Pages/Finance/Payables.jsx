@@ -20,6 +20,7 @@ import {
     Mail
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import MobileStats from '@/Components/MobileStats';
 
 export default function Payables({ parties = [] }) {
     const { store } = usePage().props;
@@ -85,25 +86,15 @@ export default function Payables({ parties = [] }) {
                 <MoneyModuleTabs activeTab="payables" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="sm:hidden flex items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-2xs font-bold text-ink-muted uppercase shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={14} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    {!isStatsExpanded && (
-                        <div className="text-2xs font-bold text-ink-muted truncate">
-                            <span className="text-red-600 dark:text-red-400">Payable: {formatCurrency(stats.totalPayable || 0, store)}</span>
-                            <span className="mx-1">|</span>
-                            <span className="text-brand-600">Creditors: {stats.totalParties}</span>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Payable', value: formatCurrency(stats.totalPayable, store), tone: 'red' },
+  { label: 'Active Creditors', value: stats.totalParties, tone: 'brand' },
+  { label: 'Avg Balance', value: formatCurrency(stats.avgPayable, store), tone: 'blue' },
+  { label: 'Highest Creditor', value: formatCurrency(parseFloat(stats.largestCreditor.balance ?? stats.largestCreditor.current_balance ?? 0), store), tone: 'rose' }
+]} />
 
                 {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
+                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
@@ -183,7 +174,7 @@ export default function Payables({ parties = [] }) {
 
                 {/* Mobile Toolbar (sm:hidden) */}
                 <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
                         <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
                             Accounts <span className="text-red-600">Payable</span>
                         </h1>
@@ -305,7 +296,7 @@ export default function Payables({ parties = [] }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="p-12 text-center text-ink-muted">
+                                    <td colSpan="5" className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center gap-2">
                                             <TrendingDown size={32} className="opacity-20" />
                                             <p className="text-sm font-medium">No pending payables found</p>
@@ -323,7 +314,7 @@ export default function Payables({ parties = [] }) {
                     {filteredParties.length > 0 ? (
                         filteredParties.map((party) => (
                             <div key={party.id} className="bg-surface p-3 rounded-xl border border-line shadow-sm flex flex-col gap-2">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-400 font-bold text-sm">
                                             {party.name.charAt(0)}
@@ -338,7 +329,7 @@ export default function Payables({ parties = [] }) {
                                     </p>
                                 </div>
                                 
-                                <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-2 mt-1">
                                     <div className="flex flex-col text-2xs text-ink-muted">
                                         {party.phone && <span className="font-medium text-ink-secondary">📞 {party.phone}</span>}
                                         {party.email && <span className="truncate max-w-[150px]">✉️ {party.email}</span>}
@@ -363,7 +354,7 @@ export default function Payables({ parties = [] }) {
                             </div>
                         ))
                     ) : (
-                        <div className="p-12 text-center text-ink-muted bg-surface rounded-xl border border-line shadow-sm">
+                        <div className="p-5 sm:p-12 text-center text-ink-muted bg-surface rounded-xl border border-line shadow-sm">
                             <div className="flex flex-col items-center gap-2">
                                 <TrendingDown size={32} className="opacity-20" />
                                 <p className="text-sm font-medium">No pending payables found</p>

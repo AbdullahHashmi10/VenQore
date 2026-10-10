@@ -1,0 +1,16 @@
+{
+ "id": "explore-foh2",
+ "saved": [],
+ "previews": [
+  "preview\\fohA-light.jpg",
+  "preview/fohA-light.json",
+  "preview\\fohB-light.jpg",
+  "preview/fohB-light.json"
+ ],
+ "errors": [
+  "_explore {\"text\":\"Bose QuietComfort\",\"wait\":700} :: locator.click: Timeout 6000ms exceeded.",
+  "_explore {\"text\":\"Sony WH-1000XM5\",\"wait\":900} :: locator.click: Timeout 6000ms exceeded."
+ ],
+ "started": "2026-10-08T09:16:51.810Z",
+ "finished": "2026-10-08T09:17:27.371Z"
+}

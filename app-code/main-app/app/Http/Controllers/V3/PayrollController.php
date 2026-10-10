@@ -32,9 +32,11 @@ class PayrollController extends Controller
             'lines.*.gross_salary'   => ['required', 'numeric', 'min:0.01'],
         ]);
 
-        $totalGross = array_sum(
+        // ZeroDrift Ledger: each salary quantized once; the run is their exact sum.
+        $totalGross = \App\Support\Money::toFloat(array_sum(array_map(
+            fn ($g) => \App\Support\Money::parseMinor($g, 'gross salary', false),
             array_column($validated['lines'], 'gross_salary')
-        );
+        )));
 
         DB::transaction(function () use ($validated, $totalGross) {
 
@@ -86,9 +88,12 @@ class PayrollController extends Controller
             ->where('tenant_id', $tenantId)
             ->where('id', $validated['employee_id'])
             ->firstOrFail();
-        $grossSalary      = (float) $validated['gross_salary'];
-        $advanceDeduction = (float) ($validated['advance_deduction'] ?? 0);
-        $netPaid          = round($grossSalary - $advanceDeduction, 2);
+        // ZeroDrift Ledger: gross = paid + advance recovered, to the paisa.
+        $grossM           = \App\Support\Money::parseMinor($validated['gross_salary'], 'gross salary', false);
+        $advanceM         = \App\Support\Money::parseMinor($validated['advance_deduction'] ?? 0, 'advance', false);
+        $grossSalary      = \App\Support\Money::toFloat($grossM);
+        $advanceDeduction = \App\Support\Money::toFloat($advanceM);
+        $netPaid          = \App\Support\Money::toFloat($grossM - $advanceM);
         $cashAccount      = $validated['payment_method'] === 'bank' ? '1010' : '1000';
 
         if ($netPaid < 0) {

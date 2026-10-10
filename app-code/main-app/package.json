@@ -5,6 +5,7 @@
     "scripts": {
         "build": "npm run fonts:check && npm run ds:check && npm run theme:sync && node scripts/audit_ziggy_routes.cjs && vite build && vite build --ssr",
         "dev": "npm run theme:sync && vite",
+        "test:sale-reliability": "vitest run --config verification/sale-reliability/vitest.config.mjs && vitest run resources/js/tests/saleTotalsParity.test.js resources/js/tests/saleCoreMath.test.js resources/js/tests/saleCoreGolden.test.jsx resources/js/tests/foh.test.jsx",
         "ssr": "php artisan inertia:start-ssr",
         "audit:routes": "node scratch/audit_route_params.cjs",
         "theme:sync": "npm run theme:from-v6 && npm run theme:build",
@@ -83,6 +84,7 @@
         "driver.js": "^1.4.0",
         "gsap": "^3.15.0",
         "laravel-echo": "^2.3.4",
+        "leaflet": "^1.9.4",
         "lucide-react": "^0.562.0",
         "marked": "^18.0.7",
         "motion": "^12.43.0",

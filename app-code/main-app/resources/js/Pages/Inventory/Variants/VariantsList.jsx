@@ -93,7 +93,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
         <OneGlanceLayout title={`Variants: ${product.name}`} activeMenu="Stock">
             <Head title={`Variants - ${product.name}`} />
 
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-y-2">
                 <Link
                     href={route('store.inventory.index', { store_slug: store?.slug })}
                     className="flex items-center gap-2 text-ink-muted hover:text-brand-600 transition-colors"
@@ -157,7 +157,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="p-8 text-center text-ink-muted">
+                                <td colSpan="5" className="p-4 sm:p-8 text-center text-ink-muted">
                                     No variants found. Create one to get started.
                                 </td>
                             </tr>

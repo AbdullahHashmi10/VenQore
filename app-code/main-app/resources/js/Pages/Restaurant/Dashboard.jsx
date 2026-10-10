@@ -104,7 +104,7 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
             className="bg-neutral-900/90 border border-neutral-800 rounded-2xl p-5 hover:border-line-strong transition-all flex flex-col justify-between shadow-xl"
           >
             <div>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                 <span className="text-lg font-bold text-white">
                   {table.name || `${tt('Table')} ${table.table_number}`}
                 </span>
@@ -114,11 +114,11 @@ export default function RestaurantDashboard({ storeSlug, tables = [], kitchenQue
               </div>
 
               <div className="space-y-1.5 text-sm text-ink-muted mb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                   <span>Capacity:</span>
                   <span className="text-neutral-200 font-medium">{table.capacity} Seats</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                   <span>Current Bill:</span>
                   <span className="text-emerald-400 font-bold">
                     {formatCurrency(table.order_total || 0)}

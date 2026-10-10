@@ -35,6 +35,7 @@ class CheckoutService
         // Lines identify a listing by the PUBLIC id (storefront_products.id, `item_id`);
         // `product_id` (internal) is also accepted for server-side callers/tests.
         $refs = [];
+        $variants = [];
         foreach ($lines as $l) {
             $ref = (string) ($l['item_id'] ?? $l['product_id'] ?? '');
             $qty = (int) ($l['quantity'] ?? 0);
@@ -42,6 +43,20 @@ class CheckoutService
                 throw new CommerceException('Invalid quantity.', 'invalid_quantity');
             }
             $refs[$ref] = ($refs[$ref] ?? 0) + $qty;
+
+            // The same dish with different add-ons is a different line.
+            $modIds = collect((array) ($l['mods'] ?? []))
+                ->map(fn ($m) => (int) (is_array($m) ? ($m['id'] ?? 0) : $m))
+                ->filter()->unique()->sort()->values()->all();
+            // On the QR menu the same dish with a different note ("no onions") is a separate line for the kitchen.
+            $lineNote = mb_substr(trim((string) ($l['notes'] ?? '')), 0, 200);
+            $noteKey = ! empty($opts['split_notes']) && $lineNote !== '' ? '|' . md5($lineNote) : '';
+            $vk = $ref . '|' . implode(',', $modIds) . $noteKey;
+            $variants[$vk] ??= ['ref' => $ref, 'mods' => $modIds, 'qty' => 0, 'notes' => '', 'nk' => $noteKey];
+            $variants[$vk]['qty'] += $qty;
+            if ($variants[$vk]['notes'] === '' && $lineNote !== '') {
+                $variants[$vk]['notes'] = $lineNote;
+            }
         }
 
         $found = DB::table('storefront_products as sp')
@@ -51,6 +66,7 @@ class CheckoutService
             ->where('sp.storefront_id', $store->id)
             ->where('sp.tenant_id', $store->tenant_id)
             ->where('sp.is_published', 1)
+            ->where(($opts['channel'] ?? 'online') === 'onsite' ? 'sp.show_onsite' : 'sp.show_online', 1)
             ->whereNull('p.deleted_at')
             ->where(function ($q) use ($refs) {
                 $q->whereIn('sp.id', array_keys($refs))->orWhereIn('sp.product_id', array_keys($refs));
@@ -62,25 +78,38 @@ class CheckoutService
         $merged = [];
         $rows = collect();
         $problems = [];
-        foreach ($refs as $ref => $qty) {
+        $pidTotals = [];
+        foreach ($variants as $v) {
+            $ref = $v['ref'];
             $row = $found->first(fn ($r) => $r->id === $ref) ?? $found->first(fn ($r) => $r->product_id === $ref);
             if (! $row) {
                 $problems[] = ['item_id' => $ref, 'product_id' => $ref, 'message' => 'This item is no longer available.'];
                 continue;
             }
-            $merged[$row->product_id] = ($merged[$row->product_id] ?? 0) + $qty;
+            $mk = $row->product_id . '|' . implode(',', $v['mods']) . ($v['nk'] ?? '');
+            $merged[$mk] ??= ['pid' => $row->product_id, 'qty' => 0, 'mods' => $v['mods'], 'notes' => $v['notes']];
+            $merged[$mk]['qty'] += $v['qty'];
+            $pidTotals[$row->product_id] = ($pidTotals[$row->product_id] ?? 0) + $v['qty'];
             $rows->put($row->product_id, $row);
         }
 
+        // add-ons for every product in the cart, fetched together
+        $addOnGroups = app(OnlineAddOns::class)->forProducts(
+            (int) $store->tenant_id,
+            $rows->mapWithKeys(fn ($r, $pid) => [(string) $pid => $r->category_id])->all()
+        );
+
         $cand = [];
         $gross = 0.0;
-        foreach ($merged as $pid => $qty) {
+        foreach ($merged as $m) {
+            $pid = $m['pid'];
+            $qty = $m['qty'];
             $row = $rows->get($pid);
             if (! $row) {
                 $problems[] = ['item_id' => $pid, 'product_id' => $pid, 'message' => 'This item is no longer available.'];
                 continue;
             }
-            if ($qty > self::MAX_QTY) {
+            if (($pidTotals[$pid] ?? $qty) > self::MAX_QTY) {
                 $problems[] = ['item_id' => $row->id, 'product_id' => $pid, 'message' => 'Maximum ' . self::MAX_QTY . ' per item per order.'];
                 continue;
             }
@@ -89,11 +118,24 @@ class CheckoutService
                 continue;
             }
             $price = $this->pricing->resolve($row, $row, $store);
+
+            // Add-ons: validated against what the product really offers; only the
+            // chosen option ids come from the browser, never a price.
+            $chosen = app(OnlineAddOns::class)->resolve($addOnGroups[$pid] ?? [], $m['mods'], (string) ($row->public_name ?: $row->p_name));
+            $delta = round(array_sum(array_column($chosen, 'price_delta')), 2);
+            if ($delta != 0.0) {
+                $online = round(max(0.0, $price['online_price'] + $delta), 2);
+                $price['online_price'] = $online;
+                $price['net_unit_price'] = $price['price_includes_tax']
+                    ? round($online / (1 + $price['tax_rate'] / 100), 4)
+                    : round($online, 4);
+                $price['below_cost'] = $price['net_unit_price'] < round((float) ($row->cost_price ?? 0), 4);
+            }
             if ($price['below_cost'] && ! $row->allow_below_cost) {
                 $problems[] = ['item_id' => $row->id, 'product_id' => $pid, 'message' => 'This item is temporarily unavailable.'];
                 continue;
             }
-            if ($store->warehouse_id) {
+            if ($store->warehouse_id && ! app(StockAvailability::class)->sellsWithoutStock((int) $store->tenant_id, $pid)) {
                 $svc = app(StockAvailability::class);
                 // orders still waiting for the business also claim units (they expire on their own, so this self-heals)
                 $rawAvailable = $svc->available($store->tenant_id, $pid, $store->warehouse_id);
@@ -103,14 +145,14 @@ class CheckoutService
                     $onlineAvailable = min($onlineAvailable, (float) $row->online_stock_limit);
                 }
                 $left = $onlineAvailable - $svc->pendingDemand($store->tenant_id, $pid);
-                $need = $this->baseNeed($pid, $qty, $row);
+                $need = $this->baseNeed($pid, (float) ($pidTotals[$pid] ?? $qty), $row);
                 if ($left + 0.00001 < $need) {
                     $problems[] = ['item_id' => $row->id, 'product_id' => $pid, 'message' => $left <= 0 ? 'Sold out.' : 'Only ' . rtrim(rtrim(number_format($left, 2, '.', ''), '0'), '.') . ' left.'];
                     continue;
                 }
             }
             $gross += round($qty * $price['online_price'], 2);
-            $cand[] = [$pid, $qty, $row, $price];
+            $cand[] = [$pid, $qty, $row, $price, $chosen, $m['notes']];
         }
 
         // promotions: validated against the pre-discount order value
@@ -127,7 +169,10 @@ class CheckoutService
         $discount = 0.0;
         $names = [];
         $couponUsed = false;
-        foreach ($cand as [$pid, $qty, $row, $price]) {
+        foreach ($cand as $candLine) {
+            [$pid, $qty, $row, $price] = $candLine;
+            $chosenMods = $candLine[4] ?? [];
+            $lineNotes = $candLine[5] ?? '';
             if ($promo = $promos->pickFor($plan, $row->category_id, $eff)) {
                 $d = $this->pricing->discount($price, $row, (float) ($eff[$promo->id] ?? $promo->percent));
                 if (! $d['below_cost'] || $row->allow_below_cost) {
@@ -146,6 +191,8 @@ class CheckoutService
                 'uom' => $row->base_unit ?: $row->unit,
                 'quantity' => $qty,
                 'allow_below_cost' => (bool) $row->allow_below_cost,
+                'mods' => $chosenMods,
+                'notes' => $lineNotes,
             ]);
             $subtotal += $line['line_net'];
             $tax += $line['tax_amount'];
@@ -172,9 +219,13 @@ class CheckoutService
                 $minOrder = max($minOrder, (float) ($zone['min_order'] ?? 0));
             }
         }
-        $subtotal = round($subtotal, 2);
-        $tax = round($tax, 2);
-        $total = round($subtotal + $tax + $fee, 2);
+        // Totals in integer paisa (each line amount is already exact to the paisa).
+        $minor = fn ($v) => \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format((float) $v, 6, '.', '')));
+        $subtotalMinor = array_sum(array_map(fn ($it) => $minor($it['line_net']), $items));
+        $taxMinor = array_sum(array_map(fn ($it) => $minor($it['tax_amount']), $items));
+        $subtotal = \App\Support\Money::toFloat($subtotalMinor);
+        $tax = \App\Support\Money::toFloat($taxMinor);
+        $total = \App\Support\Money::toFloat($subtotalMinor + $taxMinor + $minor($fee));
 
         return [
             'items' => $items,
@@ -317,6 +368,8 @@ class CheckoutService
                         'line_net' => $it['line_net'],
                         'tax_amount' => $it['tax_amount'],
                         'line_total' => $it['line_total'],
+                        'mods' => ! empty($it['mods']) ? $it['mods'] : null,
+                        'notes' => ($it['notes'] ?? '') !== '' ? $it['notes'] : null,
                     ]);
                 }
                 DB::table('commerce_order_tokens')->insert(['order_id' => $order->id, 'token_hash' => hash('sha256', $token), 'created_at' => now()]);
@@ -368,6 +421,9 @@ class CheckoutService
     {
         $tenantActive = DB::table('tenants')->where('id', $store->tenant_id)->whereNull('deleted_at')->value('status');
         if ($store->status !== 'published' || $tenantActive === null || ! in_array($tenantActive, ['active', 'trial', 'trialing'], true)) {
+            throw new CommerceException('This business is not taking online orders right now.', 'store_closed', [], 409);
+        }
+        if (! $store->moduleOn('online_store')) {
             throw new CommerceException('This business is not taking online orders right now.', 'store_closed', [], 409);
         }
         if ($store->intake_paused) {

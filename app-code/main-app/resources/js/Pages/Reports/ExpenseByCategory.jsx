@@ -14,7 +14,7 @@ export default function ExpenseByCategory({ expenses }) {
             subtitle="Breakdown of expenses across different categories"
             icon={PieChart}
         >
-            <div className="p-8 space-y-8">
+            <div className="p-4 sm:p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
                         <h4 className="text-sm font-bold text-ink-muted uppercase tracking-widest">Category Breakdown</h4>
@@ -39,12 +39,12 @@ export default function ExpenseByCategory({ expenses }) {
                         </div>
                     </div>
 
-                    <div className="bg-app rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                    <div className="bg-app rounded-2xl p-4 sm:p-8 flex flex-col items-center justify-center text-center">
                         <div className="w-20 h-20 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-xl ">
                             <PieChart size={40} />
                         </div>
                         <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-1">Total Expenses</p>
-                        <p className="text-4xl font-bold text-ink">{formatCurrency(total, store)}</p>
+                        <p className="text-2xl sm:text-4xl font-bold text-ink">{formatCurrency(total, store)}</p>
                     </div>
                 </div>
             </div>

@@ -141,7 +141,7 @@ export default function BusinessProfileSection({ data, setData }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                     <div className="md:col-span-2 space-y-1.5 opacity-75">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex flex-wrap items-center justify-between gap-y-2">
                             <span>Website address</span>
                             <span className="text-3xs text-amber-600 dark:text-amber-400 font-medium">In Development</span>
                         </label>

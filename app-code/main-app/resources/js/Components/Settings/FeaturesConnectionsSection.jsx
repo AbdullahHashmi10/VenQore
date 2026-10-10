@@ -322,7 +322,7 @@ export default function FeaturesConnectionsSection({
                 {/* Stripe Card */}
                 <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs opacity-80 flex flex-col justify-between">
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0">
                                 <Wifi size={20} />
                             </div>
@@ -345,7 +345,7 @@ export default function FeaturesConnectionsSection({
                 {/* Built-in Online Store */}
                 <div className="p-6 bg-surface rounded-2xl border border-brand-200 shadow-xs flex flex-col justify-between">
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-600 flex items-center justify-center shrink-0">
                                 <ShoppingBag size={20} />
                             </div>
@@ -369,7 +369,7 @@ export default function FeaturesConnectionsSection({
                 {/* WooCommerce Card */}
                 <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs flex flex-col justify-between">
                     <div className="space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
                                 <Globe size={20} />
                             </div>

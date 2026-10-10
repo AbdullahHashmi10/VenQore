@@ -147,7 +147,7 @@ function PartySearchField({ selectedParty, onSelect, onClear, store, isIn }) {
             </div>
 
             {selectedParty && (
-                <div className="mt-2 flex items-center justify-between gap-2 px-1">
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-y-2 gap-2 px-1">
                     <div className="flex items-center gap-2 min-w-0">
                         <div className={`w-5 h-5 rounded-full ${isIn ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'} flex items-center justify-center shrink-0`}>
                             <User size={11} />
@@ -472,7 +472,7 @@ export default function PaymentModal({ isOpen, onClose, type = 'in', bankAccount
                     </div>
 
                     {/* Actions Bar */}
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-white/8 mt-5">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 pt-3 border-t border-slate-100 dark:border-white/8 mt-5">
                         <button
                             type="button"
                             onClick={onClose}

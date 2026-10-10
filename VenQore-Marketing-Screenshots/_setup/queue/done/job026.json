@@ -1,0 +1,8 @@
+{"id":"explore-features","themes":["light"],"scenarios":[
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/vensynq","wait":6000},{"preview":"vsq"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/growth-engine","wait":6000},{"preview":"ge"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/growth-engine/settings","wait":5000},{"preview":"ges"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/vensynq/payouts","wait":5000},{"preview":"vsqp"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/vensynq/settings","wait":5000},{"preview":"vsqs"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/dashboard","wait":6000},{"xy":[1000,32],"wait":1500},{"preview":"vena0"}]}
+]}

@@ -539,7 +539,7 @@ test('accounts:recalculate --tenant option does not recalculate balances for oth
 
 // ─── Test 20: finance:audit repairs missing payment for a paid sale ────────
 
-test('finance:audit command creates missing payment record for a paid sale', function () {
+test('finance:audit reports a missing payment and creates it only with --fix-payments', function () {
     $tenant = $this->createTenant('audit-test', 'trial', 'active');
     $user   = $this->createTenantUser($tenant, 'owner');
     $this->actingAsTenantUserModel($user, $tenant);
@@ -556,9 +556,15 @@ test('finance:audit command creates missing payment record for a paid sale', fun
 
     expect(Payment::where('sale_id', $sale->id)->count())->toBe(0);
 
-    // Run the audit command scoped to this tenant
+    // By default (and on the hourly schedule) the audit only REPORTS it: a
+    // payment row it made up would have no journal entry behind it.
+    expect(Artisan::call('finance:audit', ['--tenant' => $tenant->id]))->toBe(0);
+    expect(Payment::where('sale_id', $sale->id)->count())->toBe(0);
+
+    // Run the audit command scoped to this tenant, asked to fix
     $exitCode = Artisan::call('finance:audit', [
         '--tenant' => $tenant->id,
+        '--fix-payments' => true,
     ]);
 
     expect($exitCode)->toBe(0);

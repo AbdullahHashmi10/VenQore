@@ -130,7 +130,7 @@ export default function ConnectionSetup({
 
             <div className="max-w-5xl mx-auto space-y-6 px-4 sm:px-6">
                 {/* Header breadcrumb */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-3">
                         <Link href={route('store.woo.connections.index', { store_slug })} className="text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-200 transition-colors text-sm font-medium">
                             ← Back to Connections
@@ -229,7 +229,7 @@ export default function ConnectionSetup({
 
                         {/* Connection Loader Status (Glassmorphic Card) */}
                         <div className="lg:col-span-5">
-                            <div className="bg-gradient-to-b from-neutral-900 to-neutral-950 dark:from-neutral-950 dark:to-black text-white rounded-2xl p-8 text-center relative overflow-hidden border border-neutral-800 dark:border-line shadow-xl shadow-neutral-900/10 flex flex-col justify-between min-h-[480px] gap-6">
+                            <div className="bg-gradient-to-b from-neutral-900 to-neutral-950 dark:from-neutral-950 dark:to-black text-white rounded-2xl p-4 sm:p-8 text-center relative overflow-hidden border border-neutral-800 dark:border-line shadow-xl shadow-neutral-900/10 flex flex-col justify-between min-h-[480px] gap-6">
                                 {/* Animated radial glow */}
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(124,58,237,0.12),transparent_60%)] pointer-events-none" />
 

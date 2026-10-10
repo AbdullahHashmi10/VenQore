@@ -157,15 +157,15 @@ export default function InventoryDashboard({ stats, topMoving, expiringBatches =
                                 <p className="text-brand-100 mb-4 md:mb-6 text-xs font-semibold">Manage your inventory efficiently.</p>
  
                                 <div className="space-y-2 md:space-y-3">
-                                    <Link href={route('store.inventory.index', { store_slug: store?.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
+                                    <Link href={route('store.inventory.index', { store_slug: store?.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
                                         <span>{tt('View All Products')}</span>
                                         <ArrowRight size={16} />
                                     </Link>
-                                    <Link href={route('store.stock-operations', { store_slug: store?.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
+                                    <Link href={route('store.stock-operations', { store_slug: store?.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
                                         <span>Stock Operations</span>
                                         <ArrowRight size={16} />
                                     </Link>
-                                    <Link href={route('store.purchase-orders.create', { store_slug: store?.slug })} className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
+                                    <Link href={route('store.purchase-orders.create', { store_slug: store?.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
                                         <span>{tt('Create Purchase Order')}</span>
                                         <ArrowRight size={16} />
                                     </Link>

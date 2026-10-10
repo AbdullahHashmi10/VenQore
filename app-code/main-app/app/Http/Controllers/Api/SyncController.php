@@ -210,59 +210,80 @@ class SyncController extends Controller
             app()->instance('current.tenant', $tenant);
         }
 
+        // One result PER ORDER (sale-reliability plan §4). Each order is its own
+        // transaction inside SaleController::store(); there is deliberately no
+        // outer transaction, because a late failure there used to roll back
+        // sales this response had already counted as synced.
+        $results = [];
+        \App\Services\Commerce\HoldGuard::$offlineSale = true; // Commerce: an offline sale already happened; record it, then flag any short online order
         try {
-            \App\Services\Commerce\HoldGuard::$offlineSale = true; // Commerce: an offline sale already happened; record it, then flag any short online order
-            $syncedCount = 0;
-            DB::transaction(function () use ($orders, $tenant, &$syncedCount) {
-                foreach ($orders as $orderData) {
-                    $clientSaleId = $orderData['client_sale_id'] ?? $orderData['id'] ?? null;
-                    if ($clientSaleId) {
-                        $alreadySynced = \App\Models\Sale::withoutGlobalScope('tenant')
-                            ->where('tenant_id', $tenant->id)
-                            ->where(function ($q) use ($clientSaleId) {
-                                $q->where('client_sale_id', (string) $clientSaleId)
-                                  ->orWhere('idempotency_key', (string) $clientSaleId);
-                            })
-                            ->exists();
-
-                        if ($alreadySynced) {
-                            $syncedCount++;
-                            continue;
-                        }
-                    }
-
-                    try {
-                        if ($clientSaleId && empty($orderData['idempotency_key'])) {
-                            $orderData['idempotency_key'] = (string) $clientSaleId;
-                        }
-                        if ($clientSaleId && empty($orderData['client_sale_id'])) {
-                            $orderData['client_sale_id'] = (string) $clientSaleId;
-                        }
-
-                        $syntheticRequest = new Request($orderData);
-                        $syntheticRequest->setUserResolver(fn () => auth()->user());
-
-                        $response = app(\App\Http\Controllers\SaleController::class)->store($syntheticRequest);
-                        $statusCode = method_exists($response, 'getStatusCode') ? $response->getStatusCode() : 200;
-                        if ($statusCode >= 200 && $statusCode < 300) {
-                            $syncedCount++;
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error('Offline Sync Error: ' . $e->getMessage(), [
-                            'tenant_id' => $tenant->id,
-                            'client_sale_id' => $clientSaleId,
-                        ]);
-                    }
+            foreach ($orders as $orderData) {
+                $orderData = (array) $orderData;
+                $clientSaleId = $orderData['client_sale_id'] ?? $orderData['id'] ?? null;
+                if (!$clientSaleId) {
+                    $results[] = ['client_sale_id' => null, 'outcome' => 'rejected', 'code' => 'missing_client_id',
+                        'message' => 'An offline order without its own id cannot be matched safely.'];
+                    continue;
                 }
-            });
+                $clientSaleId = (string) $clientSaleId;
+                if (empty($orderData['idempotency_key'])) {
+                    $orderData['idempotency_key'] = $clientSaleId;
+                }
+                $orderData['client_sale_id'] = $clientSaleId;
+
+                $existing = \App\Models\Sale::withoutGlobalScopes()
+                    ->where('tenant_id', $tenant->id)
+                    ->where(function ($q) use ($clientSaleId) {
+                        $q->where('client_sale_id', $clientSaleId)->orWhere('idempotency_key', $clientSaleId);
+                    })
+                    ->first();
+                if ($existing) {
+                    $results[] = ['client_sale_id' => $clientSaleId, 'outcome' => 'committed', 'sale_id' => $existing->id,
+                        'reference' => $existing->reference_number, 'idempotent' => true];
+                    continue;
+                }
+
+                try {
+                    $syntheticRequest = new Request($orderData);
+                    $syntheticRequest->setUserResolver(fn () => auth()->user());
+                    $syntheticRequest->headers->set('Accept', 'application/json');
+
+                    $response = app(\App\Http\Controllers\SaleController::class)->store($syntheticRequest);
+                    $statusCode = method_exists($response, 'getStatusCode') ? $response->getStatusCode() : 0;
+                    $data = method_exists($response, 'getData') ? (array) $response->getData(true) : [];
+                    if ($statusCode >= 200 && $statusCode < 300 && ($data['success'] ?? false) === true && !empty($data['sale_id'])) {
+                        $results[] = ['client_sale_id' => $clientSaleId, 'outcome' => 'committed', 'sale_id' => $data['sale_id'],
+                            'reference' => $data['reference'] ?? null];
+                    } elseif ($statusCode === 409 || $statusCode === 422 || $statusCode === 202) {
+                        $results[] = ['client_sale_id' => $clientSaleId, 'outcome' => 'rejected', 'code' => $data['code'] ?? ($statusCode === 202 ? 'pending_approval' : 'rejected'),
+                            'message' => $data['message'] ?? 'Rejected'];
+                    } else {
+                        $results[] = ['client_sale_id' => $clientSaleId, 'outcome' => 'unknown', 'code' => $data['code'] ?? 'server_error',
+                            'correlation_id' => $data['correlation_id'] ?? null, 'message' => $data['message'] ?? 'Not confirmed'];
+                    }
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    // Refused before anything was written: definitive, needs correction.
+                    $results[] = ['client_sale_id' => $clientSaleId, 'outcome' => 'rejected', 'code' => 'validation_failed',
+                        'message' => $e->getMessage(), 'errors' => $e->errors()];
+                } catch (\Throwable $e) {
+                    \App\Support\SaleEvents::record('offline_batch_item_failed', [
+                        'client_sale_id' => $clientSaleId, 'exception' => get_class($e), 'error' => mb_substr($e->getMessage(), 0, 500),
+                    ], 'error');
+                    $results[] = ['client_sale_id' => $clientSaleId, 'outcome' => 'unknown', 'code' => 'server_error',
+                        'correlation_id' => \App\Support\SaleEvents::correlationId(), 'message' => 'Not confirmed'];
+                }
+            }
+        } finally {
             \App\Services\Commerce\HoldGuard::$offlineSale = false;
-            try { \App\Services\Commerce\HoldGuard::reportConflicts((int) $tenant->id); } catch (\Throwable $e) { }
-            return response()->json(['status' => 'synced', 'count' => $syncedCount]);
-        } catch (\Throwable $e) {
-            \App\Services\Commerce\HoldGuard::$offlineSale = false;
-            Log::error('Offline batch sync transaction failed: ' . $e->getMessage());
-            return response()->json(['message' => 'Sync failed', 'error' => $e->getMessage()], 500);
         }
+        try { \App\Services\Commerce\HoldGuard::reportConflicts((int) $tenant->id); } catch (\Throwable $e) { }
+
+        $committed = count(array_filter($results, fn ($r) => $r['outcome'] === 'committed'));
+        return response()->json([
+            'status'  => $committed === count($results) ? 'synced' : ($committed > 0 ? 'partial' : 'not_synced'),
+            'count'   => $committed,
+            'results' => $results,
+        ]);
     }
 
     public function checkConnection()

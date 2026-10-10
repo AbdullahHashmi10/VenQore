@@ -66,6 +66,12 @@ class AiGateway
             if ($result->ok) {
                 $actualCost = $result->costUsd;
                 $result = $this->scopeGuard->guardOutput($request, $result);
+
+                // Count a successful question against the monthly quota. Only
+                // the managed meter (and the free allowance) is debited: BYOK
+                // and staff calls are free of quota, and a refused/failed call
+                // never reaches this line.
+                $this->debitQuery($request, $tenant);
             }
 
             return $result;
@@ -249,6 +255,26 @@ class AiGateway
         }
 
         return $ticket;
+    }
+
+    /**
+     * Debit one AI question from the tenant's meter. Nothing in the app did
+     * this before, so a "managed" tenant's question counter never moved and the
+     * monthly quota was never enforced for Vena / the island.
+     */
+    private function debitQuery(AiRequest $request, ?Tenant $tenant): void
+    {
+        if (!$tenant || $this->entitlementFor($request->feature) !== 'query') {
+            return;
+        }
+        if (!in_array($request->entitlementMode, ['managed', 'free'], true)) {
+            return;
+        }
+        if (!app()->bound(AiEntitlementService::class)) {
+            return;
+        }
+
+        app(AiEntitlementService::class)->recordQuery((string) $request->entitlementMode);
     }
 
     /**

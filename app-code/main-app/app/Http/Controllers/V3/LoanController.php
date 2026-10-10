@@ -50,9 +50,12 @@ class LoanController extends Controller
             'payment_method'   => ['required', 'in:cash,bank'],
         ]);
 
-        $principal   = (float) $validated['principal'];
-        $interest    = (float) ($validated['interest'] ?? 0);
-        $totalPaid   = round($principal + $interest, 2);
+        // ZeroDrift Ledger: principal + interest = cash paid, to the paisa.
+        $principalM  = \App\Support\Money::parseMinor($validated['principal'], 'principal', false);
+        $interestM   = \App\Support\Money::parseMinor($validated['interest'] ?? 0, 'interest', false);
+        $principal   = \App\Support\Money::toFloat($principalM);
+        $interest    = \App\Support\Money::toFloat($interestM);
+        $totalPaid   = \App\Support\Money::toFloat($principalM + $interestM);
         $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
 
         $journalLines = [

@@ -49,7 +49,17 @@ export default function useFohCheckout({ storeSlug, settings, warehouses = [], i
     const complete = useCallback(async (paymentData, ctx, approvalStamp = null) => {
         const { card, sale, totals, partId } = ctx;
         setProcessing(true);
-        if (!attempt.current) attempt.current = newKey();
+        // Reload-safe receipt key per order (sessionStorage), reused until the sale lands.
+        if (!attempt.current) {
+            const slot = `vq-foh-intent-${card?.occupancy_id || 'counter'}${partId ? `-${partId}` : ''}`;
+            try {
+                attempt.current = sessionStorage.getItem(slot) || newKey();
+                sessionStorage.setItem(slot, attempt.current);
+            } catch {
+                attempt.current = newKey();
+            }
+            attempt.slot = slot;
+        }
         const base = {
             ...buildSalePayload({ sale, totals, paymentData, addToLedger: false, registerShift: shift.registerShift, settings, warehouseId }),
             channel: 'foh',
@@ -62,8 +72,9 @@ export default function useFohCheckout({ storeSlug, settings, warehouses = [], i
             const { data } = await axios.post(route('store.pos.sales.store', { store_slug: storeSlug }), payload, {
                 headers: { 'Idempotency-Key': attempt.current },
             });
-            if (!data?.success) return false;
+            if (!data?.success || !(data.sale_id || data.id)) return false;
             attempt.current = null;
+            try { if (attempt.slot) sessionStorage.removeItem(attempt.slot); } catch { /* ignore */ }
             setApproval(null);
             setPaymentOpen(false);
             setSeedSplit(null);
@@ -94,9 +105,15 @@ export default function useFohCheckout({ storeSlug, settings, warehouses = [], i
                 return false;
             }
             const status = error?.response?.status;
+            const ref = error?.response?.data?.correlation_id;
             const msg = status && status >= 400 && status < 500
                 ? (error.response.data?.message || error.response.data?.error || 'This payment was refused.')
-                : 'No connection. The payment was NOT recorded: check the network and try again.';
+                : `Payment status unconfirmed${ref ? ` (ref ${ref})` : ''}. Press Pay again when connected — the same receipt key is reused, so it cannot be charged twice.`;
+            if (status && status >= 400 && status < 500 && status !== 409) {
+                // Refused: nothing was posted, so the next attempt may use a fresh key.
+                attempt.current = null;
+                try { if (attempt.slot) sessionStorage.removeItem(attempt.slot); } catch { /* ignore */ }
+            }
             setApproval(null);
             onToast?.(msg, 'error');
             return false;

@@ -8,7 +8,7 @@
  */
 import {
     LayoutDashboard, Users, Store, SlidersHorizontal, UserCog, BadgeCheck,
-    Boxes, Layers, Ticket, DollarSign, TrendingUp, Tag, Gift,
+    Boxes, Layers, Ticket, Award, DollarSign, TrendingUp, Tag, Gift,
     Inbox, MessagesSquare, Bot, FlaskConical, Megaphone, Package,
     HeartPulse, ShieldCheck, Server, Webhook, HardDrive, ToggleRight, RefreshCw, Settings,
     KeyRound, Cpu,
@@ -68,6 +68,7 @@ export const NAV_GROUPS = [
             { key: 'platforms', label: 'Platforms', icon: Boxes, route: 'platform.platforms.index', match: 'platform.platforms.*', desc: 'Product lines that own plans' },
             { key: 'plans', label: 'Plans & Limits', icon: Layers, route: 'platform.plans.index', match: 'platform.plans.*', desc: 'Pricing, limits, trials, LTD' },
             { key: 'coupons', label: 'Coupons', icon: Ticket, route: 'platform.coupons.index', match: 'platform.coupons.*', desc: 'Discounts & promotions' },
+            { key: 'store-badges', label: 'Store Badges', icon: Award, route: 'platform.store-badges.index', match: 'platform.store-badges.*', desc: 'Early merchant, fastest growing, most reviewed — override any badge' },
             { key: 'access-grants', label: 'Gift Links', icon: Gift, route: 'platform.access-grants.index', match: 'platform.access-grants.*', desc: 'Grant any plan for any duration — no payment' },
             { key: 'revenue', label: 'Revenue', icon: DollarSign, page: 'revenue', desc: 'Paid subscription income (server-side)' },
             { key: 'gmv', label: 'Merchant GMV', icon: TrendingUp, page: 'gmv', desc: 'Merchant sales volume — not revenue' },

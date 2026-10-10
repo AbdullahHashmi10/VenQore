@@ -153,6 +153,22 @@ Artisan::command('inspire', function () {
 // heartbeat cache key goes stale and demo deploy/reset falls back to
 // running inline instead of hanging forever waiting on a queue nobody is
 // draining. See app/Jobs/QueueHeartbeatJob.php.
+// Sale reliability: read-only reconciliation of yesterday and today, every
+// store (sales, payments, journals, returns, online orders, FBR, tills).
+// Reports only; never repairs. Emails the output when a blocker is found.
+\Illuminate\Support\Facades\Schedule::command('sales:reconcile', ['--fail-on' => 'blocker'])
+    ->dailyAt('03:10')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+// Sale reliability: send sale reports FBR could not take at the till
+// (outbox rows written in the sale's own transaction; see FbrOutbox).
+\Illuminate\Support\Facades\Schedule::command('fbr:flush-outbox')
+    ->everyMinute()
+    ->withoutOverlapping(10)
+    ->onOneServer();
+
 \Illuminate\Support\Facades\Schedule::job(new \App\Jobs\QueueHeartbeatJob())
     ->everyMinute();
 
@@ -338,6 +354,9 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('commerce:expire-orders')->everyFiveMinutes();
 // Commerce MVP: email outbox for new online orders
 \Illuminate\Support\Facades\Schedule::command('commerce:send-notifications')->everyMinute();
+
+// Commerce: recompute store badges (early merchant, fastest growing, most reviewed ...)
+\Illuminate\Support\Facades\Schedule::command('commerce:badges-refresh')->dailyAt('04:10');
 
 // Commerce: privacy retention for closed online orders
 \Illuminate\Support\Facades\Schedule::command('commerce:purge-customer-data')->dailyAt('03:30');

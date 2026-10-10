@@ -25,7 +25,7 @@ const ChartSection = ({ isDarkMode, salesData }) => {
     return (
         <div className="bg-surface rounded-lg p-5 sm:p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-line h-full flex flex-col relative group">
             {/* Single Line Header */}
-            <div className="flex items-center justify-between mb-4 z-10">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4 z-10">
                 <div className="flex items-center gap-3 flex-wrap">
                     {/* Icon + Title */}
                     <div className="flex items-center gap-2">

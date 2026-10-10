@@ -109,10 +109,10 @@ export function CheckoutPage() {
             </Section>
 
             {!p.restaurantRelevant && p.restaurantAvailable !== false && (
-                <Section title="Do you cook or prepare orders?" desc="Restaurants, cafés, bakeries and juice bars get extra tools: kitchen tickets, tables and a floor plan, takeaway and delivery.">
+                <Section title="Do you cook or prepare orders?" desc="Cafés, bakeries and juice bars that make what they sell get kitchen tickets and a kitchen screen. Tables, takeaway and delivery live in Front of House.">
                     <Row sid="checkout.restaurant-on" flash={flash}
                          title={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><UtensilsCrossed size={17} /> Restaurant and café tools</span>}
-                         desc="Turns on kitchen tickets for the whole business and adds the 'Restaurant & café' pages to these settings. Nothing changes for shops that sell ready-made goods.">
+                         desc="Turns on kitchen tickets for the whole business and adds the Kitchen tickets page to these settings. Nothing changes for shops that sell ready-made goods.">
                         <Button v="soft" disabled={locked} onClick={() => p.setPreparesOrders?.(true)}>Turn on</Button>
                     </Row>
                 </Section>

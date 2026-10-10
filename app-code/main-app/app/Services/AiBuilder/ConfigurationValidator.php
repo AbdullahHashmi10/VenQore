@@ -46,8 +46,8 @@ use App\Models\Tenant;
 */
 class ConfigurationValidator
 {
-    /** Hard ceiling. There are 46 modules; anything larger is not a proposal. */
-    private const MAX_MODULES = 46;
+    /** Hard ceiling. There are 48 modules; anything larger is not a proposal. */
+    private const MAX_MODULES = 48;
 
     /** Refuse absurd payloads before doing any work on them. */
     private const MAX_INPUT_KEYS = 500;

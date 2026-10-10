@@ -1,0 +1,427 @@
+[
+ {
+  "folder": "01-Dashboard",
+  "name": "dashboard-overview",
+  "url": "/s/{slug}/dashboard",
+  "wait": 6000
+ },
+ {
+  "folder": "01-Dashboard",
+  "name": "dashboard-lower-cards",
+  "url": "/s/{slug}/dashboard",
+  "wait": 6000,
+  "actions": [
+   {
+    "scroll": 900
+   }
+  ]
+ },
+ {
+  "folder": "01-Dashboard",
+  "name": "dashboard-customize-panel",
+  "url": "/s/{slug}/dashboard",
+  "wait": 5000,
+  "actions": [
+   {
+    "click": "button:has(svg.lucide-sliders-horizontal)"
+   }
+  ]
+ },
+ {
+  "folder": "01-Dashboard",
+  "name": "owner-daily-pulse",
+  "url": "/s/{slug}/reports/owner-daily-pulse"
+ },
+ {
+  "folder": "02-POS",
+  "name": "pos-counter",
+  "url": "/s/{slug}/pos",
+  "wait": 5000
+ },
+ {
+  "folder": "02-POS",
+  "name": "recent-sales",
+  "url": "/s/{slug}/sales/list"
+ },
+ {
+  "folder": "02-POS",
+  "name": "sales-master",
+  "url": "/s/{slug}/sales/master"
+ },
+ {
+  "folder": "02-POS",
+  "name": "returns-history",
+  "url": "/s/{slug}/returns-history"
+ },
+ {
+  "folder": "02-POS",
+  "name": "parked-sales",
+  "url": "/s/{slug}/sales/parked"
+ },
+ {
+  "folder": "03-FOH",
+  "name": "foh-overview",
+  "url": "/s/{slug}/foh/overview"
+ },
+ {
+  "folder": "03-FOH",
+  "name": "foh-tables",
+  "url": "/s/{slug}/foh/tables"
+ },
+ {
+  "folder": "03-FOH",
+  "name": "foh-takeaway",
+  "url": "/s/{slug}/foh/takeaway"
+ },
+ {
+  "folder": "03-FOH",
+  "name": "foh-delivery",
+  "url": "/s/{slug}/foh/delivery"
+ },
+ {
+  "folder": "03-FOH",
+  "name": "kitchen-display",
+  "url": "/s/{slug}/restaurant/kitchen"
+ },
+ {
+  "folder": "03-FOH",
+  "name": "reservations",
+  "url": "/s/{slug}/reservations"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "inventory-overview",
+  "url": "/s/{slug}/inventory"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "products-list",
+  "url": "/s/{slug}/inventory/list"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "stock-levels",
+  "url": "/s/{slug}/inventory/stock-levels"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "categories",
+  "url": "/s/{slug}/inventory/categories"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "purchases",
+  "url": "/s/{slug}/purchases"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "purchase-orders",
+  "url": "/s/{slug}/purchase-orders"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "stock-transfers",
+  "url": "/s/{slug}/stock-transfers"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "stock-take",
+  "url": "/s/{slug}/stock-audit"
+ },
+ {
+  "folder": "04-Inventory",
+  "name": "batches",
+  "url": "/s/{slug}/batches"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "receivables",
+  "url": "/s/{slug}/finance/receivables"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "payables",
+  "url": "/s/{slug}/finance/payables"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "party-ledgers",
+  "url": "/s/{slug}/parties/ledgers"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "customers",
+  "url": "/s/{slug}/customers"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "suppliers",
+  "url": "/s/{slug}/suppliers"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "aged-receivables-report",
+  "url": "/s/{slug}/reports/aged-receivables"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "payments-in",
+  "url": "/s/{slug}/payments/in"
+ },
+ {
+  "folder": "05-Credit-and-Ledgers",
+  "name": "cheque-books",
+  "url": "/s/{slug}/banking/cheque-books"
+ },
+ {
+  "folder": "06-Production",
+  "name": "production-runs",
+  "url": "/s/{slug}/inventory/production"
+ },
+ {
+  "folder": "06-Production",
+  "name": "production-boms",
+  "url": "/s/{slug}/inventory/production/boms"
+ },
+ {
+  "folder": "06-Production",
+  "name": "manufacturing-rules",
+  "url": "/s/{slug}/manufacturing/rules"
+ },
+ {
+  "folder": "07-Cookbook",
+  "name": "cookbook-recipes",
+  "url": "/s/{slug}/cookbook"
+ },
+ {
+  "folder": "07-Cookbook",
+  "name": "cookbook-new-recipe",
+  "url": "/s/{slug}/cookbook/create"
+ },
+ {
+  "folder": "08-Online-Store-Admin",
+  "name": "store-settings",
+  "url": "/s/{slug}/online-store/settings"
+ },
+ {
+  "folder": "08-Online-Store-Admin",
+  "name": "store-products",
+  "url": "/s/{slug}/online-store/products"
+ },
+ {
+  "folder": "08-Online-Store-Admin",
+  "name": "store-orders",
+  "url": "/s/{slug}/online-store/orders"
+ },
+ {
+  "folder": "08-Online-Store-Admin",
+  "name": "store-promotions",
+  "url": "/s/{slug}/online-store/promotions"
+ },
+ {
+  "folder": "08-Online-Store-Admin",
+  "name": "store-catalogue-qr",
+  "url": "/s/{slug}/online-store/catalogue"
+ },
+ {
+  "folder": "08-Online-Store-Admin",
+  "name": "store-manager",
+  "url": "/s/{slug}/online-store-manager"
+ },
+ {
+  "folder": "10-VenSynq",
+  "name": "vensynq-overview",
+  "url": "/s/{slug}/vensynq"
+ },
+ {
+  "folder": "10-VenSynq",
+  "name": "vensynq-money-pipeline",
+  "url": "/s/{slug}/vensynq/money-pipeline"
+ },
+ {
+  "folder": "10-VenSynq",
+  "name": "vensynq-payouts",
+  "url": "/s/{slug}/vensynq/payouts"
+ },
+ {
+  "folder": "10-VenSynq",
+  "name": "vensynq-health",
+  "url": "/s/{slug}/vensynq/health"
+ },
+ {
+  "folder": "11-Smart-Capture",
+  "name": "smart-capture-settings",
+  "url": "/s/{slug}/smart-capture/settings"
+ },
+ {
+  "folder": "11-Smart-Capture",
+  "name": "smart-capture-aliases",
+  "url": "/s/{slug}/smart-capture/aliases"
+ },
+ {
+  "folder": "12-Growth-Engine",
+  "name": "growth-dashboard",
+  "url": "/s/{slug}/growth-engine/dashboard"
+ },
+ {
+  "folder": "12-Growth-Engine",
+  "name": "growth-scorecard",
+  "url": "/s/{slug}/growth-engine/scorecard"
+ },
+ {
+  "folder": "12-Growth-Engine",
+  "name": "growth-settings",
+  "url": "/s/{slug}/growth-engine/settings"
+ },
+ {
+  "folder": "13-Vena",
+  "name": "ai-recommendations",
+  "url": "/s/{slug}/ai/recommendations"
+ },
+ {
+  "folder": "13-Vena",
+  "name": "ai-smart-reorder",
+  "url": "/s/{slug}/ai/smart-reorder"
+ },
+ {
+  "folder": "13-Vena",
+  "name": "ai-cash-flow-forecast",
+  "url": "/s/{slug}/ai/cash-flow-forecast"
+ },
+ {
+  "folder": "13-Vena",
+  "name": "ai-usage",
+  "url": "/s/{slug}/ai-usage"
+ },
+ {
+  "folder": "14-Backup-and-Data-Management",
+  "name": "backups",
+  "url": "/s/{slug}/admin-panel/backups"
+ },
+ {
+  "folder": "14-Backup-and-Data-Management",
+  "name": "data-management",
+  "url": "/s/{slug}/admin-panel/data-management"
+ },
+ {
+  "folder": "14-Backup-and-Data-Management",
+  "name": "migration",
+  "url": "/s/{slug}/admin-panel/migration"
+ },
+ {
+  "folder": "14-Backup-and-Data-Management",
+  "name": "apps-integrations",
+  "url": "/s/{slug}/apps"
+ },
+ {
+  "folder": "14-Backup-and-Data-Management",
+  "name": "recycle-bin",
+  "url": "/s/{slug}/admin/recycle-bin"
+ },
+ {
+  "folder": "15-Staff-and-Branches",
+  "name": "staff",
+  "url": "/s/{slug}/staff"
+ },
+ {
+  "folder": "15-Staff-and-Branches",
+  "name": "users-permissions",
+  "url": "/s/{slug}/admin/users"
+ },
+ {
+  "folder": "15-Staff-and-Branches",
+  "name": "attendance",
+  "url": "/s/{slug}/staff-attendance"
+ },
+ {
+  "folder": "15-Staff-and-Branches",
+  "name": "shifts",
+  "url": "/s/{slug}/shifts/history"
+ },
+ {
+  "folder": "15-Staff-and-Branches",
+  "name": "terminals",
+  "url": "/s/{slug}/terminals"
+ },
+ {
+  "folder": "15-Staff-and-Branches",
+  "name": "approvals",
+  "url": "/s/{slug}/approvals"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "reports-hub",
+  "url": "/s/{slug}/reports"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "profit-and-loss",
+  "url": "/s/{slug}/reports/profit-loss"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "balance-sheet",
+  "url": "/s/{slug}/reports/balance-sheet"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "sales-report",
+  "url": "/s/{slug}/reports/sales"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "item-wise-profit",
+  "url": "/s/{slug}/reports/item-wise-profit"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "cash-flow",
+  "url": "/s/{slug}/reports/cash-flow"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "stock-valuation",
+  "url": "/s/{slug}/reports/stock-valuation"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "customer-insights",
+  "url": "/s/{slug}/reports/customer-insights"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "expenses",
+  "url": "/s/{slug}/expenses"
+ },
+ {
+  "folder": "16-Reports-and-Documents",
+  "name": "proposals",
+  "url": "/s/{slug}/proposals"
+ },
+ {
+  "folder": "17-Mobile",
+  "name": "mobile-dashboard",
+  "url": "/s/{slug}/dashboard",
+  "mobile": true,
+  "wait": 6000
+ },
+ {
+  "folder": "17-Mobile",
+  "name": "mobile-pos",
+  "url": "/s/{slug}/pos",
+  "mobile": true,
+  "wait": 5000
+ },
+ {
+  "folder": "17-Mobile",
+  "name": "mobile-inventory",
+  "url": "/s/{slug}/inventory",
+  "mobile": true
+ },
+ {
+  "folder": "17-Mobile",
+  "name": "mobile-receivables",
+  "url": "/s/{slug}/finance/receivables",
+  "mobile": true
+ }
+]

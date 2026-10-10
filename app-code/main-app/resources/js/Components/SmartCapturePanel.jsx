@@ -745,7 +745,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             <div className="mb-6 space-y-4 text-left bg-white/[0.03] backdrop-blur-md p-5 rounded-2xl border border-white/[0.08] relative z-20 font-sans shadow-lg">
                 {/* Quota Warning & Block Banners (T2-4) */}
                 {pagesLimit > 0 && usagePercent >= 80 && (
-                    <div className={`p-3.5 rounded-2xl text-xs font-medium flex items-center justify-between gap-3 border ${usagePercent >= 100
+                    <div className={`p-3.5 rounded-2xl text-xs font-medium flex flex-wrap items-center justify-between gap-y-2 gap-3 border ${usagePercent >= 100
                         ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
                         : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
                         <div className="flex items-center gap-2">
@@ -916,7 +916,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     const renderSettingsDrawer = () => (
         <div className="absolute inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-md animate-in fade-in duration-fast" onClick={() => setShowSettings(false)}>
             <div className="w-full max-w-md h-full bg-[#0D1412] border-l border-white/10 p-6 overflow-y-auto animate-in slide-in-from-right duration-normal text-[#F1F5F2]" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
                     <div className="flex items-center gap-2">
                         <KeyRound size={18} className="text-[#23C4A6]" />
                         <h3 className="text-base font-bold text-[#F1F5F2]">AI Settings (Bring Your Own Key)</h3>
@@ -961,7 +961,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
 
                     <div>
-                        <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-1.5">
                             <label className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)]">Model (optional)</label>
                             <button
                                 type="button"
@@ -1133,7 +1133,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
     // ── Locked screen ────────────────────────────────────────────────────────
     const renderLocked = () => (
-        <div className="flex-1 flex flex-col justify-center p-8 overflow-y-auto max-h-full text-[#F1F5F2]">
+        <div className="flex-1 flex flex-col justify-center p-4 sm:p-8 overflow-y-auto max-h-full text-[#F1F5F2]">
             <div className="flex flex-col items-center text-center mb-6">
                 <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-3 shrink-0">
                     <Lock size={28} />
@@ -1236,7 +1236,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     carries the Capture title, and the settings/close buttons belong to a
                     dialog this is no longer. */}
                 {!embedded && (<>
-                <div className="p-6 bg-black/40 text-[#F1F5F2] shrink-0 flex items-center justify-between border-b border-white/10 relative z-10 backdrop-blur-md">
+                <div className="p-6 bg-black/40 text-[#F1F5F2] shrink-0 flex flex-wrap items-center justify-between gap-y-2 border-b border-white/10 relative z-10 backdrop-blur-md">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-[#23C4A6]/20 border border-[#23C4A6]/30 flex items-center justify-center text-[#93EBD6]">
                             <Sparkles size={20} className="animate-pulse" />
@@ -1288,7 +1288,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         renderLocked()
                     ) : rateLimit && !extractedData && !successData ? (
                         /* RATE LIMITED — we wait, we never auto-retry */
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal text-[#F1F5F2]">
+                        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center animate-in fade-in duration-normal text-[#F1F5F2]">
                             <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-400 mb-5">
                                 <Clock size={30} />
                             </div>
@@ -1299,7 +1299,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {!rateLimit.daily && (
                                 <div className="mt-6 flex flex-col items-center gap-2">
-                                    <div className="text-4xl font-bold text-[#F1F5F2] tabular-nums">{rateLimit.seconds}s</div>
+                                    <div className="text-2xl sm:text-4xl font-bold text-[#F1F5F2] tabular-nums">{rateLimit.seconds}s</div>
                                     <p className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)]">Ready again shortly</p>
                                 </div>
                             )}
@@ -1328,7 +1328,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
                     ) : successData ? (
                         /* SUCCESS STATE */
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-slow text-[#F1F5F2]">
+                        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center animate-in zoom-in-95 duration-slow text-[#F1F5F2]">
                             <div className="w-20 h-20 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 shadow-inner animate-bounce">
                                 <CheckCircle2 size={44} />
                             </div>
@@ -1392,7 +1392,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <button
                                     type="button"
                                     onClick={navigateToSuccessDoc}
-                                    className="px-8 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-1.5"
+                                    className="px-4 sm:px-8 py-3 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-1.5"
                                 >
                                     <span>View Document</span>
                                     <ChevronRight size={14} />
@@ -1403,7 +1403,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         /* AI REVIEW & CONFIRMATION */
                         <div className="flex-1 flex flex-col overflow-hidden animate-in fade-in duration-normal">
                             {/* Settings strip */}
-                            <div className="px-8 py-4 bg-white/[0.03] border-b border-white/[0.08] backdrop-blur-md flex flex-wrap items-end gap-5 justify-between">
+                            <div className="px-4 sm:px-8 py-4 bg-white/[0.03] border-b border-white/[0.08] backdrop-blur-md flex flex-wrap items-end gap-5 justify-between">
                                 <div className="flex flex-wrap items-end gap-5">
                                     {/* Action Intent */}
                                     <div>
@@ -1517,7 +1517,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Append banner */}
                             {appendMode && appendDocId && (
-                                <div className="px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
+                                <div className="px-4 sm:px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
                                     <Layers size={13} />
                                     Items will be ADDED to the selected existing {appendDocType.replace(/_/g, ' ')} — no new document will be created.
                                 </div>
@@ -1525,7 +1525,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Wrong side of the ledger — they picked a customer but this is a supplier bill */}
                             {extractedData.party_preselected?.type_mismatch && (
-                                <div className="px-8 py-2.5 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-2 text-xs font-bold text-rose-400">
+                                <div className="px-4 sm:px-8 py-2.5 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-2 text-xs font-bold text-rose-400">
                                     <AlertTriangle size={13} />
                                     You chose the {extractedData.party_preselected.type} "{extractedData.party_preselected.name}",
                                     but this looks like a {partyType} document. Pick the right {partyType} below.
@@ -1534,7 +1534,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* What pressing the button will actually do */}
                             {!isAppending && currentPolicy?.locking && (
-                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
+                                <div className="px-4 sm:px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
                                     <Lock size={13} />
                                     {currentPolicy.handoff_url
                                         ? `A ${currentPolicy.label} cannot be edited once posted — you will get a final review on the ${currentPolicy.label} screen before anything is saved.`
@@ -1544,7 +1544,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Learning banner — shows the memory paying off */}
                             {extractedData.meta?.learned_lines > 0 && (
-                                <div className="px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
+                                <div className="px-4 sm:px-8 py-2.5 bg-[#23C4A6]/10 border-b border-[#23C4A6]/20 flex items-center gap-2 text-xs font-bold text-[#23C4A6]">
                                     <Brain size={13} />
                                     {extractedData.meta.learned_lines} line{extractedData.meta.learned_lines > 1 ? 's were' : ' was'} matched
                                     from what your store taught AI Scan previously — already filled in below.
@@ -1553,7 +1553,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Low-legibility warning */}
                             {typeof extractedData.document_confidence === 'number' && extractedData.document_confidence < 70 && (
-                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
+                                <div className="px-4 sm:px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-400">
                                     <Eye size={13} />
                                     This document was hard to read ({extractedData.document_confidence}% legible).
                                     Check the amber and red lines carefully before posting.
@@ -1562,7 +1562,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                             {/* Extracted meta */}
                             {(extractedData.date || extractedData.reference || extractedData.notes || extractedData.meta) && (
-                                <div className="px-8 py-2.5 border-b border-white/[0.08] bg-black/20 flex flex-wrap items-center gap-4 text-2xs font-semibold text-[rgba(241,245,242,0.5)]">
+                                <div className="px-4 sm:px-8 py-2.5 border-b border-white/[0.08] bg-black/20 flex flex-wrap items-center gap-4 text-2xs font-semibold text-[rgba(241,245,242,0.5)]">
                                     {extractedData.date && <span>Date read: <span className="text-[#F1F5F2] font-semibold">{extractedData.date}</span></span>}
                                     {extractedData.reference && <span>Ref: <span className="text-[#F1F5F2] font-mono">{extractedData.reference}</span></span>}
                                     {extractedData.notes && <span className="truncate max-w-md">Notes: <span className="text-[#F1F5F2]">{extractedData.notes}</span></span>}
@@ -1731,7 +1731,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             </div>
 
                             {/* Footer */}
-                            <div className="p-6 border-t border-white/[0.08] shrink-0 flex items-center justify-between bg-black/40 backdrop-blur-md">
+                            <div className="p-6 border-t border-white/[0.08] shrink-0 flex flex-wrap items-center justify-between gap-y-2 bg-black/40 backdrop-blur-md">
                                 <div className="text-sm">
                                     <span className="text-[rgba(241,245,242,0.5)] font-medium">Estimated Gross:</span>
                                     <span className="font-bold text-[#F1F5F2] text-base ml-1.5" style={{ fontFamily: 'var(--vq-font-numeric)' }}>Rs. {calculateGrossTotal()}</span>
@@ -1756,7 +1756,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     <button
                                         onClick={() => handleConfirmTransaction()}
                                         disabled={confirming || !itemsReady || !partyReady || !appendReady}
-                                        className="px-8 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all active:scale-95 disabled:opacity-30 disabled:shadow-none"
+                                        className="px-4 sm:px-8 py-2.5 bg-[#23C4A6] hover:bg-[#2dd4bf] text-[#062421] rounded-xl text-xs font-bold shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all active:scale-95 disabled:opacity-30 disabled:shadow-none"
                                     >
                                         {confirming ? (
                                             <div className="flex items-center gap-1.5">
@@ -1780,7 +1780,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
                     ) : loading ? (
                         /* LOADING */
-                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-normal">
+                        <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center animate-in fade-in duration-normal">
                             <div className="relative mb-6 flex items-center justify-center">
                                 <ThinkingOrb state="shaping" size={68} theme="dark" />
                             </div>
@@ -1793,7 +1793,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         /* INTAKE */
                         <div className="flex-1 flex flex-col overflow-hidden">
                             {/* Tabs — V6 dark glass segmented control */}
-                            <div className="flex items-center justify-between gap-4 px-8 pt-5 pb-4 shrink-0 border-b border-white/[0.08]">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4 px-4 sm:px-8 pt-5 pb-4 shrink-0 border-b border-white/[0.08]">
                                 <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
                                     {[
                                         { key: 'image', icon: Camera, label: 'Photos / PDF' },
@@ -1824,7 +1824,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 )}
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar">
                                 {error && (
                                     <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-rose-300 text-xs font-bold flex items-start gap-2 animate-in slide-in-from-top-2">
                                         <AlertTriangle size={16} className="text-rose-400 mt-0.5 shrink-0" />
@@ -1842,7 +1842,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             onDragOver={handleDrag}
                                             onDragLeave={handleDrag}
                                             onDrop={handleDrop}
-                                            className={`flex-1 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-8 transition-all min-h-[260px] ${dragActive
+                                            className={`flex-1 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-4 sm:p-8 transition-all min-h-[260px] ${dragActive
                                                 ? 'border-[#23C4A6] bg-[#23C4A6]/10 scale-[0.99]'
                                                 : selectedFiles.length > 0
                                                     ? 'border-white/15 bg-black/20 backdrop-blur-sm'
@@ -1913,7 +1913,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={selectedFiles.length === 0 || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
+                                                className="px-4 sm:px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
                                             >
                                                 {loading ? 'Scanning…' : `Scan ${selectedFiles.length || ''} ${selectedFiles.length === 1 ? 'page' : 'pages'} — 1 AI request`}
                                             </button>
@@ -1922,7 +1922,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 ) : activeTab === 'audio' ? (
                                     /* VOICE TAB — record OR upload */
                                     <div className="flex-1 flex flex-col justify-between min-h-[300px]">
-                                        <div className="flex-1 border border-white/10 rounded-2xl flex flex-col items-center justify-center p-8 bg-white/[0.02] backdrop-blur-sm">
+                                        <div className="flex-1 border border-white/10 rounded-2xl flex flex-col items-center justify-center p-4 sm:p-8 bg-white/[0.02] backdrop-blur-sm">
                                             {audioBlob ? (
                                                 <div className="text-center">
                                                     <div className="w-16 h-16 bg-[#23C4A6]/10 border border-[#23C4A6]/25 rounded-2xl flex items-center justify-center text-[#23C4A6] mx-auto mb-4 animate-pulse shadow-[0_0_15px_rgba(35,196,166,0.2)]">
@@ -2006,7 +2006,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={!audioBlob || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
+                                                className="px-4 sm:px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
                                             >
                                                 Proceed to Extract
                                             </button>
@@ -2035,7 +2035,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <button
                                                 onClick={handleExtract}
                                                 disabled={!textInput.trim() || loading || !!rateLimit}
-                                                className="px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
+                                                className="px-4 sm:px-8 py-3.5 bg-[#23C4A6] hover:bg-[#2dd4bf] active:scale-95 text-[#062421] font-bold rounded-xl text-xs shadow-[0_0_20px_rgba(35,196,166,0.35)] transition-all disabled:opacity-30 disabled:shadow-none"
                                             >
                                                 Proceed to Extract
                                             </button>
@@ -2149,7 +2149,7 @@ function CustomSelect({
                 disabled={disabled}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 onKeyDown={handleKeyDown}
-                className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 bg-white/[0.04] hover:bg-white/[0.07] border rounded-xl text-xs font-semibold text-[#F1F5F2] transition-all text-left outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
+                className={`w-full flex flex-wrap items-center justify-between gap-y-2 gap-2 px-3.5 py-2.5 bg-white/[0.04] hover:bg-white/[0.07] border rounded-xl text-xs font-semibold text-[#F1F5F2] transition-all text-left outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
                     isError
                         ? 'border-rose-500/60'
                         : isOpen
@@ -2227,7 +2227,7 @@ function CustomSelect({
                                                                     setSearch('');
                                                                 }
                                                             }}
-                                                            className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
+                                                            className={`w-full flex flex-wrap items-center justify-between gap-y-2 px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
                                                                 isSelected
                                                                     ? 'bg-[#23C4A6]/15 text-[#93EBD6] font-bold border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.1)]'
                                                                     : 'text-[rgba(241,245,242,0.85)] hover:bg-white/[0.07] hover:text-white border border-transparent'
@@ -2267,7 +2267,7 @@ function CustomSelect({
                                                     setSearch('');
                                                 }
                                             }}
-                                            className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
+                                            className={`w-full flex flex-wrap items-center justify-between gap-y-2 px-3 py-2 text-xs text-left rounded-[10px] transition-all duration-150 ${
                                                 isSelected
                                                     ? 'bg-[#23C4A6]/15 text-[#93EBD6] font-bold border border-[#23C4A6]/30 shadow-[0_0_12px_rgba(35,196,166,0.1)]'
                                                     : 'text-[rgba(241,245,242,0.85)] hover:bg-white/[0.07] hover:text-white border border-transparent'

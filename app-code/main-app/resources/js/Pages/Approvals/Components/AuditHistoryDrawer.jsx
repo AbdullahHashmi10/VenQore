@@ -68,7 +68,7 @@ export default function AuditHistoryDrawer({
             {/* Slide-over panel */}
             <div className="relative w-full max-w-lg bg-surface border-l border-line shadow-2xl flex flex-col h-full z-10 animate-in slide-in-from-right duration-200">
                 {/* Drawer Header */}
-                <div className="px-5 py-4 border-b border-line flex items-center justify-between bg-surface/90">
+                <div className="px-5 py-4 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-surface/90">
                     <div className="flex items-center gap-2">
                         <History size={18} className="text-primary-600 dark:text-primary-400" />
                         <div>
@@ -115,21 +115,21 @@ export default function AuditHistoryDrawer({
                 <div className="flex-1 overflow-y-auto p-5 space-y-4">
                     {/* Top Identity Block */}
                     <div className="p-3.5 rounded-xl bg-sunken/60 border border-line space-y-2">
-                        <div className="flex items-center justify-between text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs">
                             <span className="text-ink-muted font-medium">Original Maker:</span>
                             <span className="font-semibold text-ink flex items-center gap-1.5">
                                 <User size={13} className="text-primary-500" />
                                 {document.maker?.name || 'Unknown'} ({document.maker?.email})
                             </span>
                         </div>
-                        <div className="flex items-center justify-between text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs">
                             <span className="text-ink-muted font-medium">Submitted On:</span>
                             <span className="font-semibold text-ink tabular-nums">
                                 {formatDateTime(document.created_at)}
                             </span>
                         </div>
                         {document.reviewer && (
-                            <div className="flex items-center justify-between text-xs pt-1 border-t border-line/60">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs pt-1 border-t border-line/60">
                                 <span className="text-ink-muted font-medium">Assigned Reviewer:</span>
                                 <span className="font-semibold text-ink flex items-center gap-1.5">
                                     <ShieldCheck size={13} className="text-emerald-500" />
@@ -155,7 +155,7 @@ export default function AuditHistoryDrawer({
                                             </div>
 
                                             <div className="space-y-1">
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                                     <span className="text-xs font-bold text-ink capitalize">
                                                         {t.to_status === 'pending' ? 'Submitted for Review' : t.to_status}
                                                     </span>
@@ -219,19 +219,19 @@ export default function AuditHistoryDrawer({
 
                             {revisions[selectedRevIndex] && (
                                 <div className="p-3 rounded-xl bg-sunken border border-line space-y-3 text-xs">
-                                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pb-2 border-b border-line">
                                         <span className="text-ink-muted">Revision Created By:</span>
                                         <span className="font-semibold text-ink">
                                             {revisions[selectedRevIndex].maker?.name || 'Maker'}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pb-2 border-b border-line">
                                         <span className="text-ink-muted">Recorded Amount:</span>
                                         <span className="font-bold text-ink tabular-nums">
                                             {formatCurrency(revisions[selectedRevIndex].amount || 0, store)}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-between pb-2 border-b border-line">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pb-2 border-b border-line">
                                         <span className="text-ink-muted">Timestamp:</span>
                                         <span className="font-medium text-ink tabular-nums">
                                             {formatDateTime(revisions[selectedRevIndex].created_at)}

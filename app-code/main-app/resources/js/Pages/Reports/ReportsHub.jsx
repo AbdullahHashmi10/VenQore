@@ -139,7 +139,7 @@ const Card3D = ({ report }) => {
                     </div>
 
                     {/* Action-oriented upgrade footer */}
-                    <div className="mt-4 pt-3 border-t border-line flex items-center justify-between gap-2">
+                    <div className="mt-4 pt-3 border-t border-line flex flex-wrap items-center justify-between gap-y-2 gap-2">
                         <span className="text-xs font-medium text-ink-muted line-clamp-1" title={decision}>
                             {decision}
                         </span>
@@ -176,7 +176,7 @@ const Card3D = ({ report }) => {
 
             <div className="relative p-6 flex flex-col h-full z-10 bg-white/5 dark:bg-app backdrop-blur-3xl h-full">
                 {/* Header Section */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-4">
                         {/* Icon - Perfectly Aligned & GLOWING */}
                         <div className="flex items-center justify-center shrink-0" style={{ filter: isHovered ? `drop-shadow(0 0 12px ${glowColor})` : 'none', transition: 'filter 0.3s ease' }}>

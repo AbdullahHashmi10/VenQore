@@ -96,7 +96,7 @@ export default function TaxSettingsSection({ data, setData }) {
             </div>
 
             {/* Tax Grid Header & Cards */}
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-y-2 pt-2">
                 <div>
                     <h3 className="text-sm font-bold text-ink">Configured Tax Rates</h3>
                     <p className="text-xs text-ink-muted">Active tax rates applied to items and transactions</p>

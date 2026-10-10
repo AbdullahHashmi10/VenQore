@@ -105,7 +105,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
             </div>
 
             {/* Header */}
-            <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between border-b border-white/[0.04]">
+            <header className="relative z-10 w-full max-w-7xl mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-y-2 border-b border-white/[0.04]">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-brand-500/10 rounded-xl flex items-center justify-center border border-brand-500/20 shadow-xl">
                         <Sparkles size={18} className="text-brand-400" />
@@ -134,8 +134,8 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                 <div className="lg:col-span-2 space-y-8">
 
                     {/* Welcome Card */}
-                    <div className="relative rounded-xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-8 overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 right-0 p-8 w-48 h-48 bg-brand-600/10 rounded-full blur-[50px] -mt-16 -mr-16 pointer-events-none" />
+                    <div className="relative rounded-xl bg-gradient-to-br from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-4 sm:p-8 overflow-hidden shadow-2xl">
+                        <div className="absolute top-0 right-0 p-4 sm:p-8 w-48 h-48 bg-brand-600/10 rounded-full blur-[50px] -mt-16 -mr-16 pointer-events-none" />
 
                         <span className="text-3xs font-bold text-brand-400 uppercase tracking-[0.2em] block mb-2">{tt('VenQore Platform Staff')}</span>
                         <h1 className="text-3xl font-bold tracking-tight text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -160,7 +160,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             {/* Support Room (Active if Support Role) */}
                             <div className="group rounded-2xl bg-white/[0.02] border border-white/[0.05] p-5 transition-all duration-slow flex flex-col justify-between shadow-lg">
                                 <div>
-                                    <div className="flex items-center justify-between mb-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                         <div className="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center text-sm font-bold text-brand-400">
                                             <MessageSquare size={18} />
                                         </div>
@@ -203,7 +203,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             {/* Content & SEO Room (Coming Soon) */}
                             <div className="group rounded-2xl bg-white/[0.01] border border-white/[0.03] p-5 opacity-60 flex flex-col justify-between shadow-lg">
                                 <div>
-                                    <div className="flex items-center justify-between mb-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                         <div className="w-10 h-10 rounded-lg bg-teal-500/5 flex items-center justify-center text-sm font-bold text-teal-500">
                                             <BookOpen size={18} />
                                         </div>
@@ -222,7 +222,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             {/* Marketing Room (Coming Soon) */}
                             <div className="group rounded-2xl bg-white/[0.01] border border-white/[0.03] p-5 opacity-60 flex flex-col justify-between shadow-lg">
                                 <div>
-                                    <div className="flex items-center justify-between mb-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                         <div className="w-10 h-10 rounded-lg bg-brand-500/5 flex items-center justify-center text-sm font-bold text-brand-500">
                                             <Megaphone size={18} />
                                         </div>
@@ -241,7 +241,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             {/* Finance Room (Coming Soon) */}
                             <div className="group rounded-2xl bg-white/[0.01] border border-white/[0.03] p-5 opacity-60 flex flex-col justify-between shadow-lg">
                                 <div>
-                                    <div className="flex items-center justify-between mb-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
                                         <div className="w-10 h-10 rounded-lg bg-emerald-500/5 flex items-center justify-center text-sm font-bold text-emerald-500">
                                             <LineChart size={18} />
                                         </div>
@@ -267,7 +267,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                             </h2>
 
                             {referred_chats.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.01] p-12 text-center">
+                                <div className="rounded-2xl border border-dashed border-white/[0.06] bg-white/[0.01] p-5 sm:p-12 text-center">
                                     <CheckCircle2 size={36} className="text-ink-secondary mx-auto mb-3" />
                                     <h3 className="font-bold text-white text-sm">Inbox Fully Cleared!</h3>
                                     <p className="text-ink-muted text-xs mt-1">There are currently no chatbot session tickets referred specifically to your username.</p>
@@ -317,7 +317,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
 
                     {/* Task Checklist card */}
                     <div className="rounded-xl bg-gradient-to-b from-white/[0.03] to-white/[0.01] border border-white/[0.06] p-6 shadow-2xl">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
                             <h2 className="font-bold text-white text-base tracking-tight flex items-center gap-2">
                                 <ListTodo size={18} className="text-brand-400" /> Platform Duties
                             </h2>
@@ -439,7 +439,7 @@ export default function StaffHub({ employee, referred_chats = [], tasks = [], st
                                             <span className="animate-pulse">Loading controls...</span>
                                         </div>
                                     ) : categoryStats.map(cat => (
-                                        <div key={cat.category} className="bg-white/[0.01] border border-white/[0.04] rounded-2xl p-4 flex items-center justify-between gap-4 hover:border-white/[0.08] transition-colors">
+                                        <div key={cat.category} className="bg-white/[0.01] border border-white/[0.04] rounded-2xl p-4 flex flex-wrap items-center justify-between gap-y-2 gap-4 hover:border-white/[0.08] transition-colors">
                                             <div className="min-w-0">
                                                 <span className="text-xs font-bold uppercase text-neutral-200 tracking-wide block">
                                                     {cat.category}

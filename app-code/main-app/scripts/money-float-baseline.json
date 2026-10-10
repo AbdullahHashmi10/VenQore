@@ -1,0 +1,19 @@
+{
+    "app/Console/Commands/RunShadowMigration.php": 1,
+    "app/Engines/AccountingService.php": 2,
+    "app/Engines/InventoryService.php": 3,
+    "app/Engines/ManufacturingService.php": 2,
+    "app/Engines/PurchaseService.php": 3,
+    "app/Engines/SaleService.php": 5,
+    "app/Http/Controllers/PaymentController.php": 2,
+    "app/Http/Controllers/PosReturnController.php": 1,
+    "app/Http/Controllers/ReturnController.php": 3,
+    "app/Http/Controllers/SaleController.php": 4,
+    "app/Http/Controllers/V3/BadDebtController.php": 1,
+    "app/Http/Controllers/V3/OpeningBalanceController.php": 2,
+    "app/Services/DeliveryChallanService.php": 1,
+    "app/Services/PosReturnService.php": 1,
+    "app/Services/SmartCapture/TransactionBuilderService.php": 18,
+    "app/Services/VenSynQ/MarketplaceSettlementService.php": 11,
+    "app/Services/WooSync/WooOrderPoster.php": 3
+}

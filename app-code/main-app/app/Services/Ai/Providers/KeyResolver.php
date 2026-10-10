@@ -24,8 +24,14 @@ class KeyResolver
     ): array {
         $feature = $feature ?: 'default';
 
-        // 1. Tenant BYOK Check (strictly tenant-scoped)
-        if ($tenant) {
+        // 1. Tenant BYOK Check (strictly tenant-scoped).
+        //    A tenant on the MANAGED monthly quota is spending VenQore's key and
+        //    its quota meter — never their own key at the same time (that would
+        //    bill them twice). AiEntitlementService flips the mode to 'byok'
+        //    itself when the quota is used up and the tenant owns a key.
+        //    Callers with no entitlement concept (store chat widget: mode null)
+        //    keep BYOK precedence.
+        if ($tenant && $entitlementMode !== 'managed') {
             $tenantSettings = Setting::withoutGlobalScopes()
                 ->where('tenant_id', $tenant->id)
                 ->whereIn('key', [
@@ -84,11 +90,15 @@ class KeyResolver
             $provider = $keyProvider ?: strtolower($requestedProvider ?: $profileProvider);
             $model = $requestedModel
                 ?: ($fromFreePool ? $keys->freeModel() : null)
-                ?: $this->modelFor($provider, $profileProvider, $profileModel, $fromFreePool ? null : $keys->paidModel());
+                ?: $this->modelFor($provider, $profileProvider, $profileModel, $fromFreePool ? null : $this->dashboardModelFor($keys, $provider));
             $keyMode = 'platform_free';
         } else {
-            $provider = strtolower($requestedProvider ?: ($keys->paidProvider() ?: $profileProvider));
-            $model = $requestedModel ?: $this->modelFor($provider, $profileProvider, $profileModel, $keys->paidModel());
+            $wanted = strtolower($requestedProvider ?: ($keys->paidProvider() ?: $profileProvider));
+            // Use the wanted provider when it has a key, otherwise any provider
+            // that does — the owner saved *a* key; never answer "no key" while
+            // one exists.
+            $provider = $keys->usablePaidProvider($wanted) ?: $wanted;
+            $model = $requestedModel ?: $this->modelFor($provider, $profileProvider, $profileModel, $this->dashboardModelFor($keys, $provider));
             $apiKey = $keys->paidKey($provider);
             $keyMode = 'platform_paid';
         }
@@ -99,6 +109,19 @@ class KeyResolver
             'model'    => $model,
             'key_mode' => $keyMode,
         ];
+    }
+
+    /**
+     * The dashboard's model name belongs to the dashboard's provider. When the
+     * call falls back to a different provider, sending that model name (a
+     * Gemini model to OpenAI, say) is guaranteed to fail — use the provider's
+     * own default instead.
+     */
+    private function dashboardModelFor(PlatformAiKeys $keys, string $provider): ?string
+    {
+        $paidProvider = $keys->paidProvider();
+
+        return ($paidProvider === null || $paidProvider === $provider) ? $keys->paidModel() : null;
     }
 
     /**

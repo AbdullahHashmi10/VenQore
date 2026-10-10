@@ -27,14 +27,20 @@ class BackupService
         }
 
         try {
-            // Try mysqldump first if available (faster)
-            // But for XAMPP Windows reliability without PATH, let's use a pure PHP dumper
-            // It's safer for this context.
-            
-            $content = $this->dumpDatabase();
-            
-            Storage::disk($this->backupDisk)->put($path, $content);
-            
+            // Written straight to the file, table by table: building the whole
+            // database as one string ran out of memory on a real server.
+            @set_time_limit(0);
+            $full = Storage::disk($this->backupDisk)->path($path);
+            $fh = fopen($full, 'wb');
+            if (! $fh) {
+                throw new \Exception("Cannot write {$full}");
+            }
+            try {
+                $this->dumpDatabase(fn (string $chunk) => fwrite($fh, $chunk));
+            } finally {
+                fclose($fh);
+            }
+
             return [
                 'success' => true,
                 'path' => $path,
@@ -42,8 +48,11 @@ class BackupService
                 'size' => Storage::disk($this->backupDisk)->size($path)
             ];
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Backup failed: " . $e->getMessage());
+            if (isset($full) && is_file($full) && filesize($full) === 0) {
+                @unlink($full);
+            }
             return [
                 'success' => false,
                 'message' => $e->getMessage()
@@ -51,47 +60,36 @@ class BackupService
         }
     }
 
-    protected function dumpDatabase()
+    protected function dumpDatabase(callable $write): void
     {
-        $out = "/* VenQore POS Database Backup */\n";
-        $out .= "/* Date: " . date('Y-m-d H:i:s') . " */\n\n";
-        $out .= "SET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n\n";
+        $write("/* VenQore POS Database Backup */\n/* Date: " . date('Y-m-d H:i:s') . " */\n\n");
+        $write("SET FOREIGN_KEY_CHECKS=0;\nSET SQL_MODE = \"NO_AUTO_VALUE_ON_ZERO\";\n\n");
 
-        $tables = DB::select('SHOW TABLES');
-        $tables = array_map(fn($t) => array_values((array)$t)[0], $tables);
-
-        foreach ($tables as $table) {
-            // Structure
-            $createTable = DB::select("SHOW CREATE TABLE `$table`");
-            if (isset($createTable[0]->{'Create View'})) {
-                // It's a view, skip or handle views (skipping complex views for simple backup is often safer unless needed)
-                continue; 
+        $pdo = DB::connection()->getPdo();
+        $tables = DB::select('SHOW FULL TABLES');
+        foreach ($tables as $t) {
+            $t = array_values((array) $t);
+            [$table, $type] = [$t[0], $t[1] ?? 'BASE TABLE'];
+            if ($type !== 'BASE TABLE') {
+                continue; // views are rebuilt by migrations
             }
-            $createSql = $createTable[0]->{'Create Table'};
-            $out .= "DROP TABLE IF EXISTS `$table`;\n";
-            $out .= $createSql . ";\n\n";
+            $createSql = DB::select("SHOW CREATE TABLE `$table`")[0]->{'Create Table'};
+            $write("DROP TABLE IF EXISTS `$table`;\n" . $createSql . ";\n\n");
 
-            // Data
-            // Chunking for memory safety
-            DB::table($table)->orderBy(DB::raw('1'))->chunk(100, function ($rows) use (&$out, $table) {
-                foreach ($rows as $row) {
-                    $row = (array)$row;
-                    $cols = array_keys($row);
-                    $vals = array_values($row);
-
-                    $vals = array_map(function ($val) {
-                        if (is_null($val)) return "NULL";
-                        return "'" . addslashes($val) . "'";
-                    }, $vals);
-
-                    $out .= "INSERT INTO `$table` (`" . implode('`, `', $cols) . "`) VALUES (" . implode(', ', $vals) . ");\n";
+            $buf = '';
+            foreach (DB::table($table)->cursor() as $row) {
+                $row = (array) $row;
+                $vals = array_map(fn ($v) => $v === null ? 'NULL' : $pdo->quote((string) $v), array_values($row));
+                $buf .= "INSERT INTO `$table` (`" . implode('`, `', array_keys($row)) . "`) VALUES (" . implode(', ', $vals) . ");\n";
+                if (strlen($buf) > 1048576) {
+                    $write($buf);
+                    $buf = '';
                 }
-            });
-            $out .= "\n";
+            }
+            $write($buf . "\n");
         }
 
-        $out .= "SET FOREIGN_KEY_CHECKS=1;\n";
-        return $out;
+        $write("SET FOREIGN_KEY_CHECKS=1;\n");
     }
 
 

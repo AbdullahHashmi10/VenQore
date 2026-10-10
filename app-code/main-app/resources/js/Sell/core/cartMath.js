@@ -1,18 +1,73 @@
 /**
  * Sale Core — the register's money arithmetic, as one pure function.
  *
- * Moved out of Pos.jsx WITHOUT changing a single operation or its order, so the
- * numbers stay identical to the paisa (proved by the golden fixtures in
- * resources/js/tests/fixtures/sale-core/). Do not "tidy" the maths here:
- * rounding order (service charge rounds to 2dp, tax does not, the total rounds
- * last) is behaviour the books already depend on.
+ * Since calculation contract v2 (sale-reliability plan, Oct 2026) this is an
+ * ADAPTER over Sell/core/saleTotals.js: it turns cart lines into the shared
+ * calculation input and returns the same names the screens already read. The
+ * server runs the identical calculation (app/Services/Sales/SaleTotals.php)
+ * against the same fixtures, so the total shown is the total posted.
+ *
+ * What changed from v1 (deliberately; see docs/SALE_RELIABILITY_IMPLEMENTATION.md):
+ *  - every amount is exact paisa — no float drift, no fractional paisa;
+ *  - tax is charged per line (half-up), like the server always did;
+ *  - a product with its own tax rate uses it (server rule), else the sale rate;
+ *  - a bill discount is rounded once and spread over lines by largest remainder.
  *
  * Cart-line convention (see Pos.jsx addToCart):
- *   original_price  full undiscounted unit price, INCLUDING add-ons
- *   price           what the customer pays per unit after a line discount
- *   freeQuantity    units given away (only counted while free-qty is enabled)
+ *   original_price    full undiscounted unit price, INCLUDING add-ons
+ *   price             what the customer pays per unit after a line discount
+ *   freeQuantity      units given away (only counted while free-qty is enabled)
+ *   product_tax_rate  the product's own rate, when it has one (null → sale rate)
  */
-import { roundTotal } from '@/Utils/settings';
+import { calculateSale, CALCULATION_VERSION } from './saleTotals';
+import { dec, sub, mul, toMinor, fromMinor, MoneyError } from './money';
+
+/* Cart fields are JS numbers (a recalled line's unit discount is row/qty, e.g.
+   3.3333333333333335). Six decimals is the input precision of the contract. */
+const num = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Number(n.toFixed(6)) : 0;
+};
+
+/** Per-line discount in minor units, never more than the line's gross. */
+function lineDiscountMinor(item) {
+    const orig = dec(num(item.original_price ?? item.price ?? 0));
+    const cur = dec(num(item.price ?? 0));
+    const qty = dec(num(item.qty || 0));
+    let unitDisc = sub(orig, cur);
+    if (unitDisc.n <= 0n) unitDisc = dec(Math.max(0, num(item.discount || 0)));
+    const disc = toMinor(mul(unitDisc, qty));
+    const gross = toMinor(mul(orig, qty));
+    return disc > gross ? gross : (disc < 0n ? 0n : disc);
+}
+
+/** The shared calculation input for a cart (also used to build the payload). */
+export function cartToCalculationInput({ cart, sale, settings, enableTax, enableFreeQty, tableMode, serviceChargePct, tipEnabled, roundOff }) {
+    const taxRate = enableTax ? (sale.taxRate !== undefined ? sale.taxRate : parseFloat(settings?.default_tax_rate || 0)) : 0;
+    const taxInclusive = enableTax ? (sale.taxInclusive !== undefined ? !!sale.taxInclusive : false) : false;
+    const lines = cart.map((item) => ({
+        unit_price: num(item.original_price ?? item.price ?? 0),
+        qty: num(item.qty || 0),
+        free_qty: enableFreeQty ? num(item.freeQuantity || 0) : 0,
+        discount: fromMinor(lineDiscountMinor(item)),
+        tax_rate: item.product_tax_rate ?? null,
+    }));
+    const discountValue = sale.discountType === 'percentage'
+        ? num(sale.discountValue || 0)
+        : num(parseFloat(sale.discountValue !== undefined ? sale.discountValue : (sale.discount || 0)) || 0);
+    const servicePct = tableMode ? (parseFloat(serviceChargePct) || 0) : 0;
+    const tip = tableMode && tipEnabled ? (parseFloat(sale.tipAmount || 0) || 0) : 0;
+    return {
+        input: {
+            lines,
+            bill_discount: { type: sale.discountType === 'percentage' ? 'percentage' : 'fixed', value: Math.max(0, discountValue) },
+            tax: { enabled: !!enableTax, inclusive: taxInclusive, default_rate: num(taxRate) },
+            charges: { extra: Math.max(0, parseFloat(sale.additionalCharges || 0) || 0), service_pct: servicePct, tip: Math.max(0, tip) },
+            bill_rounding: { apply: !!roundOff, setting: settings?.round_off_total },
+        },
+        taxRate, taxInclusive, servicePct,
+    };
+}
 
 /**
  * @param {object} i
@@ -26,81 +81,46 @@ import { roundTotal } from '@/Utils/settings';
  * @param {boolean} i.tipEnabled
  * @param {boolean} i.roundOff
  */
-export function computeTotals({
-    cart,
-    sale,
-    settings,
-    enableTax,
-    enableFreeQty,
-    tableMode,
-    serviceChargePct: serviceChargeSetting,
-    tipEnabled,
-    roundOff,
-}) {
-    const taxRate = enableTax ? (sale.taxRate !== undefined ? sale.taxRate : parseFloat(settings?.default_tax_rate || 0)) : 0;
-    const taxInclusive = enableTax ? (sale.taxInclusive !== undefined ? sale.taxInclusive : false) : false;
-
-    // Subtotal includes free items (gross sales value before line discounts)
-    const subtotal = cart.reduce((acc, item) => {
-        const unitGross = Number(item.original_price ?? item.price ?? 0);
-        const qty = Number(item.qty || 0);
-        const freeQty = enableFreeQty ? Number(item.freeQuantity || 0) : 0;
-        return acc + (unitGross * (qty + freeQty));
-    }, 0);
-
-    // Calculate discounts
-    const freeItemDiscounts = enableFreeQty ? cart.reduce((acc, item) => {
-        const unitGross = Number(item.original_price ?? item.price ?? 0);
-        return acc + (Number(item.freeQuantity || 0) * unitGross);
-    }, 0) : 0;
-
-    const itemDiscounts = cart.reduce((acc, item) => {
-        const orig = Number(item.original_price ?? item.price ?? 0);
-        const cur = Number(item.price ?? 0);
-        const unitDiscount = Math.max(0, orig - cur) || Number(item.discount || 0);
-        const qty = Number(item.qty || 0);
-        return acc + (unitDiscount * qty);
-    }, 0);
-
-    // Global Discount Calculation (applied to net balance after line discounts)
-    const subtotalAfterLineDiscounts = Math.max(0, subtotal - (freeItemDiscounts + itemDiscounts));
-    let globalDiscount = 0;
-    if (sale.discountType === 'percentage') {
-        globalDiscount = (subtotalAfterLineDiscounts * (sale.discountValue || 0)) / 100;
-    } else {
-        globalDiscount = parseFloat(sale.discountValue !== undefined ? sale.discountValue : (sale.discount || 0)) || 0;
+export function computeTotals(args) {
+    const { input, taxRate, taxInclusive, servicePct } = cartToCalculationInput(args);
+    let r;
+    let calcError = null;
+    try {
+        r = calculateSale(input);
+    } catch (e) {
+        if (!(e instanceof MoneyError)) throw e;
+        // An over-large bill discount is capped for DISPLAY only; the payload
+        // carries the capped figure and the server re-checks it.
+        if (e.code === 'excessive_discount') {
+            const capped = calculateSale({ ...input, bill_discount: { type: 'fixed', value: 0 } });
+            r = calculateSale({ ...input, bill_discount: { type: 'fixed', value: fromMinor(capped.sum_net) } });
+        } else {
+            calcError = e;
+            r = calculateSale({ ...input, lines: [], bill_discount: { type: 'fixed', value: 0 }, charges: {} });
+        }
     }
 
-    const totalDiscounts = freeItemDiscounts + itemDiscounts + globalDiscount;
-
-    const taxableAmount = Math.max(0, subtotal - totalDiscounts);
-    const taxAmount = enableTax
-        ? (taxInclusive
-            ? taxableAmount - (taxableAmount / (1 + taxRate / 100))
-            : (taxableAmount * taxRate) / 100)
-        : 0;
-    const additionalCharges = parseFloat(sale.additionalCharges || 0);
-
-    /* SERVICE CHARGE is the house's, a percentage of what was actually eaten
-       (the discounted net). Counter tills never charge one. A TIP is the
-       customer's money, typed per sale, never a percentage by default. */
-    const serviceChargePct = tableMode ? (parseFloat(serviceChargeSetting) || 0) : 0;
-    const serviceCharge = serviceChargePct > 0
-        ? Math.round(((taxableAmount * serviceChargePct) / 100) * 100) / 100
-        : 0;
-    const tipAmount = tableMode && tipEnabled ? (parseFloat(sale.tipAmount || 0) || 0) : 0;
-
-    const rawCartTotal = (taxInclusive ? taxableAmount : taxableAmount + taxAmount)
-        + additionalCharges + serviceCharge + tipAmount;
-    /* The drawer's switch decides WHETHER to round; `settings` decides to what
-       precision. */
-    const cartTotal = roundOff ? roundTotal(rawCartTotal, settings) : parseFloat(rawCartTotal || 0);
-
+    const m = fromMinor;
     return {
-        taxRate, taxInclusive,
-        subtotal, freeItemDiscounts, itemDiscounts, subtotalAfterLineDiscounts,
-        globalDiscount, totalDiscounts, taxableAmount, taxAmount,
-        additionalCharges, serviceChargePct, serviceCharge, tipAmount,
-        rawCartTotal, cartTotal,
+        taxRate, taxInclusive, taxEnabled: !!args.enableTax,
+        subtotal: m(r.subtotal_gross),
+        freeItemDiscounts: m(r.free_value),
+        itemDiscounts: m(r.item_discounts),
+        subtotalAfterLineDiscounts: m(r.sum_net),
+        globalDiscount: m(r.bill_discount),
+        totalDiscounts: m(r.free_value + r.item_discounts + r.bill_discount),
+        taxableAmount: m(r.taxable),
+        taxAmount: m(r.tax),
+        additionalCharges: m(r.extra),
+        serviceChargePct: servicePct,
+        serviceCharge: m(r.service),
+        tipAmount: m(r.tip),
+        rawCartTotal: m(r.components),
+        cartTotal: m(r.invoice),
+        roundOffAmount: m(r.round_off),
+        billRounding: !!args.roundOff,
+        lineDiscounts: r.lines.map((l) => m(l.discount)),
+        calculationVersion: CALCULATION_VERSION,
+        calcError: calcError ? { code: calcError.code, message: calcError.message } : null,
     };
 }

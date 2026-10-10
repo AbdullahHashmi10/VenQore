@@ -320,7 +320,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
 
                         {/* Header Band */}
                         <div className="relative bg-surface border-b border-line px-6 py-5">
-                            <div className="relative flex items-center justify-between">
+                            <div className="relative flex flex-wrap items-center justify-between gap-y-2">
                                 <div className="flex items-center gap-3.5">
                                     <div className="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-sm">
                                         <ArrowUpCircle size={22} />
@@ -501,7 +501,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [], selected_p
                             <div className="border-t border-line" />
 
                             {/* Actions */}
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2">
                                 <button
                                     type="button"
                                     onClick={() => router.visit(route('store.payments.index', { store_slug: store.slug }))}

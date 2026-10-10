@@ -234,7 +234,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
 
                 {/* Compact Stats Cards (Matches SalesHistory) */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
                                 <Layers size={16} />
@@ -244,7 +244,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                         <p className="text-base font-bold text-ink">{stats?.total_categories || 0}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <FolderTree size={16} />
@@ -254,7 +254,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                         <p className="text-base font-bold text-ink">{stats?.parent_categories || 0}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <Box size={16} />
@@ -264,7 +264,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                         <p className="text-base font-bold text-emerald-600">{stats?.total_products || 0}</p>
                     </div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2 min-w-0">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
                                 <BarChart3 size={16} />
@@ -318,7 +318,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
 
                 {/* Bulk Actions Bar */}
                 {selectedCategories.length > 0 && (
-                    <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2">
+                    <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex flex-wrap items-center justify-between gap-y-2 shadow-lg animate-in slide-in-from-top-2">
                         <span className="font-bold text-sm">{selectedCategories.length} Selected</span>
                         <div className="flex items-center gap-2">
                             <button
@@ -378,7 +378,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                         <tbody className="divide-y divide-line">
                             {sortedCategories.length === 0 ? (
                                 <tr>
-                                    <td colSpan={tableColumns.length + 1} className="p-12 text-center text-ink-muted">
+                                    <td colSpan={tableColumns.length + 1} className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mb-4">
                                                 <Tag size={32} className="text-ink-muted" />

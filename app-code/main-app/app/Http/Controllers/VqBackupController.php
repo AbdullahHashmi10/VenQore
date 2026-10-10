@@ -54,26 +54,39 @@ class VqBackupController extends Controller
             }
         }
 
-        $backupData = [];
+        // Built table by table, row by row, as JSON text. Loading every table
+        // as PHP objects first (then json_encode, then encrypt) held the store
+        // three times over in memory and died with a 500 on large stores; a
+        // single invalid UTF-8 byte made json_encode return false and crashed
+        // the encrypt step. Same JSON shape as before, so restore is unchanged.
+        @set_time_limit(0);
+        @ini_set('memory_limit', '1024M');
+        $flags = JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR;
 
+        $json = '{';
+        $firstTable = true;
         foreach ($tenantTables as $table) {
             if (in_array($table, self::NON_RESTORABLE_TABLES, true)) {
                 continue; // SEC-03: security identities / infra never travel in a backup
             }
-            $backupData[$table] = DB::table($table)
-                ->where('tenant_id', $tenant->id)
-                ->get()
-                ->toArray();
+            $json .= ($firstTable ? '' : ',') . json_encode($table, $flags) . ':[';
+            $firstTable = false;
+            $firstRow = true;
+            foreach (DB::table($table)->where('tenant_id', $tenant->id)->cursor() as $row) {
+                $json .= ($firstRow ? '' : ',') . json_encode($row, $flags);
+                $firstRow = false;
+            }
+            $json .= ']';
         }
 
         // SEC-03: tenant-bound manifest. Restore refuses a backup made for another store.
-        $backupData[self::META_KEY] = [
+        $json .= ($firstTable ? '' : ',') . json_encode(self::META_KEY, $flags) . ':' . json_encode([
             'version'    => 2,
             'tenant_id'  => $tenant->id,
             'created_at' => now()->toIso8601String(),
-        ];
+        ], $flags) . '}';
 
-        return Crypt::encryptString(json_encode($backupData));
+        return Crypt::encryptString($json);
     }
 
     public function export()
@@ -95,8 +108,10 @@ class VqBackupController extends Controller
                 'Content-Type' => 'application/octet-stream',
             ]);
 
-        } catch (\Exception $e) {
-            Log::error("Backup Export failed for store {$tenant->id}: " . $e->getMessage());
+        } catch (\Throwable $e) {
+            // \Throwable, not \Exception: memory and type errors used to escape
+            // as a bare 500 with nothing shown to the owner.
+            Log::error("Backup Export failed for store {$tenant->id}: " . get_class($e) . ': ' . $e->getMessage());
             return back()->with('error', 'Failed to generate store backup: ' . $e->getMessage());
         }
     }

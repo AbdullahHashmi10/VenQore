@@ -8,7 +8,7 @@
 
 import {
     LayoutGrid, ShoppingBasket, MonitorSmartphone, MousePointerClick, Receipt,
-    UtensilsCrossed, ChefHat, Printer, Boxes, Landmark, Wallet, Cable, Keyboard,
+    UtensilsCrossed, ChefHat, Boxes, Landmark, Wallet, Cable, Keyboard,
 } from 'lucide-react';
 
 export const GROUPS = [
@@ -26,7 +26,6 @@ export const CATEGORIES = [
     { id: 'checkout',   group: 'register',   icon: Receipt,            label: 'Checkout & returns',  hint: 'Bill, discounts, refunds' },
     { id: 'restaurant', group: 'restaurant', icon: UtensilsCrossed,    label: 'Tables & floor',      hint: 'Floor views and dining', restaurant: true },
     { id: 'kitchen',    group: 'restaurant', icon: ChefHat,            label: 'Kitchen tickets',     hint: 'Where orders are sent', restaurant: true },
-    { id: 'receipts',   group: 'business',   icon: Printer,            label: 'Receipts',            hint: 'What the slip shows' },
     { id: 'stock',      group: 'business',   icon: Boxes,              label: 'Stock & prices',      hint: 'Overselling, low stock' },
     { id: 'money',      group: 'business',   icon: Landmark,           label: 'Tax & rounding',      hint: 'Rates, decimals, rounding' },
     { id: 'cash',       group: 'business',   icon: Wallet,             label: 'Cash & security',     hint: 'Drawer, shifts, passcode' },
@@ -42,6 +41,9 @@ export const TAB_ALIASES = {
     selling: 'checkout',
     service: 'restaurant',
     tables: 'restaurant',
+    receipts: 'hardware',
+    receipt: 'hardware',
+    printing: 'hardware',
 };
 
 /* [sid, category, title, extra words people might type] */
@@ -105,17 +107,6 @@ const RAW = [
     ['kitchen.tags', 'kitchen', 'Station names on your products', 'import products station tag'],
     ['kitchen.test', 'kitchen', 'Print a test ticket', 'test kot ticket print'],
     ['kitchen.screens', 'kitchen', 'Kitchen and customer screens', 'kds tv queue display'],
-    ['receipt.type', 'receipts', 'Receipt type', 'thermal a4 paper roll'],
-    ['receipt.width', 'receipts', 'Paper roll width', '58mm 80mm 2 inch 3 inch paper size'],
-    ['receipt.auto', 'receipts', 'Print after every sale', 'auto print receipt'],
-    ['receipt.copies', 'receipts', 'Copies', 'copies duplicate'],
-    ['receipt.cut', 'receipts', 'Cut the paper', 'auto cut'],
-    ['receipt.bold', 'receipts', 'Darker headings', 'bold'],
-    ['receipt.columns', 'receipts', 'Extra details on each item', 'serial number units mrp description batch expiry columns'],
-    ['receipt.barcode', 'receipts', 'Barcode at the bottom', 'barcode invoice number'],
-    ['receipt.footer', 'receipts', 'Thank-you message', 'footer message thank you note'],
-    ['receipt.feed', 'receipts', 'Blank space at the end', 'feed lines extra space'],
-    ['receipt.designer', 'receipts', 'Logo and full design', 'logo header design template'],
     ['stock.track', 'stock', 'Keep track of stock', 'inventory stock maintenance'],
     ['stock.negative', 'stock', 'Sell when stock shows zero', 'negative stock oversell'],
     ['stock.low', 'stock', 'Low stock warnings', 'low stock alert'],
@@ -136,6 +127,7 @@ const RAW = [
     ['cash.approvals', 'cash', 'Approvals for discounts and refunds', 'approval manager pin void discount refund'],
     ['hw.status', 'hardware', 'Connection status', 'station online offline'],
     ['hw.printer', 'hardware', 'Receipt printer', 'printer default choose'],
+    ['receipt.where', 'hardware', 'Receipt look and paper', 'receipt paper width roll thermal a4 copies footer thank you logo barcode design columns cut bold'],
     ['hw.test-receipt', 'hardware', 'Print a test receipt', 'test print'],
     ['hw.drawer', 'hardware', 'Cash drawer', 'drawer kick'],
     ['hw.kitchen-printers', 'hardware', 'Kitchen and bar printers', 'kitchen bar printer role'],

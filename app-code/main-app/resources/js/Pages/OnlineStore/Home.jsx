@@ -10,7 +10,7 @@ import { getCurrencySymbol } from '@/Utils/format';
 
 const post = (url, data = {}) => router.post(url, data, { preserveScroll: true });
 
-export default function Home({ insights, recent = [], store, problems, can_publish, counts, published_products, public_url, preview_url, qr_svg, urls }) {
+export default function Home({ insights, recent = [], store, problems, can_publish, counts, published_products, sourcing = { products: [], orders: [] }, public_url, preview_url, qr_svg, urls }) {
     const { errors, settings } = usePage().props;
     const live = store.status === 'published';
     const sym = getCurrencySymbol(settings) || store.currency_symbol || 'Rs';
@@ -29,6 +29,29 @@ export default function Home({ insights, recent = [], store, problems, can_publi
             <div className="flex flex-col min-h-full min-w-0 gap-6">
             <StoreTabs active="home" urls={{ ...urls, public: live ? public_url : (preview_url || public_url) }} status={store.status} />
             {errors?.store && <Alert kind="error">{errors.store}</Alert>}
+
+            {sourcing.products.length > 0 && (
+                <section className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-4" role="alert">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+                            <div>
+                                <h2 className="font-bold text-ink">Needs sourcing: {sourcing.products.length} item{sourcing.products.length === 1 ? '' : 's'} not in stock</h2>
+                                <p className="text-sm text-ink-muted mt-0.5">
+                                    Customers ordered these but you do not have enough on the shelf. Get them (purchase or pick up), then complete the order{sourcing.orders.length ? `s (${sourcing.orders.length} affected)` : ''}.
+                                </p>
+                                <ul className="mt-2 text-sm text-ink flex flex-col gap-0.5">
+                                    {sourcing.products.slice(0, 6).map((x) => (
+                                        <li key={x.product_id}><strong>{x.title}</strong>: need {x.to_source} more (ordered {x.ordered}, have {x.on_hand})</li>
+                                    ))}
+                                    {sourcing.products.length > 6 && <li className="text-ink-muted">and {sourcing.products.length - 6} more</li>}
+                                </ul>
+                            </div>
+                        </div>
+                        <Link href={urls.orders} className="inline-flex items-center gap-1 text-sm font-semibold text-amber-800 dark:text-amber-300 hover:underline">View orders <ArrowRight size={14} /></Link>
+                    </div>
+                </section>
+            )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard icon={AlertTriangle} tone="amber" label="Waiting" value={counts.pending} href={`${urls.orders}?tab=new`} valueClass={counts.pending ? 'text-amber-600' : 'text-ink'} />
@@ -126,9 +149,9 @@ export default function Home({ insights, recent = [], store, problems, can_publi
                     <Card>
                         <CardTitle icon={BadgePercent} tone="rose" title="Grow sales" />
                         <ul className="mt-3 space-y-2 text-sm">
-                            <li><Link href={urls.promotions} className="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-interactive-hover"><span>Run an offer or coupon</span><ArrowRight size={14} /></Link></li>
-                            <li><Link href={urls.products} className="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-interactive-hover"><span>Feature your best products</span><ArrowRight size={14} /></Link></li>
-                            <li><Link href={urls.settings} className="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-interactive-hover"><span>Add a banner and announcement</span><ArrowRight size={14} /></Link></li>
+                            <li><Link href={urls.promotions} className="flex flex-wrap items-center justify-between gap-y-2 rounded-xl px-3 py-2 hover:bg-interactive-hover"><span>Run an offer or coupon</span><ArrowRight size={14} /></Link></li>
+                            <li><Link href={urls.products} className="flex flex-wrap items-center justify-between gap-y-2 rounded-xl px-3 py-2 hover:bg-interactive-hover"><span>Feature your best products</span><ArrowRight size={14} /></Link></li>
+                            <li><Link href={urls.settings} className="flex flex-wrap items-center justify-between gap-y-2 rounded-xl px-3 py-2 hover:bg-interactive-hover"><span>Add a banner and announcement</span><ArrowRight size={14} /></Link></li>
                         </ul>
                     </Card>
                 </div>
@@ -136,7 +159,7 @@ export default function Home({ insights, recent = [], store, problems, can_publi
 
             {insights && (
                 <section className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm">
                         <h2 className="text-xs font-bold uppercase text-ink">Last {insights.days} days <span className="text-brand-600">performance</span></h2><p className="text-xs text-ink-muted">Read-only. Never changes your books.</p>
                     </div>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-1">

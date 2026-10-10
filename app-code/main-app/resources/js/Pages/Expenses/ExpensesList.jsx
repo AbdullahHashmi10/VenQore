@@ -42,6 +42,7 @@ import axios from 'axios';
 import { handleApprovalResponse } from '@/lib/approval-response';
 
 import { vq } from '@/theme/runtime';
+import MobileStats from '@/Components/MobileStats';
 // -- Party Search Field (same component as Payments In/Out) ------------------
 const AC_OFF = 'payee-search-' + Math.random().toString(36).slice(2);
 
@@ -621,29 +622,16 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <MoneyModuleTabs activeTab="expenses" />
 
  {/* Mobile Stats Toggle/Summary */}
- <div className="flex md:hidden items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
- <button
- onClick={() => setIsStatsExpanded(!isStatsExpanded)}
- className="flex items-center gap-1.5 text-xs font-bold text-ink-muted uppercase text-left shrink-0 mr-2"
- >
- <span>Stats Summary</span>
- <ChevronDown size={16} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
- </button>
-
- {!isStatsExpanded && (
- <div className="flex flex-col gap-1 items-end text-xs font-bold text-ink-secondary">
- <div className="flex items-center gap-2">
- <span className="text-rose-600 dark:text-rose-400">Today: {formatCurrency(stats.today)}</span>
- <span className="text-neutral-300 dark:text-ink-secondary">|</span>
- <span className="text-brand-600 dark:text-brand-400">Month: {formatCurrency(stats.month)}</span>
- </div>
- </div>
- )}
- </div>
+ <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: "Today's Expenses", value: formatCurrency(stats.today), tone: 'ink' },
+  { label: 'This Week', value: formatCurrency(stats.week), tone: 'amber' },
+  { label: 'This Month', value: formatCurrency(stats.month), tone: 'brand' },
+  { label: 'Total Expenses', value: formatCurrency(stats.total), tone: 'ink' }
+]} />
 
  {/* Stats Cards - Compact Row */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
  <TrendingDown size={16} />
@@ -652,7 +640,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
  <p className="text-base font-bold text-ink">{formatCurrency(stats.today)}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
  <Calendar size={16} />
@@ -661,7 +649,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
  <p className="text-base font-bold text-amber-600">{formatCurrency(stats.week)}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
  <Wallet size={16} />
@@ -670,7 +658,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
  <p className="text-base font-bold text-brand-600">{formatCurrency(stats.month)}</p>
  </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex items-center justify-between">
+ <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
  <div className="flex items-center gap-2">
  <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
  <Receipt size={16} />
@@ -773,7 +761,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {/* Mobile Toolbar (hidden on desktop) */}
  <div className="md:hidden flex flex-col gap-0 bg-surface rounded-xl border border-line shadow-sm shrink-0">
  {/* Title row + icon buttons */}
- <div className="flex items-center justify-between px-3 py-2">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
  <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
  {tp('expense', 'Expenses')} <span className="text-rose-600">Transactions</span>
  </h1>
@@ -841,7 +829,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {/* Toolbar */}
  <div className="p-2 md:p-3 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-2 bg-sunken/50 dark:bg-surface shrink-0">
  {/* Left/Top actions: Search & Filters (Desktop) / Mobile Toggle Buttons */}
- <div className="flex items-center justify-between md:justify-start gap-2 w-full md:w-auto">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 md:justify-start gap-2 w-full md:w-auto">
  <div className="hidden md:flex items-center gap-2">
  <div className="w-64 relative">
  <input
@@ -951,7 +939,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <tbody className="divide-y divide-line bg-surface">
  {sortedExpenses.length === 0 ? (
  <tr>
- <td colSpan={7} className="p-12 text-center text-ink-muted">
+ <td colSpan={7} className="p-5 sm:p-12 text-center text-ink-muted">
  <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mx-auto mb-3">
  <Layers size={32} className="text-neutral-300" />
  </div>
@@ -1004,7 +992,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {/* Mobile View - Cards List (hidden — rendered outside this container for natural page scroll) */}
  <div className="hidden">
  {sortedExpenses.length === 0 ? (
- <div className="bg-surface rounded-xl p-8 text-center border border-line mx-2">
+ <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line mx-2">
  <Layers size={32} className="mx-auto text-ink-muted mb-2" />
  <p className="text-sm font-bold text-ink-secondary">No expenses found</p>
  </div>
@@ -1050,7 +1038,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
 
  {/* Row 3: Amount (Left) + Action Icons (Right) */}
- <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-2 mt-1">
  <div className="flex items-center gap-6">
  <div>
  <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Amount</span>
@@ -1101,7 +1089,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {/* Mobile Cards - outside the container so page scrolls freely */}
  <div className="md:hidden flex flex-col gap-2 pb-20">
  {sortedExpenses.length === 0 ? (
- <div className="bg-surface rounded-xl p-8 text-center border border-line">
+ <div className="bg-surface rounded-xl p-4 sm:p-8 text-center border border-line">
  <Layers size={32} className="mx-auto text-ink-muted mb-2" />
  <p className="text-sm font-bold text-ink-secondary">No expenses found</p>
  <p className="text-xs text-ink-muted mt-1">Try adjusting filters or record a new expense.</p>
@@ -1148,7 +1136,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
 
  {/* Row 3: Amount + Tax (Left) | Actions (Right) */}
- <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-2 mt-1">
  <div className="flex items-center gap-6">
  <div>
  <span className="text-3xs text-ink-muted font-bold uppercase block tracking-wider">Amount</span>
@@ -1203,7 +1191,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
  {/* -- Header -- */}
- <div className="relative z-10 px-4 sm:px-8 py-4 sm:py-6 border-b border-line flex items-center justify-between bg-surface backdrop-blur-xl">
+ <div className="relative z-10 px-4 sm:px-8 py-4 sm:py-6 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-surface backdrop-blur-xl">
  <div className="flex items-center gap-6">
  <div className="w-14 h-14 rounded-2xl bg-gradient-brand flex items-center justify-center shadow-xl transform transition-transform hover:rotate-3 duration-slow">
  <Receipt size={28} className="text-white" />
@@ -1331,7 +1319,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  value={formData.amount}
  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
  placeholder="0.00"
- className="w-full bg-transparent text-4xl font-bold text-white border-none focus:ring-0 placeholder-brand-400/50 p-0"
+ className="w-full bg-transparent text-2xl sm:text-4xl font-bold text-white border-none focus:ring-0 placeholder-brand-400/50 p-0"
  />
  </div>
  {errors.amount?.[0] && <div className="mt-3 bg-rose-500/30 backdrop-blur-sm border border-rose-500/30 px-2.5 py-1 rounded-lg inline-flex items-center gap-1.5"><X size={10} /> <span className="text-3xs font-bold">{errors.amount[0]}</span></div>}
@@ -1397,7 +1385,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  options={bankAccounts.map(b => ({
  value: b.id,
  label: (
- <div className="flex items-center justify-between gap-2 w-full">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2 w-full">
  <span className="truncate">
  {b.name || b.bank_name} {b.account_number && <span className="text-ink-muted text-2xs ml-1">({b.account_number})</span>}
  </span>
@@ -1413,7 +1401,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {formData.payment_method === 'cash' && (
  <div className="animate-in fade-in slide-in-from-top-2 duration-slow">
  <label className="block text-2xs font-bold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
- <div className="flex items-center justify-between h-12 px-4 rounded-xl bg-surface border border-line shadow-sm">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 h-12 px-4 rounded-xl bg-surface border border-line shadow-sm">
  <span className="text-sm font-bold text-ink-secondary">Cash in Hand</span>
  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(cashBalance || 0)}</span>
  </div>
@@ -1562,7 +1550,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  type="button"
  onClick={handleSubmit}
  disabled={loading}
- className="flex-1 sm:flex-none px-10 h-12 rounded-xl bg-brand-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-brand-700 hover:shadow-lg active:scale-95 transition-all disabled:opacity-50"
+ className="flex-1 sm:flex-none px-4 sm:px-10 h-12 rounded-xl bg-brand-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-brand-700 hover:shadow-lg active:scale-95 transition-all disabled:opacity-50"
  >
  {loading ? (
  <div className="flex items-center gap-3">

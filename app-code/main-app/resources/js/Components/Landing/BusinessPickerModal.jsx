@@ -227,7 +227,7 @@ function getPresetMeta(item) {
     let prompt = '';
 
     if (sector === 'retail') {
-        modules = ['Barcode POS Till', 'Live Inventory', 'Cash Reconcile', 'Customer Khata', 'EOD Z-Report'];
+        modules = ['Barcode POS Till', 'Live Inventory', 'Cash Reconcile', 'Customer Credit', 'EOD Z-Report'];
         if (note) {
             explanation = `Pre-configured for retail with ${note}. Features instant barcode lookups, multi-unit pricing, automated reorder alerts, and daily register balancing.`;
             prompt = `I run a ${name} with ${note}. I need automated barcode POS checkout, inventory relief, and supplier accounting.`;
@@ -236,7 +236,7 @@ function getPresetMeta(item) {
             prompt = `I run a ${name}. I need a fast counter POS, real-time stock levels, supplier management, and automated sales reporting.`;
         }
     } else if (sector === 'services') {
-        modules = ['Job Cards', 'Service Calendar', 'Quotations & Invoicing', 'Technician Dispatch', 'Khata Ledger'];
+        modules = ['Job Cards', 'Service Calendar', 'Quotations & Invoicing', 'Technician Dispatch', 'Credit Ledger'];
         if (note) {
             explanation = `Configured for service & repair workflows with ${note}. Converts customer requests into technician job cards and itemised invoices with parts auto-deducted from stock.`;
             prompt = `I run a ${name} with ${note}. I need job card tracking, technician assignments, quotations, and customer invoicing.`;
@@ -254,12 +254,12 @@ function getPresetMeta(item) {
             prompt = `I run a ${name}. I need fast order taking, table service, recipe ingredient deduction, and daily cash-up reports.`;
         }
     } else if (sector === 'wholesale') {
-        modules = ['Tiered Price Lists', 'B2B Sales Orders', 'Multi-Warehouse', 'Khata Credit Ledger', 'Tax Invoices'];
+        modules = ['Tiered Price Lists', 'B2B Sales Orders', 'Multi-Warehouse', 'Credit Ledger', 'Tax Invoices'];
         if (note) {
             explanation = `Engineered for high-volume B2B distribution with ${note}. Supports customer price tiers, bulk sales orders, dispatch challans, credit limit enforcement, and statements.`;
             prompt = `I run a ${name} with ${note}. I need tiered customer pricing, bulk sales orders, khata credit accounts, and multi-location inventory.`;
         } else {
-            explanation = `Set up with tiered wholesale pricing, B2B sales orders, multi-warehouse stock allocations, credit limits, and automated customer Khata statements.`;
+            explanation = `Set up with tiered wholesale pricing, B2B sales orders, multi-warehouse stock allocations, credit limits, and automated customer Customer Credit statements.`;
             prompt = `I run a ${name}. I need wholesale B2B pricing, purchase order management, credit limits, and automated ledger statements.`;
         }
     } else if (sector === 'manufacturing') {

@@ -57,7 +57,8 @@ vi.mock('axios', () => {
     const api = {
         get: vi.fn(() => ok([])),
         post: vi.fn((url, body) => {
-            if (url === 'store.pos.sales.store') { posts.push(body); return ok(responseBody); }
+            // A contract-v2 server echoes the receipt key it was sent.
+            if (url === 'store.pos.sales.store') { posts.push(body); return ok({ ...responseBody, idempotency_key: body?.idempotency_key }); }
             return ok({});
         }),
         put: vi.fn(() => ok({})),

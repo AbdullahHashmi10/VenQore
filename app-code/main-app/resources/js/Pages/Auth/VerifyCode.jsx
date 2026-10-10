@@ -120,7 +120,7 @@ export default function VerifyCode({ purpose = 'login', maskedEmail = '', ttlMin
 
                 <AuthForm onSubmit={submit}>
                     <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <label htmlFor="otp-digit-0" className="text-sm font-medium text-ink-secondary">
                                 6-digit code
                             </label>

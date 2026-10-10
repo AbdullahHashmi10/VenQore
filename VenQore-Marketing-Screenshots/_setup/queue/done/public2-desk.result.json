@@ -1,0 +1,27 @@
+{
+ "id": "public2-desk",
+ "saved": [
+  "09-Storefront\\Desktop\\Light\\storefront-home-light.png",
+  "09-Storefront\\Desktop\\Light\\storefront-products-light.png",
+  "09-Storefront\\Desktop\\Light\\storefront-cart-light.png",
+  "09-Storefront\\Desktop\\Light\\storefront-onsite-catalogue-light.png",
+  "09-Storefront\\Desktop\\Light\\storefront-directory-light.png",
+  "09-Storefront\\Desktop\\Light\\storefront-product-detail-light.png",
+  "19-Public-Website\\Desktop\\Light\\website-home-light.png",
+  "19-Public-Website\\Desktop\\Light\\website-features-light.png",
+  "19-Public-Website\\Desktop\\Light\\website-pricing-light.png",
+  "19-Public-Website\\Desktop\\Light\\website-vensynq-light.png",
+  "19-Public-Website\\Desktop\\Light\\website-smart-capture-light.png",
+  "19-Public-Website\\Desktop\\Light\\website-about-light.png"
+ ],
+ "previews": [],
+ "errors": [
+  "19-Public-Website {\"text\":\"Reject non-essential\",\"wait\":800} :: locator.click: Timeout 6000ms exceeded.",
+  "19-Public-Website {\"text\":\"Reject non-essential\",\"wait\":800} :: locator.click: Timeout 6000ms exceeded.",
+  "19-Public-Website {\"text\":\"Reject non-essential\",\"wait\":800} :: locator.click: Timeout 6000ms exceeded.",
+  "19-Public-Website {\"text\":\"Reject non-essential\",\"wait\":800} :: locator.click: Timeout 6000ms exceeded.",
+  "19-Public-Website {\"text\":\"Reject non-essential\",\"wait\":800} :: locator.click: Timeout 6000ms exceeded."
+ ],
+ "started": "2026-10-08T09:53:36.972Z",
+ "finished": "2026-10-08T09:55:35.081Z"
+}

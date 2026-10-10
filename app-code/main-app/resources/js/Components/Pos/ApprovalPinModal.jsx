@@ -96,7 +96,7 @@ export default function ApprovalPinModal({ request, storeSlug, onSubmit, onClose
                                 type="button"
                                 disabled={!!o.disabled || busy}
                                 onClick={() => { setSelectedId(o.user_id); setPin(''); }}
-                                className={`w-full flex items-center justify-between gap-3 p-3 rounded-xl border text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${selectedId === o.user_id
+                                className={`w-full flex flex-wrap items-center justify-between gap-y-2 gap-3 p-3 rounded-xl border text-left transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${selectedId === o.user_id
                                     ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
                                     : 'border-line hover:border-brand-400'}`}
                             >

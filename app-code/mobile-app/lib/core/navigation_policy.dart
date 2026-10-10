@@ -9,6 +9,8 @@ class NavigationPolicy {
 
   static const _allowedExactPaths = <String>{
     '/account',
+    '/auth/google',
+    '/auth/google/callback',
     '/build-workspace',
     '/confirm-password',
     '/dashboard',
@@ -43,6 +45,18 @@ class NavigationPolicy {
       uri.scheme == baseUri.scheme &&
       uri.host.toLowerCase() == baseUri.host.toLowerCase() &&
       uri.port == baseUri.port;
+
+  bool isGoogleOAuthStart(Uri uri) =>
+      isSameOrigin(uri) && uri.path == '/auth/google';
+
+  bool isGoogleOAuthCallback(Uri uri) =>
+      isSameOrigin(uri) && uri.path == '/auth/google/callback';
+
+  bool isGoogleOAuthProvider(Uri uri) =>
+      uri.scheme == 'https' &&
+      uri.host.toLowerCase() == 'accounts.google.com' &&
+      !uri.hasPort &&
+      uri.userInfo.isEmpty;
 
   NavigationAction evaluate(Uri uri) {
     if (!isSameOrigin(uri)) return NavigationAction.block;

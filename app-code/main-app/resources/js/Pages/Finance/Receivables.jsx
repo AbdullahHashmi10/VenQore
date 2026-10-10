@@ -25,6 +25,7 @@ import {
     CreditCard
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import MobileStats from '@/Components/MobileStats';
 
 export default function Receivables({ parties = [] }) {
     const { store } = usePage().props;
@@ -89,25 +90,15 @@ export default function Receivables({ parties = [] }) {
                 <MoneyModuleTabs activeTab="receivables" />
 
                 {/* Mobile Stats Toggle/Summary */}
-                <div className="sm:hidden flex items-center justify-between bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm shrink-0">
-                    <button
-                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
-                        className="flex items-center gap-1 text-2xs font-bold text-ink-muted uppercase shrink-0 mr-2"
-                    >
-                        <span>Stats Summary</span>
-                        <ChevronDown size={14} className={`transition-transform duration-normal ${isStatsExpanded ? 'rotate-180' : ''}`} />
-                    </button>
-                    {!isStatsExpanded && (
-                        <div className="text-2xs font-bold text-ink-muted truncate">
-                            <span className="text-emerald-600">Receivable: {formatCurrency(stats.totalReceivable || 0, store)}</span>
-                            <span className="mx-1">|</span>
-                            <span className="text-brand-600">Debtors: {stats.totalParties}</span>
-                        </div>
-                    )}
-                </div>
+                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
+  { label: 'Total Receivable', value: formatCurrency(stats.totalReceivable, store), tone: 'emerald' },
+  { label: 'Active Debtors', value: stats.totalParties, tone: 'brand' },
+  { label: 'Avg Balance', value: formatCurrency(stats.avgReceivable, store), tone: 'blue' },
+  { label: 'Highest Balance', value: formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0), store), tone: 'red' }
+]} />
 
                 {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
+                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
@@ -187,7 +178,7 @@ export default function Receivables({ parties = [] }) {
 
                 {/* Mobile Toolbar (sm:hidden) */}
                 <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
                         <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
                             Accounts <span className="text-emerald-600">Receivable</span>
                         </h1>
@@ -321,7 +312,7 @@ export default function Receivables({ parties = [] }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="5" className="p-12 text-center text-ink-muted">
+                                    <td colSpan="5" className="p-5 sm:p-12 text-center text-ink-muted">
                                         <div className="flex flex-col items-center gap-2">
                                             <TrendingUp size={32} className="opacity-20" />
                                             <p className="text-sm font-medium">No pending receivables found</p>
@@ -339,7 +330,7 @@ export default function Receivables({ parties = [] }) {
                     {filteredParties.length > 0 ? (
                         filteredParties.map((party) => (
                             <div key={party.id} className="bg-surface p-3 rounded-xl border border-line shadow-sm flex flex-col gap-2">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-sm">
                                             {party.name.charAt(0)}
@@ -354,7 +345,7 @@ export default function Receivables({ parties = [] }) {
                                     </p>
                                 </div>
                                 
-                                <div className="flex items-center justify-between border-t border-line pt-2 mt-1">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 border-t border-line pt-2 mt-1">
                                     <div className="flex flex-col text-2xs text-ink-muted">
                                         {party.phone && <span className="font-medium text-ink-secondary">📞 {party.phone}</span>}
                                         {party.email && <span className="truncate max-w-[150px]">✉️ {party.email}</span>}
@@ -395,7 +386,7 @@ export default function Receivables({ parties = [] }) {
                             </div>
                         ))
                     ) : (
-                        <div className="p-12 text-center text-ink-muted bg-surface rounded-xl border border-line shadow-sm">
+                        <div className="p-5 sm:p-12 text-center text-ink-muted bg-surface rounded-xl border border-line shadow-sm">
                             <div className="flex flex-col items-center gap-2">
                                 <TrendingUp size={32} className="opacity-20" />
                                 <p className="text-sm font-medium">No pending receivables found</p>

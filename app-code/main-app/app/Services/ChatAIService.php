@@ -409,6 +409,23 @@ PROMPT;
             }
         }
 
-        return $promptBody . $kbSnippet;
+        // Product knowledge (guides, modules, screens). Retrieved, never stuffed:
+        // VenaKnowledge returns only the few entries that match this question.
+        $productSnippet = '';
+        if (!empty($question) && $question !== '[System: Assist Draft Request]') {
+            try {
+                $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                $found  = app(\App\Services\Vena\VenaKnowledge::class)->consult($question, $tenant, auth()->user());
+                if (($found['context'] ?? '') !== '') {
+                    $productSnippet = "\n\n[PRODUCT KNOWLEDGE - how VenQore actually works]\n"
+                        . $found['context']
+                        . "\nUse this as ground truth for how-to and where-is-it questions. Do not invent screens or settings that are not listed here.\n";
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Vena product knowledge unavailable: ' . $e->getMessage());
+            }
+        }
+
+        return $promptBody . $productSnippet . $kbSnippet;
     }
 }

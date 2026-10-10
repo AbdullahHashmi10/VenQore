@@ -9,11 +9,11 @@
 
 import React from 'react';
 import {
-    Printer, Boxes, Landmark, Wallet, ExternalLink, Unlock, Lock, ShieldCheck, Clock,
-    FileText, ArrowLeftRight,
+    Boxes, Landmark, Wallet, ExternalLink, Unlock, Lock, ShieldCheck, Clock,
+    ArrowLeftRight,
 } from 'lucide-react';
 import { useSettingsCtx, truthy } from '../context';
-import { Page, Section, Row, Switch, Segmented, Stepper, Field, Button, Callout, Tag } from '../primitives';
+import { Page, Section, Row, Switch, Segmented, Stepper, Button, Callout, Tag } from '../primitives';
 
 function LockedNote() {
     return (
@@ -26,132 +26,6 @@ function LockedNote() {
 
 function settingsLink(p, hash) {
     try { return `${route('store.settings', { store_slug: p.storeSlug })}#${hash}`; } catch (_) { return null; }
-}
-
-export function ReceiptsPage() {
-    const { p, flash, storeVal, saveStore } = useSettingsCtx();
-    const locked = !p.canManageStore;
-    const b = (k, d) => truthy(storeVal(k, d ? '1' : '0'));
-    const save = patch => saveStore('printer_device', patch);
-    const type = storeVal('default_print_type', 'regular') === 'thermal' ? 'thermal' : 'regular';
-    const thermal = type === 'thermal';
-    const designer = settingsLink(p, 'document_layouts');
-
-    const detailToggles = [
-        ['thermal_show_headers', 'Column headings', 'A heading row (Item / Amount) above the items.'],
-        ['thermal_show_sno', 'Line numbers', '1, 2, 3… in front of each item.'],
-        ['thermal_show_units', 'Units', 'pcs, kg, box… after each quantity.'],
-        ['thermal_show_mrp', 'Printed price (MRP)', 'The maximum retail price next to your price, so customers see the saving.'],
-        ['thermal_show_description', 'Product description', 'A short description under the product name.'],
-        ['thermal_show_batch', 'Batch number', 'For medicines and food with batch numbers.'],
-        ['thermal_show_expiry', 'Expiry date', 'For items that expire.'],
-    ];
-
-    return (
-        <Page icon={Printer} title="Receipts"
-              intro="What the printed receipt looks like and when it prints. The preview on the right is drawn from your business details.">
-            {locked && <LockedNote />}
-            <Section title="Paper and printing" scope="store" locked={locked}>
-                <Row sid="receipt.type" stacked flash={flash} title="Receipt type"
-                     desc="Most tills use a small roll printer (thermal). Choose full page if you print on A4 paper with a normal office printer.">
-                    <Segmented label="Receipt type" disabled={locked} value={type}
-                               onChange={v => save({ default_print_type: v })}
-                               options={[{ value: 'thermal', label: 'Roll receipt (thermal)' }, { value: 'regular', label: 'Full page (A4)' }]} />
-                </Row>
-                {thermal && (
-                    <Row sid="receipt.width" stacked flash={flash} title="Paper roll width"
-                         desc="Measure the paper roll in your printer. 80mm is the usual size; 58mm is the small one used by portable printers.">
-                        <Segmented label="Paper roll width" disabled={locked} value={storeVal('thermal_page_size', '3inch')}
-                                   onChange={v => save({ thermal_page_size: v })}
-                                   options={[{ value: '2inch', label: '58mm (small)' }, { value: '3inch', label: '80mm (standard)' }, { value: '4inch', label: '100mm (wide)' }]} />
-                    </Row>
-                )}
-                <Row sid="receipt.auto" flash={flash} title={<>Print after every sale <Tag>This device</Tag></>}
-                     desc="Prints the receipt as soon as a sale is paid, without asking. Turn off to print only when the customer wants one.">
-                    <Switch label="Print after every sale" checked={!!p.printOnComplete} onChange={p.setPrintOnComplete} />
-                </Row>
-                {thermal && (
-                    <>
-                        <Row sid="receipt.copies" flash={flash} title="Copies"
-                             desc="Print 2 if you keep a copy for the shop, for example for credit sales.">
-                            <Stepper label="copies" disabled={locked} value={Number(storeVal('thermal_copies', 1)) || 1} min={1} max={5}
-                                     onChange={v => save({ thermal_copies: v })} format={v => `${v} ${v === 1 ? 'copy' : 'copies'}`} />
-                        </Row>
-                        <Row sid="receipt.cut" flash={flash} title="Cut the paper after printing"
-                             desc="For printers with a cutter. If yours has no cutter, this does nothing.">
-                            <Switch label="Cut the paper" disabled={locked} checked={b('thermal_auto_cut', true)} onChange={v => save({ thermal_auto_cut: v })} />
-                        </Row>
-                        <Row sid="receipt.bold" flash={flash} title="Darker headings"
-                             desc="Prints the shop name and total in bold — easier to read on faint paper.">
-                            <Switch label="Darker headings" disabled={locked} checked={b('thermal_use_bold', true)} onChange={v => save({ thermal_use_bold: v })} />
-                        </Row>
-                        <Row sid="receipt.feed" flash={flash} title="Blank space at the end"
-                             desc="Extra blank lines after the receipt so the cutter or tear bar does not cut through the message.">
-                            <Stepper label="blank lines" disabled={locked} value={Number(storeVal('thermal_extra_lines', 3)) || 0} min={0} max={10}
-                                     onChange={v => save({ thermal_extra_lines: v })} format={v => `${v} line${v === 1 ? '' : 's'}`} />
-                        </Row>
-                    </>
-                )}
-            </Section>
-
-            {thermal && (
-                <Section title="What the receipt shows" scope="store" locked={locked}
-                         desc="Your business name, address and phone come from Tax & rounding → Business details.">
-                    <Row sid="receipt.columns" stacked flash={flash} title="Extra details on each item"
-                         desc="Tap to turn each one on or off. Keep receipts short unless customers need the detail.">
-                        <div className="vqs-chips">
-                            {detailToggles.map(([k, label, hint]) => {
-                                const on = b(k, false);
-                                return (
-                                    <button key={k} type="button" className="vqs-chip" aria-pressed={on} title={hint}
-                                            disabled={locked} onClick={() => save({ [k]: !on })}>
-                                        {label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </Row>
-                    <Row sid="receipt.barcode" flash={flash} title="Barcode at the bottom"
-                         desc="Prints the receipt number as a barcode. Scan it later to find the sale quickly for a return.">
-                        <Switch label="Barcode" disabled={locked} checked={b('thermal_show_barcode', true)} onChange={v => save({ thermal_show_barcode: v })} />
-                    </Row>
-                    <Row sid="receipt.footer" stacked flash={flash} title="Thank-you message"
-                         desc="Printed at the bottom of every receipt. Good for opening hours, your return policy or social media.">
-                        <ReceiptFooter disabled={locked} value={storeVal('thermal_custom_footer', '')} onSave={v => save({ thermal_custom_footer: v })} />
-                    </Row>
-                </Section>
-            )}
-
-            <Section title="Logo and full design" desc="Add your logo, change fonts and design the A4 invoice in the full receipt designer.">
-                <Row sid="receipt.designer" flash={flash} title="Open the receipt designer"
-                     desc="Opens Settings → Document layouts in a new tab, so this sale stays where it is.">
-                    {designer && (
-                        <a className="vqs-btn" data-v="s" href={designer} target="_blank" rel="noopener noreferrer">
-                            <FileText size={16} /> Open designer <ExternalLink size={14} />
-                        </a>
-                    )}
-                </Row>
-            </Section>
-        </Page>
-    );
-}
-
-function ReceiptFooter({ value, onSave, disabled }) {
-    const [draft, setDraft] = React.useState(value || '');
-    React.useEffect(() => { setDraft(value || ''); }, [value]);
-    const dirty = (draft || '') !== (value || '');
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-            <Field multiline width="100%" maxLength={300} disabled={disabled} label="Thank-you message"
-                   placeholder="Thank you for shopping with us! Exchanges within 7 days with this receipt."
-                   value={draft} onChange={setDraft} />
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <Button v="p" size="sm" disabled={disabled || !dirty} onClick={() => onSave(draft.trim())}>Save message</Button>
-                {dirty && <Button v="g" size="sm" onClick={() => setDraft(value || '')}>Undo</Button>}
-                <span className="vqs-muted" style={{ marginLeft: 'auto', fontSize: 13 }}>{(draft || '').length}/300</span>
-            </div>
-        </div>
-    );
 }
 
 export function StockPage() {

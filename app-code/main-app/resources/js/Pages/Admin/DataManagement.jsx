@@ -49,7 +49,7 @@ import { useTermText } from '@/lib/terms';
 // Both still call the exact same backend routes/controllers as before
 // (BackupController / MigrationController) — only the frontend moved.
 export default function DataManagement() {
- const { store, googleBackups = [], backups: initialBackupsList = [], autoBackupEnabled = true } = usePage().props;
+ const { store, googleBackups = [], backups: initialBackupsList = [], autoBackupEnabled = true, canSnapshot = false } = usePage().props;
  const { showConfirm, showAlert } = useAlert();
  const tt = useTermText();
  const csrfToken = typeof document !== 'undefined' ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : '';
@@ -264,6 +264,9 @@ export default function DataManagement() {
 
  // ── Backups tab (SQL snapshots — merged in from Backups.jsx / Settings) ──
  const [backupsList, setBackupsList] = useState(initialBackupsList);
+ // The list comes from the server: keep it in step after each reload (it
+ // used to stay frozen at first load, so a new snapshot never appeared).
+ useEffect(() => { setBackupsList(initialBackupsList); }, [initialBackupsList]);
  const [creatingBackup, setCreatingBackup] = useState(false);
  const [restoringBackup, setRestoringBackup] = useState(false);
  const autoBackupForm = useForm({ auto_backup: !!autoBackupEnabled });
@@ -272,9 +275,14 @@ export default function DataManagement() {
  setCreatingBackup(true);
  router.post(route('store.backups.store', { store_slug: store?.slug }), {}, {
  preserveScroll: true,
- onSuccess: () => {
- showAlert({ title: 'Success', message: 'Backup created successfully.', type: 'success' });
+ onSuccess: (page) => {
+ // Success only when the server says so: a refused or failed snapshot
+ // comes back as a flash error, not as a validation error.
+ const flash = page?.props?.flash || {};
+ if (flash.error) showAlert({ title: 'Snapshot not created', message: flash.error, type: 'error' });
+ else showAlert({ title: 'Success', message: flash.success || 'Snapshot created.', type: 'success' });
  },
+ onError: (errors) => showAlert({ title: 'Snapshot not created', message: Object.values(errors || {})[0] || 'The server refused the snapshot.', type: 'error' }),
  onFinish: () => setCreatingBackup(false)
  });
  };
@@ -417,7 +425,7 @@ export default function DataManagement() {
  {activeTab === 'drive_sync' && (
  <div className="h-full flex flex-col gap-6 animate-in fade-in duration-slow">
  {/* Main Connection Status Card */}
- <div className="bg-surface border border-line rounded-2xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 shadow-sm">
+ <div className="bg-surface border border-line rounded-2xl p-4 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 shadow-sm">
  <div className="flex-1 space-y-4">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
@@ -514,7 +522,7 @@ export default function DataManagement() {
 
  {/* Backups History List */}
  {store.google_connected && (
- <div className="bg-surface border border-line rounded-2xl p-8 shadow-sm flex-1 flex flex-col min-h-[400px]">
+ <div className="bg-surface border border-line rounded-2xl p-4 sm:p-8 shadow-sm flex-1 flex flex-col min-h-[400px]">
  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-line font-bold">
  <div>
  <h3 className="font-bold text-lg text-ink flex items-center gap-2">
@@ -531,7 +539,7 @@ export default function DataManagement() {
  </div>
 
  {googleBackups.length === 0 ? (
- <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+ <div className="flex-1 flex flex-col items-center justify-center text-center p-4 sm:p-8">
  <div className="w-16 h-16 rounded-full bg-sunken flex items-center justify-center text-ink-muted mb-4 animate-bounce">
  <Cloud size={28} />
  </div>
@@ -607,7 +615,7 @@ export default function DataManagement() {
  {/* Left: Selection Grid */}
  <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
  <div className="bg-surface border border-line rounded-2xl p-6 flex flex-col h-full shadow-sm">
- <div className="flex items-center justify-between mb-6">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
  <h3 className="font-bold text-lg text-ink flex items-center gap-2">
  <div className="w-6 h-6 rounded bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 text-xs font-bold">1</div>
  Select Data Entities
@@ -717,7 +725,7 @@ export default function DataManagement() {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
  {/* Left: Upload Area */}
  <div className="lg:col-span-7 flex flex-col gap-6">
- <form onSubmit={handleImportSubmit} className="bg-surface border border-line rounded-2xl p-8 flex flex-col gap-6 flex-1 shadow-sm">
+ <form onSubmit={handleImportSubmit} className="bg-surface border border-line rounded-2xl p-4 sm:p-8 flex flex-col gap-6 flex-1 shadow-sm">
  <h3 className="font-bold text-lg text-ink flex items-center gap-2">
  <div className="w-6 h-6 rounded bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 text-xs font-bold">1</div>
  Upload Data File
@@ -783,7 +791,7 @@ export default function DataManagement() {
 
  {/* Right: Instructions */}
  <div className="lg:col-span-5 flex flex-col gap-6">
- <div className="bg-surface border border-line rounded-2xl p-8 shadow-sm">
+ <div className="bg-surface border border-line rounded-2xl p-4 sm:p-8 shadow-sm">
  <h3 className="font-bold text-lg text-ink flex items-center gap-2 mb-4">
  <div className="w-6 h-6 rounded bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 text-xs font-bold">2</div>
  Use Correct Format
@@ -818,7 +826,7 @@ export default function DataManagement() {
  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full animate-in fade-in duration-slow">
  {/* Left: Backup Actions */}
  <div className="lg:col-span-6">
- <div className="bg-surface border border-line rounded-2xl p-8 flex flex-col gap-6 shadow-sm min-h-[360px] justify-between">
+ <div className="bg-surface border border-line rounded-2xl p-4 sm:p-8 flex flex-col gap-6 shadow-sm min-h-[360px] justify-between">
  <div>
  <h3 className="font-bold text-lg text-ink flex items-center gap-2">
  <Download className="text-brand-500" />
@@ -845,7 +853,7 @@ export default function DataManagement() {
 
  {/* Right: Restore Actions */}
  <div className="lg:col-span-6">
- <div className="bg-surface border border-line rounded-2xl p-8 flex flex-col gap-6 shadow-sm min-h-[360px] justify-between">
+ <div className="bg-surface border border-line rounded-2xl p-4 sm:p-8 flex flex-col gap-6 shadow-sm min-h-[360px] justify-between">
  <div>
  <h3 className="font-bold text-lg text-ink flex items-center gap-2">
  <Upload className="text-brand-500" />
@@ -882,7 +890,7 @@ export default function DataManagement() {
  {activeTab === 'backups' && (
  <div className="h-full flex flex-col gap-6 animate-in fade-in duration-slow">
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <div className="bg-surface border border-line rounded-2xl p-6 flex items-center justify-between shadow-sm">
+ <div className="bg-surface border border-line rounded-2xl p-6 flex flex-wrap items-center justify-between gap-y-2 shadow-sm">
  <div>
  <h3 className="font-bold text-ink flex items-center gap-2">
  <HardDrive className="text-brand-500" size={20} /> Daily Auto-Backup
@@ -897,23 +905,23 @@ export default function DataManagement() {
  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoBackupForm.data.auto_backup ? 'left-7' : 'left-1'}`} />
  </button>
  </div>
- <button
+ {canSnapshot && <button
  onClick={createBackupNow}
  disabled={creatingBackup}
  className="bg-sunken rounded-2xl p-6 flex items-center justify-center gap-2 text-white font-bold shadow-xl transition-transform active:scale-95 disabled:opacity-60"
  >
  {creatingBackup ? <RefreshCw size={18} className="animate-spin" /> : <Plus size={18} />}
  {creatingBackup ? 'Creating Snapshot...' : 'Create Snapshot Now'}
- </button>
- <label className="cursor-pointer bg-surface border-2 border-dashed border-line dark:border-line hover:border-brand-500 rounded-2xl p-6 flex items-center justify-center gap-2 font-bold text-ink-secondary transition-all text-center">
+ </button>}
+ {canSnapshot && <label className="cursor-pointer bg-surface border-2 border-dashed border-line dark:border-line hover:border-brand-500 rounded-2xl p-6 flex items-center justify-center gap-2 font-bold text-ink-secondary transition-all text-center">
  <input type="file" className="hidden" accept=".sql" onChange={handleBackupRestoreFile} disabled={restoringBackup} />
  {restoringBackup ? <RefreshCw size={18} className="animate-spin text-brand-500" /> : <Upload size={18} className="text-brand-500" />}
  {restoringBackup ? 'Restoring...' : 'Restore from .sql File'}
- </label>
+ </label>}
  </div>
 
  <div className="bg-surface border border-line rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
- <div className="px-8 py-6 border-b border-line bg-sunken/50 dark:bg-surface flex items-center justify-between shrink-0">
+ <div className="px-4 sm:px-8 py-6 border-b border-line bg-sunken/50 dark:bg-surface flex flex-wrap items-center justify-between gap-y-2 shrink-0">
  <h3 className="text-lg font-bold text-ink flex items-center gap-2">
  <Database className="text-ink-muted" size={20} /> Snapshot History
  </h3>
@@ -925,26 +933,26 @@ export default function DataManagement() {
  <table className="w-full">
  <thead>
  <tr className="text-left border-b border-line">
- <th className="px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot</th>
- <th className="px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created</th>
- <th className="px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted">Size</th>
- <th className="px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
+ <th className="px-4 sm:px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot</th>
+ <th className="px-4 sm:px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created</th>
+ <th className="px-4 sm:px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted">Size</th>
+ <th className="px-4 sm:px-8 py-4 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-line">
  {backupsList.length === 0 ? (
  <tr>
- <td colSpan="4" className="px-8 py-16 text-center">
+ <td colSpan="4" className="px-4 sm:px-8 py-16 text-center">
  <div className="flex flex-col items-center justify-center text-ink-muted">
  <HardDrive size={40} className="mb-3 opacity-20" />
  <p className="font-bold text-ink-secondary">No snapshots yet</p>
- <p className="text-xs">Create your first database backup to protect your data.</p>
+ <p className="text-xs">{canSnapshot ? 'Create your first database backup to protect your data.' : 'Server snapshots are made by the platform owner. To back up this store, use Full System Backup (.vq).'}</p>
  </div>
  </td>
  </tr>
  ) : backupsList.map((backup) => (
  <tr key={backup.name} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
- <td className="px-8 py-4">
+ <td className="px-4 sm:px-8 py-4">
  <div className="flex items-center gap-3">
  <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-500/20 flex items-center justify-center text-brand-600 dark:text-brand-400">
  <FileText size={18} />
@@ -952,13 +960,13 @@ export default function DataManagement() {
  <p className="text-sm font-bold text-ink-secondary dark:text-ink truncate max-w-xs">{backup.name}</p>
  </div>
  </td>
- <td className="px-8 py-4 text-sm text-ink-muted">{backup.date}</td>
- <td className="px-8 py-4">
+ <td className="px-4 sm:px-8 py-4 text-sm text-ink-muted">{backup.date}</td>
+ <td className="px-4 sm:px-8 py-4">
  <span className="px-2 py-1 bg-sunken rounded-lg text-xs font-bold text-ink-secondary">{backup.size}</span>
  </td>
- <td className="px-8 py-4">
+ <td className="px-4 sm:px-8 py-4">
  <div className="flex items-center justify-end">
- <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-semibold">Encrypted & Stored</span>
+ <a href={route('store.backups.download', { store_slug: store?.slug, filename: backup.name })} className="px-2.5 py-1 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-semibold inline-flex items-center gap-1"><Download size={14} /> Download</a>
  </div>
  </td>
  </tr>
@@ -1008,8 +1016,8 @@ export default function DataManagement() {
  )}
 
  {migrationStep === 'upload' && (
- <div className="h-full flex flex-col items-center justify-center p-12 text-center">
- <div className="w-full max-w-md p-8 border-2 border-dashed border-line dark:border-line rounded-2xl hover:border-brand-500 transition-colors bg-app">
+ <div className="h-full flex flex-col items-center justify-center p-5 sm:p-12 text-center">
+ <div className="w-full max-w-md p-4 sm:p-8 border-2 border-dashed border-line dark:border-line rounded-2xl hover:border-brand-500 transition-colors bg-app">
  <Upload size={40} className="mx-auto text-ink-muted mb-4" />
  <h3 className="font-bold text-lg mb-2">Drop your .vyp file here</h3>
  <p className="text-xs text-ink-muted mb-6">Found in AppData/Roaming/Vyaparapp/DBUpdateBackup</p>
@@ -1028,7 +1036,7 @@ export default function DataManagement() {
  <button
  disabled={!migrationFile}
  onClick={handleMigrationAnalyze}
- className="mt-8 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold shadow-lg transition-transform disabled:opacity-50 flex items-center gap-2"
+ className="mt-8 px-4 sm:px-8 py-3 bg-brand-600 text-white rounded-xl font-bold shadow-lg transition-transform disabled:opacity-50 flex items-center gap-2"
  >
  Analyze File <ArrowRight size={18} />
  </button>
@@ -1036,7 +1044,7 @@ export default function DataManagement() {
  )}
 
  {migrationStep === 'analyzing' && (
- <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+ <div className="h-full flex flex-col items-center justify-center p-5 sm:p-12 text-center">
  <Loader2 size={40} className="animate-spin text-brand-600 mb-4" />
  <h3 className="font-bold text-lg">Scanning Database...</h3>
  <p className="text-ink-muted text-sm">Identifying Parties, Items, and transaction history.</p>
@@ -1044,7 +1052,7 @@ export default function DataManagement() {
  )}
 
  {migrationStep === 'review' && migrationAnalysis && (
- <div className="p-8 h-full flex flex-col">
+ <div className="p-4 sm:p-8 h-full flex flex-col">
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
  <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
  <h3 className="font-bold text-sm text-brand-700 dark:text-brand-400 mb-1">Parties</h3>
@@ -1075,7 +1083,7 @@ export default function DataManagement() {
  </div>
  </div>
  <div className="text-center mt-auto">
- <button onClick={handleMigrationExecute} className="w-full px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg transition-transform flex items-center justify-center gap-3">
+ <button onClick={handleMigrationExecute} className="w-full px-4 sm:px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg transition-transform flex items-center justify-center gap-3">
  <RefreshCw size={20} /> Start Migration Process
  </button>
  <p className="text-xs text-ink-muted mt-3">This action will merge data into your existing system. No existing data will be overwritten.</p>
@@ -1084,7 +1092,7 @@ export default function DataManagement() {
  )}
 
  {migrationStep === 'importing' && (
- <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+ <div className="h-full flex flex-col items-center justify-center p-5 sm:p-12 text-center">
  <div className="mb-6 relative">
  <div className="absolute inset-0 bg-brand-500 rounded-full opacity-20 animate-ping"></div>
  <RefreshCw size={56} className="animate-spin text-brand-600 relative z-10" />
@@ -1095,7 +1103,7 @@ export default function DataManagement() {
  )}
 
  {migrationStep === 'results' && (
- <div className="p-12 h-full flex flex-col items-center justify-center text-center">
+ <div className="p-5 sm:p-12 h-full flex flex-col items-center justify-center text-center">
  <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
  <Check size={32} strokeWidth={4} />
  </div>
@@ -1131,7 +1139,7 @@ export default function DataManagement() {
  <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
  <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
- <div className="p-8 flex flex-col items-center text-center relative z-10">
+ <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
  <div className="w-16 h-16 bg-brand-500/10 rounded-2xl flex items-center justify-center text-brand-500 mb-6 shadow-inner">
  <Cloud size={32} className="animate-pulse" />
  </div>

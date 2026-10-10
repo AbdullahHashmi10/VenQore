@@ -52,7 +52,7 @@ export default function TransactionSettingsSection({ data, setData }) {
 
             {/* Document Numbering Prefixes */}
             <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-line pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                     <div>
                         <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Document Numbering Prefixes</h3>
                         <p className="text-xs text-ink-muted mt-0.5">Custom prefix string prepended to document numbers for accounting identification.</p>

@@ -58,7 +58,7 @@ export default function OfflineLockScreen() {
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
 
-            <div className="relative z-10 max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl backdrop-blur-md">
+            <div className="relative z-10 max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-8 shadow-2xl backdrop-blur-md">
                 <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow">
                     <WifiOff size={40} className="text-red-500" />
                 </div>

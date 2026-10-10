@@ -55,7 +55,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">Base Unit *</label>
                         <select

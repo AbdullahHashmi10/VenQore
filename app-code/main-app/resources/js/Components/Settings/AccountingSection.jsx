@@ -14,7 +14,7 @@ export default function AccountingSection({ data, setData }) {
                     <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Financial Cycles &amp; Branches</h3>
 
                     <div className="p-4 rounded-xl border border-dashed border-line bg-app/50 space-y-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <span className="text-xs font-bold text-ink flex items-center gap-2">
                                 <Building2 size={14} className="text-amber-500" />
                                 Multi-Firm Branch Accounting
@@ -36,7 +36,7 @@ export default function AccountingSection({ data, setData }) {
                     </div>
 
                     <div className="pt-4 border-t border-line space-y-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2">
                             <div>
                                 <h4 className="text-sm font-bold text-ink">Financial Period Locks</h4>
                                 <p className="text-xs text-ink-muted">Freeze historical dates to prevent retroactive ledger tampering</p>
@@ -58,7 +58,7 @@ export default function AccountingSection({ data, setData }) {
 
                     <div className="space-y-3">
                         <div className="space-y-1">
-                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex flex-wrap items-center justify-between gap-y-2">
                                 <span>Heavy Discount Review Flag</span>
                                 <span className="text-xs font-bold text-brand-600 dark:text-brand-400">{data['reckoner.heavy_discount_pct'] ?? 20}%</span>
                             </label>
@@ -74,7 +74,7 @@ export default function AccountingSection({ data, setData }) {
                         </div>
 
                         <div className="space-y-1 pt-2 border-t border-line">
-                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex flex-wrap items-center justify-between gap-y-2">
                                 <span>Expiry Warning Horizon</span>
                                 <span className="text-xs font-bold text-brand-600 dark:text-brand-400">{data['reckoner.expiry_warning_days'] ?? 30} days</span>
                             </label>
@@ -90,7 +90,7 @@ export default function AccountingSection({ data, setData }) {
                         </div>
 
                         <div className="space-y-1 pt-2 border-t border-line">
-                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center justify-between">
+                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex flex-wrap items-center justify-between gap-y-2">
                                 <span>Inventory Carrying Cost Rate</span>
                                 <span className="text-xs font-bold text-brand-600 dark:text-brand-400">{data['reckoner.carrying_cost_pct'] ?? 15}%</span>
                             </label>

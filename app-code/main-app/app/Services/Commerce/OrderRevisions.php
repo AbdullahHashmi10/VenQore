@@ -83,7 +83,7 @@ class OrderRevisions
                     } catch (CommerceException $e) {
                         throw new CommerceException('That substitute is not available online right now.', 'bad_change');
                     }
-                    if ($o->warehouse_id && $this->stock->available($tenantId, $quoted['product_id'], $o->warehouse_id) + 0.00001 < $q) {
+                    if ($o->warehouse_id && ! $this->stock->sellsWithoutStock($tenantId, (string) $quoted['product_id']) && $this->stock->available($tenantId, $quoted['product_id'], $o->warehouse_id) + 0.00001 < $q) {
                         throw new CommerceException($quoted['title'] . ' does not have enough stock to substitute.', 'insufficient_stock');
                     }
                     $lines[] = [
@@ -105,13 +105,16 @@ class OrderRevisions
                 throw new CommerceException('That removes every item. Reject the order instead.', 'bad_change');
             }
 
-            $subtotal = round(array_sum(array_column($lines, 'line_net')), 2);
-            $tax = round(array_sum(array_column($lines, 'tax_amount')), 2);
+            $minor = fn ($v) => \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format((float) $v, 6, '.', '')));
+            $subtotalMinor = array_sum(array_map(fn ($l) => $minor($l['line_net']), $lines));
+            $taxMinor = array_sum(array_map(fn ($l) => $minor($l['tax_amount']), $lines));
+            $subtotal = \App\Support\Money::toFloat($subtotalMinor);
+            $tax = \App\Support\Money::toFloat($taxMinor);
             $discount = round(array_sum(array_map(fn ($l) => ($l['list_price'] - $l['online_price']) * $l['quantity'], $lines)), 2);
             $revision = [
                 'lines' => $lines, 'summary' => $summary,
                 'subtotal' => $subtotal, 'tax_total' => $tax, 'discount_total' => max(0, $discount),
-                'total' => round($subtotal + $tax + (float) $o->delivery_fee, 2), 'previous_total' => (float) $o->total,
+                'total' => \App\Support\Money::toFloat($subtotalMinor + $taxMinor + $minor($o->delivery_fee)), 'previous_total' => (float) $o->total,
             ];
             $o->forceFill(['revision_status' => 'proposed', 'revision_note' => $note ? mb_substr($note, 0, 255) : null, 'revision' => $revision, 'revision_at' => now(), 'accept_by' => now('UTC')->addMinutes(max(60, (int) (DB::table('storefronts')->where('id', $o->storefront_id)->value('accept_deadline_minutes') ?: 30)))->format('Y-m-d H:i:s'), 'version' => $o->version + 1])->save();
             $this->orders->event($o, 'revision_proposed', 'pending', 'pending', 'staff', $actor, $note, ['summary' => $summary]);
@@ -163,6 +166,7 @@ class OrderRevisions
             'base_price' => (float) $it->base_price, 'price_rule' => $it->price_rule, 'rule_percent' => $it->rule_percent !== null ? (float) $it->rule_percent : null,
             'online_price' => (float) $it->online_price, 'list_price' => (float) ($it->list_price ?? $it->online_price), 'discount_percent' => (float) ($it->discount_percent ?? 0),
             'net_unit_price' => (float) $it->net_unit_price, 'tax_rate' => (float) $it->tax_rate, 'price_includes_tax' => (bool) $it->price_includes_tax,
+            'mods' => $it->mods ?? null, 'notes' => $it->notes ?? null,
         ] + $line;
     }
 }

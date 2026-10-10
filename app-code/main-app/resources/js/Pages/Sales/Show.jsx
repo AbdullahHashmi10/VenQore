@@ -205,7 +205,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             </div>
                         </div>
 
-                        <div className="bg-surface rounded-2xl shadow-lg border border-line p-8 print-container">
+                        <div className="bg-surface rounded-2xl shadow-lg border border-line p-4 sm:p-8 print-container">
                             {/* Header */}
                             <div className="flex justify-between items-start mb-12">
                                 <div>
@@ -366,7 +366,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                 <h4 className="text-sm font-bold text-ink-muted uppercase tracking-wider mb-3">Select Items to Return</h4>
                                 <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                                     {data.items.map((item, index) => (
-                                        <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${item.quantity > 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-app border-line'}`}>
+                                        <div key={item.id} className={`flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-xl border transition-all ${item.quantity > 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-app border-line'}`}>
                                             <div className="flex-1">
                                                 <p className="font-bold text-ink">{item.name}</p>
                                                 <p className="text-xs text-ink-muted">Purchased: {item.max_quantity} × {formatCurrency(item.price, store)}</p>
@@ -412,7 +412,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                             <span className="text-xs text-ink-muted">Pay customer now</span>
                                         </button>
 
-                                        {/* Credit to Ledger/Khata */}
+                                        {/* Credit to Customer Credit Ledger */}
                                         <button
                                             type="button"
                                             onClick={() => setRefundMethod('ledger')}
@@ -422,7 +422,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                                 }`}
                                         >
                                             <Wallet size={28} className={refundMethod === 'ledger' ? 'text-blue-600' : 'text-ink-muted'} />
-                                            <span className={`font-bold text-sm ${refundMethod === 'ledger' ? 'text-blue-600' : 'text-ink-secondary'}`}>Credit to Khata</span>
+                                            <span className={`font-bold text-sm ${refundMethod === 'ledger' ? 'text-blue-600' : 'text-ink-secondary'}`}>Credit to customer account</span>
                                             <span className="text-xs text-ink-muted">Add to balance</span>
                                         </button>
                                     </div>
@@ -492,7 +492,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                     {refundTotal > 0 && (
                                         <p className="text-xs text-ink-muted mt-1">
                                             {refundMethod === 'ledger' ? (
-                                                <span>→ Credit to <span className="font-bold text-blue-600">Khata</span></span>
+                                                <span>→ Credit to <span className="font-bold text-blue-600">customer account</span></span>
                                             ) : (
                                                 <span>→ From <span className="font-bold uppercase">{refundSource.replace('_', ' ')}</span></span>
                                             )}

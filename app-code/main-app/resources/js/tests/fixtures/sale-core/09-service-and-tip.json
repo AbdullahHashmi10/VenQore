@@ -1,6 +1,6 @@
 {
-  "case": "09 service charge 10% + tip (table terminal)",
-  "shown_total_payable": "2,619.60",
+  "case": "09 service charge + tip settings are ignored at the counter till (tables live in Front of House)",
+  "shown_total_payable": "2,273.60",
   "request_body": {
     "items": [
       {
@@ -31,23 +31,33 @@
     "payments": [
       {
         "method": "cash",
-        "amount": 2619.6,
+        "amount": 2273.6,
         "account_id": null
       }
     ],
-    "amount_paid": 2619.6,
+    "amount_paid": 2273.6,
+    "tendered_amount": 2273.6,
+    "cash_tendered": 2273.6,
+    "change_return": 0,
     "tax": 313.6,
     "tax_rate": 16,
     "tax_inclusive": false,
+    "tax_exempt": false,
     "discount": 0,
     "delivery_charge": 0,
     "extra_charge_value": 0,
     "extra_charge_label": null,
-    "service_charge": 196,
-    "tip_amount": 150,
+    "service_charge": 0,
+    "tip_amount": 0,
+    "bill_rounding": false,
+    "expected_total": 2273.6,
+    "calculation_version": 2,
     "notes": "",
     "add_to_ledger": false,
     "source": "pos",
     "is_dropship": false
-  }
+  },
+  "contract_v2_changes": [
+    "added: tendered_amount, cash_tendered, change_return, tax_exempt, bill_rounding, expected_total, calculation_version"
+  ]
 }

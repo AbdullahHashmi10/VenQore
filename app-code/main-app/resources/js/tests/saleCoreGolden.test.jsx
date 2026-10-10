@@ -128,13 +128,22 @@ describe('Sale core characterisation (today\'s Pos.jsx)', () => {
             await act(async () => { fireEvent.click(pay); });
             await waitFor(() => expect(posts.length).toBe(1), { timeout: 8000 });
 
-            const recorded = { case: c.name, shown_total_payable: shownBefore, request_body: posts[0] };
+            /* Contract v2: every checkout carries a fresh receipt key created
+               before the request. It is random, so it is checked for shape and
+               then left out of the byte-for-byte comparison. */
+            const { idempotency_key: intentKey, occurred_at: occurredAt, ...body } = posts[0];
+            expect(intentKey).toMatch(/^[0-9a-f-]{36}$/i);
+            // The moment the sale was rung travels with it (also volatile).
+            expect(Number.isNaN(Date.parse(occurredAt))).toBe(false);
+            const recorded = { case: c.name, shown_total_payable: shownBefore, request_body: body };
 
             const file = path.join(FIXTURE_DIR, `${c.id}.json`);
             if (process.env.UPDATE_GOLDEN) {
                 fs.writeFileSync(file, JSON.stringify(recorded, null, 2) + '\n');
             } else {
-                expect(JSON.parse(fs.readFileSync(file, 'utf8'))).toEqual(JSON.parse(JSON.stringify(recorded)));
+                // contract_v2_changes is the reviewed change note on the fixture, not recorded output.
+                const { contract_v2_changes: _note, ...expected } = JSON.parse(fs.readFileSync(file, 'utf8'));
+                expect(expected).toEqual(JSON.parse(JSON.stringify(recorded)));
             }
         }, 30000);
     }

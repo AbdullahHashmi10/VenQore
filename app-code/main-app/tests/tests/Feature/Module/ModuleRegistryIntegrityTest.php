@@ -62,16 +62,16 @@ class ModuleRegistryIntegrityTest extends TestCase
     public function test_registry_has_exactly_the_planned_modules(): void
     {
         $this->assertCount(
-            47,
+            48,
             $this->modules,
-            'VENQORE_FINAL_BUILD_PLAN defines 47 modules. If you deliberately merged or dropped one, '
+            'VENQORE_FINAL_BUILD_PLAN defines 48 modules. If you deliberately merged or dropped one, '
             .'change this number AND the number in the plan AND the pricing page copy in the same commit. '
             .'The count is a public promise, not an implementation detail.'
         );
 
         $ids = array_column($this->modules, 'id');
         sort($ids);
-        $this->assertSame(range(1, 47), $ids, 'Module ids must be exactly 1..47 with no gaps or duplicates.');
+        $this->assertSame(range(1, 48), $ids, 'Module ids must be exactly 1..48 with no gaps or duplicates.');
     }
 
     public function test_every_module_has_every_field(): void

@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Services\Sales\ReturnValuation;
+use App\Support\Money;
+
 use App\Engines\AccountingService;
 use App\Engines\FifoService;
 use App\Engines\PaymentService;
@@ -124,39 +127,66 @@ class LegacySalesReturnService
         $tenantId   = $tenant->id;
         $originalId = $data['original_sale_id'];
 
-        // ── 1. Compute amounts ─────────────────────────────────────────────────
-        $goods   = 0.0;
-        $taxBack = 0.0;
-        $itemsData = [];
+        // ── 1. Compute amounts — from what the sale BOOKED ─────────────────────
+        // A return refunds its exact share of each original line's booked revenue
+        // and tax (ReturnValuation), cumulatively, in integer paisa. The price,
+        // discount and tax rate typed on the return screen are NOT used to value
+        // it: re-pricing could refund more (or less) than the sale posted, e.g. a
+        // line that carried part of a bill discount.
+        $original  = DB::table('sales')->where('tenant_id', $tenantId)->where('id', $originalId)->first();
+        $origLines = DB::table('sale_items')->where('sale_id', $originalId)->whereNull('deleted_at')->get()->keyBy('id');
+        $booked    = ReturnValuation::booked($original, $origLines->values()->all());
+        // Already returned per line: the larger of the line's own counter and the
+        // return documents — the same measure validateCaps() caps against.
+        $back = DB::table('sale_items')
+            ->join('sales as r', 'sale_items.sale_id', '=', 'r.id')
+            ->where('r.tenant_id', $tenantId)
+            ->where('r.original_sale_id', $originalId)
+            ->where('r.status', 'returned')
+            ->whereNotNull('sale_items.original_sale_item_id')
+            ->groupBy('sale_items.original_sale_item_id')
+            ->selectRaw('sale_items.original_sale_item_id as line_id, SUM(ABS(sale_items.quantity)) as qty')
+            ->pluck('qty', 'line_id');
+        $returnedSoFar = [];
+        $goodsMinor = 0;
+        $taxMinor   = 0;
+        $itemsData  = [];
 
         foreach ($data['items'] as $item) {
-            $qty      = (float) $item['quantity'];
-            $price    = (float) $item['price'];
-            $discount = (float) ($item['discount'] ?? 0);
-            $net      = max(0, ($qty * $price) - $discount);
-            $rate     = (float) ($item['tax_rate'] ?? 0);
-            $lineTax  = round($net * ($rate / 100), 2);
+            $qty    = (float) $item['quantity'];
+            $lineId = (string) ($item['original_sale_item_id'] ?? '');
+            $line   = $origLines->get($lineId);
+            if (!$line) {
+                throw ValidationException::withMessages(['items' => ['That line belongs to a different sale.']]);
+            }
+            $before = $returnedSoFar[$lineId] ?? max((float) ($line->returned_quantity ?? 0), (float) ($back[$lineId] ?? 0));
+            $b      = $booked[$lineId];
+            $netMinor    = ReturnValuation::share($b['revenue'], $line->quantity, $before, $qty);
+            $lineTaxMinor = ReturnValuation::share($b['tax'], $line->quantity, $before, $qty);
+            $returnedSoFar[$lineId] = $before + $qty;
 
-            $goods   += $net;
-            $taxBack += $lineTax;
+            $goodsMinor += $netMinor;
+            $taxMinor   += $lineTaxMinor;
 
             $itemsData[] = [
                 'product_id'            => $item['product_id'],
-                'original_sale_item_id' => $item['original_sale_item_id'] ?? null,
+                'original_sale_item_id' => $lineId,
                 'quantity'              => $qty,
-                'price'                 => $price,
-                'discount'              => $discount,
-                'tax_rate'              => $rate,
-                'tax'                   => $lineTax,
-                'total'                 => $net,
+                'price'                 => (float) $line->unit_price,
+                'discount'              => 0,
+                'tax_rate'              => (float) ($line->tax_rate ?? 0),
+                'tax'                   => Money::toFloat($lineTaxMinor),
+                'total'                 => Money::toFloat($netMinor),
             ];
         }
 
-        $subtotal    = round($goods, 2);
-        $taxBack     = round($taxBack, 2);
-        $returnValue = round($subtotal + $taxBack, 2);
-        $refundNow   = round(min(max(0, (float) ($data['amount_refunded'] ?? 0)), $returnValue), 2);
-        $asCredit    = round($returnValue - $refundNow, 2);
+        $returnMinor = $goodsMinor + $taxMinor;
+        $refundMinor = min(max(0, Money::parseMinor($data['amount_refunded'] ?? 0, 'amount refunded', false)), $returnMinor);
+        $subtotal    = Money::toFloat($goodsMinor);
+        $taxBack     = Money::toFloat($taxMinor);
+        $returnValue = Money::toFloat($returnMinor);
+        $refundNow   = Money::toFloat($refundMinor);
+        $asCredit    = Money::toFloat($returnMinor - $refundMinor);
 
         // ── 2. The return sale (negative SRET record) ──────────────────────────
         $reference   = SequenceService::generateTransactionNumber('SRET');

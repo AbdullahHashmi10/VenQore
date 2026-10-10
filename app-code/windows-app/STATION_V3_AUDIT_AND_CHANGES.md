@@ -151,3 +151,16 @@ Already in place from 3.0: sealed origin, sandboxed shell, sender checks on ever
 ## 3.1.1 — installer look
 
 The setup wizard used electron-builder's stock blue panel because no art was supplied. Now: a V6 panel (`build/installerSidebar.bmp`, `build/uninstallerSidebar.bmp`, 164×314, dark teal, the real mark, Bricolage Grotesque wordmark) and reworded Finish text (`build/installer.nsh`) that tells the cashier to enter the store name and the pairing code from Settings → Terminals. Regenerate the art with `python3 tools/make-installer-art.py` (needs pillow, fonttools, brotli). NSIS only shows this panel on the Finish (and uninstall) pages; the other pages use the small header icon.
+
+## 3.1.3 — 7 Oct 2026
+
+Release packaging refresh after the October Station updates. The installer and
+portable packages are rebuilt from the current V6 shell, hardware bridge,
+security controls, printer routing, and customer-display sources.
+
+## 3.1.4 — Google sign-in hotfix
+
+The sealed browser now permits the exact `accounts.google.com` origin only
+while a VenQore `/auth/google` flow is active. The OAuth callback must return
+to a trusted VenQore origin. Hardware IPC remains unavailable to Google pages,
+and every unrelated external origin remains blocked.

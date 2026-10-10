@@ -78,7 +78,7 @@ export default function AdjustmentReviewView({
 
             {/* Target & Flow Card */}
             <div className="p-5 rounded-xl bg-surface border border-line shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-2">
                         <User size={16} className="text-primary-500" />
                         <span className="text-sm font-bold text-ink">{targetName}</span>

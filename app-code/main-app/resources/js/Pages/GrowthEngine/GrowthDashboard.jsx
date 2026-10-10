@@ -363,7 +363,7 @@ function SignalCard({ rec, cur, onOpen }) {
  <h3 className="font-bold text-[15px] text-ink leading-snug mb-2">{rec.title}</h3>
  <p className="text-ink-secondary text-[13px] leading-relaxed mb-4 line-clamp-4">{rec.message}</p>
 
- <div className="mt-auto pt-3 border-t border-line flex items-center justify-between gap-2">
+ <div className="mt-auto pt-3 border-t border-line flex flex-wrap items-center justify-between gap-y-2 gap-2">
  <div className="min-w-0">
  {Number(rec.potential_revenue) > 0 && (
  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 truncate">
@@ -500,7 +500,7 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
  <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted mb-2">Why we're telling you this</p>
  <div className="rounded-2xl border border-line divide-y divide-line">
  {Object.entries(evidence).map(([k, v]) => (
- <div key={k} className="flex items-center justify-between gap-4 px-4 py-2.5">
+ <div key={k} className="flex flex-wrap items-center justify-between gap-y-2 gap-4 px-4 py-2.5">
  <span className="text-[13px] text-ink-muted">{k}</span>
  <span className="text-[13px] font-semibold text-ink text-right">{String(v)}</span>
  </div>
@@ -514,7 +514,7 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
  <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted mb-2">Their recent orders</p>
  <div className="rounded-2xl border border-line divide-y divide-line max-h-56 overflow-y-auto">
  {orders.map((o, i) => (
- <div key={i} className="flex items-center justify-between gap-3 px-4 py-2.5">
+ <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 gap-3 px-4 py-2.5">
  <div className="min-w-0">
  <p className="text-[13px] font-medium text-ink-secondary truncate">{o.reference}</p>
  <p className="text-1xs text-ink-muted">{o.date ? new Date(o.date).toLocaleDateString() : '—'}</p>
@@ -595,7 +595,7 @@ function ScorecardPanel({ scorecard, cur, trend, engineStatus, onClose }) {
  <div className="px-6 py-5 space-y-6">
  {m && (
  <div className="rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 p-4">
- <div className="flex items-center justify-between mb-2">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
  <p className="font-bold text-brand-900 dark:text-brand-200">{m.label}</p>
  <span className="text-xs font-bold text-brand-500">{m.progress}%</span>
  </div>
@@ -640,7 +640,7 @@ function ScorecardPanel({ scorecard, cur, trend, engineStatus, onClose }) {
  </div>
  <div className="divide-y divide-line">
  {b.types.slice(0, 6).map((t) => (
- <div key={t.type} className="px-4 py-2.5 flex items-center justify-between gap-3">
+ <div key={t.type} className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-y-2 gap-3">
  <div className="min-w-0">
  <p className="text-[13px] font-medium text-ink-secondary truncate">
  {t.label}

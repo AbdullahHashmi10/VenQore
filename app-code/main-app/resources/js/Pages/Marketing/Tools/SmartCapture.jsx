@@ -355,7 +355,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
       currentSlug="smart-capture"
       faqs={FAQS}
       cta={{
-                    headline: "SmartCapture is one of the 46 modules VenQore assembles for you.",
+                    headline: "SmartCapture is one of the 48 modules VenQore assembles for you.",
                     subtext: "Inside the system it builds, a photographed bill posts to accounts payable and adjusts stock on its own — no manual entry from receipt to reconciliation.",
                 }}
       related={[
@@ -653,7 +653,7 @@ export default function SmartCapture({ turnstileSiteKey, toolGroups = [] }) {
                     <label className="block text-xs font-bold uppercase tracking-wider text-ink-muted mb-3">
                       3 — Select Sample Branding Logo
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       {LOGOS.map((logo) => (
                         <div key={logo.id} onClick={() => setSelectedLogo(logo.id)}
                           className={`p-3.5 rounded-xl border text-center cursor-pointer transition-all duration-normal flex flex-col items-center justify-center gap-1.5 ${

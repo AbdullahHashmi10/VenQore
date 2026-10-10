@@ -1,6 +1,6 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ExternalLink, Image, LayoutGrid, Map, QrCode, Save, Server, Wifi } from 'lucide-react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ExternalLink, Image, LayoutGrid, Map, Pause, Printer, QrCode, RefreshCw, Save, Server, Wifi } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StoreTabs from '@/Components/Commerce/StoreTabs';
 import { Alert, Button, Card, CardTitle, Field, ImageInput, Switch, inputCls } from '@/Components/Commerce/ui';
@@ -11,11 +11,15 @@ const themes = [
     ['express-rail', 'Express Rail', 'Dense, quick scanning for busy locations.', 'from-sky-700 via-slate-950 to-rose-500'],
 ];
 
-export default function Setup({ catalogue, tables = [], floor_plan_url, save_url, tabs, store_status }) {
+export default function Setup({ catalogue, languages = [], tables = [], stats = { today: 0, week: 0 }, urls = {}, floor_plan_url, save_url, tabs, store_status }) {
     const { data, setData, post, processing, errors } = useForm({
         enabled: !!catalogue.enabled,
         theme: catalogue.theme || 'visual-grid',
         show_images: catalogue.show_images !== false,
+        alt_lang: catalogue.alt_lang || '',
+        paused: !!catalogue.paused,
+        require_seated: !!catalogue.require_seated,
+        auto_hours: !!catalogue.auto_hours,
         name: catalogue.name || '',
         tagline: catalogue.tagline || '',
         lan_url: catalogue.lan_url || '',
@@ -23,6 +27,10 @@ export default function Setup({ catalogue, tables = [], floor_plan_url, save_url
         banner: null,
     });
     const hasFloor = tables.length > 0;
+    const tableAction = (key, table, confirmText) => {
+        if (confirmText && !window.confirm(confirmText)) return;
+        router.post((urls[key] || '').replace('__ID__', table.id), {}, { preserveScroll: true });
+    };
     const submit = (event) => {
         event.preventDefault();
         post(save_url, { forceFormData: true, preserveScroll: true });
@@ -47,7 +55,18 @@ export default function Setup({ catalogue, tables = [], floor_plan_url, save_url
                     <Field label="Local server address" error={errors.lan_url} hint="Use the fixed LAN address customers can reach while connected to your Wi-Fi, for example http://192.168.1.100:8000.">
                         <input className={inputCls} value={data.lan_url} onChange={(e) => setData('lan_url', e.target.value)} placeholder="http://192.168.1.100:8000" />
                     </Field>
-                    <Alert kind="info"><b>No Internet is required.</b> The VenQore computer and customer phones must be connected to the same router. Keep the computer’s LAN address fixed so printed QR codes remain valid.</Alert>
+                    <Alert kind="info"><b>Customers need to reach this address.</b> If you use a local address, their phones must be on the same Wi-Fi and the computer's address must stay fixed so printed QR codes keep working. If you use your public web address, the menu works on mobile data too.</Alert>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-2xl border border-line p-3"><p className="text-xs text-ink-muted">Orders today</p><b className="text-2xl text-ink">{stats.today}</b></div>
+                        <div className="rounded-2xl border border-line p-3"><p className="text-xs text-ink-muted">Last 7 days</p><b className="text-2xl text-ink">{stats.week}</b></div>
+                        <div className="rounded-2xl border border-line p-3"><p className="text-xs text-ink-muted">Where they appear</p><b className="text-sm text-ink">Front of House, "Guest added items"</b></div>
+                    </div>
+                    <div className="divide-y divide-line rounded-2xl border border-line px-4">
+                        <Switch checked={data.paused} onChange={(value) => setData('paused', value)} label="Pause QR ordering" desc="Guests can still read the menu, but cannot send orders. Use it when the kitchen is overwhelmed." />
+                        <Switch checked={data.require_seated} onChange={(value) => setData('require_seated', value)} label="Only when staff have seated the table" desc="A table's QR only takes orders while the table is open in Front of House. Stops someone ordering from a photo of the code." />
+                        <Switch checked={data.auto_hours} onChange={(value) => setData('auto_hours', value)} label="Close outside opening hours" desc={catalogue.has_hours ? 'Uses the opening hours from Online Store settings.' : 'Add opening hours in Online Store settings first.'} />
+                    </div>
+                    {errors.auto_hours && <p className="text-sm text-red-600" role="alert">{errors.auto_hours}</p>}
                 </Card>
 
                 <Card className="space-y-5">
@@ -72,6 +91,12 @@ export default function Setup({ catalogue, tables = [], floor_plan_url, save_url
                             </button>
                         ))}
                     </div>
+                    <Field label="Second menu language (optional)" error={errors.alt_lang} hint="Guests get a switch between English and this language. You type each dish's name in this language on the Products page. Leave empty for English only.">
+                        <select className={inputCls} value={data.alt_lang} onChange={(e) => setData('alt_lang', e.target.value)}>
+                            <option value="">None (English only)</option>
+                            {languages.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+                        </select>
+                    </Field>
                     <Switch checked={data.show_images} onChange={(value) => setData('show_images', value)} label="Show product photographs" desc="Turn this off for a faster text-led menu on older phones." />
                     {data.enabled && <a href={`${catalogue.preview_url}?theme=${encodeURIComponent(data.theme)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm font-bold text-brand-600 hover:underline"><ExternalLink size={15} />Preview selected layout</a>}
                 </Card>
@@ -94,11 +119,19 @@ export default function Setup({ catalogue, tables = [], floor_plan_url, save_url
                                 <div><b className="text-ink">Table ordering is ready</b><p className="text-sm text-ink-muted">Print the unique QR for each table and place it only on that table.</p></div>
                                 <Link href={floor_plan_url} className="inline-flex items-center gap-2 rounded-xl bg-surface px-4 py-2 text-sm font-bold text-ink shadow-sm"><Map size={15} />Manage floor plan</Link>
                             </div>
+                            <div className="flex flex-wrap gap-2">
+                                <a href={urls.cards} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-bold text-white"><Printer size={15} />Print all table cards (A4)</a>
+                            </div>
                             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                                {tables.map((table) => <div key={table.id} className="flex items-center gap-3 rounded-2xl border border-line p-3">
+                                {tables.map((table) => <div key={table.id} className="flex items-start gap-3 rounded-2xl border border-line p-3">
                                     <a href={table.qr_url} target="_blank" rel="noreferrer" className="h-20 w-20 shrink-0 rounded-xl bg-white p-1"><img src={table.qr_url} alt={`${table.label} QR code`} className="h-full w-full" /></a>
-                                    <div className="min-w-0"><b className="block text-ink">{table.label}</b><span className="block text-xs text-ink-muted">{table.zone} · {table.code}</span><span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[11px] font-bold ${table.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{table.enabled ? 'Ordering enabled' : 'Disabled'}</span></div>
-                                </div>)}
+                                    <div className="min-w-0 flex-1"><b className="block text-ink">{table.label}</b><span className="block text-xs text-ink-muted">{table.zone} · {table.code}</span>
+                                        <span className={`mt-2 inline-flex rounded-full px-2 py-1 text-[11px] font-bold ${table.enabled ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{table.enabled ? 'Ordering on' : 'Ordering off'}</span>
+                                        <div className="mt-2 flex flex-wrap gap-3 text-xs font-bold">
+                                            <button type="button" className="inline-flex items-center gap-1 text-brand-600 hover:underline" onClick={() => tableAction('table_toggle', table)}><Pause size={12} />{table.enabled ? 'Turn off' : 'Turn on'}</button>
+                                            <button type="button" className="inline-flex items-center gap-1 text-rose-600 hover:underline" onClick={() => tableAction('table_regenerate', table, `Create a new QR code for ${table.label}? The printed one stops working and must be replaced.`)}><RefreshCw size={12} />New code</button>
+                                        </div>
+                                    </div></div>)}
                             </div>
                         </div>
                     )}

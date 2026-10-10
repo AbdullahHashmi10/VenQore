@@ -163,7 +163,7 @@ export default function GoodsIn({ pendingPurchases = [], selectedPurchaseId = nu
                 </div>
 
                 {pendingPurchases.length === 0 ? (
-                    <div className="p-12 text-center bg-surface border border-line rounded-2xl space-y-3">
+                    <div className="p-5 sm:p-12 text-center bg-surface border border-line rounded-2xl space-y-3">
                         <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-600 mx-auto flex items-center justify-center">
                             <CheckCircle2 size={24} />
                         </div>
@@ -184,7 +184,7 @@ export default function GoodsIn({ pendingPurchases = [], selectedPurchaseId = nu
                         {/* Left Column: Pending Purchase Selector (Span 4) */}
                         <div className="lg:col-span-4 bg-surface rounded-2xl border border-line p-4 space-y-4 shadow-xs">
                             <div>
-                                <div className="flex items-center justify-between mb-2">
+                                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-ink-muted">
                                         Pending Purchases ({filteredPurchases.length})
                                     </h3>
@@ -227,7 +227,7 @@ export default function GoodsIn({ pendingPurchases = [], selectedPurchaseId = nu
                                                     #{p.invoice_number || p.reference || 'PO'}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center justify-between text-2xs text-ink-muted mt-2">
+                                            <div className="flex flex-wrap items-center justify-between gap-y-2 text-2xs text-ink-muted mt-2">
                                                 <span className="flex items-center gap-1">
                                                     <Calendar size={11} /> {p.purchase_date}
                                                 </span>
@@ -353,7 +353,7 @@ export default function GoodsIn({ pendingPurchases = [], selectedPurchaseId = nu
                                     </div>
 
                                     {/* Action Bar */}
-                                    <div className="flex items-center justify-between pt-4 border-t border-line">
+                                    <div className="flex flex-wrap items-center justify-between gap-y-2 pt-4 border-t border-line">
                                         <button
                                             type="button"
                                             onClick={() => router.visit(route('store.purchases.index', { store_slug: store?.slug }))}
@@ -372,7 +372,7 @@ export default function GoodsIn({ pendingPurchases = [], selectedPurchaseId = nu
                                     </div>
                                 </form>
                             ) : (
-                                <div className="p-8 text-center text-ink-muted text-xs">
+                                <div className="p-4 sm:p-8 text-center text-ink-muted text-xs">
                                     Select a pending purchase from the left list to receive goods.
                                 </div>
                             )}

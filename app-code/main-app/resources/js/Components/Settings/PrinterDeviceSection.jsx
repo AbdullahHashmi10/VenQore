@@ -15,6 +15,19 @@ const THERMAL_SIZE_OPTIONS = [
     { value: '4inch', label: '100mm (4-inch roll - browser printing)' }
 ];
 
+function NumberBox({ value, fallback, min, max, onChange }) {
+    const n = Number(value);
+    const shown = value === undefined || value === null || value === '' || Number.isNaN(n) ? fallback : n;
+    return (
+        <input type="number" inputMode="numeric" min={min} max={max} value={shown}
+               onChange={e => {
+                   const v = parseInt(e.target.value, 10);
+                   onChange(Number.isNaN(v) ? fallback : Math.min(max, Math.max(min, v)));
+               }}
+               className="w-20 rounded-lg border border-line bg-app px-2 py-1.5 text-sm text-ink text-center" />
+    );
+}
+
 export default function PrinterDeviceSection({ data, setData }) {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
@@ -65,6 +78,22 @@ export default function PrinterDeviceSection({ data, setData }) {
                             label="Open the cash drawer after a cash sale"
                             description="Station uses the printer driver. Configure its cash-drawer action after printing; standalone drawer control is unavailable."
                         />
+
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-ink">Copies of each receipt</p>
+                                <p className="text-xs text-ink-muted">Print 2 if you keep a copy for the shop, for example for credit sales.</p>
+                            </div>
+                            <NumberBox value={data.thermal_copies} fallback={1} min={1} max={5} onChange={v => setData('thermal_copies', v)} />
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4 py-3">
+                            <div>
+                                <p className="text-sm font-semibold text-ink">Blank lines at the end</p>
+                                <p className="text-xs text-ink-muted">Extra space after the receipt so the cutter or tear bar does not cut through the message.</p>
+                            </div>
+                            <NumberBox value={data.thermal_extra_lines} fallback={3} min={0} max={10} onChange={v => setData('thermal_extra_lines', v)} />
+                        </div>
 
                         <Toggle
                             enabled={data.thermal_use_bold !== '0' && data.thermal_use_bold !== false}

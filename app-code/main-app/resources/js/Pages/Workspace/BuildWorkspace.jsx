@@ -1635,7 +1635,7 @@ export default function BuildWorkspace({
                                     )}
 
                                     {plans.length > 0 && (
-                                        <div className="mt-4 flex items-center justify-between gap-3 rounded-md border border-line bg-surface px-4 py-2.5 text-xs">
+                                        <div className="mt-4 flex flex-wrap items-center justify-between gap-y-2 gap-3 rounded-md border border-line bg-surface px-4 py-2.5 text-xs">
                                             <span className="text-ink-secondary">
                                                 After the trial:{' '}
                                                 <strong className="font-semibold text-ink">

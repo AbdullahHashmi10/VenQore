@@ -119,8 +119,8 @@ export default function Migration() {
 
                     {/* STEP 1: UPLOAD */}
                     {step === 'upload' && (
-                        <div className="h-full flex flex-col items-center justify-center p-12 text-center animate-in fade-in slide-in-from-bottom-4">
-                            <div className="w-full max-w-md p-8 border-2 border-dashed border-line dark:border-line rounded-2xl hover:border-brand-500 transition-colors bg-app">
+                        <div className="h-full flex flex-col items-center justify-center p-5 sm:p-12 text-center animate-in fade-in slide-in-from-bottom-4">
+                            <div className="w-full max-w-md p-4 sm:p-8 border-2 border-dashed border-line dark:border-line rounded-2xl hover:border-brand-500 transition-colors bg-app">
                                 <Upload size={48} className="mx-auto text-ink-muted mb-4" />
                                 <h3 className="font-bold text-lg mb-2">Drop your .vyp file here</h3>
                                 <p className="text-xs text-ink-muted mb-6">Found in AppData/Roaming/Vyaparapp/DBUpdateBackup</p>
@@ -142,7 +142,7 @@ export default function Migration() {
                             <button
                                 disabled={!file}
                                 onClick={handleAnalyze}
-                                className="mt-8 px-8 py-3 bg-brand-600 text-white rounded-xl font-bold shadow-lg transition-transform disabled:opacity-50 flex items-center gap-2"
+                                className="mt-8 px-4 sm:px-8 py-3 bg-brand-600 text-white rounded-xl font-bold shadow-lg transition-transform disabled:opacity-50 flex items-center gap-2"
                             >
                                 Analyze File <ArrowRight size={18} />
                             </button>
@@ -151,7 +151,7 @@ export default function Migration() {
 
                     {/* STEP 2: ANALYZING */}
                     {step === 'analyzing' && (
-                        <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+                        <div className="h-full flex flex-col items-center justify-center p-5 sm:p-12 text-center">
                             <Loader2 size={48} className="animate-spin text-brand-600 mb-4" />
                             <h3 className="font-bold text-lg">Scanning Database...</h3>
                             <p className="text-ink-muted">Identifying Parties, Items, and transaction history.</p>
@@ -160,7 +160,7 @@ export default function Migration() {
 
                     {/* STEP 3: REVIEW */}
                     {step === 'review' && analysis && (
-                        <div className="p-8 h-full flex flex-col animate-in fade-in slide-in-from-right-4">
+                        <div className="p-4 sm:p-8 h-full flex flex-col animate-in fade-in slide-in-from-right-4">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                                 <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl border border-brand-100 dark:border-brand-800">
                                     <h3 className="font-bold text-sm text-brand-700 dark:text-brand-400 mb-1">Parties</h3>
@@ -203,7 +203,7 @@ export default function Migration() {
                             <div className="text-center mt-auto">
                                 <button
                                     onClick={handleExecute}
-                                    className="w-full px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg transition-transform flex items-center justify-center gap-3"
+                                    className="w-full px-4 sm:px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg transition-transform flex items-center justify-center gap-3"
                                 >
                                     <RefreshCw size={20} />
                                     Start Migration Process
@@ -215,7 +215,7 @@ export default function Migration() {
 
                     {/* STEP 4: IMPORTING */}
                     {step === 'importing' && (
-                        <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+                        <div className="h-full flex flex-col items-center justify-center p-5 sm:p-12 text-center">
                             <div className="mb-6 relative">
                                 <div className="absolute inset-0 bg-brand-500 rounded-full opacity-20 animate-ping"></div>
                                 <RefreshCw size={64} className="animate-spin text-brand-600 relative z-10" />
@@ -227,7 +227,7 @@ export default function Migration() {
 
                     {/* STEP 5: RESULTS */}
                     {step === 'results' && (
-                        <div className="p-12 h-full flex flex-col items-center justify-center text-center animate-in zoom-in-95">
+                        <div className="p-5 sm:p-12 h-full flex flex-col items-center justify-center text-center animate-in zoom-in-95">
                             <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
                                 <Check size={40} strokeWidth={4} />
                             </div>

@@ -517,7 +517,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                     </div>
 
                                     {/* Financial KPIs */}
-                                    <div className="grid grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                         <div className="bg-app p-4 rounded-xl border border-line">
                                             <p className="text-xs font-bold text-ink-muted uppercase">Revenue in Period</p>
                                             <p className="text-3xl font-bold text-ink mt-1">{formatCurrency(activeCategory.revenue, store)}</p>
@@ -601,7 +601,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                             {/* Tab Content */}
                                             {activeTab === 'customers' ? (
                                                 customers.length === 0 ? (
-                                                    <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center flex-1">
+                                                    <div className="p-5 sm:p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center flex-1">
                                                         <p className="text-sm text-ink-muted italic">{tt('No customer-attributed purchases in this period.')}</p>
                                                     </div>
                                                 ) : (
@@ -630,7 +630,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                                 )
                                             ) : (
                                                 !(activeCategory.products && activeCategory.products.length > 0) ? (
-                                                    <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center flex-1">
+                                                    <div className="p-5 sm:p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center flex-1">
                                                         <p className="text-sm text-ink-muted italic">{tt('No products found with sales in this category during the period.')}</p>
                                                     </div>
                                                 ) : (
@@ -717,7 +717,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                 {/* Modal Body */}
                                 <div className="p-6 space-y-6 overflow-y-auto flex-1">
                                     {/* Financial KPIs */}
-                                    <div className="grid grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                                         <div className="bg-app p-4 rounded-xl border border-line">
                                             <p className="text-xs font-bold text-ink-muted uppercase">Revenue in Period</p>
                                             <p className="text-3xl font-bold text-ink mt-1">{formatCurrency(selectedProduct.net_revenue, store)}</p>
@@ -778,7 +778,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                                 <Users size={14} /> {tt('Customer Purchase Detail')}
                                             </div>
                                             {customers.length === 0 ? (
-                                                <div className="p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center">
+                                                <div className="p-5 sm:p-12 rounded-xl bg-app border border-dashed border-line flex flex-col items-center justify-center text-center">
                                                     <p className="text-sm text-ink-muted italic">{tt('No customer-attributed purchases in this period.')}</p>
                                                 </div>
                                             ) : (

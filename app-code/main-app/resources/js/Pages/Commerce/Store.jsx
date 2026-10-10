@@ -5,7 +5,9 @@ import { MapPin, Clock, ShieldCheck, Minus, Plus, Headphones, Laptop, Monitor, S
 import '../../../css/catalogue-studio.css';
 import PublicShell, { shopToast } from '@/Components/Commerce/PublicShell';
 import EditorialMenu from '@/Components/Commerce/EditorialMenu';
+import StoreShowcase from '@/Components/Commerce/StoreShowcase';
 import { Alert, Badge, Btn, Field, Icon, Pager, initials, tone } from '@/Components/Commerce/shop';
+import StoreBadges from '@/Components/Commerce/StoreBadges';
 import { DAY_LABEL, cartStore, money, newKey } from '@/lib/commerce';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -43,7 +45,7 @@ function formatHourRange(h) {
     return str;
 }
 
-export default function Store({ preview, store, items, pagination, limits, categories = [], filters = {}, show_images = true, has_coupons = false, rating_summary, customer, onsite = null }) {
+export default function Store({ preview, store, items, pagination, limits, categories = [], showcase = null, filters = {}, show_images = true, has_coupons = false, rating_summary, customer, onsite = null }) {
     const catalogueTheme = ['visual-grid', 'editorial-ledger', 'express-rail'].includes(store.catalogue_theme) ? store.catalogue_theme : 'visual-grid';
     const catalogueOnly = store.customer_mode === 'catalogue';
     const onsiteMode = Boolean(onsite);
@@ -54,12 +56,19 @@ export default function Store({ preview, store, items, pagination, limits, categ
     const cataloguePath = onsiteMode
         ? (onsite.channel === 'table_qr' ? `/catalogue/${store.slug}/table/${onsite.token}` : `/catalogue/${store.slug}`)
         : `/shop/${store.slug}`;
-    const goCatalogue = (params) => router.get(cataloguePath, { q: filters.q || undefined, category: filters.category || undefined, ...params }, { preserveState: true, preserveScroll: true, only: ['items', 'pagination', 'filters', 'categories', 'onsite'] });
+    const goCatalogue = (params) => router.get(cataloguePath, { q: filters.q || undefined, category: filters.category || undefined, ...params }, { preserveState: true, preserveScroll: true, only: ['items', 'pagination', 'filters', 'categories', 'showcase', 'onsite'] });
     const sym = store.currency_symbol;
     const [cartRev, setCartRev] = useState(0); // bump to re-read the persisted cart
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const cart = useMemo(() => { const c = cartStore.read(); return c.slug === cartScope ? c : { slug: cartScope, lines: [] }; }, [cartScope, cartRev]);
     const [pendingSwitch, setPendingSwitch] = useState(null); // item waiting for "replace cart?" answer
+    const [picker, setPicker] = useState(null); // item whose add-ons the customer is choosing
+    const [picked, setPicked] = useState({}); // add-on group id -> chosen option ids
+    // The same dish with different add-ons is a different cart line.
+    const modsKey = (mods) => (mods || []).map((m) => m.id).sort((a, b) => a - b).join(',');
+    const kOf = (l) => l.key || l.item_id;
+    const modsDelta = (mods) => (mods || []).reduce((n, m) => n + (Number(m.price_delta) || 0), 0);
+    const qtyOfItem = (id) => cart.lines.filter((l) => l.item_id === id).reduce((n, l) => n + l.quantity, 0);
     const [quoteRaw, setQuote] = useState(null);
     const [problemsRaw, setProblems] = useState([]);
     const onsiteItems = useMemo(() => items.flatMap((item) => item.options?.length ? item.options.map((option) => ({ ...item, ...option })) : [item]), [items]);
@@ -67,7 +76,8 @@ export default function Store({ preview, store, items, pagination, limits, categ
         if (!onsiteMode || !cart.lines.length) return null;
         const priced = cart.lines.map((line) => {
             const item = onsiteItems.find((candidate) => candidate.id === line.item_id);
-            return item ? { item_id: line.item_id, title: line.name, quantity: line.quantity, price: Number(item.price), line_total: Number(item.price) * line.quantity } : null;
+            const unit = item ? Number(item.price) + modsDelta(line.mods) : 0;
+            return item ? { item_id: line.item_id, title: line.name, mods: line.mods || [], quantity: line.quantity, price: unit, line_total: unit * line.quantity } : null;
         }).filter(Boolean);
         const total = priced.reduce((sum, line) => sum + line.line_total, 0);
         return { items: priced, subtotal: total, tax_total: 0, delivery_fee: 0, discount_total: 0, total };
@@ -136,7 +146,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
     useEffect(() => {
         if (cart.lines.length === 0 || onsiteMode) return undefined;
         const t = setTimeout(() => {
-            axios.post(`/shop/${store.slug}/quote`, { items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity })), fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined })
+            axios.post(`/shop/${store.slug}/quote`, { items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity, mods: (l.mods || []).map((m) => m.id) })), fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined })
                 .then((r) => { setQuote(r.data); setProblems([]); setCouponError(null); })
                 .catch((e) => {
                     const d = e.response?.data;
@@ -148,17 +158,31 @@ export default function Store({ preview, store, items, pagination, limits, categ
         return () => clearTimeout(t);
     }, [cart.lines, fulfilment, store.slug, zone, coupon, onsiteMode]);
 
+    const openPicker = (item) => {
+        const start = {};
+        (item.addons || []).forEach((g) => { start[g.id] = g.options.filter((o) => o.is_default).map((o) => o.id); });
+        setPicked(start); setDetail(null); setPicker(item);
+    };
     const add = (item) => {
         const cur = cartStore.read();
         if (cur.slug && cur.slug !== cartScope && cur.lines.length > 0) { setPendingSwitch(item); return; }
+        if (item.addons?.length) { openPicker(item); return; }
+        addLine(item, []);
+    };
+    const addLine = (item, mods) => {
         const lines = [...cart.lines];
-        const ex = lines.find((l) => l.item_id === item.id);
-        if (ex) ex.quantity = Math.min(limits.max_qty, ex.quantity + 1); else lines.push({ item_id: item.id, quantity: 1, name: item.label ? `${item.name} — ${item.label}` : item.name });
+        const key = `${item.id}|${modsKey(mods)}`;
+        const ex = lines.find((l) => kOf(l) === key || (!l.key && !mods.length && l.item_id === item.id));
+        if (ex) ex.quantity = Math.min(limits.max_qty, ex.quantity + 1);
+        else lines.push({ item_id: item.id, key, quantity: 1, mods, name: item.label ? `${item.name} — ${item.label}` : item.name });
         persist({ slug: cartScope, lines });
         shopToast(`${item.name} added to your bag`);
     };
+    // A key picks one cart line; a bare item id (from a product card) picks that item's latest line.
     const setQty = (id, q) => {
-        const lines = cart.lines.map((l) => (l.item_id === id ? { ...l, quantity: Math.max(0, Math.min(limits.max_qty, q)) } : l)).filter((l) => l.quantity > 0);
+        let target = cart.lines.findIndex((l) => kOf(l) === id);
+        if (target < 0) { for (let i = cart.lines.length - 1; i >= 0; i -= 1) { if (cart.lines[i].item_id === id) { target = i; break; } } }
+        const lines = cart.lines.map((l, i) => (i === target ? { ...l, quantity: Math.max(0, Math.min(limits.max_qty, q)) } : l)).filter((l) => l.quantity > 0);
         persist({ slug: cartScope, lines });
     };
     const removeProblems = () => persist({ slug: cartScope, lines: cart.lines.filter((l) => !problems.some((p) => p.item_id === l.item_id)) });
@@ -180,7 +204,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                 table_token: onsite.token || null,
                 customer_name: form.customer_name || null,
                 customer_note: form.customer_note || null,
-                items: cart.lines.map((line) => ({ item_id: line.item_id, quantity: line.quantity })),
+                items: cart.lines.map((line) => ({ item_id: line.item_id, quantity: line.quantity, mods: (line.mods || []).map((m) => m.id) })),
             };
             const sig = JSON.stringify(payload);
             if (attempt.current.sig !== sig) attempt.current = { sig, key: newKey() };
@@ -197,7 +221,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
         const payload = {
             fulfilment, payment_method: payment, customer_name: form.customer_name, customer_phone: form.customer_phone, customer_email: form.customer_email || null, company_site: form.company_site, opened_at: openedAt,
             delivery_address: fulfilment === 'delivery' ? form.delivery_address : null, delivery_zone: fulfilment === 'delivery' && zone ? zone : null, coupon: coupon || null, customer_note: form.customer_note || null,
-            items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity })), expected_total: quote.total,
+            items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity, mods: (l.mods || []).map((m) => m.id) })), expected_total: quote.total,
         };
         // same key for a retry of the SAME order; a changed order gets a new key
         const sig = JSON.stringify(payload);
@@ -246,6 +270,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                         <span className="vqs-mark vqs-mark--lg" style={{ color: t.fg }}>{store.logo_url ? <img src={store.logo_url} alt="" /> : initials(store.name)}</span>
                         <div className="vqs-stack" style={{ gap: 6 }}>
                             <h1 className="vqs-h2" style={{ fontSize: 'clamp(28px,4vw,40px)', lineHeight: 1.05, letterSpacing: '-0.035em' }}>{store.name}</h1>
+                            <StoreBadges badges={store.badges} max={6} size="lg" />
                             {store.description && <p className="vqs-muted" style={{ margin: 0, fontSize: 15, lineHeight: 1.5, maxWidth: '56ch' }}>{store.description}</p>}
                         </div>
                         <div className="vqs-meta">
@@ -341,11 +366,13 @@ export default function Store({ preview, store, items, pagination, limits, categ
                 <div style={{ marginTop: 16 }}><Alert kind="warn">
                     Your cart has items from another business. One shop per order — adding here will replace it.
                     <span className="vqs-row" style={{ marginTop: 10 }}>
-                        <Btn onClick={() => { persist({ slug: cartScope, lines: [{ item_id: pendingSwitch.id, quantity: 1, name: pendingSwitch.label ? `${pendingSwitch.name} — ${pendingSwitch.label}` : pendingSwitch.name }] }); setPendingSwitch(null); }}>Replace cart</Btn>
+                        <Btn onClick={() => { const item = pendingSwitch; setPendingSwitch(null); if (item.addons?.length) { persist({ slug: cartScope, lines: [] }); openPicker(item); } else persist({ slug: cartScope, lines: [{ item_id: item.id, key: `${item.id}|`, quantity: 1, mods: [], name: item.label ? `${item.name} — ${item.label}` : item.name }] }); }}>Replace cart</Btn>
                         <Btn variant="soft" onClick={() => setPendingSwitch(null)}>Keep my other cart</Btn>
                     </span>
                 </Alert></div>
             )}
+
+            {!onsiteMode && <StoreShowcase showcase={showcase} sym={sym} canAdd={canAdd} add={(it) => add(pick(it))} onDetail={setDetail} brand={store.brand_color} onCategory={(id) => goCatalogue({ category: id, page: undefined })} />}
 
             <div className={`vqs-layout ${browseOnly ? 'vqs-layout--catalogue' : ''}`} style={{ marginTop: 24 }}>
                 {onsiteMode && catalogueTheme === 'editorial-ledger' ? <EditorialMenu store={store} items={items} categories={categories} filters={filters} pagination={pagination} search={search} setSearch={setSearch} goCatalogue={goCatalogue} showImages={show_images} pick={pick} renderOptions={renderOptions} cart={cart} add={add} setQty={setQty} canAdd={canAdd} onDetail={setDetail} maxQty={limits.max_qty} /> : <section aria-label="Catalogue" className="vqs-catalogue-panel">
@@ -386,7 +413,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                         <ul className={`vqs-prods ${show_images ? '' : 'vqs-noimg'}`} style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                             {items.map((raw, idx) => {
                                 const it = pick(raw);
-                                const inCart = cart.lines.find((l) => l.item_id === it.id)?.quantity || 0;
+                                const inCart = qtyOfItem(it.id);
                                 const pt = tone(it.id);
                                 return (
                                     <li key={it.id} className="vqs-rise" data-category={it.category || ''} style={{ '--i': Math.min(idx, 11) }}>
@@ -407,7 +434,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                                     <button type="button" className="vqs-btn vqs-btn--soft" onClick={() => setDetail(it)}>View</button>
                                                 ) : inCart > 0 ? (
                                                     <span className="vqs-qty">
-                                                        <button type="button" aria-label={`Remove one ${it.name}`} onClick={() => setQty(it.id, inCart - 1)}>
+                                                        <button type="button" aria-label={`Remove one ${it.name}`} onClick={() => { const last = [...cart.lines].reverse().find((l) => l.item_id === it.id); if (last) setQty(kOf(last), last.quantity - 1); }}>
                                                             <Minus size={13} strokeWidth={2.5} />
                                                         </button>
                                                         <span>{inCart}</span>
@@ -453,20 +480,25 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                 )}
                                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                                     {cart.lines.map((l) => {
-                                        const q = quote?.items?.find((x) => x.item_id === l.item_id);
+                                        const q = quote?.items?.find((x) => x.item_id === l.item_id && modsKey(x.mods) === modsKey(l.mods));
                                         const fullTitle = q?.title || l.name || 'Item';
                                         const parts = fullTitle.split(' — ');
                                         const mainTitle = parts[0];
                                         const optionLabel = parts.length > 1 ? parts.slice(1).join(' — ') : null;
 
                                         return (
-                                            <li key={l.item_id} className="vqs-cart-item">
+                                            <li key={kOf(l)} className="vqs-cart-item">
                                                 <div className="vqs-cart-item-header">
                                                     <div className="vqs-cart-item-name-block">
                                                         <span className="vqs-cart-item-name" title={mainTitle}>{mainTitle}</span>
                                                         {optionLabel && (
                                                             <span className="vqs-cart-item-badge">
                                                                 {optionLabel}
+                                                            </span>
+                                                        )}
+                                                        {(l.mods || []).length > 0 && (
+                                                            <span className="vqs-cart-item-badge">
+                                                                {(l.mods || []).map((m) => m.name).join(', ')}
                                                             </span>
                                                         )}
                                                     </div>
@@ -483,7 +515,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                                             <button
                                                                 type="button"
                                                                 aria-label={`Decrease quantity of ${mainTitle}`}
-                                                                onClick={() => setQty(l.item_id, l.quantity - 1)}
+                                                                onClick={() => setQty(kOf(l), l.quantity - 1)}
                                                             >
                                                                 <Minus size={11} strokeWidth={2.5} />
                                                             </button>
@@ -491,7 +523,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                                             <button
                                                                 type="button"
                                                                 aria-label={`Increase quantity of ${mainTitle}`}
-                                                                onClick={() => setQty(l.item_id, l.quantity + 1)}
+                                                                onClick={() => setQty(kOf(l), l.quantity + 1)}
                                                             >
                                                                 <Plus size={11} strokeWidth={2.5} />
                                                             </button>
@@ -598,7 +630,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
 
             {detail && (() => {
                 const d = pick(items.find((x) => x.id === (detail.key || detail.id)) || detail);
-                const dq = cart.lines.find((l) => l.item_id === d.id)?.quantity || 0;
+                const dq = qtyOfItem(d.id);
                 const dt = tone(d.id);
                 return (
                     <dialog open className="vqs-sheet" aria-modal="true" aria-label={d.name}>
@@ -619,7 +651,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                     ) : dq > 0 ? (
                                         <>
                                             <span className="vqs-qty">
-                                                <button type="button" aria-label={`Remove one ${d.name}`} onClick={() => setQty(d.id, dq - 1)}>
+                                                <button type="button" aria-label={`Remove one ${d.name}`} onClick={() => { const last = [...cart.lines].reverse().find((l) => l.item_id === d.id); if (last) setQty(kOf(last), last.quantity - 1); }}>
                                                     <Minus size={13} strokeWidth={2.5} />
                                                 </button>
                                                 <span>{dq}</span>
@@ -633,6 +665,55 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         <Btn size="lg" full disabled={!canAdd || d.stock === 'out'} onClick={() => add(d)}>{d.stock === 'out' ? 'Sold out' : canAdd ? 'Add to cart' : 'Not taking orders'}</Btn>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    </dialog>
+                );
+            })()}
+            {picker && (() => {
+                const groups = picker.addons || [];
+                const chosen = groups.flatMap((g) => g.options.filter((o) => (picked[g.id] || []).includes(o.id)));
+                const missing = groups.filter((g) => (picked[g.id] || []).length < Math.max(g.min_select || 0, g.required ? 1 : 0));
+                const unit = Number(picker.price) + modsDelta(chosen);
+                const toggle = (g, o) => setPicked((cur) => {
+                    const now = cur[g.id] || [];
+                    if (g.max_select === 1) return { ...cur, [g.id]: now.includes(o.id) ? (g.required ? now : []) : [o.id] };
+                    if (now.includes(o.id)) return { ...cur, [g.id]: now.filter((x) => x !== o.id) };
+                    if (g.max_select > 0 && now.length >= g.max_select) return cur;
+                    return { ...cur, [g.id]: [...now, o.id] };
+                });
+                return (
+                    <dialog open className="vqs-sheet" aria-modal="true" aria-label={`Choose options for ${picker.name}`} style={{ zIndex: 60 }}>
+                        <div className="vqs-sheet-in vqs-card">
+                            <button type="button" className="vqs-reset vqs-closex vqs-sheet-x" aria-label="Close" onClick={() => setPicker(null)}>✕</button>
+                            <div className="vqs-stack" style={{ gap: 14, padding: '4px 4px 0' }}>
+                                <h2 className="vqs-h2" style={{ fontSize: 22 }}>{picker.name}</h2>
+                                {groups.map((g) => (
+                                    <fieldset key={g.id} style={{ border: 0, padding: 0, margin: 0 }}>
+                                        <legend style={{ fontWeight: 700, marginBottom: 6 }}>
+                                            {g.name}
+                                            <span className="vqs-faint" style={{ fontWeight: 400, marginLeft: 8, fontSize: 13 }}>
+                                                {g.required || g.min_select > 0 ? 'Required' : 'Optional'}{g.max_select > 1 ? ` · up to ${g.max_select}` : ''}
+                                            </span>
+                                        </legend>
+                                        {g.options.map((o) => {
+                                            const on = (picked[g.id] || []).includes(o.id);
+                                            return (
+                                                <label key={o.id} className="vqs-row" style={{ justifyContent: 'space-between', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                                                    <span className="vqs-row" style={{ gap: 8 }}>
+                                                        <input type={g.max_select === 1 ? 'radio' : 'checkbox'} name={`g${g.id}`} checked={on} onChange={() => toggle(g, o)} />
+                                                        {o.name}
+                                                    </span>
+                                                    {Number(o.price_delta) !== 0 && <span className="vqs-num vqs-muted">{Number(o.price_delta) > 0 ? '+' : '−'}{money(Math.abs(o.price_delta), sym)}</span>}
+                                                </label>
+                                            );
+                                        })}
+                                    </fieldset>
+                                ))}
+                                <Btn size="lg" full disabled={missing.length > 0}
+                                    onClick={() => { const item = picker; setPicker(null); addLine(item, chosen.map((o) => ({ id: o.id, name: o.name, price_delta: o.price_delta }))); }}>
+                                    {missing.length ? `Choose ${missing[0].name}` : `Add to cart · ${money(unit, sym)}`}
+                                </Btn>
                             </div>
                         </div>
                     </dialog>

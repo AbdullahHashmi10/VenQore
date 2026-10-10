@@ -183,14 +183,14 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
             </div>
 
             {/* Print View Styling */}
-            <div className="hidden print:block p-8">
+            <div className="hidden print:block p-4 sm:p-8">
                 <div className="text-center mb-10 border-b-2 border-neutral-900 pb-6">
                     <h1 className="text-3xl font-bold">{store.name}</h1>
                     <h2 className="text-xl font-bold text-ink-secondary uppercase tracking-widest mt-2">Stock Valuation Report</h2>
                     <p className="text-sm text-ink-muted mt-1">Generated on {new Date().toLocaleDateString()}</p>
                 </div>
 
-                <div className="grid grid-cols-4 gap-4 mb-10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
                     {reportStats.map((s, idx) => (
                         <div key={idx} className="border p-4 rounded-xl">
                             <p className="text-2xs font-bold text-ink-muted uppercase">{s.label}</p>

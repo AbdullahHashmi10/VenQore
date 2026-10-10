@@ -58,6 +58,10 @@ class SaleController extends Controller
             'items.*.free_quantity' => 'nullable|numeric|min:0',
             'items.*.price'         => 'required|numeric|min:0',
             'items.*.discount'      => 'nullable|numeric|min:0',
+            // Take this line from a specific stock batch instead of oldest-first.
+            'items.*.batch_id'      => 'nullable|string|max:64',
+            // Stock and its cost leave at dispatch (Goods Out), not at sale time.
+            'deliver_later'         => 'nullable|boolean',
             'items.*.modifiers'     => 'nullable|array|max:30',
             'items.*.modifiers.*.id'          => 'nullable',
             'items.*.modifiers.*.name'        => 'required|string|max:80',
@@ -93,6 +97,25 @@ class SaleController extends Controller
             'approval_pin'          => 'nullable|string|max:20',
             'register_shift_id'     => 'nullable',
             'register_id'           => 'nullable|string|max:100',
+            // Sale reliability contract v2: an explicit payment contract.
+            'payments'              => 'nullable|array|max:20',
+            'payments.*'            => 'array',
+            'payments.*.method'     => ['required_with:payments', 'string', 'max:30', 'regex:/^[A-Za-z_]+$/'],
+            'payments.*.amount'     => 'required_with:payments|numeric|min:0',
+            'payments.*.account_id' => 'nullable',
+            'payments.*.bank_account_id' => 'nullable',
+            'payments.*.reference'  => 'nullable|string|max:120',
+            'tendered_amount'       => 'nullable|numeric|min:0',
+            // Notes the customer handed over for the cash part (v2 till). The only
+            // source of cash change when a card/bank line is also present.
+            'cash_tendered'         => 'nullable|numeric|min:0',
+            'change_return'         => 'nullable|numeric|min:0',
+            'expected_total'        => 'nullable|numeric|min:0',
+            'calculation_version'   => 'nullable|integer|min:1|max:99',
+            'bill_rounding'         => 'nullable|boolean',
+            // When the cashier actually rang the sale (ISO-8601 with offset). Kept
+            // apart from created_at (server receipt) and posted_at (accounting date).
+            'occurred_at'           => 'nullable|date',
         ]);
 
         $currentTenant = app()->bound('current.tenant') ? app('current.tenant') : auth()->user()?->tenant;
@@ -105,19 +128,20 @@ class SaleController extends Controller
         // `idempotency_key` field. If a sale with that key already exists for
         // this tenant, return it instead of creating a duplicate.
         $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+        // Bound to the business content: same key + same intent → same sale;
+        // same key + different content → 409 and nothing changes.
+        $requestHash = \App\Services\Sales\CheckoutIntent::requestHash($request->all());
         if ($idempotencyKey && $tenantId) {
-            $existingSale = Sale::where('tenant_id', $tenantId)->where('idempotency_key', $idempotencyKey)->first();
-            if ($existingSale) {
-                return response()->json([
-                    'success'    => true,
-                    'idempotent' => true,
-                    'message'    => 'Sale already recorded for this request.',
-                    'sale_id'    => $existingSale->id,
-                    'reference'  => $existingSale->reference_number,
-                ], 200);
+            $replay = self::idempotentReplay($tenantId, (string) $idempotencyKey, $requestHash);
+            if ($replay) {
+                return $replay;
             }
         }
+        $strictMoney = (int) $request->input('calculation_version', 0) >= \App\Services\Sales\SaleTotals::VERSION;
 
+        // The FBR report is sent once this level is reached again, i.e. only
+        // after the sale's own transaction has committed.
+        $fbrBaseLevel = DB::transactionLevel();
         try {
             DB::beginTransaction();
 
@@ -152,137 +176,56 @@ class SaleController extends Controller
             
             $isStockEnabled = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
             $stopNegative = \App\Helpers\SettingsHelper::shouldStopNegativeStock();
+            $deferStock = $request->boolean('deliver_later') && $isStockEnabled;
             $autoMfg = new AutoManufacturingService();
             $manufacturingNotifications = [];
 
-            // 2. WATERFALL: Calculate totals
-            // PASS 1 — gather gross/item-discount/net per line; do NOT compute tax yet
-            // because tax must be charged on the net AFTER the global/order discount is
-            // apportioned (Finding F7 / M1-06 fix).
-            $subtotalGross = 0;
-            $totalItemDiscounts = 0;
-            $globalDiscount = (float)($request->discount ?? 0);
-            $lineItemsData = [];
+            // 2. TOTALS — calculation contract v2 (App\Services\Sales\SaleTotals).
+            // One exact calculation; every persisted amount, payment and journal
+            // line below comes from this same immutable result. The old float
+            // waterfall + late ledger "drift" patch are gone.
+            [$calc, $lineItemsData] = $this->calculateSaleLines($request, $items, $products, $strictMoney);
+            $m = fn (int $minor) => \App\Support\Money::toFloat($minor);
+            $subtotalGross      = $m($calc['subtotal_gross']);
+            $totalItemDiscounts = $m($calc['item_discounts'] + $calc['free_value']);
+            $globalDiscount     = $m($calc['bill_discount']);
+            $totalTax           = $m($calc['tax']);
+            $netSales           = $m($calc['revenue']);
+            $deliveryCharge     = $m($calc['delivery']);
+            $extraCharge        = $m($calc['extra']);
+            $serviceCharge      = $m($calc['service']);
+            $tipAmount          = $m($calc['tip']);
+            $invoiceTotal       = $m($calc['invoice']);
+            $roundOff           = $m($calc['round_off']);
 
-            foreach ($items as $itemIndex => $item) {
-                $product = $products->get($item['product_id']);
-                if (!$product) continue;
-
-                $qty = (float)$item['quantity'];
-                $freeQty = (float)($item['free_quantity'] ?? 0);
-                $unitPrice = (float)$item['price'];
-                $itemDiscount = (float)($item['discount'] ?? 0);
-
-                $gross = $unitPrice * $qty;
-                $freeValue = $unitPrice * $freeQty;
-                // net = line revenue after item-level discount (before global discount)
-                $net = max(0, $gross - $itemDiscount);
-
-                /* "No tax on this sale" has to beat a product's own rate, or the
-                   switch on the invoice screen would hide a tax the server still
-                   charged. Nothing sends tax_exempt unless the operator asked. */
-                $taxRate = $request->boolean('tax_exempt')
-                    ? 0.0
-                    : (($product->tax_rate !== null) ? (float)$product->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate()));
-
-                $subtotalGross += $gross + $freeValue;
-                $totalItemDiscounts += $itemDiscount + $freeValue;
-
-                $lineItemsData[] = [
-                    'index'         => $itemIndex,
-                    'product'       => $product,
-                    'product_id'    => $item['product_id'],
-                    'variant_id'    => $item['variant_id'] ?? null,
-                    'qty'           => $qty,
-                    'free_qty'      => $freeQty,
-                    'unit_price'    => $unitPrice,
-                    'gross'         => $gross + $freeValue,
-                    'discount'      => $itemDiscount + $freeValue,  // total discount incl. free items (for totals)
-                    'item_discount' => $itemDiscount,               // pure user-entered row discount (saved to DB)
-                    'discount_type' => $item['discount_type'] ?? 'fixed',
-                    'net'           => $net,
-                    'tax_rate'      => $taxRate,
-                    'tax_type'      => $item['tax_type'] ?? $request->input('tax_type', 'percentage'),
-                    'tax_amt'       => 0.0, // filled in pass 2 below
-                    'serials'       => $item['serials'] ?? [],
-                    'modifiers'     => self::cleanModifiers($item['modifiers'] ?? []),
-                ];
-            }
-
-            // PASS 2 — apportion global discount across lines proportionally to each
-            // line's after-item-discount net, then compute tax on the reduced taxable
-            // base.  This ensures the correct order of operations:
-            //   net_sales  = Σgross − Σitem_discounts − global_discount   (taxable base)
-            //   tax        = Σ round(line_taxable × rate / 100, 2)
-            //   invoice    = net_sales + tax
-            //
-            // If all lines share the same rate this collapses to:
-            //   tax = net_sales × rate — but the per-line path stays correct for
-            //   multi-rate invoices without any extra branch.
-            $sumLineNets = max(0, $subtotalGross - $totalItemDiscounts); // Σ(net after item discount)
-            $totalTax    = 0.0;
-            $taxInclusive = (bool) $request->input('tax_inclusive', false);
-
-            foreach ($lineItemsData as &$ld) {
-                // Each line's share of the global discount, weighted by its net.
-                // If sumLineNets is 0 (fully discounted away) the tax is 0.
-                $lineShare     = ($sumLineNets > 0)
-                    ? $globalDiscount * ($ld['net'] / $sumLineNets)
-                    : 0.0;
-                $lineTaxable   = max(0.0, $ld['net'] - $lineShare);
-                
-                $isFixedTax = ($ld['tax_type'] ?? 'percentage') === 'fixed';
-                if ($isFixedTax) {
-                    $taxAmt = round(min($lineTaxable, (float)$ld['tax_rate']), 2);
-                } elseif ($taxInclusive) {
-                    $taxAmt = round($lineTaxable - ($lineTaxable / (1 + $ld['tax_rate'] / 100)), 2);
-                } else {
-                    $taxAmt = round($lineTaxable * ($ld['tax_rate'] / 100), 2);
+            // The till's own total must be the total we post. A disagreement is
+            // caught here, before anything is written (no silent absorption).
+            if ($request->filled('expected_total')) {
+                $expected = \App\Support\Money::parseMinor($request->input('expected_total'), 'expected total', $strictMoney);
+                if ($expected !== $calc['invoice']) {
+                    throw new \App\Exceptions\MoneyException(
+                        'The total on the register (' . \App\Support\Money::toString($expected) . ') does not match the server total ('
+                        . \App\Support\Money::toString($calc['invoice']) . '). Nothing was saved. Refresh the products and try again.',
+                        'total_mismatch'
+                    );
                 }
-                
-                $ld['tax_amt'] = $taxAmt;
-                $totalTax     += $taxAmt;
-                // S-011 / S-044 inputs: the order-discount share, and the revenue
-                // this line actually books (taxable net, ex-tax).
-                $ld['global_share'] = $lineShare;
-                $ld['revenue']      = $taxInclusive ? $lineTaxable - $taxAmt : $lineTaxable;
             }
-            unset($ld); // release reference
 
-            $deliveryCharge = (float)($request->delivery_charge ?? 0);
-            $extraCharge    = (float)($request->extra_charge_value ?? 0);
-            // Both ride on top of the taxable base, exactly like the two charges
-            // above: they are not goods, they are not discounted, and they do not
-            // move net_sales. A tip is on the invoice because the customer hands
-            // it over with the bill — where it goes in the LEDGER is a different
-            // question, answered in postSaleJournal().
-            $serviceCharge  = (float)($request->service_charge ?? 0);
-            $tipAmount      = (float)($request->tip_amount ?? 0);
-            $addOnCharges   = $deliveryCharge + $extraCharge + $serviceCharge + $tipAmount;
-            
-            if ($taxInclusive) {
-                $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount - $totalTax);
-                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($subtotalGross - $totalItemDiscounts - $globalDiscount + $addOnCharges, 2));
-            } else {
-                $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-                $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $addOnCharges, 2));
-            }
-            
-            $roundOff     = $invoiceTotal - ($netSales + $totalTax + $addOnCharges);
-
-            // ── Walk-in guard ──
+            // ── Payments: explicit allocation (App\Services\Sales\PaymentAllocation) ──
             // A POS sale with no customer is a counter sale: it must be paid in
-            // full, because there is nobody to owe the balance.
-            if ($request->source === 'pos' && !$request->customer_id) {
-                $walkInPaid = $request->filled('amount_paid')
-                    ? (float) $request->amount_paid
-                    : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
-                if ($request->payment_method === 'credit' || $walkInPaid + 0.5 < $invoiceTotal) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        'customer_id' => ['Choose a customer to sell on credit or take a part payment. Walk-in sales must be paid in full.'],
-                    ]);
-                }
-            }
+            // full, exactly — there is no 0.5 tolerance and nobody to owe a balance.
+            $allocation = \App\Services\Sales\PaymentAllocation::allocate([
+                'invoice'          => $calc['invoice'],
+                'payments'         => $request->input('payments'),
+                'payment_method'   => $request->payment_method,
+                'amount_paid'      => $request->input('amount_paid'),
+                'tendered_amount'  => $request->input('tendered_amount'),
+                'cash_tendered'    => $request->input('cash_tendered'),
+                'add_to_ledger'    => $request->boolean('add_to_ledger'),
+                'has_customer'     => (bool) $request->customer_id,
+                'walk_in_must_pay' => $request->source === 'pos',
+                'strict'           => $strictMoney,
+            ]);
 
             // ── Credit Limit Check ──
             if ($request->customer_id) {
@@ -293,17 +236,10 @@ class SaleController extends Controller
                     ->first();
 
                 if ($customer && $customer->credit_limit !== null) {
-                    $creditPortion = 0.00;
-                    if ($request->payment_method === 'credit') {
-                        $creditPortion = $invoiceTotal;
-                    } else {
-                        $amountPaid = $request->filled('amount_paid')
-                            ? (float) $request->amount_paid
-                            : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
-                        if (round($amountPaid, 2) < round($invoiceTotal, 2)) {
-                            $creditPortion = round($invoiceTotal - $amountPaid, 2);
-                        }
-                    }
+                    // Same quantity the check has always measured (see PaymentAllocation:
+                    // undeclared_receivable). Whether declared credit legs should also
+                    // count against the limit is an open policy decision, not changed here.
+                    $creditPortion = \App\Support\Money::toFloat($allocation['undeclared_receivable']);
 
                     if ($creditPortion > 0) {
                         $currentBalance = (float) DB::table('journal_items as ji')
@@ -377,8 +313,8 @@ class SaleController extends Controller
                     'cost_price' => $ld['product']->cost_price,
                     'paid_qty'   => $ld['qty'],
                     'free_qty'   => $ld['free_qty'],
-                    'gross'      => $ld['qty'] * $ld['unit_price'],
-                    'discount'   => $ld['item_discount'] + $ld['global_share'],
+                    'gross'      => \App\Support\Money::toFloat($ld['gross_minor']),
+                    'discount'   => round($ld['item_discount'] + $ld['global_share'], 2),
                     'revenue'    => $ld['revenue'],
                 ], $lineItemsData),
                 app('current.tenant')->id,
@@ -421,6 +357,11 @@ class SaleController extends Controller
             );
 
             if ($policy['requires_approval']) {
+                if ($deferStock) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'deliver_later' => ['A sale that needs approval cannot be "deliver later" yet. Take stock out at sale time, or ask an approver to raise it.'],
+                    ]);
+                }
                 DB::rollBack();
                 $approvalEngine = app(\App\Services\Approval\ApprovalExecutionEngine::class);
                 $doc = $approvalEngine->submit(
@@ -445,12 +386,15 @@ class SaleController extends Controller
                 return redirect()->back()->with('info', 'Sales invoice submitted for approval.');
             }
 
-            $tendered = $request->filled('amount_paid')
-                ? (float) $request->amount_paid
-                : ($request->payment_method === 'cash' ? $invoiceTotal : 0.0);
-            $changeReturn = $request->filled('change_return')
-                ? (float) $request->change_return
-                : max(0.0, round($tendered - $invoiceTotal, 2));
+            if ($allocation['tender_report_ignored'] !== null) {
+                \App\Support\SaleEvents::record('tender_report_ignored', [
+                    'intent_key' => $idempotencyKey,
+                    'reported'   => \App\Support\Money::toString($allocation['tender_report_ignored']),
+                    'recorded'   => \App\Support\Money::toString($allocation['tendered']),
+                ], 'warning');
+            }
+            $tendered = \App\Support\Money::toFloat($allocation['tendered']);
+            $changeReturn = \App\Support\Money::toFloat($allocation['change']);
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $shiftId = $request->input('register_shift_id');
             if (!$shiftId) {
@@ -467,8 +411,8 @@ class SaleController extends Controller
                     ->value('id');
             }
 
-            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $serviceCharge, $tipAmount, $tendered, $changeReturn, $roundOff, $shiftId) {
-                return Sale::create([
+            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $serviceCharge, $tipAmount, $tendered, $changeReturn, $roundOff, $shiftId, $allocation, $requestHash) {
+                return Sale::create(\App\Services\Sales\CheckoutIntent::withIntentColumns([
                     'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
                     'tenant_id'            => app('current.tenant')->id,
                     'register_shift_id'    => $shiftId,
@@ -509,7 +453,12 @@ class SaleController extends Controller
                        sales on one day still sort in the order they were rung up. */
                     'posted_at'            => (function () use ($request) {
                         $d = $request->input('sale_date', $request->input('date'));
-                        if (!$d) return now();
+                        if (!$d) {
+                            // A queued/replayed till sale belongs to the moment it
+                            // was rung, not the day it reached the server. Closed
+                            // periods are still refused by AccountingPeriodGuard.
+                            return \App\Services\Sales\CheckoutIntent::accountingTimeFrom($request->input('occurred_at')) ?? now();
+                        }
                         try {
                             $parsed = Carbon::parse($d);
                             return $parsed->isSameDay(now())
@@ -519,15 +468,25 @@ class SaleController extends Controller
                             return now();
                         }
                     })(),
-                    'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
+                    // From money actually applied — not from what was handed over.
+                    'payment_status'       => $allocation['payment_status'],
                     'payment_method'       => $request->payment_method,
                     'due_date'             => \App\Services\PlanRepository::canUseFeature(app('current.tenant'), 'payment_due_dates') ? $request->input('due_date') : null,
                     'is_dropship'          => $request->input('is_dropship', false),
                     /* Both screens have had a note field for as long as they have
                        existed and neither one was ever stored. */
                     'notes'                => $request->input('notes'),
-                ]);
+                ], [
+                    'idempotency_request_hash' => $requestHash,
+                    'calculation_version'      => \App\Services\Sales\SaleTotals::VERSION,
+                    'occurred_at'              => \App\Services\Sales\CheckoutIntent::occurredAt($request->input('occurred_at')),
+                ]));
             });
+
+            if ($deferStock) {
+                // Stock and cost of goods are posted when goods are dispatched.
+                DB::table('sales')->where('id', $sale->id)->update(['stock_at_dispatch' => 1, 'delivery_status' => 'pending']);
+            }
 
             // 4. STORAGE: Process Items, Stock, and FIFO
             $totalCogs = 0;
@@ -535,7 +494,7 @@ class SaleController extends Controller
                 $product = $ld['product'];
                 $totalQty = $ld['qty'] + $ld['free_qty'];
 
-                if ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request) && !$sale->is_dropship) {
+                if ($isStockEnabled && !$deferStock && $product->type !== 'service' && !self::skipsStock($product, $request) && !$sale->is_dropship) {
                     $stock = \App\Models\Stock::where('product_id', $ld['product_id'])->where('warehouse_id', $sale->warehouse_id)->first();
                     $avail = $stock ? $stock->quantity : 0;
 
@@ -554,7 +513,7 @@ class SaleController extends Controller
                     }
                 }
 
-                $saleItem = SaleItem::create([
+                $saleItem = SaleItem::create(\App\Services\Sales\CheckoutIntent::withLineColumns([
                     'sale_id' => $sale->id,
                     'product_id' => $ld['product_id'],
                     'product_variant_id' => $ld['variant_id'],
@@ -562,14 +521,23 @@ class SaleController extends Controller
                     'free_quantity' => $ld['free_qty'],
                     'unit_price' => $ld['unit_price'],
                     'cost_price' => $product->cost_price ?? 0,
-                    'gross_amount' => $ld['qty'] * $ld['unit_price'],
+                    'gross_amount' => \App\Support\Money::toFloat($ld['gross_minor']),
                     'discount_amount' => $ld['item_discount'], // pure item-level discount, no freeValue mixed in
                     'net_amount' => $ld['net'],
                     'tax_amount' => $ld['tax_amt'],
-                    'subtotal' => $ld['qty'] * $ld['unit_price'],
-                    'line_total' => $ld['net'] + $ld['tax_amt'],
+                    'subtotal' => \App\Support\Money::toFloat($ld['gross_minor']),
+                    'line_total' => round($ld['net'] + $ld['tax_amt'], 2),
                     'modifiers' => $ld['modifiers'] ?: null,
-                ]);
+                ], [
+                    // What this line BOOKED — returns refund exactly this, pro rata.
+                    'revenue_amount'      => $ld['revenue'],
+                    'bill_discount_share' => $ld['global_share'],
+                ]));
+
+                if ($deferStock && !empty($ld['batch_id'])) {
+                    // Remembered until dispatch, when the stock actually moves.
+                    DB::table('sale_items')->where('id', $saleItem->id)->update(['preferred_batch_id' => $ld['batch_id']]);
+                }
 
                 // Serial Number Recording
                 // Stamped with the store: a raw insert gets no HasTenant fill,
@@ -629,10 +597,13 @@ class SaleController extends Controller
                 // product's flat cost_price is when stock tracking is DISABLED for the
                 // product (service / non-inventory items that legitimately have no batches).
                 $itemCogs = 0;
-                if ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request)) {
+                if ($deferStock && $product->type !== 'service' && !self::skipsStock($product, $request)) {
+                    // Deliver later: nothing leaves the shelf and no cost is booked yet.
+                    $deductions = null;
+                } elseif ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request)) {
                     // Let InsufficientStockException propagate — the outer catch turns it
                     // into a clean 422 + full rollback. No fabrication, no partial post.
-                    $deductions = app(\App\Engines\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
+                    $deductions = app(\App\Engines\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty, preferredBatchId: $ld['batch_id'] ?? null);
                     foreach ($deductions as $d) {
                         $itemCogs += $d['total_cost'];
                         DB::table('sale_item_batches')->insert([
@@ -668,7 +639,7 @@ class SaleController extends Controller
                 );
 
                 // Legacy Stock Update
-                if ($isStockEnabled && $product->type !== 'service' && !self::skipsStock($product, $request)) {
+                if ($isStockEnabled && !$deferStock && $product->type !== 'service' && !self::skipsStock($product, $request)) {
                     if ($ld['variant_id']) {
                         ProductVariant::find($ld['variant_id'])?->decrement('stock', $totalQty);
                     } else {
@@ -694,72 +665,242 @@ class SaleController extends Controller
             }
 
             // 5. ACCOUNTING: Unified Journal Entry
-            $recorded = $addToLedger ? $tendered : min($tendered, $invoiceTotal);
-            $overpayment = max(0, $tendered - $invoiceTotal);
-            $this->postSaleJournal($sale, $request, $netSales, $totalTax, $totalCogs, $roundOff, $invoiceTotal, $recorded, $overpayment, $addToLedger, $approvedBy);
+            $this->postSaleJournal($sale, $request, $calc, $allocation, $totalCogs, $approvedBy);
 
-            // 6. INTEGRATIONS: FBR
+            // 6. INTEGRATIONS: FBR — queued in the sale's own transaction, sent
+            // after commit (never while holding the sale's locks), retried by
+            // `fbr:flush-outbox` when FBR cannot be reached.
             $fbrEnabled = \App\Helpers\SettingsHelper::get('fbr_integration') == '1';
             if ($fbrEnabled) {
-                $fbrRes = $this->fbr->reportSale($sale);
-                if (($fbrRes['Code'] ?? 0) == 100) {
-                    $sale->update(['fbr_invoice_number' => $fbrRes['InvoiceNumber'], 'fbr_qr_data' => $fbrRes['QRData'], 'is_fbr_reported' => true]);
-                }
+                \App\Services\Fbr\FbrOutbox::enqueue($sale);
             }
 
             DB::commit();
 
-            // 7. AUDIT: Activity Log (Done after commit for speed, though technically async is better)
-            \App\Models\Activity::create([
-                'type' => 'sale', 'reference_id' => $sale->id, 'reference_type' => 'sale', 'user_id' => Auth::id(),
-                'amount' => $invoiceTotal, 'description' => 'Sale #' . $sale->reference_number,
-                'metadata' => json_encode(['reference' => $sale->reference_number, 'total' => $invoiceTotal]),
-            ]);
+            if ($fbrEnabled && DB::transactionLevel() === $fbrBaseLevel) {
+                try {
+                    \App\Services\Fbr\FbrOutbox::deliverForSale($sale->id);
+                    $sale->refresh();
+                } catch (\Throwable $fbrError) {
+                    \App\Support\SaleEvents::record('fbr_post_commit_failed', [
+                        'sale_id' => $sale->id, 'error' => $fbrError->getMessage(),
+                    ], 'warning');
+                }
+            }
 
-            return response()->json([
-                'success' => true,
-                'sale_id' => $sale->id,
-                'reference' => $sale->reference_number,
-                'notifications' => $manufacturingNotifications
-            ]);
+            // 7. AUDIT: Activity Log. The sale is COMMITTED: nothing after this
+            // point may turn it into an apparent failure (a 500 here used to make
+            // the till queue a sale that already existed).
+            try {
+                \App\Models\Activity::create([
+                    'type' => 'sale', 'reference_id' => $sale->id, 'reference_type' => 'sale', 'user_id' => Auth::id(),
+                    'amount' => $invoiceTotal, 'description' => 'Sale #' . $sale->reference_number,
+                    'metadata' => json_encode(['reference' => $sale->reference_number, 'total' => $invoiceTotal]),
+                ]);
+            } catch (\Throwable $activityError) {
+                \App\Support\SaleEvents::record('post_commit_activity_failed', [
+                    'sale_id' => $sale->id, 'intent_key' => $idempotencyKey, 'error' => $activityError->getMessage(),
+                ], 'warning');
+            }
+
+            return response()->json(\App\Services\Sales\CheckoutIntent::canonicalResponse($sale, [
+                'notifications' => $manufacturingNotifications,
+            ]));
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'errors' => $e->errors(), 'message' => $e->getMessage()], 422);
+            return response()->json(['success' => false, 'code' => 'validation_failed', 'outcome' => 'rejected', 'errors' => $e->errors(), 'message' => $e->getMessage()], 422);
+        } catch (\App\Exceptions\MoneyException $e) {
+            DB::rollBack();
+            // Nothing was written: the amounts were refused before posting.
+            \App\Support\SaleEvents::record('sale_amount_rejected', [
+                'code' => $e->errorCode, 'intent_key' => $idempotencyKey, 'message' => $e->getMessage(),
+                'calculation_version' => $request->input('calculation_version'),
+            ], 'warning');
+            return response()->json([
+                'success' => false, 'code' => $e->errorCode, 'outcome' => 'rejected',
+                'message' => $e->getMessage(),
+                'errors'  => [$e->errorCode === 'walk_in_unpaid' ? 'customer_id' : 'amount' => [$e->getMessage()]],
+            ], 422);
         } catch (\App\Exceptions\ApprovalRequiredException $e) {
             DB::rollBack();
-            return response()->json($e->payload(), 422);
+            return response()->json($e->payload() + ['outcome' => 'rejected'], 422);
+        } catch (\App\Exceptions\PeriodLockedException $e) {
+            DB::rollBack();
+            // e.g. an offline sale replayed after its period was closed: nothing is
+            // written; the till keeps the intent for a manager to resolve.
+            return response()->json(['success' => false, 'code' => 'period_locked', 'outcome' => 'rejected', 'message' => $e->getMessage()], 422);
         } catch (\App\Exceptions\InsufficientStockException $e) {
             DB::rollBack();
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            return response()->json(['success' => false, 'code' => 'insufficient_stock', 'outcome' => 'rejected', 'message' => $e->getMessage()], 422);
         } catch (\Illuminate\Database\QueryException $e) {
             DB::rollBack();
             // L038: lost the race on the (tenant_id, idempotency_key) unique index —
-            // a concurrent identical request already created the sale. Return it
-            // instead of surfacing a duplicate-key error.
+            // a concurrent request with this key already created the sale. Answer
+            // with that sale (or a conflict if its content differs).
             if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
                 $tenantId = $currentTenant?->id ?? auth()->user()?->tenant_id;
-                $existingSale = $tenantId ? Sale::where('tenant_id', $tenantId)->where('idempotency_key', $idempotencyKey)->first() : null;
-                if ($existingSale) {
-                    return response()->json([
-                        'success'    => true,
-                        'idempotent' => true,
-                        'message'    => 'Sale already recorded for this request.',
-                        'sale_id'    => $existingSale->id,
-                        'reference'  => $existingSale->reference_number,
-                    ], 200);
+                $replay = $tenantId ? self::idempotentReplay($tenantId, (string) $idempotencyKey, $requestHash) : null;
+                if ($replay) {
+                    return $replay;
                 }
             }
-            Log::error('Sale Store Error (query): ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return self::uncertainFailure($e, $idempotencyKey, $request);
         } catch (\Exception $e) {
             DB::rollBack();
             if (str_contains($e->getMessage(), 'Insufficient stock')) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+                return response()->json(['success' => false, 'code' => 'insufficient_stock', 'outcome' => 'rejected', 'message' => $e->getMessage()], 422);
             }
-            Log::error('Sale Store Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return self::uncertainFailure($e, $idempotencyKey, $request);
         }
+    }
+
+    /**
+     * A failure we did not plan for. The transaction was rolled back, but the
+     * caller cannot assume that (a lost response looks the same), so the body
+     * says "unknown" and carries a correlation id; the till keeps the intent and
+     * asks the status endpoint with the same key. Raw exception text is logged,
+     * not sent.
+     */
+    private static function uncertainFailure(\Throwable $e, ?string $intentKey, Request $request)
+    {
+        $correlationId = \App\Support\SaleEvents::correlationId();
+        \App\Support\SaleEvents::record('sale_store_failed', [
+            'intent_key' => $intentKey,
+            'exception'  => get_class($e),
+            'error'      => mb_substr($e->getMessage(), 0, 500),
+            'file'       => $e->getFile() . ':' . $e->getLine(),
+            'calculation_version' => $request->input('calculation_version'),
+        ], 'error');
+        report($e);
+        return response()->json([
+            'success'        => false,
+            'code'           => 'server_error',
+            'outcome'        => 'unknown',
+            'correlation_id' => $correlationId,
+            'message'        => 'The sale could not be confirmed (ref ' . $correlationId . '). Do not ring it again — it will be checked with the same receipt key.',
+        ], 500);
+    }
+
+    /**
+     * Same key seen before in this store: return the canonical committed sale,
+     * or 409 when the content differs. Sales saved before the request hash
+     * existed keep the old behaviour (returned as-is).
+     */
+    public static function idempotentReplay($tenantId, string $key, ?string $requestHash)
+    {
+        // Every scope off (tenant AND soft-delete): an archived sale still owns its key.
+        $existing = Sale::withoutGlobalScopes()
+            ->where('tenant_id', $tenantId)
+            ->where('idempotency_key', $key)
+            ->first();
+        if (!$existing) {
+            return null;
+        }
+        $storedHash = $existing->getAttribute('idempotency_request_hash');
+        if ($storedHash && $requestHash && !hash_equals($storedHash, $requestHash)) {
+            \App\Support\SaleEvents::record('idempotency_conflict', ['intent_key' => $key, 'sale_id' => $existing->id], 'warning');
+            return response()->json([
+                'success' => false,
+                'code'    => 'idempotency_conflict',
+                'outcome' => 'conflict',
+                'message' => 'This receipt key was already used for a different sale (' . $existing->reference_number . '). Nothing was changed.',
+                'sale_id' => $existing->id,
+                'reference' => $existing->reference_number,
+            ], 409);
+        }
+        return response()->json(\App\Services\Sales\CheckoutIntent::canonicalResponse($existing, [
+            'idempotent' => true,
+            'message'    => 'Sale already recorded for this request.',
+        ]), 200);
+    }
+
+    /**
+     * Turn request lines into the contract-v2 calculation and the per-line data
+     * the rest of store() writes. Lines whose product cannot be found are left
+     * out, exactly as before.
+     *
+     * @return array{0: array, 1: array}
+     */
+    private function calculateSaleLines(Request $request, array $items, $products, bool $strict): array
+    {
+        $taxExempt = $request->boolean('tax_exempt');
+        $saleRate = $request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate());
+        $taxInclusive = (bool) $request->input('tax_inclusive', false);
+        $known = [];
+        $input = ['lines' => []];
+        foreach ($items as $itemIndex => $item) {
+            $product = $products->get($item['product_id']);
+            if (!$product) {
+                continue;
+            }
+            $known[] = [$itemIndex, $item, $product];
+            $input['lines'][] = [
+                'unit_price' => $item['price'],
+                'qty'        => $item['quantity'],
+                'free_qty'   => $item['free_quantity'] ?? 0,
+                'discount'   => $item['discount'] ?? 0,
+                /* "No tax on this sale" beats a product's own rate; otherwise a
+                   product's own rate beats the sale rate (unchanged rule). */
+                'tax_rate'   => $product->tax_rate !== null ? (string) $product->tax_rate : null,
+                'tax_type'   => $item['tax_type'] ?? $request->input('tax_type', 'percentage'),
+            ];
+        }
+        $input['bill_discount'] = ['type' => 'fixed', 'value' => $request->input('discount', 0) ?? 0];
+        $input['tax'] = ['enabled' => !$taxExempt, 'inclusive' => $taxInclusive, 'default_rate' => $saleRate ?? 0];
+        // Legacy-client adapter (bounded, explicit): tills before contract v2 sent a
+        // "Delivery fee" twice — as delivery_charge AND extra_charge_value — and the
+        // server summed both. Only that exact signature is folded back to one charge.
+        $deliveryIn = $request->input('delivery_charge', 0) ?? 0;
+        $extraIn = $request->input('extra_charge_value', 0) ?? 0;
+        if (!$strict && (float) $deliveryIn > 0 && (string) (float) $deliveryIn === (string) (float) $extraIn
+            && preg_match('/delivery/i', (string) $request->input('extra_charge_label'))) {
+            $extraIn = 0;
+            \App\Support\SaleEvents::record('legacy_delivery_double_folded', ['amount' => (string) $deliveryIn]);
+        }
+        $input['charges'] = [
+            'delivery' => $deliveryIn,
+            'extra'    => $extraIn,
+            'service'  => $request->input('service_charge', 0) ?? 0,
+            'tip'      => $request->input('tip_amount', 0) ?? 0,
+        ];
+        // The till's round-off switch decides WHETHER; the store setting decides to what.
+        $input['bill_rounding'] = [
+            'apply'   => $request->has('bill_rounding') ? $request->boolean('bill_rounding') : true,
+            'setting' => \App\Helpers\SettingsHelper::get('round_off_total'),
+        ];
+
+        $calc = \App\Services\Sales\SaleTotals::calculate($input, $strict);
+        $m = fn (int $minor) => \App\Support\Money::toFloat($minor);
+
+        $lineItemsData = [];
+        foreach ($known as $k => [$itemIndex, $item, $product]) {
+            $r = $calc['lines'][$k];
+            $lineItemsData[] = [
+                'index'         => $itemIndex,
+                'product'       => $product,
+                'product_id'    => $item['product_id'],
+                'variant_id'    => $item['variant_id'] ?? null,
+                'qty'           => (float) $item['quantity'],
+                'free_qty'      => (float) ($item['free_quantity'] ?? 0),
+                'unit_price'    => (float) $item['price'],
+                'gross_minor'   => $r['gross'],
+                'gross'         => $m($r['gross'] + $r['free']),
+                'discount'      => $m($r['discount'] + $r['free']),  // incl. free items (for totals)
+                'item_discount' => $m($r['discount']),               // pure row discount (saved to DB)
+                'discount_type' => $item['discount_type'] ?? 'fixed',
+                'net'           => $m($r['net']),
+                'tax_rate'      => $taxExempt ? 0.0 : (float) ($input['lines'][$k]['tax_rate'] ?? $saleRate ?? 0),
+                'tax_type'      => $input['lines'][$k]['tax_type'],
+                'tax_amt'       => $m($r['tax']),
+                'global_share'  => $m($r['bill_share']),
+                'revenue'       => $m($r['revenue']),
+                'serials'       => $item['serials'] ?? [],
+                'batch_id'      => $item['batch_id'] ?? null,
+                'modifiers'     => self::cleanModifiers($item['modifiers'] ?? []),
+            ];
+        }
+        return [$calc, $lineItemsData];
     }
 
     /**
@@ -950,6 +1091,12 @@ class SaleController extends Controller
             });
         }
 
+        // Channel filter (Online / POS / Manual) — applies to the list and the stats.
+        $channel = (string) $request->input('channel', 'all');
+        if (in_array($channel, ['online', 'pos', 'manual'], true)) {
+            $query->where('sales.source', $channel);
+        }
+
         // Apply Date Filters
         $tz = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
         $tzNow = \Carbon\Carbon::now($tz);
@@ -1027,9 +1174,27 @@ class SaleController extends Controller
             return response()->json($sales);
         }
 
+        // Online orders still in progress: not a sale yet (nothing posted, no stock taken),
+        // so they are listed beside the sales with the Online tag, outside the stats.
+        $openOnlineOrders = [];
+        if (in_array($channel, ['all', 'online'], true) && !$request->search && $request->user()?->hasPermission('online.orders_view')) {
+            $openOnlineOrders = DB::table('commerce_orders')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->whereIn('status', ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery'])
+                ->orderByDesc('created_at')->limit(50)
+                ->get(['id', 'public_number', 'status', 'payment_status', 'fulfilment', 'customer_name', 'total', 'created_at'])
+                ->map(fn ($o) => [
+                    'id' => $o->id, 'number' => $o->public_number, 'status' => $o->status,
+                    'payment_status' => $o->payment_status, 'fulfilment' => $o->fulfilment,
+                    'customer_name' => $o->customer_name, 'total' => (float) $o->total,
+                    'created_at' => \Carbon\Carbon::parse($o->created_at, 'UTC')->toIso8601String(),
+                ])->all();
+        }
+
         return Inertia::render('Sales/SalesHistory', [
             'sales'   => $sales,
-            'filters' => $request->all(['search', 'filter', 'from_date', 'to_date']),
+            'filters' => $request->all(['search', 'filter', 'from_date', 'to_date', 'channel']),
+            'open_online_orders' => $openOnlineOrders,
             'stats'   => [
                 'total_sale'        => $totalSales,   // net_sales: ex-tax, ex-discount
                 'total_paid'        => $totalPaid,    // SUM(payments.amount > 0)
@@ -1133,6 +1298,10 @@ class SaleController extends Controller
     public function returnSale(Request $request, $id)
     {
         $sale = Sale::with(['items', 'items.saleItemBatches'])->findOrFail($id);
+
+        if (!empty($sale->stock_at_dispatch) && ($sale->delivery_status ?? 'delivered') !== 'delivered') {
+            return back()->withErrors(['error' => 'Some goods on this invoice have not been dispatched yet. Finish the dispatch, or void the invoice.']);
+        }
 
         if ($sale->status === 'returned') {
             return back()->withErrors(['error' => 'This sale has already been fully returned.']);
@@ -1540,6 +1709,10 @@ class SaleController extends Controller
 
     public function update(Request $request, Sale $sale)
     {
+        if (!empty($sale->stock_at_dispatch)) {
+            // Re-posting lines would deduct stock the dispatch has not released yet.
+            return response()->json(['message' => 'A deliver-later invoice cannot be edited. Void it and raise a new one.'], 422);
+        }
         try {
             DB::beginTransaction();
 
@@ -1604,89 +1777,60 @@ class SaleController extends Controller
             $sale->items()->delete();
             $sale->payments()->delete();
 
-            // 2. Phase 1.1 Waterfall Recalculation
-            $subtotalGross      = 0;
-            $totalItemDiscounts = 0;
-            $globalDiscount     = (float) ($request->discount ?? 0);
-            $totalTax           = 0;
-            $lineValues         = [];
+            // 2. Recalculate with the SAME contract-v2 calculation as store().
+            // (The old one-pass float waterfall taxed at 4 decimals and leaned on
+            // the ledger drift patch to balance.)
+            $strictMoney = (int) $request->input('calculation_version', 0) >= \App\Services\Sales\SaleTotals::VERSION;
+            $editItems = array_values((array) $request->items);
+            $editProducts = Product::whereIn('id', collect($editItems)->pluck('product_id')->filter()->unique())->get()->keyBy('id');
+            [$calc, $lineItemsData] = $this->calculateSaleLines($request, $editItems, $editProducts, $strictMoney);
+            $m = fn (int $minor) => \App\Support\Money::toFloat($minor);
+            $lineValues = array_map(fn ($ld) => [
+                'product_id'         => $ld['product_id'],
+                'product_variant_id' => $ld['variant_id'],
+                'quantity'           => $ld['qty'],
+                /* Goods given away still leave the shelf, and store() has
+                   always deducted them. */
+                'free_quantity'      => $ld['free_qty'],
+                'unit_price'         => $ld['unit_price'],
+                'gross_amount'       => $m($ld['gross_minor']),
+                'discount'           => $ld['item_discount'],
+                'discount_amount'    => $ld['item_discount'],
+                'discount_type'      => $ld['discount_type'],
+                'net_amount'         => $ld['net'],
+                'tax_rate'           => $ld['tax_rate'],
+                'tax_amount'         => $ld['tax_amt'],
+                'line_total'         => round($ld['net'] + $ld['tax_amt'], 2),
+                'modifiers'          => $ld['modifiers'] ?: null,
+            ] + (\App\Services\Sales\CheckoutIntent::lineColumnsAvailable() ? [
+                'revenue_amount'      => $ld['revenue'],
+                'bill_discount_share' => $ld['global_share'],
+            ] : []), $lineItemsData);
 
-            /* Two passes, the same way store() does it. The bill-level
-               discount comes off each line in proportion to what that line is
-               worth, and tax is worked out on what is LEFT — because that is
-               what the customer was actually asked to pay tax on.
+            $subtotalGross       = $m($calc['subtotal_gross']);
+            $totalItemDiscounts  = $m($calc['item_discounts'] + $calc['free_value']);
+            $globalDiscount      = $m($calc['bill_discount']);
+            $totalTax            = $m($calc['tax']);
+            $netSales            = $m($calc['revenue']);
+            $deliveryCharge      = $m($calc['delivery']);
+            $extraCharge         = $m($calc['extra']);
+            $serviceCharge       = $m($calc['service']);
+            $tipAmount           = $m($calc['tip']);
+            $roundedInvoiceTotal = $m($calc['invoice']);
+            $roundOff            = $m($calc['round_off']);
 
-               This did it in one pass and taxed the undiscounted line, so an
-               invoice for 1,000 with a 100 discount at 18% was printed at 1,062
-               and, the moment anybody edited it, re-saved at 1,080. The screen
-               and the printed bill agreed with each other and the books
-               disagreed with both. */
-            $prepared = [];
-            $discountPool = 0.0;
-            foreach ($request->items as $item) {
-                $qty          = (float) $item['quantity'];
-                $unitPrice    = (float) $item['price'];
-                $itemDiscount = (float) ($item['discount'] ?? 0);
-                $grossAmount  = $unitPrice * $qty;
-                $netAmount    = max(0, $grossAmount - $itemDiscount);
-                $discountPool += $netAmount;
-
-                $productRecord = Product::find($item['product_id']);
-                $lineTaxRate   = $request->boolean('tax_exempt')
-                    ? 0.0
-                    : (($productRecord->tax_rate !== null) ? (float)$productRecord->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate()));
-
-                $prepared[] = compact('item', 'qty', 'unitPrice', 'itemDiscount', 'grossAmount', 'netAmount', 'lineTaxRate');
-            }
-
-            foreach ($prepared as $p) {
-                ['item' => $item, 'qty' => $qty, 'unitPrice' => $unitPrice,
-                 'itemDiscount' => $itemDiscount, 'grossAmount' => $grossAmount,
-                 'netAmount' => $netAmount, 'lineTaxRate' => $lineTaxRate] = $p;
-
-                $share         = $discountPool > 0 ? $globalDiscount * ($netAmount / $discountPool) : 0.0;
-                $taxable       = max(0, $netAmount - $share);
-                $lineTaxAmount = round($taxable * ($lineTaxRate / 100), 4);
-
-                $subtotalGross      += $grossAmount;
-                $totalItemDiscounts += $itemDiscount;
-                $totalTax           += $lineTaxAmount;
-
-                $lineValues[] = [
-                    'product_id'         => $item['product_id'],
-                    'product_variant_id' => $item['variant_id'] ?? null,
-                    'quantity'           => $qty,
-                    /* Goods given away still leave the shelf, and store() has
-                       always deducted them. An edit that dropped the free units
-                       put them back into stock and never took them out again. */
-                    'free_quantity'      => (float) ($item['free_quantity'] ?? 0),
-                    'unit_price'      => $unitPrice,
-                    'gross_amount'    => $grossAmount,
-                    'discount'        => $itemDiscount,
-                    'discount_amount' => $itemDiscount,
-                    'discount_type'   => $item['discount_type'] ?? 'fixed',
-                    'net_amount'      => $netAmount,
-                    'tax_rate'        => $lineTaxRate,
-                    'tax_amount'      => $lineTaxAmount,
-                    'line_total'      => $netAmount + $lineTaxAmount,
-                    'modifiers'       => self::cleanModifiers($item['modifiers'] ?? []) ?: null,
-                ];
-            }
-
-            $netSales            = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-            $deliveryCharge      = (float) ($request->delivery_charge ?? 0);
-            $extraCharge         = (float) ($request->extra_charge_value ?? 0);
-            // MUST be recomputed here, not just in store(). postSaleJournal()
-            // credits these two off the SALE ROW, so an edit that left them out
-            // of the invoice total while the row still carried them would post an
-            // unbalanced entry — and AccountingService::createEntry() throws on
-            // that, which would turn "edit this sale" into a 500.
-            $serviceCharge       = (float) ($request->service_charge ?? 0);
-            $tipAmount           = (float) ($request->tip_amount ?? 0);
-            $addOnCharges        = $deliveryCharge + $extraCharge + $serviceCharge + $tipAmount;
-
-            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $addOnCharges, 2));
-            $roundOff            = $roundedInvoiceTotal - ($netSales + $totalTax + $addOnCharges);
+            $allocation = \App\Services\Sales\PaymentAllocation::allocate([
+                'invoice'          => $calc['invoice'],
+                'payments'         => $request->input('payments'),
+                'payment_method'   => $request->payment_method,
+                'amount_paid'      => $request->input('amount_paid'),
+                'tendered_amount'  => $request->input('tendered_amount'),
+                'cash_tendered'    => $request->input('cash_tendered'),
+                'add_to_ledger'    => $request->boolean('add_to_ledger'),
+                'has_customer'     => (bool) ($request->input('customer_id') ?: null),
+                'walk_in_must_pay' => false,
+                'strict'           => $strictMoney,
+            ]);
 
             // 3. Update Sale Header with Phase 1.1 Columns
             $sale->update([
@@ -1706,7 +1850,7 @@ class SaleController extends Controller
                 'subtotal_gross'       => $subtotalGross,
                 'total_item_discounts' => $totalItemDiscounts,
                 'round_off'            => $roundOff,
-                'payment_status'       => $request->amount_paid >= $roundedInvoiceTotal ? 'paid' : ($request->amount_paid > 0 ? 'partial' : 'unpaid'),
+                'payment_status'       => $allocation['payment_status'],
                 'payment_method'       => $request->payment_method,
                 'notes'                => $request->notes,
             ]);
@@ -1748,7 +1892,7 @@ class SaleController extends Controller
                         }
                     }
 
-                    $deductions = app(\App\Engines\FifoService::class)->deductStock($line['product_id'], $warehouseId, $qty);
+                    $deductions = app(\App\Engines\FifoService::class)->deductStock($line['product_id'], $warehouseId, $qty, preferredBatchId: $line['batch_id'] ?? null);
                     foreach ($deductions as $d) {
                         $itemCogs += $d['total_cost'];
                         DB::table('sale_item_batches')->insert([
@@ -1802,23 +1946,8 @@ class SaleController extends Controller
             }
 
             // 5. Re-post Journal & Payments
-            $addToLedger = $request->boolean('add_to_ledger');
-            $tenderedAmount = (float) $request->amount_paid;
-            $recordedAmount    = $addToLedger ? $tenderedAmount : min($tenderedAmount, $roundedInvoiceTotal);
-            $overpaymentAmount = max(0, $tenderedAmount - $roundedInvoiceTotal);
-
-            $this->postSaleJournal(
-                $sale, 
-                $request, 
-                $netSales, 
-                $totalTax, 
-                $totalCogs, 
-                $roundOff, 
-                $roundedInvoiceTotal, 
-                $recordedAmount, 
-                $overpaymentAmount, 
-                $addToLedger
-            );
+            $tenderedAmount = $m($allocation['tendered']);
+            $this->postSaleJournal($sale, $request, $calc, $allocation, $totalCogs);
 
             // 6. Sync Activity
             \App\Models\Activity::updateOrCreate(
@@ -1846,6 +1975,9 @@ class SaleController extends Controller
             DB::commit();
             return response()->json(['success' => true, 'sale_id' => $sale->id]);
 
+        } catch (\App\Exceptions\MoneyException $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'code' => $e->errorCode, 'message' => $e->getMessage()], 422);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Sale Update Error: ' . $e->getMessage());
@@ -1874,279 +2006,158 @@ class SaleController extends Controller
         return null;
     }
 
-    private function postSaleJournal(
-        Sale $sale, 
-        Request $request, 
-        float $netSales, 
-        float $totalTax, 
-        float $totalCogs, 
-        float $roundOff, 
-        float $roundedInvoiceTotal, 
-        float $recordedAmount, 
-        float $overpaymentAmount, 
-        bool $addToLedger,
-        ?string $approvedBy = null
-    ) {
-        // A. Record Payments
-        if ($recordedAmount > 0) {
-            if ($request->has('payments') && is_array($request->payments) && count($request->payments) > 0) {
-                foreach ($request->payments as $p) {
-                    $pAmt = (float)($p['amount'] ?? 0);
-                    $pMethod = strtolower($p['method'] ?? 'cash');
-                    if ($pAmt > 0) {
-                        Payment::create([
-                            'sale_id'         => $sale->id,
-                            'amount'          => $pAmt,
-                            'method'          => $pMethod,
-                            'type'            => 'in',
-                            'bank_account_id' => $p['account_id'] ?? $p['bank_account_id'] ?? null,
-                            'reference'       => $p['reference'] ?? null,
-                            'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
-                        ]);
-                    }
-                }
-            } else {
-                $pmMethod = strtolower($request->payment_method);
-                $createdPayment = Payment::create([
-                    'sale_id'         => $sale->id,
-                    'amount'          => $recordedAmount,
-                    'method'          => $pmMethod,
-                    'type'            => 'in',
-                    'bank_account_id' => $request->bank_account_id ?? null,
-                    /* "Deposited to HBL" or a cheque number. The column has always
-                       been there; nothing was ever written into it. */
-                    'reference'       => $request->input('payment_reference'),
-                    /* When the cheque is dated for later, that date is the whole
-                       point of taking it - it says when the money actually lands. */
-                    'cheque_date'     => $request->input('cheque_date'),
-                    'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
-                ]);
+    /**
+     * Payments + one journal entry for a sale, built ONLY from the contract-v2
+     * calculation ($calc) and payment allocation ($alloc), all integer minor
+     * units. Each expected account amount is explicit; the entry is checked to
+     * balance to the paisa BEFORE it reaches the ledger. There is no tolerance
+     * and no revenue adjustment: an imbalance here is a defect and is refused.
+     */
+    private function postSaleJournal(Sale $sale, Request $request, array $calc, array $alloc, float $totalCogs, ?string $approvedBy = null)
+    {
+        $currentTenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        $date = $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString();
+        $money = fn (int $minor) => \App\Support\Money::toFloat($minor);
+        $isBank = fn (string $m) => in_array($m, ['bank', 'card', 'online', 'upi'], true);
 
-                if ($pmMethod === 'cheque' && $request->filled('payment_reference')) {
-                    try {
-                        $rc = app(\App\Services\Cheque\ChequeDuplicateService::class)->recordReceivedCheque(
-                            tenant: $currentTenant,
-                            chequeNumber: $request->input('payment_reference'),
-                            amount: $recordedAmount,
-                            partyId: $sale->customer_id,
-                            bankName: $request->input('bank_name') ?? 'Bank',
-                            chequeDate: $request->input('cheque_date') ?? ($sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString()),
-                            paymentId: $createdPayment->id,
-                            notes: 'Sale POS receipt ' . ($sale->invoice_number ?? $sale->id)
-                        );
-                    } catch (\Exception $e) {
-                        Log::warning("Could not auto-record received cheque for sale {$sale->id}: " . $e->getMessage());
-                    }
+        // A. Payment rows — one per allocated line, at the amount applied
+        //    (cash change already taken out; an advance stays on its line).
+        foreach ($alloc['lines'] as $line) {
+            $single = !empty($line['single']);
+            $created = Payment::create([
+                'sale_id'         => $sale->id,
+                'amount'          => $money($line['amount']),
+                'method'          => $line['method'],
+                'type'            => 'in',
+                'bank_account_id' => $single ? ($request->bank_account_id ?? null) : ($line['account_id'] ?? $line['bank_account_id'] ?? null),
+                /* "Deposited to HBL" or a cheque number. */
+                'reference'       => $single ? $request->input('payment_reference') : ($line['reference'] ?? null),
+                'cheque_date'     => $single ? $request->input('cheque_date') : null,
+                'date'            => $date,
+            ]);
+            if ($single && $line['method'] === 'cheque' && $request->filled('payment_reference')) {
+                try {
+                    app(\App\Services\Cheque\ChequeDuplicateService::class)->recordReceivedCheque(
+                        tenant: $currentTenant,
+                        chequeNumber: $request->input('payment_reference'),
+                        amount: $money($line['amount']),
+                        partyId: $sale->customer_id,
+                        bankName: $request->input('bank_name') ?? 'Bank',
+                        chequeDate: $request->input('cheque_date') ?? $date,
+                        paymentId: $created->id,
+                        notes: 'Sale POS receipt ' . ($sale->invoice_number ?? $sale->id)
+                    );
+                } catch (\Exception $e) {
+                    Log::warning("Could not auto-record received cheque for sale {$sale->id}: " . $e->getMessage());
                 }
             }
         }
 
-        // B. Construct Journal Items
-        $journalItems = [];
-        $isLedgerOverpayment = $addToLedger && $overpaymentAmount > 0;
-        $cashDebitAmount = $isLedgerOverpayment ? $recordedAmount : min($recordedAmount, $roundedInvoiceTotal);
-        
-        // DR: Payments
-        $amountPaidCounted = 0;
-        if ($request->has('payments') && is_array($request->payments) && count($request->payments) > 0) {
-            foreach ($request->payments as $p) {
-                $pAmt = (float)($p['amount'] ?? 0);
-                if ($pAmt <= 0) continue;
-                $pMethod = strtolower($p['method'] ?? 'cash');
-                
-                $acc = $this->resolvePaymentAccount($p['account_id'] ?? null, $pMethod);
-                
-                if (!$acc) {
-                    if ($pMethod === 'credit') {
-                        $code = '1200';
-                    } else {
-                        $code = in_array($pMethod, ['bank', 'card', 'online', 'upi']) ? '1010' : '1000';
-                    }
-                    $acc = $this->accounting->getAccountByCode($code);
-                }
-                
-                if ($acc) {
-                    $bankAccountId = in_array($pMethod, ['bank', 'card', 'online', 'upi'])
-                        ? ($p['bank_account_id'] ?? $p['account_id'] ?? null)
-                        : null;
-
-                    $journalItems[] = [
-                        'account_id'      => $acc->id, 
-                        'debit'           => $pAmt, 
-                        'credit'          => 0, 
-                        'bank_account_id' => $bankAccountId,
-                        'description'     => "Payment ($pMethod) for Sale #{$sale->reference_number}",
-                        'party_id'        => $sale->party_id
-                    ];
-                }
-                $amountPaidCounted += $pAmt;
+        // B. Journal lines (minor units until the very end).
+        $lines = [];
+        $add = function (string $accountId, int $debit, int $credit, string $description, $partyId = null, $bankAccountId = null) use (&$lines) {
+            if ($debit === 0 && $credit === 0) {
+                return;
             }
-        } else {
-            if ($cashDebitAmount > 0) {
-                $pMethod = strtolower($request->payment_method);
-                
-                $acc = $this->resolvePaymentAccount($request->payment_account_id, $pMethod);
-                
-                // Fallback if account not found (e.g. legacy numeric ID 1 passed instead of V3 UUID)
-                if (!$acc) {
-                    $code = in_array($pMethod, ['bank', 'card', 'online', 'upi']) ? '1010' : '1000';
-                    $acc = $this->accounting->getAccountByCode($code);
-                }
+            $lines[] = compact('accountId', 'debit', 'credit', 'description', 'partyId', 'bankAccountId');
+        };
+        $ref = $sale->reference_number;
 
-                if ($acc) {
-                    $bankAccountId = in_array($pMethod, ['bank', 'card', 'online', 'upi'])
-                        ? ($request->bank_account_id ?? $request->payment_account_id ?? null)
-                        : null;
-
-                    $journalItems[] = [
-                        'account_id'      => $acc->id, 
-                        'debit'           => $cashDebitAmount, 
-                        'credit'          => 0, 
-                        'bank_account_id' => $bankAccountId,
-                        'description'     => "Payment received for Sale #{$sale->reference_number}",
-                        'party_id'        => $sale->party_id
-                    ];
-                }
-                $amountPaidCounted = $cashDebitAmount;
+        // DR money received, per method/account. A 'credit' line is not money:
+        // it is part of the receivable below.
+        foreach ($alloc['lines'] as $line) {
+            $method = $line['method'];
+            if (in_array($method, \App\Services\Sales\PaymentAllocation::RECEIVABLE_METHODS, true)) {
+                continue;
             }
+            $accountRef = !empty($line['single']) ? $request->payment_account_id : ($line['account_id'] ?? null);
+            $acc = $this->resolvePaymentAccount($accountRef, $method)
+                ?? $this->accounting->getAccountByCode($isBank($method) ? '1010' : '1000');
+            $bankAccountId = $isBank($method)
+                ? (!empty($line['single']) ? ($request->bank_account_id ?? $request->payment_account_id ?? null) : ($line['bank_account_id'] ?? null))
+                : null;
+            $add($acc->id, $line['amount'], 0, "Payment ($method) for Sale #{$ref}", $sale->party_id, $bankAccountId);
         }
 
-        // DR: Accounts Receivable
-        $unpaidBalance = max(0, $roundedInvoiceTotal - $amountPaidCounted);
-        if ($unpaidBalance > 0) {
+        // DR receivable — what the customer still owes.
+        if ($alloc['receivable'] > 0) {
             $ar = $this->accounting->getAccountByCode('1200', 'Accounts Receivable', 'asset');
-            $journalItems[] = [
-                'account_id'  => $ar->id, 
-                'debit'       => $unpaidBalance, 
-                'credit'      => 0, 
-                'description' => "Credit balance for Sale #{$sale->reference_number}",
-                'party_id'    => $sale->party_id
-            ];
+            $add($ar->id, $alloc['receivable'], 0, "Credit balance for Sale #{$ref}", $sale->party_id);
         }
 
-        // CR: Overpayment
-        if ($isLedgerOverpayment) {
+        // CR customer advance kept on account (explicit "add to ledger" only).
+        if ($alloc['advance'] > 0) {
             $cr = $this->accounting->getAccountByCode('2050', 'Customer Credit Balances', 'liability');
-            $journalItems[] = [
-                'account_id'  => $cr->id, 
-                'debit'       => 0, 
-                'credit'      => $overpaymentAmount, 
-                'description' => "Customer credit from Sale #{$sale->reference_number}",
-                'party_id'    => $sale->party_id
-            ];
+            $add($cr->id, 0, $alloc['advance'], "Customer credit from Sale #{$ref}", $sale->party_id);
         }
 
-        // CR: Revenue
+        // CR revenue, charges, tips (a liability), tax.
         $rev = $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income');
-        $journalItems[] = [
-            'account_id'  => $rev->id, 
-            'debit'       => 0, 
-            'credit'      => $netSales, 
-            'description' => "Revenue from Sale #{$sale->reference_number}",
-            'party_id'    => $sale->party_id
-        ];
-
-        // CR: Delivery Charges
-        $deliveryCharge = (float)($sale->delivery_charge ?? 0);
-        if ($deliveryCharge > 0) {
-            $deliveryAcc = $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
-            $journalItems[] = [
-                'account_id'  => $deliveryAcc->id,
-                'debit'       => 0,
-                'credit'      => $deliveryCharge,
-                'description' => "Delivery charges from Sale #{$sale->reference_number}",
-                'party_id'    => $sale->party_id
-            ];
+        $add($rev->id, 0, $calc['revenue'], "Revenue from Sale #{$ref}", $sale->party_id);
+        $other = null;
+        $otherIncome = function () use (&$other) {
+            return $other ??= $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
+        };
+        if ($calc['delivery'] > 0) {
+            $add($otherIncome()->id, 0, $calc['delivery'], "Delivery charges from Sale #{$ref}", $sale->party_id);
         }
-
-        // CR: Extra Charges
-        $extraCharge = (float)($sale->extra_charge_value ?? 0);
-        if ($extraCharge > 0) {
-            $extraAcc = $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
-            $journalItems[] = [
-                'account_id'  => $extraAcc->id,
-                'debit'       => 0,
-                'credit'      => $extraCharge,
-                'description' => "Extra charges from Sale #{$sale->reference_number}",
-                'party_id'    => $sale->party_id
-            ];
+        if ($calc['extra'] > 0) {
+            $add($otherIncome()->id, 0, $calc['extra'], "Extra charges from Sale #{$ref}", $sale->party_id);
         }
-
-        // CR: Service Charge
-        //
-        // The house's money, so it is posted exactly like the two charges above
-        // it: Other Income, credited, outside net_sales. It is turnover the
-        // business earned for serving the table.
-        $serviceCharge = (float)($sale->service_charge ?? 0);
-        if ($serviceCharge > 0) {
-            $serviceAcc = $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
-            $journalItems[] = [
-                'account_id'  => $serviceAcc->id,
-                'debit'       => 0,
-                'credit'      => $serviceCharge,
-                'description' => "Service charge from Sale #{$sale->reference_number}",
-                'party_id'    => $sale->party_id
-            ];
+        // Service charge: the house's money (Other Income).
+        if ($calc['service'] > 0) {
+            $add($otherIncome()->id, 0, $calc['service'], "Service charge from Sale #{$ref}", $sale->party_id);
         }
-
-        // CR: Tips — A LIABILITY, NOT INCOME
-        //
-        // This is the one line on the bill that is not the restaurant's money.
-        // The business collects a tip on behalf of its staff and owes it on from
-        // the moment it is taken, so it is credited to a payable and never
-        // touches the P&L. Booking it to 4100 with the service charge would
-        // overstate turnover, overstate taxable income, and — in most
-        // jurisdictions — be the exact thing that gets a restaurant assessed.
-        //
-        // 2150 sits in the liability band next to 2100 Sales Tax Payable and is
-        // resolved through the same getAccountByCode() firstOrCreate every other
-        // account on this entry uses (see 2050 above, which is created the same
-        // way on first overpayment). It is also seeded by name in
-        // TenantDefaultSeeder so a real chart of accounts has it from day one.
-        // Paying the staff out is a separate entry: DR 2150, CR 1000.
-        $tipAmount = (float)($sale->tip_amount ?? 0);
-        if ($tipAmount > 0) {
+        // Tips: held for staff — 2150 Tips Payable, never income. Paid out by a
+        // separate DR 2150 / CR 1000 entry.
+        if ($calc['tip'] > 0) {
             $tipsAcc = $this->accounting->getAccountByCode('2150', 'Tips Payable', 'liability');
-            $journalItems[] = [
-                'account_id'  => $tipsAcc->id,
-                'debit'       => 0,
-                'credit'      => $tipAmount,
-                'description' => "Tips held for staff — #{$sale->reference_number}",
-                'party_id'    => $sale->party_id
-            ];
+            $add($tipsAcc->id, 0, $calc['tip'], "Tips held for staff — #{$ref}", $sale->party_id);
         }
-
-        // CR: Tax
-        if ($totalTax > 0) {
+        if ($calc['tax'] > 0) {
             $taxAcc = $this->accounting->getAccountByCode('2100', 'Sales Tax Payable', 'liability');
-            $journalItems[] = ['account_id' => $taxAcc->id, 'debit' => 0, 'credit' => $totalTax, 'description' => "Tax collected — #{$sale->reference_number}"];
+            $add($taxAcc->id, 0, $calc['tax'], "Tax collected — #{$ref}");
         }
 
-        // Round Off
-        $roundedRoundOff = round($roundOff, 2);
-        if (abs($roundedRoundOff) > 0.001) {
-            $code = $roundedRoundOff > 0 ? '4900' : '5900';
-            $acc = $this->accounting->getAccountByCode($code);
-            $journalItems[] = ['account_id' => $acc->id, 'debit' => $roundedRoundOff < 0 ? abs($roundedRoundOff) : 0, 'credit' => $roundedRoundOff > 0 ? abs($roundedRoundOff) : 0, 'description' => "Round off — #{$sale->reference_number}"];
+        // Explicit bill rounding from the calculation — never inferred from an imbalance.
+        if ($calc['round_off'] !== 0) {
+            $acc = $this->accounting->getAccountByCode($calc['round_off'] > 0 ? '4900' : '5900');
+            $abs = abs($calc['round_off']);
+            $add($acc->id, $calc['round_off'] < 0 ? $abs : 0, $calc['round_off'] > 0 ? $abs : 0, "Round off — #{$ref}");
         }
 
-        // COGS
-        if ($totalCogs > 0) {
+        // COGS — one quantized amount on both sides (FIFO costs may carry more decimals).
+        $cogsMinor = \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format($totalCogs, 6, '.', '')));
+        if ($cogsMinor > 0) {
             $cogs = $this->accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense');
             $inv = $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
-            $journalItems[] = ['account_id' => $cogs->id, 'debit' => $totalCogs, 'credit' => 0, 'description' => "COGS — #{$sale->reference_number}"];
-            $journalItems[] = ['account_id' => $inv->id, 'debit' => 0, 'credit' => $totalCogs, 'description' => "Inventory reduction — #{$sale->reference_number}"];
+            $add($cogs->id, $cogsMinor, 0, "COGS — #{$ref}");
+            $add($inv->id, 0, $cogsMinor, "Inventory reduction — #{$ref}");
         }
 
-        return app(\App\Engines\AccountingService::class)->createEntry([
-            'date'           => $sale->posted_at ? $sale->posted_at->toDateString() : now()->toDateString(),
+        $dr = array_sum(array_column($lines, 'debit'));
+        $cr = array_sum(array_column($lines, 'credit'));
+        if ($dr !== $cr) {
+            // By construction this cannot happen; if it does, refuse — never patch revenue.
+            throw new \LogicException("Sale journal does not balance for #{$ref}: debits {$dr} vs credits {$cr} (minor units).");
+        }
+
+        return $this->accounting->createEntry([
+            'date'           => $date,
             'reference_type' => 'sale',
             'reference'      => $sale->id,
-            'description'    => "Sale #{$sale->reference_number}",
+            'description'    => "Sale #{$ref}",
             'party_id'       => $sale->party_id,
             // S-011 / S-044: the verified manager approval, as on the V3 path.
             'approved_by'    => $approvedBy,
-        ], $journalItems);
+        ], array_map(fn ($l) => array_filter([
+            'account_id'      => $l['accountId'],
+            'debit'           => $money($l['debit']),
+            'credit'          => $money($l['credit']),
+            'description'     => $l['description'],
+            'party_id'        => $l['partyId'],
+            'bank_account_id' => $l['bankAccountId'],
+        ], fn ($v) => $v !== null), $lines));
     }
 
     public function cancel(Sale $sale)

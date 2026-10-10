@@ -166,7 +166,7 @@ function PhoneSplitInput({ value = '', onChange }) {
                                     <div
                                         key={`${item.code}-${item.iso}`}
                                         onClick={() => handleDialChange(item.code)}
-                                        className={`px-3 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all flex items-center justify-between mb-0.5 ${isSelected ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400' : 'text-ink hover:bg-interactive-hover'}`}
+                                        className={`px-3 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all flex flex-wrap items-center justify-between gap-y-2 mb-0.5 ${isSelected ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400' : 'text-ink hover:bg-interactive-hover'}`}
                                     >
                                         <div className="flex items-center gap-2.5 min-w-0">
                                             <span className="text-base shrink-0">{item.flag}</span>
@@ -269,10 +269,10 @@ export default function BusinessSettingsSection({ data, setData }) {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow">
             {/* High Density Dashboard Grid */}
-            <div className="grid grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
                 {/* Row 1: Core Identity (Takes full top row for ease of access) */}
-                <div className="col-span-12 xl:col-span-8 p-6 bg-surface rounded-2xl border border-line shadow-xs">
+                <div className="md:col-span-12 xl:col-span-8 p-6 bg-surface rounded-2xl border border-line shadow-xs">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
                             <Building2 size={18} />
@@ -327,7 +327,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                             />
                         </div>
                         <div className="space-y-1.5 group/input opacity-75">
-                            <div className="flex items-center justify-between ml-1">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 ml-1">
                                 <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Custom Domain Mapping</label>
                                 <span className="px-2 py-0.2 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-4xs font-bold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">Coming Soon</span>
                             </div>
@@ -358,7 +358,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                 </div>
 
                 {/* Regional Settings (Compact Side Panel) */}
-                <div className="col-span-12 xl:col-span-4 p-6 bg-surface text-ink rounded-2xl border border-line shadow-xs relative overflow-hidden">
+                <div className="md:col-span-12 xl:col-span-4 p-6 bg-surface text-ink rounded-2xl border border-line shadow-xs relative overflow-hidden">
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="p-2 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600 dark:text-brand-400">
@@ -422,7 +422,7 @@ export default function BusinessSettingsSection({ data, setData }) {
                 </div>
 
                 {/* Row 2: Address (Full width of remaining space) */}
-                <div className="col-span-12 p-6 bg-surface rounded-2xl border border-line shadow-xs relative group hover:border-brand-500/30 transition-all">
+                <div className="md:col-span-12 p-6 bg-surface rounded-2xl border border-line shadow-xs relative group hover:border-brand-500/30 transition-all">
                     <div className="flex items-start gap-4">
                         <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-600 dark:text-emerald-400 shrink-0">
                             <MapPin size={18} />

@@ -25,6 +25,10 @@ class HandleInertiaRequests extends Middleware
      */
     public function version(Request $request): ?string
     {
+        if (app()->runningUnitTests()) {
+            return null;
+        }
+
         return parent::version($request);
     }
 
@@ -140,6 +144,15 @@ class HandleInertiaRequests extends Middleware
                         return \App\Models\TenantUser::where('user_id', $user->id)->where('status', 'active')->count();
                     })
                     : 0,
+                // New (pending) online-store orders, for the phone top-bar badge
+                'online_orders_pending' => ($user && $dbReady && $this->hasTable('commerce_orders'))
+                    ? rescue(function () {
+                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                        if (!$tenant) return 0;
+                        return \Illuminate\Support\Facades\Cache::remember("online_orders_pending:{$tenant->id}", 15,
+                            fn () => \Illuminate\Support\Facades\DB::table('commerce_orders')->where('tenant_id', $tenant->id)->where('status', 'pending')->count());
+                    }, 0, false)
+                    : 0,
                 // Pending approvals count for sidebar badge
                 'pending_approvals_count' => ($user && $dbReady && $this->hasTable('approval_documents'))
                     ? rescue(function () use ($user) {
@@ -251,6 +264,9 @@ class HandleInertiaRequests extends Middleware
             'modules' => fn () => app()->bound('current.tenant')
                 ? \App\Services\ModuleService::allVisible(app('current.tenant'), $request->user())
                 : [],
+            'runs_foh' => fn () => app()->bound('current.tenant')
+                ? \App\Services\ModuleService::runsFrontOfHouse(app('current.tenant'))
+                : false,
             'planFeatures' => function () {
                 $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
                 if (!$tenant) return [];

@@ -39,14 +39,14 @@ export default function ProfitLoss({ incomeAccounts, expenseAccounts, totalIncom
                 <div className="overflow-y-auto custom-scrollbar flex-1">
 
                     {/* Net Profit Card */}
-                    <div className={`mb-8 p-8 rounded-2xl border ${netProfit >= 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' : 'bg-rose-50 border-rose-100 dark:bg-rose-900/10 dark:border-rose-900/30'} flex flex-col md:flex-row justify-between items-center gap-6`}>
+                    <div className={`mb-8 p-4 sm:p-8 rounded-2xl border ${netProfit >= 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' : 'bg-rose-50 border-rose-100 dark:bg-rose-900/10 dark:border-rose-900/30'} flex flex-col md:flex-row justify-between items-center gap-6`}>
                         <div className="flex items-center gap-6">
                             <div className={`p-4 rounded-2xl ${netProfit >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} shadow-lg`}>
                                 {netProfit >= 0 ? <TrendingUp size={32} /> : <TrendingDown size={32} />}
                             </div>
                             <div>
                                 <p className={`text-sm font-bold uppercase tracking-widest ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>Net Profit</p>
-                                <h3 className={`text-4xl font-bold ${netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                                <h3 className={`text-2xl sm:text-4xl font-bold ${netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                                     {getCurrencySymbol()} {netProfit.toLocaleString()}
                                 </h3>
                             </div>

@@ -911,9 +911,9 @@ const CreatePreSale = ({ sale }) => {
 
 
 
- <div className={`flex-1 flex gap-2 min-h-0 px-2 pb-0 pt-2 overflow-hidden text-scale-${textSize}`}>
+ <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 overflow-y-auto lg:overflow-hidden text-scale-${textSize}`}>
  {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
- <div className="flex-1 bg-surface rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden min-h-0">
+ <div className="flex-1 bg-surface rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden min-h-[75vh] lg:min-h-0">
  {/* TABS BAR - Now inside left section */}
  <div className="flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-line bg-sunken/50 dark:bg-surface shrink-0">
  {activeInvoices.map((inv, idx) => (
@@ -1003,7 +1003,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
  {currentInvoice.customer ? (
  <div className="relative">
- <div className="w-full bg-surface border border-line rounded-2xl pl-12 pr-10 py-3.5 flex items-center justify-between shadow-sm">
+ <div className="w-full bg-surface border border-line rounded-2xl pl-12 pr-10 py-3.5 flex flex-wrap items-center justify-between gap-y-2 shadow-sm">
  <div>
  <p className="font-bold text-ink text-sm">{currentInvoice.customer.name}</p>
  <p className="text-xs text-ink-muted">{currentInvoice.customer.phone || 'No Phone'}</p>
@@ -1105,7 +1105,7 @@ const CreatePreSale = ({ sale }) => {
  });
  }
  }}
- className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-between ${(currentInvoice.paymentAccountId || 1) === acc.id
+ className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex flex-wrap items-center justify-between gap-y-2 ${(currentInvoice.paymentAccountId || 1) === acc.id
  ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
  : 'text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
  }`}
@@ -1435,7 +1435,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* RIGHT SECTION - Side Info Panel */}
- <div className="w-80 bg-void-700 flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-neutral-800">
+ <div className="w-full lg:w-80 shrink-0 bg-void-700 flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-neutral-800">
 
  {/* Customer Summary Section - Text Size Responsive */}
  <div className="p-4 border-b border-neutral-800/50 bg-neutral-900/30 shrink-0">
@@ -1566,7 +1566,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* Discount Row */}
- <div className="flex items-center justify-between bg-neutral-800/30 rounded-xl p-3 border border-neutral-700/50">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 bg-neutral-800/30 rounded-xl p-3 border border-neutral-700/50">
  <span className="text-xs text-ink-muted font-bold">Invoice Discount</span>
  <div className="flex items-center gap-2">
  <span className="text-ink-muted text-xs">{getCurrencySymbol(store || settings)}</span>
@@ -1581,7 +1581,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* Tax Row */}
- <div className="flex items-center justify-between bg-neutral-800/30 rounded-xl p-3 border border-neutral-700/50">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 bg-neutral-800/30 rounded-xl p-3 border border-neutral-700/50">
  <span className="text-xs text-ink-muted font-bold">Tax</span>
  <div className="flex items-center gap-2">
  <input
@@ -1597,7 +1597,7 @@ const CreatePreSale = ({ sale }) => {
 
  {/* Delivery Charge Row - Conditional */}
  {showDeliveryCharges && (
- <div className="flex items-center justify-between p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
  <span className="text-xs text-ink-muted font-bold group-hover:text-ink-muted">Delivery Charges</span>
  <div className="flex items-center gap-2">
  <span className="text-ink-secondary text-2xs">{getCurrencySymbol(store || settings)}</span>
@@ -1617,7 +1617,7 @@ const CreatePreSale = ({ sale }) => {
  <>
  {!enableMultipleExtras ? (
  /* Single Extra Field Mode */
- <div className="flex items-center justify-between p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
  <div className="flex items-center gap-1">
  <input
  type="text"
@@ -1643,7 +1643,7 @@ const CreatePreSale = ({ sale }) => {
  /* Multiple Extra Fields Mode */
  <div className="space-y-1">
  {(currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }]).map((field, idx) => (
- <div key={field.id || idx} className="flex items-center justify-between p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
+ <div key={field.id || idx} className="flex flex-wrap items-center justify-between gap-y-2 p-2 hover:bg-interactive-hover rounded-lg transition-colors group">
  <div className="flex items-center gap-1">
  <input
  type="text"
@@ -1702,7 +1702,7 @@ const CreatePreSale = ({ sale }) => {
  )}
 
  {/* Amount Paid Row */}
- <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
  <span className="text-xs text-emerald-400 font-bold">Amount Paid</span>
  <div className="flex items-center gap-2">
  <span className="text-emerald-600 text-xs">{getCurrencySymbol(store || settings)}</span>
@@ -1718,7 +1718,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* Balance Due Row */}
- <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'}`}>
+ <div className={`flex flex-wrap items-center justify-between gap-y-2 rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'}`}>
  <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Balance Due</span>
  <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
  {formatCurrency(balanceDue, store || settings)}
@@ -1783,7 +1783,7 @@ const CreatePreSale = ({ sale }) => {
  {
  showProfit && !showProfitModal && (
  <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-normal">
- <div className="bg-neutral-900/95 backdrop-blur-lg rounded-2xl px-8 py-4 shadow-2xl border border-neutral-700 flex items-center gap-6">
+ <div className="bg-neutral-900/95 backdrop-blur-lg rounded-2xl px-4 sm:px-8 py-4 shadow-2xl border border-neutral-700 flex items-center gap-6">
  <div className="flex items-center gap-3">
  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${profit >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
  <TrendingUp size={24} className={profit >= 0 ? 'text-emerald-400' : 'text-red-400'} />
@@ -1855,7 +1855,7 @@ const CreatePreSale = ({ sale }) => {
  isScanning && (
  <div className="fixed inset-0 bg-neutral-900/80 backdrop-blur-md z-drawer flex items-center justify-center p-4">
  <div className="bg-surface rounded-2xl shadow-2xl border border-line w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-slow">
- <div className="p-8 border-b border-line flex items-center justify-between bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800/50 dark:to-neutral-900">
+ <div className="p-4 sm:p-8 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800/50 dark:to-neutral-900">
  <div className="flex items-center gap-5">
  <div className="w-14 h-14 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-xl ">
  <ScanBarcode size={28} />
@@ -1870,7 +1870,7 @@ const CreatePreSale = ({ sale }) => {
  </button>
  </div>
 
- <div className="p-8 space-y-8">
+ <div className="p-4 sm:p-8 space-y-8">
  <div className="relative">
  <input
  autoFocus
@@ -1879,7 +1879,7 @@ const CreatePreSale = ({ sale }) => {
  value={scanBuffer}
  onChange={(e) => setScanBuffer(e.target.value)}
  onKeyDown={handleScan}
- className="w-full py-8 px-10 bg-app border-4 border-brand-100 dark:border-brand-900/30 rounded-xl text-3xl font-bold text-center focus:ring-8 ring-brand-500/10 placeholder-slate-200 transition-all"
+ className="w-full py-8 px-4 sm:px-10 bg-app border-4 border-brand-100 dark:border-brand-900/30 rounded-xl text-3xl font-bold text-center focus:ring-8 ring-brand-500/10 placeholder-slate-200 transition-all"
  />
  <div className="absolute right-8 top-1/2 -translate-y-1/2">
  <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
@@ -1894,7 +1894,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
  ) : (
  scannedItems.map((item, idx) => (
- <div key={item.id} className="flex items-center justify-between p-5 bg-app rounded-2xl border-2 border-line animate-in slide-in-from-bottom-2 duration-normal">
+ <div key={item.id} className="flex flex-wrap items-center justify-between gap-y-2 p-5 bg-app rounded-2xl border-2 border-line animate-in slide-in-from-bottom-2 duration-normal">
  <div className="flex items-center gap-5">
  <span className="w-10 h-10 rounded-full bg-sunken flex items-center justify-center text-xs font-bold text-ink-muted shadow-sm">{idx + 1}</span>
  <div>
@@ -1916,13 +1916,13 @@ const CreatePreSale = ({ sale }) => {
  </div>
  </div>
 
- <div className="p-8 bg-app flex items-center justify-between border-t border-line">
+ <div className="p-4 sm:p-8 bg-app flex flex-wrap items-center justify-between gap-y-2 border-t border-line">
  <p className="text-base font-bold text-ink-muted uppercase tracking-widest">Total: <span className="text-brand-600">{scannedItems.length} items</span></p>
  <div className="flex gap-4">
- <button onClick={() => setScannedItems([])} className="px-8 py-4 text-sm font-bold text-ink-muted hover:text-red-500 transition-colors uppercase tracking-widest">Clear All</button>
+ <button onClick={() => setScannedItems([])} className="px-4 sm:px-8 py-4 text-sm font-bold text-ink-muted hover:text-red-500 transition-colors uppercase tracking-widest">Clear All</button>
  <button
  onClick={confirmScan}
- className="bg-brand-600 text-white px-12 py-4 rounded-2xl font-bold shadow-xl hover:bg-brand-700 transition-all active:scale-95 uppercase tracking-widest"
+ className="bg-brand-600 text-white px-4 sm:px-12 py-4 rounded-2xl font-bold shadow-xl hover:bg-brand-700 transition-all active:scale-95 uppercase tracking-widest"
  >
  Add to Invoice
  </button>
@@ -2014,7 +2014,7 @@ const CreatePreSale = ({ sale }) => {
 
  {/* Summary Footer */}
  <div className="p-4 bg-app border-t border-line shrink-0">
- <div className="grid grid-cols-3 gap-4">
+ <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
  <div className="bg-surface rounded-xl p-3 border border-line">
  <p className="text-2xs text-ink-muted font-bold uppercase mb-1">Total Cost</p>
  <p className="text-lg font-bold text-ink-secondary">{formatCurrency(totalCost, store || settings)}</p>
@@ -2049,9 +2049,9 @@ const CreatePreSale = ({ sale }) => {
  onClick={() => setShowSettingsDrawer(false)}
  />
  {/* Drawer */}
- <div className="fixed top-0 right-0 h-full w-80 bg-surface shadow-2xl z-drawer animate-in slide-in-from-right duration-slow flex flex-col">
+ <div className="fixed top-0 right-0 h-full w-80 max-w-full bg-surface shadow-2xl z-drawer animate-in slide-in-from-right duration-slow flex flex-col">
  {/* Header */}
- <div className="p-4 border-b border-line flex items-center justify-between bg-app">
+ <div className="p-4 border-b border-line flex flex-wrap items-center justify-between gap-y-2 bg-app">
  <div className="flex items-center gap-3">
  <div className="w-10 h-10 rounded-xl bg-sunken flex items-center justify-center">
  <Settings size={20} className="text-ink-secondary" />
@@ -2076,7 +2076,7 @@ const CreatePreSale = ({ sale }) => {
  <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wide">Display</h4>
 
  {/* Large Text Mode */}
- <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-xl">
  <div className="flex items-center gap-3">
  <Type size={18} className="text-brand-500" />
  <div>
@@ -2098,7 +2098,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* Show Quick Entry */}
- <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-xl">
  <div className="flex items-center gap-3">
  <Zap size={18} className="text-brand-500" />
  <div>
@@ -2158,7 +2158,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* Multiple Extra Fields Toggle */}
- <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/50">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/50">
  <div className="flex items-center gap-3">
  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
  <Plus size={16} className="text-amber-600" />
@@ -2183,7 +2183,7 @@ const CreatePreSale = ({ sale }) => {
  <h4 className="text-xs font-bold text-ink-muted uppercase tracking-wide">Show/Hide Fields</h4>
 
  {/* Show Delivery Charges Toggle */}
- <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-xl">
  <div>
  <p className="text-sm font-bold text-ink-secondary dark:text-white">Delivery Charges</p>
  <p className="text-2xs text-ink-muted">Show delivery charges field</p>
@@ -2197,7 +2197,7 @@ const CreatePreSale = ({ sale }) => {
  </div>
 
  {/* Show Extra Field Toggle */}
- <div className="flex items-center justify-between p-3 bg-app rounded-xl">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-xl">
  <div>
  <p className="text-sm font-bold text-ink-secondary dark:text-white">Extra Field</p>
  <p className="text-2xs text-ink-muted">Show extra charge field(s)</p>

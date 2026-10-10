@@ -1,14 +1,14 @@
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 2414
+  phpunit_test_methods_total: 2621
   note: 'total = SUM of member test_methods (testX(), @test,'
 suites:
   -
     id: Feature
     path: tests/Feature
-    test_methods: 980
-    files: 169
+    test_methods: 1179
+    files: 192
     members:
       -
         file: tests/Feature/ActivityLogTest.php
@@ -33,6 +33,10 @@ suites:
       -
         file: tests/Feature/Ai/SmartCaptureSpendCapTest.php
         test_methods: 1
+        oracle_tier: T1
+      -
+        file: tests/Feature/Ai/VenaKnowledgeTest.php
+        test_methods: 4
         oracle_tier: T1
       -
         file: tests/Feature/AllocationTest.php
@@ -151,6 +155,42 @@ suites:
         test_methods: 8
         oracle_tier: T1
       -
+        file: tests/Feature/Commerce/MerchantHttpTest.php
+        test_methods: 18
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/OnsiteCatalogueTest.php
+        test_methods: 10
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/OrderFlowTest.php
+        test_methods: 19
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/PricingTest.php
+        test_methods: 11
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/PublicHttpTest.php
+        test_methods: 26
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/ReservationConcurrencyTest.php
+        test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/StorefrontPagesTest.php
+        test_methods: 6
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/UserProblemsTest.php
+        test_methods: 27
+        oracle_tier: T1
+      -
+        file: tests/Feature/Commerce/VersionOneTest.php
+        test_methods: 16
+        oracle_tier: T1
+      -
         file: tests/Feature/ComparePagesTest.php
         test_methods: 5
         oracle_tier: T2
@@ -158,6 +198,10 @@ suites:
         file: tests/Feature/CrawlHygieneTest.php
         test_methods: 2
         oracle_tier: T2
+      -
+        file: tests/Feature/Dashboard/FinancialSidebarAndPermissionMatrixTest.php
+        test_methods: 4
+        oracle_tier: T1
       -
         file: tests/Feature/Dashboard/FrameGeometryLawTest.php
         test_methods: 1
@@ -191,12 +235,16 @@ suites:
         test_methods: 2
         oracle_tier: T2
       -
-        file: tests/Feature/HeaderCalculatorTest.php
+        file: tests/Feature/Hardening/ApproverPinTest.php
+        test_methods: 8
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/FohAsPosTest.php
         test_methods: 5
         oracle_tier: T1
       -
-        file: tests/Feature/Hardening/ApproverPinTest.php
-        test_methods: 8
+        file: tests/Feature/Hardening/FohBackendTest.php
+        test_methods: 15
         oracle_tier: T1
       -
         file: tests/Feature/Hardening/InertiaCsrfPropTest.php
@@ -219,6 +267,18 @@ suites:
         test_methods: 10
         oracle_tier: T1
       -
+        file: tests/Feature/Hardening/OnlineAddOnsTest.php
+        test_methods: 5
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/OnlineFohAiPermissionsTest.php
+        test_methods: 7
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/OnlineStoreCatalogueSplitTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
         file: tests/Feature/Hardening/PaymentsScreenAndDebitNoteTest.php
         test_methods: 5
         oracle_tier: T1
@@ -239,6 +299,14 @@ suites:
         test_methods: 7
         oracle_tier: T1
       -
+        file: tests/Feature/Hardening/SaleAddOnsTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/Hardening/SaleNetSalesGuardTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
         file: tests/Feature/Hardening/SalesReturnAccountingTest.php
         test_methods: 11
         oracle_tier: T1
@@ -251,8 +319,16 @@ suites:
         test_methods: 11
         oracle_tier: T1
       -
+        file: tests/Feature/Hardening/StorefrontBadgesTest.php
+        test_methods: 4
+        oracle_tier: T1
+      -
         file: tests/Feature/Hardening/V3IdScopingTest.php
         test_methods: 3
+        oracle_tier: T1
+      -
+        file: tests/Feature/HeaderCalculatorTest.php
+        test_methods: 6
         oracle_tier: T1
       -
         file: tests/Feature/ImportMappingTest.php
@@ -591,6 +667,10 @@ suites:
         test_methods: 30
         oracle_tier: T2
       -
+        file: tests/Feature/RestaurantRidersAndSettingsTest.php
+        test_methods: 1
+        oracle_tier: T1
+      -
         file: tests/Feature/RoadmapTest.php
         test_methods: 3
         oracle_tier: T2
@@ -598,6 +678,10 @@ suites:
         file: tests/Feature/RouteParameterRegressionTest.php
         test_methods: 2
         oracle_tier: T2
+      -
+        file: tests/Feature/SaleReturnDocumentSeparationTest.php
+        test_methods: 5
+        oracle_tier: T1
       -
         file: tests/Feature/Security/ApiTenantResolverTest.php
         test_methods: 2
@@ -639,6 +723,10 @@ suites:
         test_methods: 1
         oracle_tier: T1
       -
+        file: tests/Feature/Settings/SettingsTenantLifecycleTest.php
+        test_methods: 3
+        oracle_tier: T1
+      -
         file: tests/Feature/SitemapIndexAndLastModifiedTest.php
         test_methods: 3
         oracle_tier: T2
@@ -674,6 +762,10 @@ suites:
         file: tests/Feature/TerminalAppIntegrationTest.php
         test_methods: 10
         oracle_tier: T2
+      -
+        file: tests/Feature/ThermalPrintSettingsTest.php
+        test_methods: 2
+        oracle_tier: T1
       -
         file: tests/Feature/V11PlanGatingAndEntitlementsTest.php
         test_methods: 12
@@ -1087,12 +1179,12 @@ suites:
   -
     id: Feature.Module03
     path: tests/Feature/Module03
-    test_methods: 12
+    test_methods: 13
     files: 1
     members:
       -
         file: tests/Feature/Module03/PosTerminalTest.php
-        test_methods: 12
+        test_methods: 13
         oracle_tier: T2
   -
     id: Feature.Module04
@@ -1749,8 +1841,8 @@ suites:
   -
     id: Unit
     path: tests/Unit
-    test_methods: 70
-    files: 10
+    test_methods: 77
+    files: 11
     members:
       -
         file: tests/Unit/AiBuilder/BusinessUnderstandingTest.php
@@ -1783,6 +1875,10 @@ suites:
       -
         file: tests/Unit/Onboarding/ModuleEligibilityTest.php
         test_methods: 2
+        oracle_tier: T1
+      -
+        file: tests/Unit/SettingsHelperFormatTest.php
+        test_methods: 7
         oracle_tier: T1
       -
         file: tests/Unit/SharedCatalogServiceTest.php

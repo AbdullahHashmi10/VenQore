@@ -55,7 +55,7 @@ export default function HealthWidget() {
         }}>
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-6 pb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6 pb-4" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                 <div className="flex items-center gap-3">
                     <div className="p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400">
                         <Heart className={loading ? "animate-pulse" : ""} size={20} />

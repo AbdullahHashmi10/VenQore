@@ -299,7 +299,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                 {/* Tools Grid / Table */}
                 <div className="rounded-xl border border-line bg-surface overflow-hidden shadow-xs">
                     {tools.data.length === 0 ? (
-                        <div className="p-12 text-center">
+                        <div className="p-5 sm:p-12 text-center">
                             <Wrench size={36} className="mx-auto text-ink-muted mb-2 opacity-50" />
                             <h3 className="text-sm font-bold text-ink">No tools found</h3>
                             <p className="text-xs text-ink-muted mt-1">Register shop tools or equipment to track field assignments.</p>
@@ -439,7 +439,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
             {isToolModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
                     <div className="bg-surface w-full max-w-lg rounded-2xl border border-line shadow-2xl overflow-hidden animate-in zoom-in-95">
-                        <div className="flex items-center justify-between p-4 border-b border-line">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line">
                             <h2 className="text-sm font-bold text-ink flex items-center gap-2">
                                 <Wrench size={16} className="text-indigo-600" />
                                 {editingTool ? 'Edit Tool / Equipment' : 'Register New Tool'}
@@ -577,7 +577,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
             {isCheckoutModalOpen && selectedToolForAction && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
                     <div className="bg-surface w-full max-w-md rounded-2xl border border-line shadow-2xl p-5 space-y-4 animate-in zoom-in-95 text-xs">
-                        <div className="flex items-center justify-between border-b border-line pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                             <h3 className="font-bold text-sm text-ink flex items-center gap-2">
                                 <LogOut size={16} className="text-blue-600" />
                                 Check Out: {selectedToolForAction.name}
@@ -631,7 +631,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
             {isMaintenanceModalOpen && selectedToolForAction && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
                     <div className="bg-surface w-full max-w-md rounded-2xl border border-line shadow-2xl p-5 space-y-4 animate-in zoom-in-95 text-xs">
-                        <div className="flex items-center justify-between border-b border-line pb-3">
+                        <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                             <h3 className="font-bold text-sm text-ink flex items-center gap-2">
                                 <Clock size={16} className="text-amber-600" />
                                 Log Maintenance: {selectedToolForAction.name}

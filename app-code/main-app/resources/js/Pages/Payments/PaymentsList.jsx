@@ -101,7 +101,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
     return (
         <div className="flex flex-col rounded-2xl border border-line bg-surface shadow-sm overflow-hidden min-h-0 flex-1">
             {/* Panel Header */}
-            <div className={`flex items-center justify-between px-5 py-3.5 border-b border-line ${accent.light}`}>
+            <div className={`flex flex-wrap items-center justify-between gap-y-2 px-5 py-3.5 border-b border-line ${accent.light}`}>
                 <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl ${isIn ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-600/20' : 'bg-rose-600 text-white shadow-sm shadow-rose-600/20'}`}>
                         {isIn ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
@@ -126,7 +126,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
             </div>
 
             {/* Add Button Bar */}
-            <div className="px-5 py-2.5 border-b border-line bg-surface flex items-center justify-between shrink-0">
+            <div className="px-5 py-2.5 border-b border-line bg-surface flex flex-wrap items-center justify-between gap-y-2 shrink-0">
                 <span className="text-xs font-semibold text-ink-secondary">
                     {payments.length} {isIn ? 'Receipt' : 'Payment'} transaction{payments.length === 1 ? '' : 's'}
                 </span>
@@ -289,7 +289,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                 {/* ── Top Summary KPI Bar ── */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
                     {/* Total Received Card */}
-                    <div className="bg-surface px-5 py-4 rounded-2xl border border-line flex items-center justify-between shadow-sm">
+                    <div className="bg-surface px-5 py-4 rounded-2xl border border-line flex flex-wrap items-center justify-between gap-y-2 shadow-sm">
                         <div className="flex items-center gap-3.5">
                             <div className="w-11 h-11 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
                                 <ArrowDownCircle size={22} />
@@ -310,7 +310,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                     </div>
 
                     {/* Total Paid Out Card */}
-                    <div className="bg-surface px-5 py-4 rounded-2xl border border-line flex items-center justify-between shadow-sm">
+                    <div className="bg-surface px-5 py-4 rounded-2xl border border-line flex flex-wrap items-center justify-between gap-y-2 shadow-sm">
                         <div className="flex items-center gap-3.5">
                             <div className="w-11 h-11 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-sm">
                                 <ArrowUpCircle size={22} />
@@ -331,7 +331,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                     </div>
 
                     {/* Net Cash Flow Card */}
-                    <div className={`px-5 py-4 rounded-2xl border shadow-sm flex items-center justify-between ${
+                    <div className={`px-5 py-4 rounded-2xl border shadow-sm flex flex-wrap items-center justify-between gap-y-2 ${
                         netFlow >= 0
                             ? 'bg-surface border-line'
                             : 'bg-surface border-line'

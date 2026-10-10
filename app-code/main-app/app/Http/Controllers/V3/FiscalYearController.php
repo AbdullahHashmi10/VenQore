@@ -142,44 +142,57 @@ class FiscalYearController extends Controller
 
         $tenantId = app('current.tenant')->id;
 
+        // Verify Owner/Admin approval & PIN before touching the database
+        $approverRole = ManagerApproval::roleOf((int) $validated['approved_by'], $tenantId);
+        if (!in_array($approverRole, ['owner', 'admin'], true)) {
+            return back()->withErrors(['approved_by' => 'Fiscal year close requires owner or admin approval.']);
+        }
+
+        $problem = ManagerApproval::check((int) $validated['approved_by'], $validated['approval_pin'] ?? null, $tenantId, auth()->id());
+        if ($problem !== null) {
+            return back()->withErrors(['approved_by' => $problem]);
+        }
+
         try {
-            // Resolve target FiscalYear
-            if (!empty($validated['fiscal_year_id'])) {
-                $fy = FiscalYear::where('tenant_id', $tenantId)
-                    ->where('id', $validated['fiscal_year_id'])
-                    ->firstOrFail();
-            } else {
-                $yearEndStr = Carbon::parse($validated['fiscal_year_end'])->toDateString();
+            $closedFy = DB::transaction(function () use ($tenantId, $validated) {
+                // Resolve target FiscalYear
+                if (!empty($validated['fiscal_year_id'])) {
+                    $fy = FiscalYear::where('tenant_id', $tenantId)
+                        ->where('id', $validated['fiscal_year_id'])
+                        ->firstOrFail();
+                } else {
+                    $yearEndStr = Carbon::parse($validated['fiscal_year_end'])->toDateString();
 
-                // Find existing or auto-create a FiscalYear for this end date
-                $fy = FiscalYear::where('tenant_id', $tenantId)
-                    ->where('end_date', $yearEndStr)
-                    ->first();
+                    // Find existing or auto-create a FiscalYear for this end date
+                    $fy = FiscalYear::where('tenant_id', $tenantId)
+                        ->where('end_date', $yearEndStr)
+                        ->first();
 
-                if (!$fy) {
-                    // Find or derive start date
-                    $yearEndCarbon = Carbon::parse($yearEndStr);
-                    $yearStartStr  = $yearEndCarbon->copy()->subYear()->addDay()->toDateString();
-                    $fyName        = 'FY ' . $yearEndCarbon->format('Y');
+                    if (!$fy) {
+                        // Find or derive start date
+                        $yearEndCarbon = Carbon::parse($yearEndStr);
+                        $yearStartStr  = $yearEndCarbon->copy()->subYear()->addDay()->toDateString();
+                        $fyName        = 'FY ' . $yearEndCarbon->format('Y');
 
-                    $fy = $this->fiscalYearService->createFiscalYear(
-                        tenantId: $tenantId,
-                        name: $fyName,
-                        startDate: $yearStartStr,
-                        endDate: $yearEndStr,
-                        creator: auth()->user()
-                    );
+                        $fy = $this->fiscalYearService->createFiscalYear(
+                            tenantId: $tenantId,
+                            name: $fyName,
+                            startDate: $yearStartStr,
+                            endDate: $yearEndStr,
+                            creator: auth()->user()
+                        );
+                    }
                 }
-            }
 
-            $closedFy = $this->fiscalYearService->closeYear(
-                fy: $fy,
-                requester: auth()->user(),
-                approverId: (int) $validated['approved_by'],
-                approvalPin: $validated['approval_pin'] ?? null,
-                previewHash: $validated['preview_hash'] ?? null,
-                overrideReason: $validated['override_reason'] ?? null
-            );
+                return $this->fiscalYearService->closeYear(
+                    fy: $fy,
+                    requester: auth()->user(),
+                    approverId: (int) $validated['approved_by'],
+                    approvalPin: $validated['approval_pin'] ?? null,
+                    previewHash: $validated['preview_hash'] ?? null,
+                    overrideReason: $validated['override_reason'] ?? null
+                );
+            });
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['approved_by' => $e->getMessage(), 'fiscal_year_end' => $e->getMessage()]);
         } catch (\Throwable $e) {

@@ -1,0 +1,4 @@
+{"id":"explore-ge","themes":["light"],"scenarios":[
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/growth-engine","wait":5000},{"text":"Analyse my business now","wait":15000},{"preview":"ge2"},{"dump":"ge2"}]},
+ {"folder":"_explore","steps":[{"goto":"/s/{slug}/dashboard","wait":6000},{"xy":[1000,32],"wait":1500},{"text":"Capture","wait":2000},{"preview":"cap0"},{"dump":"cap0"}]}
+]}

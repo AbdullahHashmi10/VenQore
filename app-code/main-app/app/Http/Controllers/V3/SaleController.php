@@ -197,6 +197,8 @@ class SaleController extends Controller
         $pendingSales = DB::table('sales')
             ->where('sales.tenant_id', $tenantId)
             ->whereIn('sales.delivery_status', ['pending', 'partial'])
+            ->whereIn('sales.status', ['posted', 'partially_returned'])
+            ->whereNull('sales.deleted_at')
             ->leftJoin('parties', 'sales.customer_id', '=', 'parties.id')
             ->select('sales.*', 'parties.name as customer_name')
             ->orderBy('sales.created_at', 'desc')
@@ -222,7 +224,25 @@ class SaleController extends Controller
             return $s;
         });
 
+        $warehouses = DB::table('warehouses')->where('tenant_id', $tenantId)->whereNull('deleted_at')
+            ->where('is_active', 1)->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'location']);
+
+        // product_id => [warehouse_id => qty on hand], so the dispatcher sees where stock really is.
+        $productIds = $itemsBySale->flatten(1)->pluck('product_id')->unique()->values()->all();
+        $availability = [];
+        if ($productIds) {
+            $rows = DB::table('inventory_batches')->where('tenant_id', $tenantId)
+                ->whereIn('product_id', $productIds)->where('remaining_qty', '>', 0)
+                ->groupBy('product_id', 'warehouse_id')
+                ->selectRaw('product_id, warehouse_id, SUM(remaining_qty) as qty')->get();
+            foreach ($rows as $r) {
+                $availability[$r->product_id][$r->warehouse_id] = (float) $r->qty;
+            }
+        }
+
         return \Inertia\Inertia::render('V3/Sales/GoodsOut', [
+            'warehouses'     => $warehouses,
+            'availability'   => $availability,
             'pendingSales'   => $salesWithItems,
             'selectedSaleId' => $selectedId,
         ]);
@@ -238,6 +258,7 @@ class SaleController extends Controller
             'items'                      => ['required', 'array', 'min:1'],
             'items.*.sale_item_id'       => ['required', 'string'],
             'items.*.dispatching_qty'    => ['required', 'numeric', 'min:0'],
+            'warehouse_id'               => ['nullable', \Illuminate\Validation\Rule::exists('warehouses', 'id')->where('tenant_id', $tenantId)->whereNull('deleted_at')],
             'tracking_number'            => ['nullable', 'string', 'max:100'],
             'carrier_name'               => ['nullable', 'string', 'max:100'],
             'notes'                      => ['nullable', 'string'],
@@ -271,6 +292,7 @@ class SaleController extends Controller
                     '_path'           => 'dispatch',
                     'sale_id'         => $id,
                     'items'           => $items,
+                    'warehouse_id'    => $request->input('warehouse_id'),
                     'tracking_number' => $request->input('tracking_number'),
                     'carrier_name'    => $request->input('carrier_name'),
                     'notes'           => $request->input('notes'),
@@ -293,63 +315,62 @@ class SaleController extends Controller
         }
 
         // Direct Execution
-        return DB::transaction(function () use ($tenantId, $id, $items, $request, $tenant) {
-            $sale = DB::table('sales')->where('tenant_id', $tenantId)->where('id', $id)->firstOrFail();
-            $saleItems = DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $id)->get()->keyBy('id');
-
-            foreach ($items as $line) {
-                $item = $saleItems[$line['sale_item_id']] ?? null;
-                if (!$item) continue;
-                $dispatchQty = (float)($line['dispatching_qty'] ?? 0);
-                if ($dispatchQty <= 0) continue;
-
-                $remaining = (float)$item->quantity - (float)($item->delivered_qty ?? 0);
-                if ($dispatchQty > $remaining + 0.0001) {
-                    throw new \DomainException("Cannot dispatch {$dispatchQty} — only {$remaining} remaining on item.");
-                }
-
-                // Deduct stock via FIFO / aggregates
-                app(\App\Engines\FifoService::class)->deductStock(
-                    productId: $item->product_id,
-                    qty: $dispatchQty,
-                    saleItemId: $item->id,
-                    warehouseId: $sale->warehouse_id
-                );
-
-                // Update delivered_qty on sale_item
-                DB::table('sale_items')
-                    ->where('tenant_id', $tenantId)
-                    ->where('id', $item->id)
-                    ->update([
-                        'delivered_qty' => (float)($item->delivered_qty ?? 0) + $dispatchQty,
-                        'updated_at'    => now(),
-                    ]);
-            }
-
-            // Recompute sale delivery status
-            $fresh = DB::table('sale_items')->where('tenant_id', $tenantId)->where('sale_id', $id)->get();
-            $allDelivered = $fresh->every(fn($i) => (float)($i->delivered_qty ?? 0) >= (float)$i->quantity - 0.0001);
-            $anyDelivered = $fresh->contains(fn($i) => (float)($i->delivered_qty ?? 0) > 0);
-            $newStatus = $allDelivered ? 'delivered' : ($anyDelivered ? 'partial' : 'pending');
-
-            DB::table('sales')
-                ->where('tenant_id', $tenantId)
-                ->where('id', $id)
-                ->update([
-                    'delivery_status' => $newStatus,
-                    'updated_at'      => now(),
-                ]);
-
+        try {
+            $result = app(\App\Services\DeliveryChallanService::class)->dispatch(
+                (int) $tenantId, (string) $id, $items, $request->input('warehouse_id'),
+                $request->only(['carrier_name', 'tracking_number', 'notes']), (int) $user->id
+            );
+        } catch (\DomainException | \App\Exceptions\InsufficientStockException $e) {
             if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Goods dispatched successfully. Inventory has been updated.',
-                    'delivery_status' => $newStatus,
-                ]);
+                return response()->json(['message' => $e->getMessage()], 422);
             }
+            return back()->withErrors(['dispatch' => $e->getMessage()]);
+        }
 
-            return redirect()->route('store.sales.index', ['store_slug' => $tenant->slug])
-                ->with('success', 'Goods dispatched successfully. Inventory updated.');
-        });
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Goods dispatched. Delivery challan created.',
+                'delivery_status' => $result->delivery_status,
+                'challan_id' => $result->challan_id,
+                'challan_url' => route('store.delivery-challans.print', ['store_slug' => $tenant->slug, 'challan' => $result->challan_id]),
+            ]);
+        }
+
+        return redirect()->route('store.sales.index', ['store_slug' => $tenant->slug])
+            ->with('success', 'Goods dispatched. Delivery challan created.');
+    }
+
+    /**
+     * Stock batches a seller may choose from for one product, oldest first.
+     * Cost is deliberately not exposed here.
+     */
+    public function productBatches(\Illuminate\Http\Request $request, string $productId)
+    {
+        $tenantId = app('current.tenant')->id;
+        // The warehouse a sale lands in when none is chosen (same default store() uses).
+        $warehouseId = $request->input('warehouse_id') ?: \App\Models\Warehouse::first()?->id;
+
+        $rows = DB::table('inventory_batches as b')
+            ->leftJoin('purchases as p', 'p.id', '=', 'b.purchase_invoice_id')
+            ->where('b.tenant_id', $tenantId)
+            ->where('b.product_id', $productId)
+            ->when($warehouseId, fn ($q) => $q->where('b.warehouse_id', $warehouseId))
+            ->where('b.remaining_qty', '>', 0)
+            ->whereNull('b.deleted_at')
+            ->orderBy('b.created_at')->orderBy('b.seq')
+            ->select('b.id', 'b.created_at', 'b.expiry_date', 'b.remaining_qty', 'b.batch_type', 'p.invoice_number as purchase_ref')
+            ->limit(100)
+            ->get()
+            ->map(fn ($r) => [
+                'id'           => $r->id,
+                'received_on'  => substr((string) $r->created_at, 0, 10),
+                'expiry_date'  => $r->expiry_date,
+                'remaining'    => (float) $r->remaining_qty,
+                'reference'    => $r->purchase_ref,
+                'is_opening'   => $r->batch_type !== null && $r->batch_type !== 'purchase',
+            ]);
+
+        return response()->json(['batches' => $rows]);
     }
 }

@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import { GripVertical, Trash2, Plus, Minus, FileText } from 'lucide-react';
 import DocumentQuickRow from '@/Documents/DocumentQuickRow';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
@@ -62,6 +63,7 @@ const HEADS = {
     free: { label: 'Free', cls: 'c fit' },
     uom: { label: 'Unit', cls: 'c fit' },
     batch: { label: 'Batch', cls: 'c fit' },
+    pickbatch: { label: 'Take from batch', cls: 'c fit' },
     expiry: { label: 'Expires', cls: 'c fit' },
     rate: { label: 'Price', cls: 'n fit' },
     taxpct: { label: 'Tax %', cls: 'n fit' },
@@ -76,6 +78,49 @@ const HEADS = {
 /* Each entry renders the CONTROL for one column. The <td> is added by the
    table and left off by the card list, so one definition serves both and the
    phone layout can never drift from the desktop one. */
+/* Which stock batch a sold line comes out of. Left alone it is oldest-first
+   (FIFO); choosing one here sends batch_id and the server takes from it first.
+   Only shown when the product really has more than one batch to choose from. */
+function BatchPick({ item, c }) {
+    const { store } = usePage().props;
+    const pid = item.product?.id;
+    const [batches, setBatches] = useState([]);
+    const seen = useRef(pid);
+
+    useEffect(() => {
+        if (seen.current !== pid) {
+            seen.current = pid;
+            if (item.pickBatchId) c.update(item.id, 'pickBatchId', '');
+        }
+        if (!pid || item.product?.type === 'service') { setBatches([]); return undefined; }
+        let url;
+        try { url = route('store.api.product-batches', { store_slug: store?.slug, productId: pid }); } catch (e) { return undefined; }
+        let live = true;
+        window.axios.get(url)
+            .then((r) => { if (live) setBatches(r.data?.batches || []); })
+            .catch(() => { if (live) setBatches([]); });
+        return () => { live = false; };
+    }, [pid]);
+
+    if (batches.length < 2) return <span style={{ color: 'var(--vq-text-3)' }}>—</span>;
+
+    return (
+        <select
+            className="vqdoc-in" style={{ minWidth: 150, maxWidth: 230 }}
+            value={item.pickBatchId || ''} disabled={c.locked}
+            title="Oldest stock is used first unless you pick a batch"
+            onChange={(e) => c.update(item.id, 'pickBatchId', e.target.value)}
+        >
+            <option value="">Oldest first (auto)</option>
+            {batches.map((b) => (
+                <option key={b.id} value={b.id}>
+                    {b.received_on}{b.reference ? ` · ${b.reference}` : ''}{b.expiry_date ? ` · exp ${b.expiry_date}` : ''} — {b.remaining} left
+                </option>
+            ))}
+        </select>
+    );
+}
+
 const CELLS = {
     idx: (item, idx) => <span className="vqdoc-idx">{idx + 1}</span>,
 
@@ -210,6 +255,8 @@ const CELLS = {
             {item.product?.unit || item.product?.uom || '—'}
         </span>
     ),
+
+    pickbatch: (item, idx, c) => <BatchPick item={item} c={c} />,
 
     batch: (item, idx, c) => (
         <input type="text" className="vqdoc-in c" style={{ width: 'var(--d-w-num)' }}

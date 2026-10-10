@@ -31,7 +31,7 @@ export default function TrialExpired() {
  </p>
 
  <div className="rounded-2xl border border-white/10 bg-white/3 p-6 mb-6">
- <div className="grid grid-cols-3 gap-3 mb-5 text-left">
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5 text-left">
  <PlanCard plan="Starter" price="$49" color="slate" features={['1 location, 1 seat', '5,000 SKUs', 'Full history']} />
  <PlanCard plan="Core" price="$99" color="indigo" features={['5 seats, API access', '25,000 SKUs', 'Multi-branch']} badge="Popular" />
  <PlanCard plan="Scale" price="$299" color="purple" features={['25 seats, white-label', '250,000 SKUs', '2 channel syncs']} />

@@ -129,7 +129,7 @@ export default function ProposalShow({ proposal }) {
                             </div>
                         </div>
 
-                        <div className="bg-surface rounded-2xl shadow-lg border border-line p-8 print-container">
+                        <div className="bg-surface rounded-2xl shadow-lg border border-line p-4 sm:p-8 print-container">
                             {/* Header */}
                             <div className="flex justify-between items-start mb-12">
                                 <div>

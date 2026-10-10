@@ -48,6 +48,9 @@ Rank 3 never overrides rank 1 or 2 on a value.
 | Business types (85, 5 sectors) | `config/business_types.php` via `app/Support/BusinessTypes.php` | Resolve `tenants.business_type` with `BusinessTypes::presetFor()`; site JSON is exported by `php artisan vq:business-types:export` |
 | Creating a store | `app/Services/StoreProvisioner.php` | Builder and `POST /new-store` both call it; `/register` and `/new-store` redirect to `/build-workspace` |
 | Store words (Clients, Jobs…) | `tenant_terminology`, shared as `props.terms` | Wrap visible text with `useTermText()` — see `app-code/main-app/docs/TERMINOLOGY_SWEEP.md` |
+| Vena product knowledge (guides, how-to answers) | `config/vena_guides.php` + registries, indexed by `app/Services/Vena/VenaKnowledge.php` (JSON: `php artisan venqore:manifest`) | Add a guide when you ship a feature; never hard-code answers in `AiController`/`ChatAIService`. `VenaKnowledgeTest` fails on a guide that points at a missing route/module |
+| AI allowance per store | `app/Services/PlanAiAllowance.php` (from the plan matrix + owner overrides); platform keys in `PlatformAiKeys` | Backfill with `php artisan ai:backfill-allowance [--apply]`; trials stay on the free key by design |
+| Who gets which online-store / QR-menu / FOH-setup / AI-key permission | `app-code/main-app/resources/js/Data/permission_inherits.json` (read by `config/permissions.php`, the Users screen and the backfill migration) | New dedicated key = add it there + route middleware + `Users.jsx` category + owner preset. `OnlineFohAiPermissionsTest` fails if a `store.commerce.*` route uses a non-`online.*` key. Presets live only in `resources/js/Data/staff_presets.json` |
 
 ## Front of House (FOH) — added 6 Oct 2026
 

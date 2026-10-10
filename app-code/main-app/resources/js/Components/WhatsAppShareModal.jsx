@@ -216,7 +216,7 @@ export default function WhatsAppShareModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-line bg-app">
+        <div className="flex flex-wrap items-center justify-between gap-y-2 p-5 border-b border-line bg-app">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${isReturn ? 'bg-amber-600' : 'bg-emerald-600'}`}>
               <MessageSquare size={20} />
@@ -314,7 +314,7 @@ export default function WhatsAppShareModal({
 
               {/* Message Draft Preview */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-ink block">Proposed Message Text</label>
                   <span className="text-3xs text-ink-muted">Read-only preview</span>
                 </div>

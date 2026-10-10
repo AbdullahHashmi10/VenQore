@@ -78,13 +78,8 @@ class DebitNoteController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $goods = 0.0;
-        foreach ($validated['items'] as $item) {
-            $goods += (float) $item['quantity'] * (float) $item['unit_price'];
-        }
-        $discount = round((float) ($validated['discount'] ?? 0), 2);
-        $tax = round((float) ($validated['tax'] ?? 0), 2);
-        $amount = round(max(0, $goods - $discount) + $tax, 2);
+        // ZeroDrift Ledger: the note is the exact sum of its quantized lines.
+        ['goods' => $goods, 'discount' => $discount, 'tax' => $tax, 'amount' => $amount] = self::noteTotals($validated);
 
         $tenant = app('current.tenant');
         $user = Auth::user();
@@ -178,9 +173,9 @@ class DebitNoteController extends Controller
             $goodsValue = 0.0;
             /* What the goods going back cost when they came in — read off the
                batches they leave, not the supplier's price on the note. */
-            $stockCost = 0.0;
+            $stockCostM = 0;
             foreach ($validated['items'] as $i => $itemData) {
-                $subtotal = round((float) $itemData['quantity'] * (float) $itemData['unit_price'], 2);
+                $subtotal = self::lineSubtotal($itemData);
                 $goodsValue += $subtotal;
 
                 $note->items()->create([
@@ -191,17 +186,17 @@ class DebitNoteController extends Controller
                 ]);
 
                 if ($movesStock && $validated['status'] === 'approved') {
-                    $stockCost += $this->returnStock(
+                    $stockCostM += self::paisa($this->returnStock(
                         $itemData['product_id'],
                         $validated['warehouse_id'],
                         (float) $itemData['quantity'],
                         $note->reference_number,
                         $validated['purchase_id'] ?? null,
                         $i
-                    );
+                    ));
                 }
             }
-            $stockCost = round($stockCost, 2);
+            $stockCost = \App\Support\Money::toFloat($stockCostM);
 
             /* ── the ledger ──────────────────────────────────────────────
                A debit note says the shop owes the supplier less than their
@@ -227,7 +222,8 @@ class DebitNoteController extends Controller
                and the FIFO valuation drifted apart by every note. */
             if ($validated['status'] === 'approved') {
                 $accounting = app(\App\Engines\AccountingService::class);
-                $credited   = round(max(0, $goods - $discount), 2);
+                $creditedM  = max(0, self::paisa($goods) - self::paisa($discount));
+                $credited   = \App\Support\Money::toFloat($creditedM);
                 $lines = [
                     [
                         'account_id' => $accounting->getAccountByCode('2000', 'Accounts Payable', 'liability')->id,
@@ -243,8 +239,8 @@ class DebitNoteController extends Controller
                         'debit' => 0, 'credit' => $stockCost,
                         'description' => "Goods returned on #{$note->reference_number}",
                     ];
-                    $gap = round($credited - $stockCost, 2);
-                    if (abs($gap) >= 0.005) {
+                    $gap = \App\Support\Money::toFloat($creditedM - $stockCostM);
+                    if ($creditedM !== $stockCostM) {
                         $lines[] = [
                             'account_id' => $accounting->getAccountByCode('6000', 'Operating Expenses', 'expense')->id,
                             'debit' => $gap < 0 ? -$gap : 0, 'credit' => $gap > 0 ? $gap : 0,
@@ -346,19 +342,13 @@ class DebitNoteController extends Controller
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $note) {
-            $goods = 0.0;
-            foreach ($validated['items'] as $item) {
-                $goods += (float) $item['quantity'] * (float) $item['unit_price'];
-            }
-            $goods = round($goods, 2);
-            $discount = round((float) ($validated['discount'] ?? 0), 2);
-            $tax = round((float) ($validated['tax'] ?? 0), 2);
+            ['goods' => $goods, 'discount' => $discount, 'tax' => $tax, 'amount' => $noteAmount] = self::noteTotals($validated);
 
             $note->update([
                 'supplier_id'  => $validated['supplier_id'],
                 'purchase_id'  => $validated['purchase_id'] ?? null,
                 'date'         => $validated['date'],
-                'amount'       => round(max(0, $goods - $discount) + $tax, 2),
+                'amount'       => $noteAmount,
                 'discount'     => $discount,
                 'tax'          => $tax,
                 'tax_rate'     => $validated['tax_rate'] ?? 0,
@@ -374,7 +364,7 @@ class DebitNoteController extends Controller
                     'product_id' => $itemData['product_id'],
                     'quantity'   => $itemData['quantity'],
                     'unit_price' => $itemData['unit_price'],
-                    'subtotal'   => round((float) $itemData['quantity'] * (float) $itemData['unit_price'], 2),
+                    'subtotal'   => self::lineSubtotal($itemData),
                 ]);
             }
         });
@@ -544,5 +534,32 @@ class DebitNoteController extends Controller
         });
 
         return redirect()->back()->with('success', 'Debit note marked as refunded.');
+    }
+
+    /** Currency amount → integer paisa, quantized once (half-up). */
+    private static function paisa(mixed $v): int
+    {
+        return \App\Support\Money::parseMinor($v ?? 0, 'amount', false);
+    }
+
+    /** q(quantity × unit price), exact. */
+    private static function lineSubtotal(array $item): float
+    {
+        $dec = \App\Support\Money::parse($item['quantity'] ?? 0, 'quantity', false)
+            ->multipliedBy(\App\Support\Money::parse($item['unit_price'] ?? 0, 'unit price', false));
+        return \App\Support\Money::toFloat(\App\Support\Money::toMinor($dec));
+    }
+
+    /**
+     * The note's figures in exact paisa: goods = Σ quantized lines, amount =
+     * max(0, goods − discount) + tax. The posted entry is built from these.
+     */
+    private static function noteTotals(array $v): array
+    {
+        $goodsM = array_sum(array_map(fn ($i) => self::paisa(self::lineSubtotal($i)), $v['items'] ?? []));
+        $discountM = self::paisa($v['discount'] ?? 0);
+        $taxM = self::paisa($v['tax'] ?? 0);
+        $F = fn (int $m) => \App\Support\Money::toFloat($m);
+        return ['goods' => $F($goodsM), 'discount' => $F($discountM), 'tax' => $F($taxM), 'amount' => $F(max(0, $goodsM - $discountM) + $taxM)];
     }
 }

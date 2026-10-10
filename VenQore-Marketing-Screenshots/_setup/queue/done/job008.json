@@ -1,0 +1,5 @@
+{"id":"explore-fill","themes":["light"],"scenarios":[{"folder":"_explore","steps":[
+ {"goto":"/s/{slug}/dashboard","wait":5000},
+ {"text":"Suggest 3 cards","wait":4000},{"preview":"fill1"},
+ {"text":"Suggest 3 cards","wait":4000},{"preview":"fill2"},
+ {"text":"Suggest 3 cards","wait":4000},{"preview":"fill3"},{"dump":"fill3"}]}]}

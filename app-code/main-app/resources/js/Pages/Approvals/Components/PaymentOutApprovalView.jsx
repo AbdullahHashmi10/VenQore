@@ -118,7 +118,7 @@ export default function PaymentOutApprovalView({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start max-w-7xl mx-auto w-full">
                 {/* Left: Main Details Form matching Payments/Out.jsx */}
                 <div className="lg:col-span-8 bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-6">
-                    <div className="flex items-center justify-between border-b border-line pb-4">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
                                 <ArrowUpCircle size={22} />
@@ -140,7 +140,7 @@ export default function PaymentOutApprovalView({
                             {isSupplierPayment ? 'Supplier' : 'Customer'}
                         </label>
                         {!isEditing ? (
-                            <div className="p-3 bg-sunken rounded-xl border border-line flex items-center justify-between">
+                            <div className="p-3 bg-sunken rounded-xl border border-line flex flex-wrap items-center justify-between gap-y-2">
                                 <span className="font-semibold text-sm text-ink">{form.party_name}</span>
                                 {payload.party_balance !== undefined && (
                                     <span className="text-xs font-mono px-2 py-0.5 rounded bg-surface border border-line text-ink-secondary">

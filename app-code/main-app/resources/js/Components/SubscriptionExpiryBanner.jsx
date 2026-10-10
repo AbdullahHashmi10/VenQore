@@ -31,7 +31,7 @@ export default function SubscriptionExpiryBanner() {
         return (
             <div
                 id="subscription-expiry-banner"
-                className="flex items-center justify-between gap-4 px-5 py-2.5 border-b text-sm font-medium shrink-0 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
+                className="flex flex-wrap items-center justify-between gap-y-2 gap-4 px-5 py-2.5 border-b text-sm font-medium shrink-0 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300"
             >
                 <div className="flex items-center gap-2.5">
                     <Lock size={14} className="shrink-0" />
@@ -82,7 +82,7 @@ export default function SubscriptionExpiryBanner() {
     return (
         <div
             id="subscription-expiry-banner"
-            className={`flex items-center justify-between gap-4 px-5 py-2.5 border-b text-sm font-medium shrink-0 ${bgColor} ${textColor}`}
+            className={`flex flex-wrap items-center justify-between gap-y-2 gap-4 px-5 py-2.5 border-b text-sm font-medium shrink-0 ${bgColor} ${textColor}`}
         >
             <div className="flex items-center gap-2.5">
                 <AlertTriangle size={14} className={`shrink-0 ${isUrgent ? 'animate-pulse' : ''}`} />

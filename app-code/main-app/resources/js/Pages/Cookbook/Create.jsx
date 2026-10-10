@@ -326,7 +326,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  <button
  key={opt.key}
  onClick={() => toggleView(opt.key)}
- className="w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-colors"
+ className="w-full flex flex-wrap items-center justify-between gap-y-2 px-3 py-2 text-sm rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary transition-colors"
  >
  <span>{opt.label}</span>
  {viewOptions[opt.key] ? <Eye size={14} className="text-brand-500" /> : <EyeOff size={14} className="text-ink-muted" />}
@@ -460,7 +460,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  <div className="space-y-3">
  {viewOptions.showLabor && (
  <div className="space-y-1">
- <label className="text-xs font-medium text-ink-secondary flex items-center justify-between">
+ <label className="text-xs font-medium text-ink-secondary flex flex-wrap items-center justify-between gap-y-2">
  <span className="flex items-center gap-1.5"><Clock size={14} /> Labor Cost</span>
  </label>
  <div className="relative">
@@ -477,7 +477,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  )}
  {viewOptions.showUtilities && (
  <div className="space-y-1">
- <label className="text-xs font-medium text-ink-secondary flex items-center justify-between">
+ <label className="text-xs font-medium text-ink-secondary flex flex-wrap items-center justify-between gap-y-2">
  <span className="flex items-center gap-1.5"><Flame size={14} /> Utilities</span>
  </label>
  <div className="relative">
@@ -500,7 +500,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  {/* CENTER COLUMN: Ingredients (6/12) */}
  <div className="xl:col-span-6 h-full overflow-hidden flex flex-col">
  <div className="bg-surface rounded-2xl border border-line shadow-sm flex flex-col h-full">
- <div className="p-4 border-b border-line flex items-center justify-between shrink-0">
+ <div className="p-4 border-b border-line flex flex-wrap items-center justify-between gap-y-2 shrink-0">
  <h3 className="text-lg font-bold text-ink flex items-center gap-2">
  <Scale size={20} className="text-emerald-500" />
  Ingredients List
@@ -739,7 +739,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  {selectedProduct && (
  <div className="mt-4 p-3 bg-white/10 rounded-xl">
  <p className="text-xs text-brand-200">{tt('Current Product Price')}</p>
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <p className="text-lg font-bold">{getCurrencySymbol()} {parseFloat(selectedProduct.price).toLocaleString()}</p>
  {parseFloat(selectedProduct.price) < calculations.suggestedPrice && (
  <span className="text-xs px-2 py-1 bg-red-500/30 text-red-200 rounded-full">
@@ -759,7 +759,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
  {/* SOP Media Mini-Card */}
  {viewOptions.showTraining && (
  <div className="bg-surface rounded-2xl border border-line p-4 shadow-sm">
- <div className="flex items-center justify-between mb-3">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3">
  <h3 className="text-sm font-bold flex items-center gap-2 dark:text-white">
  <BookOpen size={16} className="text-blue-500" />
  Training SOPs

@@ -85,7 +85,7 @@ export default function LiveStack({
             aria-label="Your system so far"
             className={`flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg ${className}`}
         >
-            <header className="flex items-center justify-between gap-3 border-b border-line-subtle px-5 py-4">
+            <header className="flex flex-wrap items-center justify-between gap-y-2 gap-3 border-b border-line-subtle px-5 py-4">
                 <div className="flex items-center gap-2.5">
                     <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-accent-quiet text-accent-text">
                         <Layers size={16} strokeWidth={2} />

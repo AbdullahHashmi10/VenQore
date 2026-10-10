@@ -77,7 +77,7 @@ export default function AddCardSheet({ catalog = [], active = [], onAdd, onClose
                 }}
             >
                 <div style={{ padding: '22px 24px 20px', background: '#fff' }}>
-                    <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4">
                         <div>
                             <div
                                 style={{
@@ -162,7 +162,7 @@ export default function AddCardSheet({ catalog = [], active = [], onAdd, onClose
                                 gap: 6,
                             }}
                         >
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2">
                                 <span style={{ font: "500 13px 'Instrument Sans',sans-serif", color: '#16150f' }}>
                                     {card.title}
                                 </span>

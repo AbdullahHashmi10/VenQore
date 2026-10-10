@@ -39,7 +39,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-normal" onClick={onClose}>
             <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md border border-line overflow-hidden" onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-between p-5 border-b border-line">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 p-5 border-b border-line">
                     <h3 className="text-lg font-bold text-ink">{title}</h3>
                     <button onClick={onClose} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl transition-colors">
                         <X size={18} className="text-ink-muted" />
@@ -479,7 +479,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                     <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)] animate-pulse"></div>
                                                     Total Business Liquidity
                                                 </h3>
-                                                <h2 className="text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-100 to-brand-300">
+                                                <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-100 to-brand-300">
                                                     {getCurrencySymbol()} {parseFloat(totalFunds).toLocaleString()}
                                                 </h2>
                                             </div>
@@ -513,7 +513,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                                     {transactions.slice(0, 10).map(tx => (
-                                        <div key={tx.id} className="flex items-center justify-between p-3 bg-app rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent dark:border-white/5 hover:border-line dark:hover:border-white/10">
+                                        <div key={tx.id} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-2xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors border border-transparent dark:border-white/5 hover:border-line dark:hover:border-white/10">
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                                                     ['add', 'sale'].includes(tx.type) ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' :
@@ -597,7 +597,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                     <tbody className="divide-y divide-line">
                                         {filteredTransactions.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="p-12 text-center text-ink-muted">
+                                                <td colSpan={6} className="p-5 sm:p-12 text-center text-ink-muted">
                                                     <p>No transactions match your search.</p>
                                                 </td>
                                             </tr>
@@ -736,7 +736,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, from_type: 'cash' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.from_type === 'cash' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-500/10 shadow-lg ' : 'border-line bg-surface'}`}
+                                    className={`relative flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-2xl border-2 transition-all duration-slow ${formData.from_type === 'cash' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-xl ${formData.from_type === 'cash' ? 'bg-brand-500 text-white' : 'bg-sunken text-ink-muted'}`}>
@@ -749,7 +749,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, from_type: 'bank' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.from_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg ' : 'border-line bg-surface'}`}
+                                    className={`relative flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-2xl border-2 transition-all duration-slow ${formData.from_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-xl ${formData.from_type === 'bank' ? 'bg-blue-500 text-white' : 'bg-sunken text-ink-muted'}`}>
@@ -788,7 +788,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, to_type: 'cash' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.to_type === 'cash' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-500/10 shadow-lg ' : 'border-line bg-surface'}`}
+                                    className={`relative flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-2xl border-2 transition-all duration-slow ${formData.to_type === 'cash' ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-xl ${formData.to_type === 'cash' ? 'bg-brand-500 text-white' : 'bg-sunken text-ink-muted'}`}>
@@ -801,7 +801,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ ...formData, to_type: 'bank' })}
-                                    className={`relative flex items-center justify-between p-4 rounded-2xl border-2 transition-all duration-slow ${formData.to_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg ' : 'border-line bg-surface'}`}
+                                    className={`relative flex flex-wrap items-center justify-between gap-y-2 p-4 rounded-2xl border-2 transition-all duration-slow ${formData.to_type === 'bank' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10 shadow-lg ' : 'border-line bg-surface'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-xl ${formData.to_type === 'bank' ? 'bg-blue-500 text-white' : 'bg-sunken text-ink-muted'}`}>

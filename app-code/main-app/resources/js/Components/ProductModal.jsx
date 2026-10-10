@@ -15,7 +15,7 @@ import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
 const StatCard = ({ title, value, icon }) => (
-    <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex items-center justify-between">
+    <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
         <div>
             <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">{title}</p>
             <p className="text-xl font-bold text-ink">{value}</p>
@@ -562,7 +562,7 @@ export default function ProductModal({
 
  const renderInventorySection = () => (
  <section>
- <div className="flex items-center justify-between mb-4">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
  <div className="flex items-center gap-2">
  <Box size={16} className="text-amber-500" />
  <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Inventory</h3>
@@ -694,7 +694,7 @@ export default function ProductModal({
 
  const renderReservationsTab = () => (
  <div className="p-4 sm:p-8 space-y-6">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <div>
  <h3 className="text-sm font-bold text-ink uppercase tracking-wider mb-1">Active Reservations</h3>
  <p className="text-xs text-ink-muted">Stock held in active Pre-Sales</p>
@@ -702,7 +702,7 @@ export default function ProductModal({
  </div>
 
  {loadingReservations ? (
- <div className="p-12 text-center">
+ <div className="p-5 sm:p-12 text-center">
  <RefreshCw className="w-8 h-8 text-brand-500 animate-spin mx-auto mb-4" />
  <p className="text-sm text-ink-muted">Loading reservation details...</p>
  </div>
@@ -730,7 +730,7 @@ export default function ProductModal({
  </table>
  </div>
  ) : (
- <div className="p-12 text-center bg-app rounded-xl border border-dashed border-line">
+ <div className="p-5 sm:p-12 text-center bg-app rounded-xl border border-dashed border-line">
  <Box className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
  <p className="text-ink-muted font-medium">No active reservations.</p>
  <p className="text-xs text-ink-muted mt-1">{tt('This product is not currently held in any pre-sales.')}</p>
@@ -797,7 +797,7 @@ export default function ProductModal({
  <div className="relative w-full max-w-5xl h-full sm:h-[85vh] bg-surface rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-slow border border-line">
 
  {/* Header */}
- <div className="flex items-center justify-between p-4 sm:p-6 border-b border-line bg-surface z-10">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 sm:p-6 border-b border-line bg-surface z-10">
  <div className="flex items-center gap-4">
  <div className="w-12 h-12 rounded-xl bg-sunken flex items-center justify-center text-2xl border border-line shadow-sm overflow-hidden">
  {data.main_image_preview ? (
@@ -1060,7 +1060,7 @@ export default function ProductModal({
  onClick={() => isEditable && setData('service_pricing', model.id)}
  className={`p-4 rounded-xl border text-left transition-all ${data.service_pricing === model.id ? 'bg-brand-50 dark:bg-brand-900/20 border-brand-500 ring-2 ring-brand-500/20 shadow-sm' : 'bg-surface border-line hover:border-brand-300'}`}
  >
- <div className="flex items-center justify-between mb-1">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-1">
  <span className="text-sm font-bold text-ink">{model.label}</span>
  {data.service_pricing === model.id && (
  <CheckCircle2 size={16} className="text-brand-600 dark:text-brand-400" />
@@ -1122,7 +1122,7 @@ export default function ProductModal({
 
  {/* Estimated Duration */}
  <div className="mt-6 pt-6 border-t border-line">
- <div className="flex items-center justify-between mb-2">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
  <label className="text-xs font-bold text-ink-muted flex items-center gap-1.5">
  <Clock size={14} className="text-brand-500" /> {tt('Estimated Service Duration')}
  </label>
@@ -1193,7 +1193,7 @@ export default function ProductModal({
  {data.price > 0 && (
  <div className="bg-neutral-900 dark:bg-brand-900/20 rounded-2xl p-6 text-white relative overflow-hidden">
  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
- <div className="flex items-center justify-between relative z-10">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 relative z-10">
  <div>
  <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Gross Profit Margin</p>
  <p className="text-3xl font-bold text-white">
@@ -1376,7 +1376,7 @@ export default function ProductModal({
  {/* Profit Card */}
  <div className="mt-6 bg-neutral-900 dark:bg-brand-900/20 rounded-2xl p-6 text-white relative overflow-hidden">
  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
- <div className="flex items-center justify-between relative z-10">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 relative z-10">
  <div>
  <p className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1">Profit Margin</p>
  <p className="text-3xl font-bold text-white">
@@ -1395,7 +1395,7 @@ export default function ProductModal({
 
  {/* Barcodes Section */}
  {(!Array.isArray(modules) || modules.includes('barcodes_labels')) && <section id="tour-product-barcode">
- <div className="flex items-center justify-between mb-4">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
  <h3 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
  <Box size={16} className="text-brand-500" /> Barcodes
  </h3>
@@ -1413,7 +1413,7 @@ export default function ProductModal({
  {data.barcodes && data.barcodes.length > 0 ? (
  <div className="grid gap-2">
  {data.barcodes.map((barcode) => (
- <div key={barcode.id} className="flex items-center justify-between p-3 bg-app rounded-lg border border-line">
+ <div key={barcode.id} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-app rounded-lg border border-line">
  <div className="flex items-center gap-3 flex-1">
  <code className="text-sm font-mono font-bold text-ink bg-sunken px-2 py-1 rounded">
  {barcode.barcode}
@@ -1628,7 +1628,7 @@ export default function ProductModal({
  {/* VARIANTS TAB */}
  {activeTab === 'variants' && (
  <div className="p-4 sm:p-8 space-y-6">
- <div className="flex items-center justify-between mb-6">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
  <div>
  <h3 className="text-lg font-bold text-ink">{tt('Product Variants')}</h3>
  <p className="text-sm text-ink-muted mt-1">{tt('Manage different variations of this product (e.g., Size, Color)')}</p>
@@ -1807,7 +1807,7 @@ export default function ProductModal({
 
  {/* Modifiers List */}
  <div className="space-y-2 pt-2 border-t border-line">
- <div className="flex items-center justify-between mb-2">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
  <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Choices / Items</span>
  {isEditable && (
  <button
@@ -1876,7 +1876,7 @@ export default function ProductModal({
  ))}
  </div>
  ) : (
- <div className="p-12 text-center bg-surface rounded-2xl border border-dashed border-line">
+ <div className="p-5 sm:p-12 text-center bg-surface rounded-2xl border border-dashed border-line">
  <Sparkles className="w-12 h-12 text-amber-400 mx-auto mb-3 opacity-60" />
  <h4 className="text-sm font-bold text-ink">No add-ons or options configured</h4>
  <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
@@ -1899,7 +1899,7 @@ export default function ProductModal({
  {/* REQUIRED TOOLS TAB */}
  {activeTab === 'tools' && (
  <div className="p-4 sm:p-8 space-y-6">
- <div className="flex items-center justify-between">
+ <div className="flex flex-wrap items-center justify-between gap-y-2">
  <div>
  <h3 className="text-lg font-bold text-ink flex items-center gap-2">
  <Wrench size={20} className="text-brand-500" />
@@ -1945,7 +1945,7 @@ export default function ProductModal({
  </div>
 
  {isSelected && (
- <div className="pt-2 border-t border-brand-200 dark:border-brand-800/40 flex items-center justify-between" onClick={e => e.stopPropagation()}>
+ <div className="pt-2 border-t border-brand-200 dark:border-brand-800/40 flex flex-wrap items-center justify-between gap-y-2" onClick={e => e.stopPropagation()}>
  <span className="text-2xs font-bold text-ink-muted uppercase">Pack Quantity</span>
  <div className="flex items-center gap-1.5">
  <input
@@ -1964,7 +1964,7 @@ export default function ProductModal({
  })}
  </div>
  ) : (
- <div className="p-12 text-center bg-surface rounded-2xl border border-dashed border-line">
+ <div className="p-5 sm:p-12 text-center bg-surface rounded-2xl border border-dashed border-line">
  <Wrench className="w-12 h-12 text-neutral-300 dark:text-ink-muted mx-auto mb-3" />
  <h4 className="text-sm font-bold text-ink">No Tools in Registry</h4>
  <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
@@ -1992,7 +1992,7 @@ export default function ProductModal({
  </div>
  ) : (
  <>
- <div className="px-8 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/30">
+ <div className="px-4 sm:px-8 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/30">
  <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
  <span className="font-bold">Click</span> a row to preview Â· <span className="font-bold">Double-click</span> to open editor
  </p>
@@ -2074,7 +2074,7 @@ export default function ProductModal({
  onClick={(e) => e.stopPropagation()}
  >
  {/* Popup Header */}
- <div className="flex items-center justify-between p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-gradient-to-r from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 shrink-0">
  <div className="flex items-center gap-3">
  <div>
  <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">
@@ -2146,7 +2146,7 @@ export default function ProductModal({
  ) : (
  <>
  {/* Info Cards */}
- <div className="grid grid-cols-3 gap-3 mb-4">
+ <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
  <div className="bg-app p-3 rounded-xl">
  <p className="text-2xs font-bold text-ink-muted uppercase mb-1">
  {quickViewHistory.type === 'Sale' ? tt('Customer') : tt('Supplier')}
@@ -2326,7 +2326,7 @@ export default function ProductModal({
  <div className="fixed inset-0 z-drawer flex items-center justify-center p-4">
  <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setIsVariantModalOpen(false)}></div>
  <div className="relative w-full max-w-2xl bg-surface rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-normal">
- <div className="flex items-center justify-between mb-6">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
  <h3 className="text-xl font-bold text-ink">
  {editingVariant ? 'Edit Variant' : 'Add New Variant'}
  </h3>
@@ -2462,7 +2462,7 @@ export default function ProductModal({
  <div className="fixed inset-0 z-drawer flex items-center justify-center p-4">
  <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setIsBarcodeModalOpen(false)}></div>
  <div className="relative w-full max-w-lg bg-surface rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-normal">
- <div className="flex items-center justify-between mb-6">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
  <h3 className="text-xl font-bold text-ink">
  {editingBarcode ? 'Edit Barcode' : 'Add New Barcode'}
  </h3>

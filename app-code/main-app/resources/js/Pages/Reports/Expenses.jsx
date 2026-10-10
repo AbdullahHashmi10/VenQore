@@ -391,7 +391,7 @@ export default function ExpenseReport({ expenses = [], stats = {}, filters = {},
 
 function StatCard({ title, value, icon, color, isCurrency = false, prefix = '', subtext }) {
  return (
- <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+ <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2 group hover:shadow-md transition-all">
  <div>
  <p className="text-xs font-medium text-ink-muted uppercase tracking-wider mb-1">{title}</p>
  <h3 className="text-2xl font-bold text-ink">

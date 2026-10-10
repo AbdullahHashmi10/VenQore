@@ -188,7 +188,7 @@ export default function V6TimePicker({
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
                 aria-label={label || placeholder}
-                className={`group flex items-center justify-between w-full h-10 px-3 py-1.5 rounded-xl border text-sm transition-all select-none
+                className={`group flex flex-wrap items-center justify-between gap-y-2 w-full h-10 px-3 py-1.5 rounded-xl border text-sm transition-all select-none
                     ${isOpen
                         ? 'border-teal-500 ring-2 ring-teal-500/20 bg-surface shadow-sm'
                         : 'border-line hover:border-teal-400 bg-surface-2 hover:bg-surface text-ink'
@@ -252,7 +252,7 @@ export default function V6TimePicker({
                     }}
                 >
                     {/* Header: Display selected time & toggle */}
-                    <div className="flex items-center justify-between pb-3 border-b border-line mb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 pb-3 border-b border-line mb-3">
                         <div>
                             <div className="text-xs uppercase tracking-wider font-semibold text-ink-muted">
                                 {isCloseTime ? 'Closing Time' : 'Opening Time'}
@@ -304,7 +304,7 @@ export default function V6TimePicker({
 
                     {/* Quick Presets Bar */}
                     <div className="mb-3">
-                        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                        <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1.5 flex flex-wrap items-center justify-between gap-y-2">
                             <span>Popular Times</span>
                             {isCloseTime && <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-normal">🌙 overnight supported</span>}
                         </div>
@@ -395,7 +395,7 @@ export default function V6TimePicker({
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="pt-2 border-t border-line flex items-center justify-between gap-2">
+                    <div className="pt-2 border-t border-line flex flex-wrap items-center justify-between gap-y-2 gap-2">
                         <button
                             type="button"
                             onClick={() => {
