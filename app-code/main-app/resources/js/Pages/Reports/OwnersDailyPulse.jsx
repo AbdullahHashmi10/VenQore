@@ -8,14 +8,14 @@ import {
  ArrowRight, CreditCard, ChevronRight, AlertCircle, Calendar, Clock
 } from 'lucide-react';
 import MidnightNebula from '@/Components/MidnightNebula';
-import {
- ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
- CartesianGrid, Tooltip, Legend, LineChart, Line
-} from 'recharts';
 import axios from 'axios';
 import { formatCurrency } from '@/Utils/format';
+import {
+ ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, filterInputCls,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 
-import { vq } from '@/theme/runtime';
+
 export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, store_slug, store_name, snapshots = [] }) {
  // LOCKSCREEN STATES
  const [passcode, setPasscode] = useState('');
@@ -235,7 +235,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  return (
  <ReportsLayout title="Secure Vault Locked" showSidebar={false}>
  <div className="min-h-[85vh] flex items-center justify-center p-4">
- <div className="text-center p-4 sm:p-8 bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl max-w-sm">
+ <div className="text-center p-4 sm:p-8 bg-neutral-900 border border-neutral-800 rounded-[14px] shadow-xl max-w-sm">
  <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4 animate-pulse" />
  <h2 className="text-2xl font-bold text-white mb-2">Vault Unconfigured</h2>
  <p className="text-ink-muted text-sm">
@@ -257,9 +257,9 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  </div>
 
  <div className={`relative z-10 w-full max-w-md ${shake ? 'animate-bounce' : ''}`} style={shake ? { animation: 'shake 0.4s ease-in-out' } : {}}>
- <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-4 sm:p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="emerald" secondaryColor="indigo">
+ <MidnightNebula className="rounded-[14px] border border-neutral-800 shadow-2xl p-4 sm:p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="emerald" secondaryColor="indigo">
  <div className="text-center mb-8">
- <div className="inline-flex p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400 mb-4 animate-bounce">
+ <div className="inline-flex p-4 bg-emerald-500/10 rounded-[14px] border border-emerald-500/20 text-emerald-400 mb-4 animate-bounce">
  <Shield size={32} />
  </div>
  <h2 className="text-2xl font-bold text-white tracking-tight">Vault Security Setup</h2>
@@ -272,7 +272,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  <div className="space-y-4">
  <button
  onClick={() => setSetupPhase('setting')}
- className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg transition-all"
+ className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-[14px] shadow-lg transition-all"
  >
  <Lock size={18} />
  <span>REQUIRE PASSCODE</span>
@@ -280,7 +280,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  <button
  onClick={handleSetupDisable}
  disabled={processing}
- className="w-full flex items-center justify-center gap-2 py-4 bg-sunken hover:bg-interactive-hover text-white font-bold rounded-2xl transition-all"
+ className="w-full flex items-center justify-center gap-2 py-4 bg-sunken hover:bg-interactive-hover text-white font-bold rounded-[14px] transition-all"
  >
  <Unlock size={18} />
  <span>LEAVE UNLOCKED</span>
@@ -295,7 +295,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  type="password"
  value={newPasscode}
  readOnly
- className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
+ className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-[14px] p-4 text-white focus:outline-none placeholder-slate-700"
  placeholder="••••••••"
  />
  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -304,7 +304,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  key={key}
  type="button"
  onClick={() => handleKeypadPress(key, 'new')}
- className={`h-14 rounded-2xl font-bold text-lg ${key === 'C' || key === '⌫' ? 'bg-neutral-800 text-ink-muted' : 'bg-neutral-700 text-white'}`}
+ className={`h-14 rounded-[14px] font-bold text-lg ${key === 'C' || key === '⌫' ? 'bg-neutral-800 text-ink-muted' : 'bg-neutral-700 text-white'}`}
  >
  {key}
  </button>
@@ -316,7 +316,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  else setError('Passcode must be at least 4 digits');
  }}
  disabled={newPasscode.length < 4}
- className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all"
+ className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold rounded-[14px] transition-all"
  >
  NEXT
  </button>
@@ -331,7 +331,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  type="password"
  value={confirmPasscode}
  readOnly
- className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none placeholder-slate-700"
+ className="w-full text-center tracking-[0.7em] text-xl font-bold bg-neutral-950/80 border border-neutral-800 rounded-[14px] p-4 text-white focus:outline-none placeholder-slate-700"
  placeholder="••••••••"
  />
  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -340,7 +340,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  key={key}
  type="button"
  onClick={() => handleKeypadPress(key, 'confirm')}
- className={`h-14 rounded-2xl font-bold text-lg ${key === 'C' || key === '⌫' ? 'bg-neutral-800 text-ink-muted' : 'bg-neutral-700 text-white'}`}
+ className={`h-14 rounded-[14px] font-bold text-lg ${key === 'C' || key === '⌫' ? 'bg-neutral-800 text-ink-muted' : 'bg-neutral-700 text-white'}`}
  >
  {key}
  </button>
@@ -349,7 +349,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  <button
  onClick={handleSetupConfirm}
  disabled={processing || confirmPasscode.length < 4}
- className="w-full py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all"
+ className="w-full py-4 bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white font-bold rounded-[14px] transition-all"
  >
  {processing ? 'SAVING...' : 'CONFIRM & SAVE'}
  </button>
@@ -386,11 +386,11 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  </div>
 
  <div className={`relative z-10 w-full max-w-md ${shake ? 'animate-bounce' : ''}`} style={shake ? { animation: 'shake 0.4s ease-in-out' } : {}}>
- <MidnightNebula className="rounded-2xl border border-neutral-800 shadow-2xl p-4 sm:p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="indigo" secondaryColor="purple">
+ <MidnightNebula className="rounded-[14px] border border-neutral-800 shadow-2xl p-4 sm:p-8 backdrop-blur-md bg-neutral-900/80" primaryColor="indigo" secondaryColor="purple">
 
  {/* Vault Icon Header */}
  <div className="text-center mb-8">
- <div className="inline-flex p-4 bg-brand-500/10 rounded-2xl border border-brand-500/20 text-brand-400 mb-4 animate-pulse">
+ <div className="inline-flex p-4 bg-brand-500/10 rounded-[14px] border border-brand-500/20 text-brand-400 mb-4 animate-pulse">
  <Lock size={32} />
  </div>
  <h2 className="text-2xl font-bold text-white tracking-tight">{store_name}</h2>
@@ -408,7 +408,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  value={passcode}
  onChange={(e) => setPasscode(e.target.value)}
  placeholder="••••••••"
- className="w-full text-center tracking-[0.7em] text-xl font-bold bg-sunken/80 border border-neutral-800 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all font-mono placeholder-slate-700 shadow-inner"
+ className="w-full text-center tracking-[0.7em] text-xl font-bold bg-sunken/80 border border-neutral-800 rounded-[14px] p-4 text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all font-mono placeholder-slate-700 shadow-inner"
  disabled={processing}
  autoFocus
  />
@@ -436,7 +436,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  </div>
 
  {error && (
- <div className="flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-400 text-xs text-center justify-center font-medium animate-pulse">
+ <div className="flex items-center gap-2 p-3 bg-red-950/40 border border-red-900/50 rounded-[12px] text-red-400 text-xs text-center justify-center font-medium animate-pulse">
  <ShieldAlert size={14} className="shrink-0" />
  {error}
  </div>
@@ -451,7 +451,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  key={key}
  type="button"
  onClick={() => handleKeypadPress(key)}
- className={`h-14 rounded-2xl flex items-center justify-center font-bold text-lg transition-all active:scale-95 select-none ${
+ className={`h-14 rounded-[14px] flex items-center justify-center font-bold text-lg transition-all active:scale-95 select-none ${
  key === 'C' || key === '⌫'
  ? 'bg-neutral-800/40 hover:bg-interactive-hover text-ink-muted'
  : 'bg-neutral-800/80 hover:bg-interactive-hover text-white'
@@ -469,7 +469,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  <button
  type="submit"
  disabled={!passcode || processing}
- className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-brand disabled:bg-none disabled:bg-neutral-800 disabled:opacity-40 text-white font-bold rounded-2xl transition-all shadow-lg active:scale-[0.99] focus:outline-none"
+ className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-brand disabled:bg-none disabled:bg-neutral-800 disabled:opacity-40 text-white font-bold rounded-[14px] transition-all shadow-lg active:scale-[0.99] focus:outline-none"
  >
  {processing ? (
  <RefreshCw className="w-5 h-5 animate-spin" />
@@ -497,569 +497,183 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
  }
 
  // RENDER: UNLOCKED DASHBOARD
+ const tabs = [
+ { id: 'overview', label: 'All Combined' },
+ { id: 'sales', label: 'Sales' },
+ { id: 'purchases', label: 'Purchases' },
+ { id: 'cash', label: 'Cash Hand' },
+ { id: 'stock', label: 'Stock Value' },
+ { id: 'expense', label: 'Expenses' },
+ { id: 'receivables', label: 'Receivables' },
+ { id: 'payables', label: 'Payables' },
+ ];
+ const metricKeys = {
+ sales: ['Sales', 'sales'], purchases: ['Purchases', 'purchases'], cash: ['Cash Hand', 'cash'],
+ stock: ['Stock Value', 'stock'], expense: ['Expenses', 'expense'], receivables: ['Receivables', 'receivables'], payables: ['Payables', 'payables'],
+ };
+ const overviewKeys = ['sales', 'purchases', 'cash', 'stock', 'expense'];
+ const seriesFor = (id) => ({ name: metricKeys[id][0], points: chartData.map((s) => ({ x: s.date, y: s[metricKeys[id][1]] })) });
+ const trendSeries = activeTab === 'overview' ? overviewKeys.map(seriesFor) : [seriesFor(activeTab)];
+
+ // Same good/bad rule as before: purchases, expenses and payables are better when lower
+ const kpi = (label, key, icon, tone, higherIsBetter) => {
+ const cur = todaySnap[key];
+ const ch = yesterdaySnap ? calculateChange(cur, yesterdaySnap[key]) : null;
+ const good = yesterdaySnap ? (higherIsBetter ? cur >= yesterdaySnap[key] : cur <= yesterdaySnap[key]) : null;
+ return {
+ label, value: formatCurrency(cur), icon, tone,
+ sub: yesterdaySnap ? `vs yesterday ${formatPercent(ch) || '0.0%'}${good ? ' · better' : ' · worse'}` : 'vs yesterday N/A',
+ trend: yesterdaySnap && ch !== null ? (ch >= 0 ? 'up' : 'down') : undefined,
+ valueTone: good === false ? 'rose' : undefined,
+ };
+ };
+
+ const kpis = todaySnap ? [
+ kpi('Today Sales', 'sales', TrendingUp, 'emerald', true),
+ kpi('Today Purchases', 'purchases', Package, 'blue', false),
+ kpi('Cash in Hand', 'cash', DollarSign, 'brand', true),
+ kpi('Stock Asset', 'stock', Package, 'sky', true),
+ kpi('Today Expense', 'expense', CreditCard, 'amber', false),
+ kpi('Receivables', 'receivables', ArrowRight, 'amber', true),
+ kpi('Payables', 'payables', Clock, 'rose', false),
+ ] : [];
+
+ const assetSlices = todaySnap ? [
+ { name: 'Cash in Hand', value: Math.max(todaySnap.cash, 0) },
+ { name: 'Stock Asset', value: Math.max(todaySnap.stock, 0) },
+ { name: 'Receivables', value: Math.max(todaySnap.receivables, 0) },
+ ].filter((s) => s.value > 0) : [];
+ const rankItems = todaySnap ? [
+ { label: 'Sales', value: todaySnap.sales }, { label: 'Purchases', value: todaySnap.purchases },
+ { label: 'Expenses', value: todaySnap.expense }, { label: 'Cash in Hand', value: todaySnap.cash },
+ { label: 'Stock Asset', value: todaySnap.stock }, { label: 'Receivables', value: todaySnap.receivables },
+ { label: 'Payables', value: todaySnap.payables },
+ ].sort((a, b) => b.value - a.value) : [];
+ const bestSalesDay = formattedSnapshots.reduce((b, s) => (!b || s.sales > b.sales ? s : b), null);
+ const longDate = (d) => new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+ const logColumns = [
+ { key: 'date', label: 'Date', sortable: true, get: (r) => r.date, render: (r) => <span className="font-bold text-ink">{longDate(r.date)}</span> },
+ { key: 'sales', label: 'Sales', align: 'right', sortable: true, get: (r) => r.sales, render: (r) => <span className="font-bold text-emerald-600">{formatCurrency(r.sales)}</span> },
+ { key: 'purchases', label: 'Purchases', align: 'right', sortable: true, get: (r) => r.purchases, render: (r) => formatCurrency(r.purchases) },
+ { key: 'cash', label: 'Cash Position', align: 'right', sortable: true, get: (r) => r.cash, render: (r) => formatCurrency(r.cash) },
+ { key: 'stock', label: 'Stock Asset', align: 'right', sortable: true, get: (r) => r.stock, render: (r) => formatCurrency(r.stock) },
+ { key: 'receivables', label: 'Receivables', align: 'right', sortable: true, get: (r) => r.receivables, render: (r) => <span className="text-amber-600">{formatCurrency(r.receivables)}</span> },
+ { key: 'payables', label: 'Payables', align: 'right', sortable: true, get: (r) => r.payables, render: (r) => <span className="text-rose-600">{formatCurrency(r.payables)}</span> },
+ { key: 'expense', label: 'Expenses', align: 'right', sortable: true, get: (r) => r.expense, render: (r) => formatCurrency(r.expense) },
+ {
+ key: 'note', label: 'Daily Memo (autosaves)', width: 320,
+ render: (r) => {
+ const dateStr = r.date;
+ const currentNote = noteEdits[dateStr] !== undefined ? noteEdits[dateStr] : (r.note || '');
+ const saveStatus = savingNotes[dateStr];
  return (
- <ReportsLayout title="Owner's Daily Pulse" showSidebar={true}>
- <Head title="Owner's Daily Pulse Dashboard" />
-
- <div className="space-y-6 max-w-7xl mx-auto pb-12">
-
- {/* Dashboard Security Top Bar */}
- <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
- {/* Glowing Accent Layer */}
- <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-
- <div className="flex items-center gap-4 relative z-10">
- <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 text-emerald-400">
- <Shield size={24} className="animate-pulse" />
- </div>
- <div>
- <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
- Owner's Daily Pulse
- <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
- <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
- Executive Session
+ <div className="relative flex items-center" onClick={(e) => e.stopPropagation()}>
+ <input type="text" value={currentNote} onChange={(e) => handleNoteChange(dateStr, e.target.value)}
+ placeholder="Write daily notes, events, exceptions..." className={`${filterInputCls} h-9 w-full pr-20`} />
+ {saveStatus && (
+ <span className="absolute right-2 flex items-center gap-1 text-3xs font-bold uppercase tracking-wider">
+ {saveStatus === 'saving' && (<><RefreshCw size={10} className="animate-spin text-amber-500" /><span className="text-amber-500">Saving...</span></>)}
+ {saveStatus === 'saved' && (<><CheckCircle size={10} className="text-emerald-500" /><span className="text-emerald-500">Saved</span></>)}
+ {saveStatus === 'error' && (<><AlertCircle size={10} className="text-rose-500" /><span className="text-rose-500">Retry</span></>)}
  </span>
- </h1>
- <p className="text-xs text-ink-muted mt-0.5">
- Executive financial ledger audits and auto-healing data backups.
- </p>
+ )}
  </div>
- </div>
+ );
+ },
+ },
+ ];
 
- <div className="flex items-center gap-3 relative z-10">
- <input
- type="date"
- value={selectedDate}
- onChange={(e) => setSelectedDate(e.target.value)}
- className="bg-neutral-950/80 border border-neutral-700/80 text-white rounded-xl px-4 py-2.5 text-xs focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/80 hover:border-line-strong transition-all outline-none"
- title="Select Date"
- />
- <button
- onClick={() => window.location.reload()}
- className="p-3 bg-neutral-800 hover:bg-interactive-hover text-neutral-300 hover:text-white rounded-xl border border-neutral-700/80 transition-colors"
- title="Force Refresh Data"
- >
- <RefreshCw size={16} />
+ return (
+ <ReportShell
+ title="Owner's Daily Pulse" subtitle="Executive financial ledger audits and auto-healing data backups" activeKey="owner-daily-pulse"
+ filters={(
+ <label className="flex items-center gap-2">
+ <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">Date</span>
+ <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className={filterInputCls} title="Select Date" />
+ </label>
+ )}
+ actions={(
+ <>
+ <button type="button" onClick={() => window.location.reload()} title="Force Refresh Data"
+ className="flex h-10 w-10 items-center justify-center rounded-[12px] text-ink-muted transition-colors hover:bg-interactive-hover">
+ <RefreshCw size={18} />
  </button>
- <button
- onClick={handleLockTerminal}
- className="flex items-center gap-2 px-4 py-3 bg-red-950/40 hover:bg-red-900/30 text-red-400 hover:text-red-300 rounded-xl border border-red-900/50 transition-all font-semibold text-xs uppercase tracking-wider"
- >
- <LogOut size={14} />
- <span>Lock Vault</span>
+ <button type="button" onClick={handleLockTerminal}
+ className="flex h-10 items-center gap-2 rounded-[12px] border border-rose-200 px-3 text-sm font-bold text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-900/50 dark:hover:bg-rose-900/20">
+ <LogOut size={16} /><span className="hidden sm:inline">Lock Vault</span>
  </button>
- </div>
- </div>
-
- {/* Grid of 7 Floating Metric Cards */}
+ </>
+ )}
+ exportConfig={{
+ filename: 'owner-daily-pulse',
+ columns: [
+ { label: 'Date', get: (r) => r.date }, { label: 'Sales', get: (r) => r.sales }, { label: 'Purchases', get: (r) => r.purchases },
+ { label: 'Cash', get: (r) => r.cash }, { label: 'Stock', get: (r) => r.stock }, { label: 'Receivables', get: (r) => r.receivables },
+ { label: 'Payables', get: (r) => r.payables }, { label: 'Expenses', get: (r) => r.expense },
+ { label: 'Note', get: (r) => (noteEdits[r.date] !== undefined ? noteEdits[r.date] : (r.note || '')) },
+ ],
+ rows: formattedSnapshots,
+ }}
+ >
  {todaySnap ? (
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-
- {/* 1. SALES */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-emerald-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Today Sales</span>
- <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
- <TrendingUp size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.sales)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.sales >= yesterdaySnap.sales ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.sales, yesterdaySnap.sales)) || '0.0%'}
- </span>
+ <ReportKpis items={kpis} min={170} />
  ) : (
- <span className="text-ink-muted">N/A</span>
- )}
+ <ReportSection>
+ <div className="flex flex-col items-center gap-2 py-8 text-center">
+ <AlertCircle className="h-10 w-10 text-ink-muted" />
+ <h3 className="text-base font-bold text-ink">No Financial Snapshots Yet</h3>
+ <p className="max-w-sm text-xs text-ink-muted">The self-healing data backfiller is scanning your double-entry accounts to generate your daily history.</p>
  </div>
- </div>
-
- {/* 2. PURCHASES */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-blue-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1">
- Today Purchases
- </span>
- <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
- <Package size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.purchases)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.purchases <= yesterdaySnap.purchases ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.purchases, yesterdaySnap.purchases)) || '0.0%'}
- </span>
- ) : (
- <span className="text-ink-muted">N/A</span>
- )}
- </div>
- </div>
-
- {/* 2. CASH IN HAND */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-brand-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Cash in Hand</span>
- <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400">
- <DollarSign size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.cash)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.cash >= yesterdaySnap.cash ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.cash, yesterdaySnap.cash)) || '0.0%'}
- </span>
- ) : (
- <span className="text-ink-muted">N/A</span>
- )}
- </div>
- </div>
-
- {/* 3. STOCK VALUE */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-cyan-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Stock Asset</span>
- <div className="p-2 bg-cyan-500/10 rounded-lg text-cyan-400">
- <Package size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.stock)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.stock >= yesterdaySnap.stock ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.stock, yesterdaySnap.stock)) || '0.0%'}
- </span>
- ) : (
- <span className="text-ink-muted">N/A</span>
- )}
- </div>
- </div>
-
- {/* 4. TODAY EXPENSE */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-orange-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Today Expense</span>
- <div className="p-2 bg-orange-500/10 rounded-lg text-orange-400">
- <CreditCard size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.expense)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.expense <= yesterdaySnap.expense ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.expense, yesterdaySnap.expense)) || '0.0%'}
- </span>
- ) : (
- <span className="text-ink-muted">N/A</span>
- )}
- </div>
- </div>
-
- {/* 5. RECEIVABLES */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-amber-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Receivables</span>
- <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400">
- <ArrowRight size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.receivables)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.receivables >= yesterdaySnap.receivables ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.receivables, yesterdaySnap.receivables)) || '0.0%'}
- </span>
- ) : (
- <span className="text-ink-muted">N/A</span>
- )}
- </div>
- </div>
-
- {/* 6. PAYABLES */}
- <div className="bg-neutral-900 border border-neutral-800/80 rounded-2xl p-4 shadow-xl flex flex-col justify-between hover:border-rose-500/30 transition-all group hover:-translate-y-0.5">
- <div>
- <div className="flex justify-between items-center mb-3">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-widest">Payables</span>
- <div className="p-2 bg-rose-500/10 rounded-lg text-rose-400">
- <Clock size={14} />
- </div>
- </div>
- <h3 className="text-lg font-bold text-white leading-none">
- {formatCurrency(todaySnap.payables)}
- </h3>
- </div>
- <div className="mt-4 pt-2 border-t border-neutral-800/50 flex justify-between items-center text-2xs">
- <span className="text-ink-muted font-bold">VS YESTERDAY</span>
- {yesterdaySnap ? (
- <span className={`font-bold ${todaySnap.payables <= yesterdaySnap.payables ? 'text-emerald-400' : 'text-red-400'}`}>
- {formatPercent(calculateChange(todaySnap.payables, yesterdaySnap.payables)) || '0.0%'}
- </span>
- ) : (
- <span className="text-ink-muted">N/A</span>
- )}
- </div>
- </div>
-
- </div>
- ) : (
- <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 sm:p-8 text-center text-ink-muted">
- <AlertCircle className="w-12 h-12 text-ink-secondary mx-auto mb-3" />
- <h3 className="text-white font-bold text-lg">No Financial Snapshots Yet</h3>
- <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
- The self-healing data backfiller is scanning your double-entry accounts to generate your daily history.
- </p>
- </div>
+ </ReportSection>
  )}
 
- {/* Interactive Chart Section */}
- <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
- {/* Nebula Background Elements inside the chart area */}
- <div className="absolute top-1/2 left-1/2 w-[40rem] h-[40rem] -translate-x-1/2 -translate-y-1/2 bg-brand-500/[0.02] rounded-full blur-[120px] pointer-events-none" />
-
- {/* Header & Tabs */}
- <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-neutral-800/80 mb-6 relative z-10">
- <div>
- <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
- <Activity className="w-5 h-5 text-brand-400" />
- 30-Day Financial Trends
- </h2>
- <p className="text-xs text-ink-muted mt-0.5">
- Select a tab below to filter individual metrics or view combined double-entry trends.
- </p>
- </div>
-
- {/* Interactive Capsule Toggle Buttons (8 Tabs) */}
- <div className="flex flex-wrap gap-1.5 bg-neutral-950 p-1.5 rounded-2xl border border-neutral-800/50">
- {[
- { id: 'overview', label: 'All Combined', color: 'text-brand-400 bg-brand-500/10 border-brand-500/20 hover:text-white' },
- { id: 'sales', label: 'Sales', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:text-white' },
- { id: 'purchases', label: 'Purchases', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20 hover:text-white' },
- { id: 'cash', label: 'Cash Hand', color: 'text-brand-400 bg-brand-500/10 border-brand-500/20 hover:text-white' },
- { id: 'stock', label: 'Stock Value', color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20 hover:text-white' },
- { id: 'expense', label: 'Expenses', color: 'text-orange-400 bg-orange-500/10 border-orange-500/20 hover:text-white' },
- { id: 'receivables', label: 'Receivables', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20 hover:text-white' },
- { id: 'payables', label: 'Payables', color: 'text-rose-400 bg-rose-500/10 border-rose-500/20 hover:text-white' },
- ].map(tab => {
- const isActive = activeTab === tab.id;
- return (
- <button
- key={tab.id}
- onClick={() => setActiveTab(tab.id)}
- className={`px-3 py-2 text-2xs font-bold uppercase tracking-wider rounded-xl transition-all ${
- isActive
- ? 'bg-brand-600 text-white shadow-md '
- : 'text-ink-muted hover:bg-interactive-hover hover:text-white'
- }`}
- >
+ <ReportGrid>
+ <ReportCol span={8}>
+ <ReportSection title="30-Day Financial Trends" subtitle="Pick a metric or view the combined double-entry trends" icon={Activity}>
+ <div className="mb-2 flex flex-wrap items-center gap-1">
+ {tabs.map((tab) => (
+ <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
+ className={`h-10 rounded-[12px] px-3 text-sm font-semibold transition-colors ${activeTab === tab.id ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'text-ink-secondary hover:bg-interactive-hover'}`}>
  {tab.label}
  </button>
- );
- })}
- </div>
- </div>
-
- {/* Chart Plotting (Recharts Area / Line) */}
- <div className="h-[24rem] w-full relative z-10">
- {chartData.length > 0 ? (
- <ResponsiveContainer width="100%" height="100%">
- <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
- <defs>
- <linearGradient id="salesGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity={0}/>
- </linearGradient>
- <linearGradient id="purchasesGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.blue[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.blue[500]} stopOpacity={0}/>
- </linearGradient>
- <linearGradient id="cashGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.violet[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.violet[500]} stopOpacity={0}/>
- </linearGradient>
- <linearGradient id="stockGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.cyan[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.cyan[500]} stopOpacity={0}/>
- </linearGradient>
- <linearGradient id="expenseGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.orange[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.orange[500]} stopOpacity={0}/>
- </linearGradient>
- <linearGradient id="receivablesGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.amber[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.amber[500]} stopOpacity={0}/>
- </linearGradient>
- <linearGradient id="payablesGlow" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.rose[500]} stopOpacity={0.2}/>
- <stop offset="95%" stopColor={vq.rose[500]} stopOpacity={0}/>
- </linearGradient>
- </defs>
- <CartesianGrid strokeDasharray="3 3" stroke={vq.slate[800]} opacity={0.5} vertical={false} />
- <XAxis
- dataKey="displayDate"
- stroke={vq.slate[600]}
- fontSize={10}
- fontWeight="bold"
- tickLine={false}
- axisLine={false}
- dy={10}
- />
- <YAxis
- stroke={vq.slate[600]}
- fontSize={10}
- fontWeight="bold"
- tickLine={false}
- axisLine={false}
- tickFormatter={(val) => val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}
- dx={-10}
- />
- <Tooltip
- content={({ active, payload, label }) => {
- if (active && payload && payload.length) {
- return (
- <div className="bg-neutral-950/95 border border-neutral-800 p-4 rounded-xl shadow-2xl backdrop-blur-md">
- <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 flex items-center gap-1.5">
- <Calendar size={10} />
- {label}
- </p>
- <div className="space-y-1.5">
- {payload.map((item, i) => (
- <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 gap-6 text-xs">
- <div className="flex items-center gap-1.5 text-ink-muted">
- <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
- <span>{item.name}:</span>
- </div>
- <span className="font-bold text-white">
- {formatCurrency(item.value)}
- </span>
- </div>
  ))}
  </div>
- </div>
- );
- }
- return null;
- }}
- />
+ <TrendChart series={trendSeries} type={activeTab === 'overview' ? 'line' : 'area'} height={320} />
+ </ReportSection>
+ </ReportCol>
+ <ReportCol span={4}>
+ <ReportSection title="Asset Mix" subtitle={todaySnap ? longDate(todaySnap.date) : undefined} icon={Scale} tone="violet">
+ <DonutChart slices={assetSlices} height={320} />
+ </ReportSection>
+ </ReportCol>
+ </ReportGrid>
 
- {/* 8 TABS ROUTED CONDITIONALLY */}
- {activeTab === 'overview' && (
- <>
- <Area type="monotone" name="Sales" dataKey="sales" stroke={vq.emerald[500]} strokeWidth={2.5} fillOpacity={0} />
- <Area type="monotone" name="Purchases" dataKey="purchases" stroke={vq.blue[500]} strokeWidth={2.5} fillOpacity={0} />
- <Area type="monotone" name="Cash hand" dataKey="cash" stroke={vq.violet[500]} strokeWidth={2.5} fillOpacity={0} />
- <Area type="monotone" name="Stock Value" dataKey="stock" stroke={vq.cyan[500]} strokeWidth={2.5} fillOpacity={0} />
- <Area type="monotone" name="Expenses" dataKey="expense" stroke={vq.orange[500]} strokeWidth={2.5} fillOpacity={0} />
- </>
- )}
+ {todaySnap ? (
+ <ReportGrid>
+ <ReportCol span={6}>
+ <ReportSection title="Figures Ranked" subtitle={`All seven pulse numbers for ${longDate(todaySnap.date)}`} icon={Award} tone="emerald">
+ <RankBars items={rankItems} limit={7} />
+ </ReportSection>
+ </ReportCol>
+ <ReportCol span={6}>
+ <ReportSection title="Highlights" subtitle="Derived from the snapshots above" icon={Sparkles} tone="amber">
+ <ul className="flex flex-col divide-y divide-line">
+ <li className="flex h-12 items-center justify-between gap-2 text-sm"><span className="text-ink-secondary">Net profit (sales minus expenses)</span><span className={`font-bold tabular-nums ${todaySnap.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(todaySnap.netProfit)}</span></li>
+ <li className="flex h-12 items-center justify-between gap-2 text-sm"><span className="text-ink-secondary">Net assets (cash + receivables + stock - payables)</span><span className={`font-bold tabular-nums ${todaySnap.netAssets >= 0 ? 'text-ink' : 'text-rose-600'}`}>{formatCurrency(todaySnap.netAssets)}</span></li>
+ {bestSalesDay ? (
+ <li className="flex h-12 items-center justify-between gap-2 text-sm"><span className="text-ink-secondary">Best sales day ({longDate(bestSalesDay.date)})</span><span className="font-bold tabular-nums text-ink">{formatCurrency(bestSalesDay.sales)}</span></li>
+ ) : null}
+ </ul>
+ </ReportSection>
+ </ReportCol>
+ </ReportGrid>
+ ) : null}
 
- {activeTab === 'sales' && (
- <Area type="monotone" name="Sales" dataKey="sales" stroke={vq.emerald[500]} strokeWidth={3} fill="url(#salesGlow)" />
- )}
-
- {activeTab === 'purchases' && (
- <Area type="monotone" name="Purchases" dataKey="purchases" stroke={vq.blue[500]} strokeWidth={3} fill="url(#purchasesGlow)" />
- )}
-
- {activeTab === 'cash' && (
- <Area type="monotone" name="Cash Hand" dataKey="cash" stroke={vq.violet[500]} strokeWidth={3} fill="url(#cashGlow)" />
- )}
-
- {activeTab === 'stock' && (
- <Area type="monotone" name="Stock Value" dataKey="stock" stroke={vq.cyan[500]} strokeWidth={3} fill="url(#stockGlow)" />
- )}
-
- {activeTab === 'expense' && (
- <Area type="monotone" name="Expenses" dataKey="expense" stroke={vq.orange[500]} strokeWidth={3} fill="url(#expenseGlow)" />
- )}
-
- {activeTab === 'receivables' && (
- <Area type="monotone" name="Receivables" dataKey="receivables" stroke={vq.amber[500]} strokeWidth={3} fill="url(#receivablesGlow)" />
- )}
-
- {activeTab === 'payables' && (
- <Area type="monotone" name="Payables" dataKey="payables" stroke={vq.rose[500]} strokeWidth={3} fill="url(#payablesGlow)" />
- )}
- </AreaChart>
- </ResponsiveContainer>
- ) : (
- <div className="absolute inset-0 flex items-center justify-center text-ink-muted font-bold text-sm">
- Loading Trend Analysis...
- </div>
- )}
- </div>
- </div>
-
- {/* Chronological Grid Table Logs */}
- <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl overflow-hidden relative">
- <div className="p-6 border-b border-neutral-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
- <div>
- <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
- <FileText className="w-5 h-5 text-brand-400" />
- Historical Pulse Logs
- </h2>
- <p className="text-xs text-ink-muted mt-0.5">
- Chronological ledger records for the past 30 days. Save memos in-line.
- </p>
- </div>
- <div className="flex items-center gap-2 text-xs text-ink-muted">
- <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse" />
- <span>Autosave Enabled</span>
- </div>
- </div>
-
- <div className="overflow-x-auto">
- <table className="w-full text-left text-xs border-collapse">
- <thead className="bg-sunken/60 text-ink-muted uppercase tracking-widest font-bold border-b border-neutral-800">
- <tr>
- <th className="px-6 py-4">Date</th>
- <th className="px-6 py-4">Sales</th>
- <th className="px-6 py-4">Purchases</th>
- <th className="px-6 py-4">Cash Position</th>
- <th className="px-6 py-4">Stock Asset</th>
- <th className="px-6 py-4">Receivables</th>
- <th className="px-6 py-4">Payables</th>
- <th className="px-6 py-4">Expenses</th>
- <th className="px-6 py-4 min-w-[240px]">Daily Memo / Note (Autosaves Inline)</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-neutral-800/60">
- {formattedSnapshots.length > 0 ? (
- formattedSnapshots.map((snap) => {
- const dateStr = snap.date;
- const currentNote = noteEdits[dateStr] !== undefined ? noteEdits[dateStr] : (snap.note || '');
- const saveStatus = savingNotes[dateStr];
-
- return (
- <tr key={snap.id} className="hover:bg-interactive-hover transition-colors">
-
- {/* Date */}
- <td className="px-6 py-4 font-bold text-white whitespace-nowrap">
- {new Date(snap.date).toLocaleDateString(undefined, {
- year: 'numeric',
- month: 'short',
- day: 'numeric'
- })}
- </td>
-
- {/* Sales */}
- <td className="px-6 py-4 font-bold text-emerald-400">
- {formatCurrency(snap.sales)}
- </td>
-
- {/* Purchases */}
- <td className="px-6 py-4 font-bold text-blue-400">
- {formatCurrency(snap.purchases)}
- </td>
-
- {/* Cash */}
- <td className="px-6 py-4 font-bold text-brand-300">
- {formatCurrency(snap.cash)}
- </td>
-
- {/* Stock */}
- <td className="px-6 py-4 font-bold text-neutral-300">
- {formatCurrency(snap.stock)}
- </td>
-
- {/* Receivables */}
- <td className="px-6 py-4 font-bold text-amber-400">
- {formatCurrency(snap.receivables)}
- </td>
-
- {/* Payables */}
- <td className="px-6 py-4 font-bold text-rose-400">
- {formatCurrency(snap.payables)}
- </td>
-
- {/* Expenses */}
- <td className="px-6 py-4 font-bold text-orange-400">
- {formatCurrency(snap.expense)}
- </td>
-
- {/* In-line Autosaving Daily Note */}
- <td className="px-6 py-4 relative">
- <div className="relative group">
- <textarea
- value={currentNote}
- onChange={(e) => handleNoteChange(dateStr, e.target.value)}
- placeholder="Write daily notes, events, exceptions..."
- rows={2}
- className="w-full bg-neutral-950/80 border border-neutral-800/80 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-brand-500/50 focus:border-brand-500 transition-all font-medium placeholder-slate-600 resize-none hover:border-line-strong"
- />
-
- {/* Autosave Indicator Overlay */}
- {saveStatus && (
- <div className="absolute right-2 bottom-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-3xs font-bold uppercase tracking-wider bg-neutral-950 border border-neutral-800 shadow-xl z-20">
- {saveStatus === 'saving' && (
- <>
- <RefreshCw size={10} className="text-amber-400 animate-spin" />
- <span className="text-amber-400">Saving...</span>
- </>
- )}
- {saveStatus === 'saved' && (
- <>
- <CheckCircle size={10} className="text-emerald-400" />
- <span className="text-emerald-400">Saved</span>
- </>
- )}
- {saveStatus === 'error' && (
- <>
- <AlertCircle size={10} className="text-red-400 animate-pulse" />
- <span className="text-red-400">Retry</span>
- </>
- )}
- </div>
- )}
- </div>
- </td>
- </tr>
- );
- })
- ) : (
- <tr>
- <td colSpan="7" className="px-6 py-8 text-center text-ink-muted">
- No daily history logs found.
- </td>
- </tr>
- )}
- </tbody>
- </table>
- </div>
- </div>
-
- </div>
- </ReportsLayout>
+ <ReportSection title="Historical Pulse Logs" subtitle="Chronological ledger records for the past 30 days. Memos save inline." icon={FileText} flush
+ right={<span className="flex items-center gap-2 text-xs text-ink-muted"><span className="h-2.5 w-2.5 animate-pulse rounded-full bg-brand-500" />Autosave Enabled</span>}>
+ <ReportTable columns={logColumns} rows={formattedSnapshots} rowKey={(r) => r.id ?? r.date} pageSize={31} empty="No daily history logs found." />
+ </ReportSection>
+ </ReportShell>
  );
 }

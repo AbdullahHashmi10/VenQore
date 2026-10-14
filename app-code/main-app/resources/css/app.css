@@ -1071,3 +1071,5 @@ html:not(.dark) .blog-prose h2 {
 @keyframes vqPop { from { opacity: 0; transform: translateY(10px) scale(.92); } to { opacity: 1; transform: none; } }
 
 @keyframes vqDrop { from { opacity: 0; transform: scaleY(.96); } to { opacity: 1; transform: none; } }
+
+@keyframes vqDrawerIn { from { transform: translateX(-100%); } to { transform: none; } }

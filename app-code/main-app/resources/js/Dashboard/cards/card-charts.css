@@ -91,7 +91,7 @@
 
 .vqcc-goal-line { margin: 0; text-align: center; font: 500 12px/1.35 var(--vq-font-sans); color: var(--vq-text-2); max-width: none; }
 .vqcc-goal-line strong { font-family: var(--vq-font-numeric, var(--vq-font-sans)); color: var(--vq-text); margin-right: 2px; }
-.vqcc-foot { margin: 4px 0 0; font: 500 11px/1.3 var(--vq-font-sans); color: var(--vq-text-3); max-width: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vqcc-foot { margin: 6px 0 0; flex: 0 0 auto; position: relative; z-index: 1; font: 500 11px/1.3 var(--vq-font-sans); color: var(--vq-text-3); max-width: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vqcc-note { margin: 6px 0 0; font: 500 12px/1.4 var(--vq-font-sans); color: var(--vq-text-2); max-width: none; }
 
 .vqcc-radar-outline path { fill-opacity: 0 !important; }

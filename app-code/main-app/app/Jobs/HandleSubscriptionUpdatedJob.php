@@ -103,6 +103,8 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
 
         app()->instance('current.tenant', $tenant);
 
+        $plan = $tenant->planFromBilling($plan);
+
         $tenant->update(['plan' => $plan, 'status' => $status]);
 
         // A plan change moves the AI ceiling with it — the allowance is part of

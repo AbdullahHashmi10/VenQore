@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
     Database,
@@ -38,13 +39,16 @@ export default function AdminDatabase({ stats, backups }) {
     };
 
     return (
-        <OneGlanceLayout title="Database Center" mode="admin">
+        <OneGlanceLayout title="Database Center" mode="admin" noPadding>
             <Head title="Database Management" />
 
-            <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
+            <ListPageFrame className="p-1.5">
+<ListToolbar title="Database Operations" actions={<ListAddButton icon={Plus} onClick={handleCreateBackup} disabled={processing}>Create New Backup</ListAddButton>} />
+<div className="md:flex-1 md:min-h-0 md:overflow-auto">
+<div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
 
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
+                <div className="md:hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
                     <div>
                         <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
                             <Server className="text-brand-500" />
@@ -138,10 +142,10 @@ export default function AdminDatabase({ stats, backups }) {
                                 <table className="w-full text-left">
                                     <thead className="bg-app sticky top-0 z-10 backdrop-blur-md">
                                         <tr className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
-                                            <th className="px-6 py-4">Filename</th>
-                                            <th className="px-6 py-4">Size</th>
-                                            <th className="px-6 py-4">Created At</th>
-                                            <th className="px-6 py-4 text-right">Actions</th>
+                                            <th className="sticky top-0 z-10 bg-app px-6 py-4">Filename</th>
+                                            <th className="sticky top-0 z-10 bg-app px-6 py-4">Size</th>
+                                            <th className="sticky top-0 z-10 bg-app px-6 py-4">Created At</th>
+                                            <th className="sticky top-0 z-10 bg-app px-6 py-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-line">
@@ -226,6 +230,8 @@ export default function AdminDatabase({ stats, backups }) {
                     </div>
                 </div>
             </div>
-        </OneGlanceLayout>
+        </div>
+</ListPageFrame>
+</OneGlanceLayout>
     );
 }

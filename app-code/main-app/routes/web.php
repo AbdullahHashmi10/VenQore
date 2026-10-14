@@ -19,6 +19,7 @@ use Inertia\Inertia;
 
 
 // ── Public Marketing Pages (Dynamic Inertia / V6) ──────────────────────────
+Route::get('/station-download', [\App\Http\Controllers\AppsController::class, 'downloadStation'])->name('station.download');
 Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
 Route::get('/features/{slug}', [\App\Http\Controllers\Marketing\FeaturesController::class, 'show'])->name('marketing.features.show');
 
@@ -514,6 +515,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         });
 
         // ── Phase 9 (T9-9): Restaurant & Café Module ───────────────────────
+        Route::get('/restaurant/overview', [\App\Http\Controllers\ModuleDashboardController::class, 'restaurant'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.overview');
         Route::get('/restaurant/dashboard', [\App\Http\Controllers\RestaurantDashboardController::class, 'index'])->middleware('permission:pos.checkout,foh.access,admin.settings_manage')->name('restaurant.dashboard');
 
         // ── FOH (front of house): tables, takeaway and delivery on one screen ──
@@ -693,6 +695,17 @@ Route::middleware(['auth'])
         Route::post('/pk-verifications/submit', [\App\Http\Controllers\Admin\PkVerificationController::class, 'submit'])->name('pk-verifications.submit');
     });
 
+// ── Impersonation exit (2026-10-11) ───────────────────────────────────────────
+// Must sit outside the SuperAdminMiddleware group: during impersonation the
+// signed-in user is the impersonated store user, so the group 404'd "Exit".
+// ImpersonationController::end() only acts when the session holds impersonator_id.
+Route::middleware(['auth'])
+    ->prefix('VenQore')
+    ->name('platform.')
+    ->group(function () {
+        Route::post('/impersonate/end', [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonate.end');
+    });
+
 // ── Platform Owner ───────────────────────────────────────────────────────────
 Route::get('/venqore', fn() => redirect('/VenQore'));
 Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
@@ -704,12 +717,12 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         // Digital Hub (Etsy Partner Support & Product Registry CRUD)
         Route::get('/digital-hub', [\App\Http\Controllers\Admin\DigitalHubController::class, 'index'])->name('digital-hub');
         Route::get('/digital-hub/chats', [\App\Http\Controllers\Admin\DigitalHubController::class, 'chats'])->name('digital-hub.chats');
-        Route::post('/digital-hub/chats/{ticket_id}/reply', [\App\Http\Controllers\Admin\DigitalHubController::class, 'reply'])->name('digital-hub.chats.reply');
-        Route::post('/digital-hub/chats/{ticket_id}/status', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateStatus'])->name('digital-hub.chats.status');
+        Route::post('/digital-hub/chats/{ticket_id}/reply', [\App\Http\Controllers\Admin\DigitalHubController::class, 'reply'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('digital-hub.chats.reply');
+        Route::post('/digital-hub/chats/{ticket_id}/status', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateStatus'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('digital-hub.chats.status');
         Route::get('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'getProducts'])->name('digital-hub.products');
-        Route::post('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'createProduct'])->name('digital-hub.products.create');
-        Route::post('/digital-hub/products/{id}/update', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateProduct'])->name('digital-hub.products.update');
-        Route::delete('/digital-hub/products/{id}', [\App\Http\Controllers\Admin\DigitalHubController::class, 'deleteProduct'])->name('digital-hub.products.delete');
+        Route::post('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'createProduct'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('digital-hub.products.create');
+        Route::post('/digital-hub/products/{id}/update', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateProduct'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('digital-hub.products.update');
+        Route::delete('/digital-hub/products/{id}', [\App\Http\Controllers\Admin\DigitalHubController::class, 'deleteProduct'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('digital-hub.products.delete');
 
         // Newsletter Hub (Platform Newsletters & Subscribers lists)
         Route::get('/newsletter-hub', [\App\Http\Controllers\Admin\NewsletterHubController::class, 'index'])->name('newsletter-hub');
@@ -751,40 +764,40 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
 
         Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
         Route::get('/users',              [\App\Http\Controllers\Admin\SuperAdminController::class, 'users'])->name('users');
-        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
-        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
-        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
-        Route::post('/stores/{tenant}/toggle-internal', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleInternal'])->name('store.toggle-internal');
-        Route::post('/stores/{tenant}/feature-flags', [\App\Http\Controllers\Admin\SuperAdminController::class, 'updateStoreFeatureFlags'])->name('store.feature-flag');
+        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.suspend');
+        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.activate');
+        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.extend-trial');
+        Route::post('/stores/{tenant}/toggle-internal', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleInternal'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.toggle-internal');
+        Route::post('/stores/{tenant}/feature-flags', [\App\Http\Controllers\Admin\SuperAdminController::class, 'updateStoreFeatureFlags'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.feature-flag');
 
         // Trash Management
-        Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->name('store.destroy');
-        Route::post('/stores/bulk-destroy',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyStores'])->name('stores.bulk-destroy');
-        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->name('store.restore');
-        Route::delete('/stores/{id}/purge',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeStore'])->name('store.purge');
+        Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.destroy');
+        Route::post('/stores/bulk-destroy',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyStores'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('stores.bulk-destroy');
+        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.restore');
+        Route::delete('/stores/{id}/purge',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeStore'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store.purge');
         
-        Route::delete('/users/{user}/destroy',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyUser'])->name('user.destroy');
-        Route::post('/users/bulk-destroy',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyUsers'])->name('users.bulk-destroy');
-        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
-        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
+        Route::delete('/users/{user}/destroy',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyUser'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('user.destroy');
+        Route::post('/users/bulk-destroy',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyUsers'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('users.bulk-destroy');
+        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('user.restore');
+        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('user.purge');
 
         // AppSumo routes gated dynamically via database setting in controller (T3.8)
         Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
-        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
-        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('appsumo.generate');
+        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('appsumo.import');
         Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
-        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('appsumo.purge');
 
         // ── V1 Support Inbox ──────────────────────────────────────────────
         Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
         Route::get('/tickets/{ticket}',                     [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('ticket.show');
-        Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->name('ticket.reply');
-        Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('ticket.status');
+        Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('ticket.reply');
+        Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('ticket.status');
 
         // ── Vena Chat Tickets (auto-generated from Vena widget escalations) ───
         Route::get('/vena-tickets',              [\App\Http\Controllers\Admin\VenaTicketsController::class, 'index'])->name('vena.tickets');
         Route::get('/vena-tickets/{ticket}',     [\App\Http\Controllers\Admin\VenaTicketsController::class, 'show'])->name('vena.ticket.show');
-        Route::post('/vena-tickets/{ticket}/status', [\App\Http\Controllers\Admin\VenaTicketsController::class, 'updateStatus'])->name('vena.ticket.status');
+        Route::post('/vena-tickets/{ticket}/status', [\App\Http\Controllers\Admin\VenaTicketsController::class, 'updateStatus'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('vena.ticket.status');
 
         // ── Webhook Logs ──────────────────────────────────────────────────
         Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
@@ -793,22 +806,23 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         // ── System Health & Monitoring ────────────────────────────────────
         Route::get('/health/check',                          [\App\Http\Controllers\Admin\HealthCheckController::class, 'check'])->name('health.check');
         Route::get('/health/errors',                         [\App\Http\Controllers\Admin\SuperAdminController::class, 'errorLogs'])->name('health.errors');
-        Route::post('/health/errors/resolve-all',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveAllErrors'])->name('health.errors.resolve-all');
-        Route::post('/health/errors/detect-fixes',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'detectFixes'])->name('health.errors.detect-fixes');
-        Route::post('/health/errors/{error}/resolve',        [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveError'])->name('health.errors.resolve');
+        Route::post('/health/errors/resolve-all',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveAllErrors'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('health.errors.resolve-all');
+        Route::post('/health/errors/detect-fixes',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'detectFixes'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('health.errors.detect-fixes');
+        Route::post('/health/errors/{error}/resolve',        [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveError'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('health.errors.resolve');
         Route::get('/health/contacts',                       [\App\Http\Controllers\Admin\SuperAdminController::class, 'contactSubmissions'])->name('health.contacts');
-        Route::post('/health/contacts/{contact}/read',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'readContact'])->name('health.contacts.read');
+        Route::post('/health/contacts/{contact}/read',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'readContact'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('health.contacts.read');
 
         // ── Jobs & Queues (T4.4) ──────────────────────────────────────────────
         Route::get('/jobs/metrics',          [\App\Http\Controllers\Admin\JobsController::class, 'metrics'])->name('jobs.metrics');
-        Route::post('/jobs/failed/{id}/retry', [\App\Http\Controllers\Admin\JobsController::class, 'retryFailed'])->name('jobs.retry');
-        Route::delete('/jobs/failed/{id}',   [\App\Http\Controllers\Admin\JobsController::class, 'deleteFailed'])->name('jobs.delete-failed');
-        Route::post('/jobs/failed/flush',    [\App\Http\Controllers\Admin\JobsController::class, 'flushFailed'])->name('jobs.flush-failed');
+        Route::post('/jobs/failed/{id}/retry', [\App\Http\Controllers\Admin\JobsController::class, 'retryFailed'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('jobs.retry');
+        Route::delete('/jobs/failed/{id}',   [\App\Http\Controllers\Admin\JobsController::class, 'deleteFailed'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('jobs.delete-failed');
+        Route::post('/jobs/failed/flush',    [\App\Http\Controllers\Admin\JobsController::class, 'flushFailed'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('jobs.flush-failed');
 
 
         // ── Impersonation ─────────────────────────────────────────────────
-        Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
-        Route::post('/impersonate/end',                     [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonate.end');
+        Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->where('user', '[0-9]+')->name('impersonate.start');
+        // impersonate/end lives OUTSIDE this group (see above): while impersonating, the
+        // signed-in user is the store user, whom SuperAdminMiddleware 404s.
 
         // ── Platform Owner Security & Profile ─────────────────────────────
         Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('set-passcode');
@@ -818,102 +832,103 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\M
         Route::post('/security/clear-action-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearActionPasscode'])->name('clear-action-passcode');
 
         // ── VenSynQ Module Control ─────────────────────────────────────────
-        Route::post('/vensynq/toggle', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleVenSynQ'])->name('vensynq.toggle');
-        Route::post('/settings/save',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'saveSettings'])->name('settings.save');
+        Route::post('/vensynq/toggle', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleVenSynQ'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('vensynq.toggle');
+        Route::post('/settings/save',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'saveSettings'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('settings.save');
 
         // ── Partners & Equity Drawings (T1.6) ──────────────────────────────
-        Route::post('/partners',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'addPartner'])->name('partners.store');
-        Route::delete('/partners/{partner}',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'removePartner'])->name('partners.destroy');
-        Route::post('/drawings',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'logDrawing'])->name('drawings.store');
-        Route::post('/drawings/clear-history',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'clearAllDrawings'])->name('drawings.clear-history');
+        Route::post('/partners',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'addPartner'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('partners.store');
+        Route::delete('/partners/{partner}',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'removePartner'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('partners.destroy');
+        Route::post('/drawings',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'logDrawing'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('drawings.store');
+        Route::post('/drawings/clear-history',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'clearAllDrawings'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('drawings.clear-history');
 
         // ── Monetization — Plans & Platforms ──────────────────────────────
         Route::prefix('plans')->name('plans.')->group(function () {
             Route::get('/',                  [\App\Http\Controllers\SuperAdmin\PlanController::class, 'index'])->name('index');
-            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\PlanController::class, 'store'])->name('store');
-            Route::put('/bulk-update',       [\App\Http\Controllers\SuperAdmin\PlanController::class, 'bulkUpdate'])->name('bulk-update');
-            Route::put('/{plan}',            [\App\Http\Controllers\SuperAdmin\PlanController::class, 'update'])->name('update');
-            Route::post('/{plan}/duplicate', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'duplicate'])->name('duplicate');
-            Route::delete('/{plan}',         [\App\Http\Controllers\SuperAdmin\PlanController::class, 'destroy'])->name('destroy');
-            Route::post('/{plan}/archive',   [\App\Http\Controllers\SuperAdmin\PlanController::class, 'archive'])->name('archive');
-            Route::post('/{plan}/unarchive', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'unarchive'])->name('unarchive');
+            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\PlanController::class, 'store'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store');
+            Route::put('/bulk-update',       [\App\Http\Controllers\SuperAdmin\PlanController::class, 'bulkUpdate'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('bulk-update');
+            Route::post('/restore-defaults', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'restoreDefaults'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('restore-defaults');
+            Route::put('/{plan}',            [\App\Http\Controllers\SuperAdmin\PlanController::class, 'update'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('update');
+            Route::post('/{plan}/duplicate', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'duplicate'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('duplicate');
+            Route::delete('/{plan}',         [\App\Http\Controllers\SuperAdmin\PlanController::class, 'destroy'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('destroy');
+            Route::post('/{plan}/archive',   [\App\Http\Controllers\SuperAdmin\PlanController::class, 'archive'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('archive');
+            Route::post('/{plan}/unarchive', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'unarchive'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('unarchive');
         });
 
         Route::prefix('platforms')->name('platforms.')->group(function () {
             Route::get('/',           [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'index'])->name('index');
-            Route::post('/',          [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'store'])->name('store');
-            Route::put('/{platform}', [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'update'])->name('update');
+            Route::post('/',          [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'store'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store');
+            Route::put('/{platform}', [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'update'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('update');
         });
 
         Route::prefix('blog-posts')->name('blog-posts.')->group(function () {
             Route::get('/',              [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'index'])->name('index');
-            Route::post('/',             [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'store'])->name('store');
-            Route::put('/{blogPost}',    [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'update'])->name('update');
-            Route::delete('/{blogPost}', [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'destroy'])->name('destroy');
+            Route::post('/',             [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'store'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store');
+            Route::put('/{blogPost}',    [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'update'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('update');
+            Route::delete('/{blogPost}', [\App\Http\Controllers\SuperAdmin\BlogPostAdminController::class, 'destroy'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('destroy');
         });
 
         // ── Store badges (early merchant, fastest growing, most reviewed ...) ─────
         Route::prefix('store-badges')->name('store-badges.')->group(function () {
             Route::get('/',                         [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'index'])->name('index');
-            Route::post('/refresh',                 [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'refresh'])->name('refresh');
-            Route::post('/{storefront}',            [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'update'])->where('storefront', '[0-9a-fA-F-]{36}')->name('update');
+            Route::post('/refresh',                 [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'refresh'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('refresh');
+            Route::post('/{storefront}',            [\App\Http\Controllers\SuperAdmin\StoreBadgeController::class, 'update'])->where('storefront', '[0-9a-fA-F-]{36}')->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('update');
         });
 
         Route::prefix('coupons')->name('coupons.')->group(function () {
             Route::get('/',         [\App\Http\Controllers\SuperAdmin\CouponController::class, 'index'])->name('index');
-            Route::post('/',        [\App\Http\Controllers\SuperAdmin\CouponController::class, 'store'])->name('store');
-            Route::put('/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'update'])->name('update');
+            Route::post('/',        [\App\Http\Controllers\SuperAdmin\CouponController::class, 'store'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store');
+            Route::put('/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'update'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('update');
         });
 
         // ── Monetization — Gift Access Links ──────────────────────────────
         Route::prefix('access-grants')->name('access-grants.')->group(function () {
             Route::get('/',                  [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'index'])->name('index');
-            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'store'])->name('store');
-            Route::post('/{grant}/revoke',   [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'revoke'])->name('revoke');
-            Route::post('/{grant}/unrevoke', [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'unrevoke'])->name('unrevoke');
-            Route::delete('/{grant}',        [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'destroy'])->name('destroy');
+            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'store'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('store');
+            Route::post('/{grant}/revoke',   [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'revoke'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('revoke');
+            Route::post('/{grant}/unrevoke', [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'unrevoke'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('unrevoke');
+            Route::delete('/{grant}',        [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'destroy'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('destroy');
         });
 
         // ── Monetization — Tenant Overrides ───────────────────────────────
         Route::prefix('tenant-overrides')->name('tenants.')->scopeBindings()->group(function () {
             Route::get('/',              [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'index'])->name('overrides');
             Route::get('/{tenant}',      [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'show'])->name('overrides.show');
-            Route::patch('/{tenant}',    [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'updateTenant'])->name('overrides.update');
-            Route::post('/{tenant}',     [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'apply'])->name('overrides.apply');
-            Route::post('/{tenant}/grant-addon',  [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'grantAddon'])->name('overrides.grant-addon');
-            Route::post('/{tenant}/revoke-addon', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'revokeAddon'])->name('overrides.revoke-addon');
-            Route::delete('/{tenant}/{override}', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'remove'])->name('overrides.remove');
+            Route::patch('/{tenant}',    [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'updateTenant'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('overrides.update');
+            Route::post('/{tenant}',     [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'apply'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('overrides.apply');
+            Route::post('/{tenant}/grant-addon',  [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'grantAddon'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('overrides.grant-addon');
+            Route::post('/{tenant}/revoke-addon', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'revokeAddon'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('overrides.revoke-addon');
+            Route::delete('/{tenant}/{override}', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'remove'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('overrides.remove');
         });
 
         // ── Monetization — AI Usage & Cost Dashboard ──────────────────────
         Route::get('/ai-usage', [\App\Http\Controllers\SuperAdmin\AiCostController::class, 'index'])->name('ai-usage.index');
 
         // ── PK Verifications (T3.7) ────────────────────────────────────────
-        Route::post('/pk-verifications/{verification}/approve',        [\App\Http\Controllers\Admin\PkVerificationController::class, 'approve'])->name('pk-verifications.approve');
-        Route::post('/pk-verifications/{verification}/reject',         [\App\Http\Controllers\Admin\PkVerificationController::class, 'reject'])->name('pk-verifications.reject');
+        Route::post('/pk-verifications/{verification}/approve',        [\App\Http\Controllers\Admin\PkVerificationController::class, 'approve'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('pk-verifications.approve');
+        Route::post('/pk-verifications/{verification}/reject',         [\App\Http\Controllers\Admin\PkVerificationController::class, 'reject'])->middleware(\App\Http\Middleware\PlatformRole::class . ':support')->name('pk-verifications.reject');
         Route::get('/pk-verifications/{verification}/download/{side}',  [\App\Http\Controllers\Admin\PkVerificationController::class, 'downloadImage'])->name('pk-verifications.download');
 
         // Added Category D Platform Admin Routes
-        Route::post('/admin/migration/analyze', fn() => \abort(501, 'Not yet implemented'))->name('admin.migration.analyze');
+        Route::post('/admin/migration/analyze', fn() => \abort(501, 'Not yet implemented'))->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('admin.migration.analyze');
 
         // NOTE: Debug & repair routes removed before production launch (security hardening).
         // NOTE: Second duplicate GET /run-migrations browser route removed (Roadmap T1.7 / bug #14).
 
         Route::prefix('demo-store')->name('demo-store.')->group(function () {
             Route::get('/status',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'status'])->name('status');
-            Route::post('/reset',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'reset'])->name('reset');
-            Route::post('/deploy',              [\App\Http\Controllers\Admin\DemoStoreController::class, 'deploy'])->name('deploy');
+            Route::post('/reset',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'reset'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('reset');
+            Route::post('/deploy',              [\App\Http\Controllers\Admin\DemoStoreController::class, 'deploy'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('deploy');
             Route::get('/deploy/status/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployStatus'])->name('deploy.status');
-            Route::delete('/deploy/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployCleanup'])->name('deploy.cleanup');
-            Route::post('/tests/run',           [\App\Http\Controllers\Admin\DemoStoreController::class, 'runTests'])->name('tests.run');
+            Route::delete('/deploy/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployCleanup'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('deploy.cleanup');
+            Route::post('/tests/run',           [\App\Http\Controllers\Admin\DemoStoreController::class, 'runTests'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('tests.run');
             Route::get('/tests/status/{jobId}',  [\App\Http\Controllers\Admin\DemoStoreController::class, 'testStatus'])->name('tests.status');
-            Route::delete('/tests/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'testCleanup'])->name('tests.cleanup');
+            Route::delete('/tests/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'testCleanup'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('tests.cleanup');
         });
 
         Route::prefix('smoke-tests')->name('smoke-tests.')->group(function () {
-            Route::post('/run',                 [\App\Http\Controllers\Admin\SmokeTestController::class, 'run'])->name('run');
+            Route::post('/run',                 [\App\Http\Controllers\Admin\SmokeTestController::class, 'run'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('run');
             Route::get('/{job_id}',             [\App\Http\Controllers\Admin\SmokeTestController::class, 'status'])->name('status');
-            Route::delete('/{job_id}',          [\App\Http\Controllers\Admin\SmokeTestController::class, 'cleanup'])->name('cleanup');
+            Route::delete('/{job_id}',          [\App\Http\Controllers\Admin\SmokeTestController::class, 'cleanup'])->middleware(\App\Http\Middleware\PlatformRole::class . ':admin')->name('cleanup');
         });
     });
 
@@ -988,6 +1003,20 @@ Route::post('/workspace/converse/reset', [\App\Http\Controllers\WorkspaceBuilder
 Route::post('/workspace/prepare-google', [\App\Http\Controllers\WorkspaceBuilderController::class, 'prepareGoogle'])->middleware('throttle:30,1')->name('workspace.prepare-google');
 Route::post('/workspace/provision', [\App\Http\Controllers\WorkspaceBuilderController::class, 'provision'])->middleware(['throttle:5,1', 'turnstile'])->name('workspace.provision');
 Route::post('/workspace/demand-log', [\App\Http\Controllers\WorkspaceBuilderController::class, 'logDemand'])->middleware('throttle:10,1')->name('workspace.demand');
+
+// Builder v2 decision API (BUILDER_FINAL_PLAN.md §10) — every action 404s unless VQ_BUILDER_V2 is on.
+Route::post('/workspace/discover/start', [\App\Http\Controllers\BuilderDiscoveryController::class, 'start'])->middleware(['throttle:10,1', 'turnstile'])->name('workspace.discover.start');
+Route::post('/workspace/discover/answer', [\App\Http\Controllers\BuilderDiscoveryController::class, 'answer'])->middleware('throttle:60,1')->name('workspace.discover.answer');
+Route::post('/workspace/discover/confirm-card', [\App\Http\Controllers\BuilderDiscoveryController::class, 'confirmCard'])->middleware('throttle:30,1')->name('workspace.discover.confirm-card');
+Route::post('/workspace/discover/back', [\App\Http\Controllers\BuilderDiscoveryController::class, 'back'])->middleware('throttle:60,1')->name('workspace.discover.back');
+Route::post('/workspace/discover/resume', [\App\Http\Controllers\BuilderDiscoveryController::class, 'resume'])->middleware('throttle:60,1')->name('workspace.discover.resume');
+Route::post('/workspace/discover/revise', [\App\Http\Controllers\BuilderDiscoveryController::class, 'revise'])->middleware('throttle:60,1')->name('workspace.discover.revise');
+Route::post('/workspace/discover/override', [\App\Http\Controllers\BuilderDiscoveryController::class, 'override'])->middleware('throttle:60,1')->name('workspace.discover.override');
+Route::post('/workspace/discover/search', [\App\Http\Controllers\BuilderDiscoveryController::class, 'search'])->middleware('throttle:60,1')->name('workspace.discover.search');
+Route::post('/workspace/discover/catalogue', [\App\Http\Controllers\BuilderDiscoveryController::class, 'catalogue'])->middleware('throttle:30,1')->name('workspace.discover.catalogue');
+Route::post('/workspace/discover/missing', [\App\Http\Controllers\BuilderDiscoveryController::class, 'missing'])->middleware('throttle:10,1')->name('workspace.discover.missing');
+Route::post('/workspace/discover/readback-confirmed', [\App\Http\Controllers\BuilderDiscoveryController::class, 'confirmReadback'])->middleware('throttle:30,1')->name('workspace.discover.readback-confirmed');
+Route::get('/workspace/discover/{id}/review', [\App\Http\Controllers\BuilderDiscoveryController::class, 'review'])->middleware('throttle:60,1')->where('id', '[A-Za-z0-9]{16,64}')->name('workspace.discover.review');
 
 
 
@@ -1304,6 +1333,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // this can touch business configuration.
     Route::get('/appearance', [\App\Http\Controllers\AppearanceSettingsController::class, 'index'])->name('appearance');
     Route::post('/appearance', [\App\Http\Controllers\AppearanceController::class, 'update'])->name('appearance.update');
+    Route::patch('/user/nav-preferences', [\App\Http\Controllers\NavPreferenceController::class, 'update'])->name('user.nav-preferences');
     Route::post('/appearance/experience', [\App\Http\Controllers\AppearanceController::class, 'switchExperience'])->name('appearance.experience');
     Route::post('/appearance/store-default', [\App\Http\Controllers\AppearanceController::class, 'updateTenantDefault'])
         ->middleware('permission:admin.settings_manage')
@@ -1722,6 +1752,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // ============================================
 
     // Parties (Customers/Suppliers unified)
+    Route::get('/contacts-overview', [\App\Http\Controllers\ModuleDashboardController::class, 'contacts'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.dashboard');
     Route::get('/parties', [\App\Http\Controllers\PartyController::class, 'index'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.index');
     Route::post('/parties', [\App\Http\Controllers\PartyController::class, 'store'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.store');
     Route::put('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'update'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.update');
@@ -1886,6 +1917,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     // forwards to legacy or V3 per tenant. Route NAMES are unchanged, so no
     // frontend route() call changes. Rollback = VENQORE_PURCHASE_CUTOVER=false.
     // See V3_CONSOLIDATION_PLAN.md and config/venqore.php.
+    Route::get('/purchases-overview', [\App\Http\Controllers\ModuleDashboardController::class, 'purchases'])->name('purchases.dashboard');
     Route::get('/purchases', [\App\Http\Controllers\V3\PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('/purchases/create', [\App\Http\Controllers\V3\PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('/purchases', [\App\Http\Controllers\V3\PurchaseController::class, 'store'])->middleware('permission:purchases.create')->name('purchases.store');
@@ -1897,6 +1929,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/purchases-goods-in', [\App\Http\Controllers\V3\PurchaseController::class, 'goodsIn'])->name('purchases.goods-in');
 
     // All Transactions
+    Route::get('/money-overview', [\App\Http\Controllers\ModuleDashboardController::class, 'money'])->name('money.dashboard');
     Route::get('/transactions', [\App\Http\Controllers\TransactionController::class, 'index'])->name('transactions.index');
 
     // ============================================
@@ -2261,6 +2294,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
 
 
+
+    Route::get('/loyalty', [\App\Http\Controllers\GrowthEngineController::class, 'loyaltyIndex'])->middleware('permission:reports.summary,pos.checkout')->name('loyalty.index');
 
     Route::middleware('permission:pos.checkout')->group(function () {
         Route::get('/api/loyalty/{partyId}', [\App\Http\Controllers\GrowthEngineController::class, 'customerLoyalty'])->name('loyalty.info');

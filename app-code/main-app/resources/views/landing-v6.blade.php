@@ -286,14 +286,14 @@
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>13,500+ tests &amp; 60,000+ assertions</b> verified before every update</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>6,700+ tests &amp; 135,000+ assertions</b> verified before every update</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       <!-- Seamless Loop Duplicate -->
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>2 businesses live today</b> running real money through Core Ledger</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>13,500+ tests &amp; 60,000+ assertions</b> verified before every update</span>
+      <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>6,700+ tests &amp; 135,000+ assertions</b> verified before every update</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>7 correctness checks</b> run on every transaction post</span>
       <span class="vq-ticker-item"><span class="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
     </div>
@@ -781,8 +781,8 @@
           </div>
 
           <div class="vq-card vq-reveal" style="padding: 22px; border-radius: var(--vq-r-xl, 20px); border: 1px solid var(--vq-line); background: var(--vq-surface);">
-            <span style="display: block; font: 600 38px/1 var(--vq-font-numeric); letter-spacing: -.03em; color: var(--vq-accent);">2,000+</span>
-            <span style="display: block; margin-top: 12px; font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">TESTS &amp; 20,000+ ASSERTIONS</span>
+            <span style="display: block; font: 600 38px/1 var(--vq-font-numeric); letter-spacing: -.03em; color: var(--vq-accent);">6,700+</span>
+            <span style="display: block; margin-top: 12px; font: 700 10.5px/1 var(--vq-font-numeric); letter-spacing: .14em; color: var(--vq-text-3);">TESTS &amp; 135,000+ ASSERTIONS</span>
             <span style="display: block; margin-top: 8px; font: 500 13px/1.55 var(--vq-font-sans); color: var(--vq-text-2);">The engines are tested; only the topology arrangement is generated.</span>
           </div>
 

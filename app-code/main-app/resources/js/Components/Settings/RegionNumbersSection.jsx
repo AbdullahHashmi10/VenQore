@@ -69,14 +69,14 @@ export default function RegionNumbersSection({ data, setData }) {
     const currSym = data.currency_symbol || (CURRENCY_OPTIONS.find(c => c.value === data.currency)?.symbol || 'Rs.');
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* Left Card: Currency & Timezone */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Financial Currency &amp; Timezone</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Financial Currency &amp; Timezone</h3>
 
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                             <DollarSign size={13} className="text-brand-600 dark:text-brand-400" />
                             <span>Operating Currency (ISO Code)</span>
                         </label>
@@ -96,7 +96,7 @@ export default function RegionNumbersSection({ data, setData }) {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                             <Hash size={13} className="text-brand-600 dark:text-brand-400" />
                             <span>Displayed Currency Symbol</span>
                         </label>
@@ -107,11 +107,11 @@ export default function RegionNumbersSection({ data, setData }) {
                             searchable={false}
                             placeholder="Select Symbol"
                         />
-                        <p className="text-3xs text-ink-muted">Symbol placed next to prices across sales screens and printouts.</p>
+                        <p className="text-xs text-ink-muted">Symbol placed next to prices across sales screens and printouts.</p>
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                             <Clock size={13} className="text-brand-600 dark:text-brand-400" />
                             <span>Store Timezone</span>
                         </label>
@@ -122,16 +122,16 @@ export default function RegionNumbersSection({ data, setData }) {
                             searchable={true}
                             placeholder="Select Timezone"
                         />
-                        <p className="text-3xs text-ink-muted">Timestamps for shift registers, invoices, and sales history.</p>
+                        <p className="text-xs text-ink-muted">Timestamps for shift registers, invoices, and sales history.</p>
                     </div>
                 </div>
 
                 {/* Right Card: Localization & Global Decimals */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Language &amp; Global Decimal Precision</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Language &amp; Global Decimal Precision</h3>
 
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                             <Globe size={13} className="text-brand-600 dark:text-brand-400" />
                             <span>System Language</span>
                         </label>
@@ -145,7 +145,7 @@ export default function RegionNumbersSection({ data, setData }) {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted flex items-center gap-1.5">
                             <Calendar size={13} className="text-brand-600 dark:text-brand-400" />
                             <span>Date Display Format</span>
                         </label>
@@ -163,14 +163,14 @@ export default function RegionNumbersSection({ data, setData }) {
                         <div className="flex justify-between items-center">
                             <div>
                                 <label className="text-sm font-bold text-ink block">Global Decimal Places</label>
-                                <span className="text-xs text-ink-muted">Applies to item prices, totals, ledger calculations</span>
+                                <span className="text-sm text-ink-muted">Applies to item prices, totals, ledger calculations</span>
                             </div>
-                            <span className="text-xs font-mono font-bold bg-sunken border border-line px-2.5 py-1 rounded-lg text-ink-secondary">
+                            <span className="text-sm font-mono font-bold bg-sunken border border-line px-2.5 py-1 rounded-[12px] text-ink-secondary">
                                 {currSym} 1,234.{'0'.repeat(Math.max(0, Math.min(4, decimalPlaces)))}
                             </span>
                         </div>
 
-                        <div className="grid grid-cols-5 gap-1.5 bg-app p-1.5 rounded-xl border border-line">
+                        <div className="grid grid-cols-5 gap-1.5 bg-app p-1.5 rounded-[12px] border border-line">
                             {[0, 1, 2, 3, 4].map((num) => {
                                 const isActive = decimalPlaces === num;
                                 return (
@@ -178,7 +178,7 @@ export default function RegionNumbersSection({ data, setData }) {
                                         key={num}
                                         type="button"
                                         onClick={() => setData('decimal_places', num)}
-                                        className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center ${
+                                        className={`py-2 rounded-[12px] font-bold text-sm transition-all flex items-center justify-center ${
                                             isActive
                                                 ? 'bg-brand-600 text-white shadow-xs'
                                                 : 'text-ink-muted hover:text-ink hover:bg-surface'
@@ -189,7 +189,7 @@ export default function RegionNumbersSection({ data, setData }) {
                                 );
                             })}
                         </div>
-                        <p className="text-3xs text-ink-muted">
+                        <p className="text-xs text-ink-muted">
                             Note: Printed receipts have a separate amount format control under <strong>Printing &gt; Document Layouts</strong>.
                         </p>
                     </div>

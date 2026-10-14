@@ -100,10 +100,10 @@ async function boot() {
   document.documentElement.dataset.theme = S.prefs.theme === 'dark' ? 'dark' : 'light';
   const host = new URL(S.cloud).host;
   $('#slug-pre').textContent = `${host}/s/`;
-  $('#pair-version').textContent = `VenQore Station ${S.st.version}${S.st.dev ? ' · development' : ''}`;
-  $('#about').textContent = `VenQore Station ${S.st.version} · Electron ${S.st.electron} · ${S.st.portable ? 'portable' : 'installed'} · © VenQore Group`;
-  if (S.st.profile) {   // only ever present on the computer the profile was issued for
-    const tag = document.createElement('span'); tag.className = 'bar-env'; tag.textContent = `LOCAL · ${host}`; tag.title = 'Connected to a local server, not the live VenQore site';
+  $('#pair-version').textContent = `VenQore Station ${S.st.version}${S.st.isLocalBuild ? ' · Local Testing Edition' : S.st.dev ? ' · development' : ''}`;
+  $('#about').textContent = `VenQore Station ${S.st.version}${S.st.isLocalBuild ? ' (Local Testing Edition)' : ''} · Electron ${S.st.electron} · ${S.st.portable ? 'portable' : 'installed'} · © VenQore Group`;
+  if (S.st.isLocalBuild || S.st.profile) {
+    const tag = document.createElement('span'); tag.className = 'bar-env'; tag.textContent = `LOCAL · ${host}`; tag.title = S.st.isLocalBuild ? 'VenQore Station Local — live venqore.com is disabled in this build' : 'Connected to a local server, not the live VenQore site';
     $('.bar-left').append(tag);
   }
   applyWindow(S.st.window);
@@ -162,7 +162,7 @@ function showPair(prefill = '') {
   show('#ov-loader', false); show('#ov-error', false); show('#ov-offline', false);
   show('#ov-pair', true);
   $('#pair-slug').value = prefill || S.prefs.connectedStore || (S.st.profile && S.st.profile.slug) || '';
-  $('#pair-code-hint').textContent = S.prefs.hasDeviceSecret ? 'This till was paired before — the code is only needed if the store asks for one.' : 'Only needed the first time this till is paired.';
+  $('#pair-code-hint').textContent = S.prefs.hasDeviceSecret ? 'This till was paired before — the code is only needed if the store asks for one.' : 'Only needed the first time. For a replacement PC use the “Replace device” link from Settings → Terminals.';
   setTimeout(() => ($('#pair-slug').value ? $('#pair-code') : $('#pair-slug')).focus(), 50);
 }
 
@@ -172,6 +172,7 @@ $('#pair-code').addEventListener('input', (e) => {
   e.target.value = v;
 });
 $('#pair-slug').addEventListener('input', (e) => {
+  if (e.target.value.includes('/station-pair')) return; // main process validates the complete link
   const m = /\/s\/([a-z0-9-]+)/i.exec(e.target.value);
   if (m) e.target.value = m[1];
 });
@@ -190,7 +191,7 @@ $('#pair-form').addEventListener('submit', async (e) => {
   S.prefs = (await station.state()).prefs;
   $('#pair-code').value = '';
   show('#banner', false);
-  toast('Till paired with ' + r.slug, 'success');
+  toast(r.replaced ? `This PC now takes over “${r.replaced}”. Your counter and seat are unchanged.` : 'Till paired with ' + r.slug, 'success', null, r.replaced ? 8000 : undefined);
   route();
 });
 
@@ -296,7 +297,8 @@ station.on('connection', ({ online }) => {
     if (visible('#ov-offline')) retryNow();
     toast('Back online', 'success', null, 2500);
   }
-  if (!online && !S.loaded && S.prefs.connectedStore && !visible('#ov-pair')) showOffline();
+  // While the POS is still opening, wait: the page may open from the copy saved on this PC. The load result decides.
+  if (!online && !S.loaded && S.prefs.connectedStore && !visible('#ov-pair') && !visible('#ov-loader')) showOffline();
 });
 station.on('sync', ({ at }) => { $('#st-net').title = `Internet connection · last sync ${new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`; });
 station.on('offline-lock', ({ locked, lastSync }) => {
@@ -309,7 +311,9 @@ station.on('pairing-required', ({ code }) => {
   if (visible('#ov-pair')) return;
   banner(code === 'DEVICE_AUTH_FAILED'
     ? 'The store disconnected this till. Printing still works — pair again so the store can see it.'
-    : 'This till is not paired with the store yet. Printing works; pair it so the store can manage this terminal.',
+    : S.prefs.connectedStore
+      ? 'New or reinstalled PC? Ask the owner for a “Replace device” link (Settings → Terminals) so this PC keeps your existing counter and seat.'
+      : 'This till is not paired with the store yet. Printing works; pair it so the store can manage this terminal.',
   'Pair now', () => showPair(S.prefs.connectedStore));
 });
 station.on('guest', ({ event }) => {
@@ -388,6 +392,7 @@ $('#btn-settings').onclick = () => openSettings();
 $('#btn-exit').onclick = () => onCloseRequest({ needPin: S.prefs.hasPin });
 
 station.on('command', (cmd) => {
+  if (cmd === 'install-update') confirmInstallUpdate();
   if (cmd === 'reload') $('#btn-reload').click();
   if (cmd === 'settings') openSettings();
   if (cmd === 'privacy') togglePrivacy();
@@ -411,8 +416,10 @@ async function onCloseRequest({ needPin }) {
     return quitting;
   }
   const idle = visible('#ov-pair') || !S.loaded;
-  if (idle) return station.quit({});
-  if (await confirmBox({ title: 'Exit VenQore Station?', body: 'The POS will close and the printer, drawer and scanner will disconnect.', ok: 'Exit', danger: true })) station.quit({});
+  if (idle || await confirmBox({ title: 'Exit VenQore Station?', body: 'Finish or save the current sale before closing. A downloaded Station update will install quietly while the app closes. Your saved local data is retained.', ok: 'Exit', danger: true })) {
+    const result = await station.quit({});
+    if (!result.success) toast(result.error, 'error');
+  }
 }
 
 function confirmBox({ title, body, ok = 'OK', danger = false }) {
@@ -489,7 +496,7 @@ function askPin({ title, sub, verify = false, check = null, max = 8 }) {
 // ══════════════════════════════════════════════════════════════════════════════
 async function openSettings(tab) {
   if (visible('#settings')) { if (tab) selectTab(tab); return; }
-  if (S.prefs.hasPin && (S.prefs.lockSettings || S.prefs.activityTrackingEnabled)) {
+  if (S.prefs.hasPin) {
     const pin = await askPin({ title: 'Station settings', sub: 'Manager PIN required', verify: true });
     if (pin === null) return;
   }
@@ -498,7 +505,7 @@ async function openSettings(tab) {
   show('#settings', true);
   selectTab(tab || S.settingsTab);
 }
-function closeSettings() { show('#settings', false); }
+function closeSettings() { show('#settings', false); station.lockOwner(); }
 $('#set-close').onclick = closeSettings;
 $('#settings').addEventListener('mousedown', (e) => { if (e.target.id === 'settings') closeSettings(); });
 document.addEventListener('keydown', (e) => {
@@ -739,6 +746,7 @@ function renderStation() {
   chip.innerHTML = `<span class="dot"></span>${p.hasDeviceSecret ? 'Paired' : 'Not paired'}`;
   $('#opt-autostart').checked = !!p.autoStart;
   $('#opt-awake').checked = !!p.keepAwake;
+  $('#opt-autoupdate').checked = p.autoInstallUpdates !== false;
   $('#opt-safegfx').checked = !!p.safeGraphics;
   show($('#opt-autostart').closest('.line'), !S.st.portable);
   renderUpdate(S.update);
@@ -754,6 +762,7 @@ $('#stn-disconnect').onclick = async () => {
 };
 $('#opt-autostart').onchange = (e) => savePrefs({ autoStart: e.target.checked });
 $('#opt-awake').onchange = (e) => savePrefs({ keepAwake: e.target.checked });
+$('#opt-autoupdate').onchange = (e) => savePrefs({ autoInstallUpdates: e.target.checked });
 $('#opt-safegfx').onchange = async (e) => {
   const want = e.target.checked;
   if (!await confirmBox({ title: 'Restart Station?', body: want ? 'Safe graphics turns off GPU acceleration. Use it if the screen is blank or flickers.' : 'Turn GPU acceleration back on.', ok: 'Restart now' })) { e.target.checked = !want; return; }
@@ -769,9 +778,11 @@ function renderUpdate(u = {}) {
     checking: ['info', 'Checking', 'Looking for a new version…'],
     current: ['ok', 'Up to date', `You have the latest version (${S.st?.version || ''}).`],
     downloading: ['info', `Downloading ${u.percent || 0}%`, `Version ${u.version || ''} is downloading in the background.`],
-    ready: ['accent', 'Ready to install', `Version ${u.version || ''} is ready. It installs on restart.`],
+    ready: ['accent', 'Ready to install', `Version ${u.version || ''} is downloaded. It installs by itself the next time Station is opened or closed.`],
+    installing: ['info', 'Installing', `Installing version ${u.version || ''}. Station will reopen in a moment.`],
     error: ['warn', 'Could not check', u.error || 'The update server could not be reached.'],
     portable: ['', 'Manual updates', 'This is the portable build. Install the setup version for automatic updates.'],
+    disabled: ['', 'Updates disabled', 'Automatic updates are disabled in this Local Testing build.'],
   };
   const [cls, label, text] = map[u.state] || map.idle;
   chip.className = 'chip ' + cls; chip.innerHTML = `<span class="dot"></span>${esc(label)}`;
@@ -781,12 +792,23 @@ function renderUpdate(u = {}) {
   show('#upd-install', u.state === 'ready');
   if (u.state === 'ready' && !S.updateToastShown) {
     S.updateToastShown = true;
-    toast(`Station ${u.version} is ready`, 'success', { label: 'Restart', run: () => station.installUpdate() }, 12000);
+    toast(`Station ${u.version} is ready — it installs automatically when Station is closed or reopened`, 'success', null, 6000);
   }
 }
 station.on('update', renderUpdate);
 $('#upd-check').onclick = async () => { const r = await station.checkUpdates(); if (!r.success) toast(r.error, 'warning'); };
-$('#upd-install').onclick = () => station.installUpdate();
+async function confirmInstallUpdate() {
+  if (!await confirmBox({ title: 'Restart to install update?', body: 'Finish the current sale, synchronize offline sales and wait for all receipts to print. Continue only when this till is ready to restart.', ok: 'Continue' })) return;
+  const st = await station.state();
+  let pin;
+  if (st.prefs.hasPin) {
+    pin = await askPin({ title: 'Install Station update', sub: 'Owner PIN required', verify: true });
+    if (pin === null) return;
+  }
+  const r = await station.installUpdate({ pin, confirmed: true });
+  if (!r.success) toast(r.error, 'error');
+}
+$('#upd-install').onclick = confirmInstallUpdate;
 
 $('#sup-diag').onclick = async (e) => { const b = e.currentTarget; busy(b, true, 'Collecting…'); const r = await station.diagnostics(); busy(b, false); if (r.success) $('#sup-result').textContent = `Saved: ${r.path}`; };
 $('#sup-logs').onclick = () => station.openLogs();
@@ -811,10 +833,16 @@ function renderSecurity() {
   $('#pin-set').textContent = p.hasPin ? 'Change PIN' : 'Set PIN';
   show('#pin-remove', p.hasPin);
   $('#opt-locksettings').checked = !!p.lockSettings;
+  $('#opt-applock').checked = !!p.appLock;
+  $('#kiosk-readiness').textContent = S.st.kioskReadiness?.message || 'Windows kiosk readiness could not be determined.';
   $('#opt-monitor').checked = !!p.activityTrackingEnabled;
   const mc = $('#mon-state'); mc.className = 'chip ' + (p.activityTrackingEnabled ? 'info' : ''); mc.innerHTML = `<span class="dot"></span>${p.activityTrackingEnabled ? 'On' : 'Off'}`;
   show('#btn-drawer', !!p.hasPin);
 }
+$('#opt-applock').onchange = async (e) => {
+  const r = await savePrefs({ appLock: e.target.checked });
+  if (!r.success) e.target.checked = !!S.prefs.appLock;
+};
 $('#pin-set').onclick = async () => {
   let current = null;
   if (S.prefs.hasPin) { current = await askPin({ title: 'Current PIN', sub: 'Enter the PIN you use now', verify: true }); if (current === null) return; }

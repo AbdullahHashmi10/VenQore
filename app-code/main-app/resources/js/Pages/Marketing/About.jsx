@@ -34,7 +34,7 @@ const QUESTIONS_AND_ANSWERS = [
     {
         id: '06',
         title: 'How do we verify system accuracy?',
-        content: 'We believe buyers of financial software deserve proof over marketing claims. Every single feature and update is validated against 13,500+ automated correctness tests and 60,000+ deep assertions guarding ledger balances, inventory lot relief, and tax separation before any code ships to production.',
+        content: 'We believe buyers of financial software deserve proof over marketing claims. Every single feature and update is validated against 6,700+ automated correctness tests and 135,000+ deep assertions guarding ledger balances, inventory lot relief, and tax separation before any code ships to production.',
     },
     {
         id: '07',
@@ -235,8 +235,8 @@ export default function About() {
         </div>
         <div className="vq-card vq-stat">
           <span className="vq-stat__label">Automated verification</span>
-          <span className="vq-stat__value vq-stat__value--sm">13,500+</span>
-          <span className="vq-stat__note">Tests &amp; 60,000+ assertions verified on every update</span>
+          <span className="vq-stat__value vq-stat__value--sm">6,700+</span>
+          <span className="vq-stat__note">Tests &amp; 135,000+ assertions verified on every update</span>
         </div>
         <div className="vq-card vq-stat">
           <span className="vq-stat__label">Universal ERP Modules</span>

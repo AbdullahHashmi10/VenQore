@@ -1,3 +1,4 @@
+import PhoneSectionDropdown from '@/Components/PhoneSectionDropdown';
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useStoreRoute } from '@/Hooks/useStoreRoute';
@@ -36,9 +37,10 @@ export default function ApprovalsModuleTabs({ activeTab, pendingCount = 0 }) {
     ];
 
     return (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
+        <div className="max-lg:!p-0 max-lg:!border-0 max-lg:!bg-transparent max-lg:!shadow-none max-lg:!gap-0 flex flex-col sm:flex-row items-center justify-between gap-2 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
+            <PhoneSectionDropdown title="Approvals" groups={[{ id: 'all', label: 'Approvals', items: tabs }]} activeTab={activeTab} />
             {/* Level 1: Category / Module Selector Matching Sales Page */}
-            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+            <div className="max-lg:hidden flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
                 <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
@@ -67,7 +69,7 @@ export default function ApprovalsModuleTabs({ activeTab, pendingCount = 0 }) {
             </div>
 
             {/* Right Status Badge */}
-            <div className="hidden sm:flex items-center gap-2 pr-2 text-xs font-semibold text-ink-muted">
+            <div className="hidden lg:flex items-center gap-2 pr-2 text-xs font-semibold text-ink-muted">
                 <span>Pending Review: <strong className="text-amber-600 font-bold">{pendingCount}</strong></span>
             </div>
         </div>

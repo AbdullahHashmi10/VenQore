@@ -18,6 +18,9 @@ class CheckoutService
     public const MAX_QTY = 50;
     public const MAX_OPEN_PER_PHONE = 5;
 
+    /** A member can pay at most this share of the items with points. */
+    public const MAX_POINTS_SHARE = 0.5;
+
     public function __construct(private OnlinePricing $pricing, private OrderService $orders)
     {
     }
@@ -219,6 +222,45 @@ class CheckoutService
                 $minOrder = max($minOrder, (float) ($zone['min_order'] ?? 0));
             }
         }
+        // Loyalty points a signed-in member chose to spend: a uniform percent off every line, recomputed through the
+        // same exact line math, so the order total still equals the posted sale total to the paisa.
+        $pointsUsed = 0;
+        $pointsDiscount = 0.0;
+        $memberParty = $opts['member_party'] ?? null;
+        $memberBalance = null;
+        if ($memberParty) {
+            $rates = \App\Services\LoyaltyAwarder::ratesFor((int) $store->tenant_id);
+            $memberBalance = $rates ? (int) (DB::table('loyalty_balances')->where('party_id', $memberParty)->value('balance') ?? 0) : null;
+            if ($rates && $rates['redemption'] > 0 && ! empty($opts['use_points']) && $memberBalance > 0) {
+                $preTotal = round(array_sum(array_column($items, 'line_total')), 2);
+                $wanted = min(floor(($memberBalance / $rates['redemption']) * 100) / 100, round($preTotal * self::MAX_POINTS_SHARE, 2));
+                if ($wanted >= 0.01 && $preTotal > 0) {
+                    $base = $items;
+                    $pct = $wanted / $preTotal * 100;
+                    for ($try = 0; $try < 8; $try++) {
+                        $items = [];
+                        foreach ($base as $it) {
+                            if ($it['below_cost'] && ! $it['allow_below_cost']) { $items[] = $it; continue; }
+                            $cur = (float) $it['online_price'];
+                            $new = round($cur * (1 - $pct / 100), 2);
+                            $net = $it['price_includes_tax'] ? round($new / (1 + $it['tax_rate'] / 100), 4) : round($new, 4);
+                            $list = (float) ($it['list_price'] ?? $cur);
+                            $adj = array_merge($it, ['list_price' => $list, 'online_price' => $new, 'net_unit_price' => $net,
+                                'discount_percent' => $list > 0 ? round((1 - $new / $list) * 100, 4) : 0]);
+                            $items[] = array_merge($adj, $this->pricing->line($adj, (float) $it['quantity']));
+                        }
+                        $post = round(array_sum(array_column($items, 'line_total')), 2);
+                        $pointsDiscount = round($preTotal - $post, 2);
+                        $pointsUsed = (int) ceil($pointsDiscount * $rates['redemption'] - 0.0001);
+                        if ($pointsUsed <= $memberBalance) { break; }
+                        $pct *= 0.995; // paisa rounding pushed it over the balance: take a hair less
+                    }
+                    if ($pointsUsed > $memberBalance || $pointsDiscount <= 0) { $items = $base; $pointsUsed = 0; $pointsDiscount = 0.0; }
+                    $discount += $pointsDiscount;
+                }
+            }
+        }
+
         // Totals in integer paisa (each line amount is already exact to the paisa).
         $minor = fn ($v) => \App\Support\Money::toMinor(\Brick\Math\BigDecimal::of(number_format((float) $v, 6, '.', '')));
         $subtotalMinor = array_sum(array_map(fn ($it) => $minor($it['line_net']), $items));
@@ -240,6 +282,11 @@ class CheckoutService
             'promotion_id' => $couponUsed ? $plan['coupon']->id : null,
             'promo_code' => $couponUsed ? $plan['coupon']->code : null,
             'total' => $total,
+            'loyalty_points' => \App\Services\LoyaltyAwarder::pointsFor((int) $store->tenant_id, (float) $total),
+            'points_used' => $pointsUsed,
+            'points_discount' => $pointsDiscount,
+            'member' => (bool) $memberParty,
+            'member_balance' => $memberBalance,
             'currency_code' => $store->currency_code,
             'currency_symbol' => $store->currency_symbol,
         ];
@@ -298,7 +345,8 @@ class CheckoutService
             throw new CommerceException('You already have several open orders with this business. Please wait for them to be handled.', 'too_many_open', [], 429);
         }
 
-        $q = $this->quote($store, $in['items'] ?? [], $fulfilment, ['zone' => $in['delivery_zone'] ?? null, 'coupon' => $in['coupon'] ?? null]);
+        $q = $this->quote($store, $in['items'] ?? [], $fulfilment, ['zone' => $in['delivery_zone'] ?? null, 'coupon' => $in['coupon'] ?? null,
+            'member_party' => $in['_member_party'] ?? null, 'use_points' => ! empty($in['use_points'])]);
 
         if ($q['zone_required']) {
             throw new CommerceException('Please choose your delivery area.', 'zone_required');
@@ -345,9 +393,25 @@ class CheckoutService
                     'promotion_id' => $q['promotion_id'], 'promo_name' => $q['promo_name'], 'promo_code' => $q['promo_code'],
                     'discount_total' => $q['discount_total'],
                     'total' => $q['total'],
+                    'party_id' => $in['_member_party'] ?? null,
+                    'loyalty_member' => ! empty($in['_member_party']),
+                    'loyalty_points_used' => $q['points_used'],
+                    'loyalty_discount' => $q['points_discount'],
                     'warehouse_id' => $store->warehouse_id,
                     'accept_by' => $this->acceptBy($store),
                 ]);
+                if ($q['points_used'] > 0) {
+                    $bal = DB::table('loyalty_balances')->where('party_id', $in['_member_party'])->lockForUpdate()->first();
+                    if (! $bal || (int) $bal->balance < $q['points_used']) {
+                        throw new CommerceException('Your points balance changed. Please review your order.', 'points_changed', [], 409);
+                    }
+                    DB::table('loyalty_balances')->where('id', $bal->id)->update([
+                        'balance' => DB::raw('balance - ' . (int) $q['points_used']),
+                        'lifetime_redeemed' => DB::raw('lifetime_redeemed + ' . (int) $q['points_used']), 'updated_at' => now()]);
+                    DB::table('loyalty_points')->insert(['id' => (string) Str::uuid(), 'tenant_id' => $store->tenant_id, 'party_id' => $in['_member_party'],
+                        'points' => -$q['points_used'], 'type' => 'redeemed', 'description' => 'Redeemed on online order ' . $order->public_number,
+                        'created_at' => now(), 'updated_at' => now()]);
+                }
                 foreach ($q['items'] as $it) {
                     $order->items()->create([
                         'tenant_id' => $store->tenant_id,
@@ -387,6 +451,14 @@ class CheckoutService
                 return $this->rotate($existing);
             }
             throw $e;
+        }
+
+        // Instant badge for staff dashboards. Must never break order creation.
+        try {
+            \Illuminate\Support\Facades\Cache::forget("online_orders_pending:{$order->tenant_id}");
+            event(new \App\Events\Commerce\OnlineOrderPlaced((int) $order->tenant_id, (string) $order->id, (string) $order->public_number));
+        } catch (\Throwable $e) {
+            report($e);
         }
 
         app(CustomerNotifier::class)->send($order->fresh(), 'placed', $token);

@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld('station', Object.freeze({
     disconnectStore: inv('shell:disconnect-store'),
     savePrefs: inv('shell:save-prefs'),
     verifyPin: inv('shell:verify-pin'),
+    lockOwner: inv('shell:lock-owner'),
     setPin: inv('shell:set-pin'),
     quit: inv('shell:quit'),
     relaunch: inv('shell:relaunch'),

@@ -16,7 +16,7 @@ const PHASES = [
             'Point of Sale (POS) with Touch & Barcode Checkout',
             'Auditor-Grade Double-Entry General Ledger & Balance Sheet',
             'FIFO Cost Batching & Inventory Lineage Tracking',
-            '100% Offline-First PWA (Works without Internet)',
+            'Offline till: keep selling without internet (up to 7 days)',
             'WooCommerce Synchronization (Stock out, Orders in)',
             '40+ Financial & Operational Reports from One Ledger',
             'Serial & IMEI Tracking + Batch Expiry Controls',

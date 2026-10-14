@@ -2,7 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import StockModuleTabs, { useStockNavGroups, ListFilterSelect } from '@/Components/StockModuleTabs';
+import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import { Package, Warehouse, AlertTriangle as AlertTriangleIcon, TrendingUp, TrendingDown, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import { useTermText } from '@/lib/terms';
@@ -17,6 +20,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
     const { props } = usePage();
     const store = props.store || {};
     const tt = useTermText();
+    const navGroups = useStockNavGroups();
 
 
     // Filter and search products
@@ -95,109 +99,34 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
     };
 
     return (
-        <OneGlanceLayout title="Stock Levels" activeMenu="Stock">
+        <OneGlanceLayout title="Stock Levels" activeMenu="Stock" noPadding>
             <Head title="Stock Levels" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <StockModuleTabs activeTab="levels" />
-
-                {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Package size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Products')}</p>
-                        </div>
-                        <p className="text-lg font-bold text-ink">{stats.total_products || products.length}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <TrendingUp size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Stock Value</p>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-600">{formatCurrency(stats.total_value, store)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangleIcon size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Low Stock</p>
-                        </div>
-                        <p className="text-lg font-bold text-amber-600">{stats.low_stock_count || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
-                                <TrendingDown size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Out of Stock</p>
-                        </div>
-                        <p className="text-lg font-bold text-rose-600">{stats.out_of_stock_count || 0}</p>
-                    </div>
-                </div>
-
-                {/* Header Bar - Title + Filter Pills + Search (like Proposals) */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Stock <span className="text-brand-600">Overview</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => setActiveFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all'
-                                ? 'bg-brand-600 text-white'
-                                : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >All</button>
-                        <button
-                            onClick={() => setActiveFilter('low')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'low'
-                                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg '
-                                : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Low Stock</button>
-                        <button
-                            onClick={() => setActiveFilter('out')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'out'
-                                ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg '
-                                : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Out of Stock</button>
-                        <button
-                            onClick={() => setActiveFilter('normal')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'normal'
-                                ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg '
-                                : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >In Stock</button>
-
-                        {/* Warehouse Filter */}
-                        {warehouses.length > 1 && (
-                            <>
-                                <div className="h-4 w-px bg-sunken mx-1"></div>
-                                <select
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <ListToolbar
+                    title="Stock Levels"
+                    navGroups={navGroups}
+                    activeId="levels"
+                    left={
+                        <>
+                            <ListFilterSelect
+                                value={activeFilter}
+                                onChange={setActiveFilter}
+                                ariaLabel="Stock status"
+                                options={[{ value: 'all', label: 'All stock' }, { value: 'low', label: 'Low Stock' }, { value: 'out', label: 'Out of Stock' }, { value: 'normal', label: 'In Stock' }]}
+                            />
+                            {warehouses.length > 1 && (
+                                <ListFilterSelect
                                     value={selectedWarehouse}
-                                    onChange={(e) => setSelectedWarehouse(e.target.value)}
-                                    className="px-2 py-1 text-xs font-semibold bg-app border border-line rounded-lg focus:ring-1 focus:ring-brand-500 outline-none"
-                                >
-                                    <option value="">All Warehouses</option>
-                                    {warehouses.map(w => (
-                                        <option key={w.id} value={w.id}>{w.name}</option>
-                                    ))}
-                                </select>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Right: Search */}
-                    <div className="flex items-center gap-2">
+                                    onChange={setSelectedWarehouse}
+                                    allValue=""
+                                    ariaLabel="Warehouse"
+                                    options={[{ value: '', label: 'All Warehouses' }, ...warehouses.map((w) => ({ value: String(w.id), label: w.name }))]}
+                                />
+                            )}
+                        </>
+                    }
+                    actions={
                         <div className="w-64">
                             <AsyncProductCombobox
                                 onSelect={(product) => {
@@ -207,11 +136,34 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                 placeholder={tt('Search products...')}
                             />
                         </div>
-                    </div>
-                </div>
+                    }
+                />
+                <ListStatCards cards={[
+                    { label: tt('Total Products'), value: stats.total_products || products.length, icon: Package, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'Stock Value', value: formatCurrency(stats.total_value, store), icon: TrendingUp, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Low Stock', value: stats.low_stock_count || 0, icon: AlertTriangleIcon, icon_tone: 'bg-amber-50 text-amber-600', value_tone: 'text-amber-600' },
+                    { label: 'Out of Stock', value: stats.out_of_stock_count || 0, icon: TrendingDown, icon_tone: 'bg-rose-50 text-rose-600', value_tone: 'text-rose-600' },
+                ]} />
+                <div className="md:hidden"><StockModuleTabs activeTab="levels" /></div>
+
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Stock Levels"
+                    filters={[
+                        { key: 'status', icon: Filter, label: 'Stock status', value: activeFilter, onChange: setActiveFilter, options: [{ id: 'all', label: 'All stock' }, { id: 'low', label: 'Low Stock' }, { id: 'out', label: 'Out of Stock' }, { id: 'normal', label: 'In Stock' }] },
+                        ...(warehouses.length > 1 ? [{ key: 'wh', icon: Warehouse, label: 'Warehouse', value: selectedWarehouse, onChange: setSelectedWarehouse, options: [{ id: '', label: 'All Warehouses' }, ...warehouses.map((w) => ({ id: String(w.id), label: w.name }))] }] : []),
+                    ]}
+                    search={{ event: true,  value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), placeholder: tt('Search products...') }}
+                />
+                <MobileStats bp="md" hero={1} items={[
+                    { label: tt('Total Products'), value: stats.total_products || products.length, tone: 'brand', icon: Package },
+                    { label: 'Stock Value', value: formatCurrency(stats.total_value, store), tone: 'emerald', icon: TrendingUp },
+                    { label: 'Low Stock', value: stats.low_stock_count || 0, tone: 'amber', icon: AlertTriangleIcon },
+                    { label: 'Out of Stock', value: stats.out_of_stock_count || 0, tone: 'rose', icon: TrendingDown }
+                ]} />
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -223,7 +175,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                         {tt('Product')} <SortIcon columnKey="name" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Category
                                 </th>
                                 <th
@@ -234,10 +186,10 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                         Total Stock <SortIcon columnKey="stock" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Min Stock
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     By Warehouse
                                 </th>
                                 <th
@@ -338,7 +290,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

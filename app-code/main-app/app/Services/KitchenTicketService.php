@@ -181,6 +181,10 @@ class KitchenTicketService
 
         $stationFor = $this->stationResolver((int) $tenantId, $currentCart);
 
+        // A replayed send: the device already cooked and printed this offline.
+        $replay  = !empty($options['replay']);
+        $firedAt = $replay && !empty($options['fired_at']) ? \Illuminate\Support\Carbon::parse($options['fired_at']) : now();
+
         $targetCourse = isset($options['only_course']) && $options['only_course'] !== null
             ? (int) $options['only_course']
             : null;
@@ -260,7 +264,7 @@ class KitchenTicketService
 
         DB::transaction(function () use (
             $tenantId, $occ, $orderType, $occLabel, $serverName, $groups,
-            $eligibleIndices, &$session, &$currentCart, &$workOrders, &$kots
+            $eligibleIndices, &$session, &$currentCart, &$workOrders, &$kots, $replay, $firedAt
         ) {
             foreach ($groups as $group) {
                 $station = $group['station'];
@@ -284,16 +288,18 @@ class KitchenTicketService
                         'mods'      => array_values($l['mods'] ?? []),
                         'modifiers' => array_map(fn ($m) => (string) ($m['name'] ?? ''), array_values($l['mods'] ?? [])),
                     ], $lines),
-                    'status'        => 'pending',
-                    'fired_at'      => now(),
+                    'status'        => $replay ? 'served' : 'pending',
+                    'fired_at'      => $firedAt,
                 ]);
 
                 $workOrders[] = $wo;
-                $kots[] = $this->formatKot($wo, $occ, [
-                    'server_name'   => $serverName,
-                    'customer_name' => $session['customer_name'] ?? null,
-                    'printer_role'  => $group['printer'],
-                ]);
+                if (!$replay) {
+                    $kots[] = $this->formatKot($wo, $occ, [
+                        'server_name'   => $serverName,
+                        'customer_name' => $session['customer_name'] ?? null,
+                        'printer_role'  => $group['printer'],
+                    ]);
+                }
             }
 
             // Mark fired items as sent and unheld in occupancy, recording sent_qty

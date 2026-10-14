@@ -9,11 +9,11 @@ export default function CustomersSuppliersSection({ data, setData }) {
     const { store } = usePage().props;
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* Left Card: Customer Grouping & Loyalty */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Customers and rewards</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Customers and rewards</h3>
 
                     <div className="divide-y divide-line">
                         <Toggle
@@ -32,7 +32,7 @@ export default function CustomersSuppliersSection({ data, setData }) {
 
                         {data.loyalty_enabled && (
                             <div className="py-3 animate-in fade-in slide-in-from-top-1">
-                                <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl border border-brand-500/20 flex flex-wrap items-center justify-between gap-y-2 text-xs text-brand-700 dark:text-brand-300">
+                                <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-[12px] border border-brand-500/20 flex flex-wrap items-center justify-between gap-y-2 text-sm text-brand-700 dark:text-brand-300">
                                     <span>Fine-tune point conversion ratios &amp; tier perks</span>
                                     <a
                                         href={`/s/${store?.slug}/growth-engine/settings`}
@@ -48,8 +48,8 @@ export default function CustomersSuppliersSection({ data, setData }) {
                 </div>
 
                 {/* Right Card: Credit Limit & Risk */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Customer credit</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Customer credit</h3>
 
                     <div className="divide-y divide-line">
                         <Toggle
@@ -60,7 +60,7 @@ export default function CustomersSuppliersSection({ data, setData }) {
                         />
                     </div>
 
-                    <div className="p-3.5 bg-app rounded-xl border border-line text-2xs text-ink-muted leading-relaxed">
+                    <div className="p-3.5 bg-app rounded-[12px] border border-line text-xs text-ink-muted leading-relaxed">
                         <p className="font-bold text-ink mb-1">Overdue Reminder Schedule:</p>
                         <p>
                             Automated notification windows for overdue receivables are configured under{' '}
@@ -70,13 +70,13 @@ export default function CustomersSuppliersSection({ data, setData }) {
                 </div>
 
                 {/* Third Card: Contact Role Controls (Full Width) */}
-                <div className="md:col-span-2 bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+                <div className="md:col-span-2 bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                         <div>
-                            <h3 className="text-sm font-bold text-ink">Contact Role Separation</h3>
-                            <p className="text-2xs text-ink-muted mt-0.5">Control whether contacts can operate as both a customer and supplier simultaneously</p>
+                            <h3 className="text-base font-bold text-ink">Contact Role Separation</h3>
+                            <p className="text-xs text-ink-muted mt-0.5">Control whether contacts can operate as both a customer and supplier simultaneously</p>
                         </div>
-                        <span className={`text-3xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
+                        <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${
                             (data.strict_party_roles === true || data.strict_party_roles === '1')
                                 ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
                                 : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20'
@@ -94,7 +94,7 @@ export default function CustomersSuppliersSection({ data, setData }) {
                         />
                     </div>
 
-                    <div className="p-4 bg-app rounded-xl border border-line text-xs text-ink-muted leading-relaxed flex items-start gap-3">
+                    <div className="p-4 bg-app rounded-[12px] border border-line text-sm text-ink-muted leading-relaxed flex items-start gap-3">
                         <div className="w-2 h-2 rounded-full bg-brand-500 mt-1.5 shrink-0" />
                         <div>
                             <p className="font-semibold text-ink">
@@ -102,7 +102,7 @@ export default function CustomersSuppliersSection({ data, setData }) {
                                     ? 'Strict separation is currently ON'
                                     : 'Flexible dual-role mode is currently ON'}
                             </p>
-                            <p className="text-2xs mt-0.5">
+                            <p className="text-xs mt-0.5">
                                 {(data.strict_party_roles === true || data.strict_party_roles === '1')
                                     ? 'Staff will only see verified suppliers when entering purchases and verified customers when issuing invoices, preventing cross-posting mistakes.'
                                     : 'All contacts and dual-role trading partners can be selected across both purchase and sale transactions.'}

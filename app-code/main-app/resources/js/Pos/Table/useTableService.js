@@ -24,6 +24,11 @@ import { kitchenOn } from './kitchenWord';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { KitchenPrintService } from '@/Utils/KitchenPrintService';
+import { useConnectivity, isOnline as connectivityNow } from '@/lib/connectivity';
+import {
+    applyLocal, enqueue, replayOutbox, seedState, loadFloor, saveFloor, browserContext,
+    describeConflict, supportsOffline, isNetworkError, isLocalId, FloorRefusal,
+} from '@/lib/offlineFloor';
 
 /* How often the floor re-reads itself. A restaurant floor changes on human
    timescales -- a table is seated, a course goes out -- so a 15s poll is
@@ -160,24 +165,47 @@ export function useTableService({
     pollMs = POLL_MS,
     onError,
     onNotice,
+    /* Who is signed in (for the server's initials on a card made offline) and
+       whether this shop keeps a paid takeaway open until it is handed over. */
+    actor = null,
+    collectsTakeaway = false,
 } = {}) {
-    const [positions, setPositions] = useState(initialPositions);
+    /* OFFLINE FLOOR. While the server cannot be reached, every action below is
+       run against a copy of the floor kept on this device and queued, then sent
+       to the server in order when it answers again (lib/offlineFloor.js). The
+       first render after a reload restores that copy if work is still waiting. */
+    const online = useConnectivity();
+    const saved = useMemo(() => (enabled && storeSlug ? loadFloor(storeSlug) : null), []); // eslint-disable-line react-hooks/exhaustive-deps
+    const restore = !!saved && (saved.outbox.length > 0 || !connectivityNow());
+    const seed = restore ? saved.state : null;
+
+    const [positions, setPositions] = useState(seed ? seed.positions : initialPositions);
     /* A takeaway bag is an open bill with no seat. Modelling it as a fake
        table would put phantom rows on the floor plan and break every covers
        and capacity number on the screen, so lane tickets are their own list
        and share every action a table has. */
-    const [tickets, setTickets] = useState(initialTickets);
-    const [zones, setZones] = useState(initialZones);
-    const [kitchen, setKitchen] = useState(initialKitchen);
+    const [tickets, setTickets] = useState(seed ? seed.tickets : initialTickets);
+    const [zones, setZones] = useState(seed ? seed.zones : initialZones);
+    const [kitchen, setKitchen] = useState(seed ? seed.kitchen : initialKitchen);
     const [zone, setZone] = useState('all');
     const [selectedId, setSelectedId] = useState(null);
     const [busy, setBusy] = useState(false);
-    const [loaded, setLoaded] = useState(initialPositions.length > 0);
+    const [loaded, setLoaded] = useState(initialPositions.length > 0 || !!seed);
     const [, setTick] = useState(0);
     /* Products the kitchen has run out of — broadcast on every state poll so
        every till and the floor all agree on what's available without needing
        a dedicated socket. */
-    const [eightySixIds, setEightySixIds] = useState([]);
+    const [eightySixIds, setEightySixIds] = useState(seed ? seed.eighty_six_ids : []);
+
+    /* The device's own copy of the floor, its queue of unsent changes, and the
+       changes the server refused when they were sent. The refs are the truth
+       for back-to-back actions (open a table, add a dish) inside one render. */
+    const floorRef = useRef(null);
+    const outboxRef = useRef(restore ? saved.outbox : []);
+    const [pending, setPending] = useState(restore ? saved.outbox.length : 0);
+    const [conflicts, setConflicts] = useState(restore ? saved.conflicts : []);
+    const replaying = useRef(null);
+    const lastServerState = useRef(null);
 
     /* A poll must never overwrite a change that has not landed yet. One flag,
        checked by the poll and held for the whole life of a mutation, is the
@@ -197,6 +225,56 @@ export function useTableService({
         if (onError) onError(msg);
         return null;
     }, [onError]);
+
+    /* ── the floor kept on this device ────────────────────────────────── */
+
+    const conflictsRef = useRef(restore ? saved.conflicts : []);
+    const retryTimer = useRef(null);
+    const ctxFor = useCallback(() => browserContext({ user: actor, collectsTakeaway }), [actor, collectsTakeaway]);
+
+    useEffect(() => {
+        floorRef.current = { positions, tickets, zones, kitchen, eighty_six_ids: eightySixIds };
+    }, [positions, tickets, zones, kitchen, eightySixIds]);
+
+    const currentFloor = () => floorRef.current
+        || seedState({ positions, tickets, zones, kitchen, eighty_six_ids: eightySixIds });
+
+    const persist = useCallback(() => {
+        if (!enabled || !storeSlug || !floorRef.current) return;
+        saveFloor(storeSlug, { state: floorRef.current, outbox: outboxRef.current, conflicts: conflictsRef.current });
+    }, [enabled, storeSlug]);
+
+    const adopt = useCallback((next) => {
+        floorRef.current = next;
+        lastRaw.current = {};
+        setPositions(next.positions);
+        setTickets(next.tickets);
+        setEightySixIds(next.eighty_six_ids);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    /* Run one action against this device's floor and queue it for the server.
+       Answers in the same shape the server does, so no caller has to know. */
+    const localPost = useCallback(async (name, body) => {
+        try {
+            const out = applyLocal(currentFloor(), name, body, ctxFor());
+            adopt(out.state);
+            outboxRef.current = enqueue(outboxRef.current, out.outbox);
+            setPending(outboxRef.current.length);
+            persist();
+            const data = out.response;
+            if (data?.cancellation_kot) {
+                KitchenPrintService.printKOT(data.cancellation_kot, { isCancellation: true });
+                if (onNotice) onNotice('Cancellation docket sent to kitchen');
+            }
+            return data;
+        } catch (e) {
+            if (e instanceof FloorRefusal) {
+                if (onError) onError(e.message);
+                return null;
+            }
+            throw e;
+        }
+    }, [ctxFor, adopt, persist, onError, onNotice]); // eslint-disable-line react-hooks/exhaustive-deps
 
     /* ── reading ──────────────────────────────────────────────────────── */
 
@@ -221,14 +299,33 @@ export function useTableService({
         if (Array.isArray(d.eighty_six_ids) && changed('eighty', d.eighty_six_ids)) setEightySixIds(d.eighty_six_ids);
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+    const runReplayRef = useRef(() => {});
+    /* The latest floor the server gave us, kept so a reload while offline can still draw it. */
+    const keepServerCopy = useCallback((data) => {
+        if (!enabled || !storeSlug || outboxRef.current.length || !data) return;
+        lastServerState.current = data;
+        floorRef.current = seedState({
+            positions: data.positions || floorRef.current?.positions || [], tickets: data.tickets || floorRef.current?.tickets || [],
+            zones: data.zones || floorRef.current?.zones || [], kitchen: data.kitchen ?? floorRef.current?.kitchen ?? 0,
+            eighty_six_ids: data.eighty_six_ids || floorRef.current?.eighty_six_ids || [],
+        });
+        persist();
+    }, [enabled, storeSlug, persist]);
+
     const refresh = useCallback(async () => {
         if (!enabled || inFlight.current) return;
+        /* While changes made offline are still on this device the server's floor
+           is OLDER than ours: reading it now would erase them. Send them first;
+           the read happens when that finishes. */
+        if (!connectivityNow()) { setLoaded(true); return; }
+        if (outboxRef.current.length) { runReplayRef.current(); return; }
         /* A hidden tab does not need the floor. It catches up the moment it
            is shown again (see the visibility listener below). */
         if (typeof document !== 'undefined' && document.hidden) return;
         try {
             const { data } = await axios.get(r('store.tables.state'));
             applyState(data);
+            keepServerCopy(data);
         } catch (_) {
             /* A failed poll is not worth a toast. The next one is 15s away and
                the operator has lost nothing -- saying so on every dropped
@@ -236,7 +333,7 @@ export function useTableService({
         } finally {
             setLoaded(true);
         }
-    }, [enabled, r, applyState]);
+    }, [enabled, r, applyState, keepServerCopy]);
 
     /* THE FIRST READ IS IMMEDIATE, not one poll interval away.
        The floor used to arrive with the page, so an interval was enough. Now
@@ -261,10 +358,19 @@ export function useTableService({
     /* ── writing ──────────────────────────────────────────────────────── */
 
     const post = useCallback(async (name, body, fallbackMsg) => {
+        /* Changes made offline go to the server first and in order; a new action
+           waits for that, then runs normally. If the server is unreachable, or
+           there is still queued work, it joins the queue on this device instead. */
+        if (replaying.current) { try { await replaying.current; } catch (_) { /* reported by the replay itself */ } }
+        if (enabled && (!connectivityNow() || outboxRef.current.length)) return localPost(name, body);
+        const sendBody = (name === 'store.tables.open' || name === 'store.tables.lane.open') && !body.client_ref
+            ? { ...body, client_ref: browserContext().ref() }
+            : body;
+
         setBusy(true);
         inFlight.current = true;
         try {
-            const { data } = await axios.post(r(name), body);
+            const { data } = await axios.post(r(name), sendBody);
             /* A write changed the lists outside the poll, so the poll's memory
                of "what I last applied" is no longer the truth -- forget it and
                let the next poll apply whatever the server says. */
@@ -293,12 +399,20 @@ export function useTableService({
             }
             return data;
         } catch (e) {
+            /* The connection dropped under this very request. Carry on from this
+               device's copy; the same reference makes a retry safe if the server
+               did in fact get it. */
+            if (enabled && isNetworkError(e) && supportsOffline(name)) {
+                inFlight.current = false;
+                setBusy(false);
+                return localPost(name, sendBody);
+            }
             return fail(e, fallbackMsg);
         } finally {
             inFlight.current = false;
             setBusy(false);
         }
-    }, [r, fail]);
+    }, [r, fail, enabled, localPost]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selected = useMemo(
         () => positions.find(p => p.id === selectedId)
@@ -555,21 +669,79 @@ export function useTableService({
        is a nuisance to be reported, never a reason to fail a completed sale. */
     const markSettled = useCallback(async (occupancyId, saleId, partId = null) => {
         clearTimeout(saveTimer.current);
+        const body = { occupancy_id: occupancyId, sale_id: saleId ?? null, part_id: partId };
+        if (replaying.current) { try { await replaying.current; } catch (_) { /* reported by the replay itself */ } }
+        if (enabled && (!connectivityNow() || outboxRef.current.length || isLocalId(occupancyId))) return localPost('store.tables.settled', body);
         try {
-            const { data } = await axios.post(r('store.tables.settled'), {
-                occupancy_id: occupancyId,
-                sale_id: saleId ?? null,
-                part_id: partId,
-            });
+            const { data } = await axios.post(r('store.tables.settled'), body);
             await refresh();
             return data;
         } catch (e) {
+            if (enabled && isNetworkError(e)) return localPost('store.tables.settled', body);
             if (onError) onError('Paid, but the table did not clear. Free it from the floor.');
             return null;
         }
-    }, [r, refresh, onError]);
+    }, [r, refresh, onError, enabled, localPost]);
 
-    useEffect(() => () => clearTimeout(saveTimer.current), []);
+    useEffect(() => () => { clearTimeout(saveTimer.current); clearTimeout(retryTimer.current); }, []);
+
+    /* ── sending what was done offline ───────────────────────────────────
+       In order, one request at a time. A table somebody else opened first is
+       not forced: that change is set aside in `conflicts` for a person to look
+       at, with the dishes listed, and nothing else is lost. */
+    const runReplay = useCallback(() => {
+        if (replaying.current || !outboxRef.current.length || !connectivityNow()) return replaying.current;
+        replaying.current = (async () => {
+            try {
+                const res = await replayOutbox(outboxRef.current, (n, b) => axios.post(r(n), b).then((x) => x.data));
+                outboxRef.current = res.remaining;
+                setPending(res.remaining.length);
+                if (res.conflicts.length) {
+                    conflictsRef.current = [...conflictsRef.current, ...res.conflicts.map((c) => ({
+                        at: Date.now(),
+                        message: describeConflict(c, floorRef.current),
+                        lines: (c.item.body?.cart || []).map((l) => `${l.qty} x ${l.name}`),
+                    }))];
+                    setConflicts(conflictsRef.current);
+                }
+                persist();
+                if (res.remaining.length) {
+                    clearTimeout(retryTimer.current);
+                    retryTimer.current = setTimeout(() => runReplayRef.current(), 20000);
+                    return;
+                }
+                const { data } = await axios.get(r('store.tables.state'));
+                lastRaw.current = {};
+                applyState(data);
+                keepServerCopy(data);
+                setSelectedId((prev) => {
+                    if (typeof prev !== 'string' || !prev.startsWith('t')) return prev;
+                    const real = res.idmap[prev.slice(1)];
+                    return real ? `t${real}` : prev;
+                });
+                if (onNotice && res.sent) onNotice(`${res.sent} change${res.sent === 1 ? '' : 's'} made offline ${res.sent === 1 ? 'is' : 'are'} now saved`);
+            } catch (_) {
+                clearTimeout(retryTimer.current);
+                retryTimer.current = setTimeout(() => runReplayRef.current(), 20000);
+            } finally {
+                replaying.current = null;
+            }
+        })();
+        return replaying.current;
+    }, [r, applyState, keepServerCopy, persist, onNotice]);
+
+    useEffect(() => { runReplayRef.current = runReplay; }, [runReplay]);
+
+    /* The moment the server answers again, send what is waiting. */
+    useEffect(() => {
+        if (enabled && online && pending > 0) runReplay();
+    }, [enabled, online, pending, runReplay]);
+
+    const dismissConflicts = useCallback(() => {
+        conflictsRef.current = [];
+        setConflicts([]);
+        persist();
+    }, [persist]);
 
     return {
         enabled,
@@ -578,6 +750,9 @@ export function useTableService({
         selected, selectedId, select,
         busy,
         eightySixIds,
+        /* Offline floor: is the server out of reach, how many changes are waiting
+           to be sent, and the ones the server refused (see runReplay). */
+        offline: { active: !online, pending, conflicts, dismissConflicts },
         refresh,
         openTable, openLane, updateDelivery, dropCheck, convert, collected, prime, pushOrder, flushOrder, sendToKitchen,
         fireCourse, toggle86,

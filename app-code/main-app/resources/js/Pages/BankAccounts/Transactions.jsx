@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { usePage, Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import {
     ArrowLeft,
     Search,
@@ -12,7 +15,9 @@ import {
     ArrowDownCircle,
     FileText,
     TrendingUp,
-    TrendingDown
+    TrendingDown,
+    Landmark,
+    Hash
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
@@ -72,44 +77,53 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
         return configs[type] || { label: type, color: 'text-ink-secondary', icon: FileText };
     };
 
+    const navGroups = useMoneyNavGroups();
+
     return (
-        <OneGlanceLayout title="Bank Transactions" activeMenu="Money">
+        <OneGlanceLayout title="Bank Transactions" activeMenu="Money" noPadding>
             <Head title={`${bankAccount?.name || 'Bank'} Transactions`} />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <MoneyModuleTabs activeTab="bank-accounts" />
-
-                {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-y-2 bg-surface p-3 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-3">
-                        <Link href={route('store.bank-accounts.index', { store_slug: store.slug })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
-                            <ArrowLeft size={18} className="text-ink-muted" />
+            <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title={bankAccount?.name || 'Bank Account'}
+                    navGroups={navGroups}
+                    activeId="accounts"
+                    left={(
+                        <Link href={route('store.bank-accounts.index', { store_slug: store.slug })} className="h-10 px-3 rounded-[12px] border border-line bg-app text-ink hover:bg-interactive-hover text-sm font-semibold flex items-center gap-2">
+                            <ArrowLeft size={15} /> Bank Accounts
                         </Link>
-                        <div>
-                            <h1 className="text-lg font-bold text-ink uppercase tracking-tight">
-                                {bankAccount?.name}
-                            </h1>
-                            <p className="text-xs font-bold text-ink-muted uppercase">
-                                {bankAccount?.bank_name} • {bankAccount?.account_number}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-xs font-bold text-ink-muted uppercase">Current Balance</p>
-                        <p className="text-xl font-bold text-brand-600">{formatCurrency(bankAccount?.current_balance)}</p>
-                    </div>
-                </div>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Current Balance', value: formatCurrency(bankAccount?.current_balance), icon: Landmark, value_tone: 'text-brand-600' },
+                    { label: 'Bank', value: bankAccount?.bank_name || '—', icon: Landmark, icon_tone: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
+                    { label: 'Account No.', value: bankAccount?.account_number || '—', icon: Hash, icon_tone: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-800' },
+                ]} />
+
+                <MobileListHeader
+                    title={bankAccount?.name || 'Bank Account'}
+                    navGroups={navGroups}
+                    activeId="accounts"
+                    links={[{ label: 'Bank Accounts', icon: ArrowLeft, href: route('store.bank-accounts.index', { store_slug: store.slug }) }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Current Balance', value: formatCurrency(bankAccount?.current_balance), tone: 'brand', icon: Landmark },
+                    { label: 'Bank', value: bankAccount?.bank_name || '—', tone: 'blue', icon: Landmark },
+                    { label: 'Account No.', value: bankAccount?.account_number || '—', tone: 'ink', icon: Hash },
+                ]} />
 
                 {/* Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead className="bg-app border-b border-line sticky top-0 z-10 backdrop-blur-sm">
                             <tr>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Date</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Description</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Reference</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Type</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Amount</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Date</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Description</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Reference</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Type</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Amount</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
@@ -170,6 +184,7 @@ export default function BankAccountTransactions({ bankAccount, transactions }) {
                         </tbody>
                     </table>
                 </div>
+              </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

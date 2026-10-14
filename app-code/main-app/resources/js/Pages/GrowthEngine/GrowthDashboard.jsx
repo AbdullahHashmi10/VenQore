@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { createPortal } from 'react-dom';
+import { ReportShell, ReportKpis, filterInputCls } from '@/Components/Reports/ReportKit';
 import { getCurrencySymbol } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 import {
@@ -53,8 +54,9 @@ const PRIORITY_STYLE = {
 
 const money = (v) => {
  const n = Number(v || 0);
- if (n >= 10000000) return `${(n / 10000000).toFixed(2)} Cr`;
- if (n >= 100000) return `${(n / 100000).toFixed(2)} Lac`;
+ const abs = Math.abs(n);
+ if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+ if (abs >= 1e6) return `${(n / 1e6).toFixed(2)}M`;
  return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 };
 
@@ -150,122 +152,82 @@ export default function GrowthDashboard({
  }
  };
 
+ const resetFilters = () => router.get(route('store.growth-engine.index', { store_slug: store.slug }), {}, { preserveScroll: true });
+ const sel = `${filterInputCls}`;
+
+ const toolbarFilters = (
+ <>
+ <select value={filters.category || ''} onChange={(e) => applyFilter('category', e.target.value)} className={sel} aria-label="Category">
+ <option value="">All categories</option>
+ {(facets?.categories || []).map((c) => (
+ <option key={c.key} value={c.key}>{c.label} ({c.count})</option>
+ ))}
+ </select>
+ <select value={filters.priority || ''} onChange={(e) => applyFilter('priority', e.target.value)} className={sel} aria-label="Priority">
+ <option value="">Any priority</option>
+ <option value="urgent">Urgent only</option>
+ <option value="high">High</option>
+ <option value="medium">Medium</option>
+ </select>
+ {Object.keys(filters).length > 0 && (
+ <button type="button" onClick={resetFilters} className="h-10 rounded-[12px] px-3 text-sm font-bold text-ink-secondary hover:bg-interactive-hover">Clear</button>
+ )}
+ </>
+ );
+
+ const toolbarActions = (
+ <>
+ <button type="button" onClick={() => setShowScore(true)}
+ className="flex h-10 items-center gap-2 rounded-[12px] border border-line px-3 text-sm font-bold text-ink-secondary transition-colors hover:bg-interactive-hover">
+ <ShieldCheck size={16} />
+ <span className="hidden sm:inline">{scorecard?.overall_precision != null ? `${scorecard.overall_precision}% accurate` : 'How accurate?'}</span>
+ </button>
+ <button type="button" onClick={doRefresh} disabled={refreshing}
+ className="flex h-10 items-center gap-2 rounded-[12px] bg-brand-600 px-4 text-sm font-bold text-white transition-colors hover:bg-brand-700 disabled:opacity-50">
+ <RefreshCcw size={16} className={refreshing ? 'animate-spin' : ''} />
+ {refreshing ? 'Starting…' : 'Re-analyse'}
+ </button>
+ </>
+ );
+
  return (
- <OneGlanceLayout title="Growth Engine" activeMenu="Growth Engine">
- <Head title="Growth Engine" />
+ <ReportShell title="Growth Engine" subtitle={scorecard?.maturity?.label} activeKey="growth" navGroups={[]} showHub={false} activeMenu="Growth Engine"
+ filters={toolbarFilters} actions={toolbarActions}>
 
  {notice && (
- <div className="mb-4 rounded-2xl border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-900/20 px-5 py-3 text-sm font-medium text-brand-800 dark:text-brand-200 flex items-center gap-2">
+ <div className="flex shrink-0 items-center gap-2 rounded-[12px] border border-brand-200 bg-brand-50 px-4 py-3 text-sm font-medium text-brand-800 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-200">
  <Info size={16} /> {notice}
  </div>
  )}
 
- {/* ───────────────────────── HEADER ───────────────────────── */}
- <div className="relative overflow-hidden rounded-2xl bg-gradient-brand p-6 md:p-8 text-white shadow-xl mb-6">
- <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
- <div className="relative z-10">
- <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
- <div>
- <div className="flex items-center gap-3 mb-2">
- <div className="p-2 bg-white/20 backdrop-blur-md rounded-xl">
- <Sparkles size={22} className="text-yellow-300" />
- </div>
- <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Growth Engine</h1>
- {scorecard?.maturity && (
- <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs font-semibold">
- <Activity size={12} /> {scorecard.maturity.label}
- </span>
- )}
- </div>
- <p className="text-brand-100 max-w-2xl text-sm md:text-base">
- Four brains reading your sales, stock, margin and cash — every insight tracked,
- checked against what actually happened, and tuned to your business.
- </p>
- </div>
+ <ReportKpis items={[
+ { label: 'Opportunity on the table', value: `${cur} ${money(stats?.potential_revenue)}`, icon: Wallet, tone: 'emerald', sub: 'Money these insights could recover' },
+ { label: 'Live insights', value: stats?.total_signals ?? 0, icon: Sparkles, tone: 'brand', sub: `${stats?.unread_count ?? 0} not yet read` },
+ { label: 'Urgent now', value: stats?.urgent_count ?? 0, icon: AlertTriangle, tone: 'rose', valueTone: (stats?.urgent_count ?? 0) > 0 ? 'rose' : undefined, sub: 'Need attention first' },
+ { label: 'Recovered so far', value: `${cur} ${money(stats?.realised_value)}`, icon: CheckCircle2, tone: 'sky', sub: 'Confirmed by what happened next' },
+ ]} />
 
- <div className="flex flex-wrap gap-3">
- <Stat label="Opportunity on the table" value={`${cur} ${money(stats?.potential_revenue)}`} />
- <Stat label="Live insights" value={stats?.total_signals ?? 0} />
- {stats?.realised_value > 0 && (
- <Stat label="Recovered so far" value={`${cur} ${money(stats.realised_value)}`} accent />
- )}
- </div>
- </div>
-
- {/* Per-brain strip */}
- <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+ {/* Brain strip: one tap filters to that brain */}
+ <div className="grid shrink-0 grid-cols-2 gap-2 lg:grid-cols-4">
  {(stats?.by_brain || []).map((b) => {
  const meta = BRAIN_META[b.brain] || BRAIN_META.customer;
  const Icon = meta.icon;
  const active = filters.brain === b.brain;
  return (
- <button
- key={b.brain}
- onClick={() => applyFilter('brain', b.brain)}
- className={`text-left p-3 rounded-2xl border transition-all ${
- active
- ? 'bg-white text-brand-900 border-white shadow-lg'
- : 'bg-white/10 border-white/10 hover:bg-white/20'
- }`}
- >
- <div className="flex items-center gap-2 mb-1">
- <Icon size={15} className={active ? 'text-brand-700' : 'text-brand-200'} />
- <span className={`text-xs font-bold uppercase tracking-wide ${active ? 'text-brand-700' : 'text-brand-200'}`}>
- {tt(meta.label)}
+ <button key={b.brain} type="button" onClick={() => applyFilter('brain', b.brain)}
+ className={`flex h-14 min-w-0 items-center gap-3 rounded-[14px] border px-4 text-left transition-colors ${active ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' : 'border-line bg-surface hover:bg-interactive-hover'}`}>
+ <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border ${TONE[meta.tone]}`}><Icon size={16} /></span>
+ <span className="min-w-0 flex-1">
+ <span className="block truncate text-sm font-bold text-ink">{tt(meta.label)}</span>
+ <span className="block truncate text-xs text-ink-muted">{b.count} insight{b.count === 1 ? '' : 's'}{b.value > 0 ? ` · ${cur} ${money(b.value)}` : ''}</span>
  </span>
- </div>
- <div className="flex items-baseline gap-2">
- <span className="text-xl font-bold">{b.count}</span>
- {b.value > 0 && (
- <span className={`text-xs ${active ? 'text-brand-600' : 'text-brand-200'}`}>
- {cur} {money(b.value)}
- </span>
- )}
- </div>
  </button>
  );
  })}
  </div>
- </div>
- </div>
 
- {/* ───────────────────── CONTROLS ───────────────────── */}
- <div className="flex flex-wrap items-center gap-3 mb-6">
- <FilterChip active={!filters.category && !filters.brain && !filters.priority}
- onClick={() => router.get(route('store.growth-engine.index', { store_slug: store.slug }), {}, { preserveScroll: true })}>
- Everything
- </FilterChip>
-
- {(facets?.categories || []).map((c) => (
- <FilterChip key={c.key} active={filters.category === c.key}
- onClick={() => applyFilter('category', c.key)}>
- {c.label} <span className="opacity-60">{c.count}</span>
- </FilterChip>
- ))}
-
- <FilterChip active={filters.priority === 'urgent'} onClick={() => applyFilter('priority', 'urgent')}>
- <AlertTriangle size={13} className="inline mr-1" /> Urgent only
- </FilterChip>
-
- <div className="ml-auto flex items-center gap-2">
- <button onClick={() => setShowScore(true)}
- className="px-4 py-2 rounded-full text-sm font-semibold bg-surface border border-line text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover flex items-center gap-2">
- <ShieldCheck size={15} />
- {scorecard?.overall_precision != null
- ? `${scorecard.overall_precision}% accurate`
- : 'How accurate is this?'}
- </button>
- <button onClick={doRefresh} disabled={refreshing}
- className="px-4 py-2 rounded-full text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50 flex items-center gap-2">
- <RefreshCcw size={15} className={refreshing ? 'animate-spin' : ''} />
- {refreshing ? 'Starting…' : 'Re-analyse'}
- </button>
- </div>
- </div>
-
- {/* ───────────────────── FEED ───────────────────── */}
  {rows.length > 0 ? (
- <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+ <div className="grid shrink-0 grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
  {rows.map((rec) => (
  <SignalCard key={rec.id} rec={rec} cur={cur} onOpen={() => openSignal(rec)} />
  ))}
@@ -273,27 +235,25 @@ export default function GrowthDashboard({
  ) : (
  <EmptyState hasAnySignals={hasAnySignals} engineStatus={engineStatus}
  maturity={scorecard?.maturity} filters={filters}
- onClear={() => router.get(route('store.growth-engine.index', { store_slug: store.slug }), {}, { preserveScroll: true })}
+ onClear={resetFilters}
  onRefresh={doRefresh} refreshing={refreshing} />
  )}
 
- {/* Pagination */}
  {recommendations?.last_page > 1 && (
- <div className="flex justify-center gap-2 mt-8">
+ <div className="flex shrink-0 flex-wrap justify-center gap-2 pb-2">
  {recommendations.links.map((l, i) => (
  <button key={i} disabled={!l.url}
  onClick={() => l.url && router.visit(l.url, { preserveScroll: true })}
- className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+ className={`h-10 min-w-10 rounded-[12px] px-3 text-sm font-bold transition-colors ${
  l.active ? 'bg-brand-600 text-white'
- : l.url ? 'bg-surface text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover border border-line'
- : 'text-ink-faint dark:text-ink-secondary cursor-not-allowed'
+ : l.url ? 'border border-line bg-surface text-ink-secondary hover:bg-interactive-hover'
+ : 'cursor-not-allowed text-ink-faint'
  }`}
  dangerouslySetInnerHTML={{ __html: l.label }} />
  ))}
  </div>
  )}
 
- {/* ───────────────────── DETAIL PANEL ───────────────────── */}
  {selected && (
  <DetailPanel
  rec={selected} detail={detail} cur={cur} busy={busy}
@@ -309,35 +269,11 @@ export default function GrowthDashboard({
  <ScorecardPanel scorecard={scorecard} cur={cur} trend={trend}
  engineStatus={engineStatus} onClose={() => setShowScore(false)} />
  )}
- </OneGlanceLayout>
+ </ReportShell>
  );
 }
 
 /* ══════════════════════════ SUB-COMPONENTS ══════════════════════════ */
-
-function Stat({ label, value, accent }) {
- return (
- <div className={`text-center px-5 py-3 rounded-2xl border ${
- accent ? 'bg-emerald-400/20 border-emerald-300/30' : 'bg-white/10 border-white/10'
- } backdrop-blur-sm`}>
- <p className="text-2xs text-brand-200 uppercase tracking-widest font-bold whitespace-nowrap">{label}</p>
- <p className="text-xl font-bold mt-0.5">{value}</p>
- </div>
- );
-}
-
-function FilterChip({ active, onClick, children }) {
- return (
- <button onClick={onClick}
- className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all border ${
- active
- ? 'bg-brand-600 text-white border-brand-600 shadow-md '
- : 'bg-surface text-ink-secondary border-line hover:bg-interactive-hover dark:hover:bg-interactive-hover'
- }`}>
- {children}
- </button>
- );
-}
 
 function SignalCard({ rec, cur, onOpen }) {
  const meta = BRAIN_META[rec.brain] || BRAIN_META.customer;
@@ -345,37 +281,30 @@ function SignalCard({ rec, cur, onOpen }) {
 
  return (
  <div onClick={onOpen}
- className="group bg-surface rounded-2xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-slow border border-line cursor-pointer flex flex-col">
-
- <div className="flex items-start justify-between gap-3 mb-3">
- <div className={`p-2.5 rounded-2xl border ${TONE[meta.tone]} transition-transform`}>
- <Icon size={18} />
- </div>
- <div className="flex items-center gap-1.5">
- {!rec.is_read && <span className="w-2 h-2 rounded-full bg-brand-500" title="New" />}
- <span className={`px-2.5 py-1 rounded-full text-2xs uppercase font-bold tracking-wider border ${PRIORITY_STYLE[rec.priority] || PRIORITY_STYLE.low}`}>
+ className="group flex cursor-pointer flex-col rounded-[14px] border border-line bg-surface p-4 shadow-sm transition-colors hover:border-brand-300">
+ <div className="mb-3 flex items-center gap-3">
+ <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] border ${TONE[meta.tone]}`}><Icon size={18} /></span>
+ <p className="min-w-0 flex-1 truncate text-xs font-bold uppercase tracking-wider text-ink-muted">{rec.type_label}</p>
+ {!rec.is_read && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-500" title="New" />}
+ <span className={`shrink-0 rounded-[8px] border px-2 py-0.5 text-xs font-bold uppercase tracking-wide ${PRIORITY_STYLE[rec.priority] || PRIORITY_STYLE.low}`}>
  {rec.priority}
  </span>
  </div>
- </div>
 
- <p className="text-2xs uppercase tracking-wider font-bold text-ink-muted mb-1">{rec.type_label}</p>
- <h3 className="font-bold text-[15px] text-ink leading-snug mb-2">{rec.title}</h3>
- <p className="text-ink-secondary text-[13px] leading-relaxed mb-4 line-clamp-4">{rec.message}</p>
+ <h3 className="mb-1.5 text-base font-bold leading-snug text-ink">{rec.title}</h3>
+ <p className="mb-3 line-clamp-3 text-sm leading-relaxed text-ink-secondary">{rec.message}</p>
 
- <div className="mt-auto pt-3 border-t border-line flex flex-wrap items-center justify-between gap-y-2 gap-2">
+ <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-3">
  <div className="min-w-0">
  {Number(rec.potential_revenue) > 0 && (
- <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 truncate">
- {cur} {money(rec.potential_revenue)}
- </p>
+ <p className="truncate text-base font-bold text-emerald-600 dark:text-emerald-400">{cur} {money(rec.potential_revenue)}</p>
  )}
- <p className="text-1xs text-ink-muted flex items-center gap-1 truncate">
- <Target size={11} /> {Math.round(rec.confidence)}% confidence
+ <p className="flex items-center gap-1 truncate text-xs text-ink-muted">
+ <Target size={12} /> {Math.round(rec.confidence)}% confidence
  {rec.seen_count > 1 && <span className="ml-1">· seen {rec.seen_count}×</span>}
  </p>
  </div>
- <ChevronRight size={18} className="text-neutral-300 group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+ <ChevronRight size={18} className="shrink-0 text-ink-faint transition-colors group-hover:text-brand-500" />
  </div>
  </div>
  );
@@ -393,13 +322,13 @@ function EmptyState({ hasAnySignals, engineStatus, maturity, filters, onClear, o
 
  if (isFiltered && hasAnySignals) {
  return (
- <div className="text-center py-20 bg-surface rounded-2xl border border-line">
+ <div className="text-center py-20 bg-surface rounded-[14px] border border-line">
  <div className="w-16 h-16 bg-sunken rounded-full flex items-center justify-center mx-auto mb-4 text-ink-muted">
  <Sparkles size={28} />
  </div>
  <h3 className="text-lg font-bold text-ink">Nothing matches that filter</h3>
  <p className="text-ink-muted mt-1 text-sm">There are other insights waiting under different filters.</p>
- <button onClick={onClear} className="mt-5 px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">
+ <button onClick={onClear} className="mt-5 px-5 py-2.5 rounded-[12px] bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">
  Show everything
  </button>
  </div>
@@ -408,7 +337,7 @@ function EmptyState({ hasAnySignals, engineStatus, maturity, filters, onClear, o
 
  if (!engineStatus?.has_run) {
  return (
- <div className="text-center py-20 bg-surface rounded-2xl border border-line">
+ <div className="text-center py-20 bg-surface rounded-[14px] border border-line">
  <div className="w-16 h-16 bg-brand-50 dark:bg-brand-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-500">
  <Activity size={28} />
  </div>
@@ -418,7 +347,7 @@ function EmptyState({ hasAnySignals, engineStatus, maturity, filters, onClear, o
  it usually takes under a minute.
  </p>
  <button onClick={onRefresh} disabled={refreshing}
- className="mt-5 px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 disabled:opacity-50 inline-flex items-center gap-2">
+ className="mt-5 px-5 py-2.5 rounded-[12px] bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700 disabled:opacity-50 inline-flex items-center gap-2">
  <RefreshCcw size={15} className={refreshing ? 'animate-spin' : ''} />
  Analyse my business now
  </button>
@@ -426,8 +355,23 @@ function EmptyState({ hasAnySignals, engineStatus, maturity, filters, onClear, o
  );
  }
 
+ const brainErrs = Object.entries(engineStatus?.brain_errors || {});
+ if (brainErrs.length > 0) {
  return (
- <div className="text-center py-20 bg-surface rounded-2xl border border-line">
+ <div className="text-center py-16 bg-surface rounded-[14px] border border-amber-300">
+ <h3 className="text-lg font-bold text-ink">The analysis ran into a problem</h3>
+ <p className="text-ink-muted mt-1 text-sm max-w-xl mx-auto">
+ {brainErrs.length} part{brainErrs.length === 1 ? '' : 's'} of the engine could not read your data, so "no insights" would be misleading. Press refresh to retry; if it repeats, send this to support:
+ </p>
+ <ul className="mt-3 max-w-2xl mx-auto text-left text-xs font-mono text-ink-secondary space-y-1 px-4">
+ {brainErrs.map(([brain, msg]) => (<li key={brain} className="break-words"><b>{brain}</b>: {String(msg).slice(0, 300)}</li>))}
+ </ul>
+ </div>
+ );
+ }
+
+ return (
+ <div className="text-center py-20 bg-surface rounded-[14px] border border-line">
  <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-500">
  <CheckCircle2 size={28} />
  </div>
@@ -445,6 +389,24 @@ function EmptyState({ hasAnySignals, engineStatus, maturity, filters, onClear, o
  );
 }
 
+/** A centred popup above everything (including the top bar). Click outside or press Esc to close. */
+function PopupFrame({ onClose, width = 'max-w-2xl', children }) {
+ React.useEffect(() => {
+ const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+ window.addEventListener('keydown', onKey);
+ return () => window.removeEventListener('keydown', onKey);
+ }, [onClose]);
+ return createPortal(
+ <div className="fixed inset-0 z-[2200] flex items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true">
+ <div className="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm" onClick={onClose} />
+ <div className={`relative flex max-h-[90vh] w-full ${width} flex-col overflow-hidden rounded-[14px] border border-line bg-surface shadow-2xl`}>
+ {children}
+ </div>
+ </div>,
+ document.body
+ );
+}
+
 function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnooze, onWhatsApp }) {
  const meta = BRAIN_META[rec.brain] || BRAIN_META.customer;
  const Icon = meta.icon;
@@ -454,28 +416,26 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
  const canWhatsApp = rec.action_type === 'whatsapp' || rec.action_type === 'send_reminder';
 
  return (
- <div className="fixed inset-0 z-50 flex justify-end">
- <div className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm" onClick={onClose} />
- <div className="relative w-full max-w-lg h-full bg-surface shadow-2xl overflow-y-auto">
+ <PopupFrame onClose={onClose} width="max-w-2xl">
 
- <div className="sticky top-0 z-10 bg-surface border-b border-line px-6 py-4 flex items-start gap-3">
- <div className={`p-2.5 rounded-2xl border ${TONE[meta.tone]}`}><Icon size={18} /></div>
+ <div className="shrink-0 border-b border-line bg-surface px-6 py-4 flex items-start gap-3">
+ <div className={`p-2.5 rounded-[12px] border ${TONE[meta.tone]}`}><Icon size={18} /></div>
  <div className="flex-1 min-w-0">
  <p className="text-2xs uppercase tracking-wider font-bold text-ink-muted">
  {rec.brain_label} · {rec.type_label}
  </p>
- <h2 className="font-bold text-ink leading-tight">{rec.title}</h2>
+ <h2 className="text-lg font-bold text-ink leading-tight">{rec.title}</h2>
  </div>
- <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted">
+ <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-[12px] hover:bg-interactive-hover text-ink-muted" aria-label="Close">
  <X size={18} />
  </button>
  </div>
 
- <div className="px-6 py-5 space-y-6">
- <p className="text-[14px] leading-relaxed text-ink-secondary">{rec.message}</p>
+ <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
+ <p className="text-[15px] leading-relaxed text-ink-secondary">{rec.message}</p>
 
  {rec.action_hint && (
- <div className="rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 px-4 py-3">
+ <div className="rounded-[14px] bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 px-4 py-3">
  <p className="text-1xs uppercase tracking-wider font-bold text-brand-500 mb-0.5">What to do</p>
  <p className="text-sm font-medium text-brand-900 dark:text-brand-200">{rec.action_hint}</p>
  </div>
@@ -483,11 +443,11 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
 
  {Number(rec.potential_revenue) > 0 && (
  <div className="grid grid-cols-2 gap-3">
- <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 px-4 py-3">
+ <div className="rounded-[14px] bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 px-4 py-3">
  <p className="text-2xs uppercase tracking-wider font-bold text-emerald-600">At stake</p>
  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{cur} {money(rec.potential_revenue)}</p>
  </div>
- <div className="rounded-2xl bg-app border border-line px-4 py-3">
+ <div className="rounded-[14px] bg-app border border-line px-4 py-3">
  <p className="text-2xs uppercase tracking-wider font-bold text-ink-muted">Confidence</p>
  <p className="text-lg font-bold text-ink-secondary dark:text-ink">{Math.round(rec.confidence)}%</p>
  </div>
@@ -498,7 +458,7 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
  {Object.keys(evidence).length > 0 && (
  <div>
  <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted mb-2">Why we're telling you this</p>
- <div className="rounded-2xl border border-line divide-y divide-line">
+ <div className="rounded-[14px] border border-line divide-y divide-line">
  {Object.entries(evidence).map(([k, v]) => (
  <div key={k} className="flex flex-wrap items-center justify-between gap-y-2 gap-4 px-4 py-2.5">
  <span className="text-[13px] text-ink-muted">{k}</span>
@@ -512,7 +472,7 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
  {orders.length > 0 && (
  <div>
  <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted mb-2">Their recent orders</p>
- <div className="rounded-2xl border border-line divide-y divide-line max-h-56 overflow-y-auto">
+ <div className="rounded-[14px] border border-line divide-y divide-line max-h-56 overflow-y-auto">
  {orders.map((o, i) => (
  <div key={i} className="flex flex-wrap items-center justify-between gap-y-2 gap-3 px-4 py-2.5">
  <div className="min-w-0">
@@ -528,7 +488,7 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
 
  {/* Honest track record for this insight type. */}
  {track && track.gradeable && track.precision != null && (
- <div className="rounded-2xl bg-app border border-line px-4 py-3">
+ <div className="rounded-[14px] bg-app border border-line px-4 py-3">
  <p className="text-1xs uppercase tracking-wider font-bold text-ink-muted mb-1">This kind of insight, for you</p>
  <p className="text-[13px] text-ink-secondary">
  Correct <strong>{track.precision}%</strong> of the time across {track.graded} checked
@@ -538,36 +498,35 @@ function DetailPanel({ rec, detail, cur, busy, onClose, onAct, onDismiss, onSnoo
  )}
  </div>
 
- <div className="sticky bottom-0 bg-surface border-t border-line px-6 py-4 space-y-2">
+ <div className="shrink-0 border-t border-line bg-surface px-6 py-4 space-y-2">
  {canWhatsApp && (
  <button onClick={onWhatsApp} disabled={busy}
- className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2">
+ className="w-full py-3 rounded-[12px] bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2">
  <MessageCircle size={16} /> Message on WhatsApp
  </button>
  )}
  {rec.action_url && (
  <a href={rec.action_url}
- className="w-full py-3 rounded-xl bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700 flex items-center justify-center gap-2">
+ className="w-full py-3 rounded-[12px] bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700 flex items-center justify-center gap-2">
  Open in the system <ArrowRight size={16} />
  </a>
  )}
  <div className="flex gap-2">
  <button onClick={onAct} disabled={busy}
- className="flex-1 py-2.5 rounded-xl border border-line text-ink-secondary font-semibold text-sm hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 flex items-center justify-center gap-1.5">
+ className="flex-1 py-2.5 rounded-[12px] border border-line text-ink-secondary font-semibold text-sm hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 flex items-center justify-center gap-1.5">
  <CheckCircle2 size={15} /> Done
  </button>
  <button onClick={() => onSnooze(7)} disabled={busy}
- className="flex-1 py-2.5 rounded-xl border border-line text-ink-secondary font-semibold text-sm hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 flex items-center justify-center gap-1.5">
+ className="flex-1 py-2.5 rounded-[12px] border border-line text-ink-secondary font-semibold text-sm hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 flex items-center justify-center gap-1.5">
  <Clock size={15} /> Later
  </button>
  <button onClick={onDismiss} disabled={busy}
- className="flex-1 py-2.5 rounded-xl border border-line text-ink-muted font-semibold text-sm hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 flex items-center justify-center gap-1.5">
+ className="flex-1 py-2.5 rounded-[12px] border border-line text-ink-muted font-semibold text-sm hover:bg-sunken dark:hover:bg-interactive-hover disabled:opacity-50 flex items-center justify-center gap-1.5">
  <BellOff size={15} /> Not useful
  </button>
  </div>
  </div>
- </div>
- </div>
+ </PopupFrame>
  );
 }
 
@@ -583,18 +542,16 @@ function ScorecardPanel({ scorecard, cur, trend, engineStatus, onClose }) {
  const m = scorecard?.maturity;
 
  return (
- <div className="fixed inset-0 z-50 flex justify-end">
- <div className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm" onClick={onClose} />
- <div className="relative w-full max-w-xl h-full bg-surface shadow-2xl overflow-y-auto">
- <div className="sticky top-0 z-10 bg-surface border-b border-line px-6 py-4 flex items-center gap-3">
+ <PopupFrame onClose={onClose} width="max-w-2xl">
+ <div className="shrink-0 border-b border-line bg-surface px-6 py-4 flex items-center gap-3">
  <ShieldCheck size={20} className="text-brand-500" />
- <h2 className="font-bold text-ink flex-1">How accurate is the Growth Engine?</h2>
- <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-muted"><X size={18} /></button>
+ <h2 className="text-lg font-bold text-ink flex-1">How accurate is the Growth Engine?</h2>
+ <button onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-[12px] hover:bg-interactive-hover text-ink-muted" aria-label="Close"><X size={18} /></button>
  </div>
 
- <div className="px-6 py-5 space-y-6">
+ <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
  {m && (
- <div className="rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 p-4">
+ <div className="rounded-[14px] bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 p-4">
  <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
  <p className="font-bold text-brand-900 dark:text-brand-200">{m.label}</p>
  <span className="text-xs font-bold text-brand-500">{m.progress}%</span>
@@ -613,7 +570,7 @@ function ScorecardPanel({ scorecard, cur, trend, engineStatus, onClose }) {
  </div>
 
  {scorecard?.realised_value > 0 && (
- <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-4">
+ <div className="rounded-[14px] bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-4">
  <p className="text-1xs uppercase tracking-wider font-bold text-emerald-600">Value recovered because you acted</p>
  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{cur} {money(scorecard.realised_value)}</p>
  <p className="text-[12px] text-emerald-700/70 dark:text-emerald-400/70 mt-1">
@@ -627,9 +584,9 @@ function ScorecardPanel({ scorecard, cur, trend, engineStatus, onClose }) {
  const Icon = meta.icon;
  if (!b.generated) return null;
  return (
- <div key={b.brain} className="rounded-2xl border border-line overflow-hidden">
+ <div key={b.brain} className="rounded-[14px] border border-line overflow-hidden">
  <div className="flex items-center gap-3 px-4 py-3 bg-app">
- <div className={`p-2 rounded-xl border ${TONE[meta.tone]}`}><Icon size={15} /></div>
+ <div className={`p-2 rounded-[12px] border ${TONE[meta.tone]}`}><Icon size={15} /></div>
  <div className="flex-1">
  <p className="font-bold text-sm text-ink">{b.label}</p>
  <p className="text-1xs text-ink-muted">
@@ -678,14 +635,13 @@ function ScorecardPanel({ scorecard, cur, trend, engineStatus, onClose }) {
  </p>
  )}
  </div>
- </div>
- </div>
+ </PopupFrame>
  );
 }
 
 function MiniStat({ label, value }) {
  return (
- <div className="rounded-2xl bg-app border border-line px-3 py-3 text-center">
+ <div className="rounded-[14px] bg-app border border-line px-3 py-3 text-center">
  <p className="text-2xs uppercase tracking-wider font-bold text-ink-muted">{label}</p>
  <p className="text-lg font-bold text-ink mt-0.5">{value}</p>
  </div>

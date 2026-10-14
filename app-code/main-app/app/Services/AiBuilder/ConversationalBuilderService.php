@@ -454,14 +454,19 @@ class ConversationalBuilderService
         }
 
         // Check completion criteria:
-        //  - High system readiness >= 0.88 AND at least 2 turns completed
+        //  - High system readiness AND at least 3 answers in this round
         //  - OR No more candidate questions exist
         //  - OR Hard turn cap reached
         // Round one stops early once it knows enough — four questions from a
         // stranger is already a lot. Round two was explicitly asked for, so the
         // readiness shortcut does not apply: it runs until the questions worth
         // asking are gone or the deeper budget is spent.
-        $readinessSatisfied = $session->depth < 2 && $readiness >= 0.88 && $session->turnCount >= 2 && !$isFirstTurn;
+        // Both rounds ask at least MIN_ROUND_TURNS before they may stop early.
+        // Round one stops once it is sure (0.88); round two, being the one they
+        // asked for, wants more certainty (0.93) and is capped at 5 questions.
+        $readinessSatisfied = !$isFirstTurn
+            && $session->roundTurns() >= DiscoverySession::MIN_ROUND_TURNS
+            && $readiness >= ($session->depth < 2 ? 0.88 : 0.93);
 
         if ($readinessSatisfied
             || $candidateQuestion === null
@@ -522,7 +527,8 @@ class ConversationalBuilderService
             $session->aiSignalConfidence = $turn['ai_confidence'];
 
             // If user explicitly stated they are ready or AI confirms completion with high readiness
-            if ($turn['is_complete'] && $session->systemReadinessConfidence >= 0.75) {
+            if ($turn['is_complete'] && $session->systemReadinessConfidence >= 0.75
+                && $session->roundTurns() >= DiscoverySession::MIN_ROUND_TURNS) {
                 return $this->finalizeProposal($session);
             }
 

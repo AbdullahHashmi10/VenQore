@@ -6,18 +6,18 @@ export default function DisplayPreferencesSection({ data, setData }) {
     const uiScale = parseInt(data.ui_scale ?? 100, 10);
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* Left Card: UI Scale */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-5 flex flex-col justify-between">
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-5 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-line">
-                            <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                            <div className="w-9 h-9 rounded-[12px] bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
                                 <Layout size={18} />
                             </div>
                             <div>
                                 <h3 className="text-base font-bold text-ink leading-tight">Interface Scale</h3>
-                                <p className="text-xs text-ink-muted">Scope: Applies to all staff terminals and browser sessions</p>
+                                <p className="text-sm text-ink-muted">Scope: Applies to all staff terminals and browser sessions</p>
                             </div>
                         </div>
 
@@ -25,9 +25,9 @@ export default function DisplayPreferencesSection({ data, setData }) {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <label className="text-sm font-bold text-ink block">Screen Zoom Factor</label>
-                                    <span className="text-xs text-ink-muted">Optimizes touch targets on 1080p, 2K &amp; tablet screens</span>
+                                    <span className="text-sm text-ink-muted">Optimizes touch targets on 1080p, 2K &amp; tablet screens</span>
                                 </div>
-                                <span className="text-xs font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 px-2.5 py-1 rounded-lg border border-brand-500/20">
+                                <span className="text-sm font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30 px-2.5 py-1 rounded-[12px] border border-brand-500/20">
                                     {uiScale}%
                                 </span>
                             </div>
@@ -65,7 +65,7 @@ export default function DisplayPreferencesSection({ data, setData }) {
                                             key={preset.scale}
                                             type="button"
                                             onClick={() => setData('ui_scale', preset.scale)}
-                                            className={`py-1.5 px-2 rounded-lg text-2xs font-bold transition-all border ${
+                                            className={`py-1.5 px-2 rounded-[12px] text-xs font-bold transition-all border ${
                                                 uiScale === preset.scale
                                                     ? 'bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 border-brand-500/30 shadow-xs'
                                                     : 'bg-app text-ink-muted hover:text-ink border-transparent hover:border-line'
@@ -81,14 +81,14 @@ export default function DisplayPreferencesSection({ data, setData }) {
                 </div>
 
                 {/* Right Card: Theme & Navigation Utilities */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
                     <div className="flex items-center gap-3.5 mb-2 pb-4 border-b border-line">
-                        <div className="w-9 h-9 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-[12px] bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
                             <Moon size={18} />
                         </div>
                         <div>
                             <h3 className="text-base font-bold text-ink leading-tight">Theme &amp; Accessibility</h3>
-                            <p className="text-xs text-ink-muted">Scope: Store-wide default configuration</p>
+                            <p className="text-sm text-ink-muted">Scope: Store-wide default configuration</p>
                         </div>
                     </div>
 

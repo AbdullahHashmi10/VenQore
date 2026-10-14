@@ -824,31 +824,24 @@ export function SupportView({ tickets = {}, ticket_filters = {} }) {
 }
 
 /* ════════════════ IMPERSONATION LOG ════════════════ */
-export function ImpersonationView() {
+export function ImpersonationView({ impersonation_log = [] }) {
     const t = useT();
     return (
         <div>
-            <Header icon={UserCog} accent={BRAND.amber} title="Impersonation" subtitle="Audited, time-boxed session takeover. Every start and end is logged." />
-            <ComingSoon
-                title="Impersonation Audit Log"
-                status="Backend Pending"
-                icon={UserCog}
-                description="Start impersonation from any store or user, with a reversible, time-boxed session. Every action is recorded in the platform audit log. The interface below shows the intended experience."
-                preview={
-                    <DataTable
-                        columns={[
-                            { header: 'Actor', cell: () => <span style={{ fontWeight: 700, color: t.ink }}>Hashmi Dashboard</span> },
-                            { header: 'Target store', cell: () => '—' },
-                            { header: 'Started', cell: () => '—' },
-                            { header: 'Duration', cell: () => '—' },
-                            { header: 'Status', cell: () => <Badge color={BRAND.slate}>Ended</Badge> },
-                        ]}
-                        rows={[]}
-                        emptyTitle="No impersonation sessions yet"
-                        emptyMessage="When you impersonate a store, an auditable row is created here."
-                    />
-                }
-            />
+            <Header icon={UserCog} accent={BRAND.amber} title="Impersonation" subtitle="Read-only session takeover. Start it from Stores → ⋯ → View as Owner. Every start and end is logged." />
+            <DataTable
+                    columns={[
+                        { header: 'When', cell: (r) => <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{r.at}</span> },
+                        { header: 'Event', cell: (r) => <Badge color={r.event === 'Started' ? BRAND.amber : BRAND.slate}>{r.event}</Badge> },
+                        { header: 'Platform user', cell: (r) => <span style={{ fontWeight: 700, color: t.ink }}>{r.actor}</span> },
+                        { header: 'Viewed as', cell: (r) => r.target },
+                        { header: 'Store', cell: (r) => r.store },
+                        { header: 'IP', cell: (r) => <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{r.ip || '—'}</span> },
+                    ]}
+                    rows={impersonation_log}
+                    emptyTitle="No impersonation sessions yet"
+                    emptyMessage="When you view a store as its owner, a row is added here."
+                />
         </div>
     );
 }

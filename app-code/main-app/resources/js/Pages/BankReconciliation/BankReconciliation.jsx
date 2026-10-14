@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs'; // Added
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs'; // Added
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import {
     Scale,
     Upload,
@@ -53,15 +54,65 @@ export default function BankReconciliationIndex({
     const { store } = usePage().props;
 
 
+    const moneyNavGroups = useMoneyNavGroups();
+
     return (
-        <OneGlanceLayout title="Bank Reconciliation" activeMenu="Banking">
+        <OneGlanceLayout title="Bank Reconciliation" activeMenu="Banking" noPadding>
             <Head title="Bank Reconciliation" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <MoneyModuleTabs activeTab="reconciliation" className="!mb-0" />
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <div className="md:hidden"><MoneyModuleTabs activeTab="reconciliation" className="!mb-0" /></div>
 
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                <ListToolbar
+                    title="Bank Reconciliation"
+                    navGroups={moneyNavGroups}
+                    activeId="reconciliation"
+                    left={(
+                        <div className="flex bg-sunken rounded-[12px] p-0.5">
+                            {['unmatched', 'matched', 'all'].map((mode) => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => setViewMode(mode)}
+                                    className={`px-3 h-8 text-2xs font-bold uppercase rounded-[10px] transition-all ${viewMode === mode ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
+                                >
+                                    {mode}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    actions={(
+                        <>
+                            <div className="relative">
+                                <select
+                                    value={selectedAccount}
+                                    onChange={(e) => setSelectedAccount(e.target.value)}
+                                    className="h-10 pl-3 pr-8 text-sm font-semibold bg-app border border-line rounded-[12px] focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink w-44 truncate appearance-none cursor-pointer hover:bg-interactive-hover"
+                                >
+                                    {bankAccounts.length === 0 ? <option value="">No Accounts</option> : bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+                                </select>
+                                <Filter size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                            </div>
+                            <div className="flex items-center h-10 bg-app border border-line rounded-[12px] px-1">
+                                <Calendar size={14} className="text-ink-muted ml-2" />
+                                <input type="date" value={dateRange.from} onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })} className="bg-transparent border-none text-xs font-bold text-ink-secondary p-1 w-28 focus:ring-0" />
+                                <span className="text-neutral-300">-</span>
+                                <input type="date" value={dateRange.to} onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })} className="bg-transparent border-none text-xs font-bold text-ink-secondary p-1 w-28 focus:ring-0" />
+                            </div>
+                            <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Import Statement"><Upload size={18} /></button>
+                            <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Export Report"><Download size={18} /></button>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Txns', value: stats.totalTransactions, icon: FileText },
+                    { label: 'Matched', value: stats.matched, icon: CheckCircle, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Unmatched', value: stats.unmatched, icon: Clock, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', value_tone: 'text-amber-600' },
+                    { label: 'Difference', value: formatCurrency(Math.abs(stats.difference)), icon: DollarSign, icon_tone: stats.difference === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400', value_tone: stats.difference === 0 ? 'text-emerald-600' : 'text-rose-600' },
+                ]} />
+
+                {/* Stats Cards Section - Compact Single Line (phone) */}
+                <div className="grid grid-cols-2 md:hidden gap-1 shrink-0">
                     <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
@@ -103,7 +154,7 @@ export default function BankReconciliationIndex({
                 </div>
 
                 {/* Header Bar: Title + Filters + Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0 md:hidden">
                     {/* Left: Title */}
                     <div className="flex items-center gap-2">
                         <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
@@ -313,7 +364,7 @@ export default function BankReconciliationIndex({
                         </div>
                     )}
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

@@ -1,6 +1,10 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import React, { useState, useMemo } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import StockModuleTabs, { useStockNavGroups, ListFilterSelect } from '@/Components/StockModuleTabs';
+import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import PrintService from '@/Utils/PrintService';
 import { usePage, Head, Link, useForm, router } from '@inertiajs/react';
 import { useTermText } from '@/lib/terms';
@@ -15,13 +19,13 @@ import {
     Printer,
     ChevronUp,
     ChevronDown,
-    Clock
-} from 'lucide-react';
+    Clock, Filter } from 'lucide-react';
 import Pagination from '@/Components/Pagination';
 
 export default function BatchTracking({ batches, stats, filters }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    const navGroups = useStockNavGroups();
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: 'batch', direction: 'asc' });
@@ -72,115 +76,67 @@ export default function BatchTracking({ batches, stats, filters }) {
     };
 
     return (
-        <OneGlanceLayout title="Batch Tracking" activeMenu="Stock">
+        <OneGlanceLayout title="Batch Tracking" activeMenu="Stock" noPadding>
             <Head title="Batch Tracking" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <StockModuleTabs activeTab="batch" />
-
-                {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Package size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Batches</p>
-                        </div>
-                        <p className="text-lg font-bold text-ink">{stats?.total_batches || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Expiring Soon</p>
-                        </div>
-                        <p className="text-lg font-bold text-amber-600">{stats?.expiring_soon || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
-                                <AlertTriangle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Expired</p>
-                        </div>
-                        <p className="text-lg font-bold text-rose-600">{stats?.expired || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <Package size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Qty</p>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-600">{Number(stats?.total_quantity || 0).toLocaleString()}</p>
-                    </div>
-                </div>
-
-                {/* Header Bar - Title + Filter Pills + Search */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Batch <span className="text-brand-600">Tracking</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => handleStatusFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
-                                    ? 'bg-brand-600 text-white'
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >All</button>
-                        <button
-                            onClick={() => handleStatusFilter('valid')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'valid'
-                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Valid</button>
-                        <button
-                            onClick={() => handleStatusFilter('expiring')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'expiring'
-                                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Expiring Soon</button>
-                        <button
-                            onClick={() => handleStatusFilter('expired')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'expired'
-                                    ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Expired</button>
-                    </div>
-
-                    {/* Right: Search + Export */}
-                    <div className="flex items-center gap-2">
-                        <form onSubmit={handleSearch} className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search batches..."
-                                className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
-                            />
-                        </form>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <ListToolbar
+                    title="Batch Tracking"
+                    navGroups={navGroups}
+                    activeId="batch"
+                    left={
+                        <ListFilterSelect
+                            value={statusFilter}
+                            onChange={handleStatusFilter}
+                            ariaLabel="Status"
+                            options={[{ value: 'all', label: 'All batches' }, { value: 'valid', label: 'Valid' }, { value: 'expiring', label: 'Expiring Soon' }, { value: 'expired', label: 'Expired' }]}
+                        />
+                    }
+                    actions={
+                        <>
+                            <form onSubmit={handleSearch} className="relative w-64 lg:w-72">
+                                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Search batches..."
+                                    className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[12px] outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                />
+                            </form>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} className="h-10 w-10 flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-[12px] text-emerald-600" title="Export" onClick={() => exportRowsToCsv('batches', [{label:'Batch #',get:r=>r.batch_number},{label:'Product',get:r=>r.product?.name},{label:'Quantity',get:r=>r.current_quantity},{label:'Manufactured',get:r=>r.manufacturing_date},{label:'Expiry',get:r=>r.expiry_date}], filteredBatches)}>
                                 <Download size={16} />
                             </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
+                            <button onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center hover:bg-interactive-hover rounded-[12px] text-ink-muted hover:text-ink transition-colors" title="Print">
                                 <Printer size={16} />
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    }
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Batches', value: stats?.total_batches || 0, icon: Package, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'Expiring Soon', value: stats?.expiring_soon || 0, icon: Clock, icon_tone: 'bg-amber-50 text-amber-600', value_tone: 'text-amber-600' },
+                    { label: 'Expired', value: stats?.expired || 0, icon: AlertTriangle, icon_tone: 'bg-rose-50 text-rose-600', value_tone: 'text-rose-600' },
+                    { label: 'Total Qty', value: Number(stats?.total_quantity || 0).toLocaleString(), icon: Package, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                ]} />
+                <div className="md:hidden"><StockModuleTabs activeTab="batch" /></div>
+
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Batch Tracking"
+                    filters={[{ key: 'status', icon: Filter, label: 'Batch status', value: statusFilter, onChange: handleStatusFilter, options: [{ id: 'all', label: 'All batches' }, { id: 'valid', label: 'Valid' }, { id: 'expiring', label: 'Expiring Soon' }, { id: 'expired', label: 'Expired' }] }]}
+                    search={{ event: true,  value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), onKeyDown: (e) => { if (e.key === 'Enter') handleSearch(e); }, placeholder: 'Search batches...' }}
+                    actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+                />
+                <MobileStats bp="md" hero={1} items={[
+                    { label: 'Total Batches', value: stats?.total_batches || 0, tone: 'brand', icon: Package },
+                    { label: 'Expiring Soon', value: stats?.expiring_soon || 0, tone: 'amber', icon: Clock },
+                    { label: 'Expired', value: stats?.expired || 0, tone: 'rose', icon: AlertTriangle },
+                    { label: 'Total Qty', value: Number(stats?.total_quantity || 0).toLocaleString(), tone: 'emerald', icon: Package }
+                ]} />
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -192,7 +148,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                                         Batch # <SortIcon columnKey="batch" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     {tt('Product')}
                                 </th>
                                 <th
@@ -203,7 +159,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                                         Quantity <SortIcon columnKey="quantity" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Mfg Date
                                 </th>
                                 <th
@@ -214,7 +170,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                                         Exp Date <SortIcon columnKey="expiry" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Status
                                 </th>
                             </tr>
@@ -303,7 +259,7 @@ export default function BatchTracking({ batches, stats, filters }) {
                         <Pagination links={batches.links} />
                     </div>
                 )}
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

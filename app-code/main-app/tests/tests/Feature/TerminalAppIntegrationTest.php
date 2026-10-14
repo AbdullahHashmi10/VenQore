@@ -309,4 +309,36 @@ class TerminalAppIntegrationTest extends VenQoreTestCase
             'file'      => UploadedFile::fake()->create('huge_screen.bin', 11264),
         ])->assertStatus(422);
     }
+
+    public function test_replacing_a_device_keeps_the_same_terminal_and_seat(): void
+    {
+        $tenant = $this->createTenant('store-replace-1');
+        $oldDevice = (string) Str::uuid();
+        $newDevice = (string) Str::uuid();
+
+        [$terminalId, $oldSecret] = $this->pair($tenant, $oldDevice, 'REPL-1234');
+
+        \App\Models\TerminalPairingToken::create([
+            'tenant_id' => $tenant->id, 'token' => 'ABCD-2345', 'expires_at' => now()->addMinutes(15),
+            'replacement_terminal_id' => $terminalId,
+        ]);
+
+        $res = $this->postJson('/api/heartbeat', [
+            'device_id' => $newDevice, 'store_slug' => $tenant->slug, 'pairing_token' => 'abcd 2345',
+        ])->assertOk();
+
+        $this->assertSame($terminalId, $res->json('terminal_id'));
+        $this->assertNotSame($oldSecret, $res->json('device_secret'));
+        $this->assertNotEmpty($res->json('replaced_terminal.name'));
+        $this->assertSame(1, Terminal::withoutGlobalScope('tenant')->where('tenant_id', $tenant->id)->count());
+        $this->assertSame($newDevice, Terminal::withoutGlobalScope('tenant')->find($terminalId)->device_id);
+
+        // The old PC can no longer act as this terminal.
+        $this->postJson('/api/heartbeat', ['device_id' => $oldDevice, 'store_slug' => $tenant->slug], ['X-Device-Secret' => $oldSecret])
+            ->assertStatus(403);
+
+        // The code is single-use.
+        $this->postJson('/api/heartbeat', ['device_id' => (string) Str::uuid(), 'store_slug' => $tenant->slug, 'pairing_token' => 'ABCD-2345'])
+            ->assertStatus(403);
+    }
 }

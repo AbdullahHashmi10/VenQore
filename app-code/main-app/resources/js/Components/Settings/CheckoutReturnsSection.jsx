@@ -9,12 +9,12 @@ export default function CheckoutReturnsSection({ data, setData }) {
     const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(false);
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* Left Card: Register Checkout Rules */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Register Checkout Rules</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Register Checkout Rules</h3>
 
                     <div className="divide-y divide-line">
                         <Toggle
@@ -49,22 +49,22 @@ export default function CheckoutReturnsSection({ data, setData }) {
                 </div>
 
                 {/* Right Card: Total Rounding & Returns */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Round the final bill</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Round the final bill</h3>
 
                     {/* Round off totals */}
                     <div className="space-y-2">
                         <div className="flex justify-between items-center">
                             <label className="text-sm font-bold text-ink">How to round the amount due</label>
-                            <span className="text-3xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded">
+                            <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-50 dark:bg-brand-900/30 px-2 py-0.5 rounded-[6px]">
                                 Cash Checkout Rule
                             </span>
                         </div>
-                        <p className="text-xs text-ink-muted">
+                        <p className="text-sm text-ink-muted">
                             Choose how to round the final amount a customer pays. This does not change item prices or the decimal display setting.
                         </p>
 
-                        <div className="grid grid-cols-5 gap-1.5 max-w-md w-full bg-app p-1.5 rounded-xl border border-line pt-2">
+                        <div className="grid grid-cols-5 gap-1.5 max-w-lg w-full bg-app p-1.5 rounded-[12px] border border-line pt-2">
                             {[
                                 { value: 'none', label: 'None' },
                                 { value: '0', label: 'Whole' },
@@ -79,7 +79,7 @@ export default function CheckoutReturnsSection({ data, setData }) {
                                         key={opt.value}
                                         type="button"
                                         onClick={() => setData('round_off_total', opt.value)}
-                                        className={`py-1.5 px-1 text-center font-bold text-2xs rounded-lg transition-all ${
+                                        className={`py-2 px-1 text-center font-bold text-sm rounded-[8px] transition-all ${
                                             isActive
                                                 ? 'bg-brand-600 text-white shadow-xs'
                                                 : 'text-ink-muted hover:text-ink hover:bg-surface'
@@ -94,10 +94,10 @@ export default function CheckoutReturnsSection({ data, setData }) {
 
                     {/* Return Policy */}
                     <div className="space-y-3 pt-3 border-t border-line">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted">Rules for returns</h4>
+                        <h4 className="text-base font-bold uppercase tracking-wider text-ink-muted">Rules for returns</h4>
                         
                         <div className="space-y-1.5">
-                            <label className="text-2xs font-bold text-ink">What must staff provide for a return?</label>
+                            <label className="text-xs font-bold text-ink">What must staff provide for a return?</label>
                             <PremiumSelect
                                 options={[
                                     { value: 'reference', label: 'Reference Number Required (Strict)' },
@@ -115,11 +115,11 @@ export default function CheckoutReturnsSection({ data, setData }) {
                         </div>
 
                         {data.pos_return_mode === 'open' && (
-                            <div className="p-3.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-xl space-y-2 text-xs text-amber-800 dark:text-amber-300">
+                            <div className="p-3.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-[12px] space-y-2 text-sm text-amber-800 dark:text-amber-300">
                                 <p className="font-bold flex items-center gap-1.5">
                                     <AlertTriangle size={14} /> Open Returns Warning
                                 </p>
-                                <p className="text-3xs text-amber-700 dark:text-amber-400">
+                                <p className="text-xs text-amber-700 dark:text-amber-400">
                                     Open returns cannot be verified against original invoice sales. Staff are responsible for authenticating items.
                                 </p>
                             </div>
@@ -127,7 +127,7 @@ export default function CheckoutReturnsSection({ data, setData }) {
 
                         <div className="grid grid-cols-2 gap-3 pt-1">
                             <div className="space-y-1">
-                                <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Return Window</label>
+                                <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Return Window</label>
                                 <div className="flex items-center gap-1.5">
                                     <input
                                         type="number"
@@ -135,19 +135,19 @@ export default function CheckoutReturnsSection({ data, setData }) {
                                         value={data.pos_return_window || ''}
                                         onChange={(e) => setData('pos_return_window', e.target.value)}
                                         placeholder="e.g. 14"
-                                        className="w-full px-3 py-1.5 bg-app border border-line rounded-xl text-xs font-bold text-ink outline-none focus:ring-2 focus:ring-brand-500"
+                                        className="w-full px-3 py-1.5 bg-app border border-line rounded-[10px] text-sm font-bold text-ink outline-none focus:ring-2 focus:ring-brand-500"
                                     />
-                                    <span className="text-2xs font-bold text-ink-muted">days</span>
+                                    <span className="text-xs font-bold text-ink-muted">days</span>
                                 </div>
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Expired Action</label>
-                                <div className="flex bg-app p-1 rounded-xl border border-line">
+                                <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Expired Action</label>
+                                <div className="flex bg-app p-1 rounded-[10px] border border-line">
                                     <button
                                         type="button"
                                         onClick={() => setData('pos_return_window_behavior', 'warn')}
-                                        className={`flex-1 py-1 text-3xs font-bold rounded-lg transition-all ${
+                                        className={`flex-1 py-1.5 text-sm font-bold rounded-[6px] transition-all ${
                                             (data.pos_return_window_behavior || 'warn') === 'warn'
                                                 ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-xs'
                                                 : 'text-ink-muted'
@@ -158,7 +158,7 @@ export default function CheckoutReturnsSection({ data, setData }) {
                                     <button
                                         type="button"
                                         onClick={() => setData('pos_return_window_behavior', 'block')}
-                                        className={`flex-1 py-1 text-3xs font-bold rounded-lg transition-all ${
+                                        className={`flex-1 py-1.5 text-sm font-bold rounded-[6px] transition-all ${
                                             data.pos_return_window_behavior === 'block'
                                                 ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-xs'
                                                 : 'text-ink-muted'

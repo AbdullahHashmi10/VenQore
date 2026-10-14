@@ -50,6 +50,8 @@ export default function StorefrontHeader({
     const [authEmail, setAuthEmail] = useState('');
     const [submittingAuth, setSubmittingAuth] = useState(false);
     const [authError, setAuthError] = useState('');
+    const [otpId, setOtpId] = useState(null);
+    const [otpCode, setOtpCode] = useState('');
 
     // Order Track Form State
     const [trackNumber, setTrackNumber] = useState('');
@@ -85,31 +87,62 @@ export default function StorefrontHeader({
         if (initialCustomer) setCustomer(initialCustomer);
     }, [initialCustomer]);
 
-    // Handle Customer Login
+    // Sign in = prove you own the email: step 1 sends a 6-digit code, step 2 checks it.
     const handleCustomerLogin = async (e) => {
         if (e) e.preventDefault();
         setAuthError('');
-        if (!authPhone.trim() || !authName.trim()) {
-            setAuthError('Please enter your full name and phone number.');
-            return;
-        }
         setSubmittingAuth(true);
         try {
-            const res = await axios.post(`/shop/${storeSlug}/customer/login`, {
-                name: authName.trim(),
-                phone: authPhone.trim(),
-                email: authEmail.trim() || undefined,
-            });
-            if (res.data?.customer) {
-                setCustomer(res.data.customer);
-                shopToast(`Welcome back, ${res.data.customer.name}!`);
+            if (!otpId) {
+                if (!authEmail.trim()) { setAuthError('Please enter your email address.'); return; }
+                const res = await axios.post(`/shop/${storeSlug}/customer/otp`, { email: authEmail.trim(), name: authName.trim() || undefined });
+                setOtpId(res.data.challenge_id);
+                shopToast('We emailed you a 6-digit code.');
+            } else {
+                if (otpCode.replace(/\D/g, '').length !== 6) { setAuthError('Enter the 6-digit code from your email.'); return; }
+                const res = await axios.post(`/shop/${storeSlug}/customer/otp/verify`, { challenge_id: otpId, code: otpCode, name: authName.trim() || undefined });
+                if (res.data?.customer) {
+                    setCustomer(res.data.customer);
+                    setOtpId(null); setOtpCode('');
+                    shopToast(`Welcome, ${res.data.customer.name}!`);
+                    // the cart and checkout read the signed-in account (points) from the page: reload it once
+                    if (typeof window !== 'undefined' && /\/(cart|checkout)/.test(window.location.pathname)) window.location.reload();
+                }
             }
         } catch (err) {
-            setAuthError(err.response?.data?.message || 'Could not sign in. Please verify your details.');
+            setAuthError(err.response?.data?.message || 'Could not sign in. Please try again.');
         } finally {
             setSubmittingAuth(false);
         }
     };
+
+    const signInForm = (intro) => (
+        <form onSubmit={handleCustomerLogin} style={{ display: 'grid', gap: 12 }}>
+            <p style={{ fontSize: 13, color: 'var(--vq-text-2)', margin: 0 }}>{intro}</p>
+            {authError && <div className="vqs-err">{authError}</div>}
+            {!otpId ? (
+                <>
+                    <div>
+                        <label className="vqs-label">Email</label>
+                        <input type="email" className="vqs-input" placeholder="you@example.com" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required autoComplete="email" />
+                    </div>
+                    <div>
+                        <label className="vqs-label">Your name (first time only)</label>
+                        <input type="text" className="vqs-input" placeholder="Your full name" value={authName} onChange={(e) => setAuthName(e.target.value)} autoComplete="name" />
+                    </div>
+                </>
+            ) : (
+                <div>
+                    <label className="vqs-label">6-digit code sent to {authEmail}</label>
+                    <input type="text" inputMode="numeric" maxLength={6} className="vqs-input" placeholder="123456" value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))} autoFocus autoComplete="one-time-code" />
+                    <button type="button" className="vqs-link" style={{ marginTop: 6, background: 'none', border: 0, padding: 0, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setOtpId(null); setOtpCode(''); setAuthError(''); }}>Use a different email</button>
+                </div>
+            )}
+            <button type="submit" className="vqs-btn vqs-btn--full" disabled={submittingAuth}>
+                {submittingAuth ? 'Please wait...' : otpId ? 'Verify & sign in' : 'Email me a code'}
+            </button>
+        </form>
+    );
 
     // Handle Customer Logout
     const handleCustomerLogout = async () => {
@@ -336,32 +369,7 @@ export default function StorefrontHeader({
                                     <p style={{ fontSize: 13.5, color: 'var(--vq-text-2)', margin: '8px 0 16px', lineHeight: 1.45 }}>
                                         To ensure authentic feedback from genuine shoppers, please sign in with your customer details to submit a rating.
                                     </p>
-                                    {authError && <div className="vqs-err" style={{ marginBottom: 12 }}>{authError}</div>}
-                                    <form onSubmit={handleCustomerLogin} style={{ display: 'grid', gap: 10 }}>
-                                        <input
-                                            type="text"
-                                            className="vqs-input"
-                                            placeholder="Your full name"
-                                            value={authName}
-                                            onChange={(e) => setAuthName(e.target.value)}
-                                            required
-                                        />
-                                        <input
-                                            type="tel"
-                                            className="vqs-input"
-                                            placeholder="Phone number (e.g. 0300...)"
-                                            value={authPhone}
-                                            onChange={(e) => setAuthPhone(e.target.value)}
-                                            required
-                                        />
-                                        <button
-                                            type="submit"
-                                            className="vqs-btn vqs-btn--full"
-                                            disabled={submittingAuth}
-                                        >
-                                            {submittingAuth ? 'Signing In...' : 'Sign In as Customer to Rate'}
-                                        </button>
-                                    </form>
+                                    {signInForm('To keep reviews genuine, sign in with your email (we send you a 6-digit code) to rate this store.')}
                                 </div>
                             ) : (
                                 <form onSubmit={handleRatingSubmit} style={{ display: 'grid', gap: 14 }}>
@@ -464,7 +472,7 @@ export default function StorefrontHeader({
                                         {customer ? `Customer Portal: ${customer.name}` : 'Customer Sign In'}
                                     </h3>
                                     <p className="vqs-muted" style={{ fontSize: 12.5, margin: 0 }}>
-                                        {customer ? `Phone: ${customer.phone}` : 'Access your order history and track shipments'}
+                                        {customer ? (customer.email || '') : 'Access your orders and loyalty points'}
                                     </p>
                                 </div>
                             </div>
@@ -476,6 +484,12 @@ export default function StorefrontHeader({
                         <div className="vqs-modal-body">
                             {customer ? (
                                 <div style={{ display: 'grid', gap: 16 }}>
+                                    {customer.loyalty && (
+                                        <div style={{ padding: '12px 14px', borderRadius: 12, background: 'var(--vq-soft, rgba(0,0,0,.04))', fontSize: 14 }}>
+                                            <strong>{customer.loyalty.balance.toLocaleString()} loyalty points</strong>
+                                            {customer.loyalty.value > 0 && <span className="vqs-muted"> · worth {customer.loyalty.value.toLocaleString()} off your next order</span>}
+                                        </div>
+                                    )}
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <span style={{ fontSize: 14, fontWeight: 600 }}>Your Orders with {storeTitle}</span>
                                         <button
@@ -556,51 +570,7 @@ export default function StorefrontHeader({
                                     </div>
                                 </div>
                             ) : (
-                                <form onSubmit={handleCustomerLogin} style={{ display: 'grid', gap: 12 }}>
-                                    <p style={{ fontSize: 13, color: 'var(--vq-text-2)', margin: 0 }}>
-                                        Sign in to check live status on pending orders and track your complete purchase history.
-                                    </p>
-                                    {authError && <div className="vqs-err">{authError}</div>}
-                                    <div>
-                                        <label className="vqs-label">Full Name</label>
-                                        <input
-                                            type="text"
-                                            className="vqs-input"
-                                            placeholder="Your full name"
-                                            value={authName}
-                                            onChange={(e) => setAuthName(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="vqs-label">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            className="vqs-input"
-                                            placeholder="Phone used when placing orders"
-                                            value={authPhone}
-                                            onChange={(e) => setAuthPhone(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="vqs-label">Email (Optional)</label>
-                                        <input
-                                            type="email"
-                                            className="vqs-input"
-                                            placeholder="For digital receipts"
-                                            value={authEmail}
-                                            onChange={(e) => setAuthEmail(e.target.value)}
-                                        />
-                                    </div>
-                                    <button
-                                        type="submit"
-                                        className="vqs-btn vqs-btn--full"
-                                        disabled={submittingAuth}
-                                    >
-                                        {submittingAuth ? 'Signing In...' : 'Sign In as Customer'}
-                                    </button>
-                                </form>
+                                signInForm('Sign in with your email to see your orders and your loyalty points.')
                             )}
                         </div>
                     </div>

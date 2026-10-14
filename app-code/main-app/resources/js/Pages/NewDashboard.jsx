@@ -69,7 +69,7 @@ const READING_DESC = {
   "core.cogs": "The wholesale cost of the products you actually sold to customers. It only counts items that were sold, so you know exactly how much you paid to buy that inventory from your suppliers.",
   "core.expenses_total": "All the everyday money spent to keep your shop running. This includes shop rent, electricity, staff salaries, internet, tea, repairs, and delivery costs. It does not include buying stock.",
   "core.expense_ratio": "Shows how much of your sales money is eaten up by shop bills. For example, if you sell Rs 100,000 and your shop expenses are Rs 20,000, then 20% of your money goes straight to bills.",
-  "core.receivables": "The total money that customers owe you on credit (your Khata balance). It shows how much of your money is sitting in other people's pockets waiting to be collected.",
+  "core.receivables": "The total money that customers owe you on credit. It shows how much of your money is sitting in other people's pockets waiting to be collected.",
   "core.receivables_aging": "Groups what customers owe you by how late they are (under 30 days, 60 days, or over 90 days). It reminds you which customers to call first before their credit gets too old to collect.",
   "core.payables": "Total money you owe to your suppliers and vendors for stock or services. It shows all the upcoming bills that you need to pay soon.",
   "core.payables_aging": "Lists your supplier bills by when they are due. It helps you see which bills need to be paid today and which ones you can pay next week, keeping suppliers happy.",
@@ -109,7 +109,7 @@ const READING_DESC = {
   "products.new_this_period": "New products you added to your store during this period.",
 
   // ── Customers & Khata ──
-  "customers.count": "The total number of customers saved in your system with their contact and Khata details.",
+  "customers.count": "The total number of customers saved in your system with their contact and credit details.",
   "customers.top_customers": "A list of your best customers who have spent the most money in your shop. It helps you know your most loyal buyers so you can give them special service.",
   "customers.dormant": "Customers who used to buy from you but have not visited in the last 2 to 3 months. A reminder to send them an SMS or give them a special offer to bring them back.",
   "customers.repeat_rate": "The percentage of customers who come back to buy from you again. A higher number means customers love your shop and keep returning.",
@@ -138,7 +138,7 @@ const READING_DESC = {
   // ── Bank Accounts & Cash ──
   "bank_accounts.total_balance": "The total money sitting in all your bank accounts combined.",
   "bank_accounts.cash_on_hand": "The physical cash inside your shop registers, cash drawer, and safe right now.",
-  "bank_accounts.money_in_today": "Total money received today from sales, customer Khata payments, and bank deposits.",
+  "bank_accounts.money_in_today": "Total money received today from sales, customer credit payments, and bank deposits.",
   "bank_accounts.money_out_today": "Total money paid out today for supplier bills, shop expenses, and cash withdrawals.",
   "accounting.assets": "Everything of value your business owns — your unsold stock, bank balance, cash in hand, and customer credit combined.",
   "accounting.liabilities": "Everything your business owes to others — unpaid supplier bills, loans, and expenses.",
@@ -260,6 +260,7 @@ function availableReadings(){ return READINGS.filter(readingAvailable); }
 /** Hubs gate the same way: by the module that owns their data. */
 const SPECIAL_MODULES = {
   bank_liquidity: ["bank_accounts"],
+  bank_account:   ["bank_accounts"],
   growth_engine:  ["reports", "ai_insights"],
   action_hub: [], launchpad: [], alerts_hub: [], custom_button: [],
 };
@@ -448,7 +449,7 @@ function queueLiveReadings(cards, onComplete) {
 
     if (!PENDING_RECKONER_REQUESTS.has(reqKey) && (!existing || isExpired)) {
       PENDING_RECKONER_REQUESTS.add(reqKey);
-      requests.push({ key: c.key, period: reckPer, granularity: gran, reqKey, uiPeriod: uiPer });
+      requests.push({ key: c.key, base: baseKey(c.key), args: keyArgs(c.key), period: reckPer, granularity: gran, reqKey, uiPeriod: uiPer });
     }
 
     /* Compared readings, plus the history companion of any scalar that is
@@ -472,7 +473,7 @@ function queueLiveReadings(cards, onComplete) {
 
         if (!PENDING_RECKONER_REQUESTS.has(ekReqKey) && (!ekExisting || ekIsExpired)) {
           PENDING_RECKONER_REQUESTS.add(ekReqKey);
-          requests.push({ key: ek, period: ekReckPer, granularity: gran, reqKey: ekReqKey, uiPeriod: uiPer });
+          requests.push({ key: ek, base: baseKey(ek), args: keyArgs(ek), period: ekReckPer, granularity: gran, reqKey: ekReqKey, uiPeriod: uiPer });
         }
       });
     }
@@ -490,7 +491,7 @@ function queueLiveReadings(cards, onComplete) {
 
   Promise.allSettled(chunks.map(chunk =>
     axios.post("/api/reckoner/read", {
-      requests: chunk.map(r => ({ key: r.key, period: r.period, granularity: r.granularity }))
+      requests: chunk.map(r => ({ key: r.base || r.key, period: r.period, granularity: r.granularity, ref: r.key, ...(r.args ? { args: r.args } : {}) }))
     }).then(res => {
       const items = res?.data?.data || [];
       const receivedAt = Date.now();
@@ -500,20 +501,23 @@ function queueLiveReadings(cards, onComplete) {
           item._expiresAt = receivedAt + ttlSec * 1000;
 
           // Match by item.id if composite id returned, or key + period
-          const req = chunk.find(r => item.id && item.id.startsWith(r.key + '|' + r.period))
+          const req = (item.ref && chunk.find(r => r.key === item.ref && r.period === (item.period?.key || item.period || r.period)))
+            || (item.ref && chunk.find(r => r.key === item.ref))
+            || chunk.find(r => item.id && item.id.startsWith(r.key + '|' + r.period))
             || chunk.find(r => r.key === item.key && (r.period === item.period?.key || r.period === item.period))
             || chunk.find(r => r.key === item.key);
+          const fullKey = req ? req.key : item.key;
 
           const perKey = item.period?.key || req?.period || "today";
           const uiP = req?.uiPeriod || "Month";
           const gran = req?.granularity || item.granularity || PERIOD[uiP]?.grain || "day";
 
-          if (item.id) {
+          if (item.id && !req?.args) {
             LIVE_RECKONER_DATA[item.id] = item;
           }
-          LIVE_RECKONER_DATA[`${item.key}|${perKey}|${gran}`] = item;
-          LIVE_RECKONER_DATA[`${item.key}|${perKey}`] = item;
-          LIVE_RECKONER_DATA[`${item.key}|${uiP}`] = item;
+          LIVE_RECKONER_DATA[`${fullKey}|${perKey}|${gran}`] = item;
+          LIVE_RECKONER_DATA[`${fullKey}|${perKey}`] = item;
+          LIVE_RECKONER_DATA[`${fullKey}|${uiP}`] = item;
         }
       });
     }).catch(error => {
@@ -772,8 +776,22 @@ function buildParts(key, period, names){
 }
 function unitBase(unit){ return unit === "currency" ? 180000 : unit === "percent" ? 22 : 320; }
 
+/* A reading narrowed to one product category is written `base@category:<id>`.
+   The suffix travels with the key everywhere (caches, requests, saved cards),
+   and is split off only to find the reading's definition and to ask the server. */
+const baseKey = k => (typeof k === "string" && k.indexOf("@") > 0 ? k.slice(0, k.indexOf("@")) : k);
+const keySuffix = k => (typeof k === "string" && k.indexOf("@") > 0 ? k.slice(k.indexOf("@")) : "");
+function keyArgs(k){
+  const m = /@category:(.+)$/.exec(typeof k === "string" ? k : "");
+  return m ? { category_id: m[1] } : null;
+}
+function categoryName(k){
+  const a = keyArgs(k); if (!a) return "";
+  const hit = (DASHBOARD_RUNTIME_DATA.productCategories || []).find(c => String(c.id) === String(a.category_id));
+  return hit ? hit.name : "";
+}
 function readingOf(key){
-  const found = Array.isArray(READINGS) ? READINGS.find(r => r.key === key) : null;
+  const found = Array.isArray(READINGS) ? READINGS.find(r => r.key === baseKey(key)) : null;
   if (found) return found;
   // Return neutral fallback without inventing wrong label or unit
   return {
@@ -1850,9 +1868,10 @@ const COMPANION_MAP = {
 function trendCompanionKey(key){
   const rd = readingOf(key);
   if (Fam.kindOf(rd) !== "scalar") return null;
-  const want = COMPANION_MAP[key] || `${key}_trend`;
+  const bk = baseKey(key);
+  const want = COMPANION_MAP[bk] || `${bk}_trend`;
   const hit = READINGS.find(r => r.key === want);
-  return hit && readingAvailable(hit) && Fam.kindOf(hit) === "series" ? hit.key : null;
+  return hit && readingAvailable(hit) && Fam.kindOf(hit) === "series" ? hit.key + keySuffix(key) : null;
 }
 /* A money or count card can carry its latest entries as a companion list.
    `<topic>.recent` readings light this up automatically the moment they exist;
@@ -1913,9 +1932,61 @@ function liveFor(key, period){
 }
 const pendingFor = (key, period) => PENDING_RECKONER_REQUESTS.has(`${key}|${period}`);
 
+/* ══ Sample mode — the Add-a-card preview ═══════════════════════════════════
+   A new shop has no history, so a live preview of "Revenue" is a flat line and
+   the person cannot see what Gradient / Hatched / Faded edges / Stepped do.
+   While the editor paints its preview, readings are answered with a believable
+   made-up shape instead. It is never used on the board and never saved. */
+let SAMPLE_MODE = false;
+function sampleRng(seed){
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+function sampleLive(key, period, rd){
+  let seed = 7; for (let i = 0; i < key.length; i++) seed = (seed * 31 + key.charCodeAt(i)) >>> 0;
+  const rnd = sampleRng(seed);
+  const unit = rd?.unit || "currency";
+  const conf = PERIOD[period] || PERIOD.Month;
+  const n = conf.n, grain = conf.grain;
+  const base = unit === "percent" ? 38 : unit === "count" ? 24 : unit === "days" ? 12 : unit === "ratio" ? 1.6 : 6400;
+  const now = new Date(); now.setMinutes(0, 0, 0);
+  const pad = (v) => String(v).padStart(2, "0");
+  const pts = [];
+  for (let i = 0; i < n; i++){
+    const d = new Date(now.getTime() - (n - 1 - i) * conf.step);
+    const wave = 0.72 + 0.28 * Math.sin(i / 2.1 + rnd() * 0.6) + 0.18 * Math.sin(i / 5.3);
+    const spike = rnd() > 0.82 ? 0.45 : 0;
+    let v = base * Math.max(0.12, wave + spike + (rnd() - 0.5) * 0.22);
+    if (unit === "count") v = Math.round(v);
+    else if (unit === "currency") v = Math.round(v);
+    else v = Math.round(v * 10) / 10;
+    const date = grain === "hour" ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`
+      : grain === "month" ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+      : `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    pts.push({ date, value: v });
+  }
+  const total = pts.reduce((a, p) => a + p.value, 0);
+  const value = (unit === "percent" || unit === "ratio" || unit === "days") ? pts[pts.length - 1].value : total;
+  const previous = Math.round(value * (0.82 + rnd() * 0.14) * 100) / 100;
+  const labels = ["Cash", "Card", "Bank transfer", "Wallet", "Credit"];
+  const wts = [0.42, 0.27, 0.16, 0.1, 0.05];
+  const segments = labels.map((label, i) => ({ label, value: Math.round(total * wts[i]) }));
+  const items = labels.map((label, i) => ({ label: `${label}`, name: label, amount: segments[i].value, value: segments[i].value }));
+  const matrix = Array.from({ length: 7 }, (_, r) => Array.from({ length: 24 }, (_, c) =>
+    Math.round(Math.max(0, Math.sin((c - 7) / 3.6) * 9 + (r > 4 ? 3 : 0) + rnd() * 4))));
+  return {
+    ok: true, status: "ok", unit, value, previous,
+    data: { value, previous, series: pts, granularity: grain, segments, items, matrix,
+      numerator: Math.round(value * 0.7), denominator: Math.round(value), count: items.length, compare_label: "vs previous" },
+    period: { from: pts[0].date, to: pts[pts.length - 1].date },
+  };
+}
+
 /** The normalised envelope for one reading in one period. */
 function envelopeFor(key, period, withSeries){
   const rd = readingOf(key);
+  if (SAMPLE_MODE) return toEnvelope(sampleLive(key, period, rd), rd, {});
   const comp = withSeries ? trendCompanionKey(key) : null;
   const live = liveFor(key, period);
   const env = toEnvelope(live, rd, {
@@ -1950,7 +2021,7 @@ function chartPropsFor(card){
     },
     series: keys.map((k, i) => ({
       key: k,
-      label: (i === 0 && card.title) ? card.title : readingOf(k).label,
+      label: (i === 0 && card.title) ? card.title : (categoryName(k) ? `${readingOf(k).label} · ${categoryName(k)}` : readingOf(k).label),
       env: envelopeFor(k, card.period, withSeries),
     })),
     currency: CURRENCY,
@@ -2188,6 +2259,9 @@ const SPECIAL = {
   bank_liquidity: { cat:"C4", min:[3,2], cats:["C3","C4","C5","C6"], family:"hub",
                     eyebrow:"LIQUIDITY & BALANCES", name:"Bank & Liquid Net Balances",
                     sub:"Accounts, drawer and total liquid net" },
+  bank_account:   { cat:"C4", min:[3,2], cats:["C3","C4","C5"], family:"hub",
+                    eyebrow:"BANK ACCOUNT", name:"Bank Account",
+                    sub:"Live balance of one account" },
   alerts_hub:     { cat:"C4", min:[3,3], cats:["C3","C4","C5","C6"], family:"hub",
                     eyebrow:"ACTIONS REQUIRED", name:"Actions Required & Alerts",
                     sub:"Everything waiting on someone" },
@@ -2484,7 +2558,7 @@ function headlineOf(card){
   const window = env.period && env.period.from
     ? `${dayLabel(env.period.from)} – ${dayLabel(env.period.to)}`
     : `${tickLabel(times[0], grain)} – ${tickLabel(times[times.length-1], grain)}`;
-  const when = `${card.period} · ${window}`;
+  const when = `${card.period} · ${window}${Array.isArray(card.extraKeys) && card.extraKeys.length ? ` · Big number: ${readingOf(card.key).label}` : ""}`;
   const blank = (w, state) => ({ value: "—", valueCompact: "—", dir: "up", pct: "", when: w, state });
 
   if (env.state === "loading") return blank("Loading data…", "loading");
@@ -2827,6 +2901,26 @@ function bodyBankLiquidity(c, geo){
       </div>`).join("")}</div>`;
 }
 
+/* One account, always on the board: its name and its live balance. The account
+   is chosen when the card is added and kept on the card (c.accountId). */
+function bodyBankAccount(c, geo){
+  const link = c.targetUrl || c.link || storePath('/bank-accounts');
+  const all = [...(DASHBOARD_RUNTIME_DATA.bankAccounts || []), ...(DASHBOARD_RUNTIME_DATA.cashAccounts || [])];
+  const acct = all.find(a => String(a.id) === String(c.accountId)) || all.find(a => a.name === c.accountName || a.bank_name === c.accountName) || null;
+  const name = acct ? (acct.bank_name || acct.name || "Account") : (c.accountName || c.title || "Account");
+  const bal = acct ? Number(acct.current_balance || 0) : null;
+  const sub = acct ? (acct.account_number_masked || acct.account_type || "Current balance") : "Account not found";
+  return hubHead(c, SPECIAL.bank_account.eyebrow, link) +
+    `<div class="vqc-hub-title-wrap"><div class="vqc-action-hub-title">${esc(c.title || name)}</div>
+      <div class="vqc-action-hub-sub">${esc(sub)}</div></div>` +
+    `<div class="vqc-bank-grid" style="grid-template-columns:minmax(0,1fr)">
+      <div class="vqc-bank-box is-total">
+        <span class="vqc-bank-label" title="${esc(name)}">${esc(name)}</span>
+        <span class="vqc-bank-val" ${bal === null ? "" : `data-full="${esc(CURRENCY)} ${groupNum(bal)}" data-compact="${esc(CURRENCY)} ${abbrNum(bal)}"`}>${bal === null ? "—" : `${esc(CURRENCY)} ${groupNum(bal)}`}</span>
+        <span class="vqc-bank-sub">Current balance</span>
+      </div></div>`;
+}
+
 function bodyAlertsHub(c, geo){
   const link = c.targetUrl || c.link || storePath('/reports');
   /* each alert belongs to the module that raised it — a store without that
@@ -2895,7 +2989,7 @@ function bodyLaunchpad(c, geo){
 }
 
 const SPECIAL_BODY = {
-  action_hub: bodyActionHub, bank_liquidity: bodyBankLiquidity,
+  action_hub: bodyActionHub, bank_liquidity: bodyBankLiquidity, bank_account: bodyBankAccount,
   alerts_hub: bodyAlertsHub, growth_engine: bodyGrowthEngine,
   custom_button: bodyCustomButton, launchpad: bodyLaunchpad,
 };
@@ -2953,7 +3047,16 @@ function bodyTile(c, geo, link){
     destination — so two boards of the same data read the same way. */
 function titleOf(c){
   if (isSpecial(c)) return c.title || SPECIAL[c.type].name;
-  return readingOf(c.key).label;
+  if (c.title) return c.title;
+  /* a comparison names everything it draws: "Revenue vs Expenses vs Net profit" */
+  if (Array.isArray(c.extraKeys) && c.extraKeys.length) {
+    return [c.key, ...c.extraKeys].map(k => {
+      const cn = categoryName(k);
+      return cn ? `${readingOf(k).label} · ${cn}` : readingOf(k).label;
+    }).join(" vs ");
+  }
+  const cat = categoryName(c.key);
+  return cat ? `${readingOf(c.key).label} · ${cat}` : readingOf(c.key).label;
 }
 
 function getDomainColor(key, area){
@@ -2972,7 +3075,7 @@ function recentHTML(c, geo){
   const rc = recentCompanion(c.key); if (!rc) return "";
   const env = envelopeFor(rc.key, c.period, false);
   if (env.state !== "ready" || !env.rows || !env.rows.length) return "";
-  const n = Math.min(10, env.rows.length, Math.floor((geo.h - 4) * 2.2));
+  const n = Math.min(10, env.rows.length, Math.floor((geo.h - 5) * 2));
   if (n < 1) return "";
   const unit = readingOf(rc.key)?.unit || readingOf(c.key)?.unit;
   const rows = env.rows.slice(0, n).map(r => `<li class="vqc-recent-row">
@@ -3426,7 +3529,12 @@ function wireResize(el, c){
         const sig = `${x},${y},${w},${h}`;
         if (sig === last) return;
         last = sig;
-        c.w = w; c.h = h;
+        /* A stacked (phone / tablet) board renders a card narrower than it was
+           authored. Dragging only the height must not write that clamped width
+           back, or the card comes out the wrong width on desktop. */
+        const widthTouched = edge.includes("e") || edge.includes("w");
+        c.w = (!is12 && !widthTouched) ? (c.w || authoredSizeOf(c)[0]) : w;
+        c.h = h;
         if (is12) { c.gx = x; c.gy = y; }
         if (free) { c.full = w >= Geo.GRID.cols && cols >= Geo.GRID.cols; c.cat = Geo.categoryOf(w, h, c.chart); }
         else c.fit = resolveFit(cat, w, h, T) ?? c.fit;
@@ -3792,10 +3900,11 @@ function serverCard(c){
     full: !!c.full,
   };
   if (Array.isArray(c.extraKeys) && c.extraKeys.length) style.extraKeys = c.extraKeys.slice(0, 3);
+  { const fa = keyArgs(c.key); if (fa) style.filter = { category: String(fa.category_id) }; }
   if (c.goal && Number(c.goal.target) > 0) style.goal = { target: Number(c.goal.target) };
   return {
     id: /^[0-9a-f-]{32,36}$/i.test(String(c.id || "")) ? c.id : undefined,
-    reading_key: c.key,
+    reading_key: baseKey(c.key),
     chart: SERVER_CHART[c.chart] || ({ pl:"profit_loss_line", live:"live_line" }[c.chart] || c.chart),
     period: ({ Today:"today", Week:"this_week", Month:"this_month", Quarter:"this_quarter", Year:"this_year" }[c.period] || "this_month"),
     category: c.cat,
@@ -3828,6 +3937,7 @@ function fromServerCard(bc){
     title: bc.title_override || null,
   };
   if (st.tone) card.tone = st.tone;
+  if (st.filter && st.filter.category) card.key = `${card.key}@category:${st.filter.category}`;
   ["glare", "starBorder", "full"].forEach(k => { if (st[k] !== undefined) card[k] = !!st[k]; });
   ["showOpenArrow", "showWhen", "showDelta", "showPeriodPicker", "showRecent", "legend", "motion"].forEach(k => {
     if (st[k] === false) card[k] = false;
@@ -3979,7 +4089,7 @@ function loadBoard(){
 function availableCards(cards){
   return (cards || []).filter(c => c && (c.type
     ? specialAvailable(c.type)
-    : (READINGS.some(r => r.key === c.key) && readingAvailable(readingOf(c.key)))));
+    : (READINGS.some(r => r.key === baseKey(c.key)) && readingAvailable(readingOf(c.key)))));
 }
 
 /* ── boot ──────────────────────────────────────────────────────────────── */
@@ -4110,12 +4220,14 @@ window.VenQoreCards = {
   sizeOf,
   authoredSizeOf,
   getReadingOf: readingOf,
+  getCategories: () => DASHBOARD_RUNTIME_DATA.productCategories || [],
   getHeadlineOf: headlineOf,
   renderCard: renderCard,
   /* the Law's own column width — the preview draws at it rather than at
      whatever the board behind the modal happens to be showing */
   REFERENCE_COL_W: 112,
   mountChart: mountChart,
+  setSampleMode: (on) => { SAMPLE_MODE = !!on; },
   draw: draw,
   relayout: relayout,
   openEdit: openEdit,
@@ -4172,7 +4284,7 @@ function normaliseCard(c){
       c.chart = d.family; c.variant = d.variant;
     }
     if (!["area", "line", "composed"].includes(c.chart)) c.extraKeys = [];
-    c.extraKeys = c.extraKeys.filter(k => k !== c.key && READINGS.some(r => r.key === k)).slice(0, 3);
+    c.extraKeys = c.extraKeys.filter(k => k !== c.key && READINGS.some(r => r.key === baseKey(k))).slice(0, 3);
   }
   if (!Number.isInteger(c.gx) || !Number.isInteger(c.gy) || c.gx < 0 || c.gy < 0 || c.gx > 11){
     delete c.gx; delete c.gy;
@@ -4239,6 +4351,28 @@ const OPERATIONAL_TEMPLATES = [
   { type: 'growth_engine', title: 'Growth Engine & Target Pace', category: 'Sales',
     desc: 'Revenue velocity, target progress and repeat-customer retention.',
     tone: 'surface' },
+];
+
+/* Ready-made comparisons: two or three readings of the same unit drawn in one
+   chart. A panel is offered only when every reading in it exists for this shop.
+   Each opens the normal card editor, already set up, so size, period and style
+   stay editable. */
+const COMPARE_PANELS = [
+  { id: 'rev-exp-profit', title: 'Revenue, Expenses & Profit', keys: ['core.revenue', 'core.expenses_total', 'core.net_profit'],
+    chart: 'composed', variant: 'grouped',
+    desc: 'Three bars side by side for each day: what came in, what went out and what stayed.' },
+  { id: 'rev-exp', title: 'Revenue vs Expenses', keys: ['core.revenue', 'core.expenses_total'],
+    chart: 'composed', variant: 'columns-line',
+    desc: 'Revenue as bars with expenses as a line across them.' },
+  { id: 'sales-purchases', title: 'Sales vs Purchases', keys: ['core.revenue', 'purchases.spend'],
+    chart: 'composed', variant: 'columns-line',
+    desc: 'What you sold against what you bought, period by period.' },
+  { id: 'gross-net', title: 'Gross Profit vs Net Profit', keys: ['core.gross_profit', 'core.net_profit'],
+    chart: 'line', variant: 'smooth',
+    desc: 'How much of your item profit is left after all shop costs.' },
+  { id: 'counts', title: 'Sales, Purchases & Expenses (count)', keys: ['core.sales_count', 'purchases.count', 'expenses.count'],
+    chart: 'line', variant: 'smooth',
+    desc: 'How many sales, supplier bills and expense entries you had — three lines in one chart.' },
 ];
 
 /* Shortcut destinations. `url` is a path under the active store unless it
@@ -4551,7 +4685,7 @@ function DashRail({
   if (id === 'activity') {
     if (!hasPermission('finance.transactions')) return null;
     // recentTransactions from GL: { type, amount, time, description, activityType, reference_id }
-    const txList = recentTransactions.slice(0, 5);
+    const txList = recentTransactions.slice(0, 8);
     const kindClass = t => ({ sale: 'in', payment_in: 'in', purchase: 'out', expense: 'out', payment_out: 'out', return: 'warn' }[t] || 'info');
     const handleTxClick = (a) => {
       if (!a.reference_id) return;
@@ -4768,7 +4902,9 @@ export default function NewDashboard(props) {
   const lowStockItems     = props?.lowStockItems     || [];
   const performance       = props?.performance       || {};
   const debtors           = props?.debtors           || [];
+  const productCategories = Array.isArray(props?.productCategories) ? props.productCategories : [];
   DASHBOARD_RUNTIME_DATA = {
+    productCategories,
     cashData,
     bankAccounts,
     cashAccounts,
@@ -4964,6 +5100,25 @@ export default function NewDashboard(props) {
     : [];
   const activeRails = railsFit ? chosenRails : [];
   const railsOn = activeRails.length > 0 && !railPrefs.collapsed;
+  /* The side panel runs the full visible height: from where the page area
+     starts to the bottom of the screen, at whatever height the window is. */
+  useEffect(() => {
+    if (!railsOn) return undefined;
+    const fit = () => {
+      const region = document.querySelector('.vq-scroll-region');
+      const canvas = document.querySelector('.vq-canvas');
+      if (!region || !canvas) return;
+      const top = region.getBoundingClientRect().top;
+      const pad = parseFloat(getComputedStyle(canvas).paddingTop) || 0;
+      const root = document.documentElement.style;
+      root.setProperty('--vq-rails-top', `${pad}px`);
+      root.setProperty('--vq-rails-h', `${Math.max(320, Math.round(window.innerHeight - top - pad - 12))}px`);
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    const t = setTimeout(fit, 250);
+    return () => { window.removeEventListener('resize', fit); clearTimeout(t); };
+  }, [railsOn]);
 
   /* The grid is a fixed 12 columns — the panel and the nav squeeze the same
      twelve tracks rather than re-arranging the board. Only a repaint is
@@ -5167,8 +5322,18 @@ export default function NewDashboard(props) {
   const selectTemplateForStep2 = (tmpl) => {
     const specials = engine()?.getSpecials?.() || {};
     const S = specials[tmpl.type] || { cat: 'C4' };
-    openEditorWith('hub', { type: tmpl.type, title: tmpl.title, tone: tmpl.tone || 'surface', cat: S.cat },
+    openEditorWith('hub', { type: tmpl.type, title: tmpl.title, tone: tmpl.tone || 'surface', cat: S.cat,
+      ...(tmpl.type === 'bank_account' ? { accountId: tmpl.accountId, accountName: tmpl.accountName } : {}) },
       true, { templateName: tmpl.title, templateDesc: tmpl.desc });
+  };
+
+  const selectComparePanel = (panel) => {
+    const e = engine(); if (!e) return;
+    const [mw, mh] = Geo.minSize(panel.chart, panel.variant, { legend: true, seriesCount: panel.keys.length });
+    let init = { key: panel.keys[0], extraKeys: panel.keys.slice(1), chart: panel.chart, variant: panel.variant,
+                 period: 'Month', tone: 'surface', accent: false, w: Math.max(6, mw), h: Math.max(5, mh) };
+    if (targetSlot) { init.w = Number(targetSlot.w); init.h = Number(targetSlot.h); }
+    openEditorWith('reading', init, true);
   };
 
   const selectCustomBtnForStep2 = (target) => {
@@ -5264,9 +5429,24 @@ export default function NewDashboard(props) {
   const readings = engineReady
     ? ((engine()?.getAvailableReadings?.() ?? engine()?.getReadings?.()) || [])
     : (Array.isArray(readingsProp) ? readingsProp : ((typeof window !== 'undefined' && window.__VENQORE_READINGS__) || []));
-  const visibleTemplates = engineReady
-    ? OPERATIONAL_TEMPLATES.filter(t => engine()?.specialAvailable?.(t.type) !== false)
-    : OPERATIONAL_TEMPLATES;
+  /* one ready-made panel per bank / cash account the shop has */
+  const accountTemplates = [...(DASHBOARD_RUNTIME_DATA.bankAccounts || []), ...(DASHBOARD_RUNTIME_DATA.cashAccounts || [])]
+    .filter(a => a && (a.id !== undefined || a.name))
+    .map(a => ({
+      type: 'bank_account', tkey: `bank_account:${a.id ?? a.name}`,
+      accountId: a.id ?? null, accountName: a.bank_name || a.name,
+      title: `${a.bank_name || a.name || 'Account'} balance`, category: 'Finance',
+      desc: 'Shows this one account\'s live balance on your dashboard — no need to open the side panel.',
+      tone: 'surface',
+    }));
+  const visibleTemplates = (engineReady
+    ? [...OPERATIONAL_TEMPLATES, ...accountTemplates].filter(t => engine()?.specialAvailable?.(t.type) !== false)
+    : [...OPERATIONAL_TEMPLATES, ...accountTemplates]);
+
+  const comparePanels = useMemo(() => {
+    const have = new Set(readings.filter(r => r && r.contract_state !== 'unimplemented').map(r => r.key));
+    return COMPARE_PANELS.filter(p => p.keys.every(k => have.has(k)));
+  }, [readings]);
 
   const availableAreas = useMemo(() => {
     const areas = Array.from(new Set(readings.filter(r => r?.contract_state !== 'unimplemented').map(r => r?.area).filter(Boolean)));
@@ -5441,6 +5621,30 @@ export default function NewDashboard(props) {
       ),
     },
     {
+      label: 'Goods In',
+      color: 'teal',
+      href: storePath('/purchases-goods-in'),
+      permission: 'purchases.receive',
+      altPermission: 'purchases.create',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Goods Out',
+      color: 'blue',
+      href: storePath('/sales-goods-out'),
+      permission: 'sales.dispatch',
+      altPermission: 'sales.create',
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 16h6"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/><path d="m7.5 4.27 9 5.15"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>
+        </svg>
+      ),
+    },
+    {
       label: 'Approvals',
       color: 'teal',
       href: storePath('/approvals'),
@@ -5544,7 +5748,7 @@ export default function NewDashboard(props) {
   ];
 
   return (
-    <OneGlanceLayout activeMenu="Dashboard" noPadding={true} hideHeader={isNativeMobileApp}>
+    <OneGlanceLayout activeMenu="Dashboard" noPadding={true} dockInset hideHeader={isNativeMobileApp}>
       <Head title="Dashboard" />
 
       <div ref={containerRef}
@@ -5627,10 +5831,6 @@ export default function NewDashboard(props) {
                           minWidth: `${railPrefs.width || 340}px`,
                           maxWidth: `${railPrefs.width || 340}px`,
                           position: 'sticky',
-                          top: '12px',
-                          height: 'calc(100vh - 76px)',
-                          maxHeight: 'calc(100vh - 76px)',
-                          marginBottom: '24px',
                           overflow: 'hidden',
                           alignSelf: 'flex-start',
                         }}
@@ -5785,7 +5985,7 @@ export default function NewDashboard(props) {
                     <div className="vq-modal-section-title">Ready-made panels</div>
                     <div className="vq-modal-cards-grid">
                       {visibleTemplates.map(tmpl => (
-                        <button type="button" key={tmpl.type} className="vq-item-card"
+                        <button type="button" key={tmpl.tkey || tmpl.type} className="vq-item-card"
                                 onClick={() => selectTemplateForStep2(tmpl)}>
                           <span className="vq-item-card-top">
                             <span className="vq-item-card-title">{tmpl.title}</span>
@@ -5795,6 +5995,23 @@ export default function NewDashboard(props) {
                         </button>
                       ))}
                     </div>
+                    {comparePanels.length > 0 && (
+                      <>
+                        <div className="vq-modal-section-title" style={{ marginTop: 18 }}>Compare things in one chart</div>
+                        <div className="vq-modal-cards-grid">
+                          {comparePanels.map(panel => (
+                            <button type="button" key={panel.id} className="vq-item-card"
+                                    onClick={() => selectComparePanel(panel)}>
+                              <span className="vq-item-card-top">
+                                <span className="vq-item-card-title">{panel.title}</span>
+                                <svg className="vq-item-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                              </span>
+                              <span className="vq-item-card-desc">{panel.desc}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="vq-modal-section-group">

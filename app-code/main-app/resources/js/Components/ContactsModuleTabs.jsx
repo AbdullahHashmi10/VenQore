@@ -1,3 +1,4 @@
+import PhoneSectionDropdown from '@/Components/PhoneSectionDropdown';
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTerms, useTermText } from '@/lib/terms';
@@ -10,10 +11,12 @@ import {
     Clock,
     Handshake,
     ChevronRight,
-    Send
+    Send,
+    LayoutDashboard,
 } from 'lucide-react';
 
-export default function ContactsModuleTabs({ activeTab }) {
+// Single source for the Contacts section's navigation groups (module-filtered).
+export function useContactsNavGroups() {
     const { store, modules } = usePage().props;
     const { tp } = useTerms();
     const tt = useTermText();
@@ -33,6 +36,7 @@ export default function ContactsModuleTabs({ activeTab }) {
             label: 'Partners',
             icon: Handshake,
             items: [
+                { id: 'overview', label: 'Overview', href: getRoute('parties.dashboard'), icon: LayoutDashboard },
                 { id: 'customers', label: tp('customer', 'Customers'), href: getRoute('parties.index', { type: 'customer' }), icon: Users },
                 { id: 'suppliers', label: tp('supplier', 'Suppliers'), href: getRoute('parties.index', { type: 'supplier' }), icon: Briefcase },
                 { id: 'all', label: 'All Parties', href: getRoute('parties.index'), icon: Users },
@@ -75,6 +79,11 @@ export default function ContactsModuleTabs({ activeTab }) {
             })
         })).filter(group => group.items.length > 0);
     }, [rawGroups, modules]);
+    return groups;
+}
+
+export default function ContactsModuleTabs({ activeTab }) {
+    const groups = useContactsNavGroups();
 
     // Determine initial group based on activeTab
     const getInitialGroup = () => {
@@ -98,9 +107,10 @@ export default function ContactsModuleTabs({ activeTab }) {
     const activeItemObj = activeGroupObj?.items.find(item => item.id === activeTab);
 
     return (
-        <div className="flex flex-col gap-1 shrink-0">
+        <div className="max-lg:!p-0 max-lg:!border-0 max-lg:!bg-transparent max-lg:!shadow-none max-lg:!gap-0 flex flex-col gap-1 shrink-0">
+            <PhoneSectionDropdown title="Contacts" groups={groups} activeTab={activeTab} />
             {/* Mobile Header Toggle Bar - Visible on mobile/tablet, hidden on lg */}
-            <div className="lg:hidden flex flex-wrap items-center justify-between gap-y-2 bg-surface border border-line p-2.5 rounded-xl shadow-sm">
+            <div className="hidden">
                 <div className="flex items-center gap-2">
                     <Handshake size={16} className="text-brand-500" />
                     <span className="text-xs font-bold text-ink-muted uppercase tracking-tight">
@@ -122,7 +132,7 @@ export default function ContactsModuleTabs({ activeTab }) {
             {/* Main Navigation Tabs */}
             <div className={`
                 flex flex-col lg:flex-row lg:items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm
-                ${isExpanded ? 'flex' : 'hidden lg:flex'}
+                max-lg:!hidden ${isExpanded ? 'flex' : 'hidden lg:flex'}
 `}>
                 {/* Level 1: Category Selector */}
                 <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">

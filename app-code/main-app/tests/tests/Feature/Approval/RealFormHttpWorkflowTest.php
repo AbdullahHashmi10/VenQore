@@ -32,6 +32,7 @@ class RealFormHttpWorkflowTest extends VenQoreTestCase
         $this->tenant = $this->createTenant('http-appr-' . uniqid(), 'ltd_3');
         $this->seedTenantDefaults($this->tenant);
         ApprovalReturnReason::seedDefaultReasons($this->tenant->id);
+        \App\Models\Setting::updateOrCreate(['tenant_id' => $this->tenant->id, 'key' => 'approval_admin_enabled'], ['value' => '1']); // maker-checker is off by default
 
         $this->owner = $this->createTenantUser($this->tenant, 'owner');
         $this->manager = $this->createTenantUser($this->tenant, 'manager');

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { usePage, Head } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import StockModuleTabs, { useStockNavGroups } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import { Tag, Printer, Search, Plus, Trash2, Settings } from 'lucide-react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import { useTermText } from '@/lib/terms';
@@ -98,15 +99,27 @@ export default function LabelsIndex({ products }) {
         document.body.removeChild(form);
     };
 
+    const stockNavGroups = useStockNavGroups();
+
     return (
-        <OneGlanceLayout title="Label Printing" activeMenu="Stock">
+        <OneGlanceLayout title="Label Printing" activeMenu="Stock" noPadding>
             <Head title="Label Printing" />
 
-            <div className="h-full flex flex-col">
-                <StockModuleTabs activeTab="labels" />
+            <ListPageFrame className="h-full flex flex-col p-1.5">
+                <div className="md:hidden"><StockModuleTabs activeTab="labels" /></div>
+                <ListToolbar
+                    title="Barcode Labels"
+                    navGroups={stockNavGroups}
+                    activeId="labels"
+                    actions={(
+                        <ListAddButton icon={Printer} onClick={handlePrint} disabled={selectedItems.length === 0} className="disabled:opacity-50 disabled:cursor-not-allowed">
+                            Generate PDF
+                        </ListAddButton>
+                    )}
+                />
 
-                <div className="p-6 flex-1 overflow-y-auto">
-                    <div className="flex justify-between items-center mb-6">
+                <div className="p-6 flex-1 overflow-y-auto md:p-1 md:min-h-0">
+                    <div className="flex justify-between items-center mb-6 md:hidden">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-brand-100 dark:bg-brand-900/30 rounded-full text-brand-600 dark:text-brand-400">
                                 <Tag size={24} />
@@ -301,7 +314,7 @@ export default function LabelsIndex({ products }) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

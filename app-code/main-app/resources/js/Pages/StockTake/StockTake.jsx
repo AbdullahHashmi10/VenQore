@@ -1,7 +1,11 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import React, { useState, useMemo } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import StockModuleTabs, { useStockNavGroups, ListFilterSelect } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import PrintService from '@/Utils/PrintService';
 import {
     ClipboardCheck,
@@ -29,6 +33,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
     const { showConfirm } = useAlert();
     const { store } = usePage().props;
+    const navGroups = useStockNavGroups();
 
     // Filter stock takes
     const filteredStockTakes = useMemo(() => {
@@ -106,153 +111,79 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
     };
 
     return (
-        <OneGlanceLayout title="Stock Take / Audit" activeMenu="Stock">
+        <OneGlanceLayout title="Stock Take / Audit" activeMenu="Stock" noPadding>
             <Head title="Stock Take" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <StockModuleTabs activeTab="audit" />
-
-                {/* Stats Row - Compact Single Line */}
-                <div className="flex flex-wrap items-center justify-between gap-y-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-3 px-3 py-1">
-                            <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
-                                <ClipboardCheck size={16} />
-                            </div>
-                            <div>
-                                <p className="text-2xs font-bold text-ink-muted uppercase">Total Audits</p>
-                                <p className="text-sm font-bold text-ink">{stats.total}</p>
-                            </div>
-                        </div>
-                        <div className="w-px h-8 bg-sunken"></div>
-                        <div className="flex items-center gap-3 px-3 py-1">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <ArrowUpDown size={16} />
-                            </div>
-                            <div>
-                                <p className="text-2xs font-bold text-ink-muted uppercase">In Progress</p>
-                                <p className="text-sm font-bold text-blue-600">{stats.inProgress}</p>
-                            </div>
-                        </div>
-                        <div className="w-px h-8 bg-sunken"></div>
-                        <div className="flex items-center gap-3 px-3 py-1">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle size={16} />
-                            </div>
-                            <div>
-                                <p className="text-2xs font-bold text-ink-muted uppercase">Completed</p>
-                                <p className="text-sm font-bold text-emerald-600">{stats.completed}</p>
-                            </div>
-                        </div>
-                        <div className="w-px h-8 bg-sunken"></div>
-                        <div className="flex items-center gap-3 px-3 py-1">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangle size={16} />
-                            </div>
-                            <div>
-                                <p className="text-2xs font-bold text-ink-muted uppercase">With Variance</p>
-                                <p className="text-sm font-bold text-amber-600">{stats.withVariance}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* New Audit Button */}
-                    <Link
-                        href={route('store.stock-takes.create', { store_slug: store.slug })}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all font-bold text-xs shadow-lg "
-                    >
-                        <Plus size={14} />
-                        New Stock Take
-                    </Link>
-                </div>
-
-                {/* Header Bar - Title + Filter Pills + Search */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Stock <span className="text-emerald-600">Audit</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
-                                    ? 'bg-emerald-600 text-white'
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >All</button>
-                        <button
-                            onClick={() => setStatusFilter('draft')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'draft'
-                                    ? 'bg-gradient-to-r from-neutral-500 to-neutral-600 text-white shadow-lg shadow-neutral-500/30'
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Draft</button>
-                        <button
-                            onClick={() => setStatusFilter('in_progress')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'in_progress'
-                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >In Progress</button>
-                        <button
-                            onClick={() => setStatusFilter('completed')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'completed'
-                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Completed</button>
-                        <button
-                            onClick={() => setStatusFilter('cancelled')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'cancelled'
-                                    ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Cancelled</button>
-
-                        {/* Warehouse Filter */}
-                        {warehouses.length > 0 && (
-                            <>
-                                <div className="h-4 w-px bg-sunken mx-1"></div>
-                                <select
-                                    value={warehouseFilter}
-                                    onChange={(e) => setWarehouseFilter(e.target.value)}
-                                    className="px-2 py-1 text-xs font-semibold bg-app border border-line rounded-lg focus:ring-1 focus:ring-emerald-500 outline-none"
-                                >
-                                    <option value="all">All Warehouses</option>
-                                    {warehouses.map(wh => (
-                                        <option key={wh.id} value={wh.id}>{wh.name}</option>
-                                    ))}
-                                </select>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Right: Search + Export */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search..."
-                                className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-emerald-500/20 focus:border-emerald-500 outline-none w-44"
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <ListToolbar
+                    title="Stock Audit"
+                    navGroups={navGroups}
+                    activeId="audit"
+                    left={
+                        <>
+                            <ListFilterSelect
+                                value={statusFilter}
+                                onChange={setStatusFilter}
+                                ariaLabel="Status"
+                                options={[{ value: 'all', label: 'All statuses' }, { value: 'draft', label: 'Draft' }, { value: 'in_progress', label: 'In Progress' }, { value: 'completed', label: 'Completed' }, { value: 'cancelled', label: 'Cancelled' }]}
                             />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+                            {warehouses.length > 0 && (
+                                <ListFilterSelect
+                                    value={warehouseFilter}
+                                    onChange={setWarehouseFilter}
+                                    ariaLabel="Warehouse"
+                                    options={[{ value: 'all', label: 'All Warehouses' }, ...warehouses.map((wh) => ({ value: String(wh.id), label: wh.name }))]}
+                                />
+                            )}
+                        </>
+                    }
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search audits...' }}
+                    actions={
+                        <>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} className="h-10 w-10 flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-[12px] text-emerald-600" title="Export" onClick={() => exportRowsToCsv('stock-takes', [{label:'Reference',get:r=>r.reference_number||`ST-${r.id}`},{label:'Warehouse',get:r=>r.warehouse?.name||'All Warehouses'},{label:'Date',get:r=>r.created_at},{label:'Items Counted',get:r=>r.items_counted||0},{label:'Variance Items',get:r=>r.variance_items||0},{label:'Status',get:r=>r.status}], filteredStockTakes)}>
                                 <Download size={16} />
                             </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
+                            <button onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center hover:bg-interactive-hover rounded-[12px] text-ink-muted hover:text-ink transition-colors" title="Print">
                                 <Printer size={16} />
                             </button>
-                        </div>
-                    </div>
-                </div>
+                            <ListAddButton icon={Plus} href={route('store.stock-takes.create', { store_slug: store.slug })}>New Stock Take</ListAddButton>
+                        </>
+                    }
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Audits', value: stats.total, icon: ClipboardCheck, icon_tone: 'bg-sunken text-ink-secondary' },
+                    { label: 'In Progress', value: stats.inProgress, icon: ArrowUpDown, icon_tone: 'bg-blue-50 text-blue-600', value_tone: 'text-blue-600' },
+                    { label: 'Completed', value: stats.completed, icon: CheckCircle, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'With Variance', value: stats.withVariance, icon: AlertTriangle, icon_tone: 'bg-amber-50 text-amber-600', value_tone: 'text-amber-600' },
+                ]} />
+
+                {/* Stats Row - Compact Single Line */}
+<MobileListHeader
+                    title="Stock Audit"
+                    navGroups={navGroups}
+                    activeId="audit"
+                    filter={{
+                        active: statusFilter !== 'all' || (warehouses.length > 0 && warehouseFilter !== 'all'),
+                        sections: [
+                            { label: 'Status', value: statusFilter, options: [{ value: 'all', label: 'All statuses' }, { value: 'draft', label: 'Draft' }, { value: 'in_progress', label: 'In Progress' }, { value: 'completed', label: 'Completed' }, { value: 'cancelled', label: 'Cancelled' }], onSelect: setStatusFilter },
+                            ...(warehouses.length > 0 ? [{ label: 'Warehouse', value: warehouseFilter, options: [{ value: 'all', label: 'All Warehouses' }, ...warehouses.map((wh) => ({ value: String(wh.id), label: wh.name }))], onSelect: setWarehouseFilter }] : []),
+                        ],
+                    }}
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search audits...' }}
+                    actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+                    add={{ href: route('store.stock-takes.create', { store_slug: store.slug }), label: 'New Stock Take' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Audits', value: stats.total, tone: 'ink', icon: ClipboardCheck },
+                    { label: 'In Progress', value: stats.inProgress, tone: 'blue', icon: ArrowUpDown },
+                    { label: 'Completed', value: stats.completed, tone: 'emerald', icon: CheckCircle },
+                    { label: 'With Variance', value: stats.withVariance, tone: 'amber', icon: AlertTriangle },
+                ]} />
+
+                {/* Header Bar - Title + Filter Pills + Search */}
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -264,7 +195,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                         Reference # <SortIcon columnKey="reference" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Warehouse
                                 </th>
                                 <th
@@ -283,16 +214,16 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                                         Items <SortIcon columnKey="items" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Variance
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Counted By
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Status
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Actions
                                 </th>
                             </tr>
@@ -407,7 +338,7 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

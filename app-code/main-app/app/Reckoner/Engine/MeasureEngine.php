@@ -290,6 +290,52 @@ class MeasureEngine
                     $options['parent_total'] = $bal;
                     break;
 
+                case 'core.sales_count':
+                    $salesQ = fn (string $f, string $t) => DB::table('sales')->where('tenant_id', $tenantId)
+                        ->whereBetween(DB::raw('DATE(COALESCE(posted_at, created_at))'), [$f, $t])
+                        ->whereIn('status', ['posted', 'completed'])->whereNull('deleted_at');
+                    $measureData = ['value' => (float) $salesQ($from, $to)->count()];
+                    if ($compareFrom && $compareTo) {
+                        $options['compare_value'] = (float) $salesQ($compareFrom, $compareTo)->count();
+                    }
+                    break;
+
+                case 'core.sales_count_trend':
+                    $rows = DB::table('sales')->where('tenant_id', $tenantId)
+                        ->whereBetween(DB::raw('DATE(COALESCE(posted_at, created_at))'), [$from, $to])
+                        ->whereIn('status', ['posted', 'completed'])->whereNull('deleted_at')
+                        ->selectRaw('DATE(COALESCE(posted_at, created_at)) as d, COUNT(*) as n')
+                        ->groupBy('d')->pluck('n', 'd')->all();
+                    $measureData = ['points' => $this->fillDailyCounts($rows, $from, $to)];
+                    break;
+
+                case 'core.items_sold':
+                    $measureData = ['value' => $this->salesLinesStream->itemsSold($from, $to, $tenantId)['total']];
+                    break;
+
+                case 'core.items_sold_trend':
+                    $measureData = ['points' => $this->salesLinesStream->itemsSold($from, $to, $tenantId)['points']];
+                    break;
+
+                case 'core.sales_by_category':
+                    $measureData = $this->salesLinesStream->byCategory($from, $to, $tenantId);
+                    break;
+
+                case 'core.sales_category':
+                    $r = $this->salesLinesStream->categorySales($from, $to, $tenantId, $args['category_id'] ?? null);
+                    $measureData = ['value' => $r['total']];
+                    break;
+
+                case 'core.sales_category_trend':
+                    $r = $this->salesLinesStream->categorySales($from, $to, $tenantId, $args['category_id'] ?? null);
+                    $measureData = ['points' => $r['points']];
+                    break;
+
+                case 'core.cash_in_hand':
+                    $b = $this->ledgerStream->closingBalances(['cash'], [$asOf], [], $tenantId)[$asOf];
+                    $measureData = ['value' => (float) $b['cash']];
+                    break;
+
                 case 'core.total_liquidity':
                     $b = $this->ledgerStream->closingBalances(['cash', 'bank'], [$asOf], [], $tenantId)[$asOf];
                     $measureData = ['value' => $b['cash'] + $b['bank']];
@@ -709,6 +755,13 @@ class MeasureEngine
                 case 'expenses.count':
                     $summary = $this->expensesStream->summary($from, $to, $tenantId);
                     $measureData = ['value' => $summary['count']];
+                    break;
+
+                case 'expenses.count_trend':
+                    $rows = DB::table('expenses')->where('tenant_id', $tenantId)
+                        ->whereBetween('date', [$from, $to])
+                        ->selectRaw('DATE(date) as d, COUNT(*) as n')->groupBy('d')->pluck('n', 'd')->all();
+                    $measureData = ['points' => $this->fillDailyCounts($rows, $from, $to)];
                     break;
 
                 case 'expenses.trend':
@@ -1543,6 +1596,24 @@ class MeasureEngine
                 case 'purchases.count':
                     $measureData = ['value' => $purchSummary['count']];
                     break;
+                case 'purchases.items_purchased':
+                    $measureData = ['value' => $this->purchaseHeadersStream->itemsPurchased($from, $to, $tenantId)['total']];
+                    break;
+                case 'purchases.items_purchased_trend':
+                    $measureData = ['points' => $this->purchaseHeadersStream->itemsPurchased($from, $to, $tenantId)['points']];
+                    break;
+                case 'purchases.category_spend':
+                    $measureData = ['value' => $this->purchaseHeadersStream->categorySpend($from, $to, $tenantId, $args['category_id'] ?? null)['total']];
+                    break;
+                case 'purchases.category_spend_trend':
+                    $measureData = ['points' => $this->purchaseHeadersStream->categorySpend($from, $to, $tenantId, $args['category_id'] ?? null)['points']];
+                    break;
+                case 'purchases.count_trend':
+                    $rows = DB::table('purchases')->where('tenant_id', $tenantId)
+                        ->whereBetween('purchase_date', [$from, $to])->where('workflow_status', '!=', 'cancelled')
+                        ->selectRaw('DATE(purchase_date) as d, COUNT(*) as n')->groupBy('d')->pluck('n', 'd')->all();
+                    $measureData = ['points' => $this->fillDailyCounts($rows, $from, $to)];
+                    break;
                 case 'purchases.unpaid_value':
                     $measureData = ['value' => $this->purchaseHeadersStream->purchaseAging($asOf, $tenantId)['unpaid_value']];
                     break;
@@ -2014,6 +2085,27 @@ class MeasureEngine
             data: $projected['data'],
             meta: $meta
         );
+    }
+
+    /**
+     * Zero-fill a date => count map across [from, to] so a quiet day is a real 0,
+     * not a gap, exactly like the ledger's dailyFlow.
+     *
+     * @param  array<string,int|string>  $rows
+     * @return array<string,float>
+     */
+    protected function fillDailyCounts(array $rows, string $from, string $to): array
+    {
+        $out = [];
+        $cur = new \DateTimeImmutable($from);
+        $end = new \DateTimeImmutable($to);
+        $guard = 0;
+        while ($cur <= $end && $guard++ < 800) {
+            $d = $cur->format('Y-m-d');
+            $out[$d] = (float) ($rows[$d] ?? 0);
+            $cur = $cur->modify('+1 day');
+        }
+        return $out;
     }
 
     protected function getProjectionForCard(array $card): ProjectionInterface

@@ -265,38 +265,6 @@ class StorefrontPagesController extends Controller
 
     private function customer(Storefront $store): ?array
     {
-        $sess = session('commerce_customer');
-        if (! $sess || empty($sess['phone'])) {
-            return null;
-        }
-        $phone = $sess['phone'];
-        $orders = DB::table('commerce_orders')->where('storefront_id', $store->id)->where('customer_phone', $phone)
-            ->orderByDesc('created_at')->limit(20)
-            ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
-            ->map(function ($o) use ($store) {
-                $token = Str::random(48);
-                DB::table('commerce_order_tokens')->insert(['order_id' => $o->id, 'token_hash' => hash('sha256', $token), 'created_at' => now()]);
-
-                return [
-                    'id' => $o->id,
-                    'number' => $o->public_number,
-                    'status' => $o->status,
-                    'total' => (float) $o->total,
-                    'currency_symbol' => $o->currency_symbol,
-                    'fulfilment' => $o->fulfilment,
-                    'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
-                    'status_url' => url('/order-status/' . $token),
-                ];
-            })->values();
-        $mine = StorefrontReview::where('storefront_id', $store->id)->where('customer_phone', $phone)->first();
-
-        return [
-            'name' => $sess['name'],
-            'phone' => $phone,
-            'email' => $sess['email'] ?? null,
-            'orders' => $orders,
-            'has_reviewed' => (bool) $mine,
-            'review' => $mine ? ['rating' => (int) $mine->rating, 'review' => $mine->review] : null,
-        ];
+        return \App\Services\Commerce\ShopperAccount::payload($store);
     }
 }

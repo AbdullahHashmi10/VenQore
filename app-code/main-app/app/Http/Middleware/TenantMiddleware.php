@@ -276,6 +276,7 @@ class TenantMiddleware
                 'has_sales' => \App\Models\Sale::exists() || \App\Models\Invoice::where('type', 'sale')->exists(),
                 'has_expenses' => \App\Models\Expense::exists(),
                 'has_drive_sync' => (bool)$tenant->google_backup_enabled,
+                'has_team' => $tenant->users()->count() > 1,
             ],
             'limit_grace_status_legacy' => [
                 'is_over_limit'     => $limitStatus['is_over_limit'],

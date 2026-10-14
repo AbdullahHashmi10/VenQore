@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import ServiceNavTabs from '@/Pages/Services/ServiceNavTabs';
-import { Plus, Search, Wrench, Calendar, User, Clock, CheckCircle2 } from 'lucide-react';
+import ServiceNavTabs, { useServiceNavGroups } from '@/Pages/Services/ServiceNavTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
+import { Plus, Search, Wrench, Calendar, User, Clock, CheckCircle2, Filter } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
@@ -31,6 +35,7 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
     const [search, setSearch] = useState(filters.search || '');
     const tt = useTermText();
+    const serviceNavGroups = useServiceNavGroups();
 
     const runSearch = (e) => {
         if (e.key !== 'Enter') return;
@@ -48,84 +53,60 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
     };
 
     return (
-        <OneGlanceLayout title={tt('Service Jobs')} activeMenu="Sell">
+        <OneGlanceLayout title={tt('Service Jobs')} activeMenu="Sell" noPadding>
             <Head title={tt('Service Jobs')} />
 
-            <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-                {/* Unified Services Tabs */}
-                <ServiceNavTabs active="jobs" />
+            <ListPageFrame className="p-2.5">
+            <ListToolbar
+                title={tt('Service Jobs')}
+                navGroups={serviceNavGroups}
+                activeId="jobs"
+                left={(
+                    <ListFilterPill
+                        icon={Filter}
+                        label="All Statuses"
+                        value={filters.status || ''}
+                        allValue=""
+                        options={['', 'scheduled', 'in_progress', 'completed', 'invoiced'].map((s) => ({ value: s, label: s === '' ? 'All Statuses' : (STATUS_META[s]?.label || s) }))}
+                        onChange={setStatusFilter}
+                    />
+                )}
+                search={{ value: search, onChange: setSearch, onKeyDown: runSearch, placeholder: tt('Search by job #, service title, customer name or phone...') }}
+                actions={<ListAddButton icon={Plus} href={route('store.service-jobs.create', { store_slug: storeSlug })}>{tt('New Work Order')}</ListAddButton>}
+            />
+            <ListStatCards cards={[
+                { label: tt('Active Work Orders'), value: stats.open ?? 0, icon: Clock },
+                { label: 'Completed', value: stats.completed ?? 0, icon: CheckCircle2, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600 dark:text-emerald-400' },
+                { label: 'Invoiced & Settled', value: stats.invoiced ?? 0, icon: Wrench, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+            ]} />
+            <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:contents">
+                <MobileListHeader
+                    title={tt('Service Jobs')}
+                    navGroups={serviceNavGroups}
+                    activeId="jobs"
+                    filter={{
+                        active: !!filters.status,
+                        sections: [{ label: 'Status', value: filters.status || '', options: ['', 'scheduled', 'in_progress', 'completed', 'invoiced'].map((s) => ({ value: s, label: s === '' ? 'All Statuses' : (STATUS_META[s]?.label || s) })), onSelect: setStatusFilter }],
+                    }}
+                    search={{ value: search, onChange: setSearch, onKeyDown: runSearch, placeholder: tt('Search jobs...') }}
+                    add={{ href: route('store.service-jobs.create', { store_slug: storeSlug }), label: tt('New Work Order') }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: tt('Active'), value: stats.open ?? 0, tone: 'amber', icon: Clock },
+                    { label: 'Completed', value: stats.completed ?? 0, tone: 'emerald', icon: CheckCircle2 },
+                    { label: 'Invoiced', value: stats.invoiced ?? 0, tone: 'blue', icon: Wrench },
+                ]} />
 
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
-                            {tt('Work Orders & Service Jobs')}
-                        </h1>
-                        <p className="mt-1 text-sm text-ink-secondary">
-                            {tt('Track client work orders, technician dispatches, and billing status.')}
-                        </p>
-                    </div>
-                    <Link
-                        href={route('store.service-jobs.create', { store_slug: storeSlug })}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent-fill px-4 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-fast ease-standard hover:bg-accent-fill-hover"
-                    >
-                        <Plus size={16} />
-                        {tt('New Work Order')}
-                    </Link>
-                </div>
-
-                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-                        <p className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">{tt('Active Work Orders')}</p>
-                        <p className="mt-1 text-2xl font-bold text-ink">{stats.open ?? 0}</p>
-                    </div>
-                    <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-                        <p className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">Completed</p>
-                        <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.completed ?? 0}</p>
-                    </div>
-                    <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-                        <p className="text-2xs font-semibold uppercase tracking-widest text-ink-muted">Invoiced & Settled</p>
-                        <p className="mt-1 text-2xl font-bold text-accent-text">{stats.invoiced ?? 0}</p>
-                    </div>
-                </div>
-
-                <div className="mt-6 flex flex-wrap items-center gap-2">
-                    <div className="relative flex-1 min-w-[220px]">
-                        <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onKeyDown={runSearch}
-                            placeholder={tt('Search by job #, service title, customer name or phone...')}
-                            className="h-10 w-full rounded-lg border border-line bg-app pl-9 pr-3 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                        />
-                    </div>
-                    {['', 'scheduled', 'in_progress', 'completed', 'invoiced'].map((s) => (
-                        <button
-                            key={s || 'all'}
-                            type="button"
-                            onClick={() => setStatusFilter(s)}
-                            className={`h-10 rounded-lg border px-3 text-xs font-semibold transition-colors duration-fast ease-standard ${
-                                (filters.status || '') === s
-                                    ? 'border-accent bg-accent-quiet text-accent-text'
-                                    : 'border-line bg-surface text-ink-secondary hover:bg-sunken'
-                            }`}
-                        >
-                            {s === '' ? 'All Statuses' : (STATUS_META[s]?.label || s)}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="mt-4 overflow-x-auto rounded-xl border border-line bg-surface shadow-sm">
+                <div className="mt-4 md:mt-0 overflow-x-auto md:flex-1 md:min-h-0 md:overflow-auto rounded-xl md:rounded-[14px] border border-line bg-surface shadow-sm">
                     <table className="w-full text-left text-sm">
-                        <thead>
-                            <tr className="border-b border-line bg-sunken/40 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                <th className="px-4 py-3">{tt('Job / Order')}</th>
-                                <th className="px-4 py-3">{tt('Customer')}</th>
-                                <th className="px-4 py-3">Assigned Tech</th>
-                                <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3">Schedule</th>
-                                <th className="px-4 py-3 text-right">Est. Value</th>
+                        <thead className="md:sticky md:top-0 md:z-10">
+                            <tr className="border-b border-line bg-sunken/40 md:bg-sunken text-2xs font-semibold uppercase tracking-widest text-ink-muted">
+                                <th className="sticky top-0 z-10 bg-app px-4 py-3">{tt('Job / Order')}</th>
+                                <th className="sticky top-0 z-10 bg-app px-4 py-3">{tt('Customer')}</th>
+                                <th className="sticky top-0 z-10 bg-app px-4 py-3">Assigned Tech</th>
+                                <th className="sticky top-0 z-10 bg-app px-4 py-3">Status</th>
+                                <th className="sticky top-0 z-10 bg-app px-4 py-3">Schedule</th>
+                                <th className="sticky top-0 z-10 bg-app px-4 py-3 text-right">Est. Value</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
@@ -190,7 +171,7 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                 </div>
 
                 {jobs.links && jobs.links.length > 3 && (
-                    <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                    <div className="mt-4 md:mt-0 md:shrink-0 flex flex-wrap items-center gap-1.5">
                         {jobs.links.map((link, i) => (
                             <button
                                 key={i}
@@ -208,6 +189,7 @@ export default function ServiceJobs({ jobs, filters = {}, stats = {} }) {
                     </div>
                 )}
             </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

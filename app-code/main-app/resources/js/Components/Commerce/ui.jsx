@@ -11,7 +11,7 @@ export function StatusPill({ status }) {
 }
 
 export function Card({ children, className = '', id }) {
-    return <section id={id} className={`bg-surface border border-line rounded-xl p-3 shadow-sm ${className}`}>{children}</section>;
+    return <section id={id} className={`bg-surface border border-line rounded-[14px] p-4 shadow-sm ${className}`}>{children}</section>;
 }
 
 /** Card heading with an icon chip, optional subtitle and a right-hand slot. */
@@ -19,7 +19,7 @@ export function CardTitle({ icon: Icon, title, sub, right, tone = 'brand' }) {
     return (
         <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 min-w-0">
-                {Icon && <span className={`shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-lg ${TONES[tone]}`}><Icon size={16} aria-hidden="true" /></span>}
+                {Icon && <span className={`shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-[12px] ${TONES[tone]}`}><Icon size={16} aria-hidden="true" /></span>}
                 <div className="min-w-0">
                     <h2 className="font-semibold text-ink leading-tight">{title}</h2>
                     {sub && <p className="text-xs text-ink-muted mt-0.5">{sub}</p>}
@@ -45,16 +45,16 @@ export function StatCard({ icon: Icon, label, value, hint, tone = 'brand', href,
     const body = (
         <>
             <span className="flex items-center gap-2 min-w-0">
-                {Icon && <span className={`p-1.5 rounded-lg shrink-0 ${TONES[tone]}`}><Icon size={16} aria-hidden="true" /></span>}
+                {Icon && <span className={`h-8 w-8 rounded-[12px] flex items-center justify-center shrink-0 ${TONES[tone]}`}><Icon size={16} aria-hidden="true" /></span>}
                 <span className="min-w-0">
                     <span className="block text-xs font-bold text-ink-muted uppercase truncate">{label}</span>
-                    {hint && <span className="block text-[11px] text-ink-muted truncate">{hint}</span>}
+                    {hint && <span className="block text-2xs text-ink-muted/80 leading-3 truncate">{hint}</span>}
                 </span>
             </span>
-            <span className={`text-lg font-bold tabular-nums whitespace-nowrap ${valueClass}`}>{value}</span>
+            <span className={`text-base font-bold tabular-nums whitespace-nowrap ${valueClass}`}>{value}</span>
         </>
     );
-    const cls = 'flex items-center justify-between gap-3 bg-surface px-3 py-2.5 rounded-xl border border-line shadow-sm';
+    const cls = 'h-14 flex items-center justify-between gap-3 bg-surface px-3 rounded-[14px] border border-line shadow-sm min-w-0';
     return href ? <a href={href} className={`${cls} hover:border-brand-300 transition-colors`}>{body}</a> : <div className={cls}>{body}</div>;
 }
 
@@ -101,8 +101,8 @@ export function ImageInput({ label, current, onChange, hint, error, wide = false
 /** Friendly empty state. */
 export function EmptyState({ icon: Icon, title, text, action }) {
     return (
-        <div className="rounded-xl border border-dashed border-line bg-surface px-6 py-8 text-center">
-            {Icon && <span className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-sunken text-ink-muted"><Icon size={22} aria-hidden="true" /></span>}
+        <div className="rounded-[14px] border border-dashed border-line bg-surface px-6 py-8 text-center">
+            {Icon && <span className="mx-auto mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-sunken text-ink-muted"><Icon size={22} aria-hidden="true" /></span>}
             <h3 className="font-semibold text-ink">{title}</h3>
             {text && <p className="text-sm text-ink-muted mt-1 max-w-md mx-auto">{text}</p>}
             {action && <div className="mt-4">{action}</div>}
@@ -121,7 +121,7 @@ export function Field({ label, error, hint, children, className = '' }) {
     );
 }
 
-export const inputCls = 'w-full rounded-xl border border-line bg-surface text-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60';
+export const inputCls = 'w-full rounded-[12px] border border-line bg-surface text-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60';
 
 export function Button({ children, variant = 'primary', className = '', ...rest }) {
     const tone = {
@@ -131,7 +131,7 @@ export function Button({ children, variant = 'primary', className = '', ...rest 
         ghost: 'text-ink-secondary hover:bg-interactive-hover',
     }[variant];
     return (
-        <button type="button" {...rest} className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${tone} ${className}`}>
+        <button type="button" {...rest} className={`inline-flex items-center justify-center gap-2 h-10 px-4 rounded-[12px] text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${tone} ${className}`}>
             {children}
         </button>
     );
@@ -145,13 +145,13 @@ export function Alert({ kind = 'info', children }) {
         success: 'bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-200 dark:border-emerald-800',
         warn: 'bg-amber-50 text-amber-900 border-amber-200 dark:bg-amber-900/20 dark:text-amber-200 dark:border-amber-800',
     }[kind];
-    return <div role={kind === 'error' ? 'alert' : 'status'} className={`border rounded-xl px-4 py-3 text-sm ${tone}`}>{children}</div>;
+    return <div role={kind === 'error' ? 'alert' : 'status'} className={`border rounded-[14px] px-4 py-3 text-sm ${tone}`}>{children}</div>;
 }
 
 export function Pager({ current, last, onGo }) {
     if (!last || last <= 1) return null;
     return (
-        <div className="flex items-center justify-center gap-3 mt-6">
+        <div className="flex items-center justify-center gap-3 mt-2">
             <Button variant="secondary" disabled={current <= 1} onClick={() => onGo(current - 1)}>Previous</Button>
             <span className="text-sm text-ink-muted">Page {current} of {last}</span>
             <Button variant="secondary" disabled={current >= last} onClick={() => onGo(current + 1)}>Next</Button>

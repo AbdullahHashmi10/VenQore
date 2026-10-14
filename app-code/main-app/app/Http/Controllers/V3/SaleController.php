@@ -133,7 +133,7 @@ class SaleController extends Controller
         }
 
         // ── Loyalty auto-award (2026-07-03) — plan-gated, never blocks the sale ──
-        $this->awardLoyaltyPointsForSale($sale);
+        \App\Services\LoyaltyAwarder::awardForSale($sale);
 
         return redirect()->back()->with([
             'success'    => 'Sale posted successfully.',

@@ -116,6 +116,11 @@ class WorkspaceBuilderController extends Controller
                 // control that silently does nothing reads as broken.
                 'requires'    => array_values($m['requires'] ?? []),
 
+                // Registry group (A–G) so the picker can show modules by the job
+                // they do — Selling, Stock, Money… — instead of one flat wall.
+                'group'       => $m['group'] ?? 'G',
+                'aliases'     => array_values($m['aliases'] ?? []),
+
                 // The registry already names a glyph for the nav entry. Reusing
                 // it means the icon beside a module is the same one the user
                 // will see in the sidebar ten minutes later.
@@ -127,6 +132,7 @@ class WorkspaceBuilderController extends Controller
             'initialPrompt'   => $initialPrompt,
             'initialPreset'   => $initialPreset,
             'initialType'     => $initialType,
+            'builderV2'       => \App\Http\Controllers\BuilderDiscoveryController::enabled(),
 
             // The 85 business types (config/business_types.php) for the search
             // box and the one-click list — labels, sector, aliases, the preset
@@ -137,6 +143,41 @@ class WorkspaceBuilderController extends Controller
             'initialCurrency' => $initialCurrency,
             'presets'         => $presets,
             'allModules'      => $allModules,
+
+            // "If you do X you will also need Y" (config/module_companions.php),
+            // limited to live modules on both sides.
+            'companions'      => collect(config('module_companions', []))
+                ->filter(fn ($c, $from) => (config("modules.{$from}.status") ?? null) === 'live')
+                ->map(fn ($c) => collect($c)->filter(fn ($why, $to) => (config("modules.{$to}.status") ?? null) === 'live')->all())
+                ->filter()
+                ->all(),
+
+            // The free extras (config/signup_gifts.php). Only gifts whose module
+            // is live in the registry are sent, so a gift can never point at a
+            // module the store cannot switch on.
+            'gifts'           => (function () {
+                $cfg = config('signup_gifts', []);
+                $items = collect($cfg['items'] ?? [])
+                    ->filter(fn ($g, $key) => (config("modules.{$key}.status") ?? null) === 'live')
+                    ->map(fn ($g, $key) => [
+                        'key'           => $key,
+                        'title'         => $g['title'] ?? config("modules.{$key}.label", $key),
+                        'tagline'       => $g['tagline'] ?? config("modules.{$key}.description", ''),
+                        'icon'          => $g['icon'] ?? null,
+                        'worth_monthly' => (int) ($g['worth_monthly'] ?? 0),
+                        'note'          => $g['note'] ?? null,
+                        'default_on'    => $g['default_on'] ?? 'always',
+                    ])
+                    ->values()
+                    ->all();
+
+                return [
+                    'headline' => $cfg['headline'] ?? null,
+                    'lede'     => $cfg['lede'] ?? null,
+                    'promise'  => $cfg['promise'] ?? null,
+                    'items'    => $items,
+                ];
+            })(),
 
             // The discovery questions, whole, straight from the config. The page
             // renders whatever is in here — question text, option labels, order,
@@ -355,7 +396,7 @@ class WorkspaceBuilderController extends Controller
             'table_service'    => ['label' => 'Table & Floor Service', 'icon' => 'table_service', 'desc' => 'Table layouts & dining orders'],
             'purchases'        => ['label' => 'Purchasing & Stock In', 'icon' => 'purchases', 'desc' => 'Vendor bills & receiving'],
             'suppliers'        => ['label' => 'Supplier Network', 'icon' => 'suppliers', 'desc' => 'Vendor management & payables'],
-            'khata_credit'     => ['label' => 'Customer Credit (Khata)', 'icon' => 'khata_credit', 'desc' => 'Ledger credit & dues'],
+            'khata_credit'     => ['label' => 'Customer Credit (Pay Later)', 'icon' => 'khata_credit', 'desc' => 'Ledger credit & dues'],
             'barcodes_labels'  => ['label' => 'Barcodes & Label Printing', 'icon' => 'barcodes_labels', 'desc' => 'SKU barcode tags'],
         ];
 
@@ -537,7 +578,9 @@ class WorkspaceBuilderController extends Controller
             // fall back to Str::random(12) — a string never shown or emailed to
             // anyone, which permanently locked the owner out of their own account.
             'password'      => Auth::check() ? ['nullable', 'string'] : ['required', 'string', Password::defaults()],
-            'modules'       => 'required|array',
+            'modules'       => 'required_without:builder_session|array',
+            // Builder v2: the SERVER composes the modules from this session (plan §6.7).
+            'builder_session' => 'nullable|string|max:64',
             // The matched preset key from analyze(). Never trusted blindly —
             // only written as business_type when it names a real, shippable
             // preset (see $businessType below) — because this one column is
@@ -554,6 +597,23 @@ class WorkspaceBuilderController extends Controller
 
         $name = $request->input('business_name');
         $plan = $this->validSignupPlan($request->input('plan'));
+
+        $modules = (array) $request->input('modules', []);
+        $presetKey = $request->input('preset_key');
+        $businessType = $request->input('business_type');
+        $builderSession = null;
+        if (\App\Http\Controllers\BuilderDiscoveryController::enabled() && $request->filled('builder_session')) {
+            $builderSession = \App\Http\Controllers\BuilderDiscoveryController::sessionFor((string) $request->input('builder_session'));
+            if (!$builderSession) {
+                return response()->json(['success' => false, 'message' => 'Your session timed out. Please start again.'], 410);
+            }
+            // The client list is advisory only and is never trusted.
+            $modules = \App\Http\Controllers\BuilderDiscoveryController::modulesForSession($builderSession->id, $plan) ?? [];
+            if ($builderSession->typeKey) {
+                $businessType = $builderSession->typeKey;
+                $presetKey = $presetKey ?: (config('builder.type_hints.' . $builderSession->typeKey . '.preset'));
+            }
+        }
         if ($plan) {
             $request->session()->put('intended_plan', $plan);
         }
@@ -594,9 +654,9 @@ class WorkspaceBuilderController extends Controller
                         'business_name' => $name,
                         'currency'      => $request->input('currency'),
                         'phone'         => $request->input('phone'),
-                        'modules'       => $request->input('modules', []),
-                        'preset_key'    => $request->input('preset_key'),
-                        'business_type' => $request->input('business_type'),
+                        'modules'       => $modules,
+                        'preset_key'    => $presetKey,
+                        'business_type' => $businessType,
                         'plan'          => $plan,
                         'country'       => $country,
                         'timezone'      => $request->input('timezone'),
@@ -633,9 +693,9 @@ class WorkspaceBuilderController extends Controller
                 'business_name' => $name,
                 'currency'      => $request->input('currency'),
                 'phone'         => $request->input('phone'),
-                'modules'       => $request->input('modules', []),
-                'preset_key'    => $request->input('preset_key'),
-                'business_type' => $request->input('business_type'),
+                'modules'       => $modules,
+                'preset_key'    => $presetKey,
+                'business_type' => $businessType,
                 'plan'          => $plan,
                 'country'       => $country,
                 'timezone'      => $request->input('timezone'),
@@ -649,6 +709,10 @@ class WorkspaceBuilderController extends Controller
                     'success' => false,
                     'message' => 'Workspace provisioning failed. Please try again.',
                 ], 500);
+            }
+
+            if ($builderSession) {
+                \App\Services\Builder\BuilderTelemetry::record('provisioned', $builderSession, ['modules' => $modules, 'n_screens' => $builderSession->screensShown], $tenant->id);
             }
 
             // Log user in

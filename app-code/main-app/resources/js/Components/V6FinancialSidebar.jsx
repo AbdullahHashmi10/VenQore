@@ -236,7 +236,7 @@ export default function V6FinancialSidebar({
   }, [menuRef]);
 
   const displayBankAccounts = resolvedBankAccounts || [];
-  const displayTransactions = (resolvedTransactions || []).slice(0, 3);
+  const displayTransactions = (resolvedTransactions || []).slice(0, 6);
 
   return (
     <div className={`w-full h-full flex flex-col gap-2.5 text-white justify-between ${className}`}>

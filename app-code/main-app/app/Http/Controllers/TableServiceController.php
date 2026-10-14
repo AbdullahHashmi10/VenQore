@@ -141,9 +141,19 @@ class TableServiceController extends Controller
             'covers'      => 'nullable|integer|min:1|max:99',
             'order_type'  => 'nullable|string|in:dine_in,takeaway,delivery',
             'party_id'    => 'nullable|integer',
+            'client_ref'  => 'nullable|string|max:64',
         ]);
 
         $pos = Position::where('tenant_id', $tenant->id)->findOrFail($data['position_id']);
+
+        /* A device that was offline opens its tables under its own reference and
+           replays them later. Seeing the same reference again means the first
+           attempt landed and only its answer was lost: hand back that table
+           rather than opening a second one. */
+        if (!empty($data['client_ref'])) {
+            $again = $this->occupancyByClientRef((int) $tenant->id, $data['client_ref']);
+            if ($again) return response()->json($this->cardFor($again));
+        }
 
         if ($this->activeOccupancy($tenant->id, $pos->id)) {
             return response()->json(['message' => 'That table is already open.'], 422);
@@ -163,7 +173,7 @@ class TableServiceController extends Controller
                 'order_total' => 0.0,
                 'note'        => '',
                 'sent_at'     => null,
-            ],
+            ] + (!empty($data['client_ref']) ? ['client_ref' => $data['client_ref']] : []),
         ]);
 
         $pos->update(['status' => 'active']);
@@ -335,7 +345,14 @@ class TableServiceController extends Controller
     public function sendToKitchen(Request $request, KitchenTicketService $kitchenTicketService): JsonResponse
     {
         $tenant = app('current.tenant');
-        $data = $request->validate(['occupancy_id' => 'required|integer']);
+        $data = $request->validate([
+            'occupancy_id'   => 'required|integer',
+            // Set when a device replays a send it already made offline: the food was cooked
+            // and its slip printed on that device, so the kitchen screen must not show it again.
+            'offline_replay' => 'nullable|boolean',
+            'fired_at'       => 'nullable|date',
+            'course'         => 'nullable|integer',
+        ]);
 
         $occ = $this->ownedOccupancy($tenant->id, $data['occupancy_id']);
         $session = $occ->session_data ?? [];
@@ -350,7 +367,9 @@ class TableServiceController extends Controller
             return response()->json(['message' => 'Nothing new to send.'], 422);
         }
 
-        $res = $kitchenTicketService->fireOccupancy($occ, $cart);
+        $res = $kitchenTicketService->fireOccupancy($occ, $cart, !empty($data['offline_replay'])
+            ? ['replay' => true, 'fired_at' => $data['fired_at'] ?? null, 'only_course' => $data['course'] ?? null]
+            : []);
 
         return response()->json($this->cardFor($occ->fresh() ?? $occ) + [
             'sent' => $res['sent_count'],
@@ -767,6 +786,7 @@ class TableServiceController extends Controller
             'phone'          => 'nullable|string|max:40',
             'address'        => 'nullable|string|max:500',
             'delivery_fee'   => 'nullable|numeric|min:0|max:9999999',
+            'client_code'    => 'nullable|string|max:20',
         ]);
 
         $occ = Occupancy::where('tenant_id', $tenant->id)->find($data['occupancy_id']);
@@ -816,7 +836,7 @@ class TableServiceController extends Controller
                 unset($session['paid_at']);
             } else {
                 $occ->position_id = null;
-                $occ->label       = $this->nextTicketNumber((int) $tenant->id, $to);
+                $occ->label       = $this->ticketCodeFor((int) $tenant->id, $to, $data['client_code'] ?? null);
                 $session['covers'] = 0;
                 if (array_key_exists('customer_name', $data)) $session['customer_name'] = (string) $data['customer_name'];
                 if (array_key_exists('phone', $data))         $session['phone']         = (string) $data['phone'];
@@ -1219,10 +1239,19 @@ class TableServiceController extends Controller
             /* Writing an address back onto the customer record is a decision
                the operator makes, not one inferred from them typing. */
             'save_to_customer' => 'nullable|boolean',
+            'client_ref'       => 'nullable|string|max:64',
+            // The number already written on a slip printed offline, so the paper and the books agree.
+            'client_code'      => 'nullable|string|max:20',
         ]);
 
+        // Same replay rule as open(): one reference, one ticket.
+        if (!empty($data['client_ref'])) {
+            $again = $this->occupancyByClientRef((int) $tenant->id, $data['client_ref']);
+            if ($again) return response()->json(['ticket' => $this->ticketShape($again, [])]);
+        }
+
         $isDelivery = $data['order_type'] === 'delivery';
-        $code       = $this->nextTicketNumber($tenant->id, $data['order_type']);
+        $code       = $this->ticketCodeFor((int) $tenant->id, $data['order_type'], $data['client_code'] ?? null);
         $partyId    = $data['party_id'] ?? null;
         $address    = trim((string) ($data['address'] ?? ''));
 
@@ -1248,7 +1277,7 @@ class TableServiceController extends Controller
             'customer_name' => (string) ($data['customer_name'] ?? ''),
             'phone'         => (string) ($data['phone'] ?? ''),
             'address'       => $address,
-        ];
+        ] + (!empty($data['client_ref']) ? ['client_ref' => $data['client_ref']] : []);
 
         if ($isDelivery) {
             /* Resolve rider name and commission from the employee record when
@@ -2126,6 +2155,14 @@ class TableServiceController extends Controller
         return array_values($out);
     }
 
+    /** The bill a device opened under its own reference, if it got as far as the server. */
+    private function occupancyByClientRef(int $tenantId, string $ref): ?Occupancy
+    {
+        return Occupancy::where('tenant_id', $tenantId)
+            ->where('session_data->client_ref', $ref)
+            ->first();
+    }
+
     private function activeOccupancy(int $tenantId, int $positionId): ?Occupancy
     {
         return Occupancy::where('tenant_id', $tenantId)
@@ -2578,6 +2615,18 @@ class TableServiceController extends Controller
      * so the candidate is walked forward until it is actually free — the
      * collision costs one cheap query and never a duplicate ticket number.
      */
+    /** Honour a number a device already printed offline, unless today has used it. */
+    private function ticketCodeFor(int $tenantId, string $orderType, ?string $wanted): string
+    {
+        $wanted = trim((string) $wanted);
+        if ($wanted !== '') {
+            $taken = Occupancy::where('tenant_id', $tenantId)->whereNull('position_id')
+                ->whereDate('opened_at', now()->toDateString())->where('label', $wanted)->exists();
+            if (!$taken) return $wanted;
+        }
+        return $this->nextTicketNumber($tenantId, $orderType);
+    }
+
     private function nextTicketNumber(int $tenantId, string $orderType): string
     {
         $prefix = $orderType === 'delivery' ? 'DL' : 'TA';

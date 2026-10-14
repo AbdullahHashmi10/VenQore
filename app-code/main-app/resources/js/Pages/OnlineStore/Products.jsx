@@ -3,12 +3,15 @@ import { createPortal } from 'react-dom';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StoreTabs from '@/Components/Commerce/StoreTabs';
-import { Alert, Button, Pill, StatCard, inputCls } from '@/Components/Commerce/ui';
+import { ListPageFrame, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
+import { Alert, Button, Pill, inputCls } from '@/Components/Commerce/ui';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import Checkbox from '@/Components/Checkbox';
-import PremiumSelect from '@/Components/PremiumSelect';
 import { getCurrencySymbol } from '@/Utils/format';
 import { money } from '@/lib/commerce';
-import { ShieldCheck, Package, Store, Sparkles, SlidersHorizontal, X, ArrowUp, ArrowDown, ArrowUpDown, Search, ChevronDown, Settings2 } from 'lucide-react';
+import { ShieldCheck, Package, Store, Sparkles, SlidersHorizontal, X, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, Settings2, Pencil } from 'lucide-react';
 
 /** Renders a popup on the page body so no header, clock or assistant bar can sit above it. */
 const Overlay = ({ children }) => (typeof document === 'undefined' ? null : createPortal(children, document.body));
@@ -57,8 +60,8 @@ export default function Products({ alt_lang = null, store, products: pageProduct
         const on = filters.sort === k;
         const Icon = !on ? ArrowUpDown : filters.dir === 'desc' ? ArrowDown : ArrowUp;
         return (
-            <th className={`p-3.5 ${right ? 'text-right' : ''}`} aria-sort={on ? (filters.dir === 'desc' ? 'descending' : 'ascending') : 'none'}>
-                <button type="button" onClick={() => sortBy(k)} className={`inline-flex items-center gap-1 font-semibold hover:text-ink ${on ? 'text-ink' : ''}`}>
+            <th className={`p-4 text-xs font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap ${right ? 'text-right' : ''}`} aria-sort={on ? (filters.dir === 'desc' ? 'descending' : 'ascending') : 'none'}>
+                <button type="button" onClick={() => sortBy(k)} className={`inline-flex items-center gap-1 font-bold uppercase tracking-wider hover:text-ink ${on ? 'text-ink' : ''}`}>
                     {children}<Icon className={`w-3.5 h-3.5 ${on ? '' : 'opacity-40'}`} aria-hidden="true" />
                 </button>
             </th>
@@ -117,18 +120,120 @@ export default function Products({ alt_lang = null, store, products: pageProduct
         }, { preserveScroll: true, onSuccess: () => { setEdit(null); go({ page: 1 }); } });
     };
 
-    return (
-        <OneGlanceLayout title="Online Store" activeMenu="Online Store">
-            <Head title="Online products" />
-            <div className="flex flex-col min-h-full min-w-0 gap-6">
-                <StoreTabs active="products" urls={urls} status={store.status} />
+    const filterOptions = [
+        { value: 'all', label: 'All products' },
+        { value: 'published', label: 'Published online' },
+        { value: 'unpublished', label: 'Not published' },
+    ];
+    const openEdit = (p) => setEdit({ ...p, override_price: p.override_price ?? '' });
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <StatCard icon={Package} tone="brand" label="Products" hint="in your catalogue" value={stats.total.toLocaleString()} href={urls.products} />
-                    <StatCard icon={Store} tone="emerald" label="Live online" hint="customers can order" value={stats.published.toLocaleString()} href={`${urls.products}?filter=published`} valueClass="text-emerald-600" />
-                    <StatCard icon={SlidersHorizontal} tone="amber" label="Not published" hint="hidden from the shop" value={Math.max(0, stats.total - stats.published).toLocaleString()} href={`${urls.products}?filter=unpublished`} />
-                    <StatCard icon={Sparkles} tone="sky" label="Sell without stock" hint="source on order" value={stats.backorder.toLocaleString()} />
+    const actionsMenu = (
+        <>
+            {selCount > 0 && (
+                <span className="h-10 inline-flex items-center text-xs font-semibold px-3 rounded-[12px] bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 border border-brand-200 dark:border-brand-800 whitespace-nowrap">
+                    {selCount} selected
+                </span>
+            )}
+            <div className="relative">
+                <Button variant="secondary" className="!h-10 !rounded-[12px]" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
+                    Actions <ChevronDown size={14} aria-hidden="true" />
+                </Button>
+                {menuOpen && (
+                    <>
+                        <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                        <div role="menu" className="absolute right-0 mt-2 w-64 z-50 rounded-[14px] border border-line bg-surface shadow-lg py-1.5 text-sm max-h-[70vh] overflow-y-auto">
+                            <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Select</div>
+                            <MenuItem onClick={() => { handleSelectAllToggle(!allSelected); setAllMatching(false); }}>{allSelected ? 'Deselect page' : `Select all on page (${selectableIds.length})`}</MenuItem>
+                            {pagination.total > selectableIds.length && (
+                                <MenuItem onClick={() => { setAllMatching(!allMatching); setSel([]); }}>{allMatching ? 'Clear selection' : `Select all ${pagination.total.toLocaleString()} matching`}</MenuItem>
+                            )}
+                            <div className="my-1 border-t border-line" />
+                            <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Apply to selected</div>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('publish')}>Publish</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('unpublish')}>Unpublish</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('channels', { sell_without_stock: true })}>Sell without stock</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('channels', { sell_without_stock: false })}>Stop selling without stock</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => { setMenuOpen(false); setBulkReserveOpen(true); }}>Reserve for offline…</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('feature')}>Feature</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('unfeature')}>Unfeature</MenuItem>
+                            <div className="my-1 border-t border-line" />
+                            <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Where it shows</div>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: true, show_onsite: true })}>Show everywhere</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: false, show_onsite: true })}>QR menu only</MenuItem>
+                            <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: true, show_onsite: false })}>Online only</MenuItem>
+                        </div>
+                    </>
+                )}
+            </div>
+            <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Products page settings" title="Settings"
+                className="h-10 w-10 grid place-items-center rounded-[12px] border border-line bg-surface text-ink-secondary hover:text-ink hover:bg-interactive-hover">
+                <Settings2 size={18} aria-hidden="true" />
+            </button>
+        </>
+    );
+
+    const th = 'p-4 text-xs font-bold text-ink-muted uppercase tracking-wider whitespace-nowrap';
+    const sub = 'text-ink-muted font-normal';
+
+    return (
+        <OneGlanceLayout title="Online Store" activeMenu="Online Store" noPadding>
+            <Head title="Online products" />
+            <ListPageFrame className="flex flex-col gap-6 md:gap-2 min-w-0 bg-app">
+                <div className="hidden md:block shrink-0">
+                    <StoreTabs
+                        active="products"
+                        urls={urls}
+                        status={store.status}
+                        search={{ value: q, onChange: (v) => setQ(v), onKeyDown: (e) => { if (e.key === 'Enter') go({ q, page: 1 }); }, placeholder: 'Search name or SKU' }}
+                        left={<ListFilterPill icon={SlidersHorizontal} label="All products" value={filters.filter || 'all'} options={filterOptions} onChange={(val) => go({ filter: val, page: 1 })} />}
+                        extraActions={actionsMenu}
+                        action={{ label: 'Publish', icon: Store, href: '#', onClick: (e) => { e.preventDefault(); if (selCount) bulk('publish'); } }}
+                    />
                 </div>
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Products"
+                    activeId="products"
+                    navGroups={[{ id: 'store', label: 'Online Store', items: [
+                        ['home', 'Overview', urls?.home, Store],
+                        ['orders', 'Orders', urls?.orders, Package],
+                        ['products', 'Products', urls?.products, Package],
+                        ['promotions', 'Offers', urls?.promotions, Sparkles],
+                        ['catalogue', 'QR Menu & Catalogue', urls?.catalogue, Package],
+                        ['settings', 'Settings', urls?.settings, Settings2],
+                    ].filter(([, , href]) => !!href).map(([id, label, href, icon]) => ({ id, label, href, icon })) }]}
+                    links={[
+                        { label: allSelected ? 'Deselect page' : `Select all on page (${selectableIds.length})`, icon: Package, onClick: () => { handleSelectAllToggle(!allSelected); setAllMatching(false); } },
+                        ...(selCount > 0 ? [
+                            { label: `Publish (${selCount})`, icon: Store, onClick: () => bulk('publish') },
+                            { label: 'Unpublish', icon: X, onClick: () => bulk('unpublish') },
+                            { label: 'Sell without stock', icon: Sparkles, onClick: () => bulk('channels', { sell_without_stock: true }) },
+                            { label: 'Stop selling without stock', icon: Sparkles, onClick: () => bulk('channels', { sell_without_stock: false }) },
+                            { label: 'Reserve for offline…', icon: Package, onClick: () => setBulkReserveOpen(true) },
+                            { label: 'Feature', icon: Sparkles, onClick: () => bulk('feature') },
+                            { label: 'Unfeature', icon: Sparkles, onClick: () => bulk('unfeature') },
+                        ] : []),
+                        { label: 'Products settings', icon: Settings2, onClick: () => setSettingsOpen(true) },
+                    ]}
+                    filter={{
+                        active: !!filters.filter && filters.filter !== 'all',
+                        sections: [{ label: 'Show', value: filters.filter || 'all', options: [{ value: 'all', label: 'All products' }, { value: 'published', label: 'Published online' }, { value: 'unpublished', label: 'Not published' }], onSelect: (val) => go({ filter: val, page: 1 }) }],
+                    }}
+                    search={{ value: q, onChange: (v) => setQ(v), onKeyDown: (e) => { if (e.key === 'Enter') go({ q, page: 1 }); }, placeholder: 'Search name or SKU' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Products', value: stats.total.toLocaleString(), tone: 'brand', icon: Package },
+                    { label: 'Live online', value: stats.published.toLocaleString(), tone: 'emerald', icon: Store },
+                    { label: 'Not published', value: Math.max(0, stats.total - stats.published).toLocaleString(), tone: 'amber', icon: SlidersHorizontal },
+                    { label: 'Sell without stock', value: stats.backorder.toLocaleString(), tone: 'sky', icon: Sparkles },
+                ]} />
+
+                <ListStatCards cards={[
+                    { label: 'Products', value: stats.total.toLocaleString(), icon: Package, href: `${urls.products}?filter=all` },
+                    { label: 'Live online', value: stats.published.toLocaleString(), icon: Store, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600', href: `${urls.products}?filter=published` },
+                    { label: 'Not published', value: Math.max(0, stats.total - stats.published).toLocaleString(), icon: SlidersHorizontal, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', href: `${urls.products}?filter=unpublished` },
+                    { label: 'Sell without stock', value: stats.backorder.toLocaleString(), icon: Sparkles, icon_tone: 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' },
+                ]} />
 
                 {errors?.ids && <Alert kind="error">{errors.ids}</Alert>}
                 {skipped?.length > 0 && (
@@ -142,78 +247,10 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                     </Alert>
                 )}
 
-                {/* Search, filter and actions */}
-                <div className="flex flex-wrap items-center gap-3 bg-surface border border-line rounded-2xl shadow-sm p-3">
-                    <form onSubmit={(e) => { e.preventDefault(); go({ q, page: 1 }); }} className="flex gap-2 flex-1 min-w-[220px] max-w-xl">
-                        <div className="relative flex-1">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" aria-hidden="true" />
-                            <input className={`${inputCls} !pl-9`} placeholder="Search name or SKU" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search products" />
-                        </div>
-                        <Button type="submit" variant="secondary" onClick={() => {}}>Search</Button>
-                    </form>
-
-                    <div className="w-full sm:w-52">
-                        <PremiumSelect
-                            options={[
-                                { value: 'all', label: 'All products' },
-                                { value: 'published', label: 'Published online' },
-                                { value: 'unpublished', label: 'Not published' },
-                            ]}
-                            value={filters.filter || 'all'}
-                            onChange={(val) => go({ filter: val, page: 1 })}
-                            searchable={false}
-                        />
-                    </div>
-
-                    <div className="ml-auto flex items-center gap-2">
-                        {selCount > 0 && (
-                            <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
-                                {selCount} selected
-                            </span>
-                        )}
-                        <Button disabled={!selCount} onClick={() => bulk('publish')}>Publish</Button>
-                        <div className="relative">
-                            <Button variant="secondary" onClick={() => setMenuOpen((o) => !o)} aria-haspopup="menu" aria-expanded={menuOpen}>
-                                Actions <ChevronDown size={14} aria-hidden="true" />
-                            </Button>
-                            {menuOpen && (
-                                <>
-                                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                                    <div role="menu" className="absolute right-0 mt-2 w-64 z-50 rounded-2xl border border-line bg-surface shadow-lg py-1.5 text-sm max-h-[70vh] overflow-y-auto">
-                                        <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Select</div>
-                                        <MenuItem onClick={() => { handleSelectAllToggle(!allSelected); setAllMatching(false); }}>{allSelected ? 'Deselect page' : `Select all on page (${selectableIds.length})`}</MenuItem>
-                                        {pagination.total > selectableIds.length && (
-                                            <MenuItem onClick={() => { setAllMatching(!allMatching); setSel([]); }}>{allMatching ? 'Clear selection' : `Select all ${pagination.total.toLocaleString()} matching`}</MenuItem>
-                                        )}
-                                        <div className="my-1 border-t border-line" />
-                                        <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Apply to selected</div>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('publish')}>Publish</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('unpublish')}>Unpublish</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { sell_without_stock: true })}>Sell without stock</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { sell_without_stock: false })}>Stop selling without stock</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => { setMenuOpen(false); setBulkReserveOpen(true); }}>Reserve for offline…</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('feature')}>Feature</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('unfeature')}>Unfeature</MenuItem>
-                                        <div className="my-1 border-t border-line" />
-                                        <div className="px-3 pt-1 pb-1 text-3xs font-bold uppercase text-ink-muted">Where it shows</div>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: true, show_onsite: true })}>Show everywhere</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: false, show_onsite: true })}>QR menu only</MenuItem>
-                                        <MenuItem disabled={!selCount} onClick={() => bulk('channels', { show_online: true, show_onsite: false })}>Online only</MenuItem>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Products page settings" title="Settings"
-                            className="h-10 w-10 grid place-items-center rounded-xl border border-line bg-surface text-ink-secondary hover:text-ink hover:bg-interactive-hover">
-                            <Settings2 size={18} aria-hidden="true" />
-                        </button>
-                    </div>
-                </div>
-
                 {settingsOpen && (
                     <Overlay>
                         <div className="fixed inset-0 z-[200] grid place-items-center p-6 bg-black/40" role="dialog" aria-modal="true" aria-label="Products settings" onClick={() => setSettingsOpen(false)}>
-                            <div className="w-full max-w-md rounded-2xl bg-surface border border-line shadow-xl p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
+                            <div className="w-full max-w-md rounded-[14px] bg-surface border border-line shadow-xl p-5 flex flex-col gap-4" onClick={(e) => e.stopPropagation()}>
                                 <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <h2 className="text-base font-bold text-ink">Products settings</h2>
                                     <button type="button" onClick={() => setSettingsOpen(false)} aria-label="Close" className="text-ink-muted hover:text-ink"><X size={18} /></button>
@@ -225,7 +262,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                                 </div>
                                 <div className="flex flex-wrap gap-2 justify-end pt-2 border-t border-line">
                                     <Button variant="secondary" onClick={() => { setSettingsOpen(false); go({ sort: 'name', dir: 'asc', page: 1 }); }}>Reset sorting</Button>
-                                    {urls.settings && <Button variant="secondary" onClick={() => router.visit(urls.settings)}>Store settings</Button>}
+                                    {urls.settings && <Button variant="secondary" onClick={() => router.visit(urls.settings)}>Online Store settings</Button>}
                                     {urls.promotions && <Button variant="secondary" onClick={() => router.visit(urls.promotions)}>Offers</Button>}
                                 </div>
                             </div>
@@ -233,7 +270,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                     </Overlay>
                 )}
 
-                {/* Mobile Select All & List */}
+                <div className="flex-1 min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
                 <div className="md:hidden flex flex-col gap-3">
                     <div className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-surface border border-line rounded-xl shadow-xs">
                         <Checkbox
@@ -341,181 +378,135 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                 </div>
 
                 {/* Desktop Products Table */}
-                <div className="hidden md:block overflow-x-auto bg-surface border border-line rounded-2xl shadow-sm">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="text-left text-ink-muted border-b border-line bg-sunken/40">
-                                <th className="p-3.5 w-10 text-center">
-                                    <Checkbox
-                                        checked={allSelected}
-                                        indeterminate={someSelected}
-                                        aria-label="Select all products on page"
-                                        title={allSelected ? "Deselect all" : "Select all on page"}
-                                        onChange={handleSelectAllToggle}
-                                    />
-                                </th>
-                                <SortTh k="name">Product</SortTh>
-                                <SortTh k="price" right>Regular</SortTh>
-                                <th className="p-3.5 text-right">Online price</th>
-                                <th className="p-3.5 text-right">In Inventory</th>
-                                <th className="p-3.5 text-right">Offline Reserve</th>
-                                <th className="p-3.5 text-right">Online Available</th>
-                                <SortTh k="published">Status</SortTh>
-                                <th className="p-3.5 text-right"><span className="sr-only">Actions</span></th>
+                <table className="hidden md:table w-full text-left border-collapse">
+                    <thead className="bg-app border-b border-line sticky top-0 z-10">
+                        <tr>
+                            <th className="p-4 w-12 text-center">
+                                <Checkbox
+                                    checked={allSelected}
+                                    indeterminate={someSelected}
+                                    aria-label="Select all products on page"
+                                    title={allSelected ? "Deselect all" : "Select all on page"}
+                                    onChange={handleSelectAllToggle}
+                                />
+                            </th>
+                            <SortTh k="name">Product</SortTh>
+                            <SortTh k="price" right>Regular</SortTh>
+                            <th className={`${th} text-right`}>Online price</th>
+                            <th className={`${th} text-right`}>In Inventory</th>
+                            <th className={`${th} text-right`}>Offline Reserve</th>
+                            <th className={`${th} text-right`}>Online Available</th>
+                            <SortTh k="published">Status</SortTh>
+                            <th className="p-4 w-16 text-right"><span className="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-line">
+                        {products.length === 0 && (
+                            <tr className="h-14">
+                                <td colSpan={9} className="p-4 text-sm text-center text-ink-muted">
+                                    No products match the filter or search query.
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody className="divide-y divide-line">
-                            {products.length === 0 && (
-                                <tr>
-                                    <td colSpan={9} className="p-4 sm:p-8 text-center text-ink-muted">
-                                        No products match the filter or search query.
-                                    </td>
-                                </tr>
-                            )}
-                            {products.map((p) => (
-                                <tr key={p.id} className="hover:bg-interactive-hover transition-colors align-top">
-                                    <td className="p-3.5 text-center pt-4">
-                                        <Checkbox
-                                            aria-label={`Select ${p.name}`}
-                                            disabled={!!p.blocked_reason}
-                                            checked={sel.includes(p.id)}
-                                            onChange={() => toggle(p.id)}
-                                        />
-                                    </td>
-                                    <td className="p-3.5">
-                                        <div className="flex items-center gap-3">
-                                            {p.image_url ? (
-                                                <img src={p.image_url} alt="" loading="lazy" className="w-11 h-11 rounded-xl object-cover shrink-0" />
-                                            ) : (
-                                                <div className="w-11 h-11 rounded-xl bg-sunken shrink-0 grid place-items-center text-ink-muted" aria-hidden="true">
-                                                    <Package size={18} />
-                                                </div>
+                        )}
+                        {products.map((p) => {
+                            const avail = p.online_available == null ? null : Number(p.online_available);
+                            return (
+                            <tr key={p.id} onClick={() => { if (!p.blocked_reason) openEdit(p); }}
+                                className="h-14 hover:bg-brand-50/50 dark:hover:bg-brand-900/10 transition-all group cursor-pointer border-l-4 border-transparent hover:border-brand-400">
+                                <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                    <Checkbox
+                                        aria-label={`Select ${p.name}`}
+                                        disabled={!!p.blocked_reason}
+                                        checked={sel.includes(p.id)}
+                                        onChange={() => toggle(p.id)}
+                                    />
+                                </td>
+                                <td className="p-4 text-sm max-w-0 w-[34%]">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        {p.image_url ? (
+                                            <img src={p.image_url} alt="" loading="lazy" className="h-9 w-9 rounded-[12px] object-cover shrink-0" />
+                                        ) : (
+                                            <div className="h-9 w-9 rounded-[12px] bg-sunken shrink-0 grid place-items-center text-ink-muted" aria-hidden="true">
+                                                <Package size={16} />
+                                            </div>
+                                        )}
+                                        <div className="min-w-0 flex items-center gap-2">
+                                            <span className="font-medium text-ink truncate" title={p.name}>{p.name}</span>
+                                            {p.featured && (
+                                                <span className="shrink-0 inline-flex items-center px-1.5 rounded-full text-2xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Featured in your store catalogue">★</span>
                                             )}
-                                            <div>
-                                                <div className="font-medium text-ink flex items-center gap-1.5">
-                                                    <span>{p.name}</span>
-                                                    {p.featured && (
-                                                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-bold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Featured in your store catalogue">
-                                                            ★ Featured
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div className="text-xs text-ink-muted">
-                                                    {p.sku}{!p.has_image && ' · no photo'}
-                                                </div>
-                                            </div>
+                                            <span className="text-xs text-ink-muted truncate shrink-[2]">{p.sku}{!p.has_image && ' · no photo'}</span>
                                         </div>
-                                    </td>
-                                    <td className="p-3.5 text-right tabular-nums pt-4 font-medium text-ink-secondary">
-                                        {money(p.regular_price, sym)}
-                                    </td>
-                                    <td className="p-3.5 text-right tabular-nums pt-4">
-                                        <div className="font-semibold text-ink">{money(p.online_price, sym)}</div>
-                                        <div className="text-2xs text-ink-muted">
-                                            {p.rule === 'fixed_override' ? 'fixed online price' : p.rule === 'percent' ? 'store pricing rule' : 'regular price'}
-                                        </div>
-                                        {p.below_cost && (
-                                            <div className="text-2xs text-red-600 font-semibold">
-                                                below cost{p.allow_below_cost ? ' (approved)' : ''}
-                                            </div>
-                                        )}
-                                    </td>
-                                    {p.made_to_order ? (
-                                        <td colSpan={3} className="p-3.5 pt-4 text-center">
-                                            <span className="text-xs font-semibold text-ink-secondary">Not tracked</span>
-                                            <span className="block text-2xs text-ink-muted">Made to order: always available</span>
-                                        </td>
-                                    ) : (
-                                        <>
-                                    {/* In Inventory Column */}
-                                    <td className="p-3.5 text-right tabular-nums pt-4">
-                                        {p.physical_stock == null ? (
-                                            <span className="text-ink-muted">—</span>
-                                        ) : (
-                                            <div>
-                                                <span className="font-semibold text-ink">{p.physical_stock}</span>
-                                                <span className="text-3xs text-ink-muted block">in warehouse</span>
-                                            </div>
-                                        )}
-                                    </td>
-                                    {/* Offline Reserve Column */}
-                                    <td className="p-3.5 text-right tabular-nums pt-4">
-                                        {Number(p.offline_reserve) > 0 ? (
-                                            <div>
-                                                <span className="font-semibold text-amber-600 dark:text-amber-400">
-                                                    {p.offline_reserve}
-                                                </span>
-                                                <span className="text-3xs text-ink-muted block">kept for shop</span>
-                                            </div>
-                                        ) : (
-                                            <span className="text-ink-muted">0</span>
-                                        )}
-                                    </td>
-                                    {/* Online Available Column */}
-                                    <td className="p-3.5 text-right tabular-nums pt-4">
-                                        {p.online_available == null ? (
-                                            <span className="text-ink-muted">—</span>
-                                        ) : (
-                                            <div className="inline-flex flex-col items-end">
-                                                <span className={`font-bold ${Number(p.online_available) <= 0 ? 'text-rose-600' : Number(p.online_available) <= 5 ? 'text-amber-600' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                                    {p.online_available}
-                                                </span>
-                                                {Number(p.online_available) <= 0 ? (
-                                                    <span className="text-2xs font-bold text-rose-600">Sold out online</span>
-                                                ) : Number(p.online_available) <= 5 ? (
-                                                    <span className="text-2xs font-semibold text-amber-600">Low online stock</span>
-                                                ) : (
-                                                    <span className="text-3xs text-ink-muted">for online orders</span>
-                                                )}
-                                                {p.online_stock_limit != null && (
-                                                    <span className="text-3xs text-ink-muted">(cap: {p.online_stock_limit})</span>
-                                                )}
-                                            </div>
-                                        )}
-                                    </td>
-                                        </>
+                                    </div>
+                                </td>
+                                <td className="p-4 text-sm text-right tabular-nums whitespace-nowrap font-medium text-ink-secondary">
+                                    {money(p.regular_price, sym)}
+                                </td>
+                                <td className="p-4 text-sm text-right tabular-nums whitespace-nowrap" title={p.rule === 'fixed_override' ? 'fixed online price' : p.rule === 'percent' ? 'store pricing rule' : 'regular price'}>
+                                    <span className="font-semibold text-ink">{money(p.online_price, sym)}</span>
+                                    {p.below_cost && (
+                                        <span className="ml-2 text-2xs text-red-600 font-semibold">below cost{p.allow_below_cost ? ' (ok)' : ''}</span>
                                     )}
-                                    {/* Status Column */}
-                                    <td className="p-3.5 pt-4">
-                                        {p.sell_without_stock && (
-                                            <div className="mb-1"><Pill tone="bg-sky-100 text-sky-800">Sells without stock</Pill></div>
-                                        )}
+                                </td>
+                                {p.made_to_order ? (
+                                    <td colSpan={3} className="p-4 text-sm text-center whitespace-nowrap" title="Made to order: always available">
+                                        <span className="text-xs font-semibold text-ink-secondary">Not tracked</span>
+                                        <span className={`${sub} text-2xs ml-2`}>made to order</span>
+                                    </td>
+                                ) : (
+                                    <>
+                                        <td className="p-4 text-sm text-right tabular-nums whitespace-nowrap">
+                                            {p.physical_stock == null ? <span className="text-ink-muted">—</span> : <span className="font-semibold text-ink">{p.physical_stock}</span>}
+                                        </td>
+                                        <td className="p-4 text-sm text-right tabular-nums whitespace-nowrap">
+                                            {Number(p.offline_reserve) > 0
+                                                ? <span className="font-semibold text-amber-600 dark:text-amber-400">{p.offline_reserve}</span>
+                                                : <span className="text-ink-muted">0</span>}
+                                        </td>
+                                        <td className="p-4 text-sm text-right tabular-nums whitespace-nowrap" title={p.online_stock_limit != null ? `Cap: ${p.online_stock_limit}` : undefined}>
+                                            {avail == null ? (
+                                                <span className="text-ink-muted">—</span>
+                                            ) : (
+                                                <>
+                                                    {avail <= 0 && <span className="mr-2 text-2xs font-bold text-rose-600">Sold out</span>}
+                                                    {avail > 0 && avail <= 5 && <span className="mr-2 text-2xs font-semibold text-amber-600">Low</span>}
+                                                    <span className={`font-bold ${avail <= 0 ? 'text-rose-600' : avail <= 5 ? 'text-amber-600' : 'text-emerald-600 dark:text-emerald-400'}`}>{p.online_available}</span>
+                                                </>
+                                            )}
+                                        </td>
+                                    </>
+                                )}
+                                <td className="p-4 text-sm whitespace-nowrap">
+                                    <div className="flex items-center gap-2">
                                         {p.blocked_reason ? (
-                                            <span title={p.blocked_reason}>
-                                                <Pill tone="bg-neutral-200 text-neutral-700">Unavailable</Pill>
-                                                <div className="text-2xs text-ink-muted mt-1 max-w-44 leading-tight">{p.blocked_reason}</div>
-                                            </span>
+                                            <span title={p.blocked_reason}><Pill tone="bg-neutral-200 text-neutral-700">Unavailable</Pill></span>
                                         ) : p.published && p.below_cost && !p.allow_below_cost ? (
-                                            <span>
-                                                <Pill tone="bg-amber-100 text-amber-800">Hidden from shop</Pill>
-                                                <div className="text-2xs text-ink-muted mt-1 max-w-44 leading-tight">Below cost. Approve in Edit or raise price.</div>
-                                            </span>
+                                            <span title="Below cost. Approve in Edit or raise price."><Pill tone="bg-amber-100 text-amber-800">Hidden from shop</Pill></span>
                                         ) : p.published ? (
                                             <Pill tone="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">Live online</Pill>
                                         ) : (
                                             <Pill>Not published</Pill>
                                         )}
-                                    </td>
-                                    {/* Actions */}
-                                    <td className="p-3.5 text-right pt-3.5">
-                                        {!p.blocked_reason && (
-                                            <Button
-                                                variant="secondary"
-                                                className="!py-1.5 !px-3 text-xs font-semibold"
-                                                onClick={() => setEdit({ ...p, override_price: p.override_price ?? '' })}
-                                            >
-                                                Edit
-                                            </Button>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                        {p.sell_without_stock && <Pill tone="bg-sky-100 text-sky-800">No-stock sales</Pill>}
+                                    </div>
+                                </td>
+                                <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                    {!p.blocked_reason && (
+                                        <button type="button" onClick={() => openEdit(p)} aria-label={`Edit ${p.name}`} title="Edit"
+                                            className="h-8 w-8 inline-grid place-items-center rounded-[12px] border border-line bg-surface text-ink-secondary hover:text-ink hover:bg-interactive-hover">
+                                            <Pencil size={14} aria-hidden="true" />
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
 
                 <div ref={sentinel} className="py-4 text-center text-xs text-ink-muted" aria-live="polite">
                     {hasMore ? (loadingMore ? 'Loading more products…' : 'Scroll for more') : `Showing all ${products.length} of ${pagination.total} products`}
+                </div>
                 </div>
 
                 {/* Bulk Offline Reserve Modal */}
@@ -526,7 +517,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                         style={{ zIndex: 100000 }}
                         aria-modal="true"
                     >
-                        <div className="bg-surface border border-line rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
+                        <div className="bg-surface border border-line rounded-[14px] p-6 w-full max-w-md shadow-2xl space-y-4">
                             <div className="flex flex-wrap items-center justify-between gap-y-2">
                                 <div className="flex items-center gap-2">
                                     <Store size={18} className="text-brand-600" />
@@ -574,7 +565,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                         aria-modal="true"
                         aria-label={`Edit ${edit.name}`}
                     >
-                        <div className="bg-surface border border-line rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
+                        <div className="bg-surface border border-line rounded-[14px] p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto space-y-4 shadow-2xl">
                             <div className="flex flex-wrap items-center justify-between gap-y-2 pb-2 border-b border-line">
                                 <div>
                                     <h2 className="font-bold text-lg text-ink leading-tight">{edit.name}</h2>
@@ -588,9 +579,9 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                             {/* Product Image */}
                             <div className="flex items-center gap-3">
                                 {edit.image_url ? (
-                                    <img src={edit.image_url} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0 border border-line" />
+                                    <img src={edit.image_url} alt="" className="w-16 h-16 rounded-[14px] object-cover shrink-0 border border-line" />
                                 ) : (
-                                    <div className="w-16 h-16 rounded-xl bg-sunken shrink-0 grid place-items-center text-ink-muted" aria-hidden="true">
+                                    <div className="w-16 h-16 rounded-[14px] bg-sunken shrink-0 grid place-items-center text-ink-muted" aria-hidden="true">
                                         <Package size={22} />
                                     </div>
                                 )}
@@ -620,11 +611,11 @@ export default function Products({ alt_lang = null, store, products: pageProduct
 
                             {/* INVENTORY ALLOCATION & OFFLINE RESERVE SECTION: only for items whose stock is tracked */}
                             {edit.made_to_order ? (
-                                <div className="rounded-xl border border-line p-3.5 bg-sunken/40 text-xs text-ink-secondary">
+                                <div className="rounded-[14px] border border-line p-3.5 bg-sunken/40 text-xs text-ink-secondary">
                                     <b className="text-ink">Inventory tracking is off</b> for this item, so it is made to order and always available. There is no stock, reserve or limit to set.
                                 </div>
                             ) : (
-                                                        <div className="rounded-xl border border-line p-3.5 space-y-3 bg-sunken/40">
+                                                        <div className="rounded-[14px] border border-line p-3.5 space-y-3 bg-sunken/40">
                                 <div className="flex flex-wrap items-center justify-between gap-y-2">
                                     <div className="flex items-center gap-2">
                                         <Store size={16} className="text-brand-600 dark:text-brand-400" />
@@ -665,7 +656,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                                         <span className="text-3xs text-ink-muted mt-1 block">Max units published</span>
                                     </label>
                                 </div>
-                                <div className="p-2.5 rounded-lg bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2 text-xs">
+                                <div className="p-2.5 rounded-[12px] bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2 text-xs">
                                     <span className="text-ink-secondary">Available for online orders:</span>
                                     <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
                                         {Math.max(0, (Number(edit.physical_stock) || 0) - (Number(edit.offline_reserve) || 0))} units
@@ -697,7 +688,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                                 </label>
                             )}
 
-                            <div className="rounded-xl border border-line p-3 space-y-2">
+                            <div className="rounded-[14px] border border-line p-3 space-y-2">
                                 <div className="text-sm font-semibold text-ink">Dietary tags (shown on the QR menu)</div>
                                 <div className="flex flex-wrap gap-2">
                                     {[['veg', 'Vegetarian'], ['vegan', 'Vegan'], ['halal', 'Halal'], ['spicy', 'Spicy'], ['gluten_free', 'Gluten free'], ['contains_nuts', 'Contains nuts'], ['contains_dairy', 'Contains dairy']].map(([k, label]) => {
@@ -708,7 +699,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                                 <input className={inputCls} maxLength={190} value={edit.allergens || ''} placeholder="Allergen note, e.g. made with sesame" onChange={(e) => setEdit({ ...edit, allergens: e.target.value })} />
                             </div>
 
-                            <div className="rounded-xl border border-line p-3 space-y-2">
+                            <div className="rounded-[14px] border border-line p-3 space-y-2">
                                 <div className="text-sm font-semibold text-ink">Where this item appears</div>
                                 <label className="flex items-center gap-2 text-sm text-ink">
                                     <input type="checkbox" checked={edit.show_online !== false} onChange={(e) => setEdit({ ...edit, show_online: e.target.checked })} />
@@ -731,7 +722,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                             </label>
 
                             {/* Sizes, Colours & Options */}
-                            <div className="rounded-xl border border-line p-3 space-y-2">
+                            <div className="rounded-[14px] border border-line p-3 space-y-2">
                                 <div className="text-sm font-semibold text-ink">Sizes, colours and grouped options</div>
                                 <p className="text-xs text-ink-muted">
                                     Give each size or colour its own product (its own stock and price), then assign them the same group name.
@@ -802,7 +793,7 @@ export default function Products({ alt_lang = null, store, products: pageProduct
                         </div>
                     </dialog></Overlay>
                 )}
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

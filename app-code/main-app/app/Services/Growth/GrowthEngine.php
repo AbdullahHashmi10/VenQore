@@ -154,8 +154,14 @@ class GrowthEngine
                 }
             }
 
+            // A run where every brain threw is a failure, not "nothing found" —
+            // otherwise the owner is told all is well while nothing was analysed.
+            $brainErrors = array_filter($timings, fn ($v, $k) => str_ends_with((string) $k, '_error'), ARRAY_FILTER_USE_BOTH);
+            $allFailed   = count($brainErrors) > 0 && count($brainErrors) >= count($this->brainsFor($mode));
+
             $run->update([
-                'status'             => 'success',
+                'status'             => $allFailed ? 'failed' : 'success',
+                'error'              => $brainErrors ? Str::limit(implode("\n", array_map(fn ($k, $v) => "{$k}: {$v}", array_keys($brainErrors), $brainErrors)), 4000) : null,
                 'finished_at'        => now(),
                 'duration_ms'        => (int) ((microtime(true) - $started) * 1000),
                 'signals_created'    => $created,
@@ -166,6 +172,15 @@ class GrowthEngine
                 'data_watermark'     => $watermark,
                 'brain_timings'      => $timings,
             ]);
+
+            // Urgent findings go straight to the notification bell instead of waiting to be noticed.
+            if (! $allFailed && $tenant) {
+                try {
+                    app(\App\Services\Notifications\NotificationPublisher::class)->publishUrgentInsights($tenant);
+                } catch (\Throwable $e) {
+                    Log::warning("[GrowthEngine] Urgent alerts failed for tenant {$tenantId}: " . $e->getMessage());
+                }
+            }
 
         } catch (\Throwable $e) {
             Log::error("[GrowthEngine] Run failed for tenant {$tenantId}: " . $e->getMessage(), ['exception' => $e]);
@@ -298,7 +313,17 @@ class GrowthEngine
             ->latest('created_at')
             ->first();
 
+        $lastAny = GrowthRun::withoutTenantScope()->where('tenant_id', $tenantId)->latest('created_at')->first();
+        $errors  = [];
+        foreach ((array) ($lastAny?->brain_timings ?? []) as $k => $v) {
+            if (str_ends_with((string) $k, '_error')) {
+                $errors[substr((string) $k, 0, -6)] = (string) $v;
+            }
+        }
+
         return [
+            'brain_errors' => $errors,
+            'last_failed'  => $lastAny && $lastAny->status === 'failed',
             'has_run'      => (bool) $last,
             'last_run_at'  => $last?->finished_at?->toIso8601String(),
             'last_mode'    => $last?->mode,
@@ -306,5 +331,34 @@ class GrowthEngine
             'customers'    => $last?->customers_analysed ?? 0,
             'products'     => $last?->products_analysed ?? 0,
         ];
+    }
+
+    /**
+     * Self-running mode: no cron and no queue worker needed.
+     *
+     * The scheduled commands and the 'growth' queue only help when the host runs `schedule:run` and a worker. When
+     * they are not running, nothing ever analyses the data. So whenever the owner (or the notification bell) touches
+     * the store and the last analysis is older than $staleHours, the analysis runs right after that response is
+     * sent, once per tenant at a time, retrying no more often than every 20 minutes. A watermark makes an unchanged
+     * store a one-query no-op.
+     */
+    public function ensureFresh(int|string $tenantId, int $staleHours = 3): void
+    {
+        try {
+            $tenant = Tenant::find($tenantId);
+            if (! $tenant || ! \App\Services\ModuleService::enabled($tenant, 'ai_insights')) {
+                return;
+            }
+            $last = GrowthRun::withoutTenantScope()->where('tenant_id', $tenantId)->whereIn('status', ['success', 'skipped'])->latest('created_at')->first();
+            if ($last && $last->created_at->gt(now()->subHours($staleHours))) {
+                return;
+            }
+            if (! \Illuminate\Support\Facades\Cache::add("growth-auto:{$tenantId}", 1, now()->addMinutes(20))) {
+                return;
+            }
+            \App\Jobs\RunGrowthEngineForTenant::dispatchAfterResponse($tenantId, 'deep', false);
+        } catch (\Throwable $e) {
+            Log::warning('[GrowthEngine] auto-run could not start: ' . $e->getMessage());
+        }
     }
 }

@@ -29,6 +29,13 @@ class DiscoverySession
     public const MAX_TURNS      = 4;   // round one
     public const MAX_TURNS_DEEP = 10;  // once they have asked for a closer fit
 
+    /* Questions are never cut short below this, in either round. Two answers is
+       not enough to recommend anything with a straight face. */
+    public const MIN_ROUND_TURNS = 3;
+    /* The second round asks 3–5 more: it stops at 3 once the picture is clear,
+       and never runs past 5. */
+    public const DEEP_ROUND_TURNS = 5;
+
     public function __construct(
         public string $sessionId,
         public string $language = 'en',
@@ -42,6 +49,8 @@ class DiscoverySession
         public array $skipped = [],         // ['loyalty_points', ...]
         // 1 = the short opening round, 2 = the deeper round they opted into.
         public int $depth = 1,
+        // turnCount when the deeper round began, so that round has its own 3–5 budget.
+        public int $deepStartTurn = 0,
         public array $history = [],
         public ?array $currentQuestion = null,
         public bool $isComplete = false,
@@ -77,6 +86,7 @@ class DiscoverySession
             rejected: $data['rejected'] ?? [],
             skipped: $data['skipped'] ?? [],
             depth: (int) ($data['depth'] ?? 1),
+            deepStartTurn: (int) ($data['deep_start_turn'] ?? 0),
             history: $data['history'] ?? [],
             currentQuestion: $data['current_question'] ?? null,
             isComplete: (bool) ($data['is_complete'] ?? false),
@@ -118,6 +128,7 @@ class DiscoverySession
             'rejected'                   => array_values(array_unique($this->rejected)),
             'skipped'                    => array_values(array_unique($this->skipped)),
             'depth'                      => $this->depth,
+            'deep_start_turn'            => $this->deepStartTurn,
             'history'                    => $this->history,
             'current_question'           => $this->currentQuestion,
             'is_complete'                => $this->isComplete,
@@ -179,7 +190,15 @@ class DiscoverySession
     /** How many turns this session may spend, at the depth it is currently at. */
     public function maxTurns(): int
     {
-        return $this->depth >= 2 ? self::MAX_TURNS_DEEP : self::MAX_TURNS;
+        return $this->depth >= 2
+            ? min(self::MAX_TURNS_DEEP, $this->deepStartTurn + self::DEEP_ROUND_TURNS)
+            : self::MAX_TURNS;
+    }
+
+    /** Answers given in the round currently running (not the whole session). */
+    public function roundTurns(): int
+    {
+        return $this->depth >= 2 ? max(0, $this->turnCount - $this->deepStartTurn) : $this->turnCount;
     }
 
     /**
@@ -190,6 +209,7 @@ class DiscoverySession
     public function deepen(): void
     {
         $this->depth = 2;
+        $this->deepStartTurn = $this->turnCount;
         $this->isComplete = false;
         $this->proposal = null;
     }

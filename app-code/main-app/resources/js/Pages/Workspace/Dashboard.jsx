@@ -316,18 +316,60 @@ export default function WorkspaceDashboard({ catalog, sizePresets, layout: initi
     });
 
     return (
-        <OneGlanceLayout activeMenu="Dashboard" title="Dashboard" noPadding>
+        <OneGlanceLayout activeMenu="Dashboard" title="Dashboard" noPadding dockInset>
             <Head title="Dashboard" />
 
             {/* The grid library ships unthemed defaults. Rather than a second
                 stylesheet, these few rules bind its two visual affordances to
                 the design tokens — everything else it does is layout maths. */}
             <style>{`
+                /* ── Drag feel ─────────────────────────────────────────────
+                   react-grid-layout owns position (transform on the item), so the
+                   lift/shadow is applied to the card INSIDE the item. Neighbours
+                   glide to their new slot with a soft spring-like curve; the card
+                   being dragged follows the pointer with no lag (RGL turns the
+                   transition off while dragging) and settles into its slot on drop. */
+                .vq-workspace .react-grid-item.cssTransforms {
+                    transition-property: transform, width, height;
+                    transition-duration: 420ms;
+                    transition-timing-function: cubic-bezier(0.22, 1.12, 0.36, 1);
+                }
+                .vq-workspace .react-grid-item.react-draggable-dragging,
+                .vq-workspace .react-grid-item.resizing { transition: none; }
+                .vq-workspace .react-grid-item > article {
+                    transition: transform 260ms cubic-bezier(0.22, 1.25, 0.36, 1),
+                                box-shadow 260ms var(--vq-ease-standard),
+                                opacity 200ms var(--vq-ease-standard);
+                    transform-origin: 50% 40%;
+                    will-change: transform;
+                }
+                .vq-workspace .react-grid-item.react-draggable-dragging { z-index: 40; }
+                .vq-workspace .react-grid-item.react-draggable-dragging > article {
+                    transform: scale(1.035) rotate(0.4deg);
+                    box-shadow: 0 22px 44px -12px rgb(0 0 0 / 0.28), 0 8px 16px -8px rgb(0 0 0 / 0.18);
+                    border-style: solid;
+                }
+                .vq-workspace .react-grid-item.vq-landed > article {
+                    animation: vq-landed 650ms var(--vq-ease-standard) 1;
+                }
+                @keyframes vq-landed {
+                    0%   { box-shadow: 0 0 0 0 rgb(var(--vq-ramp-brand-500) / 0.55); }
+                    100% { box-shadow: 0 0 0 10px rgb(var(--vq-ramp-brand-500) / 0); }
+                }
                 .vq-workspace .react-grid-item.react-grid-placeholder {
-                    background: rgb(var(--vq-ramp-brand-500) / 0.16);
-                    border: 1px dashed rgb(var(--vq-ramp-brand-500) / 0.5);
+                    background: rgb(var(--vq-ramp-brand-500) / 0.12);
+                    border: 1px dashed rgb(var(--vq-ramp-brand-500) / 0.55);
                     border-radius: var(--vq-radius-2xl);
                     opacity: 1;
+                    transition-duration: 320ms;
+                }
+                .vq-workspace .vq-drag-handle { transition: transform 160ms var(--vq-ease-standard), color 160ms var(--vq-ease-standard); }
+                .vq-workspace .vq-drag-handle:hover { transform: scale(1.18); }
+                @media (prefers-reduced-motion: reduce) {
+                    .vq-workspace .react-grid-item.cssTransforms,
+                    .vq-workspace .react-grid-item > article { transition: none; }
+                    .vq-workspace .react-grid-item.react-draggable-dragging > article { transform: none; }
+                    .vq-workspace .react-grid-item.vq-landed > article { animation: none; }
                 }
                 .vq-workspace .react-resizable-handle {
                     opacity: 0;
@@ -453,7 +495,13 @@ export default function WorkspaceDashboard({ catalog, sizePresets, layout: initi
                                 // regardless of what a saved layout claims.
                                 compactType="vertical"
                                 preventCollision={false}
-                                onDragStop={onGridChange}
+                                onDragStop={(next, _o, _n, _p, _e, el) => {
+                                    onGridChange(next);
+                                    if (el?.classList) {
+                                        el.classList.add('vq-landed');
+                                        setTimeout(() => el.classList.remove('vq-landed'), 700);
+                                    }
+                                }}
                                 onResizeStop={onGridChange}
                             >
                                 {ordered.map((item, index) => (

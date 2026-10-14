@@ -1,33 +1,45 @@
-import React, { useState } from 'react';
-import { router, usePage, Head, Link } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import React, { useState, useMemo } from 'react';
+import { router, usePage, Link } from '@inertiajs/react';
 import {
- TrendingUp, TrendingDown, DollarSign, ArrowLeft,
- Info, HelpCircle, Activity, Zap, Target, Lightbulb,
- ArrowUpRight, ShieldCheck, X, Loader2, CreditCard, AlertCircle, FileText,
- Printer, Edit, MessageCircle, RefreshCcw
+ TrendingUp, DollarSign, Activity, Zap, X, Loader2, CreditCard, AlertCircle, FileText,
+ Printer, Edit, MessageCircle, Receipt, PieChart as PieIcon, CalendarDays, Users, BarChart3
 } from 'lucide-react';
-import {
- AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
-} from 'recharts';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 import PrintService from '@/Utils/PrintService';
-
-import { vq } from '@/theme/runtime';
+import {
+ ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, DateRangeFilter,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 import { useTermText } from '@/lib/terms';
+
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** The backend names each day "dd Mon"; turn that back into an ISO date, rolling the year forward when months wrap. */
+function labelsToIso(rows, startDate) {
+ let year = startDate ? Number(String(startDate).slice(0, 4)) : new Date().getFullYear();
+ let prev = -1;
+ return rows.map((r) => {
+ const [dd, mon] = String(r.name || '').split(' ');
+ const m = MONTHS.indexOf(mon);
+ if (m < 0) return null;
+ const stamp = m * 100 + Number(dd);
+ if (prev >= 0 && stamp < prev) year += 1;
+ prev = stamp;
+ return { x: `${year}-${pad(m + 1)}-${pad(Number(dd))}`, y: Number(r.value) || 0 };
+ }).filter(Boolean);
+}
+
 export default function SalesReport({ sales = [], stats = {}, chartData = [], filters = {} }) {
- const {
- store
- } = usePage().props;
+ const { store } = usePage().props;
 
  // Guard: Prevent rendering until store context is derived
  if (!store?.slug) return null;
 
  const tt = useTermText();
- const { props } = usePage();
  const [startDate, setStartDate] = useState(filters.start_date || '');
  const [endDate, setEndDate] = useState(filters.end_date || '');
- const [range, setRange] = useState(filters.range || 'this_month');
 
  // Analysis State
  const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -40,23 +52,14 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
  // --- Handlers ---
- const handleRangeChange = (r) => {
- setRange(r);
- if (r !== 'custom') {
+ const applyRange = ({ from, to }) => {
+ setStartDate(from || '');
+ setEndDate(to || '');
+ if (from && to) {
  router.get(route("store.reports.sales", {
  store_slug: store.slug
- }), { range: r }, { preserveState: true, preserveScroll: true });
+ }), { range: 'custom', start_date: from, end_date: to }, { preserveState: true, preserveScroll: true });
  }
- };
-
- const applyCustomRange = () => {
- router.get(route("store.reports.sales", {
- store_slug: store.slug
- }), {
- range: 'custom',
- start_date: startDate,
- end_date: endDate
- }, { preserveState: true, preserveScroll: true });
  };
 
  const runAnalysis = () => {
@@ -95,188 +98,125 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  }, 1500);
  };
 
+ // --- Derived chart data (from the props the controller already sends) ---
+ const trendPoints = useMemo(() => labelsToIso(chartData, startDate), [chartData, startDate]);
+
+ const statusOf = (sale) => {
+ const due = (Number(sale.total_amount) || 0) - (Number(sale.paid_amount) || 0);
+ return due > 5 ? 'Unpaid' : 'Paid';
+ };
+ const dateOf = (sale) => sale.posted_at || sale.created_at;
+
+ const topCustomers = useMemo(() => {
+ const map = {};
+ sales.forEach((s) => {
+ const name = s.party?.name || tt('Walk-in Customer');
+ map[name] = map[name] || { value: 0, n: 0 };
+ map[name].value += Number(s.total_amount) || 0;
+ map[name].n += 1;
+ });
+ return Object.entries(map).map(([label, v]) => ({ label, value: v.value, sub: `${v.n} invoices` })).sort((a, b) => b.value - a.value);
+ }, [sales]);
+
+ const byWeekday = useMemo(() => {
+ const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+ const totals = names.map(() => 0);
+ sales.forEach((s) => {
+ const d = dateOf(s);
+ if (!d) return;
+ const dt = new Date(d);
+ if (Number.isNaN(dt.getTime())) return;
+ totals[dt.getDay()] += Number(s.total_amount) || 0;
+ });
+ return names.map((n, i) => ({ x: n, y: totals[i] }));
+ }, [sales]);
+
+ const paymentSlices = [
+ { name: 'Collected', value: Number(stats.total_paid) || 0 },
+ { name: 'Outstanding', value: Number(stats.total_due) || 0 },
+ ].filter((s) => s.value > 0);
+
+ const columns = [
+ { key: 'ref', label: 'Ref #', sortable: true, get: (s) => `#${s.invoice_number || s.reference_number}`, render: (s) => <span className="font-mono font-bold text-brand-600 dark:text-brand-400">#{s.invoice_number || s.reference_number}</span> },
+ { key: 'date', label: 'Date', sortable: true, get: (s) => (dateOf(s) ? ymd(new Date(dateOf(s))) : ''), render: (s) => (dateOf(s) ? formatDate(dateOf(s)) : '') },
+ { key: 'customer', label: tt('Customer'), sortable: true, get: (s) => s.party?.name || tt('Walk-in Customer') },
+ { key: 'total', label: 'Total', align: 'right', sortable: true, get: (s) => Number(s.total_amount) || 0, render: (s) => <span className="font-bold tabular-nums text-ink">{formatCurrency(Number(s.total_amount) || 0, store)}</span> },
+ { key: 'paid', label: 'Paid', align: 'right', sortable: true, get: (s) => Number(s.paid_amount) || 0, render: (s) => formatCurrency(Number(s.paid_amount) || 0, store) },
+ { key: 'status', label: 'Status', align: 'center', get: statusOf, render: (s) => (statusOf(s) === 'Unpaid'
+ ? <span className="rounded-[12px] bg-rose-100 px-2 py-1 text-2xs font-bold text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Unpaid</span>
+ : <span className="rounded-[12px] bg-emerald-100 px-2 py-1 text-2xs font-bold text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">Paid</span>) },
+ ];
+
+ const kpis = [
+ { label: 'Total Sales', value: formatCurrency(stats.total_sales, store), icon: TrendingUp, tone: 'emerald' },
+ { label: 'Cash Collected', value: formatCurrency(stats.total_paid, store), icon: CreditCard, tone: 'blue' },
+ { label: 'Outstanding', value: formatCurrency(stats.total_due, store), icon: AlertCircle, tone: stats.total_due > 0 ? 'rose' : 'emerald', valueTone: stats.total_due > 0 ? 'rose' : undefined },
+ { label: 'Avg Ticket', value: formatCurrency(stats.avg_ticket, store), icon: Activity, tone: 'brand' },
+ { label: 'Total Discount', value: formatCurrency(stats.total_discount, store), icon: DollarSign, tone: 'amber' },
+ { label: 'Highest Sale', value: formatCurrency(stats.max_sale, store), icon: TrendingUp, tone: 'emerald' },
+ { label: 'Total Invoices', value: formatNumber(stats.count), icon: FileText, tone: 'blue' },
+ { label: 'Unpaid Count', value: formatNumber(stats.unpaid_count), icon: AlertCircle, tone: stats.unpaid_count > 0 ? 'rose' : 'emerald' },
+ ];
+
  return (
- <ReportsLayout title="Sales Report">
- <Head title="Sales Intelligence" />
- <div className="flex flex-col h-full gap-4 w-full relative">
-
- {/* 1. Header & Controls */}
- <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
- <div className="flex items-center gap-3 pl-2">
- <Link href={route("store.reports.index", {
- store_slug: store.slug
- })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
- <ArrowLeft size={18} />
- </Link>
- <div>
- <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
- Sales <span className="text-ink-muted font-medium text-sm">Overview</span>
- </h1>
- <p className="text-xs text-ink-muted font-medium">Revenue performance & trends</p>
- </div>
- </div>
-
- <div className="flex flex-col md:flex-row items-center gap-2">
- <div className="flex bg-sunken p-1 rounded-xl">
- {[{ id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
- <button
- key={opt.id}
- onClick={() => handleRangeChange(opt.id)}
- className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${range === opt.id ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400' : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'}`}
+ <ReportShell
+ title="Sales Report"
+ subtitle="Revenue performance & trends"
+ filters={<DateRangeFilter from={startDate} to={endDate} onChange={applyRange} />}
+ actions={(
+ <button type="button" onClick={runAnalysis} disabled={isAnalyzing}
+ className="flex h-10 items-center gap-2 rounded-[12px] bg-brand-600 px-3 text-sm font-bold text-white transition-colors hover:bg-brand-700 disabled:cursor-wait disabled:opacity-50">
+ {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+ <span className="hidden sm:inline">{isAnalyzing ? 'Scanning Sales...' : 'Run Sales Diagnosis'}</span>
+ </button>
+ )}
+ exportConfig={{
+ filename: 'sales-report',
+ columns: columns.map((c) => ({ label: c.label, get: c.get })),
+ rows: sales,
+ }}
  >
- {opt.label}
- </button>
- ))}
- </div>
- {range === 'custom' && (
- <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1 rounded-xl">
- <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary" />
- <span className="text-ink-muted text-xs font-bold">TO</span>
- <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary" />
- <button onClick={applyCustomRange} className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">Apply</button>
- </div>
- )}
- </div>
- </div>
+ <ReportKpis items={kpis} />
 
- {/* 2. KPIs - Restored 8 Cards */}
- {/* 2. KPIs - Horizontal Scroll for Compact Height */}
- <div className="grid grid-cols-1 md:grid-cols-4 gap-3 shrink-0">
- <RatioCard title="Total Sales" value={formatCurrency(stats.total_sales, store)} color="emerald" icon={<TrendingUp />} />
- <RatioCard title="Cash Collected" value={formatCurrency(stats.total_paid, store)} color="blue" icon={<CreditCard />} />
- <RatioCard title="Outstanding" value={formatCurrency(stats.total_due, store)} color={stats.total_due > 0 ? "rose" : "emerald"} icon={<AlertCircle />} />
- <RatioCard title="Avg Ticket" value={formatCurrency(stats.avg_ticket, store)} color="indigo" icon={<Activity />} />
+ <ReportGrid>
+ <ReportCol span={8}>
+ <ReportSection title="Revenue Trend" subtitle="Daily net sales" icon={TrendingUp} tone="emerald">
+ <TrendChart points={trendPoints} label="Net sales" type="area" height={280} />
+ </ReportSection>
+ </ReportCol>
+ <ReportCol span={4}>
+ <ReportSection title="Collected vs Outstanding" icon={PieIcon} tone="blue">
+ <DonutChart slices={paymentSlices} height={280} />
+ </ReportSection>
+ </ReportCol>
+ </ReportGrid>
 
- <RatioCard title="Total Discount" value={formatCurrency(stats.total_discount, store)} color="amber" icon={<DollarSign />} />
- <RatioCard title="Highest Sale" value={formatCurrency(stats.max_sale, store)} color="emerald" icon={<TrendingUp />} />
- <RatioCard title="Total Invoices" value={stats.count} color="blue" icon={<FileText />} />
- <RatioCard title="Unpaid Count" value={stats.unpaid_count} color={stats.unpaid_count > 0 ? "rose" : "emerald"} icon={<AlertCircle />} />
- </div>
+ <ReportGrid>
+ <ReportCol span={6}>
+ <ReportSection title={tt('Top Customers')} subtitle="By invoice total" icon={Users} tone="violet">
+ <RankBars items={topCustomers} />
+ </ReportSection>
+ </ReportCol>
+ <ReportCol span={6}>
+ <ReportSection title="Sales by Day of Week" icon={CalendarDays} tone="amber">
+ <TrendChart points={byWeekday} label="Sales" type="bar" height={280} />
+ </ReportSection>
+ </ReportCol>
+ </ReportGrid>
 
- {/* 3. Main Content Grid */}
- <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
-
- {/* LEFT COL: Table */}
- <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden">
- <div className="p-5 border-b border-line flex justify-between items-center bg-sunken/50 dark:bg-surface">
- <h2 className="text-lg font-bold text-ink">Recent Transactions</h2>
- </div>
- <div className="flex-1 overflow-y-auto">
- <table className="w-full text-sm text-left">
- <thead className="text-xs text-ink-muted uppercase bg-app sticky top-0 backdrop-blur-sm z-10">
- <tr>
- <th className="px-6 py-3 font-bold">Ref #</th>
- <th className="px-6 py-3 font-bold">{tt('Customer')}</th>
- <th className="px-6 py-3 text-right font-bold">Total</th>
- <th className="px-6 py-3 text-right font-bold">Status</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-line">
- {sales.length > 0 ? sales.map((sale, idx) => {
- const total = Number(sale.total_amount) || 0;
- const paid = Number(sale.paid_amount) || 0;
- const due = total - paid;
- return (
- <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors cursor-pointer" onClick={() => setQuickViewSale(sale)}>
- <td className="px-6 py-3 font-mono font-bold text-brand-600 dark:text-brand-400">#{sale.invoice_number || sale.reference_number}</td>
- <td className="px-6 py-3 font-medium text-ink-secondary dark:text-ink">{sale.party?.name || tt('Walk-in Customer')}</td>
- <td className="px-6 py-3 text-right font-bold font-mono text-ink">{formatCurrency(total, store)}</td>
- <td className="px-6 py-3 text-right">
- {due > 5 ? (
- <span className="px-2 py-0.5 rounded text-2xs font-bold bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Unpaid</span>
- ) : (
- <span className="px-2 py-0.5 rounded text-2xs font-bold bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">Paid</span>
- )}
- </td>
- </tr>
- );
- }) : (
- <tr>
- <td colSpan="4" className="px-6 py-8 text-center text-ink-muted italic">No sales found for this period.</td>
- </tr>
- )}
- </tbody>
- </table>
- </div>
- </div>
-
- {/* MIDDLE COL: Visuals */}
- <div className="xl:col-span-1 flex flex-col gap-4">
- <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex-1 min-h-[300px] flex flex-col">
- <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
- <TrendingUp size={14} /> Revenue Trend
- </h3>
- <div className="flex-1 relative">
- <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
- <AreaChart data={chartData}>
- <defs>
- <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
- <stop offset="5%" stopColor={vq.emerald[500]} stopOpacity={0.3} />
- <stop offset="95%" stopColor={vq.emerald[500]} stopOpacity={0} />
- </linearGradient>
- </defs>
- <CartesianGrid strokeDasharray="3 3" stroke={vq.slate[700]} opacity={0.1} vertical={false} />
- <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: vq.slate[400] }} />
- <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
- <Area type="monotone" dataKey="value" stroke={vq.emerald[500]} strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
- </AreaChart>
- </ResponsiveContainer>
- </div>
- </div>
-
- <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
- <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
- <div className="relative z-10">
- <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">
- <HelpCircle size={14} /> Sales Tip
- </h3>
- <div className="text-xs opacity-80 leading-relaxed space-y-2">
- <p>Focus on converting <strong>Walk-in</strong> {tt('customers into registered profiles to track repeat business.')}</p>
- <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1 font-bold text-emerald-300">
- <Target size={14} /> Boost Retention
- </div>
- </div>
- </div>
- </div>
- </div>
-
- {/* RIGHT COL: Growth Engine */}
- <div className="xl:col-span-1 flex flex-col gap-4 h-full">
- <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg text-white h-full relative overflow-hidden">
- <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
- <h3 className="text-base font-bold uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
- <Zap size={18} fill="currentColor" /> Sales Engine
- </h3>
-
- <div className="space-y-4">
- <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
- <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2"><Activity size={12} /> Live Pulse</h4>
- <p className="text-1xs text-neutral-300 mobile-relaxed">Monitor real-time sales velocity and detect dips before they become trends.</p>
- </div>
- <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
- <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2"><Lightbulb size={12} /> Smart Insight</h4>
- <p className="text-1xs text-neutral-300">Reducing total outstanding by 10% improves cash flow significantly.</p>
- </div>
- </div>
-
- <button onClick={runAnalysis} disabled={isAnalyzing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait">
- {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} fill="currentColor" />}
- {isAnalyzing ? 'Scanning Sales...' : 'Run Sales Diagnosis'}
- </button>
- </div>
- </div>
- </div>
+ <ReportSection title="Recent Transactions" subtitle="Click a row for the invoice preview" icon={Receipt} flush>
+ <ReportTable columns={columns} rows={sales} rowKey={(s, i) => s.id ?? i} onRowClick={setQuickViewSale} pageSize={25} empty="No sales found for this period." />
+ </ReportSection>
 
  {/* Analysis Modal */}
  {analysisResult && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
- <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal">
+ <div className="bg-surface w-full max-w-md rounded-[14px] shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal">
  <div className="bg-brand-600 p-6 text-white relative overflow-hidden">
  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
  <div className="relative z-10">
  <div className="flex justify-between items-start mb-2">
- <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md"><Activity size={24} /></div>
+ <div className="bg-white/20 p-2 rounded-[12px] backdrop-blur-md"><Activity size={24} /></div>
  <button onClick={() => setAnalysisResult(null)} className="text-white/70 hover:text-white transition-colors"><X size={20} /></button>
  </div>
  <h2 className="text-2xl font-bold tracking-tight">Sales Intelligence</h2>
@@ -285,14 +225,14 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  </div>
  <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
  {analysisResult.insights.map((insight, idx) => (
- <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10 text-rose-700' : insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10 text-amber-700' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10 text-emerald-700' : 'bg-sunken border-brand-500 dark:bg-surface text-ink-secondary'}`}>
+ <div key={idx} className={`p-4 rounded-[12px] border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10 text-rose-700' : insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10 text-amber-700' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10 text-emerald-700' : 'bg-sunken border-brand-500 dark:bg-surface text-ink-secondary'}`}>
  <h4 className="text-sm font-bold mb-1">{insight.title}</h4>
  <p className="text-xs opacity-80">{insight.text}</p>
  </div>
  ))}
  </div>
  <div className="p-4 border-t border-line bg-app flex justify-end">
- <button onClick={() => setAnalysisResult(null)} className="px-4 py-2 bg-neutral-800 hover:bg-interactive-hover text-white text-xs font-bold rounded-lg transition-colors">Dismiss</button>
+ <button onClick={() => setAnalysisResult(null)} className="px-4 py-2 bg-neutral-800 hover:bg-interactive-hover text-white text-xs font-bold rounded-[12px] transition-colors">Dismiss</button>
  </div>
  </div>
  </div>
@@ -302,7 +242,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  {quickViewSale && (
  <div className="fixed inset-0 z-modal flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewSale(null)}>
  <div
- className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-surface rounded-2xl shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
+ className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-surface rounded-[14px] shadow-2xl border border-line overflow-hidden flex flex-col animate-in zoom-in-95 duration-normal"
  onClick={(e) => e.stopPropagation()}
  >
  {/* Header */}
@@ -325,19 +265,19 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  <div className="flex items-center gap-2 justify-end">
  <button
  onClick={() => PrintService.quickPrint(quickViewSale)}
- className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1"
+ className="px-3 py-1.5 bg-sunken text-ink-secondary text-xs font-bold rounded-[12px] hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors flex items-center gap-1"
  >
  <Printer size={14} /> Print
  </button>
  <Link
  href={route("store.sales.edit", [store.slug, quickViewSale.id])}
- className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors flex items-center gap-1"
+ className="px-3 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-[12px] hover:bg-brand-700 transition-colors flex items-center gap-1"
  >
  <Edit size={14} /> Edit Invoice
  </Link>
  <button
  onClick={() => setQuickViewSale(null)}
- className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
+ className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-[12px] text-ink-muted transition-colors"
  >
  <X size={18} />
  </button>
@@ -348,30 +288,30 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  <div className="flex-1 overflow-auto p-4">
  {/* Top Info Row */}
  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
- <div className="bg-app p-3 rounded-xl">
+ <div className="bg-app p-3 rounded-[12px]">
  <p className="text-2xs font-bold text-ink-muted uppercase mb-1">{tt('Customer')}</p>
  <p className="font-bold text-ink text-sm">{quickViewSale.party?.name || quickViewSale.customer?.name || 'Walk-in'}</p>
  {quickViewSale.party?.phone && (
  <p className="text-xs text-ink-muted">{quickViewSale.party.phone}</p>
  )}
  </div>
- <div className="bg-app p-3 rounded-xl">
+ <div className="bg-app p-3 rounded-[12px]">
  <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Date & Time</p>
  <p className="font-bold text-ink text-sm">{formatDate(quickViewSale.created_at)}</p>
  <p className="text-xs text-ink-muted">{new Date(quickViewSale.created_at).toLocaleTimeString()}</p>
  </div>
- <div className="bg-app p-3 rounded-xl">
+ <div className="bg-app p-3 rounded-[12px]">
  <p className="text-2xs font-bold text-ink-muted uppercase mb-1">Payment</p>
  <p className="font-bold text-ink text-sm uppercase">{quickViewSale.payment_method || 'Cash'}</p>
  </div>
- <div className="bg-brand-100 dark:bg-brand-900/30 p-3 rounded-xl border border-brand-200 dark:border-brand-800">
+ <div className="bg-brand-100 dark:bg-brand-900/30 p-3 rounded-[12px] border border-brand-200 dark:border-brand-800">
  <p className="text-2xs font-bold text-brand-600 uppercase mb-1">Total</p>
  <p className="font-bold text-brand-600 text-lg">{formatCurrency(quickViewSale.total_amount || quickViewSale.total, store)}</p>
  </div>
  </div>
 
  {/* Items Table */}
- <div className="border border-line rounded-xl overflow-hidden">
+ <div className="border border-line rounded-[12px] overflow-hidden">
  <div className="bg-app px-4 py-2 border-b border-line">
  <p className="text-xs font-bold text-ink-secondary uppercase">
  Items in this Invoice ({quickViewSale.sale_items?.length || quickViewSale.items?.length || 0})
@@ -431,7 +371,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)), store)}
  </p>
  </div>
- <div className="grid grid-cols-2 gap-2 text-2xs bg-surface/50 dark:bg-app p-2 rounded-lg border border-line">
+ <div className="grid grid-cols-2 gap-2 text-2xs bg-surface/50 dark:bg-app p-2 rounded-[12px] border border-line">
  <div>
  <span className="text-ink-muted block uppercase">Qty</span>
  <span className="font-bold text-ink-secondary">{formatNumber(item.quantity)}</span>
@@ -452,8 +392,8 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  </div>
 
  {/* Payment Info */}
- <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-app rounded-xl">
- <div className="flex gap-6 justify-between w-full sm:w-auto">
+ <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-app rounded-[12px]">
+ <div className="flex gap-3 justify-between w-full sm:w-auto">
  <div>
  <p className="text-2xs text-ink-muted uppercase">Paid Amount</p>
  <p className="font-bold text-emerald-600">{formatCurrency(Number(quickViewSale.paid_amount) || 0, store)}</p>
@@ -474,7 +414,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  })()}
  </div>
  <div className="flex gap-2 w-full sm:w-auto justify-end">
- <button className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1">
+ <button className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-[12px] hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1">
  <MessageCircle size={14} /> Share
  </button>
  </div>
@@ -484,21 +424,6 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
  </div>
  )}
 
- </div>
- </ReportsLayout>
- );
-}
-
-function RatioCard({ title, value, color, icon }) {
- const colors = { indigo: 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400', emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400', rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400', blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400' };
-
- return (
- <div className="bg-surface px-4 py-3 rounded-xl border border-line shadow-sm flex items-center gap-3 hover:shadow-md transition-all group">
- <div className={`p-2 rounded-lg ${colors[color]} shrink-0 transition-transform`}>
- {React.cloneElement(icon, { size: 16 })}
- </div>
- <span className="text-1xs font-bold text-ink-muted uppercase tracking-wider">{title}</span>
- <span className="ml-auto text-base font-bold text-ink tracking-tight">{value}</span>
- </div>
+ </ReportShell>
  );
 }

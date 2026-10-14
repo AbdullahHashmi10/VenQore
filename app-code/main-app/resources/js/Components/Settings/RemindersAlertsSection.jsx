@@ -8,10 +8,10 @@ export default function RemindersAlertsSection({ data, setData }) {
     const [reminderSearch, setReminderSearch] = useState('');
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
             {/* Email Notification Digests */}
-            <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Email summaries</h3>
+            <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                <h3 className="text-base font-bold text-ink border-b border-line pb-3">Email summaries</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Toggle
                         enabled={data.email_notifications !== '0' && data.email_notifications !== false}
@@ -32,18 +32,18 @@ export default function RemindersAlertsSection({ data, setData }) {
             </div>
 
             {/* Customer Overdue Payment Window */}
-            <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
+            <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-line pb-3">
                     <div>
-                        <h3 className="text-sm font-bold text-ink">Overdue payment reminders</h3>
-                        <p className="text-xs text-ink-muted">Choose when an unpaid customer bill should appear for follow-up.</p>
+                        <h3 className="text-base font-bold text-ink">Overdue payment reminders</h3>
+                        <p className="text-sm text-ink-muted">Choose when an unpaid customer bill should appear for follow-up.</p>
                     </div>
                     <Clock size={18} className="text-ink-muted" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                     <div className="space-y-1.5">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Days after the due date</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">Days after the due date</label>
                         <div className="flex items-center gap-2">
                             <input
                                 type="number"
@@ -51,13 +51,13 @@ export default function RemindersAlertsSection({ data, setData }) {
                                 max="90"
                                 value={data.payment_reminder_days || 7}
                                 onChange={e => setData('payment_reminder_days', parseInt(e.target.value, 10) || 7)}
-                                className="w-32 px-3.5 py-2 bg-app border border-line rounded-xl text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
+                                className="w-32 px-3.5 py-2 bg-app border border-line rounded-[12px] text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
                             />
-                            <span className="text-xs font-bold text-ink-muted">days past due date</span>
+                            <span className="text-sm font-bold text-ink-muted">days past due date</span>
                         </div>
                     </div>
 
-                    <div className="p-3 bg-app rounded-xl border border-line text-2xs text-ink-muted flex items-start gap-2">
+                    <div className="p-3 bg-app rounded-[12px] border border-line text-xs text-ink-muted flex items-start gap-2">
                         <Info size={14} className="text-brand-600 shrink-0 mt-0.5" />
                         <span>
                             Staff can review overdue bills and prepare a WhatsApp message. The message is not sent automatically.
@@ -67,11 +67,11 @@ export default function RemindersAlertsSection({ data, setData }) {
             </div>
 
             {/* Service Reminders Section */}
-            <div className="bg-surface rounded-2xl border border-line shadow-xs overflow-hidden flex flex-col">
+            <div className="bg-surface rounded-[14px] border border-line shadow-xs overflow-hidden flex flex-col">
                 <div className="p-5 border-b border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface">
                     <div>
-                        <h3 className="text-sm font-bold text-ink">Service schedules</h3>
-                        <p className="text-xs text-ink-muted">Save repeat intervals for services such as oil changes. Customer messages are not sent automatically.</p>
+                        <h3 className="text-base font-bold text-ink">Service schedules</h3>
+                        <p className="text-sm text-ink-muted">Save repeat intervals for services such as oil changes. Customer messages are not sent automatically.</p>
                     </div>
                     <button
                         type="button"
@@ -84,7 +84,7 @@ export default function RemindersAlertsSection({ data, setData }) {
                             };
                             setData('service_reminders', [...(data.service_reminders || []), newReminder]);
                         }}
-                        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 shrink-0"
+                        className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-[12px] text-sm font-bold flex items-center gap-2 transition-all shadow-sm active:scale-95 shrink-0"
                     >
                         <Plus size={14} /> Add Service Cycle
                     </button>
@@ -95,7 +95,7 @@ export default function RemindersAlertsSection({ data, setData }) {
                         (data.service_reminders || []).map((reminder, idx) => (
                             <div key={reminder.id} className="p-4 flex flex-wrap items-center justify-between gap-y-2 hover:bg-app/40 transition-colors group">
                                 <div className="flex items-center gap-4 flex-1">
-                                    <div className="w-9 h-9 rounded-xl bg-app text-ink-muted flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-[12px] bg-app text-ink-muted flex items-center justify-center shrink-0">
                                         <Clock size={18} />
                                     </div>
                                     <div className="flex-1 max-w-sm">
@@ -110,10 +110,10 @@ export default function RemindersAlertsSection({ data, setData }) {
                                             placeholder="Service Name (e.g. Engine Oil Service)"
                                             className="w-full bg-transparent border-0 p-0 text-sm font-bold text-ink focus:ring-0 outline-none"
                                         />
-                                        <p className="text-3xs text-ink-muted uppercase font-bold tracking-widest mt-0.5">Recurring Service</p>
+                                        <p className="text-xs text-ink-muted uppercase font-bold tracking-widest mt-0.5">Recurring Service</p>
                                     </div>
-                                    <div className="flex items-center gap-2 bg-app px-3 py-1.5 rounded-xl border border-line">
-                                        <span className="text-3xs font-bold text-ink-muted uppercase">Every</span>
+                                    <div className="flex items-center gap-2 bg-app px-3 py-1.5 rounded-[12px] border border-line">
+                                        <span className="text-xs font-bold text-ink-muted uppercase">Every</span>
                                         <input
                                             type="number"
                                             value={reminder.interval}
@@ -122,7 +122,7 @@ export default function RemindersAlertsSection({ data, setData }) {
                                                 newItems[idx].interval = e.target.value;
                                                 setData('service_reminders', newItems);
                                             }}
-                                            className="w-12 bg-transparent border-0 p-0 text-xs font-bold text-brand-600 dark:text-brand-400 focus:ring-0 text-center outline-none"
+                                            className="w-12 bg-transparent border-0 p-0 text-sm font-bold text-brand-600 dark:text-brand-400 focus:ring-0 text-center outline-none"
                                         />
                                         <select
                                             value={reminder.unit}
@@ -131,7 +131,7 @@ export default function RemindersAlertsSection({ data, setData }) {
                                                 newItems[idx].unit = e.target.value;
                                                 setData('service_reminders', newItems);
                                             }}
-                                            className="bg-transparent border-0 p-0 text-xs font-bold text-ink focus:ring-0 outline-none cursor-pointer"
+                                            className="bg-transparent border-0 p-0 text-sm font-bold text-ink focus:ring-0 outline-none cursor-pointer"
                                         >
                                             <option value="days">Days</option>
                                             <option value="months">Months</option>
@@ -155,8 +155,8 @@ export default function RemindersAlertsSection({ data, setData }) {
                     ) : (
                         <div className="py-10 flex flex-col items-center justify-center text-ink-muted">
                             <Clock size={32} className="mb-2 opacity-30" />
-                            <p className="font-bold text-xs text-ink">No Service Cycles Configured</p>
-                            <p className="text-3xs text-ink-muted mt-0.5">Add a service schedule to keep its repeat interval on record.</p>
+                            <p className="font-bold text-sm text-ink">No Service Cycles Configured</p>
+                            <p className="text-xs text-ink-muted mt-0.5">Add a service schedule to keep its repeat interval on record.</p>
                         </div>
                     )}
                 </div>

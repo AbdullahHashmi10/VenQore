@@ -204,6 +204,7 @@ class UserProblemsTest extends CommerceTestCase
         $this->get('/shop/' . $this->store->slug)->assertNotFound();
         $url = \Illuminate\Support\Facades\URL::temporarySignedRoute('commerce.store', now()->addHour(), ['slug' => $this->store->slug, 'preview' => 1]);
         $this->get($url)->assertOk();
+        $this->flushSession(); // the signed visit grants this session click-through; a stranger has no such session
         $this->get('/shop/' . $this->store->slug . '?preview=1')->assertNotFound(); // unsigned
     }
 

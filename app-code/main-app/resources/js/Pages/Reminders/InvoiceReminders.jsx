@@ -5,27 +5,10 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import Pagination from '@/Components/Pagination';
 import { useDebounce } from 'use-debounce';
-import {
-    Bell,
-    Search,
-    Plus,
-    Download,
-    Calendar,
-    Send,
-    CheckCircle,
-    Clock,
-    Mail,
-    MessageSquare,
-    User,
-    FileText,
-    XCircle,
-    Printer,
-    ChevronDown,
-    ChevronUp,
-    X
-} from 'lucide-react';
+import { Bell, Search, Plus, Download, Calendar, Send, CheckCircle, Clock, Mail, MessageSquare, User, FileText, XCircle, Printer, ChevronDown, ChevronUp, X, Filter, Check } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import { useTermText } from '@/lib/terms';
 import MobileStats from '@/Components/MobileStats';
 
@@ -33,6 +16,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
     const {
         store
     } = usePage().props;
+    const navGroups = useSellNavGroups();
     const tt = useTermText();
 
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
@@ -137,184 +121,102 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
     const reminderList = reminders.data || [];
 
     return (
-        <OneGlanceLayout title="Invoice Reminders" activeMenu="Sales">
+        <OneGlanceLayout title="Invoice Reminders" activeMenu="Sales" noPadding>
             <Head title="Invoice Reminders" />
-            <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
-                <SellModuleTabs activeTab="reminders" />
+            <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
+                <div className="md:hidden"><SellModuleTabs activeTab="reminders" /></div>
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Scheduled', value: stats.total || 0, tone: 'ink' },
-  { label: 'Pending', value: stats.pending || 0, tone: 'amber' },
-  { label: 'Sent', value: stats.sent || 0, tone: 'emerald' },
-  { label: 'Overdue', value: stats.overdue || 0, tone: 'red' }
-]} />
-
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Bell size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Scheduled</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats.total || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Pending</p>
-                        </div>
-                        <p className="text-base font-bold text-amber-600">{stats.pending || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Sent</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{stats.sent || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Overdue</p>
-                        </div>
-                        <p className="text-base font-bold text-red-600">{stats.overdue || 0}</p>
-                    </div>
-                </div>
-
-                {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Invoice <span className="text-brand-600">Reminders</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => handleStatusChange('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >All</button>
-                        <button
-                            onClick={() => handleStatusChange('pending')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'pending' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Pending</button>
-                        <button
-                            onClick={() => handleStatusChange('sent')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'sent' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Sent</button>
-                    </div>
-
-                    {/* Right: Search + Actions */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-64 relative">
-                            <input
-                                type="text"
-                                placeholder={tt('Search by invoice or customer...')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
-                        </div>
-                        <div className="flex items-center gap-2 border-l border-line pl-2">
-                            <Link
-                                href={route('store.invoice-reminders.create', { store_slug: store.slug })}
-                                className="p-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg active:scale-95"
-                            >
-                                <Plus size={18} />
-                                <span className="text-sm font-bold hidden sm:inline">New Reminder</span>
-                            </Link>
-                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
-                                <Printer size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
-                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
-                            Invoice Reminders
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Filters"
-                            >
-                                <ChevronDown size={16} />
-                            </button>
-                            <Link
-                                href={route('store.invoice-reminders.create', { store_slug: store.slug })}
-                                className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
-                                title="New Reminder"
-                            >
-                                <Plus size={16} />
-                            </Link>
-                        </div>
-                    </div>
-
-                    {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-line pt-2">
-                            <input
-                                type="text"
-                                placeholder={tt('Search by invoice or customer...')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
-                            />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
-                        </div>
+                {/* Desktop header: row 1 toolbar, row 2 stat cards */}
+                <ListToolbar
+                    title="Invoice Reminders"
+                    navGroups={navGroups}
+                    activeId="reminders"
+                    left={(
+                        <select value={statusFilter} onChange={(e) => handleStatusChange(e.target.value)} className="h-10 pl-3 pr-8 rounded-[12px] border border-line bg-surface text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer hover:bg-interactive-hover" aria-label="Status">
+                            <option value="all">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="sent">Sent</option>
+                        </select>
                     )}
-
-                    {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
-                            <div className="flex flex-wrap gap-1.5">
-                                <button
-                                    onClick={() => handleStatusChange('all')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >All</button>
-                                <button
-                                    onClick={() => handleStatusChange('pending')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'pending' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Pending</button>
-                                <button
-                                    onClick={() => handleStatusChange('sent')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'sent' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Sent</button>
-                            </div>
-                        </div>
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), placeholder: tt('Search by invoice or customer...') }}
+                    actions={(
+                        <>
+                            <button type="button" className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-ink-muted" title="Print" onClick={() => PrintService.printPage()}><Printer size={18} /></button>
+                            <ListAddButton href={route('store.invoice-reminders.create', { store_slug: store.slug })} icon={Plus}>New Reminder</ListAddButton>
+                        </>
                     )}
-                </div>
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Scheduled', value: stats.total || 0, icon: Bell, icon_tone: 'bg-brand-100 text-brand-600' },
+                    { label: 'Pending', value: stats.pending || 0, icon: Clock, icon_tone: 'bg-amber-100 text-amber-600', value_tone: 'text-amber-600' },
+                    { label: 'Sent', value: stats.sent || 0, icon: CheckCircle, icon_tone: 'bg-emerald-100 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Overdue', value: stats.overdue || 0, icon: Clock, icon_tone: 'bg-red-100 text-red-600', value_tone: 'text-red-600' },
+                ]} />
 
-                {/* Main Table / Layout Wrapper */}
-                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app flex flex-col justify-between">
-                    <div className="hidden md:block overflow-x-auto">
+               {/* Mobile header (phone only) */}
+ <div className="md:hidden relative z-40 shrink-0 bg-surface border border-line rounded-[14px] shadow-sm">
+ {showMobileFilters && <div className="fixed inset-0 z-30" onClick={() => setShowMobileFilters(false)} aria-hidden="true" />}
+ <div className="relative z-40 h-12 flex items-center gap-1 px-1.5">
+ <div className="min-w-0 flex-1 pl-2">
+ <span className="text-[15px] font-bold text-ink tracking-tight truncate block">Invoice Reminders</span>
+ </div>
+ <div>
+ <button type="button" onClick={() => setShowMobileFilters(!showMobileFilters)} aria-haspopup="listbox" aria-expanded={showMobileFilters} aria-label="Filter"
+ className={`h-9 px-2 rounded-[10px] border flex items-center gap-1 transition-colors ${statusFilter !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-line bg-app text-ink-secondary'}`}>
+ <Filter size={16} />
+ <ChevronDown size={14} className={`transition-transform duration-200 ${showMobileFilters ? 'rotate-180' : ''}`} />
+ </button>
+ {showMobileFilters && (
+ <div role="listbox" className="absolute left-0 right-0 top-full mt-1 max-h-[60vh] overflow-y-auto bg-surface border border-line rounded-[12px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+ {[['all', 'All'], ['pending', 'Pending'], ['sent', 'Sent']].map(([key, label]) => (
+ <button key={key} type="button" role="option" aria-selected={statusFilter === key} onClick={() => { handleStatusChange(key); setShowMobileFilters(false); }}
+ className={`w-full h-10 px-3 rounded-[8px] text-sm text-left flex items-center justify-between gap-2 ${statusFilter === key ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}>
+ <span className="truncate">{label}</span>
+ {statusFilter === key && <Check size={15} className="shrink-0" />}
+ </button>
+ ))}
+ </div>
+ )}
+ </div>
+ <button type="button" onClick={() => setShowMobileSearch(!showMobileSearch)} aria-label="Search"
+ className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${showMobileSearch || searchTerm ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'bg-app text-ink-secondary'}`}>
+ <Search size={17} />
+ </button>
+ <Link href={route('store.invoice-reminders.create', { store_slug: store.slug })} aria-label="New Reminder"
+ className="h-9 w-9 rounded-[10px] bg-brand-600 text-white flex items-center justify-center shadow-sm active:bg-brand-700">
+ <Plus size={19} />
+ </Link>
+ </div>
+ {showMobileSearch && (
+ <div className="px-1.5 pb-1.5 -mt-0.5">
+ <div className="relative">
+ <input autoFocus type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={tt('Search by invoice or customer...')}
+ className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[10px] text-ink placeholder:text-ink-muted outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={15} />
+ </div>
+ </div>
+ )}
+ </div>
+
+ <MobileStats bp="md" hero={3} items={[
+ { label: 'Total Scheduled', value: stats.total || 0, tone: 'brand', icon: Bell },
+ { label: 'Pending', value: stats.pending || 0, tone: 'amber', icon: Clock },
+ { label: 'Sent', value: stats.sent || 0, tone: 'emerald', icon: CheckCircle },
+ { label: 'Overdue', value: stats.overdue || 0, tone: 'red', icon: Clock }
+ ]} />
+
+  {/* Main Table / Layout Wrapper */}
+                <div className="flex-1 md:min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface flex flex-col justify-between">
+                    <div className="hidden md:block">
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-app text-ink-muted font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                                 <tr className="border-b border-line">
-                                    <th className="px-6 py-3 text-left">Invoice</th>
-                                    <th className="px-6 py-3 text-left">{tt('Customer')}</th>
-                                    <th className="px-6 py-3 text-left">Scheduled For</th>
-                                    <th className="px-6 py-3 text-center">Type</th>
-                                    <th className="px-6 py-3 text-center">Status</th>
-                                    <th className="px-6 py-3 text-center">Actions</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-3 text-left">Invoice</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-3 text-left">{tt('Customer')}</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-3 text-left">Scheduled For</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Type</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Status</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -503,7 +405,7 @@ export default function InvoiceReminders({ reminders = { data: [], links: [] }, 
                         <Pagination links={reminders.links} />
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

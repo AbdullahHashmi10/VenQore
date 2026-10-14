@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Plus, Trash2, Pencil, X, Loader2, Layers, Check } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ConfirmModal from '@/Components/ConfirmModal';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
+import { useStockNavGroups } from '@/Components/StockModuleTabs';
 
 /**
  * Add-ons library (FOH plan, step 1c).
@@ -26,6 +28,7 @@ const rule = (g) => {
 };
 
 export default function AddOns({ storeSlug, groups: initial = [], categories = [], products = [] }) {
+    const stockNavGroups = useStockNavGroups();
     const [groups, setGroups] = useState(initial);
     const [editing, setEditing] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -79,19 +82,26 @@ export default function AddOns({ storeSlug, groups: initial = [], categories = [
     }, [products, productSearch]);
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout noPadding>
             <Head title="Add-ons" />
-            <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+            <ListPageFrame className="p-1.5">
+            <ListToolbar
+                title="Add-ons"
+                navGroups={stockNavGroups}
+                activeId="addons"
+                actions={<ListAddButton icon={Plus} onClick={() => { setEditing(blankGroup()); setError(''); }}>New group</ListAddButton>}
+            />
+            <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6 md:w-full md:max-w-none md:mx-0 md:p-1 md:flex-1 md:min-h-0 md:overflow-auto">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2"><Layers size={22} /> Add-ons</h1>
+                        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2 md:hidden"><Layers size={22} /> Add-ons</h1>
                         <p className="text-sm text-ink-muted mt-1 max-w-2xl">
                             Extras a guest can add to a dish: extra cheese, olives, a side. Define a group once, then attach it to a whole category
                             (all your pizzas) or to single items. Sizes and flavours stay as variants on the product.
                         </p>
                     </div>
                     <button type="button" onClick={() => { setEditing(blankGroup()); setError(''); }}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-sm">
+                        className="md:hidden inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-sm">
                         <Plus size={16} /> New group
                     </button>
                 </div>
@@ -132,6 +142,7 @@ export default function AddOns({ storeSlug, groups: initial = [], categories = [
                     ))}
                 </div>
             </div>
+            </ListPageFrame>
 
             {editing && (
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" role="dialog" aria-modal="true">

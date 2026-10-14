@@ -84,7 +84,7 @@ class StoreManagerController extends Controller
         return Inertia::render('OnlineStore/Home', [
             'insights' => $this->insights($t->id),
             'sourcing' => app(\App\Services\Commerce\StockAvailability::class)->sourcingNeeds((int) $t->id),
-            'recent' => DB::table('commerce_orders')->where('tenant_id', $t->id)->orderByDesc('created_at')->limit(5)
+            'recent' => DB::table('commerce_orders')->where('tenant_id', $t->id)->orderByDesc('created_at')->limit(10)
                 ->get(['id', 'public_number', 'customer_name', 'status', 'total', 'currency_symbol', 'fulfilment', 'created_at'])
                 ->map(fn ($o) => ['id' => $o->id, 'number' => $o->public_number, 'name' => $o->customer_name, 'status' => $o->status, 'total' => (float) $o->total,
                     'symbol' => $o->currency_symbol, 'fulfilment' => $o->fulfilment, 'at' => \App\Models\Commerce\CommerceOrder::localTime($o->created_at, $store->timezone ?: 'UTC'),

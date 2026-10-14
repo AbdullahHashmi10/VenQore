@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
-import { usePage, Head, Link } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import { usePage } from '@inertiajs/react';
+import { ReportShell, ReportKpis, ReportSection, ReportTable, filterInputCls } from '@/Components/Reports/ReportKit';
+import { DonutChart } from '@/Components/Reports/ReportCharts';
 import {
     BookOpen,
     Plus,
@@ -85,143 +86,73 @@ export default function ChartOfAccounts({ accounts = [] }) {
 
 
 
-    return (
-        <ReportsLayout title="Chart of Accounts">
-            <Head title="COA" />
+    const columns = [
+        { key: 'code', label: 'Code', sortable: true, render: (a) => <span className="rounded bg-sunken px-1.5 py-0.5 font-mono text-xs font-bold text-ink-muted">{a.code}</span> },
+        { key: 'name', label: 'Account Name', sortable: true, render: (a) => <span className="font-bold text-ink-secondary">{a.name}</span> },
+        { key: 'type', label: 'Type', render: (a) => {
+            const c = getTypeConfig(a.type); const Icon = c.icon;
+            return <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-2xs font-bold uppercase ${c.color}`}><Icon size={10} />{c.label}</span>;
+        } },
+        { key: 'balance', label: 'Balance', align: 'right', sortable: true, get: (a) => parseFloat(a.balance) || 0, render: (a) => <span className="font-mono text-sm font-bold text-ink">{formatCurrency(a.balance)}</span> },
+    ];
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-
-
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg"><Briefcase size={16} /></div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Assets</p>
-                        </div>
-                        <p className="text-lg font-bold text-brand-600">{formatCurrency(stats.assets)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg"><ArrowDownCircle size={16} /></div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Liabilities</p>
-                        </div>
-                        <p className="text-lg font-bold text-rose-600">{formatCurrency(stats.liabilities)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg"><TrendingUp size={16} /></div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Income (YTD)</p>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-600">{formatCurrency(stats.income)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg"><ArrowUpCircle size={16} /></div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Expense (YTD)</p>
-                        </div>
-                        <p className="text-lg font-bold text-amber-600">{formatCurrency(stats.expenses)}</p>
-                    </div>
-                </div>
-
-                {/* Header & Filter Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-                        {['all', 'asset', 'liability', 'equity', 'income', 'expense'].map(type => (
-                            <button
-                                key={type}
-                                onClick={() => setTypeFilter(type)}
-                                className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all whitespace-nowrap ${typeFilter === type
-                                    ? 'bg-brand-600 text-white shadow-sm'
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                    }`}
-                            >
-                                {type}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search accounts..."
-                                className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-48"
-                            />
-                        </div>
-                        <button className="flex items-center gap-1 bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
-                            <Plus size={14} /> New Account
-                        </button>
-                    </div>
-                </div>
-
-                {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                <th onClick={() => handleSort('code')} className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover">Code</th>
-                                <th onClick={() => handleSort('name')} className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover">Account Name</th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Type</th>
-                                <th onClick={() => handleSort('balance')} className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover">Balance</th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-line">
-                            {processedAccounts.length > 0 ? (
-                                processedAccounts.map((account) => {
-                                    const typeConfig = getTypeConfig(account.type);
-                                    const Icon = typeConfig.icon;
-                                    return (
-                                        <tr key={account.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors group">
-                                            <td className="p-3">
-                                                <span className="font-mono text-xs font-bold text-ink-muted bg-sunken px-1.5 py-0.5 rounded">{account.code}</span>
-                                            </td>
-                                            <td className="p-3">
-                                                <p className="text-sm font-bold text-ink-secondary dark:text-ink">{account.name}</p>
-                                            </td>
-                                            <td className="p-3">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-2xs font-bold uppercase ${typeConfig.color}`}>
-                                                    <Icon size={10} />
-                                                    {typeConfig.label}
-                                                </span>
-                                            </td>
-                                            <td className="p-3 text-right">
-                                                <span className="font-mono text-sm font-bold text-ink">
-                                                    {formatCurrency(account.balance)}
-                                                </span>
-                                            </td>
-                                            <td className="p-3 text-right">
-                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600" title="View Ledger">
-                                                        <FileText size={14} />
-                                                    </button>
-                                                    <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-brand-600" title="Edit">
-                                                        <Eye size={14} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" className="p-5 sm:p-12 text-center text-ink-muted">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <BookOpen size={24} className="opacity-50" />
-                                            <p className="text-sm font-medium">No accounts found</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+    const filterNode = (
+        <>
+            <div className="flex flex-wrap items-center gap-1">
+                {['all', 'asset', 'liability', 'equity', 'income', 'expense'].map((type) => (
+                    <button key={type} type="button" onClick={() => setTypeFilter(type)}
+                        className={`h-10 rounded-[12px] px-3 text-sm font-semibold capitalize transition-colors ${typeFilter === type ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'text-ink-secondary hover:bg-interactive-hover'}`}>
+                        {type}
+                    </button>
+                ))}
             </div>
-        </ReportsLayout>
+            <div className="relative">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search accounts..." className={`${filterInputCls} w-56 pl-9`} />
+            </div>
+        </>
+    );
+
+    return (
+        <ReportShell
+            title="Chart of Accounts"
+            activeKey="chart-of-accounts"
+            filters={filterNode}
+            actions={(
+                <button type="button" className="flex h-10 items-center gap-2 rounded-[12px] bg-brand-600 px-3 text-sm font-bold text-white transition-colors hover:bg-brand-700">
+                    <Plus size={16} /><span className="hidden sm:inline">New Account</span>
+                </button>
+            )}
+            exportConfig={{
+                filename: 'chart-of-accounts',
+                columns: [
+                    { label: 'Code', get: (r) => r.code },
+                    { label: 'Account', get: (r) => r.name },
+                    { label: 'Type', get: (r) => r.type },
+                    { label: 'Balance', get: (r) => r.balance },
+                ],
+                rows: processedAccounts,
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Assets', value: formatCurrency(stats.assets), icon: Briefcase, tone: 'brand' },
+                { label: 'Liabilities', value: formatCurrency(stats.liabilities), icon: ArrowDownCircle, tone: 'rose' },
+                { label: 'Income (YTD)', value: formatCurrency(stats.income), icon: TrendingUp, tone: 'emerald' },
+                { label: 'Expense (YTD)', value: formatCurrency(stats.expenses), icon: ArrowUpCircle, tone: 'amber' },
+            ]} />
+
+            <ReportSection title="Balance by type">
+                <DonutChart slices={[
+                    { name: 'Assets', value: Math.abs(stats.assets) },
+                    { name: 'Liabilities', value: Math.abs(stats.liabilities) },
+                    { name: 'Income', value: Math.abs(stats.income) },
+                    { name: 'Expenses', value: Math.abs(stats.expenses) },
+                ].filter((s) => s.value > 0)} height={240} />
+            </ReportSection>
+
+            <ReportSection title="Accounts" subtitle={`${processedAccounts.length} accounts`} flush>
+                <ReportTable columns={columns} rows={processedAccounts} rowKey={(a) => a.id} pageSize={100} empty="No accounts found" emptyIcon={BookOpen} />
+            </ReportSection>
+        </ReportShell>
     );
 }

@@ -3,16 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VenQore — Offline</title>
+    <title>VenQore — No connection</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 60px; }
-        h1   { color: #1a56db; }
-        p    { color: #555; }
+        :root { color-scheme: light dark; }
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f6f7f9; color: #14181f; }
+        @media (prefers-color-scheme: dark) { body { background: #0f1217; color: #eef1f5; } .card { background: #181c23; border-color: #272c35; } p { color: #a4acb9; } }
+        .card { max-width: 440px; margin: 24px; padding: 32px; border: 1px solid #e3e6eb; border-radius: 20px; background: #fff; text-align: center; }
+        h1 { margin: 0 0 8px; font-size: 22px; }
+        p { margin: 0 0 20px; color: #5b6472; line-height: 1.55; font-size: 15px; }
+        .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        a, button { font: inherit; font-weight: 600; padding: 11px 18px; border-radius: 12px; border: 1px solid #d3d8df; background: transparent; color: inherit; text-decoration: none; cursor: pointer; }
+        .primary { background: #1a56db; border-color: #1a56db; color: #fff; }
+        [hidden] { display: none !important; }
     </style>
 </head>
 <body>
-    <h1>You are offline</h1>
-    <p>VenQore requires a live server connection to post financial transactions.</p>
-    <p>Please restore your connection and reload.</p>
+    <div class="card">
+        <h1>No connection to VenQore</h1>
+        <p id="msg">This page was not saved on this device yet, so it cannot open without internet. Reconnect and it will load.</p>
+        <div class="row">
+            <a id="pos" class="primary" hidden>Open POS</a>
+            <a id="foh" hidden>Open Front of House</a>
+            <button id="retry" type="button">Try again</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('retry').onclick = function () { location.reload(); };
+        (function () {
+            var slug = null;
+            try { slug = localStorage.getItem('vq_last_store'); } catch (e) {}
+            if (!slug || !window.caches) return;
+            var base = '/s/' + encodeURIComponent(slug);
+            function offer(id, path, label) {
+                caches.keys().then(function (keys) {
+                    var pages = keys.filter(function (k) { return k.indexOf('venqore-pages-') === 0; });
+                    return Promise.all(pages.map(function (k) {
+                        return caches.open(k).then(function (c) { return c.keys(); });
+                    }));
+                }).then(function (lists) {
+                    var found = [].concat.apply([], lists).some(function (r) {
+                        var u = new URL(r.url);
+                        return u.pathname === path || (path === base + '/foh' && u.pathname.indexOf(base + '/foh') === 0);
+                    });
+                    if (found) { var a = document.getElementById(id); a.href = path; a.hidden = false; a.textContent = label; document.getElementById('msg').textContent = 'You are offline. These pages are saved on this device:'; }
+                }).catch(function () {});
+            }
+            offer('pos', base + '/pos', 'Open POS');
+            offer('foh', base + '/foh', 'Open Front of House (saved view)');
+        })();
+    </script>
 </body>
 </html>

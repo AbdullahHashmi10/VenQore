@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import { 
  Database, 
  Download, 
@@ -58,12 +59,22 @@ export default function Backups({ backups: initialBackups = [] }) {
  };
 
  return (
- <OneGlanceLayout title="Database Backups" mode="admin">
+ <OneGlanceLayout title="Database Backups" mode="admin" noPadding>
  <Head title="Database Backups" />
 
- <div className="max-w-6xl mx-auto space-y-8 pb-20">
+ <ListPageFrame className="p-1.5">
+<ListToolbar title="Database Safety" actions={<>
+<label className="h-10 px-4 rounded-[12px] bg-surface border border-line hover:border-brand-500 text-sm font-bold text-ink flex items-center gap-2 cursor-pointer shadow-sm">
+<input type="file" className="hidden" accept=".sql" onChange={handleRestore} disabled={restoring} />
+{restoring ? <RefreshCw size={16} className="animate-spin text-brand-500" /> : <ArrowUpCircle size={16} className="text-brand-500" />}
+Restore Backup
+</label>
+<ListAddButton icon={creating ? RefreshCw : Plus} onClick={createBackup} disabled={creating}>Create Snapshot</ListAddButton>
+</>} />
+<div className="md:flex-1 md:min-h-0 md:overflow-auto">
+<div className="max-w-6xl mx-auto space-y-8 pb-20">
  {/* Header Section */}
- <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+ <div className="md:hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
  <div>
  <h2 className="text-2xl sm:text-4xl font-bold text-ink tracking-tight flex items-center gap-3">
  <Database className="text-brand-500" size={36} />
@@ -145,10 +156,10 @@ export default function Backups({ backups: initialBackups = [] }) {
  <table className="w-full">
  <thead>
  <tr className="text-left border-b border-line">
- <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot Name</th>
- <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created Date</th>
- <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">File Size</th>
- <th className="px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
+ <th className="sticky top-0 z-10 bg-app px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Snapshot Name</th>
+ <th className="sticky top-0 z-10 bg-app px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">Created Date</th>
+ <th className="sticky top-0 z-10 bg-app px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted">File Size</th>
+ <th className="sticky top-0 z-10 bg-app px-4 sm:px-8 py-5 text-2xs font-bold uppercase tracking-widest text-ink-muted text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-line">
@@ -199,6 +210,8 @@ export default function Backups({ backups: initialBackups = [] }) {
  </div>
  </div>
  </div>
- </OneGlanceLayout>
+ </div>
+</ListPageFrame>
+</OneGlanceLayout>
  );
 }

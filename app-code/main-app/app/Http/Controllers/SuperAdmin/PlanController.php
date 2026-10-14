@@ -7,6 +7,7 @@ use App\Models\Plan;
 use App\Models\Platform;
 use App\Models\Tenant;
 use App\Services\PlanRepository;
+use App\Services\Platform\PlanRestorer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -33,7 +34,9 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             ->orderBy('sort_order')
             ->get()
             ->map(function ($plan) {
-                $plan->active_tenant_count = Tenant::where('plan', $plan->slug)->count();
+                $plan->active_tenant_count = self::tenantCountFor($plan->slug);
+                $plan->is_core = in_array($plan->slug, PlanRestorer::CORE, true);
+                $plan->is_legacy_alias = array_key_exists($plan->slug, PlanRestorer::ALIASES);
                 return $plan;
             });
 
@@ -44,7 +47,45 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             'plans'          => $plans,
             'platforms'      => $platforms,
             'canonical_keys' => $canonicalKeys,
+            'missing_core'   => app(PlanRestorer::class)->missingCore(),
         ]);
+    }
+
+    /**
+     * Tenants on this plan, counting legacy alias rows (solo also covers
+     * 'counter') and LTD tenants, which are stored as plan='ltd' with the
+     * tier in plan_limits.ltd_tier.
+     */
+    private static function tenantCountFor(string $slug): int
+    {
+        $slugs = [$slug];
+        foreach (PlanRestorer::ALIASES as $alias => $canonical) {
+            if ($canonical === $slug) {
+                $slugs[] = $alias;
+            }
+        }
+        $count = Tenant::whereIn('plan', $slugs)->count();
+
+        if (str_starts_with($slug, 'ltd_')) {
+            $count += Tenant::where('plan', 'ltd')->get(['id', 'plan', 'plan_limits'])
+                ->filter(fn ($t) => $t->effectivePlan() === $slug)
+                ->count();
+        }
+
+        return $count;
+    }
+
+    /** Re-create any core plan (solo, starter, …) that was deleted. */
+    public function restoreDefaults()
+    {
+        $created = app(PlanRestorer::class)->restoreMissing();
+
+        return redirect()->route('platform.plans.index')->with(
+            'success',
+            $created
+                ? 'Restored: ' . implode(', ', $created) . '. Review their limits in the feature matrix.'
+                : 'All core plans are already present.'
+        );
     }
 
     public function store(Request $request)
@@ -52,7 +93,11 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         $validated = $request->validate([
             'platform_id'    => 'required|exists:platforms,id',
             'name'           => 'required|string|max:100',
-            'slug'           => 'required|string|max:100|unique:plans,slug|regex:/^[a-z0-9_]+$/',
+            'slug'           => ['required', 'string', 'max:100', 'unique:plans,slug', 'regex:/^[a-z0-9_]+$/', \Illuminate\Validation\Rule::notIn(PlanRestorer::RESERVED)],
+            'copy_from_plan_id' => 'nullable|integer|exists:plans,id',
+            'display_name'   => 'nullable|string|max:150',
+            'description'    => 'nullable|string',
+            'internal_notes' => 'nullable|string',
             'type'           => 'required|in:trial,subscription,ltd,enterprise',
             'price_monthly'  => 'nullable|numeric|min:0',
             'price_annual'   => 'nullable|numeric|min:0',
@@ -79,10 +124,33 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             $validated['is_ltd'] = true;
         }
 
-        $plan = Plan::create($validated);
+        $plan = Plan::create(collect($validated)->except(['limits', 'copy_from_plan_id'])->all());
 
+        // Start from a COMPLETE limit set, then apply what the form filled in.
+        // A plan with only the form's handful of keys fails closed on every
+        // other feature (PlanRepository denies missing keys).
+        $restorer = app(PlanRestorer::class);
+        if (!empty($validated['copy_from_plan_id'])) {
+            $base = $restorer->limitsOfPlan((int) $validated['copy_from_plan_id']);
+        } elseif (in_array($plan->slug, PlanRestorer::CORE, true)) {
+            $base = $restorer->defaultLimitsFor($plan->slug);
+        } else {
+            $starterId = Plan::where('slug', 'starter')->value('id');
+            $base = $starterId ? $restorer->limitsOfPlan($starterId) : $restorer->defaultLimitsFor('starter');
+        }
         foreach ($validated['limits'] ?? [] as $limit) {
-            $plan->limits()->create($limit);
+            // Blank on the create form means "inherit from the template", not "unlimited".
+            if (($limit['value'] ?? '') !== '' && $limit['value'] !== null) {
+                $base[$limit['key']] = $limit['value'];
+            }
+        }
+        $restorer->writeLimits($plan->id, $base);
+
+        if (!empty($validated['copy_from_plan_id'])) {
+            $source = Plan::with('features')->find($validated['copy_from_plan_id']);
+            foreach ($source?->features ?? [] as $feature) {
+                $plan->features()->create($feature->only(['feature', 'is_included', 'tooltip', 'sort_order']));
+            }
         }
 
         PlanRepository::invalidatePlanCache($plan->slug);
@@ -222,7 +290,13 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
 
     public function destroy(Plan $plan)
     {
-        $activeCount = Tenant::where('plan', $plan->slug)->count();
+        if (in_array($plan->slug, PlanRestorer::CORE, true)) {
+            return back()->withErrors([
+                'plan' => "\"{$plan->name}\" is a core plan and cannot be deleted. Archive it to hide it instead.",
+            ]);
+        }
+
+        $activeCount = self::tenantCountFor($plan->slug);
 
         if ($activeCount > 0) {
             return back()->withErrors([

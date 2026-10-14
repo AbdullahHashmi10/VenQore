@@ -1,199 +1,110 @@
-import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import React, { useMemo } from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import {
-    CreditCard,
-    ArrowUpRight,
-    ArrowDownLeft,
-    Wallet,
-    Building2,
-    History,
-    Users,
-    TrendingUp,
-    ChevronRight,
-    DollarSign
-} from 'lucide-react';
+import { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
+import { ArrowUpRight, ArrowDownLeft, Wallet, Building2, TrendingUp, PieChart, BarChart3, History } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
-export default function FinanceIndex({ stats, topReceivables, topPayables, recentEntries }) {
+const num = (v) => parseFloat(v ?? 0) || 0;
+const shortDay = (d) => {
+    const dt = new Date(`${String(d).slice(0, 10)}T00:00:00`);
+    return Number.isNaN(dt.getTime()) ? String(d) : dt.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+};
+
+export default function FinanceIndex({ stats = {}, topReceivables = [], topPayables = [], recentEntries = [], cashFlowSeries = [] }) {
     const tt = useTermText();
     const { store } = usePage().props;
-    const statCards = [
-        {
-            title: 'Cash on Hand',
-            value: stats.cash,
-            icon: Wallet,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-            border: 'border-emerald-100 dark:border-emerald-800'
-        },
-        {
-            title: 'Bank Balance',
-            value: stats.bank,
-            icon: Building2,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50 dark:bg-blue-900/20',
-            border: 'border-blue-100 dark:border-blue-800'
-        },
-        {
-            title: 'Total Receivables',
-            value: stats.receivables,
-            icon: ArrowDownLeft,
-            color: 'text-brand-600',
-            bg: 'bg-brand-50 dark:bg-brand-900/20',
-            border: 'border-brand-100 dark:border-brand-800',
-            link: route('store.finance.receivables', { store_slug: store?.slug })
-        },
-        {
-            title: 'Total Payables',
-            value: stats.payables,
-            icon: ArrowUpRight,
-            color: 'text-rose-600',
-            bg: 'bg-rose-50 dark:bg-rose-900/20',
-            border: 'border-rose-100 dark:border-rose-800',
-            link: route('store.finance.payables', { store_slug: store?.slug })
-        }
+    const moneyNavGroups = useMoneyNavGroups();
+    const fmt = (v) => formatCurrency(num(v), store);
+    const link = (name) => { try { return route(name, { store_slug: store?.slug }); } catch (e) { return undefined; } };
+
+    const liquidity = num(stats.cash) + num(stats.bank);
+    const net = liquidity + num(stats.receivables) - num(stats.payables);
+
+    const flow = useMemo(() => {
+        const rows = cashFlowSeries || [];
+        return {
+            series: [
+                { name: 'Money in', points: rows.map((r) => ({ x: shortDay(r.day), y: num(r.in) })) },
+                { name: 'Money out', points: rows.map((r) => ({ x: shortDay(r.day), y: num(r.out) })) },
+            ],
+            totalIn: rows.reduce((s, r) => s + num(r.in), 0),
+            totalOut: rows.reduce((s, r) => s + num(r.out), 0),
+        };
+    }, [cashFlowSeries]);
+
+    const slices = [
+        { name: 'Cash', value: Math.max(0, num(stats.cash)) },
+        { name: 'Bank', value: Math.max(0, num(stats.bank)) },
+        { name: 'Receivables', value: Math.max(0, num(stats.receivables)) },
+    ].filter((s) => s.value > 0);
+
+    const partyItems = (list, noun) => (list || []).map((p) => ({ label: p.name, value: num(p.balance ?? p.current_balance), sub: noun }));
+
+    const entryTotal = (e) => (e.items || []).reduce((s, i) => s + num(i.debit), 0);
+    const columns = [
+        { key: 'date', label: 'Date', get: (e) => e.date, render: (e) => new Date(e.date).toLocaleDateString(), width: 120 },
+        { key: 'description', label: 'Description', get: (e) => e.description || 'No description', render: (e) => <span className="font-semibold text-ink">{e.description || 'No description'}</span> },
+        { key: 'accounts', label: 'Accounts', get: (e) => (e.items || []).map((i) => i.account?.name).filter(Boolean).join(', ') },
+        { key: 'amount', label: 'Amount', align: 'right', get: entryTotal, render: (e) => <span className="font-bold tabular-nums text-ink">{fmt(entryTotal(e))}</span> },
     ];
 
     return (
-        <OneGlanceLayout title="Finance Overview" activeMenu="Money">
-            <Head title="Finance Overview" />
+        <ReportShell
+            title="Finance Dashboard"
+            navGroups={moneyNavGroups}
+            activeKey="finance"
+            activeMenu="Money"
+            showHub={false}
+            exportConfig={{
+                filename: 'recent-transactions',
+                columns: [{ label: 'Date', get: (e) => e.date }, { label: 'Description', get: (e) => e.description }, { label: 'Amount', get: entryTotal }],
+                rows: recentEntries,
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Cash on hand', value: fmt(stats.cash), icon: Wallet, tone: 'emerald' },
+                { label: 'Bank balance', value: fmt(stats.bank), icon: Building2, tone: 'blue' },
+                { label: 'Receivables', value: fmt(stats.receivables), icon: ArrowDownLeft, tone: 'brand', href: link('store.finance.receivables') },
+                { label: 'Payables', value: fmt(stats.payables), icon: ArrowUpRight, tone: 'rose', href: link('store.finance.payables') },
+                { label: 'Total liquidity', value: fmt(liquidity), icon: PieChart, tone: 'violet' },
+                { label: 'Net position', value: fmt(net), icon: TrendingUp, tone: net >= 0 ? 'emerald' : 'rose', valueTone: net >= 0 ? 'emerald' : 'rose', trend: net >= 0 ? 'up' : 'down', sub: 'Liquidity + receivables - payables' },
+            ]} />
 
-            <div className="p-6 h-full overflow-y-auto custom-scrollbar">
-                {/* Header Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {statCards.map((card, i) => (
-                        <div key={i} className={`bg-surface p-6 rounded-2xl border ${card.border} shadow-sm hover:shadow-md transition-all group`}>
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-3 rounded-2xl ${card.bg} ${card.color}`}>
-                                    <card.icon size={24} />
-                                </div>
-                                {card.link && (
-                                    <Link href={card.link} className="text-ink-muted hover:text-brand-500 transition-colors">
-                                        <ChevronRight size={20} />
-                                    </Link>
-                                )}
-                            </div>
-                            <p className="text-sm font-medium text-ink-muted mb-1">{card.title}</p>
-                            <h3 className="text-2xl font-bold text-ink">
-                                {formatCurrency(card.value, store)}
-                            </h3>
-                        </div>
-                    ))}
-                </div>
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Cash in vs out" subtitle={`Last 30 days · in ${fmt(flow.totalIn)} · out ${fmt(flow.totalOut)}`} icon={BarChart3} tone="emerald">
+                        <TrendChart series={flow.series} type="area" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Where the money sits" subtitle="Cash, bank and receivables" icon={PieChart} tone="violet">
+                        <DonutChart slices={slices} height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Recent Transactions */}
-                    <div className="lg:col-span-2 space-y-6">
-                        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
-                            <div className="p-6 border-b border-line flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-ink flex items-center gap-2">
-                                    <History size={20} className="text-brand-500" />
-                                    Recent Transactions
-                                </h3>
-                                <Link href={route('store.accounting.index', { store_slug: store?.slug })} className="text-sm font-bold text-brand-600 hover:text-brand-700">
-                                    View Ledger
-                                </Link>
-                            </div>
-                            <div className="divide-y divide-line">
-                                {recentEntries.length > 0 ? recentEntries.map((entry) => (
-                                    <div key={entry.id} className="p-4 hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div>
-                                                <p className="font-bold text-ink">{entry.description || 'No description'}</p>
-                                                <p className="text-xs text-ink-muted">{new Date(entry.date).toLocaleDateString()}</p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-ink">
-                                                    {formatCurrency(entry.items.reduce((sum, item) => sum + parseFloat(item.debit), 0), store)}
-                                                </p>
-                                                <p className="text-2xs uppercase tracking-wider text-ink-muted font-bold">Total Amount</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            {entry.items.map((item, idx) => (
-                                                <span key={idx} className="px-2 py-0.5 rounded-md bg-sunken text-2xs font-bold text-ink-secondary border border-line">
-                                                    {item.account.name}: {parseFloat(item.debit) > 0 ? `Dr ${formatCurrency(parseFloat(item.debit), store)}` : `Cr ${formatCurrency(parseFloat(item.credit), store)}`}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <div className="p-5 sm:p-12 text-center text-ink-muted">
-                                        No recent transactions found.
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
+            <ReportGrid>
+                <ReportCol span={6}>
+                    <ReportSection title="Top receivables" subtitle={`Who owes you · ${tt('Customer')}s`} icon={ArrowDownLeft} tone="brand"
+                        right={<Link href={link('store.finance.receivables') || '#'} className="flex h-10 items-center rounded-[12px] px-3 text-sm font-bold text-brand-600 hover:bg-interactive-hover">View all</Link>}>
+                        <RankBars items={partyItems(topReceivables, tt('Customer'))} limit={5} colorIndex={0} empty="No pending receivables" />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={6}>
+                    <ReportSection title="Top payables" subtitle={`Who you owe · ${tt('Supplier')}s`} icon={ArrowUpRight} tone="rose"
+                        right={<Link href={link('store.finance.payables') || '#'} className="flex h-10 items-center rounded-[12px] px-3 text-sm font-bold text-rose-600 hover:bg-interactive-hover">View all</Link>}>
+                        <RankBars items={partyItems(topPayables, tt('Supplier'))} limit={5} colorIndex={3} empty="No pending payables" />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
 
-                    {/* Side Panels */}
-                    <div className="space-y-8">
-                        {/* Top Receivables */}
-                        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
-                            <div className="p-6 border-b border-line">
-                                <h3 className="text-lg font-bold text-ink flex items-center gap-2">
-                                    <ArrowDownLeft size={20} className="text-brand-500" />
-                                    Top Receivables
-                                </h3>
-                            </div>
-                            <div className="p-4 space-y-4">
-                                {topReceivables.length > 0 ? topReceivables.map((party) => (
-                                    <div key={party.id} className="flex flex-wrap items-center justify-between gap-y-2 group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center text-brand-600 font-bold">
-                                                {party.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-ink group-hover:text-brand-600 transition-colors">{party.name}</p>
-                                                <p className="text-xs text-ink-muted">{tt('Customer')}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm font-bold text-brand-600">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>
-                                    </div>
-                                )) : (
-                                    <p className="text-sm text-ink-muted text-center py-4">No pending receivables.</p>
-                                )}
-                                <Link href={route('store.finance.receivables', { store_slug: store?.slug })} className="block w-full text-center py-2 text-xs font-bold text-ink-muted hover:text-brand-600 transition-colors border-t border-line mt-2 pt-4">
-                                    View All Receivables
-                                </Link>
-                            </div>
-                        </div>
-
-                        {/* Top Payables */}
-                        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
-                            <div className="p-6 border-b border-line">
-                                <h3 className="text-lg font-bold text-ink flex items-center gap-2">
-                                    <ArrowUpRight size={20} className="text-rose-500" />
-                                    Top Payables
-                                </h3>
-                            </div>
-                            <div className="p-4 space-y-4">
-                                {topPayables.length > 0 ? topPayables.map((party) => (
-                                    <div key={party.id} className="flex flex-wrap items-center justify-between gap-y-2 group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 font-bold">
-                                                {party.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-ink group-hover:text-rose-600 transition-colors">{party.name}</p>
-                                                <p className="text-xs text-ink-muted">{tt('Supplier')}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-sm font-bold text-rose-600">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>
-                                    </div>
-                                )) : (
-                                    <p className="text-sm text-ink-muted text-center py-4">No pending payables.</p>
-                                )}
-                                <Link href={route('store.finance.payables', { store_slug: store?.slug })} className="block w-full text-center py-2 text-xs font-bold text-ink-muted hover:text-rose-600 transition-colors border-t border-line mt-2 pt-4">
-                                    View All Payables
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </OneGlanceLayout>
+            <ReportSection title="Recent transactions" icon={History} tone="brand" flush
+                right={<Link href={link('store.accounting.index') || '#'} className="flex h-10 items-center rounded-[12px] px-3 text-sm font-bold text-brand-600 hover:bg-interactive-hover">View ledger</Link>}>
+                <ReportTable columns={columns} rows={recentEntries} rowKey={(e) => e.id} pageSize={10} empty="No recent transactions found" />
+            </ReportSection>
+        </ReportShell>
     );
 }

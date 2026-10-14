@@ -113,7 +113,7 @@ class AiCostController extends Controller
 
         // Load tenant metadata
         $tenantIds = array_keys($tenantsGrouped);
-        $tenantsModels = Tenant::whereIn('id', $tenantIds)->get(['id', 'name', 'slug', 'plan', 'ai_status', 'ai_pages_used', 'ai_pages_limit'])->keyBy('id');
+        $tenantsModels = Tenant::whereIn('id', $tenantIds)->get(['id', 'name', 'slug', 'plan', 'plan_limits', 'ai_status', 'ai_pages_used', 'ai_pages_limit'])->keyBy('id');
 
         $tenantBreakdown = [];
         foreach ($tenantsGrouped as $tid => $data) {
@@ -122,7 +122,7 @@ class AiCostController extends Controller
                 'tenant_id'     => $tid,
                 'name'          => $t?->name ?? "Store #{$tid}",
                 'slug'          => $t?->slug ?? '',
-                'plan'          => $t?->plan ?? 'trial',
+                'plan'          => $t ? \App\Support\PlanCatalog::canonical($t->effectivePlan()) : 'unknown',
                 'ai_status'     => $t?->ai_status ?? 'none',
                 'ai_pages_used' => $t?->ai_pages_used ?? 0,
                 'ai_pages_limit'=> $t?->ai_pages_limit,

@@ -89,6 +89,47 @@ class InventoryController extends Controller
             ->orderBy('ib.expiry_date', 'asc')
             ->get();
 
+        // Dashboard graphs: stock value by category, out-of-stock count, latest received batches (tenant-scoped, grouped).
+        $valueByCategory = DB::table('inventory_batches as ib')
+            ->join('products as p', 'p.id', '=', 'ib.product_id')
+            ->leftJoin('categories as c', 'c.id', '=', 'p.category_id')
+            ->where('ib.tenant_id', $tenantId)
+            ->whereNull('ib.deleted_at')
+            ->where('ib.remaining_qty', '>', 0)
+            ->select(DB::raw("COALESCE(c.name, 'Uncategorised') as name"), DB::raw('SUM(ib.remaining_qty * ib.unit_cost) as value'))
+            ->groupBy('c.id', 'c.name')
+            ->orderByDesc('value')
+            ->limit(8)
+            ->get()
+            ->map(fn ($r) => ['name' => $r->name, 'value' => (float) $r->value])
+            ->values();
+
+        $outOfStockCount = DB::table('products as p')
+            ->leftJoin('inventory_batches as ib', function ($join) use ($tenantId) {
+                $join->on('p.id', '=', 'ib.product_id')
+                     ->where('ib.tenant_id', $tenantId)
+                     ->whereNull('ib.deleted_at');
+            })
+            ->where('p.tenant_id', $tenantId)
+            ->whereNull('p.deleted_at')
+            ->where(function ($q) {
+                $q->where('p.type', '!=', 'service')->orWhereNull('p.type');
+            })
+            ->groupBy('p.id')
+            ->havingRaw('COALESCE(SUM(ib.remaining_qty), 0) <= 0')
+            ->select('p.id')
+            ->get()
+            ->count();
+
+        $recentReceipts = DB::table('inventory_batches as ib')
+            ->join('products as p', 'p.id', '=', 'ib.product_id')
+            ->where('ib.tenant_id', $tenantId)
+            ->whereNull('ib.deleted_at')
+            ->orderByDesc('ib.created_at')
+            ->limit(10)
+            ->select('ib.id', 'p.name as product_name', 'ib.initial_qty', 'ib.remaining_qty', 'ib.unit_cost', 'ib.created_at')
+            ->get();
+
         return Inertia::render('Inventory/Dashboard', [
             'stats' => [
                 'total_products' => $totalProducts,
@@ -96,7 +137,10 @@ class InventoryController extends Controller
                 'inventory_value' => $inventoryValue,
                 'total_categories' => $totalCategories,
                 'total_warehouses' => $totalWarehouses,
+                'out_of_stock_count' => $outOfStockCount,
             ],
+            'valueByCategory' => $valueByCategory,
+            'recentReceipts' => $recentReceipts,
             'topMoving' => $topMoving,
             'expiringBatches' => $expiringBatches,
         ]);

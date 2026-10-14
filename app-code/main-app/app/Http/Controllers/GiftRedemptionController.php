@@ -111,7 +111,7 @@ class GiftRedemptionController extends Controller
             }
 
             $grantedUntil = $grant->computeGrantedUntil();
-            $planSlug = $grant->plan->slug;
+            $planSlug = \App\Support\PlanCatalog::canonical($grant->plan->slug);
 
             // Does this user already own an active store?
             $ownedMembership = TenantUser::where('user_id', $user->id)
@@ -132,8 +132,18 @@ class GiftRedemptionController extends Controller
                 // those collapse to the single literal 'ltd' and would
                 // otherwise lose which tier was granted.)
                 $tenant = $ownedMembership->tenant;
-                $tenant->plan = $planSlug;
-                $tenant->subscription_ends_at = $grantedUntil;
+                // A gift never moves a store DOWN a tier (a Core gift to a
+                // Scale store used to silently downgrade it) and never
+                // shortens time already on the clock.
+                if (\App\Support\PlanCatalog::rank($planSlug) >= \App\Support\PlanCatalog::rank($tenant->effectivePlan())) {
+                    $tenant->plan = $planSlug;
+                    $limits = is_array($tenant->plan_limits) ? $tenant->plan_limits : [];
+                    $limits['platform_assigned_plan'] = $planSlug;
+                    $tenant->plan_limits = $limits;
+                }
+                if (!$tenant->subscription_ends_at || $tenant->subscription_ends_at->lt($grantedUntil)) {
+                    $tenant->subscription_ends_at = $grantedUntil;
+                }
                 $tenant->status = 'active';
                 $tenant->view_only_since = null; // regain full access even if previously lapsed
                 $tenant->save();

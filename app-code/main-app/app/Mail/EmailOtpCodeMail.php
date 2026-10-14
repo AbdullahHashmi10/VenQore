@@ -58,6 +58,7 @@ class EmailOtpCodeMail extends Mailable implements ShouldQueue, ShouldBeEncrypte
     {
         $subject = match ($this->purpose) {
             'signup'      => 'Your VenQore sign-up code: ' . $this->code,
+            'shopper_login' => 'Your sign-in code: ' . $this->code,
             'link_google' => 'Confirm linking Google to your VenQore account',
             default       => 'Your VenQore sign-in code: ' . $this->code,
         };

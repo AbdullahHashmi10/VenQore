@@ -17,9 +17,11 @@ import {
     CheckCircle, 
     FileText,
     Filter,
-    ChevronDown
-} from 'lucide-react';
+    ChevronDown, Layers } from 'lucide-react';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 export default function MySubmissions({ documents = { data: [] }, filters = {}, stats = {} }) {
     const { store } = usePage().props;
@@ -163,13 +165,13 @@ export default function MySubmissions({ documents = { data: [] }, filters = {}, 
     ];
 
     return (
-        <OneGlanceLayout title="My Submissions" activeMenu="Approvals">
+        <OneGlanceLayout title="My Submissions" activeMenu="Approvals" noPadding>
             <Head title="My Approval Submissions" />
 
-            <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
+            <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
 
                 {/* 1. Header Bar: Submitter Only - Strictly NO Reviewer or Policies Tabs */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
+                <div className="md:hidden flex flex-col sm:flex-row items-center justify-between gap-2 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0">
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0">
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold bg-surface text-brand-600 dark:text-brand-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10">
@@ -188,181 +190,65 @@ export default function MySubmissions({ documents = { data: [] }, filters = {}, 
                     </div>
                 </div>
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Pending Review', value: renderCurrency(stats?.pending_amount || 0), tone: 'amber' },
-  { label: 'Needs Correction', value: stats?.returned_count || 0, tone: 'orange' },
-  { label: 'Approved & Posted', value: renderCurrency(stats?.approved_amount || 0), tone: 'emerald' },
-  { label: 'Total Submissions', value: stats?.total_count ?? allDocs.length, tone: 'ink' }
-]} />
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="My Submissions"
+                    filters={[{ key: 'status', icon: Layers, label: 'Status', value: activeStatus, options: statusFilters.map(f => ({ id: f.id, label: f.label })), onChange: handleStatusFilter }]}
+                    search={{ event: true,  value: searchTerm, onChange: handleSearch, placeholder: 'Search by doc #, partner, memo...' }}
+                    actions={[{ icon: FileSpreadsheet, label: 'Export CSV', onClick: exportToCsv }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Pending Review', value: renderCurrency(stats?.pending_amount || 0), tone: 'amber', icon: Clock },
+                    { label: 'Needs Correction', value: stats?.returned_count || 0, tone: 'orange', icon: RotateCcw },
+                    { label: 'Approved & Posted', value: renderCurrency(stats?.approved_amount || 0), tone: 'emerald', icon: CheckSquare },
+                    { label: 'Total Submissions', value: stats?.total_count ?? allDocs.length, tone: 'ink', icon: FileText }
+                ]} />
 
-                {/* 2. Compact Stats Cards Section - Matches Sales Structure and Minimal Vertical Space */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Pending Review</p>
-                        </div>
-                        <p className="text-base font-bold text-amber-600">{renderCurrency(stats?.pending_amount || 0)}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
-                                <RotateCcw size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Needs Correction</p>
-                        </div>
-                        <p className="text-base font-bold text-orange-600">{stats?.returned_count || 0}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckSquare size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Approved & Posted</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{renderCurrency(stats?.approved_amount || 0)}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <FileText size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Submissions</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats?.total_count ?? allDocs.length}</p>
-                    </div>
-                </div>
-
-                {/* 3. Header & Filter Bar - Desktop Layout */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            MY <span className="text-brand-600">SUBMISSIONS</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <div className="flex items-center gap-1 overflow-x-auto max-w-xl scrollbar-hide py-0.5">
-                            {statusFilters.map((item) => {
-                                const isActive = activeStatus === item.id;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => handleStatusFilter(item.id)}
-                                        className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all whitespace-nowrap ${
-                                            isActive
-                                                ? `${item.activeColor} shadow-xs`
-                                                : 'bg-sunken text-ink-muted hover:bg-interactive-hover hover:text-ink'
-                                        }`}
-                                    >
-                                        {item.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Right: Search + Export & Print Icons */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-64 relative">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                placeholder="Search by doc #, partner, memo..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button onClick={exportToCsv} className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export Excel / CSV">
+                {/* Desktop: ROW 1 toolbar + ROW 2 stat cards */}
+                <ListToolbar
+                    title="My Submissions"
+                    left={(
+                        <ListFilterPill
+                            icon={Layers}
+                            label="All statuses"
+                            value={activeStatus}
+                            allValue=""
+                            options={statusFilters.map((f) => ({ value: f.id, label: f.label }))}
+                            onChange={handleStatusFilter}
+                        />
+                    )}
+                    search={{ value: searchTerm, onChange: (v) => handleSearch({ target: { value: v } }), placeholder: 'Search by doc #, partner, memo...' }}
+                    actions={(
+                        <>
+                            <button type="button" onClick={exportToCsv} className="h-10 w-10 flex items-center justify-center rounded-[12px] text-emerald-600 hover:bg-interactive-hover transition-colors" title="Export Excel / CSV">
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
+                            <button type="button" onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print">
                                 <Printer size={18} />
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 3. Header Area - Mobile Layout */}
-                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
-                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
-                            MY <span className="text-brand-600">SUBMISSIONS</span>
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                title="Filters"
-                            >
-                                <Filter size={16} />
-                            </button>
-                            <button onClick={exportToCsv} className="p-2 rounded-lg bg-sunken text-emerald-600" title="Export">
-                                <FileSpreadsheet size={16} />
-                            </button>
-                            <button onClick={() => PrintService.printPage()} className="p-2 rounded-lg bg-sunken text-ink-muted" title="Print">
-                                <Printer size={16} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {showMobileSearch && (
-                        <div className="relative w-full">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                placeholder="Search by doc #, partner, memo..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl outline-none"
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
-                        </div>
+                        </>
                     )}
-
-                    {showMobileFilters && (
-                        <div className="flex flex-wrap gap-1 pt-1 border-t border-line">
-                            {statusFilters.map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => handleStatusFilter(item.id)}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full ${
-                                        activeStatus === item.id ? item.activeColor : 'bg-sunken text-ink-muted'
-                                    }`}
-                                >
-                                    {item.label}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                />
+                <ListStatCards cards={[
+                    { label: 'Pending Review', value: renderCurrency(stats?.pending_amount || 0), icon: Clock, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', value_tone: 'text-amber-600' },
+                    { label: 'Needs Correction', value: stats?.returned_count || 0, icon: RotateCcw, icon_tone: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400', value_tone: 'text-orange-600' },
+                    { label: 'Approved & Posted', value: renderCurrency(stats?.approved_amount || 0), icon: CheckSquare, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Total Submissions', value: stats?.total_count ?? allDocs.length, icon: FileText },
+                ]} />
 
                 {/* 4. Main Submissions Table - Strict Sales Structure & Vertical Conservation */}
-                <div className="bg-surface rounded-xl border border-line shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+                <div className="bg-surface rounded-xl md:rounded-[14px] border border-line shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
                     <div className="overflow-auto flex-1 scrollbar-thin">
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-sunken/60 sticky top-0 z-10 border-b border-line text-2xs font-extrabold uppercase text-ink-muted tracking-wider">
                                 <tr>
-                                    <th className="py-2.5 px-3">DATE</th>
-                                    <th className="py-2.5 px-3">DOCUMENT #</th>
-                                    <th className="py-2.5 px-3">TRANSACTION</th>
-                                    <th className="py-2.5 px-3">DETAILS / SUMMARY</th>
-                                    <th className="py-2.5 px-3 text-right">AMOUNT</th>
-                                    <th className="py-2.5 px-3 text-center">STATUS</th>
-                                    <th className="py-2.5 px-3 text-right">ACTIONS</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3">DATE</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3">DOCUMENT #</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3">TRANSACTION</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3">DETAILS / SUMMARY</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3 text-right">AMOUNT</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3 text-center">STATUS</th>
+                                    <th className="sticky top-0 z-10 bg-sunken py-2.5 px-3 text-right">ACTIONS</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line text-xs font-medium text-ink-secondary">
@@ -451,7 +337,7 @@ export default function MySubmissions({ documents = { data: [] }, filters = {}, 
                     </div>
                 </div>
 
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

@@ -92,6 +92,22 @@ class FinanceController extends Controller
             ->take(10)
             ->get();
 
+        // Daily cash + bank movement, last 30 days (ledger debit = money in, credit = money out)
+        $cashFlowSeries = DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_items.tenant_id', $tenantId)
+            ->whereIn('accounts.code', ['1000', '1010'])
+            ->where('journal_entries.is_reversed', 0)
+            ->where('journal_entries.date', '>=', now()->subDays(29)->toDateString())
+            ->selectRaw('DATE(journal_entries.date) as day, COALESCE(SUM(journal_items.debit),0) as money_in, COALESCE(SUM(journal_items.credit),0) as money_out')
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get()
+            ->map(fn ($r) => ['day' => $r->day, 'in' => (float) $r->money_in, 'out' => (float) $r->money_out])
+            ->values();
+
         return Inertia::render('Finance/FinanceDashboard', [
             'stats' => [
                 'cash'           => (float) $cashBalance,
@@ -102,7 +118,8 @@ class FinanceController extends Controller
             ],
             'topReceivables' => $topReceivables,
             'topPayables'    => $topPayables,
-            'recentEntries'  => $recentEntries
+            'recentEntries'  => $recentEntries,
+            'cashFlowSeries' => $cashFlowSeries,
         ]);
     }
 

@@ -2,8 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import PrintService from '@/Utils/PrintService';
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import {
     ArrowLeft,
     Search,
@@ -22,10 +24,10 @@ import {
     Printer,
     DollarSign,
     Calendar,
-    CreditCard
-} from 'lucide-react';
+    CreditCard, ArrowUpRight } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 export default function Receivables({ parties = [] }) {
     const { store } = usePage().props;
@@ -50,6 +52,13 @@ export default function Receivables({ parties = [] }) {
             largestDebtor: parties.reduce((max, p) => (parseFloat(p.balance ?? p.current_balance ?? 0) > parseFloat(max.balance ?? max.current_balance ?? 0) ? p : max), {})
         };
     }, [parties]);
+
+    const handleExportCsv = () => exportRowsToCsv('receivables', [
+        { label: 'Name', get: (p) => p.name },
+        { label: 'Phone', get: (p) => p.phone },
+        { label: 'Email', get: (p) => p.email },
+        { label: 'Balance', get: (p) => p.balance ?? p.current_balance },
+    ], filteredParties);
 
     // Sort and Filter Data
     const filteredParties = useMemo(() => {
@@ -82,167 +91,78 @@ export default function Receivables({ parties = [] }) {
         }));
     };
 
+    const navGroups = useMoneyNavGroups();
+
     return (
-        <OneGlanceLayout title="Accounts Receivable" activeMenu="Money">
+        <OneGlanceLayout title="Accounts Receivable" activeMenu="Money" noPadding>
             <Head title="Receivables" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title="Accounts Receivable"
+                    navGroups={navGroups}
+                    activeId="receivables"
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: tt('Search customers...') }}
+                    actions={(
+                        <>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" onClick={handleExportCsv} className="h-10 w-10 flex items-center justify-center rounded-[12px] border border-line bg-app text-emerald-600 hover:bg-interactive-hover" title="Export"><Download size={16} /></button>
+                            <button type="button" onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center rounded-[12px] border border-line bg-app text-ink-muted hover:text-ink hover:bg-interactive-hover" title="Print"><Printer size={16} /></button>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Receivable', value: formatCurrency(stats.totalReceivable, store), icon: DollarSign, icon_tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Active Debtors', value: stats.totalParties, icon: Users },
+                    { label: 'Avg Balance', value: formatCurrency(stats.avgReceivable, store), icon: TrendingUp, icon_tone: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', value_tone: 'text-blue-600' },
+                    { label: 'Highest Balance', value: formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0), store), icon: TrendingUp, icon_tone: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400', value_tone: 'text-red-600' },
+                ]} />
+
+                {/* Phone / existing header (hidden on md+) */}
+                <div className="contents md:hidden">
                 <MoneyModuleTabs activeTab="receivables" />
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Receivable', value: formatCurrency(stats.totalReceivable, store), tone: 'emerald' },
-  { label: 'Active Debtors', value: stats.totalParties, tone: 'brand' },
-  { label: 'Avg Balance', value: formatCurrency(stats.avgReceivable, store), tone: 'blue' },
-  { label: 'Highest Balance', value: formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0), store), tone: 'red' }
-]} />
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Accounts Receivable"
+                    search={{ event: true,  value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), placeholder: tt('Search customers...') }}
+                    actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Receivable', value: formatCurrency(stats.totalReceivable, store), tone: 'emerald', icon: TrendingUp },
+                    { label: 'Active Debtors', value: stats.totalParties, tone: 'brand', icon: Users },
+                    { label: 'Avg Balance', value: formatCurrency(stats.avgReceivable, store), tone: 'blue', icon: DollarSign },
+                    { label: 'Highest Balance', value: formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0), store), tone: 'red', icon: ArrowDownLeft }
+                ]} />
 
-                {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <DollarSign size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Receivable</p>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-600">{formatCurrency(stats.totalReceivable, store)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Users size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Active Debtors</p>
-                        </div>
-                        <p className="text-lg font-bold text-brand-600">{stats.totalParties}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <TrendingUp size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Avg Balance</p>
-                        </div>
-                        <p className="text-lg font-bold text-blue-600">{formatCurrency(stats.avgReceivable, store)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
-                                <TrendingUp size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Highest Balance</p>
-                        </div>
-                        <div className="flex flex-col items-end">
-                            <p className="text-lg font-bold text-red-600 leading-none">{formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0), store)}</p>
-                            {stats.largestDebtor.name && (
-                                <p className="text-2xs font-bold text-ink-muted truncate max-w-[100px] mt-0.5">{stats.largestDebtor.name}</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
 
-                {/* Header Bar - Title + Search + Actions (hidden on mobile, replaced by Mobile Toolbar) */}
-                <div className="hidden sm:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title */}
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Accounts <span className="text-emerald-600">Receivable</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <span className="text-2xs font-bold text-ink-muted uppercase">Money In</span>
-                    </div>
-
-                    {/* Right: Search + Export */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder={tt('Search customers...')}
-                                className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-56"
-                            />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
-                                <Download size={16} />
-                            </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
-                                <Printer size={16} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Toolbar (sm:hidden) */}
-                <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
-                        <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
-                            Accounts <span className="text-emerald-600">Receivable</span>
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setShowMobileSearch(!showMobileSearch)}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={14} />
-                            </button>
-                            <div className="flex items-center border-l border-line pl-1.5 ml-0.5 gap-0.5">
-                                <button className="p-1 text-emerald-600" title="Export">
-                                    <Download size={14} />
-                                </button>
-                                <button onClick={() => PrintService.printPage()} className="p-1 text-ink-muted hover:text-ink transition-colors" title="Print">
-                                    <Printer size={14} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Expandable Mobile Search */}
-                    {showMobileSearch && (
-                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
-                            <div className="relative w-full">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder={tt('Search customers...')}
-                                    className="w-full pl-8 pr-3 py-1 text-xs bg-app border border-line rounded-lg outline-none"
-                                />
-                                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Main Table (Desktop only) */}
-                <div className="hidden sm:block flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="hidden sm:block flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
                                 <th
-                                    className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
+                                    className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                                     onClick={() => handleSort('name')}
                                 >
                                     <div className="flex items-center gap-1">
                                         {tt('Customer')} {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Contact</th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Last Active</th>
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Contact</th>
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Last Active</th>
                                 <th
-                                    className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
+                                    className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover"
                                     onClick={() => handleSort('balance')}
                                 >
                                     <div className="flex items-center justify-end gap-1">
                                         Receivable {sortConfig.key === 'balance' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">Actions</th>
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
@@ -395,6 +315,7 @@ export default function Receivables({ parties = [] }) {
                         </div>
                     )}
                 </div>
+              </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

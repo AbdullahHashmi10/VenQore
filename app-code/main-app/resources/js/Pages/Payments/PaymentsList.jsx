@@ -2,8 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import axios from 'axios';
 import { usePage, Head, Link, router } from '@inertiajs/react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import {
     ArrowDownCircle, ArrowUpCircle, Search, TrendingUp, TrendingDown,
     CreditCard, Banknote, Building2, ChevronUp, ChevronDown,
@@ -99,7 +102,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
     });
 
     return (
-        <div className="flex flex-col rounded-2xl border border-line bg-surface shadow-sm overflow-hidden min-h-0 flex-1">
+        <div className="flex flex-col rounded-2xl md:rounded-[14px] border border-line bg-surface shadow-sm overflow-hidden min-h-0 flex-1">
             {/* Panel Header */}
             <div className={`flex flex-wrap items-center justify-between gap-y-2 px-5 py-3.5 border-b border-line ${accent.light}`}>
                 <div className="flex items-center gap-3">
@@ -144,15 +147,15 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                 <table className="w-full text-left border-collapse">
                     <thead className="sticky top-0 z-10 bg-surface-2/90 backdrop-blur-sm border-b border-line">
                         <tr>
-                            <th className="px-4 py-3 w-[18%]">
+                            <th className="sticky top-0 z-10 bg-surface px-4 py-3 w-[18%]">
                                 <SortBtn label="Date" sortKey="date" current={sort} onSort={onSort} />
                             </th>
-                            <th className="px-4 py-3 w-[36%]">
+                            <th className="sticky top-0 z-10 bg-surface px-4 py-3 w-[36%]">
                                 <SortBtn label="Party / Contact" sortKey="party" current={sort} onSort={onSort} />
                             </th>
-                            <th className="px-4 py-3 w-[16%] text-xs font-bold text-ink-secondary uppercase tracking-wider">Method</th>
-                            <th className="px-4 py-3 w-[14%] text-xs font-bold text-ink-secondary uppercase tracking-wider">Notes</th>
-                            <th className="px-4 py-3 w-[16%] text-right">
+                            <th className="sticky top-0 z-10 bg-surface px-4 py-3 w-[16%] text-xs font-bold text-ink-secondary uppercase tracking-wider">Method</th>
+                            <th className="sticky top-0 z-10 bg-surface px-4 py-3 w-[14%] text-xs font-bold text-ink-secondary uppercase tracking-wider">Notes</th>
+                            <th className="sticky top-0 z-10 bg-surface px-4 py-3 w-[16%] text-right">
                                 <SortBtn label="Amount" sortKey="amount" current={sort} onSort={onSort} />
                             </th>
                         </tr>
@@ -272,6 +275,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
     const todayIn = filteredIn.filter(p => (p.date || '').startsWith(today)).reduce((s, p) => s + parseFloat(p.amount || 0), 0);
     const todayOut = filteredOut.filter(p => (p.date || '').startsWith(today)).reduce((s, p) => s + parseFloat(p.amount || 0), 0);
 
+    const navGroups = useMoneyNavGroups();
     const periods = [
         { val: 'all', label: 'All Time' },
         { val: 'today', label: 'Today' },
@@ -280,130 +284,79 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
     ];
 
     return (
-        <OneGlanceLayout title="Payments" activeMenu="Money">
+        <OneGlanceLayout title="Payments" activeMenu="Money" noPadding>
             <Head title="Payments — In & Out" />
 
-            <div className="flex flex-col h-full bg-app p-2 md:p-3 gap-3 overflow-hidden">
-                <MoneyModuleTabs activeTab="payments" />
-
-                {/* ── Top Summary KPI Bar ── */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
-                    {/* Total Received Card */}
-                    <div className="bg-surface px-5 py-4 rounded-2xl border border-line flex flex-wrap items-center justify-between gap-y-2 shadow-sm">
-                        <div className="flex items-center gap-3.5">
-                            <div className="w-11 h-11 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-sm">
-                                <ArrowDownCircle size={22} />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-ink-secondary uppercase tracking-wider">Total Received</p>
-                                <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
-                                    {formatCurrency(totalIn, store)}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[11px] font-semibold text-ink-muted uppercase block">Today</span>
-                            <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
-                                {formatCurrency(todayIn, store)}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Total Paid Out Card */}
-                    <div className="bg-surface px-5 py-4 rounded-2xl border border-line flex flex-wrap items-center justify-between gap-y-2 shadow-sm">
-                        <div className="flex items-center gap-3.5">
-                            <div className="w-11 h-11 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-sm">
-                                <ArrowUpCircle size={22} />
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-ink-secondary uppercase tracking-wider">Total Paid Out</p>
-                                <p className="text-2xl font-black text-rose-600 dark:text-rose-400 tabular-nums">
-                                    {formatCurrency(totalOut, store)}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[11px] font-semibold text-ink-muted uppercase block">Today</span>
-                            <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/60 text-xs font-bold text-rose-700 dark:text-rose-300 tabular-nums">
-                                {formatCurrency(todayOut, store)}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Net Cash Flow Card */}
-                    <div className={`px-5 py-4 rounded-2xl border shadow-sm flex flex-wrap items-center justify-between gap-y-2 ${
-                        netFlow >= 0
-                            ? 'bg-surface border-line'
-                            : 'bg-surface border-line'
-                    }`}>
-                        <div className="flex items-center gap-3.5">
-                            <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shadow-sm ${
-                                netFlow >= 0 
-                                    ? 'bg-brand-50 dark:bg-brand-950/60 border-brand-200 dark:border-brand-800/80 text-brand-600 dark:text-brand-400' 
-                                    : 'bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800/80 text-amber-600 dark:text-amber-400'
-                            }`}>
-                                {netFlow >= 0 ? <TrendingUp size={22} /> : <TrendingDown size={22} />}
-                            </div>
-                            <div>
-                                <p className="text-xs font-bold text-ink-secondary uppercase tracking-wider">Net Cash Flow</p>
-                                <p className={`text-2xl font-black tabular-nums ${netFlow >= 0 ? 'text-brand-600 dark:text-brand-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                                    {netFlow >= 0 ? '+' : '−'} {formatCurrency(Math.abs(netFlow), store)}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[11px] font-semibold text-ink-muted uppercase block">Activity</span>
-                            <span className="inline-block mt-0.5 px-2.5 py-0.5 rounded-lg bg-surface-2 border border-line text-xs font-bold text-ink tabular-nums">
-                                {filteredIn.length + filteredOut.length} transaction{(filteredIn.length + filteredOut.length) === 1 ? '' : 's'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Filter Bar ── */}
-                <div className="flex flex-wrap items-center justify-between gap-3 bg-surface px-4 py-3 rounded-2xl border border-line shadow-sm shrink-0">
-                    {/* Period pills */}
-                    <div className="flex items-center gap-1.5">
-                        {periods.map(p => (
-                            <button
-                                key={p.val}
-                                onClick={() => handlePeriod(p.val)}
-                                className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all ${period === p.val
-                                        ? 'bg-brand-600 text-white shadow-sm shadow-brand-600/20'
-                                        : 'bg-surface-2 text-ink-secondary hover:text-ink hover:bg-interactive-hover border border-line'
-                                    }`}
-                            >
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {period === 'custom' && (
-                        <div className="flex items-center gap-2 animate-in fade-in">
-                            <Calendar size={14} className="text-ink-secondary" />
-                            <input type="date" name="from" value={dateRange.from} onChange={handleDate}
-                                className="px-2.5 py-1 text-xs font-semibold bg-app border border-line rounded-lg text-ink focus:ring-1 focus:ring-brand-500" />
-                            <span className="text-ink-secondary text-xs font-bold">→</span>
-                            <input type="date" name="to" value={dateRange.to} onChange={handleDate}
-                                className="px-2.5 py-1 text-xs font-semibold bg-app border border-line rounded-lg text-ink focus:ring-1 focus:ring-brand-500" />
+            <div className="flex flex-col h-full bg-app p-3.5 gap-3 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title="Payments"
+                    navGroups={navGroups}
+                    activeId="payments"
+                    left={(
+                        <div className="flex items-center gap-1.5">
+                            {periods.map(p => (
+                                <button
+                                    key={p.val}
+                                    type="button"
+                                    onClick={() => handlePeriod(p.val)}
+                                    className={`h-10 px-3 rounded-[12px] border text-sm font-semibold transition-colors ${period === p.val ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
+                                >{p.label}</button>
+                            ))}
+                            {period === 'custom' && (
+                                <div className="flex items-center gap-1.5">
+                                    <input type="date" name="from" value={dateRange.from} onChange={handleDate} className="h-10 px-2 text-sm font-semibold bg-app border border-line rounded-[12px] text-ink focus:ring-1 focus:ring-brand-500" />
+                                    <span className="text-ink-secondary text-xs font-bold">→</span>
+                                    <input type="date" name="to" value={dateRange.to} onChange={handleDate} className="h-10 px-2 text-sm font-semibold bg-app border border-line rounded-[12px] text-ink focus:ring-1 focus:ring-brand-500" />
+                                </div>
+                            )}
                         </div>
                     )}
+                    search={{ value: search, onChange: setSearch, placeholder: 'Search contact, reference…' }}
+                    actions={(
+                        <>
+                            <ListAddButton href={route('store.payments.out', { store_slug: store.slug })} icon={Plus} className="!bg-rose-600 hover:!bg-rose-700">Payment Out</ListAddButton>
+                            <ListAddButton href={route('store.payments.in', { store_slug: store.slug })} icon={Plus}>Payment In</ListAddButton>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Received', value: formatCurrency(totalIn, store), icon: ArrowDownCircle, icon_tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400', value_tone: 'text-emerald-600 dark:text-emerald-400' },
+                    { label: 'Total Paid Out', value: formatCurrency(totalOut, store), icon: ArrowUpCircle, icon_tone: 'bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400', value_tone: 'text-rose-600 dark:text-rose-400' },
+                    { label: 'Net Cash Flow', value: (netFlow >= 0 ? '+ ' : '− ') + formatCurrency(Math.abs(netFlow), store), icon: netFlow >= 0 ? TrendingUp : TrendingDown, icon_tone: netFlow >= 0 ? 'bg-brand-50 text-brand-600' : 'bg-amber-50 text-amber-600', value_tone: netFlow >= 0 ? 'text-brand-600 dark:text-brand-400' : 'text-amber-600 dark:text-amber-400' },
+                    { label: 'Transactions', value: String(filteredIn.length + filteredOut.length), icon: Hash },
+                ]} />
 
-                    <div className="relative min-w-[240px]">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && applyFilters({ search })}
-                            placeholder="Search contact, reference..."
-                            className="w-full pl-8 pr-3 py-1.5 text-xs bg-app border border-line rounded-xl text-ink placeholder:text-ink-muted focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
+                {/* Phone / existing header (hidden on md+) */}
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Payments"
+                    navGroups={navGroups}
+                    activeId="payments"
+                    links={[{ label: 'Payment Out', icon: ArrowUpCircle, href: route('store.payments.out', { store_slug: store.slug }) }]}
+                    filter={{
+                        active: period !== 'all',
+                        sections: [{ label: 'Period', value: period, options: periods.map(p => ({ value: p.val, label: p.label })), onSelect: handlePeriod, keepOpen: true }],
+                        footer: period === 'custom' ? (
+                            <div className="flex items-center gap-1.5 px-1 pt-2">
+                                <input type="date" name="from" value={dateRange.from} onChange={handleDate} className="h-10 min-w-0 flex-1 px-2 text-sm bg-app border border-line rounded-[10px] text-ink" />
+                                <input type="date" name="to" value={dateRange.to} onChange={handleDate} className="h-10 min-w-0 flex-1 px-2 text-sm bg-app border border-line rounded-[10px] text-ink" />
+                            </div>
+                        ) : null,
+                    }}
+                    search={{ value: search, onChange: setSearch, onKeyDown: e => e.key === 'Enter' && applyFilters({ search }), placeholder: 'Search contact, reference…' }}
+                    add={{ href: route('store.payments.in', { store_slug: store.slug }), label: 'Payment In' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Received', value: formatCurrency(totalIn, store), tone: 'emerald', icon: ArrowDownCircle },
+                    { label: 'Total Paid Out', value: formatCurrency(totalOut, store), tone: 'rose', icon: ArrowUpCircle },
+                    { label: 'Net Cash Flow', value: (netFlow >= 0 ? '+ ' : '− ') + formatCurrency(Math.abs(netFlow), store), tone: netFlow >= 0 ? 'brand' : 'amber', icon: netFlow >= 0 ? TrendingUp : TrendingDown },
+                    { label: 'Transactions', value: String(filteredIn.length + filteredOut.length), tone: 'ink', icon: Hash },
+                ]} />
 
                 {/* ── Two Panels Side by Side ── */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0 overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-2 flex-1 min-h-0 overflow-hidden">
                     <PaymentPanel
                         type="in"
                         payments={filteredIn}
@@ -425,6 +378,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {},
                         store={store}
                     />
                 </div>
+              </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

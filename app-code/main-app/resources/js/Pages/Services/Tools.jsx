@@ -26,7 +26,11 @@ import {
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
-import ServiceNavTabs from '@/Pages/Services/ServiceNavTabs';
+import ServiceNavTabs, { useServiceNavGroups } from '@/Pages/Services/ServiceNavTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 
 const STATUS_CONFIG = {
     available: { label: 'Available in Shop', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40', icon: CheckCircle2 },
@@ -40,6 +44,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
     const { store } = usePage().props;
     const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
     const tt = useTermText();
+    const serviceNavGroups = useServiceNavGroups();
 
     const [search, setSearch] = useState(filters.search || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || 'all');
@@ -189,115 +194,65 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
     };
 
     return (
-        <OneGlanceLayout title="Tools & Equipment" activeMenu="Stock">
+        <OneGlanceLayout title="Tools & Equipment" activeMenu="Stock" noPadding>
             <Head title="Tools & Equipment Management" />
 
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
-                {/* Unified Services Tabs */}
-                <ServiceNavTabs active="tools" />
-
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="p-2 rounded-xl bg-accent-quiet text-accent-text">
-                                <Wrench size={22} />
-                            </span>
-                            <div>
-                                <h1 className="text-xl font-bold text-ink flex items-center gap-2">
-                                    Tools & Field Equipment
-                                </h1>
-                                <p className="text-xs text-ink-muted">
-                                    {tt('Track workshop tools, vehicle kits, staff checkouts, and maintenance cadences.')}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={openAddTool}
-                            className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-accent-fill px-4 text-xs font-semibold text-accent-on shadow-glow transition-colors hover:bg-accent-fill-hover"
-                        >
-                            <Plus size={15} /> Add Tool
-                        </button>
-                    </div>
-                </div>
-
-                {/* Metrics Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="p-4 rounded-xl border border-line bg-surface shadow-xs">
-                        <span className="text-3xs font-bold uppercase tracking-wider text-ink-muted block">Total Equipment</span>
-                        <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-black text-ink">{stats.total ?? 0}</span>
-                            <Wrench size={16} className="text-indigo-500" />
-                        </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl border border-line bg-surface shadow-xs">
-                        <span className="text-3xs font-bold uppercase tracking-wider text-emerald-600 block">Available in Shop</span>
-                        <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-black text-emerald-600">{stats.available ?? 0}</span>
-                            <CheckCircle2 size={16} className="text-emerald-500" />
-                        </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl border border-line bg-surface shadow-xs">
-                        <span className="text-3xs font-bold uppercase tracking-wider text-blue-600 block">{tt('Checked Out to Staff')}</span>
-                        <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-black text-blue-600">{stats.with_staff ?? 0}</span>
-                            <User size={16} className="text-blue-500" />
-                        </div>
-                    </div>
-
-                    <div className="p-4 rounded-xl border border-line bg-surface shadow-xs">
-                        <span className="text-3xs font-bold uppercase tracking-wider text-amber-600 block">Maintenance Due Soon</span>
-                        <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-black text-amber-600">{stats.due_maintenance ?? 0}</span>
-                            <AlertTriangle size={16} className="text-amber-500" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Filters & Search Toolbar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-3 rounded-xl border border-line">
-                    <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar">
-                        {[
-                            { key: 'all', label: 'All Equipment' },
-                            { key: 'available', label: 'Available' },
-                            { key: 'with_staff', label: tt('With Staff') },
-                            { key: 'due_maintenance', label: 'Maintenance Due (7d)' },
-                            { key: 'in_maintenance', label: 'In Repair' },
-                        ].map(tab => (
-                            <button
-                                key={tab.key}
-                                onClick={() => applyFilter(tab.key)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
-                                    selectedStatus === tab.key
-                                        ? 'bg-indigo-600 text-white'
-                                        : 'bg-sunken text-ink-secondary hover:bg-interactive-hover'
-                                }`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="relative w-full sm:w-64">
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onKeyDown={handleSearch}
-                            placeholder={tt('Search tools, staff, category...')}
-                            className="w-full pl-9 pr-3 py-1.5 bg-app border border-line rounded-lg text-xs font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
-                        />
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                    </div>
-                </div>
+            <ListPageFrame className="p-2.5">
+            <ListToolbar
+                title="Tools & Equipment"
+                navGroups={serviceNavGroups}
+                activeId="tools"
+                left={(
+                    <ListFilterPill
+                        icon={Filter}
+                        label="All Equipment"
+                        value={selectedStatus}
+                        options={[
+                            { value: 'all', label: 'All Equipment' },
+                            { value: 'available', label: 'Available' },
+                            { value: 'with_staff', label: tt('With Staff') },
+                            { value: 'due_maintenance', label: 'Maintenance Due (7d)' },
+                            { value: 'in_maintenance', label: 'In Repair' },
+                        ]}
+                        onChange={applyFilter}
+                    />
+                )}
+                search={{ value: search, onChange: setSearch, onKeyDown: handleSearch, placeholder: tt('Search tools, staff, category...') }}
+                actions={<ListAddButton icon={Plus} onClick={openAddTool}>Add Tool</ListAddButton>}
+            />
+            <ListStatCards cards={[
+                { label: 'Total Equipment', value: stats.total ?? 0, icon: Wrench },
+                { label: 'Available in Shop', value: stats.available ?? 0, icon: CheckCircle2, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                { label: tt('Checked Out to Staff'), value: stats.with_staff ?? 0, icon: User, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', value_tone: 'text-blue-600' },
+                { label: 'Maintenance Due Soon', value: stats.due_maintenance ?? 0, icon: AlertTriangle, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', value_tone: 'text-amber-600' },
+            ]} />
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6 md:contents md:space-y-0">
+                <MobileListHeader
+                    title="Tools & Equipment"
+                    navGroups={serviceNavGroups}
+                    activeId="tools"
+                    filter={{
+                        active: selectedStatus !== 'all',
+                        sections: [{ label: 'Status', value: selectedStatus, options: [
+                            { value: 'all', label: 'All Equipment' },
+                            { value: 'available', label: 'Available' },
+                            { value: 'with_staff', label: tt('With Staff') },
+                            { value: 'due_maintenance', label: 'Maintenance Due (7d)' },
+                            { value: 'in_maintenance', label: 'In Repair' },
+                        ], onSelect: applyFilter }],
+                    }}
+                    search={{ value: search, onChange: setSearch, onKeyDown: handleSearch, placeholder: tt('Search tools...') }}
+                    add={{ onClick: openAddTool, label: 'Add Tool' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total', value: stats.total ?? 0, tone: 'ink', icon: Wrench },
+                    { label: 'Available', value: stats.available ?? 0, tone: 'emerald', icon: CheckCircle2 },
+                    { label: tt('With Staff'), value: stats.with_staff ?? 0, tone: 'blue', icon: User },
+                    { label: 'Maint. Due', value: stats.due_maintenance ?? 0, tone: 'amber', icon: AlertTriangle },
+                ]} />
 
                 {/* Tools Grid / Table */}
-                <div className="rounded-xl border border-line bg-surface overflow-hidden shadow-xs">
+                <div className="rounded-xl md:rounded-[14px] border border-line bg-surface overflow-hidden shadow-xs md:flex-1 md:min-h-0 md:flex md:flex-col md:shadow-sm">
                     {tools.data.length === 0 ? (
                         <div className="p-5 sm:p-12 text-center">
                             <Wrench size={36} className="mx-auto text-ink-muted mb-2 opacity-50" />
@@ -308,16 +263,16 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                             </button>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto md:overflow-auto md:flex-1 md:min-h-0">
                             <table className="w-full text-left border-collapse text-xs">
-                                <thead>
+                                <thead className="md:sticky md:top-0 md:z-10">
                                     <tr className="bg-app border-b border-line text-ink-muted uppercase font-bold text-3xs tracking-wider">
-                                        <th className="p-3">Tool / Equipment</th>
-                                        <th className="p-3">Category</th>
-                                        <th className="p-3">Status</th>
-                                        <th className="p-3">Current Holder / Location</th>
-                                        <th className="p-3">Next Maintenance</th>
-                                        <th className="p-3 text-right">Actions</th>
+                                        <th className="sticky top-0 z-10 bg-app p-3">Tool / Equipment</th>
+                                        <th className="sticky top-0 z-10 bg-app p-3">Category</th>
+                                        <th className="sticky top-0 z-10 bg-app p-3">Status</th>
+                                        <th className="sticky top-0 z-10 bg-app p-3">Current Holder / Location</th>
+                                        <th className="sticky top-0 z-10 bg-app p-3">Next Maintenance</th>
+                                        <th className="sticky top-0 z-10 bg-app p-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-line">
@@ -434,6 +389,7 @@ export default function Tools({ tools, filters = {}, stats = {}, employees = [],
                     )}
                 </div>
             </div>
+            </ListPageFrame>
 
             {/* Add / Edit Tool Modal */}
             {isToolModalOpen && (

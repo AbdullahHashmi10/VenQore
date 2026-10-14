@@ -556,10 +556,10 @@ body { margin: 0; background: var(--vq-bg); }
   color: var(--vq-on-accent-text, #FFFFFF);
   box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
   --chart-1: #59DBC0;
-  --chart-2: #8FD9F5;
-  --chart-3: #FFD56B;
+  --chart-2: #FFB547;
+  --chart-3: #B8A4F5;
   --chart-line-primary: #59DBC0;
-  --chart-line-secondary: #8FD9F5;
+  --chart-line-secondary: #FFB547;
   --chart-grid: rgba(255, 255, 255, 0.09);
   --chart-label: rgba(241, 245, 242, 0.74);
   --chart-foreground: #FFFFFF;
@@ -5632,3 +5632,239 @@ html.dark .vq-rails--cockpit,
   .vqc--tone-surface::before, .vqc--tone-surface{ transition:none; }
   .vqc--tone-surface:hover::before, .vqc--tone-surface:hover:not(.is-dragging):not(.is-resizing){ transform:none; }
 }
+
+/* ── Tone stacking fix ──────────────────────────────────────────────────────
+   The tone rules above and the base `.vqc { background }` in venqore-v6/cards.css have the SAME
+   specificity, so whichever stylesheet the bundler emits last wins. After a rebuild the base rule
+   came last: the "ink" tone (Gross Profit) lost its dark fill and drew white text on a white card
+   (a blank tile), and the mesh tone lost its glow. Repeating the class raises specificity so a
+   card's tone wins regardless of bundle order. */
+.vqc.vqc--tone-surface { background: var(--vq-surface, #fff); color: var(--vq-text, var(--vq-ink-900)); border: 1px solid var(--vq-line, var(--vq-ink-200)); }
+[data-theme="dark"] .vqc.vqc--tone-surface { background: #151d18; border-color: #24332c; color: #edf2ef; }
+.vqc.vqc--tone-ink { background: #0d1412; border: 1px solid #1f2b25; color: #edf2ef; box-shadow: 0 12px 32px rgb(0 0 0 / .34); }
+.vqc.vqc--tone-ink:hover { border-color: rgba(89, 219, 192, 0.45); }
+.vqc.vqc--tone-mesh {
+  background: radial-gradient(at 100% 0%, rgb(11 170 143 / .20) 0, transparent 62%), radial-gradient(at 0% 100%, rgb(43 165 209 / .18) 0, transparent 62%), var(--vq-surface, #fff);
+  border: 1px solid var(--vq-teal-200, #93ebd6); color: var(--vq-text, var(--vq-ink-900)); box-shadow: 0 8px 24px rgb(11 170 143 / .12);
+}
+[data-theme="dark"] .vqc.vqc--tone-mesh {
+  background: radial-gradient(at 100% 0%, rgb(11 170 143 / .3) 0, transparent 62%), radial-gradient(at 0% 100%, rgb(43 165 209 / .24) 0, transparent 62%), #111815;
+  border-color: #1a5044; color: #edf2ef;
+}
+
+/* ══ Strip / tile layout — cascade-proof ════════════════════════════════════
+   venqore-v6/cards.css defines the inline strip as a THREE-column grid and is
+   emitted after this file once the bundle is rebuilt, so it beat the canonical
+   two-column block above: the value drifted to the middle of the tile and the
+   caption right-aligned. These selectors carry an extra class so the result no
+   longer depends on stylesheet order. The tools' ground (white circle) only
+   exists while the controls are visible. */
+.vq-shell .vqc.vqc--c2 .vqc-bd--strip.is-inline{
+  display: grid; align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto; gap: var(--vq-space-4); width: 100%;
+}
+.vq-shell .vqc.vqc--c2 .vqc-bd--strip.is-inline .vqc-strip-left .vqc-when,
+.vq-shell .vqc.vqc--c2:hover .vqc-bd--strip.is-inline .vqc-strip-left .vqc-when,
+.vq-shell .vqc.vqc--c2:focus-within .vqc-bd--strip.is-inline .vqc-strip-left .vqc-when{ text-align: left; opacity: 1; }
+.vq-shell .vqc.vqc--c2 .vqc-bd--strip.is-inline .vqc-head{ justify-content: flex-end; flex: 0 0 auto; }
+.vq-shell:not(.is-editing) .vqc.vqc--c1:not(:hover):not(:focus-within) .vqc-tools,
+.vq-shell:not(.is-editing) .vqc.vqc--c2:not(:hover):not(:focus-within) .vqc-tools{
+  background: transparent !important; box-shadow: none; padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK GROUNDS, MOVE/RESIZE, BIG-CARD CHART HEIGHT  (Oct 2026 fix pass)
+   Appended last on purpose: every rule carries enough specificity to win
+   regardless of bundle order, because the rules above it were fighting each
+   other (a mesh page ground repainted every tone; only "ink" re-coloured its
+   charts; the move handle was invisible; edge handles were clipped).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1 · One definition of "this card is on a dark ground": ink, accent, an
+   Aurora-mesh card in a dark theme, and EVERY card on the mesh page ground.
+   Text tiers, chart furniture, and chart palette all follow it together, so
+   no card can have light text on a light fill or dark axis labels on dark. */
+.vqc.vqc--tone-ink,
+.vqc.vqc--tone-accent,
+[data-theme="dark"] .vqc.vqc--tone-mesh,
+:root[data-bg="mesh"] .vqc {
+  --vq-text: #f4f8f6; --vq-text-2: rgb(255 255 255 / .82); --vq-text-3: rgb(255 255 255 / .66);
+  --vq-sunken: rgb(255 255 255 / .07); --vq-line: rgb(255 255 255 / .12); --vq-line-strong: rgb(255 255 255 / .24);
+  --vq-chart-grid: rgb(255 255 255 / .10); --vq-chart-label: rgb(241 245 242 / .72);
+  --vq-chart-axis: rgb(255 255 255 / .28); --vq-chart-track: rgb(255 255 255 / .14);
+  --chart-1: #59DBC0; --chart-2: #FFB547; --chart-3: #B8A4F5; --chart-4: #FF8A7A; --chart-5: #8FD9F5;
+  --chart-line-primary: #59DBC0; --chart-line-secondary: #FFB547;
+  --chart-grid: rgb(255 255 255 / .10); --chart-label: rgb(241 245 242 / .72);
+  --chart-foreground: #fff; --chart-foreground-muted: rgb(241 245 242 / .72);
+  --chart-segment-background: rgb(255 255 255 / .10); --chart-segment-line: rgb(255 255 255 / .12);
+  --chart-crosshair: rgb(255 255 255 / .28); --chart-indicator-color: rgb(255 255 255 / .4);
+  color: #f4f8f6;
+}
+.vqc.vqc--tone-ink text, .vqc.vqc--tone-accent text,
+[data-theme="dark"] .vqc.vqc--tone-mesh text, :root[data-bg="mesh"] .vqc text { fill: rgb(255 255 255 / .74); }
+.vqc.vqc--tone-ink .ck-lab, .vqc.vqc--tone-accent .ck-lab,
+[data-theme="dark"] .vqc.vqc--tone-mesh .ck-lab, :root[data-bg="mesh"] .vqc .ck-lab { fill: rgb(255 255 255 / .74); }
+.vqc.vqc--tone-ink .vqc-value, .vqc.vqc--tone-accent .vqc-value,
+[data-theme="dark"] .vqc.vqc--tone-mesh .vqc-value, :root[data-bg="mesh"] .vqc .vqc-value { color: #fff; }
+.vqc.vqc--tone-ink .vqc-eyebrow, .vqc.vqc--tone-accent .vqc-eyebrow,
+[data-theme="dark"] .vqc.vqc--tone-mesh .vqc-eyebrow, :root[data-bg="mesh"] .vqc .vqc-eyebrow { color: rgb(255 255 255 / .92); }
+.vqc.vqc--tone-ink .vqc-when, .vqc.vqc--tone-accent .vqc-when,
+[data-theme="dark"] .vqc.vqc--tone-mesh .vqc-when, :root[data-bg="mesh"] .vqc .vqc-when { color: rgb(255 255 255 / .74); }
+:root[data-bg="mesh"] .vqc .vqc-recent, [data-theme="dark"] .vqc.vqc--tone-mesh .vqc-recent { border-top-color: rgb(255 255 255 / .14); }
+:root[data-bg="mesh"] .vqc .vqc-recent-row, [data-theme="dark"] .vqc.vqc--tone-mesh .vqc-recent-row { border-bottom-color: rgb(255 255 255 / .1); color: #E8F0EC; }
+:root[data-bg="mesh"] .vqc .vqc-recent-t, [data-theme="dark"] .vqc.vqc--tone-mesh .vqc-recent-t { color: #59DBC0; opacity: 1; }
+:root[data-bg="mesh"] .vqc .vqc-act, :root[data-bg="mesh"] .vqc .vqc-nav-link,
+[data-theme="dark"] .vqc.vqc--tone-mesh .vqc-act, [data-theme="dark"] .vqc.vqc--tone-mesh .vqc-nav-link {
+  background: rgb(255 255 255 / .12); color: rgb(255 255 255 / .85); }
+
+/* 2 · Tone fills on the mesh page ground. The generic mesh-ground rule
+   (`:root[data-bg=mesh] .vqc`) outranks the tone rules, so each tone restates
+   its own fill here at a higher specificity. */
+:root[data-bg="mesh"] .vqc.vqc--tone-surface {
+  background: rgb(16 20 26 / .78); backdrop-filter: blur(18px) saturate(1.1);
+  border-color: rgb(255 255 255 / .12);
+}
+:root[data-bg="mesh"] .vqc.vqc--tone-ink {
+  background: #0d1412; backdrop-filter: none; border-color: #1f2b25;
+  box-shadow: 0 12px 32px rgb(0 0 0 / .45);
+}
+:root[data-bg="mesh"] .vqc.vqc--tone-mesh {
+  background:
+    radial-gradient(at 100% 0%, rgb(11 170 143 / .34) 0, transparent 62%),
+    radial-gradient(at 0% 100%, rgb(43 165 209 / .26) 0, transparent 62%),
+    #121a17;
+  backdrop-filter: none; border-color: rgb(11 170 143 / .38);
+}
+:root[data-bg="mesh"] .vqc.vqc--tone-accent { backdrop-filter: none; }
+
+/* 3 · The move handle: visible whenever the card is hovered, bigger target,
+   readable on every ground. It used to appear only when the pointer was on
+   that exact spot, so on dark cards it looked like dragging did not exist. */
+.vqc .vqc-move {
+  width: 48px; height: 18px; top: 5px; z-index: 9;
+  background: rgb(0 0 0 / .08); color: var(--vq-text-2, #4b5a53);
+}
+.vqc:hover .vqc-move, .vqc:focus-within .vqc-move { opacity: .85; transform: translateX(-50%) scale(1); }
+.vqc .vqc-move:hover { opacity: 1; }
+.vqc.vqc--tone-ink .vqc-move, .vqc.vqc--tone-accent .vqc-move,
+[data-theme="dark"] .vqc .vqc-move, :root[data-bg="mesh"] .vqc .vqc-move {
+  background: rgb(255 255 255 / .16); color: rgb(255 255 255 / .9);
+}
+/* edge handles sat 5px OUTSIDE a card that clips its overflow, so half of
+   every hit area was cut off. Pull them fully inside. */
+.vqc .vqc-edge--n { top: 0; } .vqc .vqc-edge--s { bottom: 0; }
+.vqc .vqc-edge--e { right: 0; } .vqc .vqc-edge--w { left: 0; }
+.vqc .vqc-edge--ne { top: 0; right: 0; } .vqc .vqc-edge--nw { top: 0; left: 0; }
+.vqc .vqc-edge--se { bottom: 0; right: 0; } .vqc .vqc-edge--sw { bottom: 0; left: 0; }
+.vqc .vqc-edge--n, .vqc .vqc-edge--s, .vqc .vqc-edge--e, .vqc .vqc-edge--w { z-index: 8; }
+.vqc .vqc-edge--ne, .vqc .vqc-edge--nw, .vqc .vqc-edge--se, .vqc .vqc-edge--sw { z-index: 9; }
+.vqc.vqc--tone-ink .vqc-edge::after, .vqc.vqc--tone-accent .vqc-edge::after,
+:root[data-bg="mesh"] .vqc .vqc-edge::after, [data-theme="dark"] .vqc .vqc-edge::after { border-color: rgb(255 255 255 / .9); }
+
+/* 4 · Big cards: the chart gets a real floor and the "latest" list gives way,
+   never the other way round — a 48px plot with four overlapping axis labels
+   is not a chart. */
+.vqc > .vqc-bd:not(.vqc-bd--strip):not(.vqc-bd--tile) { flex: 1 1 0; min-height: 0; }
+.vqc .vqc-bd > .vqc-host { flex: 1 1 0% !important; min-height: 72px !important; }
+.vqc[data-h="5"] .vqc-bd > .vqc-host { min-height: 120px !important; }
+.vqc[data-h="6"] .vqc-bd > .vqc-host { min-height: 150px !important; }
+.vqc[data-h="7"] .vqc-bd > .vqc-host { min-height: 190px !important; }
+.vqc[data-h="8"] .vqc-bd > .vqc-host,
+.vqc[data-h="9"] .vqc-bd > .vqc-host { min-height: 230px !important; }
+.vqc .vqc-recent { flex: 0 1 auto; min-height: 0; overflow: hidden; }
+
+/* 5 · ROOT CAUSE of the squashed chart + mid-card move handle on accent/dark
+   cards: `.vqc--accent > * { position: relative }` (cards.css) also hit the
+   six-dot move handle and all eight resize edges. They stopped being
+   absolutely positioned, fell into the card's column flow, took layout height
+   (squeezing the chart to a sliver) and sat in the middle of the card, where
+   they could not be dragged from the edge. These pins are absolute for every
+   tone, whatever any "> *" rule says. */
+.vqc > .vqc-move, .vqc.vqc--accent > .vqc-move { position: absolute !important; }
+.vqc > .vqc-resize, .vqc.vqc--accent > .vqc-resize { position: absolute !important; }
+.vqc > .vqc-size-hint { position: absolute; }
+
+/* 6 · SIDE PANEL — full visible height. The panel is pinned where the page
+   area starts and ends 12px above the bottom of the screen, whatever the
+   window height (--vq-rails-h / --vq-rails-top are measured in the page). Its
+   cards scroll inside it; the panel itself never shrinks to its content. */
+.vq-canvas-body.has-rails > .vq-rails,
+.vq-canvas-body.has-rails > .vq-rails.is-sticky,
+.vq-canvas-body.has-rails > .vq-rails.vq-rails--cockpit {
+  position: sticky !important;
+  top: var(--vq-rails-top, 24px) !important;
+  align-self: flex-start !important;
+  height: var(--vq-rails-h, calc(100vh - 120px)) !important;
+  max-height: var(--vq-rails-h, calc(100vh - 120px)) !important;
+  margin-bottom: 0 !important;
+  display: flex !important; flex-direction: column !important;
+  overflow: hidden !important;
+}
+.vq-canvas-body.has-rails > .vq-rails > .vq-rails-shell,
+.vq-canvas-body.has-rails > .vq-rails.is-sticky > .vq-rails-shell {
+  flex: 1 1 auto !important; height: auto !important; max-height: none !important;
+  min-height: 0 !important; overflow: hidden !important;
+}
+.vq-canvas-body.has-rails > .vq-rails .vq-rails-scroll,
+.vq-canvas-body.has-rails > .vq-rails.is-sticky .vq-rails-scroll {
+  flex: 1 1 auto !important; min-height: 0 !important; height: auto !important;
+  max-height: none !important; overflow-y: auto !important; overflow-x: hidden !important;
+}
+
+/* 7 · Tidy-ups from the dashboard review */
+/* A KPI strip never clips its own label ("STOCK …"): the label column keeps
+   its full width and the figure gives way (it already steps its size down). */
+.vq-shell .vqc.vqc--c2 .vqc-bd--strip.is-inline {
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, auto);
+}
+.vq-shell .vqc.vqc--c2 .vqc-bd--strip.is-inline .vqc-strip-left .vqc-eyebrow { overflow: visible; text-overflow: clip; }
+/* The panel's last card (Activity) takes whatever height is left, so a tall
+   screen shows more rows and a shaded card, not a hole under the list. */
+.vq-canvas-body.has-rails > .vq-rails .vq-rails-scroll > .vq-rail-card:last-child { flex: 1 1 auto; }
+
+/* 8 · The balance panel (V6 financial sidebar) is `h-full justify-between`,
+   but its parent was never given a height, so it hugged its content and left
+   the rest of the full-height panel empty. Let it take the panel's height —
+   its own justify-between then spreads balances, banks and activity down the
+   whole panel instead of piling them at the top. */
+.vq-canvas-body.has-rails > .vq-rails .vq-rails-scroll > div.h-full,
+.vq-canvas-body.has-rails > .vq-rails .vq-rails-scroll > div.w-full {
+  flex: 1 1 auto; min-height: 0; height: auto;
+}
+
+/* 9 · Tooltip on dark cards, and tighter card padding.
+   The hover tooltip takes its colours from --chart-tooltip-*. Dark tones set
+   the text colour light but left the panel at the page's raised (white) colour,
+   so the readout was pale text on a white box. Give every dark tone its own
+   dark, bordered panel with white text. */
+.vqc.vqc--tone-ink, .vqc.vqc--tone-accent, .vqc.vqc--tone-mesh,
+[data-theme="dark"] .vqc,
+:root[data-bg="mesh"] .vqc.vqc--tone-ink,
+:root[data-bg="mesh"] .vqc.vqc--tone-accent,
+:root[data-bg="mesh"] .vqc.vqc--tone-mesh {
+  --chart-tooltip-background: #17211d;
+  --chart-tooltip-foreground: #FFFFFF;
+  --chart-tooltip-muted: rgba(241, 245, 242, 0.78);
+}
+.vqc.vqc--tone-ink [class*="bg-chart-tooltip-background"],
+.vqc.vqc--tone-accent [class*="bg-chart-tooltip-background"],
+.vqc.vqc--tone-mesh [class*="bg-chart-tooltip-background"] {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.55);
+}
+/* the tooltip is portalled to the page body in some layouts, outside .vqc */
+[data-chart-tone="dark"] { --chart-tooltip-background: #17211d; --chart-tooltip-foreground: #fff; --chart-tooltip-muted: rgba(241,245,242,.78); }
+
+/* Cards that carry a chart: the plot already keeps its own axis gutters, so the
+   card itself only needs a slim frame. */
+.vqc:has(> .vqc-bd > .vqc-host) { padding: 14px 14px 10px; }
+.vqc:has(> .vqc-bd > .vqc-host) .vqc-bd { gap: 4px; }
+
+/* 10 · MESH (accent) CARD — the card tools are pinned to the card edge, like every
+   other tone. cards.css makes every direct child of .vqc--accent position:relative
+   (so content sits above the glare), which also pulled the tools row out of its
+   absolute pin: in a one-row strip it dropped below the title, shoving the title up
+   and clipping the buttons. Tools stay above the content (z-index) but absolute. */
+.vqc.vqc--accent > .vqc-tools { position: absolute; z-index: 2; }
+.vqc.vqc--c2.vqc--accent > .vqc-tools { top: 50%; right: 8px; transform: translateY(-50%); }
+.vqc.vqc--c1.vqc--accent > .vqc-tools { top: 6px; right: 6px; }

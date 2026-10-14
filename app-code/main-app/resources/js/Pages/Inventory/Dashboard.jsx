@@ -1,180 +1,97 @@
-import React from 'react';
-import { Head, Link, usePage } from '@inertiajs/react';
+import React, { useMemo } from 'react';
+import { Link, usePage } from '@inertiajs/react';
 import { useTermText } from '@/lib/terms';
-import { formatCurrency } from '@/Utils/format';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { formatCurrency, formatNumber } from '@/Utils/format';
+import { useStockNavGroups } from '@/Components/StockModuleTabs';
 import StockModuleTabs from '@/Components/StockModuleTabs';
-import MidnightNebula from '@/Components/MidnightNebula';
-import { 
-    Package, 
-    TrendingUp, 
-    ShoppingCart, 
-    Wallet, 
-    ArrowRight,
-    DollarSign,
-    Warehouse,
-    AlertTriangle as AlertTriangleIcon
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
+import {
+    Package, AlertTriangle, DollarSign, Warehouse, PackageX, Layers, TrendingUp, ArrowRight, PieChart as PieIcon, Table2, Zap,
 } from 'lucide-react';
 
-export default function InventoryDashboard({ stats, topMoving, expiringBatches = [] }) {
-    const { props } = usePage();
-    const store = props.store || {};
+export default function InventoryDashboard({ stats = {}, topMoving = [], expiringBatches = [], valueByCategory = [], recentReceipts = [] }) {
+    const { store } = usePage().props;
     const tt = useTermText();
-    
-    const StatCard = ({ title, value, icon: Icon, color, subValue }) => (
-        <div className="bg-surface p-4 md:p-6 rounded-2xl border border-line shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
-            <div>
-                <div className="flex justify-between items-start mb-3">
-                    <div className={`p-2.5 rounded-xl ${color} bg-opacity-10 dark:bg-opacity-20`}>
-                        <Icon className={`w-5 h-5 md:w-6 md:h-6 ${color.replace('bg-', 'text-')}`} />
-                    </div>
-                    {subValue && (
-                        <span className="text-2xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-lg">
-                            {subValue}
-                        </span>
-                    )}
-                </div>
-                <h3 className="text-ink-muted text-xs md:text-sm font-bold uppercase tracking-wider mb-1">{title}</h3>
-            </div>
-            <p className="text-lg md:text-2xl font-bold text-ink transition-transform origin-left">
-                {value}
-            </p>
-        </div>
-    );
- 
-    return (
-        <OneGlanceLayout title="Inventory Dashboard" activeMenu="Stock">
-            <Head title="Inventory Dashboard" />
- 
-            <div className="flex flex-col h-full bg-app p-2 gap-2 overflow-y-auto md:overflow-hidden">
-                <StockModuleTabs activeTab="overview" />
- 
-                <div className="space-y-4 md:space-y-6 overflow-y-auto pb-24 md:pb-6 pr-1">
-                    {/* Stats Grid - Responsive 2 Columns on Mobile */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-6">
-                        <StatCard
-                            title={tt('Total Products')}
-                            value={stats.total_products}
-                            icon={Package}
-                            color="bg-brand-500"
-                        />
-                        <StatCard
-                            title="Low Stock Items"
-                            value={stats.low_stock_count}
-                            icon={AlertTriangleIcon}
-                            color="bg-amber-500"
-                            subValue={stats.low_stock_count > 0 ? 'Action Needed' : 'Healthy'}
-                        />
-                        <StatCard
-                            title="Inventory Value"
-                            value={formatCurrency(stats.inventory_value || 0, store)}
-                            icon={DollarSign}
-                            color="bg-emerald-500"
-                        />
-                        <StatCard
-                            title="Warehouses"
-                            value={stats.total_warehouses}
-                            icon={Warehouse}
-                            color="bg-brand-500"
-                        />
-                    </div>
- 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-                        {/* Top Moving Items */}
-                        <div className="lg:col-span-2 bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
-                            <div className="p-4 md:p-6 border-b border-line flex justify-between items-center">
-                                <h3 className="font-bold text-sm md:text-lg text-ink flex items-center gap-2 uppercase tracking-wider">
-                                    <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-brand-500" />
-                                    Top Moving Items
-                                </h3>
-                                <Link href={route('store.reports.index', { store_slug: store?.slug })} className="text-xs md:text-sm text-brand-600 hover:text-brand-700 font-bold uppercase">
-                                    View Reports
-                                </Link>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-xs md:text-sm">
-                                    <thead className="bg-app text-ink-muted uppercase font-bold tracking-wider text-2xs">
-                                        <tr>
-                                            <th className="px-4 py-3 md:px-6 md:py-4 font-bold">{tt('Product Name')}</th>
-                                            <th className="px-4 py-3 md:px-6 md:py-4 font-bold text-right">Total Sold</th>
-                                            <th className="px-4 py-3 md:px-6 md:py-4 font-bold text-right">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-line font-medium">
-                                        {topMoving.length > 0 ? (
-                                            topMoving.map((item, idx) => (
-                                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                                    <td className="px-4 py-3 md:px-6 md:py-4 font-bold text-ink">
-                                                        {item.name}
-                                                    </td>
-                                                    <td className="px-4 py-3 md:px-6 md:py-4 text-right text-ink-secondary font-bold">
-                                                        {item.total_sold}
-                                                    </td>
-                                                    <td className="px-4 py-3 md:px-6 md:py-4 text-right">
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-2xs font-bold uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
-                                                            Popular
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="3" className="px-6 py-8 text-center text-ink-muted font-semibold">
-                                                    No sales data available yet.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
- 
-                        {/* Quick Actions & Expiry Warnings */}
-                        <div className="space-y-4 md:space-y-6">
-                            {expiringBatches.length > 0 && (
-                                <div className="bg-surface rounded-2xl border border-rose-100 dark:border-rose-950/30 p-4 md:p-6 shadow-sm">
-                                    <h3 className="font-bold text-sm md:text-md text-rose-600 dark:text-rose-400 flex items-center gap-2 uppercase tracking-wider mb-3">
-                                        <AlertTriangleIcon className="w-4 h-4 md:w-5 md:h-5 text-rose-500 animate-pulse" />
-                                        Batch Expiry Alerts
-                                    </h3>
-                                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                                        {expiringBatches.map((batch) => (
-                                            <div key={batch.id} className="p-2.5 bg-rose-50/50 dark:bg-rose-950/10 rounded-xl border border-rose-100/50 dark:border-rose-950/20 text-xs">
-                                                <div className="font-bold text-ink">{batch.product_name}</div>
-                                                <div className="flex justify-between text-ink-muted mt-1">
-                                                    <span>Batch: {batch.batch_number || 'N/A'}</span>
-                                                    <span className="font-bold text-rose-600 dark:text-rose-400">Exp: {batch.expiry_date}</span>
-                                                </div>
-                                                <div className="text-ink-muted text-2xs mt-0.5">Remaining Stock: {batch.remaining_qty} units</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+    const stockNavGroups = useStockNavGroups();
+    const slug = store?.slug;
+    const r = (name, extra = {}) => route(name, { store_slug: slug, ...extra });
 
-                            <MidnightNebula className="rounded-2xl p-4 md:p-6 shadow-xl" primaryColor="indigo" secondaryColor="purple">
-                                <h3 className="font-bold text-lg md:text-xl mb-1 text-white uppercase tracking-wider">Quick Actions</h3>
-                                <p className="text-brand-100 mb-4 md:mb-6 text-xs font-semibold">Manage your inventory efficiently.</p>
- 
-                                <div className="space-y-2 md:space-y-3">
-                                    <Link href={route('store.inventory.index', { store_slug: store?.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
-                                        <span>{tt('View All Products')}</span>
-                                        <ArrowRight size={16} />
-                                    </Link>
-                                    <Link href={route('store.stock-operations', { store_slug: store?.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
-                                        <span>Stock Operations</span>
-                                        <ArrowRight size={16} />
-                                    </Link>
-                                    <Link href={route('store.purchase-orders.create', { store_slug: store?.slug })} className="flex flex-wrap items-center justify-between gap-y-2 p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors backdrop-blur-sm border border-white/10 text-white text-xs md:text-sm font-bold">
-                                        <span>{tt('Create Purchase Order')}</span>
-                                        <ArrowRight size={16} />
-                                    </Link>
-                                </div>
-                            </MidnightNebula>
+    const movers = useMemo(() => topMoving.map((i) => ({ label: i.name, value: Number(i.total_sold) || 0, sub: 'units sold' })), [topMoving]);
+    const categorySlices = useMemo(() => valueByCategory.filter((c) => c.value > 0), [valueByCategory]);
+
+    const receiptCols = [
+        { key: 'product_name', label: tt('Product Name'), sortable: true, render: (x) => <span className="font-semibold text-ink">{x.product_name}</span> },
+        { key: 'initial_qty', label: 'Received', align: 'right', sortable: true, get: (x) => Number(x.initial_qty) || 0, render: (x) => formatNumber(Number(x.initial_qty) || 0) },
+        { key: 'remaining_qty', label: 'Remaining', align: 'right', sortable: true, get: (x) => Number(x.remaining_qty) || 0, render: (x) => formatNumber(Number(x.remaining_qty) || 0) },
+        { key: 'unit_cost', label: 'Unit cost', align: 'right', get: (x) => Number(x.unit_cost) || 0, render: (x) => formatCurrency(Number(x.unit_cost) || 0, store) },
+        { key: 'created_at', label: 'Received on', align: 'right', get: (x) => x.created_at, render: (x) => (x.created_at ? new Date(x.created_at).toLocaleDateString() : '') },
+    ];
+    const expiryCols = [
+        { key: 'product_name', label: tt('Product Name'), render: (x) => <span className="font-semibold text-ink">{x.product_name}</span> },
+        { key: 'batch_number', label: 'Batch', get: (x) => x.batch_number || 'N/A' },
+        { key: 'remaining_qty', label: 'Remaining', align: 'right', render: (x) => `${formatNumber(Number(x.remaining_qty) || 0)} units` },
+        { key: 'expiry_date', label: 'Expires', align: 'right', render: (x) => <span className="font-bold text-rose-600">{x.expiry_date}</span> },
+    ];
+
+    const links = [
+        { label: tt('View All Products'), href: r('store.inventory.index') },
+        { label: 'Stock Operations', href: r('store.stock-operations') },
+        { label: tt('Create Purchase Order'), href: r('store.purchase-orders.create') },
+        { label: 'View Reports', href: r('store.reports.index') },
+    ];
+
+    return (
+        <ReportShell title="Inventory Dashboard" activeKey="overview" activeMenu="Stock" navGroups={stockNavGroups} showHub={false}>
+            <div className="shrink-0 md:hidden"><StockModuleTabs activeTab="overview" /></div>
+
+            <ReportKpis items={[
+                { label: tt('Total Products'), value: formatNumber(stats.total_products || 0), icon: Package, tone: 'brand' },
+                { label: 'Inventory Value', value: formatCurrency(stats.inventory_value || 0, store), icon: DollarSign, tone: 'emerald' },
+                { label: 'Low Stock Items', value: formatNumber(stats.low_stock_count || 0), sub: stats.low_stock_count > 0 ? 'Action needed' : 'Healthy', icon: AlertTriangle, tone: 'amber', valueTone: stats.low_stock_count > 0 ? 'amber' : undefined },
+                { label: 'Out of Stock', value: formatNumber(stats.out_of_stock_count || 0), icon: PackageX, tone: 'rose', valueTone: stats.out_of_stock_count > 0 ? 'rose' : undefined },
+                { label: 'Categories', value: formatNumber(stats.total_categories || 0), icon: Layers, tone: 'violet' },
+                { label: 'Warehouses', value: formatNumber(stats.total_warehouses || 0), icon: Warehouse, tone: 'sky' },
+            ]} />
+
+            <ReportGrid>
+                <ReportCol span={5}>
+                    <ReportSection title="Stock value by category" subtitle="Where your inventory money sits" icon={PieIcon} tone="emerald">
+                        <DonutChart slices={categorySlices} height={280} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={7}>
+                    <ReportSection title="Top moving items" subtitle="Most units sold" icon={TrendingUp} tone="brand"
+                        right={<Link href={r('store.reports.index')} className="flex h-10 items-center rounded-[12px] px-3 text-sm font-bold text-brand-600 hover:bg-interactive-hover">View reports</Link>}>
+                        <RankBars items={movers} unit="integer" empty="No sales data available yet." />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Recent stock received" subtitle="Latest batches in" icon={Table2} flush>
+                        <ReportTable columns={receiptCols} rows={recentReceipts} rowKey={(x) => x.id} pageSize={10} empty="No stock received yet" />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Quick actions" icon={Zap} tone="violet">
+                        <div className="flex flex-col gap-2">
+                            {links.map((l) => (
+                                <Link key={l.label} href={l.href} className="flex h-10 items-center justify-between rounded-[12px] border border-line px-3 text-sm font-bold text-ink-secondary transition-colors hover:bg-interactive-hover">
+                                    <span>{l.label}</span><ArrowRight size={16} />
+                                </Link>
+                            ))}
                         </div>
-                    </div>
-                </div>
-            </div>
-        </OneGlanceLayout>
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            {expiringBatches.length > 0 && (
+                <ReportSection title="Batch expiry alerts" subtitle="Expiring in the next 30 days" icon={AlertTriangle} tone="rose" flush>
+                    <ReportTable columns={expiryCols} rows={expiringBatches} rowKey={(x) => x.id} pageSize={10} />
+                </ReportSection>
+            )}
+        </ReportShell>
     );
 }

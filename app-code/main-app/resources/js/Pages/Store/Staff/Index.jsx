@@ -9,6 +9,9 @@ import {
     Send, RotateCcw, UserCheck, UserMinus, Zap
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 
 // ─── Role Config ─────────────────────────────────────────────────────────────
 const ROLES = {
@@ -427,78 +430,70 @@ export default function StaffIndex({ members, join_code, store_id }) {
     const suspended = filtered.filter(m => m.status === 'suspended');
 
     return (
-        <OneGlanceLayout mode="admin" activeMenu="Staff Management">
+        <OneGlanceLayout mode="admin" activeMenu="Staff Management" noPadding>
             <Head title={tt('Staff Management')} />
             {showInvite && <InviteModal storeId={store_id} onClose={() => setShowInvite(false)} />}
 
-            <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px 64px' }}>
+            <ListPageFrame className="p-2.5">
+            <ListToolbar
+                title={tt('Team Management')}
+                left={canManage && join_code ? (
+                    <div className="h-10 flex items-center gap-2 pl-3 pr-1 rounded-[12px] border border-line bg-app">
+                        <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Join Code</span>
+                        <span className="font-mono font-extrabold tracking-widest text-sm text-brand-600">{join_code}</span>
+                        <button type="button" onClick={copyCode} className="h-8 px-2.5 rounded-[12px] text-xs font-bold flex items-center gap-1.5 text-ink-muted hover:bg-interactive-hover transition-colors">
+                            {codeCopied ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                            {codeCopied ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                ) : null}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search team members…' }}
+                actions={canManage ? <ListAddButton icon={UserPlus} onClick={() => setShowInvite(true)}>{tt('Invite Staff')}</ListAddButton> : null}
+            />
+            <ListStatCards cards={[
+                { label: 'Members', value: members?.length ?? 0, icon: Users },
+                { label: 'Active', value: active.length, icon: CheckCircle2, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                { label: 'Pending', value: invited.length, icon: Mail, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+                { label: 'Suspended', value: suspended.length, icon: AlertTriangle, icon_tone: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400', value_tone: 'text-rose-600' },
+            ]} />
+            <div className="md:contents" style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 24px 64px' }}>
 
                 {/* Flash */}
                 {flash?.success && (
-                    <div style={{ marginBottom: 20, padding: '12px 18px', borderRadius: 12, background: vq.green[50], border: '1px solid #bbf7d0', color: vq.green[700], fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div className="md:!mb-0 md:shrink-0" style={{ marginBottom: 20, padding: '12px 18px', borderRadius: 12, background: vq.green[50], border: '1px solid #bbf7d0', color: vq.green[700], fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
                         <CheckCircle2 size={15} /> {flash.success}
                     </div>
                 )}
 
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 12 }}>
-                    <div>
-                        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main,rgb(var(--vq-slate-900)))', margin: 0, display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <Users size={20} color={vq.indigo[500]} /> Team Management
-                        </h1>
-                        <p style={{ fontSize: 13, color: vq.slate[500], margin: '4px 0 0' }}>
-                            {members?.length ?? 0} member{members?.length !== 1 ? 's' : ''} · {active.length} active, {invited.length} pending, {suspended.length} suspended
-                        </p>
-                    </div>
-                    {canManage && (
-                        <button
-                            onClick={() => setShowInvite(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', borderRadius: 12, background: 'linear-gradient(135deg, rgb(var(--vq-indigo-500)), rgb(var(--vq-violet-500)))', border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,0.3)', transition: 'transform 0.12s, box-shadow 0.12s' }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(99,102,241,0.4)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(99,102,241,0.3)'; }}
-                        >
-                            <UserPlus size={15} /> {tt('Invite Staff')}
+                <MobileListHeader
+                    title={tt('Team Management')}
+                    search={{ value: search, onChange: setSearch, placeholder: 'Search team members…' }}
+                    add={canManage ? { onClick: () => setShowInvite(true), label: tt('Invite Staff'), icon: UserPlus } : undefined}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Members', value: members?.length ?? 0, tone: 'ink', icon: Users },
+                    { label: 'Active', value: active.length, tone: 'emerald', icon: CheckCircle2 },
+                    { label: 'Pending', value: invited.length, tone: 'blue', icon: Mail },
+                    { label: 'Suspended', value: suspended.length, tone: 'rose', icon: AlertTriangle },
+                ]} />
+                {canManage && join_code && (
+                    <div className="md:hidden flex items-center gap-2 mt-2 mb-3 px-3 py-2 rounded-[12px] border border-line bg-surface">
+                        <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Join Code</span>
+                        <span className="font-mono font-extrabold tracking-widest text-sm text-brand-600 flex-1">{join_code}</span>
+                        <button type="button" onClick={copyCode} className="h-8 px-2.5 rounded-[10px] text-xs font-bold flex items-center gap-1.5 text-ink-muted active:bg-interactive-hover">
+                            {codeCopied ? <CheckCircle2 size={13} /> : <Copy size={13} />}
+                            {codeCopied ? 'Copied!' : 'Copy'}
                         </button>
-                    )}
-                </div>
-
-                {/* Join Code + Search Row */}
-                <div style={{ display: 'flex', gap: 14, marginBottom: 20, flexWrap: 'wrap' }}>
-                    {/* Search */}
-                    <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            placeholder="Search team members…"
-                            style={{ width: '100%', padding: '10px 14px', borderRadius: 12, border: '1px solid rgb(var(--vq-slate-200))', background: 'var(--card-bg,#fff)', fontSize: 13, outline: 'none', color: 'var(--text-main,rgb(var(--vq-slate-900)))', boxSizing: 'border-box' }}
-                        />
                     </div>
-
-                    {/* Join Code Card */}
-                    {canManage && join_code && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--card-bg,#fff)', border: '1px solid rgb(var(--vq-slate-200))', borderRadius: 12, padding: '8px 16px' }}>
-                            <div>
-                                <div style={{ fontSize: 10, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>Join Code</div>
-                                <div style={{ fontSize: 16, fontWeight: 800, color: vq.indigo[500], letterSpacing: '0.12em', fontFamily: 'monospace' }}>{join_code}</div>
-                            </div>
-                            <button onClick={copyCode}
-                                style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid rgb(var(--vq-slate-200))', background: codeCopied ? vq.green[50] : 'transparent', color: codeCopied ? vq.emerald[500] : vq.slate[500], cursor: 'pointer', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-                                {codeCopied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
-                                {codeCopied ? 'Copied!' : 'Copy'}
-                            </button>
-                            <div style={{ fontSize: 11, color: vq.slate[400], maxWidth: 120 }}>{tt('Staff can join instantly at the Join page')}</div>
-                        </div>
-                    )}
-                </div>
+                )}
 
                 {/* Staff Table */}
-                <div style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div className="md:!rounded-[14px] md:flex-1 md:min-h-0 md:!overflow-auto" style={{ background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 20, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
+                        <thead className="md:sticky md:top-0 md:z-10" style={{ background: 'var(--card-bg,#fff)' }}>
                             <tr style={{ borderBottom: '1px solid var(--card-border,rgb(var(--vq-slate-100)))' }}>
                                 {['Member', 'Role', 'Status', 'Approval Mode', 'POS PIN', 'Joined', 'Actions'].map(h => (
-                                    <th key={h} style={{ padding: '12px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                                    <th key={h} className="sticky top-0 z-10" style={{ background: 'var(--card-bg,#fff)', padding: '12px 16px', textAlign: h === 'Actions' ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                                         {h === 'Actions' && !canManage ? '' : h}
                                     </th>
                                 ))}
@@ -529,7 +524,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                 </div>
 
                 {/* Role Legend */}
-                <div style={{ marginTop: 24, padding: '16px 20px', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 16 }}>
+                <div className="md:!mt-0 md:shrink-0" style={{ marginTop: 24, padding: '16px 20px', background: 'var(--card-bg,#fff)', border: '1px solid var(--card-border,rgb(var(--vq-slate-200)))', borderRadius: 16 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: vq.slate[400], letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 12 }}>Role Permissions</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                         {Object.entries(ROLES).filter(([r]) => r !== 'owner').map(([role, cfg]) => (
@@ -543,6 +538,7 @@ export default function StaffIndex({ members, join_code, store_id }) {
                     </div>
                 </div>
             </div>
+            </ListPageFrame>
 
             <style>{`
                 @keyframes slideUp {

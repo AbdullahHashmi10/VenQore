@@ -382,6 +382,8 @@ trait ResolvesDashboardWidgets
                                 ['key' => 'expense', 'label' => 'New Expense', 'permission' => 'finance.transactions'],
                                 ['key' => 'customer', 'label' => 'New Customer', 'permission' => 'parties.create'],
                                 ['key' => 'product', 'label' => 'New Product', 'permission' => 'inventory.create'],
+                                ['key' => 'goods_in', 'label' => 'Goods In', 'permission' => 'purchases.receive'],
+                                ['key' => 'goods_out', 'label' => 'Goods Out', 'permission' => 'sales.dispatch'],
                             ],
                         ];
                         break;

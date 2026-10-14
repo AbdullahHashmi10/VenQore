@@ -7,11 +7,15 @@ import DataTable from '@/Components/DataTable';
 import StatCard, { StatCardGrid } from '@/Components/StatCard';
 import { PauseCircle, Play, Trash2, ShoppingCart, Clock, DollarSign, Users } from 'lucide-react';
 import axios from 'axios';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import { useTermText } from '@/lib/terms';
 
 export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
     const { store } = usePage().props;
+    const navGroups = useSellNavGroups();
     const tt = useTermText();
     // Format currency
 
@@ -108,57 +112,29 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
     };
 
     return (
-        <OneGlanceLayout title="Parked Sales" activeMenu="Sell">
+        <OneGlanceLayout title="Parked Sales" activeMenu="Sell" noPadding>
             <Head title="Parked Sales" />
 
-            <div className="flex flex-col h-full">
-                <SellModuleTabs activeTab="parked" />
+            <ListPageFrame className="flex flex-col h-full p-1.5">
+                <MobileListHeader title="Parked Sales" navGroups={navGroups} activeId="parked" />
+                <MobileStats bp="md" hero={1} items={[
+                    { label: 'Parked', value: stats.total || 0, tone: 'amber', icon: PauseCircle },
+                    { label: 'Value', value: formatCurrency(stats.total_value, store), tone: 'emerald', icon: DollarSign },
+                    { label: 'Today', value: stats.today || 0, tone: 'blue', icon: Clock },
+                    { label: tt('With Customers'), value: stats.with_customer || 0, tone: 'brand', icon: Users },
+                ]} />
 
-                <div className="pb-8 h-full flex flex-col gap-6 overflow-auto">
-                    <PageHeader
-                        title="Parked Sales"
-                        subtitle="View and recall held transactions"
-                        icon={PauseCircle}
-                        breadcrumbs={[
-                            { label: 'Sales' },
-                            { label: 'Parked Sales' }
-                        ]}
-                    />
+                <ListToolbar title="Parked Sales" navGroups={navGroups} activeId="parked" />
+                <ListStatCards cards={[
+                    { label: 'Total Parked', value: stats.total || 0, icon: PauseCircle, icon_tone: 'bg-amber-100 text-amber-600' },
+                    { label: 'Total Value', value: formatCurrency(stats.total_value, store), icon: DollarSign, icon_tone: 'bg-emerald-100 text-emerald-600' },
+                    { label: "Today's Parked", value: stats.today || 0, icon: Clock, icon_tone: 'bg-blue-100 text-blue-600' },
+                    { label: tt('With Customers'), value: stats.with_customer || 0, icon: Users, icon_tone: 'bg-brand-100 text-brand-600' },
+                ]} />
 
-                    {/* Stats Cards */}
-                    <StatCardGrid columns={4}>
-                        <StatCard
-                            title="Total Parked"
-                            value={stats.total || 0}
-                            icon={PauseCircle}
-                            iconColor="amber"
-                            subtitle="Held transactions"
-                        />
-                        <StatCard
-                            title="Total Value"
-                            value={formatCurrency(stats.total_value, store)}
-                            icon={DollarSign}
-                            iconColor="emerald"
-                            subtitle="In parked sales"
-                        />
-                        <StatCard
-                            title="Today's Parked"
-                            value={stats.today || 0}
-                            icon={Clock}
-                            iconColor="blue"
-                            subtitle="Parked today"
-                        />
-                        <StatCard
-                            title={tt('With Customers')}
-                            value={stats.with_customer || 0}
-                            icon={Users}
-                            iconColor="purple"
-                            subtitle={tt('Has customer info')}
-                        />
-                    </StatCardGrid>
-
+                <div className="pb-8 md:pb-0 h-full flex flex-col gap-6 md:gap-0 overflow-auto md:flex-1 md:min-h-0">
                     {/* Data Table */}
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0 md:overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm md:bg-surface md:[&>div]:border-0 md:[&>div]:rounded-none md:[&>div]:shadow-none md:[&>div]:overflow-visible md:[&_.overflow-x-auto]:overflow-visible md:[&_thead]:sticky md:[&_thead]:top-0 md:[&_thead]:z-10">
                         <DataTable
                             data={parkedSales}
                             columns={columns}
@@ -181,7 +157,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
                         />
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

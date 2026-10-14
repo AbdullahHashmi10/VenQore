@@ -34,7 +34,10 @@ class SuperAdminController extends Controller
 
         $tenants = Tenant::withTrashed()->get();
         // Billable = excludes demo AND internal/owner/test stores (the $52k fix).
-        $realTenants = $tenants->where('is_demo', false)->where('is_internal', false);
+        // Deleted (trashed) stores are NOT live customers: before 2026-10-11 they
+        // were counted in total/active/trial stores and the plan breakdown.
+        $realTenants = $tenants->where('is_demo', false)->where('is_internal', false)
+            ->filter(fn ($t) => $t->deleted_at === null);
 
         // ── Money is computed server-side, from one source of truth ──────────
         // Revenue (paid subscriptions only) and GMV (merchant volume) come from
@@ -81,22 +84,36 @@ class SuperAdminController extends Controller
         // Plan Distribution — counts per plan; MRR priced from the plans table
         // with coupon adjustment applied (T7.9 / T7.10).
         $pricing = app(\App\Services\Platform\PlanPricingService::class);
-        $planSlugs = \App\Models\Plan::orderBy('sort_order')->pluck('slug')->all();
+        // Group by the plan each store is REALLY on: legacy rows (counter/growth/
+        // business) count under solo/core/scale, and LTD stores (stored as
+        // plan='ltd') under their tier. They used to be missing or split.
+        $planSlugs = \App\Models\Plan::orderBy('sort_order')->pluck('slug')
+            ->reject(fn ($slug) => array_key_exists($slug, \App\Services\Platform\PlanRestorer::ALIASES))
+            ->values()->all();
         if (empty($planSlugs)) {
-            $planSlugs = array_merge(['trial'], \App\Support\PlanCatalog::ORDER, ['ltd']);
+            $planSlugs = array_merge(['trial'], \App\Support\PlanCatalog::ORDER, ['ltd_1', 'ltd_2', 'ltd_3']);
         }
-        $planDist = collect($planSlugs)->map(function ($plan) use ($realTenants, $pricing) {
-            $group = $realTenants->where('plan', $plan);
+        $planOf = $realTenants->mapWithKeys(fn ($t) => [$t->id => \App\Support\PlanCatalog::canonical($t->effectivePlan())]);
+        foreach ($planOf->unique() as $slug) {
+            if (!in_array($slug, $planSlugs, true)) {
+                $planSlugs[] = $slug; // a store on a plan row that no longer exists still shows up
+            }
+        }
+        $redemptions = \App\Models\CouponRedemption::withoutTenantScope()
+            ->whereIn('tenant_id', $realTenants->pluck('id'))
+            ->with('coupon')
+            ->get()
+            ->keyBy('tenant_id');
+
+        $planDist = collect($planSlugs)->map(function ($plan) use ($realTenants, $pricing, $planOf, $redemptions) {
+            $group = $realTenants->filter(fn ($t) => ($planOf[$t->id] ?? null) === $plan);
             $activePaid = $group->where('status', 'active');
             
             $planMrr = 0.0;
             foreach ($activePaid as $t) {
                 $basePrice = $pricing->monthly((string) $plan, 'USD');
                 
-                $redemption = \App\Models\CouponRedemption::withoutTenantScope()
-                    ->where('tenant_id', $t->id)
-                    ->with('coupon')
-                    ->first();
+                $redemption = $redemptions[$t->id] ?? null;
                 if ($redemption && $redemption->coupon) {
                     $coupon = $redemption->coupon;
                     if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
@@ -120,21 +137,25 @@ class SuperAdminController extends Controller
 
         // Expiring Stores
         $expiringStores = $realTenants
-            ->filter(fn($t) => $t->status === 'trial' && $t->trial_ends_at?->isFuture() && $t->trial_ends_at?->diffInDays(now()) <= 7)
+            // Carbon 3: $future->diffInDays(now()) is NEGATIVE, so the old "<= 7"
+            // matched every trial. Measure from now forward, in whole days.
+            ->filter(fn($t) => $t->status === 'trial' && $t->trial_ends_at?->isFuture() && (int) ceil(now()->diffInDays($t->trial_ends_at)) <= 7)
+            ->sortBy(fn($t) => $t->trial_ends_at)
             ->map(fn($t) => [
                 'id'          => $t->id,
                 'name'        => $t->name ?? '(Unnamed)',
                 'owner_email' => $t->ownerEmail(),
-                'days_left'   => $t->trial_ends_at?->diffInDays(now()),
+                'days_left'   => (int) ceil(now()->diffInDays($t->trial_ends_at)),
                 'trial_ends'  => $t->trial_ends_at->toDateString(),
             ])->values();
 
         // Recent Stores
-        $recentStores = $realTenants->take(10)->map(fn($t) => [
+        // Newest first (the collection was in id order, so this showed the OLDEST 10).
+        $recentStores = $realTenants->sortByDesc('created_at')->take(10)->map(fn($t) => [
             'id'            => $t->id,
             'name'          => $t->name ?? '(Unnamed Store)',
             'slug'          => $t->slug,
-            'plan'          => $t->plan,
+            'plan'          => \App\Support\PlanCatalog::canonical($t->effectivePlan()),
             'status'        => $t->trashed() ? 'deleted' : $t->status,
             'owner_email'   => $t->ownerEmail(),
             'setup_done'    => (bool) $t->setup_completed,
@@ -242,6 +263,7 @@ class SuperAdminController extends Controller
             'expiring_stores'   => $expiringStores,
             'activity_feed'     => $this->buildActivityFeed(),
             'platform_users'    => $this->buildPlatformUsers(),
+            'impersonation_log' => $this->buildImpersonationLog(),
             'tickets'           => $tickets,
             'ticket_filters'    => [
                 'status' => $ticketStatus,
@@ -317,6 +339,34 @@ class SuperAdminController extends Controller
             ->toArray();
     }
 
+    /** Last 50 impersonation start/end events (written by ImpersonationController). */
+    private function buildImpersonationLog(): array
+    {
+        try {
+            return \App\Models\PlatformActivityLog::query()
+                ->whereIn('action', ['impersonation.started', 'impersonation.ended'])
+                ->latest()
+                ->take(50)
+                ->get()
+                ->map(function ($log) {
+                    $actor  = User::withTrashed()->find($log->user_id);
+                    $target = $log->target_user_id ? User::withTrashed()->find($log->target_user_id) : null;
+                    $tenant = $log->target_tenant_id ? Tenant::withTrashed()->find($log->target_tenant_id) : null;
+                    return [
+                        'id'     => $log->id,
+                        'event'  => $log->action === 'impersonation.started' ? 'Started' : 'Ended',
+                        'actor'  => $actor?->name ?? '—',
+                        'target' => $target?->email ?? ($log->payload['target_email'] ?? '—'),
+                        'store'  => $tenant?->name ?? '—',
+                        'ip'     => $log->ip_address,
+                        'at'     => $log->created_at?->toDateTimeString(),
+                    ];
+                })->all();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
     private function buildPlatformUsers(): array
     {
         return User::where('is_platform_admin', true)
@@ -326,7 +376,7 @@ class SuperAdminController extends Controller
                 'id'         => $u->id,
                 'name'       => $u->name,
                 'email'      => $u->email,
-                'role'       => 'Hashmi Dashboard',
+                'role'       => ucwords(str_replace('_', ' ', $u->platform_role ?: 'platform admin')),
                 'last_login' => $u->updated_at->diffForHumans(),
                 'status'     => 'active',
             ])->toArray();
@@ -356,7 +406,12 @@ class SuperAdminController extends Controller
         }
 
         if ($plan = $request->get('plan')) {
-            $query->where('plan', $plan);
+            // Include legacy alias rows (solo also matches 'counter', …).
+            $slugs = [$plan];
+            foreach (\App\Services\Platform\PlanRestorer::ALIASES as $alias => $canonical) {
+                if ($canonical === $plan) $slugs[] = $alias;
+            }
+            $query->whereIn('plan', $slugs);
         }
 
         $tenants = $query->latest()->paginate(20)->through(function (Tenant $t) {
@@ -365,8 +420,9 @@ class SuperAdminController extends Controller
                 'id'           => $t->id,
                 'name'         => $t->name ?? '(Unnamed)',
                 'slug'         => $t->slug,
-                'plan'         => $t->plan,
+                'plan'         => \App\Support\PlanCatalog::canonical($t->effectivePlan()),
                 'status'       => $t->status,
+                'owner_id'     => $owner?->id,
                 'owner_email'  => $owner?->email ?? '—',
                 'owner_name'   => $owner?->name ?? '—',
                 'staff_count'  => $t->memberships()->count(),
@@ -421,12 +477,14 @@ class SuperAdminController extends Controller
 
     public function destroyStore(Tenant $tenant)
     {
+        $this->gateSuperAdmin();
         $tenant->delete();
         return back()->with('success', "Store '{$tenant->name}' has been moved to trash.");
     }
 
     public function bulkDestroyStores(Request $request)
     {
+        $this->gateSuperAdmin();
         $request->validate(['ids' => 'required|array']);
         Tenant::whereIn('id', $request->ids)->delete();
         return back()->with('success', count($request->ids) . " stores have been moved to trash.");
@@ -434,8 +492,12 @@ class SuperAdminController extends Controller
 
     public function destroyUser(User $user)
     {
+        $this->gateSuperAdmin();
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete yourself.');
+        }
+        if ($user->is_platform_admin && !auth()->user()->isPlatformOwner()) {
+            return back()->with('error', 'Only the platform owner can remove a platform team member.');
         }
         $user->delete();
         return back()->with('success', "User '{$user->name}' has been moved to trash.");
@@ -444,7 +506,11 @@ class SuperAdminController extends Controller
     public function bulkDestroyUsers(Request $request)
     {
         $request->validate(['ids' => 'required|array']);
+        $this->gateSuperAdmin();
         $ids = array_diff($request->ids, [auth()->id()]);
+        if (empty($ids)) return back();
+        // Bulk delete never removes platform team accounts.
+        $ids = User::whereIn('id', $ids)->where('is_platform_admin', false)->pluck('id')->all();
         if (empty($ids)) return back();
         User::whereIn('id', $ids)->delete();
         return back()->with('success', count($ids) . " users have been moved to trash.");
@@ -452,6 +518,7 @@ class SuperAdminController extends Controller
 
     public function restoreStore($id)
     {
+        $this->gateSuperAdmin();
         $tenant = Tenant::onlyTrashed()->findOrFail($id);
         $tenant->restore();
         return back()->with('success', "Store '{$tenant->name}' has been restored.");
@@ -478,6 +545,7 @@ class SuperAdminController extends Controller
 
     public function restoreUser($id)
     {
+        $this->gateSuperAdmin();
         $user = User::onlyTrashed()->findOrFail($id);
         $user->restore();
         return back()->with('success', "User '{$user->name}' has been restored.");
@@ -612,9 +680,12 @@ class SuperAdminController extends Controller
         $this->checkAppSumo();
         $query = AppSumoCode::query();
 
-        if ($request->get('search')) {
-            $query->where('code', 'like', "%{$request->get('search')}%")
-                  ->orWhere('redeemed_by_email', 'like', "%{$request->get('search')}%");
+        if ($search = $request->get('search')) {
+            // Grouped so the status filter below still applies while searching.
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('redeemed_by_email', 'like', "%{$search}%");
+            });
         }
 
         if ($request->get('status') === 'redeemed') {
@@ -776,7 +847,7 @@ class SuperAdminController extends Controller
         foreach ($openErrors as $error) {
             $filePath = $error->file;
 
-            if (file_exists($filePath)) {
+            if ($error->last_seen_at && file_exists($filePath)) {
                 $lastModified = filemtime($filePath);
                 $lastSeen     = $error->last_seen_at->timestamp;
 
@@ -1035,15 +1106,11 @@ class SuperAdminController extends Controller
         ]);
 
         $user = auth()->user();
-        $membership = \App\Models\TenantUser::where('user_id', $user->id)
-            ->where('tenant_id', $user->last_store_id ?: 1)
-            ->first();
-
-        if (!$membership || !$membership->security_pin) {
+        if (!\App\Support\PlatformActionPasscode::isSet($user)) {
             abort(403, 'Action passcode is not set. Please set it in your account security settings first.');
         }
 
-        if (!\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+        if (!\App\Support\PlatformActionPasscode::check($user, (string) $request->passcode)) {
             abort(403, 'Invalid action passcode.');
         }
     }

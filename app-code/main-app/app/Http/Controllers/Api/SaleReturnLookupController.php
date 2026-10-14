@@ -26,23 +26,32 @@ class SaleReturnLookupController extends Controller
     {
         $tenantId = app('current.tenant')->id;
 
+        $partyId = $request->query('party');
+
         $sales = DB::table('sales')
             ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
             ->where('sales.tenant_id', $tenantId)
             /* A sale with some units already back still has the rest to return. */
             ->whereIn('sales.status', ['posted', 'partially_returned'])
-            ->when($request->query('party'), fn ($q, $p) => $q->where('sales.party_id', $p))
-            ->when($request->query('query'), function ($q, $term) {
-                $q->where(function ($w) use ($term) {
-                    $w->where('sales.reference_number', 'like', "%{$term}%")
-                      ->orWhere('parties.name', 'like', "%{$term}%");
+            /* Once a customer is chosen, ONLY that customer's invoices are offered. */
+            ->when($partyId, fn ($q, $p) => $q->where('sales.party_id', $p))
+            ->when($request->query('query'), function ($q, $term) use ($partyId) {
+                $q->where(function ($w) use ($term, $partyId) {
+                    $w->where('sales.reference_number', 'like', "%{$term}%");
+                    if (! $partyId) {
+                        $w->orWhere('parties.name', 'like', "%{$term}%");
+                    }
                 });
             })
+            /* Latest first. */
             ->orderByDesc('sales.posted_at')
-            ->limit(25)
+            ->orderByDesc('sales.created_at')
+            ->limit($partyId ? 100 : 25)
             ->get([
                 'sales.id', 'sales.reference_number', 'sales.posted_at',
-                'sales.total', 'sales.party_id', 'parties.name as party_name',
+                'sales.total', 'sales.party_id', 'parties.name as party_name', 'parties.phone as party_phone',
+                'sales.status', 'sales.payment_status',
+                DB::raw('(SELECT COUNT(*) FROM sale_items si WHERE si.sale_id = sales.id AND si.deleted_at IS NULL) AS items_count'),
             ]);
 
         return response()->json($sales);

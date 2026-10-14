@@ -1,72 +1,49 @@
 import React from 'react';
-import ReportPage from './Components/ReportPage';
-import { Layers } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
+import { Layers, Boxes, Wallet, PieChart } from 'lucide-react';
 import OfflineWarningBanner from '@/Components/OfflineWarningBanner';
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 
-export default function StockSummaryByCategory({ categories }) {
-    const { store } = usePage().props;
+export default function StockSummaryByCategory({ categories = [] }) {
     const tt = useTermText();
-    const totalValue = categories.reduce((sum, cat) => sum + cat.value, 0);
-    const totalProducts = categories.reduce((sum, cat) => sum + cat.products, 0);
+    const totalValue = categories.reduce((sum, cat) => sum + (Number(cat.value) || 0), 0);
+    const totalProducts = categories.reduce((sum, cat) => sum + (Number(cat.products) || 0), 0);
+    const share = (cat) => (totalValue > 0 ? (cat.value / totalValue) * 100 : 0);
+
+    const columns = [
+        { key: 'name', label: 'Category Name', sortable: true, render: (c) => <span className="font-bold text-ink">{c.name}</span> },
+        { key: 'products', label: tt('Product Count'), align: 'center', sortable: true },
+        { key: 'value', label: 'Total Value (Retail)', align: 'right', sortable: true, render: (c) => <span className="font-bold text-ink">{formatCurrency(c.value)}</span> },
+        { key: 'share', label: 'Value Share', align: 'right', sortable: true, get: share, render: (c) => <span className="text-xs font-bold text-ink-muted">{share(c).toFixed(1)}%</span> },
+    ];
 
     return (
-        <ReportPage
-            title="Stock Summary by Category"
-            subtitle={tt('Inventory valuation breakdown by product categories')}
-            icon={Layers}
-            stats={
-                <>
-                    <div className="bg-surface p-4 rounded-xl border border-line">
-                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-1">Total Categories</p>
-                        <p className="text-lg font-bold text-ink">{categories.length}</p>
-                    </div>
-                    <div className="bg-surface p-4 rounded-xl border border-line">
-                        <p className="text-2xs font-bold text-ink-muted uppercase tracking-widest mb-1">{tt('Total Products')}</p>
-                        <p className="text-lg font-bold text-ink">{totalProducts}</p>
-                    </div>
-                    <div className="col-span-2 bg-brand-600 p-4 rounded-xl shadow-lg ">
-                        <p className="text-2xs font-bold text-brand-100 uppercase tracking-widest mb-1">Total Inventory Value</p>
-                        <p className="text-lg font-bold text-white">{formatCurrency(totalValue)}</p>
-                    </div>
-                </>
-            }
-        >
+        <ReportShell title="Stock Summary by Category" subtitle={tt('Inventory valuation breakdown by product categories')} activeKey="stock-summary-by-category"
+            exportConfig={{ filename: 'stock-summary-by-category', columns: columns.map((c) => ({ label: c.label, get: (r) => (c.get ? c.get(r) : r[c.key]) })), rows: categories }}>
             <OfflineWarningBanner />
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-app border-b border-line">
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Category Name</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-center">{tt('Product Count')}</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Total Value (Retail)</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Value Share</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                        {categories.map((cat, idx) => {
-                            const share = totalValue > 0 ? (cat.value / totalValue) * 100 : 0;
-                            return (
-                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                    <td className="px-6 py-4 font-bold text-ink">{cat.name}</td>
-                                    <td className="px-6 py-4 text-center text-sm text-ink-secondary">{cat.products}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-bold text-ink">{formatCurrency(cat.value)}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-3">
-                                            <div className="w-24 bg-sunken h-1.5 rounded-full overflow-hidden">
-                                                <div className="bg-brand-500 h-full" style={{ width: `${share}%` }}></div>
-                                            </div>
-                                            <span className="text-xs font-bold text-ink-muted">{share.toFixed(1)}%</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </ReportPage>
+            <ReportKpis items={[
+                { label: 'Total Categories', value: categories.length, icon: Layers, tone: 'brand' },
+                { label: tt('Total Products'), value: totalProducts, icon: Boxes, tone: 'sky' },
+                { label: 'Total Inventory Value', value: formatCurrency(totalValue), icon: Wallet, tone: 'emerald' },
+            ]} />
+            <ReportGrid>
+                <ReportCol span={5}>
+                    <ReportSection title="Value share by category" icon={PieChart}>
+                        <DonutChart height={240} slices={categories.map((c) => ({ name: c.name, value: Number(c.value) || 0 })).filter((x) => x.value > 0)} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={7}>
+                    <ReportSection title="Top categories by value" subtitle="Top 8">
+                        <RankBars items={categories.map((c) => ({ label: c.name, value: Number(c.value) || 0, sub: `${c.products} items` })).sort((a, b) => b.value - a.value)} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+            <ReportSection title="Categories" subtitle={`${categories.length} records`} flush>
+                <ReportTable columns={columns} rows={categories} rowKey={(c, i) => i}
+                    totals={{ name: 'Total', products: totalProducts, value: formatCurrency(totalValue), share: totalValue > 0 ? '100%' : '' }} />
+            </ReportSection>
+        </ReportShell>
     );
 }

@@ -425,7 +425,7 @@ class ProvisionTenantJob implements ShouldQueue
                 // from the assumption that a completed checkout means money
                 // changed hands — a trialling variant completes checkout at $0.
                 $tenant->update([
-                    'plan'                          => $plan,
+                    'plan'                          => $tenant->planFromBilling($plan),
                     'status'                        => \App\Services\LemonSqueezyStatus::toTenantStatus($lsStatus, 'active'),
                     'lemon_squeezy_customer_id'     => $customerId,
                     'lemon_squeezy_subscription_id' => $subscriptionId,
@@ -481,7 +481,8 @@ class ProvisionTenantJob implements ShouldQueue
             // so a paying customer stayed on the 10-scan free allowance.
             if ($tenant) {
                 try {
-                    \App\Services\PlanAiAllowance::applyTo($tenant, $plan);
+                    // The plan actually applied (a platform-assigned plan may have kept it higher).
+                    \App\Services\PlanAiAllowance::applyTo($tenant, $tenant->effectivePlan());
                 } catch (\Throwable $e) {
                     Log::warning("ProvisionTenantJob: AI allowance failed for tenant {$tenant->id}: " . $e->getMessage());
                 }

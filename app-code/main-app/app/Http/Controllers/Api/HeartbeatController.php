@@ -14,6 +14,7 @@ class HeartbeatController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate(['device_id' => 'required|string|max:100', 'store_slug' => 'nullable|string|max:63', 'pairing_token' => 'nullable|string|max:100']);
         $terminalId = $request->input('terminal_id');
         $deviceId = $request->input('device_id');
         $storeSlug = $request->input('store_slug');
@@ -131,8 +132,17 @@ class HeartbeatController extends Controller
         }
 
         $issuedSecret = null;
+        $replacedTerminal = null;
 
-        if (!$terminal) {
+        if ($tenant && $validPairingToken?->replacement_terminal_id) {
+            $replacement = \App\Services\TerminalReplacementService::redeem($validPairingToken, (int) $tenant->id, (string) $deviceId);
+            $terminal = $replacement['terminal'];
+            $issuedSecret = $replacement['secret'];
+            $replacedTerminal = ['id' => $terminal->id, 'name' => $terminal->name];
+            \Illuminate\Support\Facades\Log::info('Terminal device replaced', [
+                'terminal_id' => $terminal->id, 'tenant_id' => $tenant->id, 'approved_by' => $replacement['approved_by'],
+            ]);
+        } elseif (!$terminal) {
             // SEC-04: unauthenticated callers can no longer create terminal rows.
             // A new terminal exists only once a valid pairing token is presented.
             if (!$tenant || !$validPairingToken || !$claimToken()) {
@@ -236,6 +246,11 @@ class HeartbeatController extends Controller
             'subscription_ends_at' => $subscriptionEndsAt,
             'is_view_only'         => $isViewOnly,
         ];
+
+        if ($replacedTerminal !== null) {
+            // Lets Station tell the owner this PC took over an existing counter (no new seat).
+            $payload['replaced_terminal'] = $replacedTerminal;
+        }
 
         if ($issuedSecret !== null) {
             // Returned exactly once. The device must store it and send it as

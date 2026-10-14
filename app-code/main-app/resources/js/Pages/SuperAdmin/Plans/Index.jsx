@@ -658,7 +658,7 @@ function FeatureMatrix({ plans }) {
 
 // ── Plan Drawer (Modal Slide-Out) ─────────────────────────────────────────────
 
-function PlanDrawer({ open, onClose, plan, platforms }) {
+function PlanDrawer({ open, onClose, plan, platforms, plans = [] }) {
     const t = useT();
     const isEdit = !!plan;
     const { data, setData, post, put, processing, errors, reset } = useForm({
@@ -680,6 +680,7 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
         is_visible:     plan?.is_visible     ?? true,
         sort_order:     plan?.sort_order     ?? 0,
         internal_notes: plan?.internal_notes ?? '',
+        copy_from_plan_id: '',
         limits: LIMIT_KEYS.map(({ key, reset }) => {
             const existing = plan?.limits?.find(l => l.key === key);
             return { key, value: existing?.value ?? '', reset_period: existing?.reset_period ?? reset };
@@ -783,6 +784,26 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                                 <Input value={data.slug} onChange={e => setData('slug', e.target.value)} placeholder="e.g. starter" disabled={isEdit} />
                             </FormField>
                         </div>
+                        {!isEdit && (
+                            <FormField label="Start limits & features from" error={errors.copy_from_plan_id}>
+                                <select
+                                    style={{
+                                        width: '100%', padding: '9px 12px', fontSize: 13, borderRadius: 10,
+                                        background: t.inputBg, color: t.ink, border: `1px solid ${t.inputBorder}`, outline: 'none'
+                                    }}
+                                    value={data.copy_from_plan_id}
+                                    onChange={e => setData('copy_from_plan_id', e.target.value)}
+                                >
+                                    <option value="">Default for this slug (Starter for a new slug)</option>
+                                    {plans.filter(p => !p.is_legacy_alias).map(p => (
+                                        <option key={p.id} value={p.id}>Copy from {p.display_name || p.name} ({p.slug})</option>
+                                    ))}
+                                </select>
+                                <span style={{ fontSize: 11, color: t.muted, marginTop: 4, display: 'block' }}>
+                                    Every feature key is copied, so the new plan works straight away. Limit boxes you leave blank below inherit from this template; fill one in to change it.
+                                </span>
+                            </FormField>
+                        )}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                             <FormField label="Featured Tier">
                                 <Button
@@ -958,7 +979,7 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 
-export default function PlansIndex({ plans = [], platforms = [] }) {
+export default function PlansIndex({ plans = [], platforms = [], missing_core = [] }) {
     const t = useT();
     const [activeTab, setActiveTab]   = useState(platforms[0]?.id);
     const [viewMode, setViewMode]     = useState('list');   // 'list' | 'matrix'
@@ -968,6 +989,16 @@ export default function PlansIndex({ plans = [], platforms = [] }) {
     const filteredPlans = useMemo(() => {
         return plans.filter(p => p.platform_id === activeTab);
     }, [plans, activeTab]);
+
+    const restoreDefaults = () => {
+        if (confirm(`Re-create the missing core plan(s): ${missing_core.join(', ')}? Existing plans are not changed.`)) {
+            const url = route().has('platform.plans.restore-defaults')
+                ? route('platform.plans.restore-defaults')
+                : '/VenQore/plans/restore-defaults';
+            router.post(url, {}, { preserveScroll: true });
+        }
+    };
+    const pageErrors = usePage().props.errors || {};
 
     const openCreate  = () => { setDrawerPlan(null); setDrawerOpen(true); };
     const openEdit    = (plan) => { setDrawerPlan(plan); setDrawerOpen(true); };
@@ -1083,6 +1114,21 @@ export default function PlansIndex({ plans = [], platforms = [] }) {
                         </div>
                     }
                 />
+
+                {missing_core.length > 0 && (
+                    <Panel pad={16} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, border: `1px solid ${BRAND.amber}66` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: t.ink, fontSize: 13 }}>
+                            <AlertTriangle size={16} style={{ color: BRAND.amber }} />
+                            <span>Core plan{missing_core.length > 1 ? 's' : ''} missing: <strong>{missing_core.join(', ')}</strong>. Tenants on {missing_core.length > 1 ? 'these plans' : 'this plan'} fall back to config limits.</span>
+                        </div>
+                        <Button variant="primary" size="sm" icon={RefreshCw} onClick={restoreDefaults}>Restore missing plans</Button>
+                    </Panel>
+                )}
+                {pageErrors.plan && (
+                    <Panel pad={14} style={{ border: `1px solid ${BRAND.rose}66`, color: t.ink, fontSize: 13 }}>
+                        {pageErrors.plan}
+                    </Panel>
+                )}
 
                 {/* ── KPI Metrics Bar ────────────────────────────────────── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
@@ -1208,7 +1254,7 @@ export default function PlansIndex({ plans = [], platforms = [] }) {
                                                                 {plan.name}
                                                             </div>
                                                             <div style={{ fontSize: 10.5, color: t.muted, marginTop: 2, fontFamily: 'monospace' }}>
-                                                                {plan.slug}
+                                                                {plan.slug}{plan.is_legacy_alias ? ' · legacy alias, not used for new stores' : ''}
                                                             </div>
                                                         </div>
                                                         {plan.is_featured && (
@@ -1302,16 +1348,16 @@ export default function PlansIndex({ plans = [], platforms = [] }) {
                                                         )}
                                                         <button
                                                             onClick={() => destroy(plan)}
-                                                            disabled={plan.active_tenant_count > 0}
-                                                            title={plan.active_tenant_count > 0 ? `${plan.active_tenant_count} tenants on this plan` : 'Delete'}
+                                                            disabled={plan.is_core || plan.active_tenant_count > 0}
+                                                            title={plan.is_core ? 'Core plan — archive it instead of deleting' : plan.active_tenant_count > 0 ? `${plan.active_tenant_count} tenants on this plan` : 'Delete'}
                                                             style={{
                                                                 background: `${BRAND.rose}15`,
                                                                 border: `1px solid ${BRAND.rose}33`,
                                                                 color: BRAND.rose,
                                                                 borderRadius: 8,
                                                                 padding: 7,
-                                                                cursor: plan.active_tenant_count > 0 ? 'not-allowed' : 'pointer',
-                                                                opacity: plan.active_tenant_count > 0 ? 0.3 : 1,
+                                                                cursor: (plan.is_core || plan.active_tenant_count > 0) ? 'not-allowed' : 'pointer',
+                                                                opacity: (plan.is_core || plan.active_tenant_count > 0) ? 0.3 : 1,
                                                                 display: 'grid',
                                                                 placeItems: 'center',
                                                             }}
@@ -1357,6 +1403,7 @@ export default function PlansIndex({ plans = [], platforms = [] }) {
                     onClose={closeDrawer}
                     plan={drawerPlan}
                     platforms={platforms}
+                    plans={plans}
                 />
             )}
         </PlatformLayout>

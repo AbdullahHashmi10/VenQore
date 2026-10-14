@@ -13,12 +13,12 @@ class SettingsHelper
      */
     private static function cacheKey(): string
     {
-        // Use tenant_id if running inside a tenant request
-        if (app()->bound('current.tenant')) {
+        // Use tenant_id if running inside a tenant request with a concrete id
+        if (app()->bound('current.tenant') && !empty(app('current.tenant')->id)) {
             $tenantId = app('current.tenant')->id;
             return "settings:{$tenantId}";
         }
-        // Global context (console commands, super-admin): use a global key
+        // Global context (console commands, super-admin, unit test harness): use a global key
         return 'settings:global';
     }
 

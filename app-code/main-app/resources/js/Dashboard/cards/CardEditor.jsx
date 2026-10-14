@@ -123,14 +123,19 @@ export default function CardEditor({
     scaler.style.width = `${cardPx.w}px`;
     scaler.style.height = `${cardPx.h}px`;
     scaler.style.transform = `scale(${scale})`;
-    scaler.innerHTML = engine.renderCard(card, cols, colW);
+    /* the preview is drawn from believable sample data, so every style (hatched,
+       stepped, faded edges…) is visible even on a brand-new shop */
+    engine.setSampleMode?.(isReading);
+    try {
+      scaler.innerHTML = engine.renderCard(card, cols, colW);
+      const sampleHost = scaler.querySelector('.vqc-host');
+      if (sampleHost) engine.mountChart(sampleHost, card);
+    } finally { engine.setSampleMode?.(false); }
     const el = scaler.querySelector('.vqc');
     if (el) {
       Object.assign(el.style, { width: '100%', height: '100%', gridColumn: 'auto', gridRow: 'auto', animation: 'none' });
       el.querySelectorAll('.vqc-resize, .vqc-tools').forEach(n => n.remove());
     }
-    const chartHost = scaler.querySelector('.vqc-host');
-    if (chartHost) engine.mountChart(chartHost, card);
     engine.fitValues?.(scaler);
   }, [card, cols, colW, cardPx.w, cardPx.h, scale, tick, engine]);
 
@@ -224,7 +229,13 @@ export default function CardEditor({
     const [mw, mh] = Geo.minSize(fc.family, variant, { legend: draft.legend !== false, seriesCount: 1 + (draft.extraKeys || []).length });
     const w = geo.authoredW ?? geo.w, h = geo.authoredH ?? geo.h;
     if (w < mw || h < mh) setNotice(`Made the card ${Math.max(w, mw)} × ${Math.max(h, mh)} — the smallest size a ${fc.label.toLowerCase()} reads well at.`);
-    const extraKeys = ['area', 'line', 'composed'].includes(fc.family) ? (draft.extraKeys || []) : [];
+    let extraKeys = ['area', 'line', 'composed'].includes(fc.family) ? (draft.extraKeys || []) : [];
+    if (fc.family === 'composed' && !extraKeys.length) {
+      /* a composed chart needs a partner: borrow the first sensible pair for this reading */
+      const ok = (k) => { const r = engine.getReadingOf?.(k); return r && (Fam.kindOf(r) === 'series' || !!engine.trendCompanionKey?.(k)); };
+      const pair = COMPARE_PAIRS.find(p => p.a === draft.key && ok(p.b)) || COMPARE_PAIRS.find(p => p.b === draft.key && ok(p.a));
+      if (pair) { extraKeys = [pair.a === draft.key ? pair.b : pair.a]; setNotice(`Added ${engine.getReadingOf(extraKeys[0])?.label || 'a second reading'} so there is something to compare — change it in Data.`); }
+    }
     if ((draft.extraKeys || []).length && !extraKeys.length) setNotice('Compared readings were set aside — this chart shows one reading.');
     patch({ chart: fc.family, variant, w: Math.max(w, mw), h: Math.max(h, mh), extraKeys });
   };
@@ -344,6 +355,22 @@ export default function CardEditor({
                           w: Math.max(w, mw), h: Math.max(h, mh), goal: undefined });
                 }} />
 
+              {reading?.filter === 'category' && (() => {
+                const base = String(draft.key || '').split('@')[0];
+                const m = /@category:(.+)$/.exec(String(draft.key || ''));
+                const cats = engine.getCategories ? engine.getCategories() : [];
+                return (
+                  <Section title="Category" sub="Show only this product category">
+                    <select className="vqe-input" value={m ? m[1] : ''}
+                      onChange={(e) => patch({ key: e.target.value ? `${base}@category:${e.target.value}` : base })}>
+                      <option value="">All categories</option>
+                      {cats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    {!cats.length && <p className="vqe-hint">No product categories yet — add some under Inventory.</p>}
+                  </Section>
+                );
+              })()}
+
               <Section title="Timeframe" sub="What the card reads when it loads">
                 <div className="vqe-pills">
                   {PERIODS.map(p => (
@@ -427,7 +454,7 @@ export default function CardEditor({
 
         <section className="vqe-stage" aria-label="Live preview">
           <div className="vqe-stage-bar">
-            <span className="vqe-stage-title">Live preview</span>
+            <span className="vqe-stage-title">{isReading ? 'Preview · sample data' : 'Live preview'}</span>
             <span className="vqe-stage-meta">
               {geo.w} × {geo.h}{geo.full ? ' · full width' : ''} · {cardPx.w} × {cardPx.h}px{scalePct !== 100 ? ` · shown at ${scalePct}%` : ''}
             </span>

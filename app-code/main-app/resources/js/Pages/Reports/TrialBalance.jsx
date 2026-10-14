@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Scale, ArrowDownLeft, ArrowUpRight, CheckCircle2, AlertTriangle, Calendar } from 'lucide-react';
-import MasterReport from '@/Components/Reports/MasterReport';
-import ReportsLayout from '@/Layouts/ReportsLayout';
-import { Head, router, usePage } from '@inertiajs/react';
+import { Scale, ArrowDownLeft, ArrowUpRight, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { router, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, filterInputCls } from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart } from '@/Components/Reports/ReportCharts';
 
 export default function TrialBalance({
     accounts = [],
@@ -12,176 +12,123 @@ export default function TrialBalance({
     isBalanced = true,
     asOf = '',
 }) {
-    const {
-        store
-    } = usePage().props;
-
-    // Guard: Prevent rendering until store context is derived
-    if (!store?.slug) return null;
-
+    const { store } = usePage().props;
     const [dateInput, setDateInput] = useState(asOf);
+
+    if (!store?.slug) return null;
 
     // Apply date filter — re-fetches from the server
     const applyDate = () => {
-        router.get(route("store.reports.trial-balance", {
-            store_slug: store.slug
-        }), { date: dateInput }, { preserveScroll: true });
+        router.get(route('store.reports.trial-balance', { store_slug: store.slug }), { date: dateInput }, { preserveScroll: true });
     };
 
-    // Stats row — uses pre-computed server values (not re-summed in JS, to avoid float drift)
     const difference = totalDebits - totalCredits;
 
-    const reportStats = [
-        {
-            label: 'Total Debits',
-            value: formatCurrency(totalDebits),
-            icon: <ArrowDownLeft size={18} />,
-            type: 'neutral',
-        },
-        {
-            label: 'Total Credits',
-            value: formatCurrency(totalCredits),
-            icon: <ArrowUpRight size={18} />,
-            type: 'neutral',
-        },
-        {
-            label: 'Difference',
-            value: formatCurrency(Math.abs(difference)),
-            subValue: isBalanced ? 'BALANCED ✓' : 'UNBALANCED ✗',
-            icon: <Scale size={18} />,
-            type: isBalanced ? 'up' : 'down',
-        },
+    const byType = {};
+    accounts.forEach((a) => {
+        const k = a.type || 'other';
+        byType[k] = byType[k] || { debit: 0, credit: 0 };
+        byType[k].debit += Number(a.debit) || 0;
+        byType[k].credit += Number(a.credit) || 0;
+    });
+    const types = Object.keys(byType);
+    const typeLabel = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+    const typeSeries = [
+        { name: 'Debit', points: types.map((t) => ({ x: typeLabel(t), y: byType[t].debit })) },
+        { name: 'Credit', points: types.map((t) => ({ x: typeLabel(t), y: byType[t].credit })) },
     ];
+    const topSlices = [...accounts]
+        .map((a) => ({ name: a.name, value: Math.abs(Number(a.debit) || 0) + Math.abs(Number(a.credit) || 0) }))
+        .filter((s) => s.value > 0)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8);
 
     const columns = [
-        {
-            key: 'code',
-            label: 'Code',
-            sortable: true,
-            render: (row) => (
-                <span className="font-mono text-sm text-ink-muted">
-                    {row.code}
+        { key: 'code', label: 'Code', sortable: true, render: (row) => <span className="font-mono text-sm text-ink-muted">{row.code}</span> },
+        { key: 'name', label: 'Account Name', sortable: true, render: (row) => <span className="font-medium text-ink">{row.name}</span> },
+        { key: 'type', label: 'Type', sortable: true, render: (row) => (
+            <span className="rounded-full bg-sunken px-2 py-0.5 text-xs capitalize text-ink-secondary">{row.type}</span>
+        ) },
+        { key: 'debit', label: 'Debit', align: 'right', sortable: true, render: (row) => (
+            <span className="font-bold tabular-nums text-ink">{row.debit > 0 ? formatCurrency(row.debit) : '—'}</span>
+        ) },
+        { key: 'credit', label: 'Credit', align: 'right', sortable: true, render: (row) => (
+            <span className="font-bold tabular-nums text-ink">{row.credit > 0 ? formatCurrency(row.credit) : '—'}</span>
+        ) },
+        { key: 'net', label: 'Net (Dr − Cr)', align: 'right', sortable: true, get: (row) => row.net ?? (row.debit - row.credit), render: (row) => {
+            const net = row.net ?? (row.debit - row.credit);
+            const positive = net >= 0;
+            return (
+                <span className={`font-semibold tabular-nums ${positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                    {positive ? '' : '−'}{formatCurrency(Math.abs(net))}
                 </span>
-            ),
-        },
-        {
-            key: 'name',
-            label: 'Account Name',
-            sortable: true,
-            render: (row) => (
-                <span className="font-medium text-ink">{row.name}</span>
-            ),
-        },
-        {
-            key: 'type',
-            label: 'Type',
-            sortable: true,
-            render: (row) => (
-                <span className="capitalize text-xs px-2 py-0.5 rounded-full bg-sunken text-ink-secondary">
-                    {row.type}
-                </span>
-            ),
-        },
-        {
-            key: 'debit',
-            label: 'Debit',
-            align: 'right',
-            sortable: true,
-            render: (row) => (
-                <span className="font-bold tabular-nums text-ink">
-                    {row.debit > 0 ? formatCurrency(row.debit) : '—'}
-                </span>
-            ),
-        },
-        {
-            key: 'credit',
-            label: 'Credit',
-            align: 'right',
-            sortable: true,
-            render: (row) => (
-                <span className="font-bold tabular-nums text-ink">
-                    {row.credit > 0 ? formatCurrency(row.credit) : '—'}
-                </span>
-            ),
-        },
-        {
-            key: 'net',
-            label: 'Net (Dr − Cr)',
-            align: 'right',
-            sortable: true,
-            render: (row) => {
-                const net = row.net ?? (row.debit - row.credit);
-                const positive = net >= 0;
-                return (
-                    <span className={`font-semibold tabular-nums ${positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                        {positive ? '' : '−'}{formatCurrency(Math.abs(net))}
-                    </span>
-                );
-            },
-        },
+            );
+        } },
     ];
 
-    // Date filter UI injected above the table via the `filters` prop of MasterReport
-    const filters = [
-        {
-            key: 'date',
-            label: 'As Of Date',
-            type: 'custom',
-            render: () => (
-                <div className="flex items-center gap-2">
-                    <Calendar size={15} className="text-ink-muted" />
-                    <input
-                        type="date"
-                        value={dateInput}
-                        max={new Date().toISOString().split('T')[0]}
-                        onChange={(e) => setDateInput(e.target.value)}
-                        onBlur={applyDate}
-                        onKeyDown={(e) => e.key === 'Enter' && applyDate()}
-                        className="border border-line dark:border-line rounded-lg px-3 py-1.5 text-sm
- bg-surface text-ink
- focus:ring-2 focus:ring-brand-500 outline-none"
-                    />
-                </div>
-            ),
-        },
-    ];
+    const filters = (
+        <label className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wide text-ink-muted">As of</span>
+            <input
+                type="date"
+                value={dateInput}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setDateInput(e.target.value)}
+                onBlur={applyDate}
+                onKeyDown={(e) => e.key === 'Enter' && applyDate()}
+                className={filterInputCls}
+            />
+        </label>
+    );
 
     return (
-        <ReportsLayout title="Trial Balance">
-            <Head title="Trial Balance" />
+        <ReportShell
+            title="Trial Balance"
+            subtitle={asOf ? `As of ${asOf}` : undefined}
+            activeKey="trial-balance"
+            filters={filters}
+            exportConfig={{
+                filename: 'trial-balance',
+                columns: [
+                    { label: 'Code', get: (r) => r.code },
+                    { label: 'Account', get: (r) => r.name },
+                    { label: 'Type', get: (r) => r.type },
+                    { label: 'Debit', get: (r) => r.debit },
+                    { label: 'Credit', get: (r) => r.credit },
+                    { label: 'Net', get: (r) => r.net ?? (r.debit - r.credit) },
+                ],
+                rows: accounts,
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Total Debits', value: formatCurrency(totalDebits), icon: ArrowDownLeft, tone: 'sky' },
+                { label: 'Total Credits', value: formatCurrency(totalCredits), icon: ArrowUpRight, tone: 'violet' },
+                { label: 'Difference', value: formatCurrency(Math.abs(difference)), icon: Scale, tone: isBalanced ? 'emerald' : 'rose', valueTone: isBalanced ? 'emerald' : 'rose', sub: isBalanced ? 'Balanced' : 'Unbalanced' },
+                { label: 'Accounts', value: String(accounts.length), icon: isBalanced ? CheckCircle2 : AlertTriangle, tone: isBalanced ? 'emerald' : 'rose', sub: isBalanced ? 'Ledger is balanced' : 'Investigate immediately' },
+            ]} />
 
-            {/* Balance Status Banner */}
-            <div className={`mb-4 flex items-center gap-3 px-4 py-3 rounded-xl border
-                ${isBalanced
-                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
-                    : 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300'
-                }`}
-            >
-                {isBalanced
-                    ? <CheckCircle2 size={20} className="shrink-0" />
-                    : <AlertTriangle size={20} className="shrink-0" />
-                }
-                <div>
-                    <span className="font-bold">
-                        {isBalanced ? 'Ledger is Balanced' : 'LEDGER IS UNBALANCED'}
-                    </span>
-                    <span className="ml-2 font-normal text-sm opacity-80">
-                        {isBalanced
-                            ? `Total Debits = Total Credits = ${formatCurrency(totalDebits)} — as of ${asOf}`
-                            : `Difference of ${formatCurrency(Math.abs(difference))} between Debits and Credits — as of ${asOf}. Investigate immediately.`
-                        }
-                    </span>
-                </div>
-            </div>
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Debit vs credit by account type">
+                        <TrendChart series={typeSeries} type="bar" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Biggest accounts" subtitle="By total activity">
+                        <DonutChart slices={topSlices} height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
 
-            <MasterReport
-                title="Trial Balance"
-                stats={reportStats}
-                columns={columns}
-                data={accounts}
-                filters={filters}
-                onExport={() => alert('Export feature coming soon')}
-            />
-        </ReportsLayout>
+            <ReportSection title="Accounts" subtitle={`${accounts.length} accounts`} flush>
+                <ReportTable
+                    columns={columns}
+                    rows={accounts}
+                    rowKey={(r, i) => r.id ?? r.code ?? i}
+                    totals={{ debit: formatCurrency(totalDebits), credit: formatCurrency(totalCredits), net: formatCurrency(Math.abs(difference)) }}
+                    pageSize={100}
+                />
+            </ReportSection>
+        </ReportShell>
     );
 }

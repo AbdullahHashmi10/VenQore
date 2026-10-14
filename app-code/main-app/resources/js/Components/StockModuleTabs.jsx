@@ -248,3 +248,19 @@ export default function StockModuleTabs({ activeTab }) {
         </>
     );
 }
+
+// Desktop toolbar filter pill (h-10, 12px corners) rendered as a styled native select.
+// options: [{ value, label }]; `allValue` is the "no filter" value.
+export function ListFilterSelect({ value, onChange, options = [], allValue = 'all', ariaLabel }) {
+    const active = String(value) !== String(allValue);
+    return (
+        <select
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            aria-label={ariaLabel}
+            className={`h-10 pl-3 pr-8 rounded-[12px] border text-sm font-semibold outline-none cursor-pointer max-w-[200px] truncate transition-colors focus:ring-2 focus:ring-brand-500 ${active ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
+        >
+            {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+    );
+}

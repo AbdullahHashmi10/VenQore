@@ -97,6 +97,8 @@ const CommandPalette = () => {
         { id: 'new-product', name: tt('Add Product'), keywords: 'new product item add create', icon: Package, action: () => router.visit(route('store.inventory.dashboard', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
         { id: 'new-customer', name: tt('Add Customer'), keywords: 'new customer party add create', icon: Users, action: () => router.visit(route('store.parties.index', { store_slug: store?.slug }) + '?action=add&type=customer'), category: 'Quick Actions' },
         { id: 'new-expense', name: tt('Add Expense'), keywords: 'new expense add create', icon: CreditCard, action: () => router.visit(route('store.expenses.index', { store_slug: store?.slug }) + '?action=add'), category: 'Quick Actions' },
+        { id: 'goods-in', name: tt('Goods In (Receive Goods)'), keywords: 'goods in receive received grn purchase stock', icon: Truck, action: () => router.visit(route('store.purchases.goods-in', { store_slug: store?.slug })), category: 'Quick Actions' },
+        { id: 'goods-out', name: tt('Goods Out (Dispatch Goods)'), keywords: 'goods out dispatch deliver delivery sale stock', icon: Truck, action: () => router.visit(route('store.sales.goods-out', { store_slug: store?.slug })), category: 'Quick Actions' },
         { id: 'payment-in', name: tt('Record Payment In'), keywords: 'payment receive in money', icon: DollarSign, action: () => router.visit(route('store.payments.in', { store_slug: store?.slug })), category: 'Quick Actions' },
         { id: 'payment-out', name: tt('Record Payment Out'), keywords: 'payment out pay money', icon: DollarSign, action: () => router.visit(route('store.payments.out', { store_slug: store?.slug })), category: 'Quick Actions' },
 

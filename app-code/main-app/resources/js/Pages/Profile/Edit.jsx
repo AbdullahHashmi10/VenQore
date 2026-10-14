@@ -21,6 +21,7 @@ import {
  Shield
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import GettingStartedCard from '@/Components/GettingStartedCard';
 
 export default function Edit({ mustVerifyEmail, status }) {
  const tt = useTermText();
@@ -228,6 +229,8 @@ export default function Edit({ mustVerifyEmail, status }) {
  <ArrowLeft size={16} />
  Back to Dashboard
  </Link>
+
+ {store && !store.is_demo && <GettingStartedCard store={store} />}
 
  {/* Profile Information Card */}
  <div className="bg-surface rounded-2xl shadow-xl border border-line overflow-hidden">

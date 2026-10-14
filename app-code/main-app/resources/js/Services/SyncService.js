@@ -1,12 +1,14 @@
 import { db } from '../DB/LocalDB';
 import axios from 'axios';
+import { OFFLINE_LIMIT_DAYS, OFFLINE_LIMIT_MS } from '../lib/offlinePolicy';
+import { isOnline } from '../lib/connectivity';
 
 export const SyncService = {
     /**
      * Main background sync loop. Call this periodically (e.g., every 30 mins).
      */
     async runBackgroundSync() {
-        if (!navigator.onLine) return; // Silent exit if offline
+        if (!isOnline()) return; // Silent exit if the server cannot be reached
 
         // Scoped Sync: Only sync if we are in a store context
         const storeSlug = this.getStoreSlug();
@@ -70,8 +72,9 @@ export const SyncService = {
      *      successful heartbeat. Checked directly against the device's own
      *      clock so it enforces immediately, online or fully offline, the
      *      moment that date passes — per explicit requirement, this does
-     *      NOT wait for the existing 30-day "haven't phoned home" window.
-     *   2. The pre-existing 30-day offline DRM window (unchanged below).
+     *      NOT wait for the offline-limit (7-day) "haven't phoned home" window.
+     *   2. The offline limit (OFFLINE_LIMIT_DAYS = 7, lib/offlinePolicy.js): a device that
+     *      has not checked in with the server for longer than that is locked until it does.
      *
      * Tamper resistance for #1 comes from the same principle already
      * proven by #2: the stored expiry date can only be refreshed by a
@@ -80,7 +83,7 @@ export const SyncService = {
      * date, last_online_verify) look like it's "not reached yet," which is
      * the safe direction to fail in. Setting the clock forward can trigger
      * an early lock, but the very next successful online heartbeat corrects
-     * it — same self-healing property the 30-day check already has.
+     * it — same self-healing property the 7-day check has.
      */
     async checkLicensing() {
         try {
@@ -92,7 +95,7 @@ export const SyncService = {
                     // Past the stored expiry — try to reach the server first;
                     // it may have already been renewed/re-gifted since the
                     // last sync, in which case a fresh heartbeat clears this.
-                    if (navigator.onLine) {
+                    if (isOnline()) {
                         try {
                             const stillExpired = await this.pingHeartbeat();
                             if (stillExpired === false) {
@@ -109,29 +112,30 @@ export const SyncService = {
                 }
             }
 
-            // ── Check 2: existing 30-day offline DRM window (unchanged) ─────
+            // ── Check 2: the offline limit (7 days, lib/offlinePolicy.js) ───
             const setting = await db.settings.get('last_online_verify');
             const lastCheck = setting ? setting.value : 0;
             const now = Date.now();
-            const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-            const daysLeft = Math.ceil((thirtyDays - (now - lastCheck)) / (1000 * 60 * 60 * 24));
+            const daysLeft = Math.ceil((OFFLINE_LIMIT_MS - (now - lastCheck)) / (1000 * 60 * 60 * 24));
 
             // Hard Block Condition
-            if (now - lastCheck > thirtyDays) {
-                console.warn('[License] Offline limit exceeded. Attempting local verification...');
+            if (now - lastCheck > OFFLINE_LIMIT_MS) {
+                console.warn('[License] Offline limit exceeded. Trying to check in...');
 
-                // Try to hit the local server (regardless of internet)
+                // One check-in with the server clears it. If the server cannot be reached, stay locked.
                 try {
                     await this.pingHeartbeat();
-                    return { blocked: false, message: 'Verified locally' };
+                    return { blocked: false, message: 'Verified' };
                 } catch (e) {
-                    // Only if LOCAL server fails do we block
-                    return { blocked: true, message: 'Local Server Check Failed. Please restart the application.' };
+                    return {
+                        blocked: true,
+                        message: `This device has not connected to VenQore for more than ${OFFLINE_LIMIT_DAYS} days. Connect to the internet once to confirm your subscription. Your saved sales are kept and will be sent.`,
+                    };
                 }
             }
 
             // Opportunistic Update
-            if (navigator.onLine) {
+            if (isOnline()) {
                 this.pingHeartbeat().catch(e => console.warn('Heartbeat failed, ignoring'));
             }
 

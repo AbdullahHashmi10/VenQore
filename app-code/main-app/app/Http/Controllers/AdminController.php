@@ -377,7 +377,7 @@ class AdminController extends Controller
             'attendance' => $attendance,
             'staffData' => $staffData,
             'seat_capacity' => \App\Services\SeatAllocationService::getUsageSummary($tenant),
-            'locations' => \App\Models\Warehouse::where('tenant_id', $tenant?->id)->select('id', 'name', 'code')->get(),
+            'locations' => \App\Models\Warehouse::where('tenant_id', $tenant?->id)->select('id', 'name')->get(),
         ]);
     }
 

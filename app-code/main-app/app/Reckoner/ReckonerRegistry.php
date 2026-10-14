@@ -664,6 +664,68 @@ final class ReckonerRegistry
                 'additive'   => false,
             ],
 
+            'sales.count' => [
+                'key' => 'sales.count',
+                'domain' => 'sales',
+                'label' => 'Number of Sales',
+                'generic' => 'Number of Sales',
+                'description' => 'How many sales were posted in the period.',
+                'help' => 'Counts posted sales (not returns, not drafts) by posted date. Revenue is money; this is how many sales made it.',
+                'shape' => ReckonerShape::SCALAR,
+                'unit' => 'count',
+                'precision' => 0,
+                'direction' => 'higher_is_better',
+                'signed' => false,
+                'periods' => ReckonerPeriod::KEYS,
+                'default_period' => 'this_month',
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
+                'permissions' => ['sales.view', 'reports.summary', 'reports.financial'],
+                'feature' => null,
+                'capability' => null,
+                'scope' => 'tenant',
+                'source' => SalesSource::class,
+                'method' => 'count',
+                'cache_ttl' => 60,
+                'drill_route' => 'sales.index',
+                'implemented' => true,
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => true,
+            ],
+
+            'sales.avg_ticket' => [
+                'key' => 'sales.avg_ticket',
+                'domain' => 'sales',
+                'label' => 'Average Sale Value',
+                'generic' => 'Average Sale Value',
+                'description' => 'Average value of one sale (excl. tax) in the period.',
+                'help' => 'Total net sales divided by the number of posted sales.',
+                'shape' => ReckonerShape::SCALAR,
+                'unit' => 'currency',
+                'precision' => 2,
+                'direction' => 'higher_is_better',
+                'signed' => false,
+                'periods' => ReckonerPeriod::KEYS,
+                'default_period' => 'this_month',
+                'supports_comparison' => true,
+                'supports_series' => true,
+                'series_granularity' => ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'],
+                'permissions' => ['sales.view', 'reports.summary', 'reports.financial'],
+                'feature' => null,
+                'capability' => null,
+                'scope' => 'tenant',
+                'source' => SalesSource::class,
+                'method' => 'avgTicket',
+                'cache_ttl' => 60,
+                'drill_route' => 'sales.index',
+                'implemented' => true,
+                'dimensions' => [],
+                'filters'    => [],
+                'additive'   => false,
+            ],
+
             'sales.gross_margin_pct' => [
                 'key'                 => 'sales.gross_margin_pct',
                 'domain'              => 'sales',
@@ -1093,7 +1155,7 @@ final class ReckonerRegistry
                 unit: 'currency',
                 direction: 'lower_is_better',
                 permissions: ['purchases.view', 'reports.financial'],
-                capability: 'has_purchases',
+                capability: null,
                 source: PurchasingSource::class,
                 method: 'spend',
                 drillRoute: 'purchases.index',
@@ -1116,7 +1178,7 @@ final class ReckonerRegistry
                 unit: 'integer',
                 direction: 'neutral',
                 permissions: ['purchases.view'],
-                capability: 'has_purchases',
+                capability: null,
                 source: PurchasingSource::class,
                 method: 'count',
                 drillRoute: 'purchases.index',
@@ -2243,7 +2305,9 @@ final class ReckonerRegistry
                 'resolver' => $resolverClass,
                 'cache_ttl' => 60,
                 'drill_route' => null,
-                'dimensions' => [],
+                // A card may declare the arguments it accepts (e.g. category_id);
+                // Reckoner rejects any argument not declared here.
+                'dimensions' => (array) ($card['dimensions'] ?? []),
                 'filters' => [],
                 'additive' => false,
                 'implemented' => $isImplemented,
@@ -2370,6 +2434,12 @@ final class ReckonerRegistry
             } elseif (!$mod) {
                 $area = 'Overview';
             }
+            // Core readings that are really about one area live under that area.
+            if (str_starts_with($key, 'core.sales_') || str_starts_with($key, 'core.items_sold')) {
+                $area = 'Sales';
+            } elseif ($key === 'core.cash_in_hand') {
+                $area = 'Finance';
+            }
 
             $shapeName = $card['shape'] ?? $card['viz'] ?? 'stat';
             $catalog[] = [
@@ -2392,6 +2462,7 @@ final class ReckonerRegistry
                 'period_aware' => (bool) ($card['period_aware'] ?? false),
                 'contract_state' => $contractState,
                 'status_reason' => $statusReason,
+                'filter' => $card['filter'] ?? null,
                 'rowNames' => [],
                 'sliceNames' => [],
             ];

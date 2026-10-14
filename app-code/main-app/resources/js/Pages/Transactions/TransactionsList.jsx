@@ -3,35 +3,11 @@ import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import PrintService from '@/Utils/PrintService';
-import {
-    Search,
-    BarChart3,
-    FileSpreadsheet,
-    Printer,
-    MoreVertical,
-    Mail,
-    MessageCircle,
-    Eye,
-    RefreshCcw,
-    FileText,
-    History,
-    Trash2,
-    Copy,
-    X,
-    ChevronUp,
-    ChevronDown,
-    CornerUpRight,
-    TrendingUp,
-    TrendingDown,
-    ArrowUpCircle,
-    ArrowDownCircle,
-    Download,
-    ChevronLeft,
-    ChevronRight,
-    Filter
-} from 'lucide-react';
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
+import { Search, BarChart3, FileSpreadsheet, Printer, MoreVertical, Mail, MessageCircle, Eye, RefreshCcw, FileText, History, Trash2, Copy, X, ChevronUp, ChevronDown, CornerUpRight, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle, Download, ChevronLeft, ChevronRight, Filter, Check, Plus } from 'lucide-react';
 import MobileStats from '@/Components/MobileStats';
 
 export default function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {}, store }) {
@@ -96,6 +72,16 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
 
     const [activeActionMenu, setActiveActionMenu] = useState(null);
     const [activeSharePopup, setActiveSharePopup] = useState(null);
+
+    const handleExportCsv = () => exportRowsToCsv('transactions', [
+        { label: 'Date', get: (r) => r.date },
+        { label: 'Invoice No', get: (r) => r.reference },
+        { label: 'Party', get: (r) => r.party?.name },
+        { label: 'Type', get: (r) => r.type },
+        { label: 'Amount', get: (r) => r.amount },
+        { label: 'Balance', get: (r) => r.balance_due },
+        { label: 'Status', get: (r) => r.payment_status },
+    ], processData);
 
     const handleSort = (key) => {
         setSortConfig(prev => ({
@@ -169,181 +155,106 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
     };
 
 
+    const navGroups = useMoneyNavGroups();
+    const typePills = [['all', 'All'], ['sale', 'Sales'], ['purchase', 'Purchases']];
+
     return (
-        <OneGlanceLayout title="Transactions" activeMenu="Money">
+        <OneGlanceLayout title="Transactions" activeMenu="Money" noPadding>
             <Head title="Transactions" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title="Transactions"
+                    navGroups={navGroups}
+                    activeId="all"
+                    left={(
+                        <div className="flex items-center gap-1.5">
+                            {typePills.map(([key, label]) => (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    onClick={() => setTypeFilter(key)}
+                                    className={`h-10 px-3 rounded-[12px] border text-sm font-semibold transition-colors ${typeFilter === key ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
+                                >{label}</button>
+                            ))}
+                        </div>
+                    )}
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search ref or party…' }}
+                    actions={(
+                        <>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" onClick={handleExportCsv} className="h-10 w-10 flex items-center justify-center rounded-[12px] border border-line bg-app text-emerald-600 hover:bg-interactive-hover" title="Export"><Download size={16} /></button>
+                            <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] border border-line bg-app text-ink-muted hover:text-ink hover:bg-interactive-hover" title="Print" onClick={() => PrintService.printPage()}><Printer size={16} /></button>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Count', value: stats.count || 0, icon: FileText, icon_tone: 'bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400' },
+                    { label: 'Total Sales', value: formatCurrency(stats.total_debit || 0, store), icon: TrendingUp, icon_tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Received', value: formatCurrency(stats.total_credit || 0, store), icon: ArrowDownCircle, icon_tone: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', value_tone: 'text-blue-600' },
+                    { label: 'Unpaid / Due', value: formatCurrency(stats.total_balance_due || 0, store), icon: ArrowUpCircle, icon_tone: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400', value_tone: 'text-red-600' },
+                ]} />
+
+                {/* Phone / existing header (hidden on md+) */}
+                <div className="contents md:hidden">
                 <MoneyModuleTabs activeTab="all" />
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Count', value: stats.count || 0, tone: 'ink' },
-  { label: 'Total Sales', value: formatCurrency(stats.total_debit || 0, store), tone: 'emerald' },
-  { label: 'Received', value: formatCurrency(stats.total_credit || 0, store), tone: 'blue' },
-  { label: 'Unpaid / Due', value: formatCurrency(stats.total_balance_due || 0, store), tone: 'red' }
-]} />
+               {/* Mobile header (phone only) */}
+ <div className="md:hidden relative z-40 shrink-0 bg-surface border border-line rounded-[14px] shadow-sm">
+ {showMobileFilters && <div className="fixed inset-0 z-30" onClick={() => setShowMobileFilters(false)} aria-hidden="true" />}
+ <div className="relative z-40 h-12 flex items-center gap-1 px-1.5">
+ <div className="min-w-0 flex-1 pl-2">
+ <span className="text-[15px] font-bold text-ink tracking-tight truncate block">Transactions</span>
+ </div>
+ <div>
+ <button type="button" onClick={() => setShowMobileFilters(!showMobileFilters)} aria-haspopup="listbox" aria-expanded={showMobileFilters} aria-label="Filter"
+ className={`h-9 px-2 rounded-[10px] border flex items-center gap-1 transition-colors ${typeFilter !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-line bg-app text-ink-secondary'}`}>
+ <Filter size={16} />
+ <ChevronDown size={14} className={`transition-transform duration-200 ${showMobileFilters ? 'rotate-180' : ''}`} />
+ </button>
+ {showMobileFilters && (
+ <div role="listbox" className="absolute left-0 right-0 top-full mt-1 max-h-[60vh] overflow-y-auto bg-surface border border-line rounded-[12px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+ {[['all', 'All'], ['sale', 'Sales'], ['purchase', 'Purchases']].map(([key, label]) => (
+ <button key={key} type="button" role="option" aria-selected={typeFilter === key} onClick={() => { setTypeFilter(key); setShowMobileFilters(false); }}
+ className={`w-full h-10 px-3 rounded-[8px] text-sm text-left flex items-center justify-between gap-2 ${typeFilter === key ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}>
+ <span className="truncate">{label}</span>
+ {typeFilter === key && <Check size={15} className="shrink-0" />}
+ </button>
+ ))}
+ </div>
+ )}
+ </div>
+ <button type="button" onClick={() => setShowMobileSearch(!showMobileSearch)} aria-label="Search"
+ className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${showMobileSearch || searchTerm ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'bg-app text-ink-secondary'}`}>
+ <Search size={17} />
+ </button>
+ <button type="button" onClick={() => PrintService.printPage()} aria-label="Print" className="h-9 w-9 rounded-[10px] bg-app text-ink-secondary flex items-center justify-center"><Printer size={17} /></button>
+ 
+ </div>
+ {showMobileSearch && (
+ <div className="px-1.5 pb-1.5 -mt-0.5">
+ <div className="relative">
+ <input autoFocus type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder='Search ref or party...'
+ className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[10px] text-ink placeholder:text-ink-muted outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={15} />
+ </div>
+ </div>
+ )}
+ </div>
 
-                {/* Stats Cards - Responsive Grid */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
-                                <FileText size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Count</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-ink leading-none mt-1 sm:mt-0">{stats.count || 0}</p>
-                    </div>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
-                                <TrendingUp size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Total Sales</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_debit || 0, store)}</p>
-                    </div>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
-                                <ArrowDownCircle size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Received</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-blue-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_credit || 0, store)}</p>
-                    </div>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shrink-0">
-                                <ArrowUpCircle size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Unpaid / Due</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-red-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_balance_due || 0, store)}</p>
-                    </div>
-                </div>
+ <MobileStats bp="md" hero={3} items={[
+ { label: 'Count', value: stats.count || 0, tone: 'brand', icon: FileText },
+ { label: 'Total Sales', value: formatCurrency(stats.total_debit || 0, store), tone: 'emerald', icon: TrendingUp },
+ { label: 'Received', value: formatCurrency(stats.total_credit || 0, store), tone: 'blue', icon: ArrowDownCircle },
+ { label: 'Unpaid / Due', value: formatCurrency(stats.total_balance_due || 0, store), tone: 'red', icon: ArrowUpCircle }
+ ]} />
 
-                {/* Mobile Toolbar (sm:hidden) */}
-                <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
-                        <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
-                            Transactions <span className="text-brand-600">History</span>
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={14} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Filter Type"
-                            >
-                                <Filter size={14} />
-                            </button>
-                            <div className="flex items-center border-l border-line pl-1.5 ml-0.5 gap-0.5">
-                                <button className="p-1 text-emerald-600" title="Export">
-                                    <Download size={14} />
-                                </button>
-                                <button className="p-1 text-ink-muted hover:text-ink transition-colors" title="Print" onClick={() => PrintService.printPage()}>
-                                    <Printer size={14} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Expandable Mobile Search */}
-                    {showMobileSearch && (
-                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
-                            <div className="relative w-full">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Search ref or party..."
-                                    className="w-full pl-8 pr-4 py-1.5 text-xs bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
-                                />
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={12} />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Expandable Mobile Filters panel */}
-                    {showMobileFilters && (
-                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-3xs font-bold text-ink-muted uppercase tracking-wider shrink-0">Type:</span>
-                                <div className="flex bg-sunken rounded-lg p-1 gap-1 flex-1">
-                                    <button
-                                        onClick={() => { setTypeFilter('all'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
-                                    >All</button>
-                                    <button
-                                        onClick={() => { setTypeFilter('sale'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'sale' ? 'bg-sunken text-emerald-600 shadow-sm' : 'text-ink-muted'}`}
-                                    >Sales</button>
-                                    <button
-                                        onClick={() => { setTypeFilter('purchase'); setShowMobileFilters(false); }}
-                                        className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'purchase' ? 'bg-sunken text-blue-600 shadow-sm' : 'text-ink-muted'}`}
-                                    >Purchases</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Desktop Header Bar (sm:flex, hidden on mobile) */}
-                <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Type Filter */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-sm sm:text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Transaction <span className="text-brand-600">History</span>
-                        </h1>
-                        <div className="hidden sm:block h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => setTypeFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >All</button>
-                        <button
-                            onClick={() => setTypeFilter('sale')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'sale' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Sales</button>
-                        <button
-                            onClick={() => setTypeFilter('purchase')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${typeFilter === 'purchase' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Purchases</button>
-                    </div>
-
-                    {/* Right: Search + Export */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search ref or party..."
-                                className="pl-8 pr-2 py-1.5 text-xs bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
-                            />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-1.5">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
-                                <Download size={14} />
-                            </button>
-                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print" onClick={() => PrintService.printPage()}>
-                                <Printer size={14} />
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     
                     {/* Desktop Table View */}
                     <div className="hidden sm:block">
@@ -354,7 +265,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                         <th
                                             key={col.key}
                                             onClick={() => handleSort(col.key)}
-                                            className={`p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover ${col.align === 'right' ? 'text-right' : ''}`}
+                                            className={`sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer hover:bg-interactive-hover dark:hover:bg-interactive-hover ${col.align === 'right' ? 'text-right' : ''}`}
                                             style={{ width: col.width }}
                                         >
                                             <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : ''}`}>
@@ -362,7 +273,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                             </div>
                                         </th>
                                     ))}
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right w-[10%]">
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right w-[10%]">
                                         Actions
                                     </th>
                                 </tr>
@@ -557,11 +468,12 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                     </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-y-2 px-2 bg-surface py-2 rounded-xl border border-line shrink-0">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 px-2 bg-surface py-2 rounded-xl md:rounded-[14px] border border-line shrink-0">
                     <div className="text-xs text-ink-muted font-medium">
                         Showing {allTransactions.length} of {transactions.total} records (Filtered: {processData.length})
                     </div>
                 </div>
+              </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

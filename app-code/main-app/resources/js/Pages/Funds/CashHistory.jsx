@@ -1,8 +1,13 @@
 import React, { useState, useMemo } from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PrintService from '@/Utils/PrintService';
+import { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import { 
     Wallet, 
     ArrowLeft, 
@@ -11,12 +16,18 @@ import {
     Minus,
     MoreVertical,
     Printer,
-    Download
+    Download,
+    ArrowDownLeft,
+    ArrowUpRight,
+    List
 } from 'lucide-react';
 
 export default function CashHistory({ balance, ledger, store }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
+    const moneyNavGroups = useMoneyNavGroups();
+    const totalIn = useMemo(() => ledger.filter(i => i.mode === 'in').reduce((s, i) => s + (Number(i.amount) || 0), 0), [ledger]);
+    const totalOut = useMemo(() => ledger.filter(i => i.mode === 'out').reduce((s, i) => s + (Number(i.amount) || 0), 0), [ledger]);
 
     const filteredLedger = useMemo(() => {
         let data = [...ledger];
@@ -35,76 +46,78 @@ export default function CashHistory({ balance, ledger, store }) {
     }, [ledger, filterType, searchTerm]);
 
     return (
-        <OneGlanceLayout title="Cash Ledger" activeMenu="Money">
+        <OneGlanceLayout title="Cash Ledger" activeMenu="Money" noPadding>
             <Head title="Cash In Hand" />
 
-            <div className="flex flex-col h-full bg-sunken dark:bg-app overflow-hidden">
-                
-                {/* Top Toolbar (Similar to screenshot) */}
-                <div className="bg-surface border-b border-line px-6 py-3 flex flex-wrap items-center justify-between gap-y-2 shadow-sm shrink-0">
-                    <div className="flex items-center gap-4">
-                        <Link href={route('store.funds.index', { store_slug: store.slug })} className="text-ink-muted hover:text-ink-secondary">
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-lg font-bold text-ink">Cash In Hand</h1>
-                            <span className="text-emerald-500 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded text-sm">
-                                {getCurrencySymbol()} {balance.toLocaleString()}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button onClick={() => PrintService.printPage()} className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg" title="Print">
-                            <Printer size={18} />
-                        </button>
-                        <button className="px-4 py-2 bg-[#d11124] text-white rounded-lg text-sm font-bold shadow-md hover:bg-red-700 transition-colors">
-                            Adjust Cash
-                        </button>
-                    </div>
-                </div>
+            <ListPageFrame className="flex flex-col h-full bg-sunken dark:bg-app overflow-hidden p-2.5">
+                <ListToolbar
+                    title="Cash In Hand"
+                    navGroups={moneyNavGroups}
+                    activeId="funds"
+                    left={(
+                        <ListFilterPill
+                            icon={Filter}
+                            label="All transactions"
+                            value={filterType}
+                            options={[{ value: 'all', label: 'All transactions' }, { value: 'in', label: 'Money In' }, { value: 'out', label: 'Money Out' }]}
+                            onChange={setFilterType}
+                        />
+                    )}
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search Transactions' }}
+                    actions={(
+                        <>
+                            <button type="button" onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print">
+                                <Printer size={18} />
+                            </button>
+                            <ListAddButton icon={Wallet}>Adjust Cash</ListAddButton>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Cash In Hand', value: `${getCurrencySymbol()} ${balance.toLocaleString()}`, icon: Wallet, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Money In', value: `${getCurrencySymbol()} ${totalIn.toLocaleString()}`, icon: ArrowDownLeft, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Money Out', value: `${getCurrencySymbol()} ${totalOut.toLocaleString()}`, icon: ArrowUpRight, icon_tone: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400', value_tone: 'text-rose-600' },
+                    { label: 'Transactions', value: ledger.length, icon: List },
+                ]} />
 
-                {/* Search & Filter Bar */}
-                <div className="px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
-                    <h2 className="text-sm font-bold text-ink-muted uppercase tracking-wider">Transactions</h2>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <div className="relative flex-1 md:w-80">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
-                            <input 
-                                type="text"
-                                placeholder="Search Transactions"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-surface border border-line rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500"
-                            />
-                        </div>
-                        <div className="flex bg-surface border border-line p-1 rounded-lg">
-                            <button onClick={() => setFilterType('all')} className={`px-3 py-1 text-xs font-bold rounded ${filterType === 'all' ? 'bg-sunken text-brand-600' : 'text-ink-muted'}`}>All</button>
-                            <button onClick={() => setFilterType('in')} className={`px-3 py-1 text-xs font-bold rounded ${filterType === 'in' ? 'bg-emerald-50 text-emerald-600' : 'text-ink-muted'}`}>In</button>
-                            <button onClick={() => setFilterType('out')} className={`px-3 py-1 text-xs font-bold rounded ${filterType === 'out' ? 'bg-rose-50 text-rose-600' : 'text-ink-muted'}`}>Out</button>
-                        </div>
-                    </div>
-                </div>
+                <MobileListHeader
+                    title="Cash In Hand"
+                    navGroups={moneyNavGroups}
+                    activeId="funds"
+                    filter={{
+                        active: filterType !== 'all',
+                        sections: [{ label: 'Type', value: filterType, options: [{ value: 'all', label: 'All transactions' }, { value: 'in', label: 'Money In' }, { value: 'out', label: 'Money Out' }], onSelect: setFilterType }],
+                    }}
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search Transactions' }}
+                    actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Cash In Hand', value: `${getCurrencySymbol()} ${balance.toLocaleString()}`, tone: 'emerald', icon: Wallet },
+                    { label: 'Money In', value: `${getCurrencySymbol()} ${totalIn.toLocaleString()}`, tone: 'emerald', icon: ArrowDownLeft },
+                    { label: 'Money Out', value: `${getCurrencySymbol()} ${totalOut.toLocaleString()}`, tone: 'rose', icon: ArrowUpRight },
+                    { label: 'Transactions', value: ledger.length, tone: 'ink', icon: List },
+                ]} />
 
                 {/* Main Table Content */}
-                <div className="flex-1 overflow-hidden px-6 pb-6 mt-2">
-                    <div className="bg-surface rounded-xl border border-line shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="overflow-auto custom-scrollbar">
+                <div className="flex-1 overflow-hidden px-6 pb-6 mt-2 md:contents">
+                    <div className="bg-surface rounded-xl md:rounded-[14px] border border-line shadow-sm overflow-hidden flex flex-col h-full md:h-auto md:flex-1 md:min-h-0">
+                        <div className="overflow-auto custom-scrollbar md:flex-1 md:min-h-0">
                             <table className="w-full text-left border-collapse">
-                                <thead className="bg-sunken dark:bg-surface border-b border-line">
+                                <thead className="bg-sunken dark:bg-surface border-b border-line md:sticky md:top-0 md:z-10">
                                     <tr>
-                                        <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
+                                        <th className="sticky top-0 z-10 bg-sunken px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
                                             <div className="flex flex-wrap items-center justify-between gap-y-2">Type <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
+                                        <th className="sticky top-0 z-10 bg-sunken px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
                                             <div className="flex flex-wrap items-center justify-between gap-y-2">Name <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
+                                        <th className="sticky top-0 z-10 bg-sunken px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight border-r border-line">
                                             <div className="flex flex-wrap items-center justify-between gap-y-2">Date <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight text-right w-48">
+                                        <th className="sticky top-0 z-10 bg-sunken px-4 py-4 text-1xs font-bold text-ink-muted uppercase tracking-tight text-right w-48">
                                             <div className="flex flex-wrap items-center justify-between gap-y-2">Amount <Filter size={12} className="opacity-0 group-hover:opacity-100" /></div>
                                         </th>
-                                        <th className="w-12"></th>
+                                        <th className="sticky top-0 z-10 bg-sunken w-12"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-line">
@@ -144,7 +157,7 @@ export default function CashHistory({ balance, ledger, store }) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

@@ -26,6 +26,7 @@
         "test": "vitest run resources/js/tests",
         "test:watch": "vitest resources/js/tests",
         "test:coverage": "vitest run --coverage resources/js/tests",
+        "test:smoke": "node tests/e2e/smoke-pages.spec.mjs",
         "check:doc-classes": "node scripts/check-document-classes.mjs"
     },
     "devDependencies": {

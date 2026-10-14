@@ -104,21 +104,21 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  };
 
  const content = (
- <div id="fullscreen-portal-root" role={isFullScreen ? 'dialog' : undefined} aria-modal={isFullScreen ? 'true' : undefined} aria-label={isFullScreen ? 'Fullscreen Print Designer' : undefined} className={`flex flex-col bg-app border border-line rounded-2xl overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'min-h-[560px] h-[calc(100vh-14rem)]'}`}>
+ <div id="fullscreen-portal-root" role={isFullScreen ? 'dialog' : undefined} aria-modal={isFullScreen ? 'true' : undefined} aria-label={isFullScreen ? 'Fullscreen Print Designer' : undefined} className={`flex flex-col bg-app border border-line rounded-[14px] overflow-hidden shadow-sm transition-all duration-slow ${isFullScreen ? 'fixed inset-0 z-command rounded-none' : 'min-h-[560px] h-[calc(100vh-14rem)]'}`}>
  {/* Header Toolbar */}
  <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-line bg-surface z-10">
  <div className="flex items-center gap-4">
  <div className="flex items-center gap-2 text-ink">
  <Printer size={18} className="text-brand-500" />
- <span className="font-bold text-sm tracking-tight">Print preview</span>
+ <span className="font-bold text-base tracking-tight">Print preview</span>
  </div>
 
  {/* Format Tabs (Thermal vs Regular vs B2B) */}
- <div className="flex bg-sunken rounded-lg p-1">
+ <div className="flex bg-sunken rounded-[12px] p-1">
  <button
  type="button"
  onClick={() => handleSubtabChange('regular')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'regular'
+ className={`px-3 py-1.5 text-sm font-bold rounded-[8px] transition-all ${activePrintTab === 'regular'
  ? 'bg-sunken text-brand-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -127,7 +127,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('thermal')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'thermal'
+ className={`px-3 py-1.5 text-sm font-bold rounded-[8px] transition-all ${activePrintTab === 'thermal'
  ? 'bg-sunken text-emerald-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -136,7 +136,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('b2b')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'b2b'
+ className={`px-3 py-1.5 text-sm font-bold rounded-[8px] transition-all ${activePrintTab === 'b2b'
  ? 'bg-sunken text-indigo-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -145,7 +145,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleSubtabChange('hardware')}
- className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${activePrintTab === 'hardware'
+ className={`px-3 py-1.5 text-sm font-bold rounded-[8px] transition-all ${activePrintTab === 'hardware'
  ? 'bg-sunken text-amber-600 shadow-sm'
  : 'text-ink-muted hover:text-ink-secondary'}`}
  >
@@ -159,7 +159,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => handleTestPrint(data)}
- className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 mr-2"
+ className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-[12px] text-sm font-bold shadow-lg transition-all active:scale-95 mr-2"
  title="Send a test print with current settings (no need to save first)"
  >
  <Play size={14} className="fill-current" />
@@ -197,7 +197,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  });
  }
  }}
- className="flex items-center gap-2 px-4 py-2 bg-gradient-brand text-white rounded-xl text-xs font-bold shadow-lg transition-all active:scale-95 mr-2"
+ className="flex items-center gap-2 px-4 py-2 bg-gradient-brand text-white rounded-[12px] text-sm font-bold shadow-lg transition-all active:scale-95 mr-2"
  title="Save and apply current printer settings"
  >
  <Save size={14} />
@@ -205,11 +205,11 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  </button>
 
  {/* Preview Mode Toggle */}
- <div className="flex items-center gap-1 bg-sunken rounded-lg p-1 mr-2">
+ <div className="flex items-center gap-1 bg-sunken rounded-[12px] p-1 mr-2">
  <button
  type="button"
  onClick={() => setPreviewMode('light')}
- className={`p-1.5 rounded transition-colors ${previewMode === 'light' ? 'bg-sunken text-amber-500 shadow-sm' : 'text-ink-muted'}`}
+ className={`p-1.5 rounded-[6px] transition-colors ${previewMode === 'light' ? 'bg-sunken text-amber-500 shadow-sm' : 'text-ink-muted'}`}
  title="Light Mode Preview"
  >
  <Monitor size={14} />
@@ -217,7 +217,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => setPreviewMode('dark')}
- className={`p-1.5 rounded transition-colors ${previewMode === 'dark' ? 'bg-neutral-800 text-brand-400 shadow-sm' : 'text-ink-muted'}`}
+ className={`p-1.5 rounded-[6px] transition-colors ${previewMode === 'dark' ? 'bg-neutral-800 text-brand-400 shadow-sm' : 'text-ink-muted'}`}
  title="Dark Mode Preview"
  >
  <Monitor size={14} className="fill-current" />
@@ -227,7 +227,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
- className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors"
+ className="p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-[12px] transition-colors"
  title={sidebarCollapsed ? "Show Settings" : "Hide Settings"}
  >
  {sidebarCollapsed ? <Settings size={18} /> : <ChevronLeft size={18} />}
@@ -236,7 +236,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  <button
  type="button"
  onClick={() => setIsFullScreen(!isFullScreen)}
- className={`p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors ${isFullScreen ? 'text-brand-600 bg-brand-50 dark:bg-raised' : ''}`}
+ className={`p-2 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-[12px] transition-colors ${isFullScreen ? 'text-brand-600 bg-brand-50 dark:bg-raised' : ''}`}
  title="Full Screen Mode"
  >
  {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
@@ -247,7 +247,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
  {/* Main Content Area */}
  <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden bg-sunken">
  {/* Scrollable Settings Sidebar */}
- <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'max-lg:hidden lg:w-0 opacity-0' : 'w-full lg:w-96 opacity-100'}`}>
+ <div className={`bg-surface border-r border-line transition-all duration-slow flex flex-col ${sidebarCollapsed ? 'max-lg:hidden lg:w-0 opacity-0' : 'w-full lg:w-[26rem] xl:w-[32rem] 2xl:w-[38rem] opacity-100'}`}>
  <div className="flex-1 overflow-y-auto p-4 space-y-8 custom-scrollbar">
  {activePrintTab === 'thermal'
  ? <ThermalSettings data={data} setData={setData} activePrintTab={activePrintTab} onSetDefaultType={handleSubtabChange} />
@@ -289,7 +289,7 @@ const RegularSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
  const tt = useTermText();
  return (
  <>
- <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-xl border border-brand-100 dark:border-brand-800/30 mb-6">
+ <div className="p-4 bg-brand-50 dark:bg-brand-900/10 rounded-[12px] border border-brand-100 dark:border-brand-800/30 mb-6">
  <Toggle
  label="Set as Default Receipt Format"
  checked={data.default_print_type === 'regular' || (!data.default_print_type && activePrintTab === 'regular')}
@@ -354,7 +354,7 @@ const RegularSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
  <select
  value={data.print_theme}
  onChange={e => setData('print_theme', e.target.value)}
- className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
+ className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-[12px] text-sm"
  >
  <option value="modern">Modern (Default)</option>
  <option value="classic">Classic Formal</option>
@@ -378,7 +378,7 @@ const RegularSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
  </Section>
 
  <Section title="Header Content" icon={FileText}>
- <div className="text-xs text-ink-muted">Business name: <strong className="text-ink">{data.business_name}</strong>. Change it in Business Profile.</div>
+ <div className="text-sm text-ink-muted">Business name: <strong className="text-ink">{data.business_name}</strong>. Change it in Business Profile.</div>
  <Toggle label="Show Logo" checked={isTruthy(data.print_logo, true)} onChange={v => setData('print_logo', v)} />
  <Toggle label="Show Verification QR Code" checked={isTruthy(data.print_qr_code, true)} onChange={v => setData('print_qr_code', v)} />
 
@@ -437,7 +437,7 @@ const RegularSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
 
 const ThermalSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => (
  <>
- <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 mb-6">
+ <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-[12px] border border-emerald-100 dark:border-emerald-800/30 mb-6">
  <Toggle
  label="Set as Default Receipt Format"
  checked={data.default_print_type === 'thermal'}
@@ -478,9 +478,9 @@ const ThermalSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
  type="range" min="10" max="22" step="1"
  value={data.thermal_font_size || 12}
  onChange={e => setData('thermal_font_size', parseInt(e.target.value))}
- className="w-full h-2 bg-sunken rounded-lg appearance-none cursor-pointer accent-emerald-500 mt-2"
+ className="w-full h-2 bg-sunken rounded-[12px] appearance-none cursor-pointer accent-emerald-500 mt-2"
  />
- <div className="flex justify-between text-xs text-ink-muted mt-1">
+ <div className="flex justify-between text-sm text-ink-muted mt-1">
  <span>Compact</span>
  <span className="font-bold text-emerald-600">{data.thermal_font_size}pt</span>
  <span>Large</span>
@@ -493,7 +493,7 @@ const ThermalSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
  <select
  value={data.print_theme}
  onChange={e => setData('print_theme', e.target.value)}
- className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-lg text-sm"
+ className="w-full mt-1 p-2 bg-sunken border border-line dark:border-line rounded-[12px] text-sm"
  >
  <option value="modern">Modern Receipt</option>
  <option value="classic">Classic Typewriter</option>
@@ -573,7 +573,7 @@ const ThermalSettings = ({ data, setData, activePrintTab, onSetDefaultType }) =>
 
 const Section = ({ title, icon: Icon, children }) => (
  <div className="space-y-3">
- <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-muted border-b border-line pb-2">
+ <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-ink-muted border-b border-line pb-2">
  <Icon size={14} /> {title}
  </h3>
  <div className="px-1">{children}</div>
@@ -581,7 +581,7 @@ const Section = ({ title, icon: Icon, children }) => (
 );
 
 const Label = ({ children }) => (
- <div className="text-2xs font-bold text-ink-muted uppercase tracking-wide mb-1.5">{children}</div>
+ <div className="text-xs font-bold text-ink-muted uppercase tracking-wide mb-1.5">{children}</div>
 );
 
 const ButtonGroup = ({ label, value, onChange, options, color = 'indigo' }) => (
@@ -593,7 +593,7 @@ const ButtonGroup = ({ label, value, onChange, options, color = 'indigo' }) => (
  type="button"
  key={opt.value}
  onClick={() => onChange(opt.value)}
- className={`flex-1 min-w-[60px] py-2 px-1 text-xs font-bold rounded-lg border transition-all ${value === opt.value
+ className={`flex-1 min-w-[60px] py-2 px-1 text-sm font-bold rounded-[12px] border transition-all ${value === opt.value
  ? color === 'emerald'
  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
  : 'bg-brand-600 text-white border-brand-600 shadow-sm'
@@ -611,7 +611,7 @@ const ToggleBtn = ({ label, checked, onChange, color = 'indigo' }) => (
  <button
  type="button"
  onClick={() => onChange(!checked)}
- className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-xl border transition-all ${checked
+ className={`w-full flex flex-wrap items-center justify-between gap-y-2 p-3 rounded-[12px] border transition-all ${checked
  ? color === 'emerald'
  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
  : 'bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800'
@@ -654,7 +654,7 @@ const TextInput = ({ label, value, onChange, placeholder }) => (
  value={value || ''}
  onChange={e => onChange(e.target.value)}
  placeholder={placeholder}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink placeholder:text-ink-faint"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-[12px] focus:ring-2 focus:ring-brand-500 outline-none transition-all font-bold text-ink placeholder:text-ink-faint"
  />
  </div>
 );
@@ -666,7 +666,7 @@ const NumberInput = ({ label, value, onChange }) => (
  type="number"
  value={value || 0}
  onChange={e => onChange(parseFloat(e.target.value) || 0)}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-ink text-center"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-[12px] focus:ring-2 focus:ring-brand-500 outline-none transition-all font-mono font-bold text-ink text-center"
  />
  </div>
 );
@@ -677,7 +677,7 @@ const SelectInput = ({ label, value, onChange, options }) => (
  <select
  value={value}
  onChange={e => onChange(e.target.value)}
- className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-lg focus:ring-2 focus:ring-brand-500 outline-none font-bold text-ink"
+ className="w-full px-3 py-2 text-sm bg-sunken border border-line rounded-[12px] focus:ring-2 focus:ring-brand-500 outline-none font-bold text-ink"
  >
  {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
  </select>
@@ -719,7 +719,7 @@ const ColorPicker = ({ label, value, onChange }) => {
 };
 
 const LogoUploader = ({ data, setData }) => (
- <div className="mt-3 p-3 bg-surface rounded-xl border border-line">
+ <div className="mt-3 p-3 bg-surface rounded-[12px] border border-line">
  <Label>Logo Image</Label>
 
  <div className="flex items-start gap-4 mt-2">
@@ -728,7 +728,7 @@ const LogoUploader = ({ data, setData }) => (
  <img
  src={data.print_logo_path}
  alt="Logo Preview"
- className="w-20 h-20 object-contain bg-sunken rounded-lg p-1 border border-line"
+ className="w-20 h-20 object-contain bg-sunken rounded-[12px] p-1 border border-line"
  />
  <button
  type="button"
@@ -742,9 +742,9 @@ const LogoUploader = ({ data, setData }) => (
  </button>
  </div>
  ) : (
- <div className="w-20 h-20 bg-sunken rounded-lg border-2 border-dashed border-line dark:border-line flex flex-col items-center justify-center text-ink-muted gap-1">
+ <div className="w-20 h-20 bg-sunken rounded-[12px] border-2 border-dashed border-line dark:border-line flex flex-col items-center justify-center text-ink-muted gap-1">
  <ImageIcon size={20} />
- <span className="text-3xs font-bold">No Logo</span>
+ <span className="text-xs font-bold">No Logo</span>
  </div>
  )}
 
@@ -767,12 +767,12 @@ const LogoUploader = ({ data, setData }) => (
  />
  <label
  htmlFor="logo-upload"
- className="inline-flex items-center gap-2 px-3 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-bold cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
+ className="inline-flex items-center gap-2 px-3 py-2 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-[12px] text-sm font-bold cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/40 transition-colors"
  >
  <Upload size={14} />
  {data.print_logo_path ? 'Change Logo' : 'Upload Logo'}
  </label>
- <p className="text-2xs text-ink-muted mt-2 leading-tight">
+ <p className="text-xs text-ink-muted mt-2 leading-tight">
  Recommended: PNG with transparent background. Max 2MB.
  </p>
  </div>
@@ -783,7 +783,7 @@ const LogoUploader = ({ data, setData }) => (
 const B2BSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-fast">
-      <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-800/30 mb-6">
+      <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-[12px] border border-indigo-100 dark:border-indigo-800/30 mb-6">
         <Toggle
           label="Set as Default Receipt Format"
           checked={data.default_print_type === 'b2b'}
@@ -792,46 +792,46 @@ const B2BSettings = ({ data, setData, activePrintTab, onSetDefaultType }) => {
         />
       </div>
       <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Invoice &amp; PDF Styling (B2B)</h4>
+        <h4 className="text-base font-bold uppercase tracking-wider text-ink-muted mb-4">Invoice &amp; PDF Styling (B2B)</h4>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Invoice Template Theme</label>
+            <label className="block text-sm font-bold uppercase tracking-wider text-ink-secondary">Invoice Template Theme</label>
             <select
               value={data.invoice_theme || 'classic'}
               onChange={(e) => setData('invoice_theme', e.target.value)}
-              className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+              className="w-full px-3 py-2 bg-app border border-line rounded-[12px] text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
             >
               <option value="classic">Classic Minimalist</option>
               <option value="modern">Modern Professional</option>
               <option value="elegant">Elegant Serif</option>
             </select>
-            <p className="text-2xs text-ink-muted">Choose the layout aesthetic for downloadable B2B invoices and statements.</p>
+            <p className="text-xs text-ink-muted">Choose the layout aesthetic for downloadable B2B invoices and statements.</p>
           </div>
 
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Primary Brand Color</label>
+            <label className="block text-sm font-bold uppercase tracking-wider text-ink-secondary">Primary Brand Color</label>
             <div className="flex gap-2 items-center">
               <input
                 type="color"
                 value={data.invoice_primary_color || '#4f46e5'}
                 onChange={(e) => setData('invoice_primary_color', e.target.value)}
-                className="h-9 w-12 bg-app border border-line rounded-lg cursor-pointer p-0.5"
+                className="h-9 w-12 bg-app border border-line rounded-[12px] cursor-pointer p-0.5"
               />
               <input
                 type="text"
                 value={data.invoice_primary_color || '#4f46e5'}
                 onChange={(e) => setData('invoice_primary_color', e.target.value)}
-                className="flex-1 px-3 py-2 bg-app border border-line rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-brand-500 outline-none"
+                className="flex-1 px-3 py-2 bg-app border border-line rounded-[12px] text-sm font-mono font-bold focus:ring-2 focus:ring-brand-500 outline-none"
               />
             </div>
-            <p className="text-2xs text-ink-muted">Applied to header accents, table headers, and primary totals.</p>
+            <p className="text-xs text-ink-muted">Applied to header accents, table headers, and primary totals.</p>
           </div>
 
           <div className="pt-4 border-t border-line">
             <label className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer">
               <div>
-                <span className="text-xs font-bold text-ink block">Show Margin on Invoices</span>
-                <span className="text-2xs text-ink-muted">Display item cost profit margin on generated B2B invoices</span>
+                <span className="text-sm font-bold text-ink block">Show Margin on Invoices</span>
+                <span className="text-xs text-ink-muted">Display item cost profit margin on generated B2B invoices</span>
               </div>
               <input
                 type="checkbox"
@@ -887,17 +887,17 @@ const HardwareSettings = ({ data, setData }) => {
 	return (
 		<div className="space-y-6 animate-in fade-in duration-fast">
 			<div>
-				<h4 className="text-xs font-bold uppercase tracking-wider text-ink-muted mb-4">Hardware Devices &amp; Routing</h4>
+				<h4 className="text-base font-bold uppercase tracking-wider text-ink-muted mb-4">Hardware Devices &amp; Routing</h4>
 				<div className="space-y-4">
 					{/* Connection Status Card */}
-					<div className="p-4 rounded-xl bg-app border border-line space-y-2">
+					<div className="p-4 rounded-[12px] bg-app border border-line space-y-2">
 						<div className="flex flex-wrap items-center justify-between gap-y-2">
-							<span className="text-xs font-bold text-ink">VenQore Station Status</span>
-							<span className={`px-2 py-0.5 rounded-full text-3xs font-bold uppercase tracking-wider ${isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
+							<span className="text-sm font-bold text-ink">VenQore Station Status</span>
+							<span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${isConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-sunken text-ink-muted'}`}>
 								{isConnected ? 'Connected & Active' : 'Standalone Browser Mode'}
 							</span>
 						</div>
-						<p className="text-2xs text-ink-muted leading-relaxed">
+						<p className="text-xs text-ink-muted leading-relaxed">
 							{isConnected
 								? 'Desktop companion connected. Silent high-speed ESC/POS thermal printing and hardware cash drawer triggers are active.'
 								: 'Running directly in browser. Printing opens the system print dialog, where you choose the physical printer. Connect VenQore Station desktop companion for silent direct printing and automated drawer kicks.'}
@@ -906,12 +906,12 @@ const HardwareSettings = ({ data, setData }) => {
 
 					{/* Printer Device Selection */}
 					<div className="space-y-2">
-						<label className="block text-xs font-bold uppercase tracking-wider text-ink-secondary">Device Receipt Printer</label>
+						<label className="block text-sm font-bold uppercase tracking-wider text-ink-secondary">Device Receipt Printer</label>
 						{printers && printers.length > 0 ? (
 							<select
 								value={defaultPrinter || ''}
 								onChange={async (e) => { const result = await setDefaultPrinter(e.target.value); if (result?.success) setData('default_print_type', 'thermal'); else Swal.fire('Printer selection failed', result?.error || 'Could not save printer', 'error'); }}
-								className="w-full px-3 py-2 bg-app border border-line rounded-xl text-xs font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+								className="w-full px-3 py-2 bg-app border border-line rounded-[12px] text-sm font-bold focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
 							>
 								<option value="" disabled>Select a receipt printer</option>
                                 {defaultPrinter && !printers.some(p => p.name === defaultPrinter) && <option value={defaultPrinter}>{defaultPrinter} (unavailable)</option>}
@@ -922,19 +922,19 @@ const HardwareSettings = ({ data, setData }) => {
 								))}
 							</select>
 						) : (
-							<div className="p-3 bg-sunken rounded-xl text-2xs text-ink-muted">
+							<div className="p-3 bg-sunken rounded-[12px] text-xs text-ink-muted">
 								System default printer selected. Launch VenQore Station to detect named thermal hardware.
 							</div>
 						)}
-						<p className="text-2xs text-ink-muted">Physical printer assigned specifically to this cash register station.</p>
+						<p className="text-xs text-ink-muted">Physical printer assigned specifically to this cash register station.</p>
 					</div>
 
 					{/* Cash Drawer Configuration */}
 					<div className="pt-3 border-t border-line space-y-3">
 						<label className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer">
 							<div>
-								<span className="text-xs font-bold text-ink block">Pulse Drawer on Cash Sale</span>
-								<span className="text-2xs text-ink-muted">Send 24V kickout pulse via RJ11/RJ12 printer port</span>
+								<span className="text-sm font-bold text-ink block">Pulse Drawer on Cash Sale</span>
+								<span className="text-xs text-ink-muted">Send 24V kickout pulse via RJ11/RJ12 printer port</span>
 							</div>
 							<input
 								type="checkbox"
@@ -948,7 +948,7 @@ const HardwareSettings = ({ data, setData }) => {
 							type="button"
 							disabled={pulsing}
 							onClick={handlePulseDrawer}
-							className="w-full py-2 px-3 bg-sunken hover:bg-interactive-hover border border-line rounded-xl text-xs font-bold text-ink transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+							className="w-full py-2 px-3 bg-sunken hover:bg-interactive-hover border border-line rounded-[12px] text-sm font-bold text-ink transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
 						>
 							<span>{pulsing ? 'Pulsing...' : 'Test Cash Drawer Kickout'}</span>
 						</button>
@@ -958,8 +958,8 @@ const HardwareSettings = ({ data, setData }) => {
 					<div className="pt-3 border-t border-line space-y-2">
 						<label className="flex flex-wrap items-center justify-between gap-y-2 cursor-pointer">
 							<div>
-								<span className="text-xs font-bold text-ink block">Automatic Paper Cut</span>
-								<span className="text-2xs text-ink-muted">Trigger guillotine paper knife at end of thermal receipt</span>
+								<span className="text-sm font-bold text-ink block">Automatic Paper Cut</span>
+								<span className="text-xs text-ink-muted">Trigger guillotine paper knife at end of thermal receipt</span>
 							</div>
 							<input
 								type="checkbox"
@@ -971,9 +971,9 @@ const HardwareSettings = ({ data, setData }) => {
 					</div>
 
 					{/* Fallback Reliability Guarantee (M17) */}
-					<div className="p-3 bg-brand-50 dark:bg-brand-950/20 border border-brand-200 dark:border-brand-800 rounded-xl space-y-1">
-						<span className="text-xs font-bold text-brand-700 dark:text-brand-300 block">Print Fault Protection (M17)</span>
-						<p className="text-3xs text-brand-600 dark:text-brand-400 leading-relaxed">
+					<div className="p-3 bg-brand-50 dark:bg-brand-950/20 border border-brand-200 dark:border-brand-800 rounded-[12px] space-y-1">
+						<span className="text-sm font-bold text-brand-700 dark:text-brand-300 block">Print Fault Protection (M17)</span>
+						<p className="text-xs text-brand-600 dark:text-brand-400 leading-relaxed">
 							If the hardware station drops offline, AMD POS automatically routes receipt jobs through the browser print dialog. No receipt or transaction proof is ever silently dropped.
 						</p>
 					</div>

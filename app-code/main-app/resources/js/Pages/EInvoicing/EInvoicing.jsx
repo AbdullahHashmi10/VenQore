@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
@@ -15,6 +17,8 @@ import {
     Printer
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 
 export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled = false }) {
     const { store, errors } = usePage().props;
@@ -100,42 +104,47 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
     };
 
     return (
-        <OneGlanceLayout title="E-Invoicing & E-Way Bill" activeMenu="Sales">
+        <OneGlanceLayout title="E-Invoicing & E-Way Bill" activeMenu="Sales" noPadding>
             <Head title="E-Invoicing" />
 
-            <div className="space-y-6">
-                {/* Header */}
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
-                            <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
-                                <QrCode className="text-cyan-600 dark:text-cyan-400" size={24} />
-                            </div>
-                            E-Invoicing & E-Way Bill
-                        </h1>
-                        <p className="text-ink-muted text-sm mt-1">Generate and manage government mandated electronic documents</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            onClick={() => { setActiveTab('e-invoice'); handleCloseModal(); }}
-                            className={`px-4 py-2 rounded-xl font-bold transition-colors ${activeTab === 'e-invoice'
-                                    ? 'bg-cyan-600 text-white shadow-lg shadow-glow'
-                                    : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
-                                }`}
-                        >
-                            E-Invoices
-                        </button>
-                        <button
-                            onClick={() => { setActiveTab('e-way-bill'); handleCloseModal(); }}
-                            className={`px-4 py-2 rounded-xl font-bold transition-colors ${activeTab === 'e-way-bill'
-                                    ? 'bg-cyan-600 text-white shadow-lg shadow-glow'
-                                    : 'bg-sunken text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover'
-                                }`}
-                        >
-                            E-Way Bills
-                        </button>
-                    </div>
-                </div>
+            <ListPageFrame className="p-2.5">
+            <ListToolbar
+                title="E-Invoicing & E-Way Bill"
+                left={(
+                    <ListFilterPill
+                        icon={activeTab === 'e-invoice' ? FileText : Truck}
+                        label="E-Invoices"
+                        value={activeTab}
+                        allValue="__none__"
+                        options={[{ value: 'e-invoice', label: 'E-Invoices' }, { value: 'e-way-bill', label: 'E-Way Bills' }]}
+                        onChange={(v) => { setActiveTab(v); handleCloseModal(); }}
+                    />
+                )}
+                search={{ value: searchTerm, onChange: setSearchTerm, placeholder: `Search ${activeTab === 'e-invoice' ? 'E-Invoices' : 'E-Way Bills'}...` }}
+                actions={<ListAddButton icon={Plus} onClick={() => setIsModalOpen(true)}>{`Generate New ${activeTab === 'e-invoice' ? 'E-Invoice' : 'E-Way Bill'}`}</ListAddButton>}
+            />
+            <ListStatCards cards={[
+                { label: 'Generated Today', value: activeTab === 'e-invoice' ? (stats.generated_today || 0) : (stats.waybills_today || 0), icon: activeTab === 'e-invoice' ? FileText : Truck },
+                { label: 'Success Rate', value: stats.success_rate || '100%', icon: CheckCircle, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                { label: 'Pending Generation', value: activeTab === 'e-invoice' ? (stats.pending_generation || 0) : (stats.pending_waybills || 0), icon: AlertTriangle, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', value_tone: 'text-amber-600' },
+                { label: 'Failed / Errors', value: stats.failed_errors || 0, icon: XCircle, icon_tone: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400', value_tone: 'text-red-600' },
+            ]} />
+            <div className="space-y-6 md:contents md:space-y-0">
+                <MobileListHeader
+                    title="E-Invoicing"
+                    filter={{
+                        active: activeTab !== 'e-invoice',
+                        sections: [{ label: 'Document', value: activeTab, options: [{ value: 'e-invoice', label: 'E-Invoices' }, { value: 'e-way-bill', label: 'E-Way Bills' }], onSelect: (v) => { setActiveTab(v); handleCloseModal(); } }],
+                    }}
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: `Search ${activeTab === 'e-invoice' ? 'E-Invoices' : 'E-Way Bills'}...` }}
+                    add={{ onClick: () => setIsModalOpen(true), label: `Generate New ${activeTab === 'e-invoice' ? 'E-Invoice' : 'E-Way Bill'}` }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Generated Today', value: activeTab === 'e-invoice' ? (stats.generated_today || 0) : (stats.waybills_today || 0), tone: 'ink', icon: activeTab === 'e-invoice' ? FileText : Truck },
+                    { label: 'Success Rate', value: stats.success_rate || '100%', tone: 'emerald', icon: CheckCircle },
+                    { label: 'Pending Generation', value: activeTab === 'e-invoice' ? (stats.pending_generation || 0) : (stats.pending_waybills || 0), tone: 'amber', icon: AlertTriangle },
+                    { label: 'Failed / Errors', value: stats.failed_errors || 0, tone: 'red', icon: XCircle },
+                ]} />
 
                 {/* Integration Disabled Warning */}
                 {activeTab === 'e-invoice' && !fbr_enabled && (
@@ -150,101 +159,22 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                     </div>
                 )}
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-cyan-100 dark:bg-cyan-900/30 rounded-xl">
-                                {activeTab === 'e-invoice' ? (
-                                    <FileText className="text-cyan-600 dark:text-cyan-400" size={20} />
-                                ) : (
-                                    <Truck className="text-cyan-600 dark:text-cyan-400" size={20} />
-                                )}
-                            </div>
-                            <div>
-                                <p className="text-xs text-ink-muted uppercase font-bold">Generated Today</p>
-                                <p className="text-2xl font-bold text-ink">
-                                    {activeTab === 'e-invoice' ? (stats.generated_today || 0) : (stats.waybills_today || 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
-                                <CheckCircle className="text-emerald-600 dark:text-emerald-400" size={20} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-ink-muted uppercase font-bold">Success Rate</p>
-                                <p className="text-2xl font-bold text-emerald-600">{stats.success_rate || '100%'}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
-                                <AlertTriangle className="text-amber-600 dark:text-amber-400" size={20} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-ink-muted uppercase font-bold">Pending Generation</p>
-                                <p className="text-2xl font-bold text-amber-600">
-                                    {activeTab === 'e-invoice' ? (stats.pending_generation || 0) : (stats.pending_waybills || 0)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-surface rounded-2xl p-5 border border-line shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                                <XCircle className="text-red-600 dark:text-red-400" size={20} />
-                            </div>
-                            <div>
-                                <p className="text-xs text-ink-muted uppercase font-bold">Failed / Errors</p>
-                                <p className="text-2xl font-bold text-red-600">{stats.failed_errors || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="bg-surface rounded-2xl p-4 border border-line shadow-sm">
-                    <div className="flex flex-wrap gap-4">
-                        <div className="flex-1 min-w-[200px]">
-                            <div className="relative">
-                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                                <input
-                                    type="text"
-                                    placeholder={`Search ${activeTab === 'e-invoice' ? 'E-Invoices' : 'E-Way Bills'}...`}
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-app border border-line rounded-xl focus:ring-2 ring-cyan-500/20 outline-none text-ink font-medium"
-                                />
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-cyan-600 text-white rounded-xl hover:bg-cyan-700 transition-colors font-bold shadow-lg shadow-glow"
-                        >
-                            <Plus size={18} />
-                            Generate New {activeTab === 'e-invoice' ? 'E-Invoice' : 'E-Way Bill'}
-                        </button>
-                    </div>
-                </div>
+                
 
                 {/* Table */}
-                <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                <div className="bg-surface rounded-2xl md:rounded-[14px] border border-line overflow-hidden shadow-sm md:flex-1 md:min-h-0 md:flex md:flex-col">
+                    <div className="overflow-x-auto md:overflow-auto md:flex-1 md:min-h-0">
                         <table className="w-full">
-                            <thead>
+                            <thead className="md:sticky md:top-0 md:z-10">
                                 <tr className="bg-app text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
-                                    <th className="px-6 py-4 text-left">Date</th>
-                                    <th className="px-6 py-4 text-left">Doc Number</th>
-                                    <th className="px-6 py-4 text-left">{tt('Customer')}</th>
-                                    <th className="px-6 py-4 text-right">Amount</th>
-                                    <th className="px-6 py-4 text-center">{activeTab === 'e-invoice' ? 'Ack No / Bill No' : 'Waybill Reference'}</th>
-                                    {activeTab === 'e-way-bill' && <th className="px-6 py-4 text-left">Transporter / Vehicle</th>}
-                                    <th className="px-6 py-4 text-center">Status</th>
-                                    <th className="px-6 py-4 text-center">Action</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-left">Date</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-left">Doc Number</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-left">{tt('Customer')}</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-right">Amount</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-center">{activeTab === 'e-invoice' ? 'Ack No / Bill No' : 'Waybill Reference'}</th>
+                                    {activeTab === 'e-way-bill' && <th className="sticky top-0 z-10 bg-app px-6 py-4 text-left">Transporter / Vehicle</th>}
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-center">Status</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -364,6 +294,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
                     </div>
                 </div>
             </div>
+            </ListPageFrame>
 
             {/* Selection Modal */}
             {isModalOpen && (

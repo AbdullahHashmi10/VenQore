@@ -27,6 +27,8 @@ final class SalesSource implements ReckonerSource
             'sales.hourly_heatmap',
             'sales.live_feed',
             'sales.max_sale',
+            'sales.count',
+            'sales.avg_ticket',
             'sales_orders.count',
             'returns.count',
             'returns.qty',
@@ -223,6 +225,32 @@ final class SalesSource implements ReckonerSource
                         $out[$item['id']] = [
                             'items' => $feedItems
                         ];
+                        break;
+
+                    case 'sales.count':
+                    case 'sales.avg_ticket':
+                        $isCount = $item['key'] === 'sales.count';
+                        $base = fn () => DB::table('sales')
+                            ->where('tenant_id', $ctx->tenant->id)
+                            ->where('status', SaleStatus::POSTED)
+                            ->whereBetween('posted_at', [$period->start->toDateString() . ' 00:00:00', $period->end->toDateString() . ' 23:59:59']);
+                        $total = $isCount
+                            ? (int) $base()->count()
+                            : (float) ($base()->avg('net_sales') ?? 0.0);
+                        $monthly = in_array($period->key, ['this_year', 'last_year', 'last_12_months'], true);
+                        $bucket = $monthly ? "DATE_FORMAT(posted_at, '%Y-%m-01')" : 'DATE(posted_at)';
+                        $rows = $base()
+                            ->selectRaw("$bucket as d, COUNT(*) as n, AVG(net_sales) as a")
+                            ->groupBy('d')->orderBy('d')->get();
+                        $series = $rows->map(fn ($r) => [
+                            'x' => (string) $r->d,
+                            'y' => $isCount ? (float) $r->n : round((float) $r->a, 2),
+                        ])->all();
+                        $out[$item['id']] = !empty($series) ? [
+                            'value' => $total,
+                            'series' => $series,
+                            'granularity' => $monthly ? 'monthly' : 'daily',
+                        ] : $total;
                         break;
 
                     case 'sales.max_sale':

@@ -1,72 +1,58 @@
-import React from 'react';
-import { Head, usePage } from '@inertiajs/react';
-import { router } from '@inertiajs/react';
-import MasterReport from '@/Components/Reports/MasterReport';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import React, { useMemo } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import { ArrowUpRight, BarChart3 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
-import { PackageSearch } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import { ReportShell, ReportKpis, ReportSection, ReportTable, DateRangeFilter } from '@/Components/Reports/ReportKit';
+import { RankBars } from '@/Components/Reports/ReportCharts';
 
 export default function PartyReportByItem({ data = [], stats = [], filters = {} }) {
-    const {
-        store
-    } = usePage().props;
     const tt = useTermText();
+    const { store } = usePage().props;
 
     const columns = [
-        {
-            key: 'product_name',
-            label: tt('Product'),
-            sortable: true,
-        },
-        {
-            key: 'party_name',
-            label: tt('Customer'),
-            sortable: true,
-        },
-        {
-            key: 'quantity',
-            label: 'Qty',
-            align: 'center',
-            sortable: true,
-        },
-        {
-            key: 'total',
-            label: 'Net Revenue',  // ← was subtotal. Now reads net_amount from the waterfall.
-            align: 'right',
-            sortable: true,
-            render: (row) => (
-                <span className="font-bold text-ink">
-                    {formatCurrency(row.total)}
-                </span>
-            )
-        }
-    ];
-
-    const filterDefs = [
-        { key: 'start_date', type: 'date', label: 'Start Date' },
-        { key: 'end_date', type: 'date', label: 'End Date' },
+        { key: 'product_name', label: tt('Product'), sortable: true },
+        { key: 'party_name', label: tt('Customer'), sortable: true },
+        { key: 'quantity', label: 'Qty', align: 'center', sortable: true },
+        { key: 'total', label: 'Net Revenue', align: 'right', sortable: true, render: (row) => <span className="font-bold text-ink">{formatCurrency(row.total)}</span> },
     ];
 
     const handleFilterChange = (newValues) => {
-        router.get(route("store.reports.party-report-by-item", {
-            store_slug: store.slug
-        }), newValues, { preserveState: true, replace: true });
+        router.get(route('store.reports.party-report-by-item', { store_slug: store.slug }), newValues, { preserveState: true, replace: true });
     };
 
+    const kpis = (stats || []).map((s) => ({
+        label: s.label,
+        value: s.value,
+        sub: s.subValue,
+        icon: React.isValidElement(s.icon) ? (p) => React.cloneElement(s.icon, { size: p.size }) : ArrowUpRight,
+        tone: s.type === 'up' ? 'emerald' : s.type === 'down' ? 'amber' : 'brand',
+        trend: s.type === 'up' || s.type === 'down' ? s.type : undefined,
+    }));
+
+    const ranked = useMemo(() => {
+        const m = {};
+        data.forEach((r) => {
+            const k = r.product_name || 'Unknown';
+            m[k] = m[k] || { label: k, value: 0, qty: 0 };
+            m[k].value += Number(r.total) || 0;
+            m[k].qty += Number(r.quantity) || 0;
+        });
+        return Object.values(m).sort((a, b) => b.value - a.value).map((x) => ({ label: x.label, value: x.value, sub: `${x.qty} units` }));
+    }, [data]);
+
     return (
-        <ReportsLayout title={tt('Customer Report by Item')}>
-            <Head title={tt('Customer Report by Item')} />
-            <MasterReport
-                title={tt('Customer Report by Item')}
-                subTitle={tt('Net revenue per customer, grouped by product — FIFO reconciled')}
-                stats={stats}
-                columns={columns}
-                data={data}
-                filters={filterDefs}
-                filterValues={filters}
-                onFilterChange={handleFilterChange}
-            />
-        </ReportsLayout>
+        <ReportShell title={tt('Customer Report by Item')} subtitle={tt('Net revenue per customer, grouped by product — FIFO reconciled')} activeKey="party-report-by-item"
+            filters={<DateRangeFilter from={filters.start_date} to={filters.end_date} onChange={({ from, to }) => handleFilterChange({ ...filters, start_date: from, end_date: to })} />}
+            exportConfig={{ filename: 'party-report-by-item', columns: columns.map((c) => ({ label: c.label, get: (r) => r[c.key] })), rows: data }}>
+            <ReportKpis items={kpis} />
+            <ReportSection title="Net revenue by product" subtitle="Top 8 by net revenue" icon={BarChart3}>
+                <RankBars items={ranked} />
+            </ReportSection>
+            <ReportSection title="Details" subtitle={`${data.length} ${data.length === 1 ? 'record' : 'records'}`} flush>
+                <ReportTable columns={columns} rows={data} rowKey={(r, i) => r.id ?? i} pageSize={100} empty="No results found matching your criteria"
+                    totals={{ quantity: data.reduce((a, r) => a + (Number(r.quantity) || 0), 0), total: formatCurrency(data.reduce((a, r) => a + (Number(r.total) || 0), 0)) }} />
+            </ReportSection>
+        </ReportShell>
     );
 }

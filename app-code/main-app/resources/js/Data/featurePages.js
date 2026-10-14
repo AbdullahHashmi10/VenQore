@@ -263,27 +263,27 @@ export const featurePagesData = {
      * ───────────────────────────────────────────────────────────── */
     'offline-pos': {
         slug: 'offline-pos',
-        metaTitle: 'Offline POS System — Works Without Internet | VenQore',
-        metaDescription: 'VenQore\'s offline-first POS keeps selling when internet drops. Saves every cart before the server confirms it. Syncs automatically when connection returns.',
-        heroBadge: 'Offline-First Architecture — No Internet? No Problem.',
-        headline: 'Internet Down. POS Still Running.',
-        subhead: 'VenQore saves every cart to the device before it even reaches the server. When connectivity drops, the POS keeps selling. When it returns, everything syncs automatically — no lost sales, no corrupted counts.',
+        metaTitle: 'Offline POS: Keep Selling When the Internet Drops | VenQore',
+        metaDescription: 'The VenQore till keeps selling when the internet drops. Sales are saved on the device and sent automatically when you reconnect. A device can stay offline for up to 7 days.',
+        heroBadge: 'Offline sales: keep selling when the internet drops',
+        headline: 'Internet Down. The Till Keeps Selling.',
+        subhead: 'Every sale is saved on the device first. When the connection drops the till keeps selling, and when it returns the sales are sent automatically, each with its own receipt key so none posts twice. Other pages open as saved copies marked as not live.',
         status: 'shipped',
         category: 'Reliability & Infrastructure',
         stats: [
-            { value: '100%', label: 'Offline Capable' },
-            { value: '0s', label: 'Checkout Delay Without Internet' },
+            { value: '7 days', label: 'Longest a device can stay offline' },
+            { value: 'Local', label: 'Sales saved on the device first' },
             { value: 'Auto', label: 'Sync on Reconnect' },
             { value: 'PWA', label: 'Installable App — No App Store' },
         ],
         answerBlock: {
             question: 'Does VenQore work without internet?',
-            answer: 'Yes. VenQore is offline-first by architecture. The POS terminal caches product catalogue, pricing and pending carts on the device itself. When the internet drops, you keep scanning barcodes, processing sales, printing receipts and accepting cash. Every transaction queues locally. When connectivity returns, VenQore syncs automatically — updating inventory, accounts and reports without any manual action from you.',
+            answer: 'Yes, for the till. The POS keeps a product list on the device, so you can keep scanning barcodes and taking cash and manual-entry payments when the internet drops. Every sale is saved on the device and sent automatically when the connection returns. Other pages open as saved copies marked not live, and saving changes there needs internet. Card and online payments need a connection. A device that stays offline for more than 7 days locks until it connects once.',
         },
         painPoints: [
             {
                 pain: 'A router outage during a Saturday rush brings the till to a complete stop',
-                fix: 'VenQore\'s POS runs on the device. No internet = no impact on checkout speed.',
+                fix: 'The till searches a product list saved on the device, so checkout speed does not depend on the internet.',
                 icon: 'Wifi',
             },
             {
@@ -298,7 +298,7 @@ export const featurePagesData = {
             },
             {
                 pain: 'Your payment processor is online-only — offline means no card payments',
-                fix: 'Cash and manual-entry payments work 100% offline. Online payment methods reconnect automatically when the internet returns.',
+                fix: 'Cash and manual-entry payments are recorded offline. Card and online payment methods need a connection.',
                 icon: 'CreditCard',
             },
         ],
@@ -311,51 +311,56 @@ export const featurePagesData = {
             },
             {
                 title: 'Offline Product Catalogue Cache',
-                description: 'Product names, barcodes, prices, stock levels and images are cached on the device. Barcode scanning works at full speed with zero network round-trips. Cache refreshes automatically on reconnect.',
+                description: 'Product names, barcodes and prices are saved on the device and refreshed about every 30 minutes while online. Barcode scanning needs no network round-trip. What you see offline is as of the last refresh.',
                 icon: 'Package',
             },
             {
                 title: 'Automatic Conflict-Free Sync',
-                description: 'Offline transactions queue in the order they were created. On reconnect, VenQore replays them in sequence — inventory deducts in the right order, FIFO batches are consumed correctly, accounts balance.',
+                description: 'Offline sales queue in the order they were rung and are sent when the connection returns. Each carries its own receipt key, so a retry can never post twice. A sale that needs a manager approval, or that the server rejects, waits for a person in the Sync Hub instead of posting wrongly.',
                 icon: 'Repeat',
             },
             {
-                title: 'Installable PWA — No App Store',
-                description: 'VenQore installs on any device as a Progressive Web App. One URL, install to home screen on iOS or Android, works offline. No app store approval, no platform fees, no forced update windows.',
+                title: 'Saved Pages, Clearly Marked',
+                description: 'The app keeps the till, Front of House and every page you have opened on the device. Other pages open as saved copies marked as not live, and saving on them waits for the internet. The Windows app and the browser behave the same way.',
                 icon: 'Smartphone',
             },
             {
+                title: 'Restaurant Floor Without Internet',
+                description: 'Tables, takeaway and delivery keep working when the internet is down: seat a table, take the order, send it to the kitchen printer, take payment. It is all kept on that device and sent when the connection returns. Run each table from one device, because two devices that cannot reach the server cannot see each other. Splitting a bill and online orders need internet.',
+                icon: 'Utensils',
+            },
+            {
                 title: 'Offline Thermal Receipt Printing',
-                description: 'WebUSB-connected thermal printers work fully offline. VenQore sends print jobs directly from the browser to the hardware without a cloud relay — receipts print instantly even with no internet.',
+                description: 'In the VenQore Station Windows app, receipts print straight to your thermal printer with or without internet. In a browser, printing uses the normal print dialog.',
                 icon: 'Printer',
             },
             {
-                title: 'Offline Lock Screen & PIN Security',
-                description: 'When a cashier leaves the till, the screen locks automatically. PIN authentication for re-entry works offline — no server round-trip. Cashier security never degrades when the internet drops.',
+                title: 'Offline Safety Lock',
+                description: 'A device that has been offline for more than 7 days locks until it connects once, so a lost or unpaid device cannot keep selling forever. Sales saved on it are kept and sent when it reconnects.',
                 icon: 'Lock',
             },
         ],
         comparisonTable: {
             title: 'VenQore Offline vs Cloud-Only POS',
             rows: [
-                { feature: 'Continues selling without internet', venqore: 'Yes — fully offline', competitor: 'No — completely down' },
+                { feature: 'Continues selling without internet', venqore: 'Yes, the till (up to 7 days)', competitor: 'No: completely down' },
                 { feature: 'Cart saved on device', venqore: 'Yes — before server confirmation', competitor: 'Server-dependent only' },
                 { feature: 'Barcode scanning offline', venqore: 'Full speed — local catalogue', competitor: 'Requires internet lookup' },
-                { feature: 'Receipt printing offline', venqore: 'Yes — WebUSB direct', competitor: 'Cloud relay required' },
+                { feature: 'Receipt printing offline', venqore: 'Yes, from the Windows app', competitor: 'Cloud relay required' },
                 { feature: 'Sync on reconnect', venqore: 'Automatic, conflict-free, ordered', competitor: 'Manual or unreliable' },
                 { feature: 'Installs as native app', venqore: 'PWA — any device, no app store', competitor: 'Dedicated iOS/Android app' },
-                { feature: 'PIN auth offline', venqore: 'Yes — device-local', competitor: 'Requires server' },
-                { feature: 'Data loss risk on outage', venqore: 'Zero — local-first queue', competitor: 'High — in-flight transactions lost' },
+                { feature: 'Other pages offline', venqore: 'Saved copies, marked not live', competitor: 'Not available' },
+                { feature: 'Sales during an outage', venqore: 'Kept on the device until sent', competitor: 'In-flight transactions can be lost' },
             ],
         },
         faqs: [
             {
                 q: 'How long can VenQore operate without internet?',
-                a: 'Indefinitely. The product catalogue, pricing and pending carts are all stored on the device. As long as the device has power, the POS keeps running — for hours or days without a connection.',
+                a: 'Up to 7 days. The till keeps running on the product list saved on the device and stores every sale locally. After 7 days without a connection the device locks until it connects once, to confirm the subscription and send the saved sales.',
             },
             {
                 q: 'What happens when the internet comes back after an offline period?',
-                a: 'VenQore detects the reconnection and replays all queued transactions to the server in order. Inventory counts update, FIFO batches consume in the right sequence, and accounting journals post automatically. No manual reconciliation required.',
+                a: 'VenQore detects the reconnection and sends the saved sales in the order they were rung. Inventory, FIFO batches and accounts update when each sale is accepted. A sale that needs a manager approval or is rejected waits for a person in the Sync Hub.',
             },
             {
                 q: 'Can I install VenQore on a tablet or phone without an app store?',
@@ -363,11 +368,11 @@ export const featurePagesData = {
             },
             {
                 q: 'Does offline mode work with barcode scanners?',
-                a: 'Yes. The product catalogue is cached locally, so barcode lookups are instant with no network dependency. USB and Bluetooth barcode scanners work exactly as they do online.',
+                a: 'Yes. The product list is saved on the device, so barcode lookups need no network. USB and Bluetooth barcode scanners work exactly as they do online. Changes made in the last 30 minutes appear after the next refresh.',
             },
             {
                 q: 'Is the offline POS secure?',
-                a: 'Yes. Cashier PIN authentication works offline (stored securely on the device). The auto-lock screen engages after inactivity. All data on the device is scoped to the authenticated session.',
+                a: 'The offline till runs on a device that was already signed in. Signing in and manager approvals need a connection. After 7 days offline the device locks until it connects once.',
             },
         ],
         crossLinks: [
@@ -387,23 +392,23 @@ export const featurePagesData = {
         metaDescription: 'VenQore\'s offline-first POS: barcode scanning, split payments, hold & recall carts, thermal printing, staff roles, customer khata and loyalty — all in one checkout.',
         heroBadge: 'Point of Sale — Built for Real Retail, Not Demo Videos',
         headline: 'The Checkout Your Business Actually Needs.',
-        subhead: 'Barcode scanning at any speed. Split payments across cash and card. Hold a cart and start another. Print to thermal in one click. Work completely offline. VenQore\'s POS is built for the reality of busy retail — not the ideal of a slow-day demo.',
+        subhead: 'Barcode scanning at any speed. Split payments across cash and card. Hold a cart and start another. Print to thermal in one click. Keep selling when the internet drops. VenQore POS is built for the reality of busy retail, not the ideal of a slow-day demo.',
         status: 'shipped',
         category: 'Point of Sale',
         stats: [
             { value: '<1s', label: 'Checkout Time Per Item' },
-            { value: '100%', label: 'Offline Capable' },
+            { value: '7 days', label: 'Longest a device can stay offline' },
             { value: '40+', label: 'Linked Financial Reports' },
             { value: '7', label: 'Staff Role Levels' },
         ],
         answerBlock: {
             question: 'What does VenQore\'s POS include?',
-            answer: 'VenQore\'s POS includes offline-first checkout with barcode scanning, multi-tab cart management (hold & recall), split payments (cash, card, bank transfer, credit, mixed), customer search and credit (khata) management, loyalty points application, WebUSB thermal receipt printing, tax-inclusive and tax-exclusive pricing, FIFO inventory deduction on every sale, automatic double-entry journal posting, and 7-level staff role permissions — all in one system with no plugins.',
+            answer: 'VenQore POS includes offline checkout (sales are saved on the device and sent later) with barcode scanning, multi-tab cart management (hold and recall), split payments (cash, card, bank transfer, credit, mixed), customer search and credit (khata) management, loyalty points, thermal receipt printing, tax-inclusive and tax-exclusive pricing, FIFO inventory deduction on every sale, automatic double-entry journal posting, and 7-level staff role permissions, all in one system with no plugins.',
         },
         painPoints: [
             {
                 pain: 'Checkout slows to a crawl whenever the internet is patchy',
-                fix: 'VenQore runs 100% offline. Barcode lookups hit a local cache — zero network latency.',
+                fix: 'The till looks products up in a list saved on the device, so there is no network wait.',
                 icon: 'Zap',
             },
             {
@@ -450,8 +455,8 @@ export const featurePagesData = {
                 icon: 'Gift',
             },
             {
-                title: 'WebUSB Thermal Printing',
-                description: 'Print receipts directly from the browser to your USB thermal printer without any print dialog, driver software or cloud relay. Works offline. Customise header, footer, logo, line spacing and font size per store.',
+                title: 'Direct Thermal Printing',
+                description: 'From the VenQore Station Windows app, print receipts straight to your thermal printer with no print dialog, driver software or cloud relay. It works offline. Customise header, footer, logo, line spacing and font size per store.',
                 icon: 'Printer',
                 tag: 'Hardware',
             },
@@ -459,14 +464,14 @@ export const featurePagesData = {
         comparisonTable: {
             title: 'VenQore POS vs Square POS',
             rows: [
-                { feature: 'Offline operation', venqore: 'Full — all features work offline', competitor: 'Limited — card payments require internet' },
+                { feature: 'Offline operation', venqore: 'The till works offline (up to 7 days); other pages are saved copies', competitor: 'Limited: card payments require internet' },
                 { feature: 'Transaction fee', venqore: '$0 per transaction', competitor: '2.6% + 10¢ per swipe' },
                 { feature: 'Built-in accounting', venqore: 'Double-entry, always reconciled', competitor: 'Requires QuickBooks integration (+$30/mo)' },
                 { feature: 'Customer credit / khata', venqore: 'Built-in with AR aging', competitor: 'Not available' },
                 { feature: 'Split payments', venqore: 'Any combination of methods', competitor: 'Card only or cash + card' },
                 { feature: 'Hold & recall carts', venqore: 'Multi-tab, device-local persist', competitor: 'Single cart only' },
                 { feature: 'FIFO inventory costing', venqore: 'Exact batch FIFO', competitor: 'Average cost only' },
-                { feature: 'Thermal printing', venqore: 'WebUSB direct — no drivers', competitor: 'App-dependent, cloud relay' },
+                { feature: 'Thermal printing', venqore: 'Direct from the Windows app', competitor: 'App-dependent, cloud relay' },
             ],
         },
         faqs: [

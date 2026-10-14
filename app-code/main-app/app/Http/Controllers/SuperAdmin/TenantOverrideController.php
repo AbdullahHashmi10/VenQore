@@ -90,7 +90,10 @@ class TenantOverrideController extends Controller
         }
 
         // Dynamic plans catalogue (F1)
-        $plans = Plan::whereNull('archived_at')->orderBy('sort_order')->get(['id', 'slug', 'name', 'display_name', 'is_ltd']);
+        // Only plans a store can actually be put on: not archived, and not a
+        // legacy alias row (counter/growth/business are normalised to
+        // solo/core/scale on read, so assigning one is never what you mean).
+        $plans = self::assignablePlans();
 
         // Add-ons catalogue & active grants (F8)
         $pricingAddons = config('pricing.add_ons', []);
@@ -145,6 +148,10 @@ class TenantOverrideController extends Controller
                 'staff_count'   => $staffCount,
                 'product_count' => $productCount,
                 'sales_count'   => $salesCount,
+                // The value the Assigned Plan dropdown should show. LTD stores
+                // are stored as plan='ltd' with the tier in plan_limits.
+                'plan_for_select' => \App\Support\PlanCatalog::canonical($tenant->effectivePlan()),
+                'platform_assigned_plan' => $tenant->plan_limits['platform_assigned_plan'] ?? null,
             ]),
             'effective_limits'        => $effectiveLimits,
             'override_history'        => $tenant->planOverrides()->orderByDesc('created_at')->get(),
@@ -156,14 +163,31 @@ class TenantOverrideController extends Controller
         ]);
     }
 
+    /** Plans a store can be put on, lowest tier first. */
+    private static function assignablePlans()
+    {
+        $order = ['trial' => 0, 'solo' => 1, 'starter' => 2, 'core' => 3, 'scale' => 4, 'custom' => 5,
+                  'ltd_1' => 6, 'ltd_2' => 7, 'ltd_3' => 8];
+
+        return Plan::whereNull('archived_at')
+            ->whereNotIn('slug', array_keys(\App\Services\Platform\PlanRestorer::ALIASES))
+            ->get(['id', 'slug', 'name', 'display_name', 'is_ltd', 'sort_order'])
+            ->sortBy(fn ($p) => [$order[$p->slug] ?? 50, $p->sort_order, $p->name])
+            ->values();
+    }
+
     /**
      * Update tenant profile — plan, status, features, dates, locale.
      */
     public function updateTenant(Request $request, Tenant $tenant)
     {
-        $allowedPlans = Plan::pluck('slug')
-            ->merge(['trial', 'solo', 'starter', 'core', 'scale', 'custom', 'growth', 'business', 'counter', 'ltd', 'ltd_1', 'ltd_2', 'ltd_3'])
+        // Legacy aliases are still accepted (old forms) but normalised below,
+        // so a legacy slug is never written (CLAUDE.md: single sources).
+        $allowedPlans = self::assignablePlans()->pluck('slug')
+            ->merge(['trial', 'growth', 'business', 'counter', 'ltd_1', 'ltd_2', 'ltd_3'])
+            ->push(\App\Support\PlanCatalog::canonical($tenant->effectivePlan()))
             ->unique()
+            ->values()
             ->toArray();
 
         $validated = $request->validate([
@@ -182,10 +206,44 @@ class TenantOverrideController extends Controller
             'feature_manufacturing' => 'boolean',
         ]);
 
-        $tenant->update($validated);
+        $newPlan = isset($validated['plan']) ? \App\Support\PlanCatalog::canonical($validated['plan']) : null;
+        unset($validated['plan']);
 
-        if (isset($validated['plan'])) {
+        $planChanged = $newPlan !== null
+            && $newPlan !== \App\Support\PlanCatalog::canonical($tenant->effectivePlan());
+
+        if ($planChanged) {
+            // setPlanAttribute turns ltd_N into plan='ltd' + a limit snapshot.
+            $tenant->plan = $newPlan;
+            // Leaving LTD: drop the LTD snapshot so its frozen limits stop applying.
+            if (!str_starts_with($newPlan, 'ltd_') && is_array($tenant->plan_limits)) {
+                $tenant->plan_limits = array_diff_key(
+                    $tenant->plan_limits,
+                    array_flip(array_keys(PlanRepository::getLtdSnapshot('ltd_1')))
+                );
+            }
+        }
+
+        if ($planChanged) {
+            // Remember that the platform chose this plan, so a billing sync
+            // cannot later pull the store down to an older, cheaper subscription.
+            // Only on a real change: the profile form always re-sends the plan,
+            // and saving just the store name must not lock its billing.
+            $limits = is_array($tenant->plan_limits) ? $tenant->plan_limits : [];
+            $limits['platform_assigned_plan'] = $newPlan;
+            $tenant->plan_limits = $limits;
+        }
+
+        $tenant->fill($validated);
+        $tenant->save();
+
+        if ($planChanged) {
             PlanRepository::invalidateTenantCache($tenant->id);
+            try {
+                \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $newPlan);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Plan assign: AI allowance failed for tenant {$tenant->id}: " . $e->getMessage());
+            }
         }
 
         return back()->with('success', "Tenant \"{$tenant->name}\" updated successfully.");
@@ -244,7 +302,7 @@ class TenantOverrideController extends Controller
 
         // The AI meter is a copy of the plan's allowance; keep it in step.
         if (in_array($validated['override_key'], ['ai_credits_monthly', 'ai_scans_monthly', 'ai_credits_annual'], true)) {
-            \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $tenant->plan);
+            \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $tenant->effectivePlan());
         }
 
         if ($validated['notify_user'] ?? true) {
@@ -350,16 +408,23 @@ class TenantOverrideController extends Controller
      * Remove a specific override — tenant reverts to plan default.
      * Enforces tenant ownership check (F11).
      */
-    public function remove(Tenant $tenant, TenantPlanOverride $override)
+    public function remove(Tenant $tenant, string $override)
     {
-        abort_unless($override->tenant_id === $tenant->id, 404, 'Override does not belong to this tenant.');
+        // Resolved by hand, scoped to this tenant. A type-hinted model under the
+        // route group's scopeBindings() made Laravel call $tenant->overrides(),
+        // which does not exist — so "Remove override" always failed with a 500.
+        $override = TenantPlanOverride::withoutTenantScope()
+            ->where('tenant_id', $tenant->id)
+            ->whereKey($override)
+            ->first();
+        abort_unless($override, 404, 'Override does not belong to this tenant.');
 
         $key = $override->override_key;
         $override->delete();
         PlanRepository::invalidateTenantCache($tenant->id);
 
         if (in_array($key, ['ai_credits_monthly', 'ai_scans_monthly', 'ai_credits_annual'], true)) {
-            \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $tenant->plan);
+            \App\Services\PlanAiAllowance::applyTo($tenant->fresh(), $tenant->effectivePlan());
         }
 
         return back()->with('success', "Override removed. \"{$tenant->name}\" now uses the plan default.");

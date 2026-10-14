@@ -2,7 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import StockModuleTabs, { useStockNavGroups, ListFilterSelect } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 
@@ -29,6 +32,7 @@ import {
 export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, filters = {} }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    const navGroups = useStockNavGroups();
     // Infinite Scroll State
     const [allRuns, setAllRuns] = useState(productionRuns.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(productionRuns.next_page_url);
@@ -164,105 +168,72 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
     };
 
     return (
-        <OneGlanceLayout title="Production Runs" activeMenu="Stock">
+        <OneGlanceLayout title="Production Runs" activeMenu="Stock" noPadding>
             <Head title="Production Runs" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <StockModuleTabs activeTab="production" />
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <ListToolbar
+                    title="Production"
+                    navGroups={navGroups}
+                    activeId="production"
+                    left={
+                        <ListFilterSelect
+                            value={activeFilter}
+                            onChange={applyFilter}
+                            ariaLabel="Runs filter"
+                            options={[{ value: 'all', label: 'All runs' }, { value: 'today', label: 'Today' }, { value: 'active', label: 'In Progress' }, { value: 'failed', label: 'Failed' }]}
+                        />
+                    }
+                    actions={
+                        <>
+                            <div className="w-64">
+                                <SmartCombobox
+                                    items={allRuns}
+                                    value={searchTerm}
+                                    onQueryChange={handleSearch}
+                                    onSelect={handleServerSearch}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleServerSearch()}
+                                    placeholder="Search run or product..."
+                                    displayKey="run_number"
+                                    filterKey="run_number"
+                                    inputClassName="py-1.5 text-sm h-10"
+                                />
+                            </div>
+                            <ListAddButton icon={Plus} href={route('store.production.create', { store_slug: store?.slug })}>New Run</ListAddButton>
+                        </>
+                    }
+                />
+                <ListStatCards cards={[
+                    { label: 'Active Runs', value: stats.in_progress || 0, icon: Play, icon_tone: 'bg-blue-50 text-blue-600' },
+                    { label: 'Completed Today', value: stats.completed_today || 0, icon: CheckCircle, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Total Runs', value: stats.month_count || 0, icon: Factory, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'Cost (Month)', value: formatCurrency(stats.month_cost), icon: Package, icon_tone: 'bg-brand-50 text-brand-600', value_tone: 'text-brand-600' },
+                ]} />
 
 
                 {/* Stats Cards - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <Play size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Active Runs</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats.in_progress || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Completed Today</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{stats.completed_today || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Factory size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Runs</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats.month_count || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Package size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Cost (Month)</p>
-                        </div>
-                        <p className="text-base font-bold text-brand-600">{formatCurrency(stats.month_cost)}</p>
-                    </div>
-                </div>
+                <MobileListHeader
+                    title="Production"
+                    navGroups={navGroups}
+                    activeId="production"
+                    filter={{
+                        active: activeFilter !== 'all',
+                        sections: [{ label: 'Runs', value: activeFilter, options: [{ value: 'all', label: 'All runs' }, { value: 'today', label: 'Today' }, { value: 'active', label: 'In Progress' }, { value: 'failed', label: 'Failed' }], onSelect: applyFilter }],
+                    }}
+                    search={{ value: searchTerm, onChange: handleSearch, onKeyDown: (e) => { if (e.key === 'Enter') handleServerSearch(); }, placeholder: 'Search run or product...' }}
+                    add={{ href: route('store.production.create', { store_slug: store?.slug }), label: 'New Run' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Active Runs', value: stats.in_progress || 0, tone: 'blue', icon: Play },
+                    { label: 'Completed Today', value: stats.completed_today || 0, tone: 'emerald', icon: CheckCircle },
+                    { label: 'Total Runs', value: stats.month_count || 0, tone: 'brand', icon: Factory },
+                    { label: 'Cost (Month)', value: formatCurrency(stats.month_cost), tone: 'brand', icon: Package },
+                ]} />
 
                 {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0 flex items-center gap-2">
-                            <Factory size={20} className="text-brand-600" />
-                            Production <span className="text-brand-600">Runs</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => applyFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >All</button>
-                        <button
-                            onClick={() => applyFilter('today')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Today</button>
-                        <button
-                            onClick={() => applyFilter('active')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'active' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >In Progress</button>
-                        <button
-                            onClick={() => applyFilter('failed')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'failed' ? 'bg-red-500 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Failed</button>
-                    </div>
-
-                    {/* Right: Search + Actions */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-52">
-                            <SmartCombobox
-                                items={allRuns}
-                                value={searchTerm}
-                                onQueryChange={handleSearch}
-                                onSelect={handleServerSearch}
-                                onKeyDown={(e) => e.key === 'Enter' && handleServerSearch()}
-                                placeholder="Search run or product..."
-                                displayKey="run_number"
-                                filterKey="run_number"
-                                inputClassName="py-1.5 text-xs h-9"
-                            />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <Link href={route('store.production.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors" style={{ color: '#ffffff' }}>
-                                <Plus size={14} className="text-white shrink-0" /> <span className="text-white">New Run</span>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -274,7 +245,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
-                                        className={`
+                                        className={`sticky top-0 z-10 bg-app 
                                             p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
                                             cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
                                             ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
@@ -384,7 +355,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

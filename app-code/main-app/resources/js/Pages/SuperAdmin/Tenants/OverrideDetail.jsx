@@ -423,9 +423,9 @@ export default function OverrideDetail({
     const { flash } = usePage().props;
 
     // Tenant Profile Form
-    const { data, setData, patch, processing, errors } = useForm({
+    const { data, setData, patch, processing, errors, isDirty } = useForm({
         name:                  tenant.name ?? '',
-        plan:                  tenant.plan ?? 'trial',
+        plan:                  tenant.plan_for_select ?? tenant.plan ?? 'trial',
         status:                tenant.status ?? 'trial',
         trial_ends_at:         tenant.trial_ends_at ? tenant.trial_ends_at.substring(0, 10) : '',
         subscription_ends_at:  tenant.subscription_ends_at ? tenant.subscription_ends_at.substring(0, 10) : '',
@@ -556,15 +556,16 @@ export default function OverrideDetail({
             value: p.slug,
             label: p.display_name || p.name || p.slug,
         }));
-        const hasCurrent = list.some((o) => o.value === tenant.plan);
-        if (!hasCurrent && tenant.plan) {
+        const current = tenant.plan_for_select ?? tenant.plan;
+        const hasCurrent = list.some((o) => o.value === current);
+        if (!hasCurrent && current) {
             list.unshift({
-                value: tenant.plan,
-                label: `${tenant.plan.toUpperCase()} (Legacy)`,
+                value: current,
+                label: `${current} (current — plan missing or archived)`,
             });
         }
         return list;
-    }, [plans, tenant.plan]);
+    }, [plans, tenant.plan, tenant.plan_for_select]);
 
     const statusOptions = [
         { value: 'trial', label: 'Trial' },
@@ -879,7 +880,15 @@ export default function OverrideDetail({
                                     </FieldRow>
                                 ))}
 
-                                <div style={{ paddingTop: 18, marginTop: 14, borderTop: `1px solid ${t.border}`, display: 'flex', justifyContent: 'flex-end' }}>
+                                <div style={{ paddingTop: 18, marginTop: 14, borderTop: `1px solid ${t.border}`, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12 }}>
+                                    {errors.plan && (
+                                        <span style={{ fontSize: 12, color: BRAND.rose, fontWeight: 600 }}>{errors.plan}</span>
+                                    )}
+                                    {isDirty && !processing && (
+                                        <span style={{ fontSize: 12, color: BRAND.amber, fontWeight: 700 }}>
+                                            Unsaved changes — the plan is not applied until you save
+                                        </span>
+                                    )}
                                     <Button
                                         type="submit"
                                         variant="primary"

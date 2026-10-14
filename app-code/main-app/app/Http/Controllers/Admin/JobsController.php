@@ -88,7 +88,9 @@ class JobsController extends Controller
     public function retryFailed(Request $request, string $id): JsonResponse
     {
         try {
-            Artisan::call('queue:retry', ['id' => [$id]]);
+            // queue:retry looks failed jobs up by UUID; the panel sends the row id.
+            $uuid = DB::table('failed_jobs')->where('id', $id)->value('uuid') ?? $id;
+            Artisan::call('queue:retry', ['id' => [$uuid]]);
             return response()->json(['success' => true, 'message' => "Job {$id} queued for retry."]);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);

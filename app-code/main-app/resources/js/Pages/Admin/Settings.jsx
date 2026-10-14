@@ -899,8 +899,8 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                 return <TerminalPairingSection storeSlug={store?.slug} />;
             case 'backup':
                 return (
-                    <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-2xl border border-line p-5 sm:p-12 animate-in fade-in slide-in-from-bottom-2 duration-slow">
-                        <div className="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-lg">
+                    <div className="flex flex-col items-center text-center gap-4 bg-surface rounded-[14px] border border-line p-4 sm:p-8 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+                        <div className="w-16 h-16 rounded-[14px] bg-brand-600 text-white flex items-center justify-center shadow-sm">
                             <Database size={32} />
                         </div>
                         <div>
@@ -911,7 +911,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                         </div>
                         <a
                             href={route('store.admin.data', { store_slug: store?.slug, tab: 'backups' })}
-                            className="inline-flex items-center gap-2 px-4 sm:px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold shadow-lg transition-all active:scale-95"
+                            className="inline-flex items-center gap-2 px-4 sm:px-8 py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-[12px] font-bold shadow-sm transition-all active:scale-95"
                         >
                             <span>Go to Data &amp; Backup Hub</span>
                             <ChevronRight size={18} />
@@ -937,9 +937,9 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
         <OneGlanceLayout title="Settings" activeMenu="Settings" noPadding={true}>
             <Head title="Settings" />
 
-            <div className="h-full flex flex-col lg:flex-row gap-3 lg:gap-6 overflow-hidden px-3 sm:px-6 pb-6 pt-3.5">
+            <div className="h-full flex flex-col lg:flex-row gap-2 lg:gap-2 overflow-hidden px-4 pb-4 pt-2">
                 {/* Main Content Area (Left) */}
-                <div className={`${mobileDetail ? '' : 'max-lg:hidden'} flex-1 min-w-0 min-h-0 bg-surface rounded-2xl border border-line shadow-xs flex flex-col overflow-hidden relative`}>
+                <div className={`${mobileDetail ? '' : 'max-lg:hidden'} flex-1 min-w-0 min-h-0 bg-surface rounded-[14px] border border-line shadow-xs flex flex-col overflow-hidden relative`}>
                     <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
                     <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
@@ -975,7 +975,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-brand-600 dark:hover:bg-brand-700 text-xs font-bold rounded-xl shadow-xs transition-all active:scale-95 shrink-0 disabled:opacity-60 cursor-pointer"
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-brand-600 dark:hover:bg-brand-700 text-xs font-bold rounded-[12px] shadow-xs transition-all active:scale-95 shrink-0 disabled:opacity-60 cursor-pointer"
                                 >
                                     {saved ? (
                                         <>
@@ -998,10 +998,10 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                         </div>
 
                         {/* Content Scroll Container */}
-                        <div className="flex-1 custom-scrollbar p-4 sm:p-6 overflow-y-auto">
-                            <div className="mx-auto max-w-5xl pb-10 transition-all duration-slow">
+                        <div className="flex-1 custom-scrollbar p-4 overflow-y-auto">
+                            <div className="mx-auto pb-10 transition-all duration-slow">
                                 {errors && Object.keys(errors).length > 0 && (
-                                    <div role="alert" className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
+                                    <div role="alert" className="mb-2 p-4 rounded-[14px] bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 animate-in fade-in slide-in-from-top-2">
                                         <div className="flex items-center gap-2 font-bold text-sm mb-1.5">
                                             <AlertTriangle size={18} className="text-rose-600 dark:text-rose-400 shrink-0" />
                                             <span>Settings could not be saved. Please correct the following errors:</span>
@@ -1023,7 +1023,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
 
                 {/* Settings Side Panel (Right) - V6 Standalone Mesh Background Styled */}
                 <div
-                    className={`${sidebarCollapsed ? 'w-full lg:w-16' : 'w-full lg:w-80'} ${mobileDetail ? 'max-lg:hidden' : 'max-lg:flex-1 max-lg:min-h-0'} rounded-2xl border border-white/10 dark:border-white/10 shadow-lg p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}
+                    className={`${sidebarCollapsed ? 'w-full lg:w-16' : 'w-full lg:w-80'} ${mobileDetail ? 'max-lg:hidden' : 'max-lg:flex-1 max-lg:min-h-0'} rounded-[14px] border border-white/10 dark:border-white/10 shadow-sm p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}
                     style={{
                         background: 'radial-gradient(52% 62% at 16% 10%, rgba(35,196,166,0.30), transparent 68%), radial-gradient(46% 54% at 84% 80%, rgba(7,107,94,0.34), transparent 66%), radial-gradient(38% 42% at 62% 26%, rgba(93,165,176,0.14), transparent 70%), #0A0F0E'
                     }}
@@ -1042,7 +1042,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                 e.stopPropagation();
                                 setSidebarCollapsed(!sidebarCollapsed);
                             }}
-                            className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-neutral-300 hover:text-white transition-colors shrink-0 z-50 cursor-pointer"
+                            className="w-7 h-7 rounded-[12px] bg-white/10 hover:bg-white/20 flex items-center justify-center text-neutral-300 hover:text-white transition-colors shrink-0 z-50 cursor-pointer"
                             title={sidebarCollapsed ? "Expand settings panel" : "Collapse settings panel"}
                         >
                             <ChevronRight size={14} className={`transition-transform duration-slow ${sidebarCollapsed ? 'rotate-180' : ''}`} />
@@ -1053,7 +1053,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                     <h2 className="text-sm font-bold text-white tracking-tight">Settings</h2>
                                     <p className="text-3xs font-bold uppercase tracking-[0.2em] text-emerald-400">Store Config</p>
                                 </div>
-                                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
+                                <div className="w-8 h-8 rounded-[12px] bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-sm shrink-0">
                                     <Building2 size={16} />
                                 </div>
                             </div>
@@ -1069,7 +1069,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                     value={sectionSearch}
                                     onChange={(e) => setSectionSearch(e.target.value)}
                                     placeholder="Search settings & keywords..."
-                                    className="w-full pl-8 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+                                    className="w-full pl-8 pr-3 py-1.5 bg-black/40 border border-white/10 rounded-[12px] text-xs text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
                                 />
                             </div>
                         </div>
@@ -1120,7 +1120,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                                         type="button"
                                                         onClick={() => handleSectionChange(section.id)}
                                                         title={sidebarCollapsed ? section.name : undefined}
-                                                        className={`w-full flex items-center gap-2.5 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2.5'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
+                                                        className={`w-full flex items-center gap-2.5 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-2.5'} rounded-[12px] text-left transition-all duration-normal group relative overflow-hidden border ${isActive
                                                             ? 'bg-white/15 backdrop-blur-xl border-white/25 text-white shadow-xs'
                                                             : 'text-neutral-300 hover:bg-white/5 hover:text-white border-transparent'
                                                             }`}
@@ -1129,7 +1129,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                                                             <div className="absolute inset-0 bg-emerald-500/20 opacity-100" />
                                                         )}
 
-                                                        <div className={`relative z-10 w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-emerald-500/30 text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]' : 'bg-white/5 text-neutral-400 group-hover:text-emerald-300 group-hover:bg-white/10'}`}>
+                                                        <div className={`relative z-10 w-7 h-7 rounded-[12px] flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-emerald-500/30 text-emerald-300 shadow-[0_0_10px_rgba(52,211,153,0.3)]' : 'bg-white/5 text-neutral-400 group-hover:text-emerald-300 group-hover:bg-white/10'}`}>
                                                             <Icon size={15} />
                                                         </div>
 
@@ -1193,10 +1193,10 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="unsaved-changes-title"
-                        className="relative z-10 w-full max-w-md bg-surface border border-line dark:border-line-strong rounded-2xl shadow-2xl p-6 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-3 duration-fast"
+                        className="relative z-10 w-full max-w-md bg-surface border border-line dark:border-line-strong rounded-[14px] shadow-sm p-6 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-3 duration-fast"
                     >
                         <div className="flex flex-col items-center text-center">
-                            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 shadow-xs">
+                            <div className="w-14 h-14 rounded-[14px] bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-4 shadow-xs">
                                 <AlertTriangle size={28} className="animate-pulse" />
                             </div>
                             <h3 id="unsaved-changes-title" className="text-lg font-bold text-ink tracking-tight">
@@ -1211,7 +1211,7 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                             <button
                                 type="button"
                                 onClick={handleSaveAndSwitch}
-                                className="order-1 sm:order-1 py-2.5 px-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.98]"
+                                className="order-1 sm:order-1 py-2.5 px-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-[12px] text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.98]"
                             >
                                 <Check size={14} />
                                 <span>Save & Switch</span>
@@ -1219,14 +1219,14 @@ export default function AdminSettings({ settings = {}, usersWithApprovals = [] }
                             <button
                                 type="button"
                                 onClick={handleDiscardAndSwitch}
-                                className="order-2 sm:order-2 py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
+                                className="order-2 sm:order-2 py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-bold rounded-[12px] text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
                             >
                                 <span>Discard</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={handleCancelSwitch}
-                                className="order-3 sm:order-3 py-2.5 px-3 bg-sunken hover:bg-interactive-hover dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-line-strong dark:border-neutral-700 text-ink dark:text-neutral-200 font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
+                                className="order-3 sm:order-3 py-2.5 px-3 bg-sunken hover:bg-interactive-hover dark:bg-neutral-800 dark:hover:bg-neutral-700 border border-line-strong dark:border-neutral-700 text-ink dark:text-neutral-200 font-bold rounded-[12px] text-xs transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1 shadow-xs"
                             >
                                 <span>Cancel</span>
                             </button>

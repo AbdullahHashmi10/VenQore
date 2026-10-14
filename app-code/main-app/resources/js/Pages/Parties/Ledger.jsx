@@ -2,8 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import ContactsModuleTabs, { useContactsNavGroups } from '@/Components/ContactsModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import PrintService from '@/Utils/PrintService';
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import {
     FileText,
     ArrowDownCircle,
@@ -18,10 +21,10 @@ import {
     ChevronUp,
     ChevronDown,
     Filter,
-    MessageCircle
-} from 'lucide-react';
+    MessageCircle, Layers, DollarSign } from 'lucide-react';
 import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 export default function PartyLedger({ party = {}, transactions = [], stats = {} }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -36,6 +39,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
 
     // Format currency
     const { store } = usePage().props;
+    const contactsNavGroups = useContactsNavGroups();
     const isOverdue = party.type === 'customer' && party.credit_limit && parseFloat(party.current_balance || 0) > parseFloat(party.credit_limit);
 
 
@@ -50,6 +54,16 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
         };
         return types[type] || types.opening;
     };
+
+    const handleExportCsv = () => exportRowsToCsv('ledger-' + (party?.name || 'party'), [
+        { label: 'Date', get: (t) => t.date },
+        { label: 'Type', get: (t) => t.type },
+        { label: 'Reference', get: (t) => t.reference },
+        { label: 'Description', get: (t) => t.description },
+        { label: 'Debit', get: (t) => t.debit },
+        { label: 'Credit', get: (t) => t.credit },
+        { label: 'Balance', get: (t) => t.balance },
+    ], filteredTransactions);
 
     // Filter transactions
     const filteredTransactions = useMemo(() => {
@@ -69,11 +83,32 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
     }, [transactions, searchTerm, transactionType, dateRange]);
 
     return (
-        <OneGlanceLayout title={`Ledger - ${party.name}`} activeMenu="Contacts">
+        <OneGlanceLayout title={`Ledger - ${party.name}`} activeMenu="Contacts" noPadding>
             <Head title={`Ledger - ${party.name}`} />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <ContactsModuleTabs activeTab="ledgers" />
+            <div className="max-md:p-1.5 max-md:h-full md:contents">
+            <ListPageFrame className="max-md:flex max-md:flex-col max-md:h-full max-md:bg-app max-md:p-2 max-md:gap-1 max-md:overflow-hidden">
+                <ListToolbar
+                    title={`${party.name} Ledger`}
+                    navGroups={contactsNavGroups}
+                    activeId="ledgers"
+                    left={<ListFilterPill icon={Layers} label="All Types" value={transactionType} onChange={setTransactionType} options={[
+                        { value: 'all', label: 'All Types' }, { value: 'sale', label: 'Sales' }, { value: 'purchase', label: 'Purchases' }, { value: 'payment_in', label: 'Received' }, { value: 'payment_out', label: 'Paid' },
+                    ]} />}
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search Ref or Desc...' }}
+                    actions={<>
+                        <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" onClick={handleExportCsv} className="h-10 w-10 rounded-[12px] border border-line bg-app text-emerald-600 hover:bg-interactive-hover flex items-center justify-center transition-colors" title="Export"><Download size={16} /></button>
+                        <button type="button" onClick={() => PrintService.printPage()} className="h-10 w-10 rounded-[12px] border border-line bg-app text-ink-muted hover:text-ink hover:bg-interactive-hover flex items-center justify-center transition-colors" title="Print"><Printer size={16} /></button>
+                        <ListAddButton icon={MessageCircle} onClick={() => setShowWhatsAppModal(true)} title="Share Statement on WhatsApp">Share Statement</ListAddButton>
+                    </>}
+                />
+                <ListStatCards cards={[
+                    { label: 'Opening', value: formatCurrency(stats.opening_balance, store), icon: Wallet, icon_tone: 'bg-sunken text-ink-secondary' },
+                    { label: 'Credits', value: formatCurrency(stats.total_credit, store), icon: ArrowDownCircle, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Debits', value: formatCurrency(stats.total_debit, store), icon: ArrowUpCircle, icon_tone: 'bg-red-50 text-red-600', value_tone: 'text-red-600' },
+                    { label: 'Net Balance', value: formatCurrency(Math.abs(stats.final_balance || 0), store), icon: TrendingUp, value_tone: stats.final_balance > 0 ? 'text-emerald-600' : (stats.final_balance < 0 ? 'text-red-600' : 'text-ink-muted') },
+                ]} />
+                <div className="md:hidden"><ContactsModuleTabs activeTab="ledgers" /></div>
 
                 {isOverdue && (
                     <div className="bg-rose-50 border border-rose-200 dark:bg-rose-950/20 dark:border-rose-900/50 p-3 rounded-xl flex flex-wrap items-center justify-between gap-y-2 shrink-0 mb-1">
@@ -87,226 +122,40 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                     </div>
                 )}
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Opening', value: formatCurrency(stats.opening_balance, store), tone: 'ink' },
-  { label: 'Credits', value: formatCurrency(stats.total_credit, store), tone: 'emerald' },
-  { label: 'Debits', value: formatCurrency(stats.total_debit, store), tone: 'red' }
-]} />
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title={party.name}
+                    filters={[{ key: 'type', icon: Layers, label: 'Transaction type', value: transactionType, onChange: setTransactionType, options: [
+                        { id: 'all', label: 'All Types' }, { id: 'sale', label: 'Sales' }, { id: 'purchase', label: 'Purchases' }, { id: 'payment_in', label: 'Received' }, { id: 'payment_out', label: 'Paid' }
+                    ] }]}
+                    search={{ event: true,  value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), placeholder: 'Search Ref or Desc...' }}
+                    actions={[
+                        { icon: MessageCircle, label: 'Share on WhatsApp', onClick: () => setShowWhatsAppModal(true) },
+                        { icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }
+                    ]}
+                />
+                <MobileStats bp="md" hero={2} items={[
+                    { label: 'Opening', value: formatCurrency(stats.opening_balance, store), tone: 'ink', icon: Wallet },
+                    { label: 'Credits', value: formatCurrency(stats.total_credit, store), tone: 'emerald', icon: TrendingUp },
+                    { label: 'Debits', value: formatCurrency(stats.total_debit, store), tone: 'red', icon: TrendingDown },
+                    { label: 'Net Balance', value: formatCurrency(Math.abs(stats.final_balance || 0), store), tone: (stats.final_balance || 0) > 0 ? 'emerald' : ((stats.final_balance || 0) < 0 ? 'red' : 'ink'), icon: DollarSign }
+                ]} />
 
-                {/* Stats Cards - Responsive Grid */}
-                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-sunken text-ink-secondary rounded-lg shrink-0">
-                                <Wallet size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Opening</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-ink-secondary leading-none mt-1 sm:mt-0">{formatCurrency(stats.opening_balance, store)}</p>
-                    </div>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
-                                <ArrowDownCircle size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Credits</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_credit, store)}</p>
-                    </div>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shrink-0">
-                                <ArrowUpCircle size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Debits</p>
-                        </div>
-                        <p className="text-sm sm:text-base md:text-lg font-bold text-red-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.total_debit, store)}</p>
-                    </div>
-                    <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <div className="p-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
-                                <TrendingUp size={14} />
-                            </div>
-                            <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Net Balance</p>
-                        </div>
-                        <div className="text-left mt-1 sm:mt-0">
-                            <p className={`text-sm sm:text-base md:text-lg font-bold leading-none ${stats.final_balance > 0 ? 'text-emerald-600' : (stats.final_balance < 0 ? 'text-red-600' : 'text-ink-muted')}`}>
-                                {formatCurrency(Math.abs(stats.final_balance || 0), store)}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Toolbar (sm:hidden) */}
-                <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
-                        <div className="flex flex-col">
-                            <div className="flex items-center gap-1.5">
-                                <h1 className="text-xs font-bold text-ink uppercase tracking-tight truncate max-w-[120px]">
-                                    {party.name}
-                                </h1>
-                                <span className={`px-1.5 py-0.5 text-4xs font-bold uppercase rounded-full ${party.type === 'customer'
-                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                    }`}>
-                                    {party.type}
-                                </span>
-                            </div>
-                            <p className="text-3xs text-ink-muted font-mono mt-0.5">{party.phone || 'No Phone'}</p>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={14} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-1.5 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Filter Type"
-                            >
-                                <Filter size={14} />
-                            </button>
-                            <div className="flex items-center border-l border-line pl-1.5 ml-0.5 gap-0.5">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowWhatsAppModal(true)}
-                                    className="p-1 text-emerald-600 hover:text-emerald-700"
-                                    title="Share on WhatsApp"
-                                >
-                                    <MessageCircle size={14} />
-                                </button>
-                                <button className="p-1 text-emerald-600" title="Export">
-                                    <Download size={14} />
-                                </button>
-                                <button onClick={() => PrintService.printPage()} className="p-1 text-ink-muted hover:text-ink transition-colors" title="Print">
-                                    <Printer size={14} />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Expandable Mobile Search */}
-                    {showMobileSearch && (
-                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
-                            <div className="relative w-full">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="Search Ref or Desc..."
-                                    className="w-full pl-8 pr-4 py-1.5 text-xs bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
-                                />
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={12} />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Expandable Mobile Filters */}
-                    {showMobileFilters && (
-                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-3xs font-bold text-ink-muted uppercase tracking-wider shrink-0">Type:</span>
-                                <select
-                                    value={transactionType}
-                                    onChange={(e) => { setTransactionType(e.target.value); setShowMobileFilters(false); }}
-                                    className="flex-1 bg-app border border-line text-ink-secondary text-xs font-bold rounded-lg px-2 py-1.5 outline-none"
-                                >
-                                    <option value="all">All Types</option>
-                                    <option value="sale">Sales</option>
-                                    <option value="purchase">Purchases</option>
-                                    <option value="payment_in">Received</option>
-                                    <option value="payment_out">Paid</option>
-                                </select>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Desktop Header Bar (sm:flex, hidden on mobile) */}
-                <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Party Name */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-base sm:text-lg font-bold text-ink uppercase tracking-tight">
-                                    {party.name} <span className="text-brand-600">Ledger</span>
-                                </h1>
-                                <span className={`px-2 py-0.5 text-2xs font-bold uppercase rounded-full ${party.type === 'customer'
-                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                    }`}>
-                                    {party.type}
-                                </span>
-                            </div>
-                            <p className="text-2xs text-ink-muted font-medium">
-                                {party.phone || 'No Phone'} • {party.email || 'No Email'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Right: Filters + Actions */}
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={transactionType}
-                            onChange={(e) => setTransactionType(e.target.value)}
-                            className="bg-app border border-line text-ink-secondary text-xs font-bold rounded-lg px-2 py-1.5 focus:ring-0 outline-none"
-                        >
-                            <option value="all">All Types</option>
-                            <option value="sale">Sales</option>
-                            <option value="purchase">Purchases</option>
-                            <option value="payment_in">Received</option>
-                            <option value="payment_out">Paid</option>
-                        </select>
-
-                        <div className="relative">
-                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Ref #"
-                                className="pl-8 pr-2 py-1.5 text-xs bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-28"
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-1 border-l border-line pl-2">
-                            <button
-                                type="button"
-                                onClick={() => setShowWhatsAppModal(true)}
-                                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all active:scale-95 shadow-sm"
-                                title="Share Statement on WhatsApp"
-                            >
-                                <MessageCircle size={14} /> Share Statement
-                            </button>
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
-                                <Download size={16} />
-                            </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
-                                <Printer size={16} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Ledger Content Area */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     
                     {/* Desktop Table View */}
                     <div className="hidden sm:block">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Date</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Type</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Reference</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">You Gave</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">You Received</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">Balance</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Date</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Type</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Reference</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">You Gave</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">You Received</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">Balance</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -421,6 +270,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                     </div>
 
                 </div>
+            </ListPageFrame>
             </div>
 
             <WhatsAppShareModal

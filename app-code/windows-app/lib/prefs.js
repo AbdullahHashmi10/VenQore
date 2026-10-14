@@ -48,8 +48,15 @@ const DEFAULTS = {
     managerPinHash: null,      // scrypt — never the PIN itself
     managerPinSalt: null,
     lockSettings: false,
+    appLock: false,            // app controls only; Windows kiosk requires separate provisioning
+    pinAttempts: { failures: 0, until: 0 },
     activityTrackingEnabled: false,
     consentAccepted: false,
+
+    // Updates
+    autoInstallUpdates: true,  // install a downloaded update when Station is opened or closed
+    stagedUpdateVersion: null,
+    updateAttempt: null,       // { version, count, at } — stops restart loops if an install keeps failing
 };
 
 class Prefs {

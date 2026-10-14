@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingCart, Receipt, FileText, ShoppingBag, Monitor } from 'lucide-react';
+import { ShoppingCart, FilePenLine, Receipt, FileText, ShoppingBag, Monitor } from 'lucide-react';
 
 /**
  * Header bell for unfinished work. It renders NOTHING until a draft actually has
@@ -38,7 +38,7 @@ export default function DraftsBell({ groups }) {
                 title={`${total} unfinished`}
                 className="relative h-11 w-11 flex items-center justify-center rounded-xl border shadow-sm bg-brand-50 dark:bg-brand-900/20 border-brand-200 dark:border-brand-800 text-brand-600 dark:text-brand-400 hover:bg-brand-100 transition-colors"
             >
-                <ShoppingCart size={18} />
+                <FilePenLine size={18} />
                 <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-brand-600 text-white text-2xs font-bold leading-[18px] text-center">{total}</span>
             </button>
             {open && (

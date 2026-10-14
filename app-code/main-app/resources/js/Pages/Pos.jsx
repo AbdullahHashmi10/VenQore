@@ -60,6 +60,7 @@ import axios from 'axios';
 import { handleApprovalResponse } from '@/lib/approval-response';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync, newIntentKey, classifyOutcome, QUEUE_STATES } from '@/Hooks/useOfflineSync';
+import { useConnectivity } from '@/lib/connectivity';
 import PrintService from '@/Utils/PrintService';
 import { printBrowserHtml } from '@/Utils/BrowserPrint';
 import { getProductPrice, shouldStopNegativeStock, isStockMaintenanceEnabled, isWholesalePricingEnabled } from '@/Utils/settings';
@@ -128,6 +129,10 @@ const POSInterface = ({
     // this only ever REMOVES a control whose owning module the tenant
     // switched off; it never adds a permission check that wasn't there.
     const modulesEnabled = new Set(Array.isArray(modules) ? modules : []);
+    /* Hold / Park & Recall is an optional module. When it is off the till must
+       work exactly the same minus holding: no Hold button, no Ctrl+S, and no
+       call to the gated parked-sales routes (which would 403). */
+    const parkOn = modulesEnabled.has('park_recall');
     // The POS never depends on the Customers module. With it off there is no
     // customer search at all (and no call to the customers API, which the module
     // gate would answer with a redirect to the builder): every sale is a walk-in
@@ -1161,7 +1166,7 @@ const POSInterface = ({
 
 
     // Offline Sync Configuration
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const isOnline = useConnectivity();
     const [offlineSales, setOfflineSales] = useState([]);
     const [showSyncHub, setShowSyncHub] = useState(false);
 
@@ -1215,10 +1220,6 @@ const POSInterface = ({
     };
 
     useEffect(() => {
-        const handleStatusChange = () => setIsOnline(navigator.onLine);
-        window.addEventListener('online', handleStatusChange);
-        window.addEventListener('offline', handleStatusChange);
-
         // Listen for CSRF mismatch events from bootstrap.js
         const handleCsrfMismatch = () => {
              addToast('Security token refreshed. Please try saving again.', 'warning');
@@ -1226,8 +1227,6 @@ const POSInterface = ({
         window.addEventListener('amd:csrf-mismatch', handleCsrfMismatch);
 
         return () => {
-            window.removeEventListener('online', handleStatusChange);
-            window.removeEventListener('offline', handleStatusChange);
             window.removeEventListener('amd:csrf-mismatch', handleCsrfMismatch);
         };
     }, []);
@@ -2509,7 +2508,7 @@ const POSInterface = ({
             // Ctrl+S: Hold the sale (matches POS_KEYMAP: "Ctrl + S Hold the sale")
             if (e.ctrlKey && e.key.toLowerCase() === 's') {
                 e.preventDefault();
-                if (activeSale?.cart?.length > 0 && !parkingBill) {
+                if (parkOn && activeSale?.cart?.length > 0 && !parkingBill) {
                     handleParkBill();
                 }
                 return;
@@ -2767,6 +2766,7 @@ const POSInterface = ({
 
     // Load parked sales from backend
     const loadParkedSales = async () => {
+        if (!parkOn) return;
         try {
             const response = await axios.get(route('store.sales.parked', { store_slug: store?.slug }));
             setParkedSales(response.data.parked_sales || []);
@@ -2777,6 +2777,7 @@ const POSInterface = ({
 
     // Park (Hold) current bill
     const handleParkBill = async () => {
+        if (!parkOn) return;
         if (activeSale.cart.length === 0) {
             showAlert('Empty Cart', 'Cart is empty! Nothing to park.', 'warning');
             return;
@@ -4858,7 +4859,7 @@ const POSInterface = ({
             )}
 
             <div className="flex gap-2.5">
-                {!returnMode && (
+                {!returnMode && parkOn && (
                     <button
                         type="button"
                         onClick={handleParkBill}
@@ -5214,7 +5215,7 @@ const POSInterface = ({
                                         </button>
                                     )}
 
-                                    {surfaceButtons.parked && modulesEnabled.has('park_recall') && (
+                                    {surfaceButtons.parked && parkOn && (
                                         <button
                                             onClick={() => { loadParkedSales(); setParkedDropdownOpen(true); }}
                                             className="h-11 min-w-11 px-3 rounded-xl bg-surface hover:bg-amber-50 dark:hover:bg-amber-950/30
@@ -6598,8 +6599,9 @@ const POSInterface = ({
                     isOnline={isOnline}
                     pendingCount={pendingCount}
                     onOpenCashDrawer={handleOpenCashDrawer}
-                    onOpenParked={() => { setSettingsOpen(false); loadParkedSales(); setParkedDropdownOpen(true); }}
+                    onOpenParked={parkOn ? () => { setSettingsOpen(false); loadParkedSales(); setParkedDropdownOpen(true); } : null}
                     parkedCount={parkedSales.length}
+                    holdEnabled={parkOn}
                     onOpenRecent={() => { setSettingsOpen(false); loadRecentInvoices(); setShowRecentInvoices(true); }}
                     onOpenSyncHub={() => { setSettingsOpen(false); setShowSyncHub(true); loadOfflineSales(); }}
 

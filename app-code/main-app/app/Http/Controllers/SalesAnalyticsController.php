@@ -12,7 +12,7 @@ use Carbon\Carbon;
 
 class SalesAnalyticsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Date Ranges (calendar-based per CLAUDE.md Date & Time Period Naming Conventions)
         $today = Carbon::today();
@@ -69,7 +69,56 @@ class SalesAnalyticsController extends Controller
             ];
         }
 
+        // ---- Period-driven analytics (defaults to last 30 days) ----
+        $tenantId = app('current.tenant')->id;
+        try {
+            $from = $request->query('from') ? Carbon::parse($request->query('from'))->startOfDay() : Carbon::now()->subDays(29)->startOfDay();
+            $to = $request->query('to') ? Carbon::parse($request->query('to'))->endOfDay() : Carbon::now()->endOfDay();
+        } catch (\Throwable $e) {
+            $from = Carbon::now()->subDays(29)->startOfDay();
+            $to = Carbon::now()->endOfDay();
+        }
+        if ($from->gt($to)) { [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()]; }
+        if ($from->diffInDays($to) > 400) { $from = $to->copy()->subDays(400)->startOfDay(); }
+
+        $trendMap = $frs->getProfitByPeriod($from, $to, 'daily');
+        $trend = [];
+        for ($d = $from->copy(); $d->lte($to); $d->addDay()) {
+            $k = $d->format('Y-m-d');
+            $trend[] = ['date' => $k, 'revenue' => (float) ($trendMap[$k]['revenue'] ?? 0), 'profit' => (float) ($trendMap[$k]['profit'] ?? 0)];
+        }
+
+        $base = fn () => DB::table('sales')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereNull('sales.deleted_at')
+            ->where('sales.status', '!=', 'returned')
+            ->whereBetween('sales.created_at', [$from->copy()->utc(), $to->copy()->utc()]);
+
+        $byWeekday = $base()->selectRaw('DAYOFWEEK(sales.created_at) as d, SUM(sales.net_sales) as total, COUNT(*) as orders')->groupBy('d')->get();
+        $byHour = $base()->selectRaw('HOUR(sales.created_at) as h, SUM(sales.net_sales) as total, COUNT(*) as orders')->groupBy('h')->get();
+        $byMethod = $base()->select('payment_method', DB::raw('SUM(net_sales) as total'))->groupBy('payment_method')->get();
+        $topCustomers = $base()->join('parties', 'sales.party_id', '=', 'parties.id')
+            ->select('parties.name', DB::raw('COUNT(*) as orders'), DB::raw('SUM(sales.net_sales) as total'))
+            ->groupBy('parties.id', 'parties.name')->orderByDesc('total')->take(8)->get();
+        $byCategory = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->leftJoin('categories', 'products.category_id', '=', 'categories.id')
+            ->where('sales.tenant_id', $tenantId)->whereNull('sales.deleted_at')->where('sales.status', '!=', 'returned')
+            ->whereBetween('sales.created_at', [$from->copy()->utc(), $to->copy()->utc()])
+            ->select(DB::raw("COALESCE(categories.name, 'Uncategorised') as name"), DB::raw('SUM(sale_items.net_amount) as total'))
+            ->groupBy('name')->orderByDesc('total')->take(8)->get();
+        $periodTotals = $base()->selectRaw('SUM(sales.net_sales) as total, COUNT(*) as orders')->first();
+
         return Inertia::render('Sales/Analytics', [
+            'period' => ['from' => $from->toDateString(), 'to' => $to->toDateString()],
+            'periodTrend' => $trend,
+            'byWeekday' => $byWeekday,
+            'byHour' => $byHour,
+            'byMethod' => $byMethod,
+            'byCategory' => $byCategory,
+            'topCustomers' => $topCustomers,
+            'periodTotals' => ['total' => (float) ($periodTotals->total ?? 0), 'orders' => (int) ($periodTotals->orders ?? 0)],
             'revenue' => $revenue,
             'counts' => $counts,
             'topProducts' => $topProducts,

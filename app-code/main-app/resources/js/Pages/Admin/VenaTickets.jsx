@@ -7,6 +7,10 @@ import {
 } from 'lucide-react';
 import VenaLogo from '@/Components/VenaLogo';
 import { useTermText } from '@/lib/terms';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 
 // ── Escalation type badge config ─────────────────────────────────────────────
 const ESCALATION_CONFIG = {
@@ -160,90 +164,38 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
     };
 
     return (
-        <OneGlanceLayout mode="admin" title="Vena Tickets" activeMenu="Vena Tickets">
+        <OneGlanceLayout mode="admin" title="Vena Tickets" activeMenu="Vena Tickets" noPadding>
             <Head title="Vena Chat Tickets" />
 
-            <div className="h-full flex flex-col gap-4 overflow-hidden">
-                {/* Header */}
-                <div className="shrink-0 flex flex-wrap items-center justify-between gap-y-2">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-brand-600/10 dark:bg-brand-500/20 border border-brand-200 dark:border-brand-800 flex items-center justify-center p-2 shadow-xs">
-                            <VenaLogo size={22} />
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-ink tracking-tight">
-                                Vena Chat Tickets
-                            </h1>
-                            <p className="text-xs text-ink-muted">
-                                {isPlatform
-                                    ? 'Auto-generated tickets from Vena chat escalations across all stores'
-                                    : tt('Customer support tickets raised through your store\'s Vena chat widget')}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-3">
-                        {open_count > 0 && (
-                            <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-2xl">
-                                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                                <span className="text-xs font-bold text-rose-700 dark:text-rose-300">
-                                    {open_count} open {open_count === 1 ? 'ticket' : 'tickets'}
-                                </span>
-                            </div>
-                        )}
-
-                        {!isPlatform && (
-                            <button
-                                onClick={() => setOpenModal(true)}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white rounded-2xl text-xs font-bold uppercase tracking-wider transition-all duration-fast shadow-sm "
-                            >
-                                <Plus size={12} />
-                                Log Ticket
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                {/* Filters */}
-                <div className="shrink-0 flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-line rounded-xl shadow-sm">
-                        <Filter size={12} className="text-ink-muted" />
-                        <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Status:</span>
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => handleStatusChange(e.target.value)}
-                            className="text-xs font-bold text-ink-secondary dark:text-ink bg-transparent outline-none cursor-pointer"
-                        >
-                            <option value="all">All</option>
-                            <option value="open">Open</option>
-                            <option value="in_progress">In Progress</option>
-                            <option value="resolved">Resolved</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
-
-                    {isPlatform && (
-                        <div className="flex items-center gap-1.5 px-3 py-2 bg-surface border border-line rounded-xl shadow-sm">
-                            <Filter size={12} className="text-ink-muted" />
-                            <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted">Reason:</span>
-                            <select
-                                value={escalationFilter}
-                                onChange={(e) => handleEscalationChange(e.target.value)}
-                                className="text-xs font-bold text-ink-secondary dark:text-ink bg-transparent outline-none cursor-pointer"
-                            >
-                                <option value="all">All</option>
-                                <option value="ai_failure">AI Failure</option>
-                                <option value="billing_or_complex">Billing / Complex</option>
-                                <option value="user_requested">User Requested</option>
-                                <option value="repeated_failure">Repeated Failure</option>
-                            </select>
-                        </div>
-                    )}
-                </div>
+            <div className="max-md:p-1.5 max-md:h-full md:contents">
+            <ListPageFrame className="max-md:h-full max-md:flex max-md:flex-col max-md:gap-4 max-md:overflow-hidden">
+                <ListToolbar
+                    title="Vena Tickets"
+                    left={<>
+                        <ListFilterPill icon={Filter} label="Status" value={statusFilter} onChange={handleStatusChange} options={[{ value: 'all', label: 'All statuses' }, { value: 'open', label: 'Open' }, { value: 'in_progress', label: 'In Progress' }, { value: 'resolved', label: 'Resolved' }, { value: 'closed', label: 'Closed' }]} />
+                        {isPlatform && <ListFilterPill icon={Filter} label="Reason" value={escalationFilter} onChange={handleEscalationChange} options={[{ value: 'all', label: 'All reasons' }, { value: 'ai_failure', label: 'AI Failure' }, { value: 'billing_or_complex', label: 'Billing / Complex' }, { value: 'user_requested', label: 'User Requested' }, { value: 'repeated_failure', label: 'Repeated Failure' }]} />}
+                    </>}
+                    actions={!isPlatform ? <ListAddButton icon={Plus} onClick={() => setOpenModal(true)}>Log Ticket</ListAddButton> : null}
+                />
+                <ListStatCards cards={[
+                    { label: 'Open tickets', value: open_count || 0, icon: AlertCircle, icon_tone: 'bg-rose-50 text-rose-600' },
+                    { label: 'Total tickets', value: tickets.total ?? tickets.data.length, icon: MessageSquare },
+                ]} />
+                <MobileListHeader
+                    title="Vena Tickets"
+                    filters={[
+                        { label: 'Status', value: statusFilter, onChange: handleStatusChange, options: [{ value: 'all', label: 'All statuses' }, { value: 'open', label: 'Open' }, { value: 'in_progress', label: 'In Progress' }, { value: 'resolved', label: 'Resolved' }, { value: 'closed', label: 'Closed' }] },
+                        ...(isPlatform ? [{ label: 'Reason', value: escalationFilter, onChange: handleEscalationChange, options: [{ value: 'all', label: 'All reasons' }, { value: 'ai_failure', label: 'AI Failure' }, { value: 'billing_or_complex', label: 'Billing / Complex' }, { value: 'user_requested', label: 'User Requested' }, { value: 'repeated_failure', label: 'Repeated Failure' }] }] : []),
+                    ]}
+                    add={!isPlatform ? { onClick: () => setOpenModal(true), label: 'Log Ticket' } : undefined}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Open', value: open_count || 0, tone: 'rose', icon: AlertCircle },
+                    { label: 'Total', value: tickets.total ?? tickets.data.length, tone: 'ink', icon: MessageSquare },
+                ]} />
 
                 {/* Ticket list */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 overflow-y-auto custom-scrollbar md:min-h-0 md:rounded-[14px] md:border md:border-line md:shadow-sm md:bg-surface md:p-2">
                     {tickets.data.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full py-24 text-center">
                             <div className="w-16 h-16 rounded-2xl bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 flex items-center justify-center mb-4">
@@ -346,7 +298,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
 
                 {/* Pagination */}
                 {tickets.last_page > 1 && (
-                    <div className="shrink-0 flex flex-wrap items-center justify-between gap-y-2 py-3 border-t border-line">
+                    <div className="shrink-0 flex flex-wrap items-center justify-between gap-y-2 py-3 border-t border-line md:px-3 md:rounded-[14px] md:border md:bg-surface md:shadow-sm md:py-2">
                         <span className="text-xs text-ink-muted">
                             Showing {tickets.from}–{tickets.to} of {tickets.total} tickets
                         </span>
@@ -368,6 +320,7 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                         </div>
                     </div>
                 )}
+            </ListPageFrame>
             </div>
 
             <style>{`

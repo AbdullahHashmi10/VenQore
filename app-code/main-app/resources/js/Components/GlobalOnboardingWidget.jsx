@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Sparkles, ArrowRight, Check, X } from 'lucide-react';
-import { useTermText } from '@/lib/terms';
+import { GETTING_STARTED, isStepDone, startStep } from '@/lib/gettingStarted';
 
 export default function GlobalOnboardingWidget({ store, isOpen = false, onClose = () => {} }) {
-    const tt = useTermText();
     const { component, props } = usePage();
     const step = store?.onboarding_step;
     const onboarding_metrics = props.onboarding_metrics;
@@ -17,13 +16,10 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
         has_drive_sync: false
     };
 
-    const checklist = useMemo(() => [
-        { key: 'inventory', label: tt('Catalog First Product'), isDone: !!metrics.has_products },
-        { key: 'purchase', label: 'Record First Purchase', isDone: !!metrics.has_purchases },
-        { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: !!metrics.has_sales },
-        { key: 'expense', label: 'Record Store Expense', isDone: !!metrics.has_expenses },
-        { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: !!metrics.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected }
-    ], [metrics, store?.google_backup_enabled, store?.google_connected, tt]);
+    const checklist = useMemo(
+        () => GETTING_STARTED.filter((g) => g.key !== 'team').map((g) => ({ ...g, isDone: isStepDone(g, metrics, store) })),
+        [metrics, store?.google_backup_enabled, store?.google_connected], // eslint-disable-line react-hooks/exhaustive-deps
+    );
 
     const remainingCount = checklist.filter(item => !item.isDone).length;
     const completedCount = checklist.length - remainingCount;
@@ -110,45 +106,7 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
         if (item.isDone) return;
         onClose();
 
-        let targetStep = '';
-        let targetRoute = '';
-        let routeParams = { store_slug: store?.slug };
-
-        switch (item.key) {
-            case 'inventory':
-                targetStep = 'inventory_tour';
-                targetRoute = 'store.inventory.index';
-                break;
-            case 'purchase':
-                targetStep = 'purchase_tour_start';
-                targetRoute = 'store.dashboard';
-                break;
-            case 'sale':
-                targetStep = 'invoice_tour_start';
-                targetRoute = 'store.dashboard';
-                break;
-            case 'expense':
-                targetStep = 'expense_tour_start';
-                targetRoute = 'store.dashboard';
-                break;
-            case 'drive_sync':
-                targetStep = 'drive_sync_tour';
-                targetRoute = 'store.admin.data';
-                routeParams.tab = 'drive_sync';
-                break;
-            default:
-                return;
-        }
-
-        router.post(
-            route('store.onboarding.step', { store_slug: store?.slug }),
-            { step: targetStep },
-            {
-                onSuccess: () => {
-                    router.visit(route(targetRoute, routeParams));
-                }
-            }
-        );
+        startStep(store, item);
     };
 
     return (

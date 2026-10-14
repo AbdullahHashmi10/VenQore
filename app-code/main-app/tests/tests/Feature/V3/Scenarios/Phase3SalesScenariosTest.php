@@ -152,6 +152,7 @@ class Phase3SalesScenariosTest extends VenQoreTestCase
         $cashier = $this->member('cashier', '999999');
         $manager = $this->member('manager', self::MANAGER_PIN);
         $this->actingAs($cashier);
+        \App\Models\Setting::updateOrCreate(['tenant_id' => $this->tenant->id, 'key' => 'approval_admin_enabled'], ['value' => '1']); // maker-checker is off by default; this scenario needs it on
 
         $payload = $this->httpSale('cash', [['qty' => 2, 'unit_price' => 50.00]]);
         $this->postJson($this->v3('sales'), $payload + [
@@ -643,6 +644,7 @@ class Phase3SalesScenariosTest extends VenQoreTestCase
         $cashier2 = $this->member('cashier', '888888');
         $manager  = $this->member('manager', self::MANAGER_PIN);   // global default limit 50%
         $this->actingAs($cashier);
+        \App\Models\Setting::updateOrCreate(['tenant_id' => $this->tenant->id, 'key' => 'approval_admin_enabled'], ['value' => '1']); // maker-checker is off by default; this scenario needs it on
 
         // The administrative V3 invoice route always enters maker-checker for
         // this cashier. Client PIN fields cannot grant trusted POS clearance.

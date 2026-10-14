@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import PremiumSelect from '@/Components/PremiumSelect';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
@@ -121,154 +124,111 @@ export default function ReceivedChequesIndex({
         }
     };
 
+    const navGroups = useMoneyNavGroups();
+    const selectCls = '!h-10 !py-0 !px-3 !rounded-[12px] !bg-app !border !border-line text-sm font-semibold';
+
     return (
-        <OneGlanceLayout title="Received Customer Cheques" activeMenu="Money">
+        <OneGlanceLayout title="Received Customer Cheques" activeMenu="Money" noPadding>
             <Head title="Received Customer Cheques" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                {/* Line 1: Module Navigation Tabs */}
-                <MoneyModuleTabs activeTab="received-cheques" className="!mb-0" />
-
-                {/* Line 2: 4 Compact KPI Cards Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
+            <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title="Received Cheques"
+                    navGroups={navGroups}
+                    activeId="received-cheques"
+                    left={(
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">In Hand</p>
-                        </div>
-                        <p className="text-base font-bold text-amber-600">{formatCurrency(stats.total_received || 0)}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <Building2 size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Deposited</p>
-                        </div>
-                        <p className="text-base font-bold text-blue-600">{formatCurrency(stats.total_deposited || 0)}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle2 size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Cleared</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{formatCurrency(stats.total_cleared || 0)}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
-                                <AlertTriangle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Bounced</p>
-                        </div>
-                        <p className="text-base font-bold text-rose-600">{formatCurrency(stats.total_bounced || 0)}</p>
-                    </div>
-                </div>
-
-                {/* Line 3: Compact Header & Filter Controls Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left Title */}
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Received <span className="text-brand-600">Cheques</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <span className="text-xs font-bold text-ink-muted">{receivedCheques.data?.length || 0} Cheques</span>
-                    </div>
-
-                    {/* Right Controls */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="relative w-48 sm:w-64">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search cheque #, bank..."
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    handleFilterChange({ search: e.target.value });
-                                }}
-                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
+                            <PremiumSelect
+                                value={statusFilter}
+                                onChange={(val) => { setStatusFilter(val); handleFilterChange({ status: val }); }}
+                                options={[
+                                    { value: '', label: 'All Statuses' },
+                                    { value: 'received', label: 'In Hand (Received)' },
+                                    { value: 'deposited', label: 'Deposited' },
+                                    { value: 'cleared', label: 'Cleared' },
+                                    { value: 'bounced', label: 'Bounced' },
+                                    { value: 'returned', label: 'Returned' }
+                                ]}
+                                placeholder="All Statuses"
+                                inputClassName={selectCls}
+                                className="w-auto"
+                            />
+                            <PremiumSelect
+                                value={partyFilter}
+                                onChange={(val) => { setPartyFilter(val); handleFilterChange({ party_id: val }); }}
+                                options={[
+                                    { value: '', label: 'All Customers' },
+                                    ...parties.map((p) => ({ value: String(p.id), label: p.name }))
+                                ]}
+                                placeholder="All Customers"
+                                inputClassName={selectCls}
+                                className="w-auto"
                             />
                         </div>
+                    )}
+                    search={{
+                        value: search,
+                        onChange: (v) => { setSearch(v); handleFilterChange({ search: v }); },
+                        placeholder: 'Search cheque #, bank…',
+                    }}
+                    actions={(
+                        <>
+                            <Link
+                                href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
+                                className="h-10 px-3 rounded-[12px] border border-line bg-app hover:bg-interactive-hover text-ink text-sm font-semibold flex items-center gap-2 transition-colors whitespace-nowrap"
+                            >
+                                <FileText size={15} className="text-ink-muted" /> Incoming Register
+                            </Link>
+                            <ListAddButton onClick={() => setIsCreateOpen(true)} icon={Plus}>Record Cheque</ListAddButton>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'In Hand', value: formatCurrency(stats.total_received || 0), icon: Clock, icon_tone: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', value_tone: 'text-amber-600' },
+                    { label: 'Deposited', value: formatCurrency(stats.total_deposited || 0), icon: Building2, icon_tone: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', value_tone: 'text-blue-600' },
+                    { label: 'Cleared', value: formatCurrency(stats.total_cleared || 0), icon: CheckCircle2, icon_tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Bounced', value: formatCurrency(stats.total_bounced || 0), icon: AlertTriangle, icon_tone: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400', value_tone: 'text-rose-600' },
+                ]} />
 
-                        <PremiumSelect
-                            value={statusFilter}
-                            onChange={(val) => {
-                                setStatusFilter(val);
-                                handleFilterChange({ status: val });
-                            }}
-                            options={[
-                                { value: '', label: 'All Statuses' },
-                                { value: 'received', label: 'In Hand (Received)' },
-                                { value: 'deposited', label: 'Deposited' },
-                                { value: 'cleared', label: 'Cleared' },
-                                { value: 'bounced', label: 'Bounced' },
-                                { value: 'returned', label: 'Returned' }
-                            ]}
-                            placeholder="All Statuses"
-                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
-                            className="w-auto"
-                        />
-
-                        <PremiumSelect
-                            value={partyFilter}
-                            onChange={(val) => {
-                                setPartyFilter(val);
-                                handleFilterChange({ party_id: val });
-                            }}
-                            options={[
-                                { value: '', label: 'All Customers' },
-                                ...parties.map((p) => ({
-                                    value: String(p.id),
-                                    label: p.name
-                                }))
-                            ]}
-                            placeholder="All Customers"
-                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
-                            className="w-auto"
-                        />
-
-                        <Link
-                            href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
-                            className="px-3 py-1.5 bg-app hover:bg-interactive-hover text-ink rounded-lg text-xs font-bold flex items-center gap-1.5 border border-line shadow-xs transition-colors"
-                        >
-                            <FileText size={14} className="text-ink-muted" />
-                            <span>Incoming Register</span>
-                        </Link>
-
-                        <button
-                            type="button"
-                            onClick={() => setIsCreateOpen(true)}
-                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                            style={{ color: '#ffffff' }}
-                        >
-                            <Plus size={14} className="text-white shrink-0" />
-                            <span className="text-white">Record Cheque</span>
-                        </button>
-                    </div>
-                </div>
+                {/* Phone / existing header (hidden on md+) */}
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Received Cheques"
+                    navGroups={navGroups}
+                    activeId="received-cheques"
+                    links={[{ label: 'Incoming Register', icon: FileText, href: route('store.banking.reports.incoming-cheques', { store_slug: storeSlug }) }]}
+                    filter={{
+                        active: !!(statusFilter || partyFilter),
+                        sections: [
+                            { label: 'Status', value: statusFilter, options: [{ value: '', label: 'All Statuses' }, { value: 'received', label: 'In Hand (Received)' }, { value: 'deposited', label: 'Deposited' }, { value: 'cleared', label: 'Cleared' }, { value: 'bounced', label: 'Bounced' }, { value: 'returned', label: 'Returned' }], onSelect: (val) => { setStatusFilter(val); handleFilterChange({ status: val }); } },
+                            { label: 'Customer', value: partyFilter, options: [{ value: '', label: 'All Customers' }, ...parties.map((p) => ({ value: String(p.id), label: p.name }))], onSelect: (val) => { setPartyFilter(val); handleFilterChange({ party_id: val }); } },
+                        ],
+                    }}
+                    search={{ value: search, onChange: (v) => { setSearch(v); handleFilterChange({ search: v }); }, placeholder: 'Search cheque #, bank…' }}
+                    add={{ onClick: () => setIsCreateOpen(true), label: 'Record Cheque' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'In Hand', value: formatCurrency(stats.total_received || 0), tone: 'amber', icon: Clock },
+                    { label: 'Deposited', value: formatCurrency(stats.total_deposited || 0), tone: 'blue', icon: Building2 },
+                    { label: 'Cleared', value: formatCurrency(stats.total_cleared || 0), tone: 'emerald', icon: CheckCircle2 },
+                    { label: 'Bounced', value: formatCurrency(stats.total_bounced || 0), tone: 'rose', icon: AlertTriangle },
+                ]} />
 
                 {/* Line 4: Edge-to-Edge Full-Width Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
-                    <div className="overflow-x-auto">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
+                    <div className="overflow-x-auto md:overflow-visible">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
-                            <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
+                            <thead className="md:sticky md:top-0 md:z-10 bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
                                 <tr>
-                                    <th className="px-6 py-3.5">Cheque Details</th>
-                                    <th className="px-6 py-3.5">Customer</th>
-                                    <th className="px-6 py-3.5">Amount</th>
-                                    <th className="px-6 py-3.5">Status</th>
-                                    <th className="px-6 py-3.5">Deposit Account</th>
-                                    <th className="px-6 py-3.5">Dates</th>
-                                    <th className="px-6 py-3.5 text-right">Actions</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Cheque Details</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Customer</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Amount</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Status</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Deposit Account</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Dates</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -611,6 +571,7 @@ export default function ReceivedChequesIndex({
                         </div>
                     </div>
                 )}
+              </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

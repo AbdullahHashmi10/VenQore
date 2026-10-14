@@ -52,6 +52,7 @@ class ChequeReportController extends Controller
         }
 
         if ($request->query('export') === 'csv') {
+            abort_unless($request->user()?->hasPermission('data.export'), 403, 'You do not have permission to export data.');
             return $this->exportOutgoingCsv($query->orderBy('cheque_date', 'desc')->get());
         }
 
@@ -105,6 +106,7 @@ class ChequeReportController extends Controller
         }
 
         if ($request->query('export') === 'csv') {
+            abort_unless($request->user()?->hasPermission('data.export'), 403, 'You do not have permission to export data.');
             return $this->exportIncomingCsv($query->orderBy('cheque_date', 'desc')->get());
         }
 
@@ -209,8 +211,7 @@ class ChequeReportController extends Controller
             fputcsv($handle, ['Cheque Number', 'Bank Account', 'Payee / Party', 'Cheque Date', 'Amount', 'Status', 'Issue Date', 'Clear Date', 'Status Reason']);
 
             foreach ($leaves as $leaf) {
-                fputcsv($handle, [
-                    $leaf->display_serial_number,
+                fputcsv($handle, array_map([\App\Support\CsvSafe::class, 'cell'], [                    $leaf->display_serial_number,
                     $leaf->bankAccount?->name ?? '',
                     $leaf->party?->name ?? '',
                     $leaf->cheque_date ?? '',
@@ -218,8 +219,7 @@ class ChequeReportController extends Controller
                     $leaf->status,
                     $leaf->issue_date ?? '',
                     $leaf->clear_date ?? '',
-                    $leaf->status_reason ?? '',
-                ]);
+                    $leaf->status_reason ?? '',]));
             }
 
             fclose($handle);
@@ -238,8 +238,7 @@ class ChequeReportController extends Controller
             fputcsv($handle, ['Cheque Number', 'Bank Name', 'Branch', 'Customer / Party', 'Cheque Date', 'Amount', 'Status', 'Deposit Bank', 'Deposit Date', 'Clear Date', 'Status Reason']);
 
             foreach ($cheques as $cheque) {
-                fputcsv($handle, [
-                    $cheque->cheque_number,
+                fputcsv($handle, array_map([\App\Support\CsvSafe::class, 'cell'], [                    $cheque->cheque_number,
                     $cheque->bank_name,
                     $cheque->branch ?? '',
                     $cheque->party?->name ?? '',
@@ -249,8 +248,7 @@ class ChequeReportController extends Controller
                     $cheque->depositBankAccount?->name ?? '',
                     $cheque->deposit_date ?? '',
                     $cheque->clear_date ?? '',
-                    $cheque->status_reason ?? '',
-                ]);
+                    $cheque->status_reason ?? '',]));
             }
 
             fclose($handle);

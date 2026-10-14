@@ -1,7 +1,7 @@
 {
   "name": "venqore-station",
   "productName": "VenQore Station",
-  "version": "3.1.4",
+  "version": "4.0.1",
   "description": "VenQore Station — hardware bridge for the VenQore cloud POS",
   "main": "main.js",
   "scripts": {
@@ -10,7 +10,9 @@
     "test": "node --test \"tests/*.test.cjs\"",
     "icons": "node tools/make-icons.js",
     "build:win": "npm run icons && electron-builder --win --x64",
-    "build:portable": "npm run icons && electron-builder --win portable --x64"
+    "build:portable": "npm run icons && electron-builder --win portable --x64",
+    "build:local": "npm run icons && node -e \"fs.writeFileSync('local-build.json', JSON.stringify({isLocalBuild:true,defaultLocalUrl:'http://127.0.0.1:8000',disallowPublicOrigins:true,edition:'local-testing'}))\" && electron-builder --config electron-builder-local.json && node -e \"try{fs.unlinkSync('local-build.json')}catch{}\" && node tools/stage-local-release.cjs",
+    "release:stage": "node tools/stage-release.cjs"
   },
   "author": "VenQore Group",
   "license": "UNLICENSED",
@@ -32,7 +34,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://updates.venqore.com/station/",
+        "url": "https://www.venqore.com/downloads/station/",
         "channel": "latest"
       }
     ],

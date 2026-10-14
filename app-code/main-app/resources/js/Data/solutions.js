@@ -41,7 +41,7 @@ export const solutionsData = {
             {
                 title: 'Internet Drops During Busy Shifts',
                 problem: 'Cloud-only pharmacy software freezes when internet fails. Patients waiting for urgent medication face long queues or manual paper receipts.',
-                solution: 'VenQore is 100% offline-first. Barcode scanning, receipt printing, and batch validation continue smoothly without an active internet connection.'
+                solution: 'The VenQore till keeps working when the internet fails. Barcode scanning and sales continue and are sent when the connection returns (up to 7 days offline). Receipts print from the Windows app.'
             }
         ],
 
@@ -105,7 +105,7 @@ export const solutionsData = {
             },
             {
                 q: 'Does VenQore work when the internet is disconnected in my pharmacy?',
-                a: 'Yes. VenQore is an offline-first PWA. Barcode scanning, cart building, prescription printing, and ledger posting operate offline. All data automatically synchronizes to the cloud when connection restores.'
+                a: 'Yes, for the till. Barcode scanning, cart building and sales continue offline and are sent when the connection returns, for up to 7 days. Ledger entries post when the sales sync. Prescription printing works offline from the Windows app.'
             },
             {
                 q: 'Can VenQore handle supplier returns for near-expiry drugs?',
@@ -229,7 +229,7 @@ export const solutionsData = {
             },
             {
                 q: 'Does VenQore work offline when selling high-value electronics?',
-                a: 'Yes. All serial validation, cart building, receipt printing, and transaction recording work 100% offline. Data syncs back to the main database when internet restores.'
+                a: 'Yes, for the till. Sales continue offline and are sent when the internet returns, for up to 7 days. Serial numbers are checked against the product list saved on the device, and the server checks them again when each sale is sent.'
             }
         ],
 
@@ -347,7 +347,7 @@ export const solutionsData = {
             },
             {
                 q: 'Does VenQore run offline if the internet fails?',
-                a: 'Yes. The POS checkout cache runs locally on IndexedDB. You can scan barcodes, check out customers, print receipts, and reconcile cash drawer shifts offline. Data syncs when the internet returns.'
+                a: 'Yes. The till keeps a product list on the device (IndexedDB). You can scan barcodes and check out customers offline for up to 7 days, and receipts print from the Windows app. Sales are sent when the internet returns.'
             }
         ],
 
@@ -627,7 +627,7 @@ export const solutionsData = {
             {
                 title: 'Data Sync Failures & Offline Downtime',
                 problem: 'Traditional multi-store POS software freezes at checkout if the head-office server goes offline, bringing sales at every branch to a standstill.',
-                solution: 'VenQore uses offline-first local database architecture. Cashiers at all branches continue scanning barcodes, printing receipts, and closing cash shifts. Data syncs when connection returns.'
+                solution: 'Each till keeps selling when the connection drops: scanning barcodes and saving sales on the device, which are sent when the connection returns (up to 7 days offline).'
             },
             {
                 title: 'Internal Fraud & Cashier Cash Mismatches',

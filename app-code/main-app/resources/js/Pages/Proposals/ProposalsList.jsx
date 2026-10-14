@@ -1,3 +1,4 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
@@ -28,13 +29,15 @@ import {
  ShoppingCart,
  Wrench
 } from 'lucide-react';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import SmartCombobox from '@/Components/SmartCombobox';
 import { useTermText } from '@/lib/terms';
-import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 export default function ProposalsList({ proposals = [], filters = {}, stats = {} }) {
  const { store } = usePage().props;
+ const navGroups = useSellNavGroups();
  const tt = useTermText();
  // Strictly ensure defaultData is an array
  const resolveData = () => {
@@ -228,98 +231,70 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  };
 
  return (
- <OneGlanceLayout title="Proposals" activeMenu="Sell">
+ <OneGlanceLayout title="Proposals" activeMenu="Sell" noPadding>
  <Head title="Proposals" />
 
- <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
- <SellModuleTabs activeTab="proposals" />
+ <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
+ <div className="md:hidden"><SellModuleTabs activeTab="proposals" /></div>
 
  {/* Mobile Stats Toggle/Summary */}
- <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Proposals', value: stats?.total_count || sortedData.length, tone: 'ink' },
-  { label: 'Accepted', value: stats?.accepted_count || 0, tone: 'emerald' },
-  { label: 'Pending', value: stats?.pending_count || 0, tone: 'amber' },
-  { label: 'Total Value', value: formatCurrency(stats?.total_value || 0, store), tone: 'ink' }
-]} />
+                <MobileListHeader
+                    title="Proposals"
+                    navGroups={navGroups}
+                    activeId="proposals"
+                    filter={{
+                        active: activeFilter !== 'all',
+                        sections: [
+                            { label: 'Status', value: activeFilter, options: [{ value: 'all', label: 'All' }, { value: 'pending', label: 'Pending' }, { value: 'accepted', label: 'Accepted' }, { value: 'custom', label: 'Custom range' }], onSelect: (k) => { if (k === 'custom') { setActiveFilter('custom'); return; } setActiveFilter(k); applyFilters({ filter: k }); } },
+                        ],
+                        footer: activeFilter === 'custom' ? (
+                            <div className="flex items-center gap-1.5 px-1 pt-2">
+                                <input type="date" name="from" value={dateRange.from} onChange={handleDateChange} className="min-w-0 flex-1 h-10 px-2 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500" />
+                                <span className="text-ink-muted text-xs">→</span>
+                                <input type="date" name="to" value={dateRange.to} onChange={handleDateChange} className="min-w-0 flex-1 h-10 px-2 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500" />
+                            </div>
+                        ) : null,
+                    }}
+                    search={{ value: searchTerm, onChange: (v) => handleSearch({ target: { value: v } }), onKeyDown: handleServerSearch, placeholder: 'Search proposals...' }}
+                    add={{ href: route('store.proposals.create', { store_slug: store?.slug }), label: 'New Proposal' }}
+                    stats={{ hero: 3, items: [
+                        { label: 'Total Proposals', value: stats?.total_count || sortedData.length, tone: 'brand', icon: FileText },
+                        { label: 'Accepted', value: stats?.accepted_count || 0, tone: 'emerald', icon: CheckSquare },
+                        { label: 'Pending', value: stats?.pending_count || 0, tone: 'amber', icon: Clock },
+                        { label: 'Total Value', value: formatCurrency(stats?.total_value || 0, store), tone: 'blue', icon: History },
+                    ] }}
+                />
 
- {/* Stats Cards Section */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
- <FileText size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Total Proposals</p>
- </div>
- <p className="text-base font-bold text-ink">{stats?.total_count || sortedData.length}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
- <CheckSquare size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Accepted</p>
- </div>
- <p className="text-base font-bold text-emerald-600">{stats?.accepted_count || 0}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
- <Clock size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Pending</p>
- </div>
- <p className="text-base font-bold text-amber-600">{stats?.pending_count || 0}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
- <History size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Total Value</p>
- </div>
- <p className="text-base font-bold text-ink">{formatCurrency(stats?.total_value || 0, store)}</p>
- </div>
- </div>
-
- {/* PC / Desktop Header Area (Hidden on Mobile) */}
- <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- {/* Left: Title + Filter Pills */}
- <div className="flex items-center gap-2 flex-wrap">
- <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- Proposals / <span className="text-brand-600">Quotations</span>
- </h1>
- <div className="h-4 w-px bg-sunken mx-1"></div>
- <button
- onClick={() => { setActiveFilter('all'); applyFilters({ filter: 'all' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >All</button>
- <button
- onClick={() => { setActiveFilter('pending'); applyFilters({ filter: 'pending' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Pending</button>
- <button
- onClick={() => { setActiveFilter('accepted'); applyFilters({ filter: 'accepted' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-500 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Accepted</button>
- <button
- onClick={() => setActiveFilter('custom')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-brand text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Custom</button>
+ {/* Desktop header: row 1 toolbar, row 2 stat cards */}
+ <ListToolbar
+ title="Proposals"
+ navGroups={navGroups}
+ activeId="proposals"
+ left={(
+ <>
+ <select
+ value={activeFilter}
+ onChange={(e) => { const k = e.target.value; if (k === 'custom') { setActiveFilter('custom'); return; } setActiveFilter(k); applyFilters({ filter: k }); }}
+ className="h-10 pl-3 pr-8 rounded-[12px] border border-line bg-surface text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer hover:bg-interactive-hover"
+ aria-label="Status"
+ >
+ <option value="all">All</option>
+ <option value="pending">Pending</option>
+ <option value="accepted">Accepted</option>
+ <option value="custom">Custom range</option>
+ </select>
  {activeFilter === 'custom' && (
- <div className="flex items-center gap-1.5 ml-1">
- <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
- className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
+ <div className="flex items-center gap-1.5">
+ <input type="date" name="from" value={dateRange.from} onChange={handleDateChange} className="h-10 px-2 text-sm font-semibold bg-surface border border-line rounded-[12px] text-ink focus:ring-2 focus:ring-brand-500 outline-none" />
  <span className="text-ink-muted text-xs">→</span>
- <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
- className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
+ <input type="date" name="to" value={dateRange.to} onChange={handleDateChange} className="h-10 px-2 text-sm font-semibold bg-surface border border-line rounded-[12px] text-ink focus:ring-2 focus:ring-brand-500 outline-none" />
  </div>
  )}
- </div>
-
- {/* Right: Search + Actions */}
- <div className="flex items-center gap-2">
- <div className="w-52">
+ </>
+ )}
+ actions={(
+ <>
+ <div className="w-64">
  <SmartCombobox
  items={defaultData}
  value={searchTerm}
@@ -341,91 +316,23 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  filterKey="proposal_number"
  />
  </div>
- <div className="flex items-center gap-2 border-l border-line pl-2">
- <Link
- href={route('store.proposals.create', { store_slug: store?.slug })}
- className="p-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg active:scale-95"
- >
- <Plus size={18} />
- <span className="text-sm font-bold hidden sm:inline">New Proposal</span>
- </Link>
- <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
- <FileSpreadsheet size={18} />
- </button>
- <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
- <Printer size={18} />
- </button>
- </div>
- </div>
- </div>
+ <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-emerald-600" title="Export" onClick={() => exportRowsToCsv('proposals', [{label:'Date',get:r=>r.created_at},{label:'Proposal #',get:r=>r.proposal_number||`PROP-${r.id}`},{label:'Customer',get:r=>r.customer?.name||'Walk-in'},{label:'Items',get:r=>r.items?.length||0},{label:'Amount',get:r=>r.total},{label:'Status',get:r=>r.status}], sortedData)}><FileSpreadsheet size={18} /></button>
+ <button type="button" className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-ink-muted" title="Print" onClick={() => PrintService.printPage()}><Printer size={18} /></button>
+ <ListAddButton href={route('store.proposals.create', { store_slug: store?.slug })} icon={Plus}>New Proposal</ListAddButton>
+ </>
+ )}
+ />
+ <ListStatCards cards={[
+ { label: 'Total Proposals', value: stats?.total_count || sortedData.length, icon: FileText, icon_tone: 'bg-brand-100 text-brand-600' },
+ { label: 'Accepted', value: stats?.accepted_count || 0, icon: CheckSquare, icon_tone: 'bg-emerald-100 text-emerald-600', value_tone: 'text-emerald-600' },
+ { label: 'Pending', value: stats?.pending_count || 0, icon: Clock, icon_tone: 'bg-amber-100 text-amber-600', value_tone: 'text-amber-600' },
+ { label: 'Total Value', value: formatCurrency(stats?.total_value || 0, store), icon: History, icon_tone: 'bg-blue-100 text-blue-600' },
+ ]} />
 
  {/* Mobile Layout Header Area */}
- <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
- <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- Proposals
- </h1>
- <div className="flex items-center gap-1">
- <button
- onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Search"
- >
- <Search size={16} />
- </button>
- <button
- onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Filters"
- >
- <ChevronDown size={16} />
- </button>
- <Link
- href={route('store.proposals.create', { store_slug: store?.slug })}
- className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
- title="New Proposal"
- >
- <Plus size={16} />
- </Link>
- </div>
- </div>
-
- {showMobileSearch && (
- <div className="w-full relative mt-1 border-t border-line pt-2">
- <input
- type="text"
- value={searchTerm}
- onChange={handleSearch}
- onKeyDown={handleServerSearch}
- placeholder="Search proposals..."
- className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
- />
- <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
- </div>
- )}
-
- {showMobileFilters && (
- <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
- <div className="flex flex-wrap gap-1.5">
- <button
- onClick={() => applyFilterType('all')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >All</button>
- <button
- onClick={() => applyFilterType('pending')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >Pending</button>
- <button
- onClick={() => applyFilterType('accepted')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >Accepted</button>
- </div>
- </div>
- )}
- </div>
 
  {/* Main Table */}
- <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
+ <div className="flex-1 md:min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
  <table className="hidden md:table w-full text-left border-collapse">
  <thead>
  <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -437,7 +344,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  onDragOver={(e) => handleDragOver(e, index)}
  onDrop={(e) => handleDrop(e, index)}
  onClick={() => col.key !== 'actions' && handleSort(col.key)}
- className={`
+ className={`sticky top-0 z-10 bg-app 
  p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
  cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
  ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
@@ -645,7 +552,7 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
  )}
  </div>
  </div>
- </div>
+ </ListPageFrame>
 
  {/* Quick View Modal - Centered Popup */}
  {quickViewItem && (

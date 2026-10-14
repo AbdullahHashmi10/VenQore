@@ -121,7 +121,7 @@ class BlogPostEngineTest extends TestCase
     /** @test */
     public function superadmin_can_create_update_and_delete_blog_posts()
     {
-        $admin = User::factory()->create(['is_platform_admin' => true]);
+        $admin = User::factory()->create(['is_platform_admin' => true, 'platform_role' => 'platform_owner']);
 
         $this->actingAs($admin);
 

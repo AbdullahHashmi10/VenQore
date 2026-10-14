@@ -1,130 +1,93 @@
 import React from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Landmark, ArrowUpRight, ArrowDownLeft, Wallet } from 'lucide-react';
-import MasterReport from '@/Components/Reports/MasterReport';
-import ReportsLayout from '@/Layouts/ReportsLayout';
-import { Head } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportTable, DateRangeFilter, FilterSelect } from '@/Components/Reports/ReportKit';
+import { TrendChart } from '@/Components/Reports/ReportCharts';
+
+const day = (d) => String(d || '').slice(0, 10);
 
 export default function BankStatement({ transactions = [], stats = {}, filters = {}, bank_accounts = [] }) {
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
 
-    // Map Stats
-    const reportStats = [
-        {
-            label: 'Opening Balance',
-            value: formatCurrency(stats.opening_balance, store),
-            icon: <Wallet size={18} />,
-            type: 'neutral'
-        },
-        {
-            label: 'Total Deposits',
-            value: formatCurrency(stats.total_deposits, store),
-            icon: <ArrowDownLeft size={18} />,
-            type: 'up'
-        },
-        {
-            label: 'Total Withdrawals',
-            value: formatCurrency(stats.total_withdrawals, store),
-            icon: <ArrowUpRight size={18} />,
-            type: 'down'
-        },
-        {
-            label: 'Closing Balance',
-            value: formatCurrency(stats.closing_balance, store),
-            icon: <Landmark size={18} />,
-            type: 'neutral'
-        }
-    ];
-
-    // Map Columns
-    const columns = [
-        {
-            key: 'date',
-            label: 'Date',
-            type: 'date',
-            sortable: true
-        },
-        {
-            key: 'reference',
-            label: 'Reference',
-            render: (row) => <span className="font-mono text-xs text-ink-muted">{row.reference}</span>
-        },
-        {
-            key: 'description',
-            label: 'Description'
-        },
-        {
-            key: 'type',
-            label: 'Type',
-            sortable: true,
-            render: (row) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.type === 'credit' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
-                    {row.type === 'credit' ? 'Deposit' : 'Withdrawal'}
-                </span>
-            )
-        },
-        {
-            key: 'amount',
-            label: 'Amount',
-            align: 'right',
-            sortable: true,
-            render: (row) => (
-                <span className={`font-bold ${row.type === 'credit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {formatCurrency(row.amount, store)}
-                </span>
-            )
-        },
-        {
-            key: 'balance',
-            label: 'Balance',
-            align: 'right',
-            render: (row) => <span className="font-medium text-ink-secondary">{formatCurrency(row.balance, store)}</span>
-        }
-    ];
-
-    // Filter Defs
-    const filterDefs = [
-        {
-            key: 'bank_account_id',
-            type: 'select',
-            label: 'Bank Account',
-            options: bank_accounts.map(b => ({ value: b.id, label: `${b.bank_name} - ${b.account_number}` }))
-        },
-        {
-            key: 'start_date',
-            type: 'date',
-            label: 'Start Date'
-        },
-        {
-            key: 'end_date',
-            type: 'date',
-            label: 'End Date'
-        }
-    ];
-
-    const handleFilterChange = (newValues) => {
-        router.get(route("store.reports.bank-statement", {
-            store_slug: store.slug
-        }), newValues, { preserveState: true, replace: true });
+    const go = (patch) => {
+        router.get(route('store.reports.bank-statement', { store_slug: store.slug }), { ...filters, ...patch }, { preserveState: true, replace: true });
     };
 
-    return (
-        <ReportsLayout title="Bank Statement">
-            <Head title="Bank Statement" />
+    // Deposits vs withdrawals per day
+    const perDay = {};
+    transactions.forEach((t) => {
+        const k = day(t.date);
+        if (!k) return;
+        perDay[k] = perDay[k] || { in: 0, out: 0 };
+        if (t.type === 'credit') perDay[k].in += Number(t.amount) || 0; else perDay[k].out += Number(t.amount) || 0;
+    });
+    const days = Object.keys(perDay).sort();
+    const series = [
+        { name: 'Deposits', points: days.map((d) => ({ x: d, y: perDay[d].in })) },
+        { name: 'Withdrawals', points: days.map((d) => ({ x: d, y: perDay[d].out })) },
+    ];
 
-            <MasterReport
-                title="Bank Statement"
-                stats={reportStats}
-                columns={columns}
-                data={transactions}
-                filters={filterDefs}
-                filterValues={filters}
-                onFilterChange={handleFilterChange}
-                onExport={() => alert('Export feature coming soon')}
+    const columns = [
+        { key: 'date', label: 'Date', sortable: true },
+        { key: 'reference', label: 'Reference', render: (row) => <span className="font-mono text-xs text-ink-muted">{row.reference}</span> },
+        { key: 'description', label: 'Description' },
+        { key: 'type', label: 'Type', sortable: true, render: (row) => (
+            <span className={`rounded-full px-2 py-1 text-xs font-medium ${row.type === 'credit' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
+                {row.type === 'credit' ? 'Deposit' : 'Withdrawal'}
+            </span>
+        ) },
+        { key: 'amount', label: 'Amount', align: 'right', sortable: true, render: (row) => (
+            <span className={`font-bold tabular-nums ${row.type === 'credit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>{formatCurrency(row.amount, store)}</span>
+        ) },
+        { key: 'balance', label: 'Balance', align: 'right', render: (row) => <span className="font-medium tabular-nums text-ink-secondary">{formatCurrency(row.balance, store)}</span> },
+    ];
+
+    const filterNode = (
+        <>
+            <FilterSelect
+                label="Bank account"
+                value={filters.bank_account_id}
+                onChange={(v) => go({ bank_account_id: v })}
+                options={[{ value: '', label: 'All accounts' }, ...bank_accounts.map((b) => ({ value: b.id, label: `${b.bank_name} - ${b.account_number}` }))]}
             />
-        </ReportsLayout>
+            <DateRangeFilter from={filters.start_date} to={filters.end_date} onChange={({ from, to }) => go({ start_date: from, end_date: to })} />
+        </>
+    );
+
+    return (
+        <ReportShell
+            title="Bank Statement"
+            subtitle={filters.start_date ? `${filters.start_date} to ${filters.end_date || ''}` : undefined}
+            activeKey="bank-statement"
+            filters={filterNode}
+            exportConfig={{
+                filename: 'bank-statement',
+                columns: [
+                    { label: 'Date', get: (r) => r.date },
+                    { label: 'Reference', get: (r) => r.reference },
+                    { label: 'Description', get: (r) => r.description },
+                    { label: 'Type', get: (r) => (r.type === 'credit' ? 'Deposit' : 'Withdrawal') },
+                    { label: 'Amount', get: (r) => r.amount },
+                    { label: 'Balance', get: (r) => r.balance },
+                ],
+                rows: transactions,
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Opening Balance', value: formatCurrency(stats.opening_balance, store), icon: Wallet, tone: 'slate' },
+                { label: 'Total Deposits', value: formatCurrency(stats.total_deposits, store), icon: ArrowDownLeft, tone: 'emerald', valueTone: 'emerald' },
+                { label: 'Total Withdrawals', value: formatCurrency(stats.total_withdrawals, store), icon: ArrowUpRight, tone: 'rose', valueTone: 'rose' },
+                { label: 'Closing Balance', value: formatCurrency(stats.closing_balance, store), icon: Landmark, tone: 'brand' },
+            ]} />
+
+            <ReportSection title="Deposits vs withdrawals" subtitle="Per day">
+                <TrendChart series={series} type="bar" height={260} />
+            </ReportSection>
+
+            <ReportSection title="Transactions" subtitle={`${transactions.length} entries`} flush>
+                <ReportTable columns={columns} rows={transactions} rowKey={(r, i) => r.id ?? i} empty="No bank transactions for this period" />
+            </ReportSection>
+        </ReportShell>
     );
 }

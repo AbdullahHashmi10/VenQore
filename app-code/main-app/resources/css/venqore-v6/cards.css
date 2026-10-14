@@ -88,10 +88,10 @@
     color: var(--vq-on-accent-text, #FFFFFF);
     box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.50), 0 0 20px -2px rgba(11, 170, 143, 0.20);
     --chart-1: #59DBC0;
-    --chart-2: #8FD9F5;
-    --chart-3: #FFD56B;
+    --chart-2: #FFB547;
+    --chart-3: #B8A4F5;
     --chart-line-primary: #59DBC0;
-    --chart-line-secondary: #8FD9F5;
+    --chart-line-secondary: #FFB547;
     --chart-grid: rgba(255, 255, 255, 0.09);
     --chart-label: rgba(241, 245, 242, 0.74);
     --chart-foreground: #FFFFFF;
@@ -352,6 +352,22 @@ html.dark .vqc--accent:hover,
     font-weight: var(--vq-fw-semi);
     background: var(--vq-accent-quiet);
 }
+
+/* On a dark accent card the tokens flip to light-on-dark, so the dropdown
+   (a light surface) inherited WHITE text on a white menu: every option but
+   the highlighted one was invisible. The menu is its own surface — pin it. */
+.vqc--accent .vqc-per-m,
+.vqc--tone-accent .vqc-per-m {
+    background: #FFFFFF;
+    border-color: #D3DCD7;
+    box-shadow: 0 18px 40px rgba(6, 36, 33, 0.28);
+}
+.vqc--accent .vqc-per-i,
+.vqc--tone-accent .vqc-per-i { color: #0D1412; background: transparent; }
+.vqc--accent .vqc-per-i:hover,
+.vqc--tone-accent .vqc-per-i:hover { background: #F1F5F2; color: #0D1412; }
+.vqc--accent .vqc-per-i.is-on,
+.vqc--tone-accent .vqc-per-i.is-on { color: #076B5E; background: #E3F6F0; font-weight: 700; }
 
 /* ══════════════════════════════════════════════════════════════════════════
    5 · THE NUMBER BLOCK — M2, exactly three sizes
@@ -883,7 +899,7 @@ html.dark .vqc--accent:hover,
     content: none !important;
     animation: none !important;
 }
-.vqc--accent > * { position: relative; z-index: 1; }
+.vqc--accent > :not(.vqc-move):not(.vqc-resize):not(.vqc-glare):not(.vqc-size-hint):not(.vqc-tools) { position: relative; z-index: 1; }
 
 /* AnimatedContent — cards arrive in sequence rather than all at once. */
 .vqc {
@@ -953,7 +969,7 @@ html.dark .vqc--accent:hover,
     justify-content: center;
     text-align: center;
     max-width: 100%;
-    padding: 0 12%;
+    padding: 0 18%;
 }
 .vqc-centre-v {
     font-family: var(--vq-font-numeric);
@@ -961,7 +977,8 @@ html.dark .vqc--accent:hover,
     font-variant-numeric: tabular-nums;
     /* Clamped rather than fixed: an SVG <text> scaling with its viewBox is how
        a card ends up with a fourth metric size (M2). */
-    font-size: clamp(0.95rem, 20cqw, 1.7rem);
+    font-size: clamp(0.7rem, 8.5cqw, 1.5rem);
+    white-space: nowrap;
     color: var(--vq-text);
     line-height: 1;
 }
@@ -1262,3 +1279,13 @@ html.dark .vqc--accent:hover,
 .vqc--tone-accent .vqc-cmp-track { background: rgba(255, 255, 255, 0.14); }
 
 .vqc--accent .vqc-glare { display: none; }
+
+/* Report donuts: a compact dial beside its legend instead of a full-width
+   pie stacked over it (the stacked layout read as a huge circle). */
+.vq-report-donut .vqc-radial { flex-direction: row; align-items: center; gap: 16px; }
+.vq-report-donut .vqc-dial { flex: 0 0 176px; width: 176px; height: 176px; }
+.vq-report-donut .vqc-radial .vqc-blg { flex: 1 1 0; min-width: 0; max-height: 100%; overflow-y: auto; }
+@media (max-width: 520px) {
+  .vq-report-donut { height: auto !important; }
+  .vq-report-donut .vqc-radial { flex-direction: column; }
+}

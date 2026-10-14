@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePage, Head, useForm, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
-import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import ContactsModuleTabs, { useContactsNavGroups } from '@/Components/ContactsModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import { useTerms, useTermText } from '@/lib/terms';
 import { Truck, Plus, Search, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
 import axios from 'axios';
@@ -10,6 +11,7 @@ import axios from 'axios';
 export default function SuppliersIndex({ suppliers }) {
     const { store } = usePage().props;
     const { tp } = useTerms();
+    const contactsNavGroups = useContactsNavGroups();
     const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState(null);
@@ -133,14 +135,23 @@ export default function SuppliersIndex({ suppliers }) {
 
 
     return (
-        <OneGlanceLayout title={tt('Suppliers')} activeMenu="Contacts">
+        <OneGlanceLayout title={tt('Suppliers')} activeMenu="Contacts" noPadding>
             <Head title={tt('Suppliers')} />
 
-            <div className="h-full flex flex-col">
-                <ContactsModuleTabs activeTab="suppliers" />
+            <ListPageFrame className="h-full flex flex-col p-1.5">
+                <div className="md:hidden"><ContactsModuleTabs activeTab="suppliers" /></div>
 
-                <div className="p-6 flex-1 overflow-y-auto">
-                    <div className="flex justify-between items-center mb-6">
+                {/* Desktop: ROW 1 toolbar */}
+                    <ListToolbar
+                        title={tp('supplier', 'Suppliers')}
+                        navGroups={contactsNavGroups}
+                        activeId="suppliers"
+                        search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), onKeyDown: handleServerSearch, placeholder: tt('Search suppliers...') }}
+                        actions={<ListAddButton icon={Plus} onClick={() => openModal()}>{tt('Add Supplier')}</ListAddButton>}
+                    />
+
+                <div className="p-6 md:p-0 flex-1 min-h-0 overflow-y-auto">
+                    <div className="flex md:hidden justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400">
                                 <Truck size={24} />
@@ -157,7 +168,7 @@ export default function SuppliersIndex({ suppliers }) {
                     </div>
 
                     {/* Search */}
-                    <div className="mb-6 relative max-w-md">
+                    <div className="mb-6 relative max-w-md md:hidden">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
                         <input
                             type="text"
@@ -355,7 +366,7 @@ export default function SuppliersIndex({ suppliers }) {
                         </div>
                     )}
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

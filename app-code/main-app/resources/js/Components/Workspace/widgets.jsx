@@ -14,6 +14,8 @@ import {
     ArrowDownRight,
     ArrowUpRight,
     Package,
+    PackageCheck,
+    PackageMinus,
     Plus,
     ShoppingCart,
     UserPlus,
@@ -388,6 +390,8 @@ const renderers = {
             expense: Wallet,
             customer: UserPlus,
             product: Package,
+            goods_in: PackageCheck,
+            goods_out: PackageMinus,
         };
 
         const routes = {
@@ -395,6 +399,8 @@ const renderers = {
             expense: 'store.expenses.index',
             customer: 'store.parties.index',
             product: 'store.inventory.index',
+            goods_in: 'store.purchases.goods-in',
+            goods_out: 'store.sales.goods-out',
         };
 
         const actions = (data.actions || []).filter((action) => {

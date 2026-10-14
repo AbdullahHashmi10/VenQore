@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { WifiOff, RotateCcw, MonitorX } from 'lucide-react';
+import { WifiOff, RotateCcw } from 'lucide-react';
 import PremiumButton from '@/Components/PremiumButton';
 import { SyncService } from '@/Services/SyncService';
 
 export default function OfflineLockScreen() {
     const [isBlocked, setIsBlocked] = useState(false);
-    const [showGame, setShowGame] = useState(false);
-    const [reason, setReason] = useState('Offline limit exceeded.');
+    const [reason, setReason] = useState('This device needs to connect to VenQore once to continue.');
 
     useEffect(() => {
         // Perform initial license check
@@ -78,33 +77,8 @@ export default function OfflineLockScreen() {
                         Retry Connection
                     </button>
 
-                    {!showGame && (
-                        <button
-                            onClick={() => setShowGame(true)}
-                            className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 font-bold rounded-xl transition-all flex items-center justify-center gap-3"
-                        >
-                            <MonitorX size={20} />
-                            I'm bored, let's play
-                        </button>
-                    )}
                 </div>
 
-                {showGame && (
-                    <div className="mt-8 pt-8 border-t border-white/10 animate-in slide-in-from-bottom-4">
-                        <div className="aspect-video bg-black rounded-xl overflow-hidden border border-white/20 relative">
-                            {/* Simple CSS-only Ping Pong Game representation or iframe */}
-                            {/* Ideally, we'd embed a simple JS game canvas here, but for "playable" in a lock screen context: */}
-                            <iframe
-                                src="https://chromedino.com/"
-                                className="w-full h-full opacity-80"
-                                title="Offline Game"
-                                frameBorder="0"
-                            ></iframe>
-                            <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_50px_rgba(0,0,0,0.8)]"></div>
-                        </div>
-                        <p className="text-xs text-ink-muted mt-3 font-mono">Connection will auto-retry in the background.</p>
-                    </div>
-                )}
             </div>
 
             <style>{`

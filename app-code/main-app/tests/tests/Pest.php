@@ -28,7 +28,12 @@ use Tests\TestCase;
 // exclusion the global ->in() loop below double-registers them and Pest aborts
 // with "already uses" the moment this suite (the LIVE one — Tester/phpunit.xml
 // points here) is run in full.
-$standaloneDirectories = ['Smoke', 'DemoStore', 'Golden', 'Module07', 'Chat', 'Billing', 'Module19', 'Monetization', 'Money'];
+$standaloneDirectories = [
+    'Smoke', 'DemoStore', 'Golden', 'Chat', 'Billing', 'Monetization', 'Money',
+    'Module01', 'Module02', 'Module03', 'Module04', 'Module05', 'Module06', 'Module07',
+    'Module08', 'Module09', 'Module10', 'Module11', 'Module12', 'Module13', 'Module14',
+    'Module15', 'Module16', 'Module17', 'Module18', 'Module19', 'Module20', 'Module21',
+];
 
 // Apply VenQoreTestCase to every Feature subdirectory EXCEPT the standalone ones
 foreach (glob(__DIR__ . '/Feature/*', GLOB_ONLYDIR) as $dir) {

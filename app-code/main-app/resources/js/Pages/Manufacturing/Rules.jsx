@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
+import { useStockNavGroups } from '@/Components/StockModuleTabs';
 import { formatCurrency } from '@/Utils/format';
 import {
     Plus,
@@ -159,13 +161,22 @@ const ManufacturingRules = () => {
         }
     };
 
+    const stockNavGroups = useStockNavGroups();
+
     return (
-        <OneGlanceLayout title="Manufacturing Rules" activeMenu="Stock">
+        <OneGlanceLayout title="Manufacturing Rules" activeMenu="Stock" noPadding>
             <Head title="Auto-Manufacturing" />
 
-            <div className="p-6 max-w-7xl mx-auto">
+            <ListPageFrame className="p-1.5">
+                <ListToolbar
+                    title="Manufacturing Rules"
+                    navGroups={stockNavGroups}
+                    activeId="rules"
+                    actions={<ListAddButton icon={Plus} onClick={() => setShowCreateModal(true)}>Create Rule</ListAddButton>}
+                />
+            <div className="p-6 max-w-7xl mx-auto md:max-w-none md:mx-0 md:w-full md:p-1 md:flex-1 md:min-h-0 md:overflow-auto">
                 {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
+                <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6 md:hidden">
                     <div>
                         <h1 className="text-3xl font-bold text-ink flex items-center gap-3">
                             <Beaker className="text-brand-500" size={32} />
@@ -506,6 +517,7 @@ const ManufacturingRules = () => {
                     </div>
                 )}
             </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 };

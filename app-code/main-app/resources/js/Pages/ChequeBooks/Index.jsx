@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import PremiumSelect from '@/Components/PremiumSelect';
 import {
     BookOpen, Plus, Search, Building2, CheckCircle2, AlertTriangle,
@@ -42,149 +45,112 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
     const availableLeaves = booksList.reduce((acc, b) => acc + (b.available_leaves_count || 0), 0);
     const issuedLeaves = booksList.reduce((acc, b) => acc + (b.issued_leaves_count || 0), 0);
 
+    const navGroups = useMoneyNavGroups();
+
     return (
-        <OneGlanceLayout title="Chequebooks Management" activeMenu="Money">
+        <OneGlanceLayout title="Chequebooks Management" activeMenu="Money" noPadding>
             <Head title="Chequebooks Management" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                {/* Line 1: Module Navigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
-
-                {/* Line 2: 4 Compact KPI Cards Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
+            <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title="Chequebooks"
+                    navGroups={navGroups}
+                    activeId="cheque-books"
+                    left={(
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <BookOpen size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Books</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{totalBooks}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle2 size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Active Books</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{activeBooks}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <FileText size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Available Leaves</p>
-                        </div>
-                        <p className="text-base font-bold text-blue-600">{availableLeaves}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Issued Leaves</p>
-                        </div>
-                        <p className="text-base font-bold text-purple-600">{issuedLeaves}</p>
-                    </div>
-                </div>
-
-                {/* Line 3: Compact Single-Row Header & Filter Controls */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left Title */}
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Cheque<span className="text-brand-600">books</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <span className="text-xs font-bold text-ink-muted">{totalBooks} Books</span>
-                    </div>
-
-                    {/* Right Controls */}
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="relative w-48 sm:w-64">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search series, bank..."
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    handleFilterChange({ search: e.target.value });
+                            <PremiumSelect
+                                value={selectedBank}
+                                onChange={(val) => {
+                                    setSelectedBank(val);
+                                    handleFilterChange({ bank_account_id: val });
                                 }}
-                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
+                                options={[
+                                    { value: '', label: 'All Bank Accounts' },
+                                    ...bankAccounts.map((b) => ({ value: String(b.id), label: `${b.name} (${b.bank_name})` }))
+                                ]}
+                                placeholder="All Bank Accounts"
+                                inputClassName="!h-10 !py-0 !px-3 !rounded-[12px] !bg-app !border !border-line text-sm font-semibold"
+                                className="w-auto"
+                            />
+                            <PremiumSelect
+                                value={selectedStatus}
+                                onChange={(val) => {
+                                    setSelectedStatus(val);
+                                    handleFilterChange({ status: val });
+                                }}
+                                options={[
+                                    { value: '', label: 'All Statuses' },
+                                    { value: 'active', label: 'Active' },
+                                    { value: 'exhausted', label: 'Exhausted' },
+                                    { value: 'closed', label: 'Closed' }
+                                ]}
+                                placeholder="All Statuses"
+                                inputClassName="!h-10 !py-0 !px-3 !rounded-[12px] !bg-app !border !border-line text-sm font-semibold"
+                                className="w-auto"
                             />
                         </div>
+                    )}
+                    search={{
+                        value: search,
+                        onChange: (v) => { setSearch(v); handleFilterChange({ search: v }); },
+                        placeholder: 'Search series, bank…',
+                    }}
+                    actions={(
+                        <>
+                            <Link
+                                href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
+                                className="h-10 px-3 rounded-[12px] border border-line bg-app hover:bg-interactive-hover text-ink text-sm font-semibold flex items-center gap-2 transition-colors whitespace-nowrap"
+                            >
+                                <FileText size={15} className="text-ink-muted" /> Registers
+                            </Link>
+                            <ListAddButton href={route('store.banking.cheque-books.create', { store_slug: storeSlug })} icon={Plus}>Register Chequebook</ListAddButton>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Books', value: totalBooks, icon: BookOpen },
+                    { label: 'Active Books', value: activeBooks, icon: CheckCircle2, icon_tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Available Leaves', value: availableLeaves, icon: FileText, icon_tone: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', value_tone: 'text-blue-600' },
+                    { label: 'Issued Leaves', value: issuedLeaves, icon: Clock, icon_tone: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400', value_tone: 'text-purple-600' },
+                ]} />
 
-                        <PremiumSelect
-                            value={selectedBank}
-                            onChange={(val) => {
-                                setSelectedBank(val);
-                                handleFilterChange({ bank_account_id: val });
-                            }}
-                            options={[
-                                { value: '', label: 'All Bank Accounts' },
-                                ...bankAccounts.map((b) => ({
-                                    value: String(b.id),
-                                    label: `${b.name} (${b.bank_name})`
-                                }))
-                            ]}
-                            placeholder="All Bank Accounts"
-                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
-                            className="w-auto"
-                        />
-
-                        <PremiumSelect
-                            value={selectedStatus}
-                            onChange={(val) => {
-                                setSelectedStatus(val);
-                                handleFilterChange({ status: val });
-                            }}
-                            options={[
-                                { value: '', label: 'All Statuses' },
-                                { value: 'active', label: 'Active' },
-                                { value: 'exhausted', label: 'Exhausted' },
-                                { value: 'closed', label: 'Closed' }
-                            ]}
-                            placeholder="All Statuses"
-                            inputClassName="!py-1.5 !px-3 !bg-app !border-none text-xs font-bold"
-                            className="w-auto"
-                        />
-
-                        <Link
-                            href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
-                            className="px-3 py-1.5 bg-app hover:bg-interactive-hover text-ink rounded-lg text-xs font-bold flex items-center gap-1.5 border border-line shadow-xs transition-colors"
-                        >
-                            <FileText size={14} className="text-ink-muted" />
-                            <span>Registers</span>
-                        </Link>
-
-                        <Link
-                            href={route('store.banking.cheque-books.create', { store_slug: storeSlug })}
-                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
-                            style={{ color: '#ffffff' }}
-                        >
-                            <Plus size={14} className="text-white shrink-0" />
-                            <span className="text-white">Register Chequebook</span>
-                        </Link>
-                    </div>
-                </div>
+                {/* Phone / existing header (hidden on md+) */}
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Chequebooks"
+                    navGroups={navGroups}
+                    activeId="cheque-books"
+                    links={[{ label: 'Registers', icon: FileText, href: route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug }) }]}
+                    filter={{
+                        active: !!(selectedBank || selectedStatus),
+                        sections: [
+                            { label: 'Bank Account', value: selectedBank, options: [{ value: '', label: 'All Bank Accounts' }, ...bankAccounts.map((b) => ({ value: String(b.id), label: `${b.name} (${b.bank_name})` }))], onSelect: (val) => { setSelectedBank(val); handleFilterChange({ bank_account_id: val }); } },
+                            { label: 'Status', value: selectedStatus, options: [{ value: '', label: 'All Statuses' }, { value: 'active', label: 'Active' }, { value: 'exhausted', label: 'Exhausted' }, { value: 'closed', label: 'Closed' }], onSelect: (val) => { setSelectedStatus(val); handleFilterChange({ status: val }); } },
+                        ],
+                    }}
+                    search={{ value: search, onChange: (v) => { setSearch(v); handleFilterChange({ search: v }); }, placeholder: 'Search series, bank…' }}
+                    add={{ href: route('store.banking.cheque-books.create', { store_slug: storeSlug }), label: 'Register Chequebook' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Books', value: totalBooks, tone: 'brand', icon: BookOpen },
+                    { label: 'Active Books', value: activeBooks, tone: 'emerald', icon: CheckCircle2 },
+                    { label: 'Available Leaves', value: availableLeaves, tone: 'blue', icon: FileText },
+                    { label: 'Issued Leaves', value: issuedLeaves, tone: 'purple', icon: Clock },
+                ]} />
 
                 {/* Line 4: Edge-to-Edge Full-Width Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Bank Account</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Cheque Range</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Leaf Status</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Utilization</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Status</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Actions</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Bank Account</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Cheque Range</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Leaf Status</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Utilization</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Status</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
@@ -315,6 +281,7 @@ export default function ChequeBooksIndex({ chequeBooks, bankAccounts, filters = 
                         </tbody>
                     </table>
                 </div>
+              </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

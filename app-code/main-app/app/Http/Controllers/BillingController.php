@@ -313,7 +313,18 @@ class BillingController extends Controller
             })(),
             // Canonical slug of the current plan (legacy rows normalised), so the
             // page never compares 'growth' against 'core'.
-            'current_plan'  => PlanCatalog::canonical($tenant->plan),
+            // An empty plan column used to reach the page as '' — the badge went
+            // blank and the card silently showed Starter. Fall back to the plan
+            // the store is actually limited by (effectivePlan → starter).
+            'current_plan'  => PlanCatalog::canonical($tenant->plan) ?: PlanCatalog::canonical($tenant->effectivePlan()),
+            // Human name of the plan the store is actually on, from the plans
+            // table — so a plan created in Platform HQ shows its own name here
+            // instead of its slug.
+            'current_plan_name' => (function () use ($tenant) {
+                $slug = PlanCatalog::canonical($tenant->effectivePlan());
+                $row = Plan::where('slug', $slug)->first(['name', 'display_name']);
+                return $row ? ($row->display_name ?: $row->name) : PlanCatalog::label($slug);
+            })(),
         ]);
     }
 

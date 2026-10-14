@@ -1274,8 +1274,8 @@ return [
     'khata_credit' => [
         'id'           => 32,
         'group'        => 'F',
-        'label'        => 'Khata / Credit',
-        'description'  => 'Let people buy now and pay later, and always know who owes what.',
+        'label'        => 'Customer Credit (Pay Later)',
+        'description'  => 'Let customers buy now and pay later — running tabs, payment terms and balances, with reminders.',
         'requires'     => [],
         'requires_one' => [['customers', 'suppliers']],
         'enhances'     => ['payments', 'recurring_invoices', 'reports', 'ai_insights'],

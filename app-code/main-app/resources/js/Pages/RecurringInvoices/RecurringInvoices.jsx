@@ -3,27 +3,10 @@ import React, { useState, useMemo } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import {
-    Repeat,
-    Search,
-    Plus,
-    Download,
-    Eye,
-    Edit,
-    Trash2,
-    Play,
-    Pause,
-    Calendar,
-    Clock,
-    DollarSign,
-    Users,
-    Printer,
-    ChevronDown,
-    ChevronUp,
-    X
-} from 'lucide-react';
+import { Repeat, Search, Plus, Download, Eye, Edit, Trash2, Play, Pause, Calendar, Clock, DollarSign, Users, Printer, ChevronDown, ChevronUp, X, Filter, Check } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import { useTermText } from '@/lib/terms';
 import MobileStats from '@/Components/MobileStats';
 
@@ -36,6 +19,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
     const [isStatsExpanded, setIsStatsExpanded] = useState(false);
     const { showConfirm, showAlert } = useAlert();
     const { store } = usePage().props;
+    const navGroups = useSellNavGroups();
 
     // Filter invoices
     const filteredInvoices = useMemo(() => {
@@ -109,185 +93,103 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
     };
 
     return (
-        <OneGlanceLayout title="Recurring Invoices" activeMenu="Sell">
+        <OneGlanceLayout title="Recurring Invoices" activeMenu="Sell" noPadding>
             <Head title="Recurring Invoices" />
-            <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
-                <SellModuleTabs activeTab="recurring" />
+            <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
+                <div className="md:hidden"><SellModuleTabs activeTab="recurring" /></div>
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total', value: stats.total, tone: 'ink' },
-  { label: 'Active', value: stats.active, tone: 'emerald' },
-  { label: 'Paused', value: stats.paused, tone: 'amber' },
-  { label: 'Monthly Revenue', value: (stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0), tone: 'brand' }
-]} />
-
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Repeat size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats.total}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <Play size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Active</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{stats.active}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <Pause size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Paused</p>
-                        </div>
-                        <p className="text-base font-bold text-amber-600">{stats.paused}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <DollarSign size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Monthly Revenue</p>
-                        </div>
-                        <p className="text-base font-bold text-brand-600">{(stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0)}</p>
-                    </div>
-                </div>
-
-                {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Recurring <span className="text-brand-600">Invoices</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => setStatusFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >All</button>
-                        <button
-                            onClick={() => setStatusFilter('active')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'active' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Active</button>
-                        <button
-                            onClick={() => setStatusFilter('paused')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'paused' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Paused</button>
-                    </div>
-
-                    {/* Right: Search + Actions */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-64 relative">
-                            <input
-                                type="text"
-                                placeholder={tt('Search by title or customer...')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
-                        </div>
-                        <div className="flex items-center gap-2 border-l border-line pl-2">
-                            <Link
-                                href={route('store.recurring-invoices.create', { store_slug: store.slug })}
-                                className="p-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg active:scale-95"
-                            >
-                                <Plus size={18} />
-                                <span className="text-sm font-bold hidden sm:inline">New Recurring</span>
-                            </Link>
-                            <button className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
-                                <Printer size={18} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
-                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
-                            Recurring Invoices
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Filters"
-                            >
-                                <ChevronDown size={16} />
-                            </button>
-                            <Link
-                                href={route('store.recurring-invoices.create', { store_slug: store.slug })}
-                                className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
-                                title="New Recurring"
-                            >
-                                <Plus size={16} />
-                            </Link>
-                        </div>
-                    </div>
-
-                    {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-line pt-2">
-                            <input
-                                type="text"
-                                placeholder={tt('Search by title or customer...')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink"
-                            />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
-                        </div>
+                {/* Desktop header: row 1 toolbar, row 2 stat cards */}
+                <ListToolbar
+                    title="Recurring Invoices"
+                    navGroups={navGroups}
+                    activeId="recurring"
+                    left={(
+                        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 pl-3 pr-8 rounded-[12px] border border-line bg-surface text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer hover:bg-interactive-hover" aria-label="Status">
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="paused">Paused</option>
+                        </select>
                     )}
-
-                    {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
-                            <div className="flex flex-wrap gap-1.5">
-                                <button
-                                    onClick={() => setStatusFilter('all')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >All</button>
-                                <button
-                                    onClick={() => setStatusFilter('active')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'active' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Active</button>
-                                <button
-                                    onClick={() => setStatusFilter('paused')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'paused' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Paused</button>
-                            </div>
-                        </div>
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), placeholder: tt('Search by title or customer...') }}
+                    actions={(
+                        <>
+                            <button type="button" className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-ink-muted" title="Print" onClick={() => PrintService.printPage()}><Printer size={18} /></button>
+                            <ListAddButton href={route('store.recurring-invoices.create', { store_slug: store.slug })} icon={Plus}>New Recurring</ListAddButton>
+                        </>
                     )}
-                </div>
+                />
+                <ListStatCards cards={[
+                    { label: 'Total', value: stats.total, icon: Repeat, icon_tone: 'bg-brand-100 text-brand-600' },
+                    { label: 'Active', value: stats.active, icon: Play, icon_tone: 'bg-emerald-100 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Paused', value: stats.paused, icon: Pause, icon_tone: 'bg-amber-100 text-amber-600', value_tone: 'text-amber-600' },
+                    { label: 'Monthly Revenue', value: (stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0), icon: DollarSign, icon_tone: 'bg-brand-100 text-brand-600', value_tone: 'text-brand-600' },
+                ]} />
 
-                {/* Main Table container */}
-                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
+               {/* Mobile header (phone only) */}
+ <div className="md:hidden relative z-40 shrink-0 bg-surface border border-line rounded-[14px] shadow-sm">
+ {showMobileFilters && <div className="fixed inset-0 z-30" onClick={() => setShowMobileFilters(false)} aria-hidden="true" />}
+ <div className="relative z-40 h-12 flex items-center gap-1 px-1.5">
+ <div className="min-w-0 flex-1 pl-2">
+ <span className="text-[15px] font-bold text-ink tracking-tight truncate block">Recurring Invoices</span>
+ </div>
+ <div>
+ <button type="button" onClick={() => setShowMobileFilters(!showMobileFilters)} aria-haspopup="listbox" aria-expanded={showMobileFilters} aria-label="Filter"
+ className={`h-9 px-2 rounded-[10px] border flex items-center gap-1 transition-colors ${statusFilter !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-line bg-app text-ink-secondary'}`}>
+ <Filter size={16} />
+ <ChevronDown size={14} className={`transition-transform duration-200 ${showMobileFilters ? 'rotate-180' : ''}`} />
+ </button>
+ {showMobileFilters && (
+ <div role="listbox" className="absolute left-0 right-0 top-full mt-1 max-h-[60vh] overflow-y-auto bg-surface border border-line rounded-[12px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+ {[['all', 'All'], ['active', 'Active'], ['paused', 'Paused']].map(([key, label]) => (
+ <button key={key} type="button" role="option" aria-selected={statusFilter === key} onClick={() => { setStatusFilter(key); setShowMobileFilters(false); }}
+ className={`w-full h-10 px-3 rounded-[8px] text-sm text-left flex items-center justify-between gap-2 ${statusFilter === key ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}>
+ <span className="truncate">{label}</span>
+ {statusFilter === key && <Check size={15} className="shrink-0" />}
+ </button>
+ ))}
+ </div>
+ )}
+ </div>
+ <button type="button" onClick={() => setShowMobileSearch(!showMobileSearch)} aria-label="Search"
+ className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${showMobileSearch || searchTerm ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'bg-app text-ink-secondary'}`}>
+ <Search size={17} />
+ </button>
+ <Link href={route('store.recurring-invoices.create', { store_slug: store.slug })} aria-label="New Recurring"
+ className="h-9 w-9 rounded-[10px] bg-brand-600 text-white flex items-center justify-center shadow-sm active:bg-brand-700">
+ <Plus size={19} />
+ </Link>
+ </div>
+ {showMobileSearch && (
+ <div className="px-1.5 pb-1.5 -mt-0.5">
+ <div className="relative">
+ <input autoFocus type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={tt('Search by title or customer...')}
+ className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[10px] text-ink placeholder:text-ink-muted outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={15} />
+ </div>
+ </div>
+ )}
+ </div>
+
+ <MobileStats bp="md" hero={3} items={[
+ { label: 'Total', value: stats.total, tone: 'brand', icon: Repeat },
+ { label: 'Active', value: stats.active, tone: 'emerald', icon: Play },
+ { label: 'Paused', value: stats.paused, tone: 'amber', icon: Pause },
+ { label: 'Monthly Revenue', value: (stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0), tone: 'brand', icon: DollarSign }
+ ]} />
+
+  {/* Main Table container */}
+                <div className="flex-1 md:min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
                     <table className="hidden md:table w-full text-left border-collapse">
                         <thead className="bg-app text-ink-muted font-bold uppercase text-2xs tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                             <tr className="border-b border-line">
-                                <th className="px-6 py-3">Title</th>
-                                <th className="px-6 py-3">{tt('Customer')}</th>
-                                <th className="px-6 py-3 text-right">Amount</th>
-                                <th className="px-6 py-3 text-center">Frequency</th>
-                                <th className="px-6 py-3">Next Invoice</th>
-                                <th className="px-6 py-3 text-center">Generated</th>
-                                <th className="px-6 py-3 text-center">Status</th>
-                                <th className="px-6 py-3 text-center">Actions</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3">Title</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3">{tt('Customer')}</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3 text-right">Amount</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Frequency</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3">Next Invoice</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Generated</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Status</th>
+                                <th className="sticky top-0 z-10 bg-app px-6 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
@@ -457,7 +359,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                         )}
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

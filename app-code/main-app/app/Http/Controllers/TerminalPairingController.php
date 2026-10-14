@@ -23,21 +23,32 @@ class TerminalPairingController extends Controller
         $request->validate([
             'label'        => 'nullable|string|max:100',
             'ttl_minutes'  => 'nullable|integer|min:1|max:1440',
+            'replacement_terminal_id' => 'nullable|uuid',
         ]);
 
-        $token = TerminalPairingToken::create([
+        $token = \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $replacement = null;
+            if ($request->filled('replacement_terminal_id')) {
+                $replacement = \App\Models\Terminal::where('tenant_id', app('current.tenant')->id)
+                    ->whereKey($request->input('replacement_terminal_id'))->lockForUpdate()->firstOrFail();
+                TerminalPairingToken::where('replacement_terminal_id', $replacement->id)->whereNull('used_at')->delete();
+            }
+            return TerminalPairingToken::create([
             'tenant_id'  => app('current.tenant')->id,
             'token'      => TerminalPairingToken::generateToken(),
             'label'      => $request->input('label'),
             'expires_at' => now()->addMinutes((int) $request->input('ttl_minutes', 60)),
             'created_by' => Auth::id(),
-        ]);
+            'replacement_terminal_id' => $replacement?->id,
+            ]);
+        }, 3);
 
         return response()->json([
             'success'    => true,
             'token'      => $token->token,
             'label'      => $token->label,
             'expires_at' => $token->expires_at?->toIso8601String(),
+            'replacement_terminal_id' => $token->replacement_terminal_id,
         ], 201);
     }
 
@@ -51,7 +62,7 @@ class TerminalPairingController extends Controller
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->latest()
-            ->get(['id', 'token', 'label', 'expires_at', 'created_at']);
+            ->get(['id', 'token', 'label', 'expires_at', 'created_at', 'replacement_terminal_id']);
 
         return response()->json(['success' => true, 'tokens' => $tokens]);
     }

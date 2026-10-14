@@ -4,9 +4,9 @@ import Toggle from '@/Components/Toggle';
 
 export default function ManualSharingSection({ data, setData, saveSettings }) {
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
             {/* Disclaimer Banner */}
-            <div className="p-4 bg-app rounded-2xl border border-line flex items-start gap-3 text-xs text-ink-muted leading-relaxed">
+            <div className="p-4 bg-app rounded-[14px] border border-line flex items-start gap-3 text-sm text-ink-muted leading-relaxed">
                 <Info size={16} className="text-brand-600 shrink-0 mt-0.5" />
                 <div>
                     <span className="font-bold text-ink">Explicit Delivery Policy: </span>
@@ -15,29 +15,29 @@ export default function ManualSharingSection({ data, setData, saveSettings }) {
             </div>
 
             {/* Template Editors Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                 {/* Left Card: Document Templates */}
-                <div className="space-y-4 bg-surface rounded-2xl border border-line p-6 shadow-xs">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Document Prefill Templates</h3>
+                <div className="space-y-4 bg-surface rounded-[14px] border border-line p-4 shadow-xs">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Document Prefill Templates</h3>
 
                     {/* Sales Invoice */}
                     <div className="space-y-2">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block">Sales Invoice Receipt Template</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted block">Sales Invoice Receipt Template</label>
                         <textarea
                             rows={3}
                             value={data.message_template_sales || ''}
                             onChange={e => setData('message_template_sales', e.target.value)}
-                            className="w-full p-3 bg-app text-ink border border-line rounded-xl text-xs outline-none focus:ring-2 focus:ring-brand-500 font-sans leading-relaxed resize-none"
+                            className="w-full p-3 bg-app text-ink border border-line rounded-[12px] text-sm outline-none focus:ring-2 focus:ring-brand-500 font-sans leading-relaxed resize-none"
                             placeholder="Greetings from [Firm_Name]. Your invoice [Invoice_Number] for [Invoice_Amount] is ready. Receipt: [Link]"
                         />
                         <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-3xs font-bold text-ink-muted uppercase">Tags:</span>
+                            <span className="text-xs font-bold text-ink-muted uppercase">Tags:</span>
                             {['[Firm_Name]', '[Invoice_Number]', '[Invoice_Amount]', '[Link]'].map(tag => (
                                 <button
                                     key={tag}
                                     type="button"
                                     onClick={() => setData('message_template_sales', (data.message_template_sales || '') + ' ' + tag)}
-                                    className="px-1.5 py-0.5 bg-app hover:bg-surface border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
+                                    className="px-1.5 py-0.5 bg-app hover:bg-surface border border-line rounded-[6px] text-xs font-mono font-bold text-brand-600 dark:text-brand-400"
                                 >
                                     + {tag}
                                 </button>
@@ -47,22 +47,22 @@ export default function ManualSharingSection({ data, setData, saveSettings }) {
 
                     {/* Sales Return */}
                     <div className="space-y-2 pt-3 border-t border-line">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block">Credit Note / Return Template</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted block">Credit Note / Return Template</label>
                         <textarea
                             rows={3}
                             value={data.message_template_returns || ''}
                             onChange={e => setData('message_template_returns', e.target.value)}
-                            className="w-full p-3 bg-app text-ink border border-line rounded-xl text-xs outline-none focus:ring-2 focus:ring-brand-500 font-sans leading-relaxed resize-none"
+                            className="w-full p-3 bg-app text-ink border border-line rounded-[12px] text-sm outline-none focus:ring-2 focus:ring-brand-500 font-sans leading-relaxed resize-none"
                             placeholder="Greetings from [Firm_Name]. Credit Note / Return [Return_Number] for [Return_Amount] has been processed. Summary: [Link]"
                         />
                         <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-3xs font-bold text-ink-muted uppercase">Tags:</span>
+                            <span className="text-xs font-bold text-ink-muted uppercase">Tags:</span>
                             {['[Firm_Name]', '[Return_Number]', '[Return_Amount]', '[Link]'].map(tag => (
                                 <button
                                     key={tag}
                                     type="button"
                                     onClick={() => setData('message_template_returns', (data.message_template_returns || '') + ' ' + tag)}
-                                    className="px-1.5 py-0.5 bg-app hover:bg-surface border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
+                                    className="px-1.5 py-0.5 bg-app hover:bg-surface border border-line rounded-[6px] text-xs font-mono font-bold text-brand-600 dark:text-brand-400"
                                 >
                                     + {tag}
                                 </button>
@@ -72,22 +72,22 @@ export default function ManualSharingSection({ data, setData, saveSettings }) {
 
                     {/* Payment Reminder */}
                     <div className="space-y-2 pt-3 border-t border-line">
-                        <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted block">Manual Receivable Reminder Template</label>
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink-muted block">Manual Receivable Reminder Template</label>
                         <textarea
                             rows={3}
                             value={data.message_template_reminders || ''}
                             onChange={e => setData('message_template_reminders', e.target.value)}
-                            className="w-full p-3 bg-app text-ink border border-line rounded-xl text-xs outline-none focus:ring-2 focus:ring-brand-500 font-sans leading-relaxed resize-none"
+                            className="w-full p-3 bg-app text-ink border border-line rounded-[12px] text-sm outline-none focus:ring-2 focus:ring-brand-500 font-sans leading-relaxed resize-none"
                             placeholder="Dear [Customer_Name], this is a friendly reminder that invoice #[Invoice_Number] from [Firm_Name] is outstanding. Current amount due: [Due_Amount]. View receipt: [Link]"
                         />
                         <div className="flex flex-wrap items-center gap-1">
-                            <span className="text-3xs font-bold text-ink-muted uppercase">Tags:</span>
+                            <span className="text-xs font-bold text-ink-muted uppercase">Tags:</span>
                             {['[Customer_Name]', '[Invoice_Number]', '[Due_Amount]', '[Firm_Name]', '[Link]'].map(tag => (
                                 <button
                                     key={tag}
                                     type="button"
                                     onClick={() => setData('message_template_reminders', (data.message_template_reminders || '') + ' ' + tag)}
-                                    className="px-1.5 py-0.5 bg-app hover:bg-surface border border-line rounded text-3xs font-mono font-bold text-brand-600 dark:text-brand-400"
+                                    className="px-1.5 py-0.5 bg-app hover:bg-surface border border-line rounded-[6px] text-xs font-mono font-bold text-brand-600 dark:text-brand-400"
                                 >
                                     + {tag}
                                 </button>
@@ -97,9 +97,9 @@ export default function ManualSharingSection({ data, setData, saveSettings }) {
                 </div>
 
                 {/* Right Card: Attachment & Sharing Options */}
-                <div className="space-y-4 bg-surface rounded-2xl border border-line p-6 shadow-xs flex flex-col justify-between">
+                <div className="space-y-4 bg-surface rounded-[14px] border border-line p-4 shadow-xs flex flex-col justify-between">
                     <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Sharing Preferences</h3>
+                        <h3 className="text-base font-bold text-ink border-b border-line pb-3">Sharing Preferences</h3>
 
                         <Toggle
                             enabled={data.whatsapp_offer_pdf !== '0' && data.whatsapp_offer_pdf !== false}
@@ -108,7 +108,7 @@ export default function ManualSharingSection({ data, setData, saveSettings }) {
                             description="Opens native mobile share sheet or provides direct PDF receipt download link."
                         />
 
-                        <div className="p-3.5 bg-app rounded-xl border border-line text-2xs text-ink-muted space-y-1">
+                        <div className="p-3.5 bg-app rounded-[12px] border border-line text-xs text-ink-muted space-y-1">
                             <p className="font-bold text-ink">Sender Name Source:</p>
                             <p>
                                 The <code>[Firm_Name]</code> tag automatically uses your official Business Name configured under{' '}

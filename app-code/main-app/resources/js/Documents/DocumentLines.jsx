@@ -435,7 +435,7 @@ export default function DocumentLines({ doc, chrome, items = [], ctx, onQuickAdd
     }
 
     return (
-        <div className="vqdoc-linesbox" ref={boxRef}>
+        <div id="tour-invoice-product" className="vqdoc-linesbox" ref={boxRef}>
             <table className="vqdoc-lines">
                 <thead>
                     <tr>
@@ -487,7 +487,7 @@ function CardList({ doc, chrome, items, ctx, visible }) {
     const priced = doc.money.lines === 'priced';
 
     return (
-        <div className="vqdoc-linesbox">
+        <div id="tour-invoice-product" className="vqdoc-linesbox">
             {!items.length && (
                 <div className="vqdoc-empty">
                     <span className="ico"><FileText size={22} /></span>

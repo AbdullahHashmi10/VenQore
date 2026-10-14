@@ -3,7 +3,10 @@ import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import StockModuleTabs, { useStockNavGroups } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 
 import MidnightNebula from '@/Components/MidnightNebula';
 import Modal from '@/Components/Modal';
@@ -11,6 +14,7 @@ import { BookOpen, Plus, ChefHat, Edit, Trash2, DollarSign, Clock, Package, Flam
 import axios from 'axios';
 
 export default function CookbookIndex({ recipes = [], store }) {
+    const navGroups = useStockNavGroups();
     const [simulatorOpen, setSimulatorOpen] = useState(false);
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [simQty, setSimQty] = useState(1);
@@ -47,30 +51,37 @@ export default function CookbookIndex({ recipes = [], store }) {
     };
 
     return (
-        <OneGlanceLayout title="Cookbook" activeMenu="Stock">
+        <OneGlanceLayout title="Cookbook" activeMenu="Stock" noPadding>
             <Head title="Cookbook" />
 
-            <div className="flex flex-col h-full">
-                <StockModuleTabs activeTab="cookbook" />
+            <ListPageFrame className="flex flex-col h-full p-1.5">
+                <ListToolbar
+                    title="Cookbook"
+                    navGroups={navGroups}
+                    activeId="cookbook"
+                    actions={<ListAddButton icon={Plus} href={route('store.cookbook.create', { store_slug: store.slug })}>New Recipe</ListAddButton>}
+                />
+                <ListStatCards cards={[
+                    { label: 'Recipes', value: recipes.length, icon: BookOpen, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'Ingredients', value: recipes.reduce((s, r) => s + (Number(r.ingredients_count) || 0), 0), icon: Package, icon_tone: 'bg-blue-50 text-blue-600' },
+                    { label: 'Avg COGM', value: `${getCurrencySymbol()} ${(recipes.length ? recipes.reduce((s, r) => s + (parseFloat(r.total_cost) || 0), 0) / recipes.length : 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: DollarSign, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Linked Products', value: recipes.filter((r) => r.product).length, icon: ChefHat, icon_tone: 'bg-amber-50 text-amber-600' },
+                ]} />
+<MobileListHeader
+                    title="Cookbook"
+                    navGroups={navGroups}
+                    activeId="cookbook"
+                    add={{ href: route('store.cookbook.create', { store_slug: store.slug }), label: 'New Recipe' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Recipes', value: recipes.length, tone: 'brand', icon: BookOpen },
+                    { label: 'Ingredients', value: recipes.reduce((s, r) => s + (Number(r.ingredients_count) || 0), 0), tone: 'blue', icon: Package },
+                    { label: 'Avg COGM', value: `${getCurrencySymbol()} ${(recipes.length ? recipes.reduce((s, r) => s + (parseFloat(r.total_cost) || 0), 0) / recipes.length : 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, tone: 'emerald', icon: DollarSign },
+                    { label: 'Linked Products', value: recipes.filter((r) => r.product).length, tone: 'amber', icon: ChefHat },
+                ]} />
 
 
-                <div className="flex-1 flex flex-col gap-6 overflow-auto pb-6 p-6">
-                    <PageHeader
-                        title="Cookbook"
-                        subtitle="Recipe management with full COGM (Cost of Goods Manufactured) tracking"
-                        icon={BookOpen}
-                        breadcrumbs={[{ label: 'Cookbook' }]}
-                        actions={
-                            <Link
-                                href={route('store.cookbook.create', { store_slug: store.slug })}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 !text-white rounded-xl hover:bg-brand-700 transition-colors shadow-sm hover:shadow-md font-medium"
-                                style={{ color: '#ffffff' }}
-                            >
-                                <Plus size={18} className="text-white shrink-0" />
-                                <span className="text-white">New Recipe</span>
-                            </Link>
-                        }
-                    />
+                <div className="flex-1 min-h-0 flex flex-col gap-3 md:gap-2 overflow-auto pb-6 pt-3 px-1.5 md:p-0">
 
                     {/* Recipe Cards Grid */}
                     {recipes.length === 0 ? (
@@ -93,7 +104,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                             </div>
                         </MidnightNebula>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-2">
                             {recipes.map((recipe) => (
                                 <div
                                     key={recipe.id}
@@ -364,7 +375,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                         )}
                     </div>
                 </Modal>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

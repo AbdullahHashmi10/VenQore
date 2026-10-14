@@ -1,6 +1,6 @@
 import React from 'react';
-import { Head, router } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import { router } from '@inertiajs/react';
+import { ReportShell } from '@/Components/Reports/ReportKit';
 import MasterReport from '@/Components/Reports/MasterReport';
 
 export default function GenericReport(props) {
@@ -11,13 +11,9 @@ export default function GenericReport(props) {
         ...reportProps
     } = props;
 
-    // MasterReport's date-range presets (Today/This Month/This Year) and the
-    // custom start/end inputs call onFilterChange(newFilterValues) directly —
-    // previously unwired here, so clicking them threw "onFilterChange is not a
-    // function" on every report using this factory (Category Profitability,
-    // Customer Insights, Supplier Insights, and any future GenericReport page).
-    // Wired to re-request the current page with the new date range, following
-    // the same pattern as the bespoke report pages (e.g. ItemWiseProfit.jsx).
+    // MasterReport's date-range presets and custom start/end inputs call
+    // onFilterChange(newFilterValues); re-request the current page with the new
+    // date range, as the bespoke report pages do.
     const handleFilterChange = (newFilterValues) => {
         router.get(window.location.pathname, {
             start_date: newFilterValues.start_date,
@@ -27,14 +23,13 @@ export default function GenericReport(props) {
     };
 
     return (
-        <ReportsLayout title={title || 'Report'}>
-            <Head title={title || 'Report'} />
+        <ReportShell title={title || 'Report'}>
             <MasterReport
                 title={title}
                 filterValues={{ start_date: filters.start_date, end_date: filters.end_date }}
                 onFilterChange={handleFilterChange}
                 {...reportProps}
             />
-        </ReportsLayout>
+        </ReportShell>
     );
 }

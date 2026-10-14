@@ -83,7 +83,7 @@ const GlobalStyles = () => (
 // BACKGROUND
 // ─────────────────────────────────────────────────────────────
 const Background = ({ active }) => (
-    <div className="fixed inset-0 overflow-hidden bg-neutral-950 z-0">
+    <div className="fixed inset-0 overflow-hidden bg-neutral-950 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-tr from-neutral-950 via-neutral-950 to-neutral-900" />
         <div className="absolute inset-0 tech-grid opacity-30 w-[200%] -ml-[50%] h-[200%] -mt-[20%]" />
         <div className={`absolute top-[-20%] left-[20%] w-[600px] h-[600px] bg-brand-600/10 rounded-full blur-[120px] mix-blend-screen transition-all duration-slower ${active ? 'opacity-80 scale-150' : 'animate-pulse'}`} />
@@ -404,13 +404,13 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
     // ═════════════════════════════════════════════════════════════
     return (
         <>
-            <div className="min-h-screen w-full flex items-center justify-center font-sans text-neutral-200 overflow-hidden relative p-4">
+            <div className="min-h-screen w-full flex flex-col items-center justify-start font-sans text-neutral-200 overflow-y-auto relative p-4 sm:p-6 lg:p-8 py-8 sm:py-12">
                 <Head title="System Updater | VENQORE" />
                 <GlobalStyles />
                 <Background active={phase === 'updating'} />
 
                 {/* ── MAIN CARD ── */}
-                <div className="relative z-10 w-full max-w-4xl">
+                <div className="relative z-10 w-full max-w-4xl my-auto">
                     <div className="glass-panel rounded-2xl relative overflow-hidden border-t border-white/10">
                         <div className="noise-bg" />
 

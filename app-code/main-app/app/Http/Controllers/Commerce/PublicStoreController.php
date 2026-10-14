@@ -7,7 +7,10 @@ use App\Models\Commerce\CommerceOrder;
 use App\Models\Commerce\Storefront;
 use App\Models\Commerce\StorefrontReview;
 use App\Models\Position;
+use App\Services\Auth\EmailOtpService;
 use App\Services\Commerce\CheckoutService;
+use App\Services\Commerce\ShopperAccount;
+use Illuminate\Support\Str;
 use App\Services\Commerce\CommerceException;
 use App\Services\Commerce\OnlinePricing;
 use App\Services\Commerce\OnsiteOrderService;
@@ -341,51 +344,7 @@ class PublicStoreController extends Controller
                 'created_at' => CommerceOrder::localTime($r->created_at, $store->timezone ?? 'UTC'),
             ])->values();
 
-        $custSession = session('commerce_customer');
-        $customerData = null;
-        if ($custSession && ! empty($custSession['phone'])) {
-            $phone = $custSession['phone'];
-            $customerOrders = DB::table('commerce_orders')
-                ->where('storefront_id', $store->id)
-                ->where('customer_phone', $phone)
-                ->orderByDesc('created_at')
-                ->limit(20)
-                ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
-                ->map(function ($o) use ($store) {
-                    $token = \Illuminate\Support\Str::random(48);
-                    DB::table('commerce_order_tokens')->insert([
-                        'order_id' => $o->id,
-                        'token_hash' => hash('sha256', $token),
-                        'created_at' => now(),
-                    ]);
-                    return [
-                        'id' => $o->id,
-                        'number' => $o->public_number,
-                        'status' => $o->status,
-                        'total' => (float) $o->total,
-                        'currency_symbol' => $o->currency_symbol,
-                        'fulfilment' => $o->fulfilment,
-                        'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
-                        'status_url' => url('/order-status/' . $token),
-                    ];
-                })->values();
-
-            $myReview = StorefrontReview::where('storefront_id', $store->id)
-                ->where('customer_phone', $phone)
-                ->first();
-
-            $customerData = [
-                'name' => $custSession['name'],
-                'phone' => $phone,
-                'email' => $custSession['email'] ?? null,
-                'orders' => $customerOrders,
-                'has_reviewed' => (bool) $myReview,
-                'review' => $myReview ? [
-                    'rating' => (int) $myReview->rating,
-                    'review' => $myReview->review,
-                ] : null,
-            ];
-        }
+        $customerData = ShopperAccount::payload($store);
 
         $publicStore = $preview ? array_merge(StorefrontPresenter::publicStore($store), ['accepting_orders' => false]) : StorefrontPresenter::publicStore($store);
         if ($request->attributes->get('onsite_context')) {
@@ -430,9 +389,12 @@ class PublicStoreController extends Controller
     {
         $store = $this->published($slug);
         abort_if(($store->customer_mode ?: 'ordering') === 'catalogue', 404);
-        $data = $request->validate(['items' => ['required', 'array', 'max:' . CheckoutService::MAX_LINES], 'items.*.item_id' => ['required', 'string', 'max:36'], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY], 'items.*.mods' => ['nullable', 'array', 'max:20'], 'items.*.mods.*' => ['integer'], 'items.*.notes' => ['nullable', 'string', 'max:200'], 'fulfilment' => ['nullable', 'in:pickup,delivery'], 'delivery_zone' => ['nullable', 'string', 'max:120'], 'coupon' => ['nullable', 'string', 'max:40']]);
+        $data = $request->validate(['items' => ['required', 'array', 'max:' . CheckoutService::MAX_LINES], 'items.*.item_id' => ['required', 'string', 'max:36'], 'items.*.quantity' => ['required', 'integer', 'min:1', 'max:' . CheckoutService::MAX_QTY], 'items.*.mods' => ['nullable', 'array', 'max:20'], 'items.*.mods.*' => ['integer'], 'items.*.notes' => ['nullable', 'string', 'max:200'], 'fulfilment' => ['nullable', 'in:pickup,delivery'], 'delivery_zone' => ['nullable', 'string', 'max:120'], 'coupon' => ['nullable', 'string', 'max:40'], 'use_points' => ['nullable', 'boolean']]);
+        $member = ShopperAccount::session();
+        $party = $member ? ShopperAccount::partyId((int) $store->tenant_id, $member, false) : null;
         try {
-            $q = $this->checkout->quote($store, $data['items'], $data['fulfilment'] ?? 'pickup', ['zone' => $data['delivery_zone'] ?? null, 'coupon' => $data['coupon'] ?? null]);
+            $q = $this->checkout->quote($store, $data['items'], $data['fulfilment'] ?? 'pickup', ['zone' => $data['delivery_zone'] ?? null, 'coupon' => $data['coupon'] ?? null,
+                'member_party' => $party, 'use_points' => $request->boolean('use_points')]);
         } catch (CommerceException $e) {
             return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason] + $e->payload, $e->httpStatus);
         }
@@ -468,16 +430,18 @@ class PublicStoreController extends Controller
         if (! empty($data['company_site']) || (! empty($data['opened_at']) && (now()->getTimestampMs() - (int) $data['opened_at']) < 3000 && (now()->getTimestampMs() - (int) $data['opened_at']) >= 0)) {
             return response()->json(['message' => 'Please try again.', 'reason' => 'bot_check'], 422);
         }
+        // Loyalty belongs to a verified, signed-in shopper only; the browser can never name a customer record itself.
+        $member = ShopperAccount::session();
+        if ($member) {
+            $data['_member_party'] = ShopperAccount::partyId((int) $store->tenant_id, $member, true);
+            $data['customer_email'] = $member['email'];
+            $data['use_points'] = $request->boolean('use_points');
+        }
         try {
             $r = $this->checkout->place($store, $data);
         } catch (CommerceException $e) {
             return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason] + ($e->reason === 'quote_changed' ? ['quote' => $this->publicQuote($e->payload['quote'])] : $e->payload), $e->httpStatus);
         }
-        session(['commerce_customer' => [
-            'phone' => preg_replace('/[^\d+]/', '', $data['customer_phone']),
-            'name' => $data['customer_name'],
-            'email' => $data['customer_email'] ?? null,
-        ]]);
 
         return response()->json([
             'order_number' => $r['order']->public_number,
@@ -505,6 +469,8 @@ class PublicStoreController extends Controller
                 'bank_reference' => $order->bank_reference, 'delivery_zone' => $order->delivery_zone,
                 'bank_receipt_url' => $order->bank_receipt_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($order->bank_receipt_path) : null,
                 'discount_total' => $order->discount_total, 'promo_name' => $order->promo_name, 'promo_code' => $order->promo_code,
+                'loyalty_points' => $order->loyalty_member ? \App\Services\LoyaltyAwarder::pointsFor((int) $order->tenant_id, (float) $order->total) : 0,
+                'loyalty_member' => (bool) $order->loyalty_member, 'points_used' => (int) $order->loyalty_points_used,
                 'estimated_ready_at' => $estimatedReadyAt,
                 'items' => $order->items()->get(['title', 'quantity', 'online_price', 'line_total', 'mods', 'notes'])->map(fn ($i) => $i->only(['title', 'quantity', 'online_price', 'line_total', 'mods', 'notes'])),
             ],
@@ -673,7 +639,8 @@ class PublicStoreController extends Controller
         return [
             'items' => collect($q['items'])->map(fn ($i) => ['item_id' => $i['item_id'], 'title' => $i['title'], 'quantity' => $i['quantity'], 'price' => $i['online_price'], 'line_total' => $i['line_total'], 'mods' => $i['mods'] ?? []])->values(),
             'subtotal' => $q['subtotal'], 'tax_total' => $q['tax_total'], 'delivery_fee' => $q['delivery_fee'], 'total' => $q['total'],
-            'currency_symbol' => $q['currency_symbol'],
+            'currency_symbol' => $q['currency_symbol'], 'loyalty_points' => (int) ($q['loyalty_points'] ?? 0), 'loyalty_member' => (bool) ($q['member'] ?? false),
+            'points_used' => (int) ($q['points_used'] ?? 0), 'points_discount' => (float) ($q['points_discount'] ?? 0),
             'discount_total' => $q['discount_total'], 'promo_name' => $q['promo_name'], 'promo_code' => $q['promo_code'],
             'delivery_zone' => $q['delivery_zone'], 'zone_required' => $q['zone_required'], 'min_order' => $q['min_order'],
         ];
@@ -696,64 +663,44 @@ class PublicStoreController extends Controller
         return $resp;
     }
 
+    /** The old name+phone sign-in proved nothing, so it is closed: sign in with an emailed code instead. */
     public function customerLogin(Request $request, string $slug)
     {
+        return response()->json(['message' => 'Please sign in with your email: we send you a 6-digit code.'], 410);
+    }
+
+    /** Step 1: email a 6-digit code to the address the shopper typed. */
+    public function customerOtpStart(Request $request, string $slug, EmailOtpService $otp)
+    {
+        Storefront::where('slug', $slug)->firstOrFail();
+        $data = $request->validate(['email' => ['required', 'email', 'max:150'], 'name' => ['nullable', 'string', 'max:150']]);
+        [$challenge, $error] = $otp->start($request, 'shopper_login', $data['email'], null, ['name' => trim((string) ($data['name'] ?? ''))]);
+        if (! $challenge) {
+            return response()->json(['message' => $error ?: 'Could not send the code. Please try again shortly.'], 429);
+        }
+
+        return response()->json(['challenge_id' => $challenge->id, 'email' => $challenge->email, 'message' => 'We emailed you a 6-digit code.']);
+    }
+
+    /** Step 2: the code proves the shopper owns the email. Only then do points, orders and the account open up. */
+    public function customerOtpVerify(Request $request, string $slug, EmailOtpService $otp)
+    {
         $store = Storefront::where('slug', $slug)->firstOrFail();
-        $data = $request->validate([
-            'phone' => ['required', 'string', 'max:40'],
-            'name' => ['required', 'string', 'max:150'],
-            'email' => ['nullable', 'email', 'max:150'],
-        ]);
-        $phone = preg_replace('/[^\d+]/', '', $data['phone']);
-        session(['commerce_customer' => [
-            'phone' => $phone,
-            'name' => $data['name'],
-            'email' => $data['email'] ?? null,
-        ]]);
+        $data = $request->validate(['challenge_id' => ['required', 'string', 'max:60'], 'code' => ['required', 'string', 'max:12'], 'name' => ['nullable', 'string', 'max:150']]);
+        [$status, $challenge] = $otp->verify($request, $data['challenge_id'], 'shopper_login', $data['code']);
+        if ($status !== EmailOtpService::OK) {
+            $msg = ['invalid' => 'That code is not right.', 'expired' => 'That code has expired. Ask for a new one.', 'locked' => 'Too many wrong tries. Ask for a new code.'][$status] ?? 'Please ask for a new code.';
+            return response()->json(['message' => $msg, 'reason' => $status], 422);
+        }
+        $email = mb_strtolower($challenge->email);
+        $existing = DB::table('parties')->where('tenant_id', $store->tenant_id)->whereRaw('LOWER(email) = ?', [$email])->whereNull('deleted_at')->first();
+        $name = trim((string) ($existing->name ?? ($challenge->payload['name'] ?? ($data['name'] ?? '')))) ?: Str::before($email, '@');
+        $sess = ['email' => $email, 'name' => $name, 'phone' => $existing->phone ?? null, 'verified' => true];
+        $request->session()->regenerate();
+        session(['commerce_customer' => $sess]);
+        ShopperAccount::partyId((int) $store->tenant_id, $sess, true);
 
-        $customerOrders = DB::table('commerce_orders')
-            ->where('storefront_id', $store->id)
-            ->where('customer_phone', $phone)
-            ->orderByDesc('created_at')
-            ->limit(20)
-            ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
-            ->map(function ($o) use ($store) {
-                $token = \Illuminate\Support\Str::random(48);
-                DB::table('commerce_order_tokens')->insert([
-                    'order_id' => $o->id,
-                    'token_hash' => hash('sha256', $token),
-                    'created_at' => now(),
-                ]);
-                return [
-                    'id' => $o->id,
-                    'number' => $o->public_number,
-                    'status' => $o->status,
-                    'total' => (float) $o->total,
-                    'currency_symbol' => $o->currency_symbol,
-                    'fulfilment' => $o->fulfilment,
-                    'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
-                    'status_url' => url('/order-status/' . $token),
-                ];
-            })->values();
-
-        $myReview = StorefrontReview::where('storefront_id', $store->id)
-            ->where('customer_phone', $phone)
-            ->first();
-
-        return response()->json([
-            'success' => true,
-            'customer' => [
-                'name' => $data['name'],
-                'phone' => $phone,
-                'email' => $data['email'] ?? null,
-                'orders' => $customerOrders,
-                'has_reviewed' => (bool) $myReview,
-                'review' => $myReview ? [
-                    'rating' => (int) $myReview->rating,
-                    'review' => $myReview->review,
-                ] : null,
-            ]
-        ]);
+        return response()->json(['success' => true, 'customer' => ShopperAccount::payload($store)]);
     }
 
     public function customerLogout(Request $request, string $slug)
@@ -765,16 +712,13 @@ class PublicStoreController extends Controller
     public function submitRating(Request $request, string $slug)
     {
         $store = Storefront::where('slug', $slug)->firstOrFail();
-        $custSession = session('commerce_customer');
-        $phone = $custSession['phone'] ?? preg_replace('/[^\d+]/', '', (string) $request->input('phone', ''));
-        $name = $custSession['name'] ?? trim((string) $request->input('name', ''));
-        $email = $custSession['email'] ?? $request->input('email');
-
-        if (empty($phone) || empty($name)) {
-            return response()->json([
-                'message' => 'Please sign in with your customer name and phone to rate this store.',
-            ], 401);
+        $sess = ShopperAccount::session();
+        if (! $sess) {
+            return response()->json(['message' => 'Please sign in with your email to rate this store.'], 401);
         }
+        $phone = ShopperAccount::reviewKey($sess);
+        $name = $sess['name'];
+        $email = $sess['email'];
 
         $data = $request->validate([
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
@@ -783,7 +727,7 @@ class PublicStoreController extends Controller
 
         $isVerified = DB::table('commerce_orders')
             ->where('storefront_id', $store->id)
-            ->where('customer_phone', $phone)
+            ->where('customer_email', $email)
             ->exists();
 
         $review = StorefrontReview::updateOrCreate(
@@ -800,12 +744,6 @@ class PublicStoreController extends Controller
                 'is_verified_purchaser' => $isVerified,
             ]
         );
-
-        session(['commerce_customer' => [
-            'phone' => $phone,
-            'name' => $name,
-            'email' => $email,
-        ]]);
 
         $avgRating = StorefrontReview::where('storefront_id', $store->id)->avg('rating');
         $reviewCount = StorefrontReview::where('storefront_id', $store->id)->count();
@@ -841,35 +779,7 @@ class PublicStoreController extends Controller
     public function customerOrders(Request $request, string $slug)
     {
         $store = Storefront::where('slug', $slug)->firstOrFail();
-        $custSession = session('commerce_customer');
-        if (! $custSession || empty($custSession['phone'])) {
-            return response()->json(['orders' => []]);
-        }
-        $orders = DB::table('commerce_orders')
-            ->where('storefront_id', $store->id)
-            ->where('customer_phone', $custSession['phone'])
-            ->orderByDesc('created_at')
-            ->limit(20)
-            ->get(['id', 'public_number', 'status', 'total', 'currency_symbol', 'created_at', 'fulfilment'])
-            ->map(function ($o) use ($store) {
-                $token = \Illuminate\Support\Str::random(48);
-                DB::table('commerce_order_tokens')->insert([
-                    'order_id' => $o->id,
-                    'token_hash' => hash('sha256', $token),
-                    'created_at' => now(),
-                ]);
-                return [
-                    'id' => $o->id,
-                    'number' => $o->public_number,
-                    'status' => $o->status,
-                    'total' => (float) $o->total,
-                    'currency_symbol' => $o->currency_symbol,
-                    'fulfilment' => $o->fulfilment,
-                    'created_at' => CommerceOrder::localTime($o->created_at, $store->timezone ?? 'UTC'),
-                    'status_url' => url('/order-status/' . $token),
-                ];
-            })->values();
 
-        return response()->json(['orders' => $orders]);
+        return response()->json(['orders' => ShopperAccount::payload($store)['orders'] ?? []]);
     }
 }

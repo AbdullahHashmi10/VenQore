@@ -1,6 +1,10 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import React, { useState, useMemo } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import StockModuleTabs, { useStockNavGroups, ListFilterSelect } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
 import PrintService from '@/Utils/PrintService';
 import { usePage, Head, Link, useForm, router } from '@inertiajs/react';
 import {
@@ -23,6 +27,7 @@ import { useTermText } from '@/lib/terms';
 export default function SerialTracking({ serials, stats, filters }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    const navGroups = useStockNavGroups();
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState(filters?.status || 'all');
     const [sortConfig, setSortConfig] = useState({ key: 'serial', direction: 'asc' });
@@ -71,115 +76,73 @@ export default function SerialTracking({ serials, stats, filters }) {
     };
 
     return (
-        <OneGlanceLayout title="Serial Tracking" activeMenu="Stock">
+        <OneGlanceLayout title="Serial Tracking" activeMenu="Stock" noPadding>
             <Head title="Serial Tracking" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <StockModuleTabs activeTab="serial" />
-
-                {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Barcode size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Serials</p>
-                        </div>
-                        <p className="text-lg font-bold text-ink">{stats?.total_serials || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">In Stock</p>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-600">{stats?.in_stock || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <ShoppingCart size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Sold</p>
-                        </div>
-                        <p className="text-lg font-bold text-blue-600">{stats?.sold || 0}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <CornerDownLeft size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Returned</p>
-                        </div>
-                        <p className="text-lg font-bold text-amber-600">{stats?.returned || 0}</p>
-                    </div>
-                </div>
-
-                {/* Header Bar - Title + Filter Pills + Search */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Serial <span className="text-brand-600">Tracking</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => handleStatusFilter('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
-                                    ? 'bg-brand-600 text-white'
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >All</button>
-                        <button
-                            onClick={() => handleStatusFilter('available')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'available'
-                                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Available</button>
-                        <button
-                            onClick={() => handleStatusFilter('sold')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'sold'
-                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Sold</button>
-                        <button
-                            onClick={() => handleStatusFilter('returned')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'returned'
-                                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg '
-                                    : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
-                                }`}
-                        >Returned</button>
-                    </div>
-
-                    {/* Right: Search + Export */}
-                    <div className="flex items-center gap-2">
-                        <form onSubmit={handleSearch} className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search serials..."
-                                className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
-                            />
-                        </form>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <ListToolbar
+                    title="Serial Tracking"
+                    navGroups={navGroups}
+                    activeId="serial"
+                    left={
+                        <ListFilterSelect
+                            value={statusFilter}
+                            onChange={handleStatusFilter}
+                            ariaLabel="Status"
+                            options={[{ value: 'all', label: 'All serials' }, { value: 'available', label: 'Available' }, { value: 'sold', label: 'Sold' }, { value: 'returned', label: 'Returned' }]}
+                        />
+                    }
+                    actions={
+                        <>
+                            <form onSubmit={handleSearch} className="relative w-64 lg:w-72">
+                                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    placeholder="Search serials..."
+                                    className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[12px] outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                />
+                            </form>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} className="h-10 w-10 flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-[12px] text-emerald-600" title="Export" onClick={() => exportRowsToCsv('serials', [{label:'Serial #',get:r=>r.serial_number},{label:'Product',get:r=>r.product?.name},{label:'Warehouse',get:r=>r.warehouse?.name},{label:'Status',get:r=>r.status},{label:'Created',get:r=>r.created_at}], (serials?.data||[]))}>
                                 <Download size={16} />
                             </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
+                            <button onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center hover:bg-interactive-hover rounded-[12px] text-ink-muted hover:text-ink transition-colors" title="Print">
                                 <Printer size={16} />
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    }
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Serials', value: stats?.total_serials || 0, icon: Barcode, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'In Stock', value: stats?.in_stock || 0, icon: CheckCircle, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Sold', value: stats?.sold || 0, icon: ShoppingCart, icon_tone: 'bg-blue-50 text-blue-600', value_tone: 'text-blue-600' },
+                    { label: 'Returned', value: stats?.returned || 0, icon: CornerDownLeft, icon_tone: 'bg-amber-50 text-amber-600', value_tone: 'text-amber-600' },
+                ]} />
+
+                {/* Stats Cards - 4 Separate Cards in Row */}
+                <MobileListHeader
+                    title="Serial Tracking"
+                    navGroups={navGroups}
+                    activeId="serial"
+                    filter={{
+                        active: statusFilter !== 'all',
+                        sections: [{ label: 'Status', value: statusFilter, options: [{ value: 'all', label: 'All serials' }, { value: 'available', label: 'Available' }, { value: 'sold', label: 'Sold' }, { value: 'returned', label: 'Returned' }], onSelect: handleStatusFilter }],
+                    }}
+                    search={{ value: searchTerm, onChange: setSearchTerm, onKeyDown: (e) => { if (e.key === 'Enter') handleSearch(e); }, placeholder: 'Search serials...' }}
+                    actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Serials', value: stats?.total_serials || 0, tone: 'brand', icon: Barcode },
+                    { label: 'In Stock', value: stats?.in_stock || 0, tone: 'emerald', icon: CheckCircle },
+                    { label: 'Sold', value: stats?.sold || 0, tone: 'blue', icon: ShoppingCart },
+                    { label: 'Returned', value: stats?.returned || 0, tone: 'amber', icon: CornerDownLeft },
+                ]} />
+
+                {/* Header Bar - Title + Filter Pills + Search */}
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -191,13 +154,13 @@ export default function SerialTracking({ serials, stats, filters }) {
                                         Serial # <SortIcon columnKey="serial" />
                                     </div>
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     {tt('Product')}
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
                                     Status
                                 </th>
-                                <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+                                <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
                                     Location
                                 </th>
                                 <th
@@ -277,7 +240,7 @@ export default function SerialTracking({ serials, stats, filters }) {
                         <Pagination links={serials.links} />
                     </div>
                 )}
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

@@ -194,8 +194,9 @@ class PrinterService extends EventEmitter {
     }
 
     enqueue(name, fn) {
+        this.pendingJobs = (this.pendingJobs || 0) + 1;
         const prev = this.queues.get(name) || Promise.resolve();
-        const run = prev.then(fn, fn);
+        const run = prev.then(fn, fn).finally(() => { this.pendingJobs--; });
         this.queues.set(name, run.catch(() => {}));
         return run;
     }

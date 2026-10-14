@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import {
     Sparkles, Zap, Clock, AlertTriangle, Key, ShoppingCart,
     FileText, Database, Check, AlertCircle, Plus, ArrowUpRight
@@ -78,13 +79,19 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
     };
 
     return (
-        <OneGlanceLayout title="AI Usage & Quota" activeMenu="AI Usage">
+        <OneGlanceLayout title="AI Usage & Quota" activeMenu="AI Usage" noPadding>
             <Head title="AI Usage & Metering — VenQore" />
 
-            <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+            <ListPageFrame className="p-1.5">
+<ListToolbar title="AI Quota & Metering" actions={<>
+<span className="h-10 px-3.5 rounded-[12px] flex items-center text-xs font-mono font-bold uppercase bg-app border border-line text-ink-secondary">Plan: {planInfo.slug || store?.plan || 'Standard'}</span>
+{aiUsage.resets_on && (<span className="h-10 px-3.5 rounded-[12px] flex items-center gap-1.5 text-xs font-medium bg-[#0BAA8F]/10 border border-[#0BAA8F]/25 text-[#0BAA8F]"><Clock size={12} />Resets on {aiUsage.resets_on}</span>)}
+</>} />
+<div className="md:flex-1 md:min-h-0 md:overflow-auto">
+<div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
 
                 {/* ── Page Header ───────────────────────────────────────────── */}
-                <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="md:hidden flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 mb-2">
                             <span>Account Settings</span>
@@ -369,10 +376,10 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                             <table className="w-full text-xs">
                                 <thead>
                                     <tr className="border-b border-neutral-200 dark:border-white/[0.08] text-neutral-500 dark:text-neutral-400 font-bold uppercase tracking-wider text-left">
-                                        <th className="py-2.5 px-3">Feature</th>
-                                        <th className="py-2.5 px-3">Units</th>
-                                        <th className="py-2.5 px-3">Status</th>
-                                        <th className="py-2.5 px-3 text-right">Timestamp</th>
+                                        <th className="sticky top-0 z-10 bg-app py-2.5 px-3">Feature</th>
+                                        <th className="sticky top-0 z-10 bg-app py-2.5 px-3">Units</th>
+                                        <th className="sticky top-0 z-10 bg-app py-2.5 px-3">Status</th>
+                                        <th className="sticky top-0 z-10 bg-app py-2.5 px-3 text-right">Timestamp</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-neutral-100 dark:divide-white/[0.04]">
@@ -407,7 +414,9 @@ export default function AiUsageIndex({ recent_events = [], addon_catalogue = {},
                 </div>
 
             </div>
-        </OneGlanceLayout>
+        </div>
+</ListPageFrame>
+</OneGlanceLayout>
     );
 }
 

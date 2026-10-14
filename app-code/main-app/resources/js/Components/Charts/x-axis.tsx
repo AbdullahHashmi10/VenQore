@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useChart, useChartStable } from "./chart-context";
@@ -36,6 +36,8 @@ interface XAxisLabelProps {
   isHovering: boolean;
   tickerHalfWidth: number;
   animatePosition: boolean;
+  /** Width of the chart box — a label is kept inside it, never cut by its edge. */
+  containerWidth: number;
 }
 
 function XAxisLabel({
@@ -46,7 +48,19 @@ function XAxisLabel({
   isHovering,
   tickerHalfWidth,
   animatePosition,
+  containerWidth,
 }: XAxisLabelProps) {
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const [labelW, setLabelW] = useState(0);
+  useLayoutEffect(() => {
+    if (spanRef.current) setLabelW(spanRef.current.offsetWidth);
+  }, [label]);
+  /* centre the label on its point, then slide it back inside the chart box */
+  let shift = -labelW / 2;
+  if (containerWidth > 0 && labelW > 0) {
+    if (x + shift + labelW > containerWidth - 2) shift = containerWidth - 2 - labelW - x;
+    if (x + shift < 2) shift = 2 - x;
+  }
   const fadeBuffer = 20;
   const fadeRadius = tickerHalfWidth + fadeBuffer;
 
@@ -70,7 +84,7 @@ function XAxisLabel({
         bottom: 12,
         width: 0,
         display: "flex",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         transition: animatePosition
           ? `left ${X_AXIS_POSITION_TWEEN_MS}ms cubic-bezier(${LINE_LOADING_PULSE_EASE.join(", ")})`
           : undefined,
@@ -78,7 +92,9 @@ function XAxisLabel({
     >
       <span
         className={cn("whitespace-nowrap text-chart-label text-xs")}
+        ref={spanRef}
         style={{
+          transform: labelW > 0 ? `translateX(${shift}px)` : "translateX(-50%)",
           opacity,
           transition: "opacity 0.4s ease-in-out",
         }}
@@ -648,6 +664,7 @@ const XAxisInner = memo(function XAxisInner({
       {labelsToShow.map((item) => (
         <XAxisLabel
           animatePosition={xDomain == null}
+          containerWidth={container.clientWidth}
           crosshairX={crosshairX}
           hoveredLabel={hoveredLabel}
           isHovering={isHovering}

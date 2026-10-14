@@ -16,6 +16,16 @@ Broadcast::channel('agent.inbox.{tenantId}', function ($user, $tenantId) {
         ->exists();
 });
 
+Broadcast::channel('tenant.{tenantId}.orders', function ($user, $tenantId) {
+    if ($user->is_platform_admin || $user->isPlatformStaff()) {
+        return true;
+    }
+    return $user->memberships()
+        ->where('tenant_id', (int) $tenantId)
+        ->where('status', 'active')
+        ->exists();
+});
+
 Broadcast::channel('agent.inbox.global', function ($user) {
     return (bool) $user->is_platform_admin || $user->isPlatformStaff();
 });

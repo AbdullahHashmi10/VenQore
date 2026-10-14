@@ -36,6 +36,7 @@ export default function CreateReturn({ aiPrefill }) {
     const [picking, setPicking] = useState(false);
     const [query, setQuery] = useState('');
     const [sales, setSales] = useState([]);
+    const [pickParty, setPickParty] = useState(null);   // customer chosen in the header, if any
     const [loading, setLoading] = useState(false);
     const [chequeBankAccountId, setChequeBankAccountId] = useState(null);
     const { options: chequeLeafOptions, loading: chequeLeafLoading, error: chequeLeafError, leaves: chequeLeaves } =
@@ -81,7 +82,7 @@ export default function CreateReturn({ aiPrefill }) {
         }
     }, [store]);
 
-    useEffect(() => { if (picking) search(query, null); }, [picking]);
+    useEffect(() => { if (picking) search(query, pickParty); }, [picking]);
 
     const load = async (saleId, patch) => {
         setLoading(true);
@@ -154,7 +155,7 @@ export default function CreateReturn({ aiPrefill }) {
                     <Field label="Against invoice" span={4} required error={errors.source}>
                         <button type="button" className="vqdoc-in"
                             style={{ textAlign: 'left', cursor: 'pointer' }}
-                            onClick={() => setPicking(true)}>
+                            onClick={() => { setPickParty(d.party?.id || null); setPicking(true); }}>
                             {d.source
                                 ? `${d.source.reference} · ${money(d.source.total)}`
                                 : 'Find the sale being returned…'}
@@ -309,7 +310,7 @@ export default function CreateReturn({ aiPrefill }) {
             extraSheets={({ patch }) => (picking ? (
                 <Sheet
                     title="Which sale is coming back?"
-                    hint="Only posted sales can be returned against. Picking one loads its lines and caps each of them at what is still returnable."
+                    hint={pickParty ? `Only this customer\u2019s sales, newest first. Picking one loads its lines and caps each at what is still returnable.` : 'Only posted sales can be returned against. Choose a customer first to see just their invoices.'}
                     icon={<FileSearch size={18} />}
                     width={760}
                     onClose={() => setPicking(false)}
@@ -318,10 +319,10 @@ export default function CreateReturn({ aiPrefill }) {
                         <Field label="Search" span={12}>
                             <div style={{ display: 'flex', gap: 'var(--d-s3)' }}>
                                 <input type="text" className="vqdoc-in" value={query} autoFocus
-                                    placeholder="Invoice number or customer name"
+                                    placeholder={pickParty ? 'Invoice number' : 'Invoice number or customer name'}
                                     onChange={(e) => setQuery(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') search(query, null); }} />
-                                <button type="button" className="vqdoc-btn" onClick={() => search(query, null)}>
+                                    onKeyDown={(e) => { if (e.key === 'Enter') search(query, pickParty); }} />
+                                <button type="button" className="vqdoc-btn" onClick={() => search(query, pickParty)}>
                                     <Search size={15} /> Find
                                 </button>
                             </div>
@@ -331,7 +332,7 @@ export default function CreateReturn({ aiPrefill }) {
                     <div style={{ display: 'grid', gap: 'var(--d-s2)', marginTop: 'var(--d-s4)' }}>
                         {loading && <span style={{ color: 'var(--vq-text-3)' }}>Looking…</span>}
                         {!loading && !sales.length && (
-                            <span style={{ color: 'var(--vq-text-3)' }}>No posted sales match that.</span>
+                            <span style={{ color: 'var(--vq-text-3)' }}>{pickParty ? 'This customer has no sale that can be returned.' : 'No posted sales match that.'}</span>
                         )}
                         {sales.map((s) => (
                             <button
@@ -341,8 +342,10 @@ export default function CreateReturn({ aiPrefill }) {
                                 style={{ width: '100%' }}
                                 onClick={() => load(s.id, patch)}
                             >
-                                <span className="who">{s.party_name || 'Walk-in'}</span>
-                                <span className="meta">{s.reference_number} · {(s.posted_at || '').slice(0, 10)}</span>
+                                <span className="who">{s.reference_number}{!pickParty ? ` · ${s.party_name || 'Walk-in'}` : ''}</span>
+                                <span className="meta">
+                                    {(s.posted_at || '').slice(0, 10)} · {s.items_count} item{Number(s.items_count) === 1 ? '' : 's'} · {String(s.payment_status || '').replace(/_/g, ' ') || 'posted'}{s.status === 'partially_returned' ? ' · partly returned' : ''}
+                                </span>
                                 <span className="amt">{money(s.total)}</span>
                             </button>
                         ))}

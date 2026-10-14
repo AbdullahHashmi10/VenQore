@@ -1,7 +1,7 @@
 {
   "core.revenue": {
     "key": "core.revenue",
-    "title": "Revenue",
+    "title": "Sales Amount (Revenue)",
     "viz": "stat",
     "shape": "stat",
     "module": null,
@@ -66,7 +66,7 @@
   },
   "core.revenue_trend": {
     "key": "core.revenue_trend",
-    "title": "Revenue Trend",
+    "title": "Sales Amount Trend",
     "viz": "trend",
     "shape": "trend",
     "module": null,
@@ -911,7 +911,7 @@
   },
   "core.total_liquidity": {
     "key": "core.total_liquidity",
-    "title": "Total Liquidity",
+    "title": "Total Balance",
     "viz": "stat",
     "shape": "stat",
     "module": null,
@@ -4188,7 +4188,7 @@
   },
   "pos.sale_count": {
     "key": "pos.sale_count",
-    "title": "Sales Rung Up",
+    "title": "Number of Sales (POS)",
     "viz": "stat",
     "shape": "stat",
     "module": "pos",
@@ -11501,7 +11501,7 @@
   },
   "purchases.spend": {
     "key": "purchases.spend",
-    "title": "Purchase Spend",
+    "title": "Purchases Amount (Total Spend)",
     "viz": "stat",
     "shape": "stat",
     "module": "purchases",
@@ -11560,7 +11560,7 @@
   },
   "purchases.spend_trend": {
     "key": "purchases.spend_trend",
-    "title": "Purchase Spend Trend",
+    "title": "Purchases Amount Trend",
     "viz": "trend",
     "shape": "trend",
     "module": "purchases",
@@ -11619,7 +11619,7 @@
   },
   "purchases.count": {
     "key": "purchases.count",
-    "title": "Purchase Bills",
+    "title": "Number of Purchases",
     "viz": "stat",
     "shape": "stat",
     "module": "purchases",
@@ -11910,7 +11910,7 @@
   },
   "purchases.by_category": {
     "key": "purchases.by_category",
-    "title": "Spend by Category",
+    "title": "Purchases by Category",
     "viz": "breakdown",
     "shape": "breakdown",
     "module": "purchases",
@@ -21756,5 +21756,865 @@
       "status_reason": null,
       "definition_version": 1
     }
+  },
+  "core.sales_count": {
+    "key": "core.sales_count",
+    "title": "Number of Sales",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 92,
+    "topic": "revenue",
+    "insight": "How many separate sales you made (POS and invoices together). Revenue is the money; this is the count.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "qore",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "How many sales you made in the period. Revenue is the money; this is how many separate sales that money came from.",
+      "streams": "GL"
+    },
+    "contract": {
+      "measures": [
+        "sales.count"
+      ],
+      "projection": "stat",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "core.sales_count_trend": {
+    "key": "core.sales_count_trend",
+    "title": "Sales Count Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 88,
+    "topic": "revenue",
+    "insight": "Number of sales plotted day by day, so you can see your busy and quiet days.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "qore",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Number of sales plotted day by day, so you can see your busy and quiet days.",
+      "streams": "GL"
+    },
+    "contract": {
+      "measures": [
+        "sales.count"
+      ],
+      "projection": "trend",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "core.cash_in_hand": {
+    "key": "core.cash_in_hand",
+    "title": "Cash in Hand",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": false,
+    "weight": 95,
+    "topic": "liquidity",
+    "insight": "The cash you are holding right now: the cash drawer and the safe. Bank money is not counted here.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "live",
+      "today",
+      "as_of",
+      "this_month"
+    ],
+    "default_period": "today",
+    "tier": "Ledger balance",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "qore",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "The cash you are holding right now: the cash drawer and the safe. Bank money is not counted here.",
+      "streams": "GL"
+    },
+    "contract": {
+      "measures": [
+        "gl.balance_cash"
+      ],
+      "projection": "stat",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "as_of",
+      "dims": [],
+      "tier": "Ledger balance",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "purchases.count_trend": {
+    "key": "purchases.count_trend",
+    "title": "Number of Purchases Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "purchases",
+    "period": true,
+    "weight": 70,
+    "topic": null,
+    "insight": "How many supplier bills you entered, day by day.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "purchases.view"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "purchases",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "How many supplier bills you entered, day by day.",
+      "streams": "PH"
+    },
+    "contract": {
+      "measures": [
+        "purchases.count"
+      ],
+      "projection": "trend",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "expenses.count_trend": {
+    "key": "expenses.count_trend",
+    "title": "Expense Entries Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "expenses",
+    "period": true,
+    "weight": 60,
+    "topic": "expenses",
+    "insight": "How many expenses you recorded, day by day.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "expense.entries",
+      "ledger.journal"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "finance.expenses",
+      "reports.financial"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "expenses",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "How many expenses you recorded, day by day.",
+      "streams": "EE,GL"
+    },
+    "contract": {
+      "measures": [
+        "expenses.count"
+      ],
+      "projection": "trend",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    }
+  },
+  "core.sales_by_category": {
+    "key": "core.sales_by_category",
+    "title": "Sales by Category",
+    "viz": "breakdown",
+    "shape": "breakdown",
+    "module": null,
+    "period": true,
+    "weight": 90,
+    "topic": null,
+    "insight": "What you sold, split by product category. Shows which categories bring in the most money.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "sales",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "What you sold, split by product category. Shows which categories bring in the most money.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "sales.line_net"
+      ],
+      "projection": "breakdown",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "dimensions": {}
+  },
+  "core.sales_category": {
+    "key": "core.sales_category",
+    "title": "Sales of One Category",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 89,
+    "topic": "revenue",
+    "insight": "What you sold in the one product category you pick. Choose the category in the Data step.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "sales",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "What you sold in the one product category you pick. Choose the category in the Data step.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "sales.line_net"
+      ],
+      "projection": "stat",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "filter": "category",
+    "dimensions": {
+      "category_id": {
+        "type": "string"
+      }
+    }
+  },
+  "core.sales_category_trend": {
+    "key": "core.sales_category_trend",
+    "title": "Sales of One Category Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 87,
+    "topic": "revenue",
+    "insight": "Sales of the one category you pick, day by day. Choose the category in the Data step.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "ledger.journal",
+      "ledger.accounts",
+      "party.balances",
+      "payment.entries",
+      "sales.headers",
+      "expense.entries"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "sales",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Sales of the one category you pick, day by day. Choose the category in the Data step.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "sales.line_net"
+      ],
+      "projection": "trend",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "filter": "category",
+    "dimensions": {
+      "category_id": {
+        "type": "string"
+      }
+    }
+  },
+  "purchases.category_spend": {
+    "key": "purchases.category_spend",
+    "title": "Purchases of One Category",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": true,
+    "weight": 69,
+    "topic": null,
+    "insight": "What you bought in the one product category you pick. Choose the category in the Data step.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "purchases.view"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "purchases",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "What you bought in the one product category you pick. Choose the category in the Data step.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "purchases.line_total"
+      ],
+      "projection": "stat",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "filter": "category",
+    "dimensions": {
+      "category_id": {
+        "type": "string"
+      }
+    }
+  },
+  "purchases.category_spend_trend": {
+    "key": "purchases.category_spend_trend",
+    "title": "Purchases of One Category Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "purchases",
+    "period": true,
+    "weight": 67,
+    "topic": null,
+    "insight": "Purchases of the one category you pick, day by day. Choose the category in the Data step.",
+    "unit": "currency",
+    "precision": 2,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "purchases.view"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "purchases",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Purchases of the one category you pick, day by day. Choose the category in the Data step.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "purchases.line_total"
+      ],
+      "projection": "trend",
+      "unit": "currency",
+      "precision": 2,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "filter": "category",
+    "dimensions": {
+      "category_id": {
+        "type": "string"
+      }
+    }
+  },
+  "core.items_sold": {
+    "key": "core.items_sold",
+    "title": "Items Sold",
+    "viz": "stat",
+    "shape": "stat",
+    "module": null,
+    "period": true,
+    "weight": 91,
+    "topic": "revenue",
+    "insight": "How many items (units) you sold in total, across the POS, invoices and online. 50 items at the till plus 50 on invoices is 100 items.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "qore",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "How many items (units) you sold in total, across the POS, invoices and online. 50 items at the till plus 50 on invoices is 100 items.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "sales.line_qty"
+      ],
+      "projection": "stat",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "dimensions": {}
+  },
+  "core.items_sold_trend": {
+    "key": "core.items_sold_trend",
+    "title": "Items Sold Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": null,
+    "period": true,
+    "weight": 86,
+    "topic": "revenue",
+    "insight": "Items sold day by day, across every sales channel.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "sales.headers"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "reports.financial",
+      "reports.summary"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "qore",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Items sold day by day, across every sales channel.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "sales.line_qty"
+      ],
+      "projection": "trend",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "dimensions": {}
+  },
+  "purchases.items_purchased": {
+    "key": "purchases.items_purchased",
+    "title": "Items Purchased",
+    "viz": "stat",
+    "shape": "stat",
+    "module": "purchases",
+    "period": true,
+    "weight": 66,
+    "topic": null,
+    "insight": "How many items (units) you bought from suppliers in the period.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "purchases.view"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "purchases",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "How many items (units) you bought from suppliers in the period.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "purchases.line_total"
+      ],
+      "projection": "stat",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "dimensions": {}
+  },
+  "purchases.items_purchased_trend": {
+    "key": "purchases.items_purchased_trend",
+    "title": "Items Purchased Trend",
+    "viz": "trend",
+    "shape": "trend",
+    "module": "purchases",
+    "period": true,
+    "weight": 65,
+    "topic": null,
+    "insight": "Items bought from suppliers, day by day.",
+    "unit": "count",
+    "precision": 0,
+    "streams": [
+      "purchase.headers",
+      "purchase.lines",
+      "party.balances"
+    ],
+    "contract_state": "implemented_unverified",
+    "status_reason": null,
+    "permissions": [
+      "purchases.view"
+    ],
+    "periods": [
+      "today",
+      "yesterday",
+      "this_week",
+      "this_month",
+      "last_month",
+      "this_quarter",
+      "this_year",
+      "custom"
+    ],
+    "default_period": "this_month",
+    "tier": "Flow",
+    "matrix_status": "READY",
+    "matrix": {
+      "num": 0,
+      "section": "purchases",
+      "today": "EMPTY if there is no matching activity",
+      "unit_col": "=",
+      "target": "Items bought from suppliers, day by day.",
+      "streams": "SL"
+    },
+    "contract": {
+      "measures": [
+        "purchases.line_total"
+      ],
+      "projection": "trend",
+      "unit": "count",
+      "precision": 0,
+      "period_kind": "flow",
+      "dims": [],
+      "tier": "Flow",
+      "checks": [],
+      "status": "READY",
+      "status_reason": null,
+      "definition_version": 1
+    },
+    "dimensions": {}
   }
 }

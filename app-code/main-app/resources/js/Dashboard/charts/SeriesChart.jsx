@@ -135,7 +135,25 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
         aspectRatio: 'auto',
         ...motion,
     };
-    const plotMargin = { top: 18, right: 8, bottom: realDates ? 24 : 6, left: 34 };
+    /* Reports ask for clean lines (no dots) and extra room so the plot never
+       runs into the axis labels. Dashboards keep their dots on short series. */
+    const roomy = Boolean(meta?.roomy);
+    const markerR = meta?.noMarkers ? 0 : (rows.length <= 14 ? 5 : 0);
+    /* The y labels live in the left margin, so the margin has to be as wide as
+       the widest label ("$ 1.2M" needs more than "5"), or the labels sit on top
+       of the plot. Measured from the data's own extent, with room for a sign
+       and the currency glyph the label carries. */
+    const yFmt = axisFormatter();
+    let yMin = 0; let yMax = 0;
+    list.forEach((s) => rows.forEach((r) => {
+        const v = Number(r[s.key]);
+        if (Number.isFinite(v)) { yMax = Math.max(yMax, v); yMin = Math.min(yMin, v); }
+    }));
+    const yChars = Math.max(yFmt(yMax * 1.15).length, yFmt(yMin * 1.15).length, 2) + 2;
+    const yLeft = Math.min(92, Math.max(46, Math.round(yChars * 7 + 18)));
+    const plotMargin = roomy
+        ? { top: 20, right: 24, bottom: realDates ? 40 : 14, left: Math.max(56, yLeft) }
+        : { top: 20, right: realDates ? 34 : 12, bottom: realDates ? 34 : 8, left: yLeft };
 
     /* ── Bars — categorical, banded ───────────────────────────────────── */
     if (chartType === 'bar') {
@@ -150,7 +168,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                 {...common}
                 {...width}
                 xDataKey="name"
-                margin={{ top: 8, right: 4, bottom: 22, left: 4 }}
+                margin={roomy ? { top: 14, right: 12, bottom: 44, left: 12 } : { top: 12, right: 10, bottom: 30, left: 10 }}
                 barGap={0.3}
                 stacked={stacked}
                 stackGap={stacked ? 2 : 0}
@@ -174,7 +192,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         lineCap={cap}
                     />
                 ))}
-                <BarXAxis maxLabels={8} />
+                <BarXAxis maxLabels={roomy ? 8 : 6} />
                 <ChartTooltip
                     showDatePill={false}
                     content={({ point }) => (
@@ -215,7 +233,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                 xDataKey="date"
                 aspectRatio="2 / 1"
                 barGap={0}
-                margin={{ top: 8, right: 8, bottom: realDates ? 40 : 8, left: 8 }}
+                margin={roomy ? { top: 14, right: 24, bottom: realDates ? 48 : 12, left: Math.max(56, yLeft) } : { top: 14, right: 30, bottom: realDates ? 40 : 10, left: yLeft }}
                 maxBarSize={thin ? 10 : 32}
             >
                 <Grid horizontal />
@@ -255,7 +273,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                                 gradientToOpacity={0}
                                 strokeWidth={2}
                                 showMarkers
-                                markers={{ radius: rows.length <= 14 ? 5 : 0 }}
+                                markers={{ radius: markerR }}
                             />
                         );
                     }
@@ -267,7 +285,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                             stroke={i === 2 ? 'var(--chart-1)' : seriesColor(i)}
                             strokeWidth={2.5}
                             showMarkers
-                            markers={{ radius: rows.length <= 14 ? 5 : 0 }}
+                            markers={{ radius: markerR }}
                         />
                     );
                 })}
@@ -280,7 +298,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         stroke="var(--chart-1)"
                         strokeWidth={2.5}
                         showMarkers
-                        markers={{ radius: rows.length <= 14 ? 5 : 0 }}
+                        markers={{ radius: markerR }}
                     />
                 )}
                 {realDates ? <XAxis numTicks={8} /> : null}
@@ -333,7 +351,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         /* `line` strips the wash back to the stroke and its
                            points; `split` keeps the filled read. */
                         showMarkers
-                        markers={{ radius: rows.length <= 14 ? 5 : 0 }}
+                        markers={{ radius: markerR }}
                     />
                 ))}
                 {xAxis}
@@ -379,7 +397,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         gradientToOpacity={solid ? 0.28 : 0}
                         strokeWidth={2}
                         showMarkers
-                        markers={{ radius: rows.length <= 14 ? 5 : 0 }}
+                        markers={{ radius: markerR }}
                     />
                 ))}
                 {xAxis}
@@ -412,7 +430,7 @@ export default function SeriesChart({ data, definition, meta, settings, card, ch
                         ? Math.max(0, rows.length - 4)
                         : undefined}
                     showMarkers
-                    markers={{ radius: rows.length <= 14 ? 5 : 0 }}
+                    markers={{ radius: markerR }}
                 />
             ))}
             {xAxis}

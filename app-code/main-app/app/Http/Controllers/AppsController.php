@@ -8,6 +8,13 @@ use Inertia\Response;
 
 class AppsController extends Controller
 {
+    public function downloadStation()
+    {
+        $release = \App\Support\StationRelease::metadata();
+        abort_unless($release['is_live'], 503, 'The Station installer has not been published yet.');
+        return redirect($release['installer_url'], 302)->header('Cache-Control', 'no-store');
+    }
+
     /**
      * Show the dedicated native applications and downloads hub.
      * Displays VenQore Station for Windows and VenQore Mobile (Android & iOS) roadmap.
@@ -28,16 +35,7 @@ class AppsController extends Controller
                 'plan'  => $tenant->plan,
             ],
             'apps' => [
-                'windows' => [
-                    'name'            => 'VenQore Station for Windows',
-                    'version'         => '1.4.2',
-                    'release_date'    => '2026-09-01',
-                    'installer_url'   => '/downloads/VenQore_Station_Setup.exe',
-                    'file_size'       => '84.6 MB',
-                    'min_os'          => 'Windows 10 / 11 (64-bit)',
-                    'status'          => 'stable',
-                    'is_live'         => true,
-                ],
+                'windows' => \App\Support\StationRelease::metadata(),
                 'mobile' => [
                     'name'         => 'VenQore Mobile Companion',
                     'status'       => 'coming_soon',

@@ -6,6 +6,7 @@ import {
     FileText, Plus, UserCheck, Key, RefreshCw, FileDown
 } from 'lucide-react';
 import { formatNumber } from '@/Utils/format';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 
 export default function FiscalYears({ auth, fiscal_years = [], active_lock = null, active_exceptions = [], retained_accounts = [] }) {
     const [selectedFy, setSelectedFy] = useState(null);
@@ -134,12 +135,18 @@ export default function FiscalYears({ auth, fiscal_years = [], active_lock = nul
     };
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout noPadding>
             <Head title="Fiscal Years & Period Locks" />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            <ListPageFrame className="p-1.5">
+<ListToolbar title="Fiscal Years & Period Control" actions={<>
+<button type="button" onClick={() => setShowLockModal(true)} className="h-10 px-4 rounded-[12px] bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold flex items-center gap-2 shadow-sm"><Lock size={16} />Set Period Lock</button>
+<ListAddButton icon={Plus} onClick={() => setShowCreateModal(true)}>New Fiscal Year</ListAddButton>
+</>} />
+<div className="md:flex-1 md:min-h-0 md:overflow-auto">
+<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <div className="md:hidden flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                             <Calendar className="w-7 h-7 text-indigo-600" />
@@ -410,6 +417,8 @@ export default function FiscalYears({ auth, fiscal_years = [], active_lock = nul
                     </div>
                 )}
             </div>
-        </OneGlanceLayout>
+        </div>
+</ListPageFrame>
+</OneGlanceLayout>
     );
 }

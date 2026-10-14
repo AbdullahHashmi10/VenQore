@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import { Utensils, ShoppingBag, Bike, Save, PackageX } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import { toast } from '@/Foh/useFoh';
 import '@/Foh/foh.css';
 
@@ -54,13 +55,21 @@ export default function FohSettings({ storeSlug, fohSettings, extra, categories 
     };
 
     return (
-        <OneGlanceLayout title="FOH Settings" activeMenu="Restaurant">
+        <OneGlanceLayout title="FOH Settings" activeMenu="Restaurant" noPadding>
             <Head title="FOH Settings" />
+            <ListPageFrame className="p-1.5">
+            <ListToolbar
+                title="FOH Settings"
+                actions={<ListAddButton icon={Save} onClick={save} disabled={saving} className="disabled:opacity-60">{saving ? 'Saving…' : 'Save'}</ListAddButton>}
+            />
+            <div className="md:flex-1 md:min-h-0 md:overflow-auto">
             <div className="foh-set">
+                <div className="md:hidden">
                 <header className="foh-set-h">
                     <h1>Front of house settings</h1>
                     <button type="button" className="vqt-btn vqt-btn-go" onClick={save} disabled={saving}><Save size={16} /> {saving ? 'Saving…' : 'Save'}</button>
                 </header>
+                </div>
 
                 <section>
                     <h2>What you serve</h2>
@@ -129,6 +138,8 @@ export default function FohSettings({ storeSlug, fohSettings, extra, categories 
 
                 <p className="foh-muted">Floor plan and riders: <Link href={route('store.restaurant.riders', { store_slug: storeSlug })}>Riders</Link>.</p>
             </div>
+            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

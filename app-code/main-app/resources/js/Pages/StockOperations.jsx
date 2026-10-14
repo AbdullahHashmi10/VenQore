@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PremiumButton from '@/Components/PremiumButton';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import StockModuleTabs, { useStockNavGroups } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar } from '@/Components/ListShell';
 
 import { ArrowRightLeft, Settings, ClipboardCheck, Plus, Search, Download, Box, Maximize2, Minimize2, Save, Trash2, RefreshCcw, XCircle, CheckSquare, Square, Check, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
@@ -15,6 +18,8 @@ export default function StockOperations({ products, warehouses, reasons }) {
         store
     } = usePage().props;
 
+    const navGroups = useStockNavGroups();
+
     // Smart default: Skip transfers if only 1 warehouse
     const hasMultipleWarehouses = warehouses?.length > 1;
     const defaultWarehouse = warehouses?.length === 1 ? warehouses[0] : null;
@@ -25,18 +30,27 @@ export default function StockOperations({ products, warehouses, reasons }) {
     const activeTab = urlTab === 'warehouses' ? 'warehouses' : 'adjustments';
 
     return (
-        <OneGlanceLayout title="Stock Operations" activeMenu="Stock">
+        <OneGlanceLayout title="Stock Operations" activeMenu="Stock" noPadding>
             <Head title="Stock Operations" />
 
-            <div className="h-full flex flex-col">
-                <StockModuleTabs activeTab={activeTab} />
+            <ListPageFrame className="h-full flex flex-col p-1.5">
+                <ListToolbar
+                    title={activeTab === 'warehouses' ? 'Warehouses' : 'Stock Adjustments'}
+                    navGroups={navGroups}
+                    activeId={activeTab}
+                />
+                <MobileListHeader
+                    title={activeTab === 'warehouses' ? 'Warehouses' : 'Stock Adjustments'}
+                    navGroups={navGroups}
+                    activeId={activeTab}
+                />
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-hidden bg-app relative">
+                <div className="flex-1 min-h-0 overflow-hidden bg-app relative md:rounded-[14px] md:border md:border-line md:shadow-sm">
                     {activeTab === 'warehouses' && <WarehouseManagement warehouses={warehouses} />}
                     {activeTab === 'adjustments' && <StockAdjustments products={products} warehouses={warehouses} defaultWarehouse={defaultWarehouse} hasMultipleWarehouses={hasMultipleWarehouses} reasons={reasons} />}
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }
@@ -364,7 +378,13 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
     return (
         <div className="flex flex-col h-full p-2 gap-1 overflow-hidden">
             {/* Stats Cards - Compact Single Line (like Sales page) */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+            <MobileStats bp="md" hero={0} items={[
+                { label: tt('Products'), value: totalProducts, tone: 'brand', icon: Box },
+                { label: 'Total Stock', value: totalStock.toLocaleString(), tone: 'emerald', icon: CheckSquare },
+                { label: 'Low Stock', value: lowStock, tone: 'amber', icon: AlertTriangle },
+                { label: 'Out of Stock', value: outOfStock, tone: 'rose', icon: XCircle },
+            ]} />
+            <div className="hidden md:grid grid-cols-4 gap-1 shrink-0">
                 <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">

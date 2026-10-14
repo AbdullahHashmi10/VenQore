@@ -76,15 +76,15 @@ test('currency_symbol_setting_appears_in_sale_receipts', function () {
     ]);
 
     // Create a sale
-    $sale = Sale::create([
+    $sale = \App\Services\CanonicalPostingScope::run(fn() => Sale::create([
         'tenant_id' => $this->tenant->id,
         'user_id' => auth()->id(),
         'reference_number' => 'REF-1234',
         'subtotal' => 100.00,
         'total' => 100.00,
-        'status' => 'draft',
+        'status' => 'posted', // draft receipts are refused (422) by design
         'payment_status' => 'unpaid',
-    ]);
+    ]));
 
     // Add item
     DB::table('sale_items')->insert([

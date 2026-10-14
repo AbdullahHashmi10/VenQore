@@ -75,3 +75,4 @@ bootstrap/ssr/
 app-code/production/
 
 _private/
+/app-code/windows-app/dist-local/

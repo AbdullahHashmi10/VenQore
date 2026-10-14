@@ -11,7 +11,7 @@ export const toast = (message, type = 'info') => {
     window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message, type } }));
 };
 
-export default function useFoh({ storeSlug, floorState, fohSettings, tab, orderId }) {
+export default function useFoh({ storeSlug, floorState, fohSettings, tab, orderId, actor = null }) {
     const lanes = useMemo(() => ({
         takeaway: !!fohSettings?.takeaway, delivery: !!fohSettings?.delivery,
     }), [fohSettings]);
@@ -25,6 +25,8 @@ export default function useFoh({ storeSlug, floorState, fohSettings, tab, orderI
         initialKitchen: floorState?.kitchen || 0,
         lanes,
         pollMs: tab === 'overview' ? 8000 : 15000,
+        actor,
+        collectsTakeaway: !!fohSettings?.takeaway_collect,
         onError: (m) => toast(m, 'error'),
         onNotice: (m) => toast(m, 'success'),
     });

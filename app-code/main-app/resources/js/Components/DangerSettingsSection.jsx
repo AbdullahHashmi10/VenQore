@@ -120,7 +120,7 @@ export default function DangerSettingsSection({ data, setData }) {
                                 <div class="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
                             </div>
                         </div>
-                        <p class="text-xs text-red-400 mt-2 animate-pulse">DO NOT CLOSE THIS WINDOW. POWER OFF MAY CAUSE CORRUPTION.</p>
+                        <p class="text-sm text-red-400 mt-2 animate-pulse">DO NOT CLOSE THIS WINDOW. POWER OFF MAY CAUSE CORRUPTION.</p>
                     `,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
@@ -204,18 +204,18 @@ export default function DangerSettingsSection({ data, setData }) {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
 
-            <div className="p-6 bg-surface rounded-2xl border border-line shadow-xs space-y-6">
+            <div className="p-6 bg-surface rounded-[14px] border border-line shadow-xs space-y-6">
                 {/* Full Factory Reset */}
                 <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-ink">Complete Store Factory Reset</h3>
-                    <p className="text-xs text-ink-muted">
+                    <h3 className="text-base font-bold text-ink">Complete Store Factory Reset</h3>
+                    <p className="text-sm text-ink-muted">
                         Wipes all catalog items, sales, invoices, customers, and financial journals. Only your administrator credentials will be retained.
                     </p>
                     <button
                         type="button"
                         onClick={() => handleFactoryReset('all')}
                         disabled={resetting}
-                        className={`w-full py-3.5 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-95 ${
+                        className={`w-full py-3.5 text-white rounded-[12px] font-bold text-sm flex items-center justify-center gap-2.5 transition-all shadow-sm active:scale-95 ${
                             resetting ? 'bg-red-900/80 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'
                         }`}
                     >
@@ -234,8 +234,8 @@ export default function DangerSettingsSection({ data, setData }) {
                 </div>
 
                 <div className="pt-4 border-t border-line space-y-3">
-                    <h3 className="text-sm font-bold text-ink">Selective Data Deletion</h3>
-                    <p className="text-xs text-ink-muted">
+                    <h3 className="text-base font-bold text-ink">Selective Data Deletion</h3>
+                    <p className="text-sm text-ink-muted">
                         Delete specific data partitions while preserving the rest of your store configuration.
                     </p>
 
@@ -244,7 +244,7 @@ export default function DangerSettingsSection({ data, setData }) {
                             type="button"
                             onClick={() => handleFactoryReset('products')}
                             disabled={resetting}
-                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
+                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-[12px] font-bold text-sm flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
                         >
                             <Trash2 size={15} className="text-red-500" />
                             <span>{tt('Delete All Products')}</span>
@@ -253,7 +253,7 @@ export default function DangerSettingsSection({ data, setData }) {
                             type="button"
                             onClick={() => handleFactoryReset('sales')}
                             disabled={resetting}
-                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
+                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-[12px] font-bold text-sm flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
                         >
                             <Trash2 size={15} className="text-red-500" />
                             <span>Delete All Sales</span>
@@ -262,7 +262,7 @@ export default function DangerSettingsSection({ data, setData }) {
                             type="button"
                             onClick={() => handleFactoryReset('stock')}
                             disabled={resetting}
-                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-xl font-bold text-xs flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
+                            className="p-4 bg-app hover:bg-sunken border border-line hover:border-red-500/40 text-ink rounded-[12px] font-bold text-sm flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 active:scale-95"
                         >
                             <Trash2 size={15} className="text-red-500" />
                             <span>Reset Stock to 0</span>

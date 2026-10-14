@@ -338,6 +338,7 @@ export default function Users({ users, filters }) {
                                                                 <Dropdown.Link
                                                                     href={route('platform.user.destroy', u.id)}
                                                                     method="delete"
+                                                                    onBefore={() => confirm(`Move ${u.email} to the trash? They can no longer sign in until restored.`)}
                                                                     as="button"
                                                                     style={{ fontSize: 13, fontWeight: 600, color: BRAND.rose }}
                                                                 >

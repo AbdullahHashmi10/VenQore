@@ -210,7 +210,7 @@ export default function CreateDebitNote({ note, suppliers = [], products = [], w
             extraSheets={({ patch }) => (picking ? (
                 <Sheet
                     title="Which bill is this about?"
-                    hint="Their recent purchases. Picking one files the note against it so the two can be found together later."
+                    hint="Only this supplier\u2019s purchases, newest first. Picking one files the note against it so the two can be found together later."
                     icon={<FileSearch size={18} />}
                     width={700}
                     onClose={() => setPicking(false)}
@@ -224,7 +224,7 @@ export default function CreateDebitNote({ note, suppliers = [], products = [], w
                             <button key={b.id} type="button" className="vqdoc-strip" style={{ width: '100%' }}
                                 onClick={() => { patch({ source: { id: b.id, reference: b.reference } }); setPicking(false); }}>
                                 <span className="who">{b.reference}</span>
-                                <span className="meta">{(b.date || '').slice(0, 10)}{b.invoice_number ? ` · their no. ${b.invoice_number}` : ''}</span>
+                                <span className="meta">{(b.date || '').slice(0, 10)}{b.invoice_number ? ` · their no. ${b.invoice_number}` : ''} · {b.items_count} item{Number(b.items_count) === 1 ? '' : 's'}{b.payment_status ? ` · ${String(b.payment_status).replace(/_/g, ' ')}` : ''}</span>
                                 <span className="amt">{money(b.total)}</span>
                             </button>
                         ))}

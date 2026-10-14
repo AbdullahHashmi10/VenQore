@@ -17,11 +17,11 @@ export default function StockItemsSection({ data, setData }) {
     };
 
     return (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-slow space-y-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {/* Left Card: Inventory Tracking Mode */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Track your stock</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Track your stock</h3>
 
                     <div className="divide-y divide-line">
                         <div className="py-2 space-y-2">
@@ -34,12 +34,12 @@ export default function StockItemsSection({ data, setData }) {
                             />
 
                             {!isCurrentlyTracking && (
-                                <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/70 rounded-xl space-y-1 animate-in fade-in">
-                                    <div className="flex items-center gap-1.5 text-teal-800 dark:text-teal-200 font-bold text-xs">
+                                <div className="p-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/70 rounded-[12px] space-y-1 animate-in fade-in">
+                                    <div className="flex items-center gap-1.5 text-teal-800 dark:text-teal-200 font-bold text-sm">
                                         <Sparkles size={13} className="text-teal-600 dark:text-teal-400" />
                                         <span>Unlimited Selling Mode Active</span>
                                     </div>
-                                    <p className="text-3xs text-teal-700 dark:text-teal-300 leading-normal">
+                                    <p className="text-xs text-teal-700 dark:text-teal-300 leading-normal">
                                         Inventory limits and out-of-stock warnings are disabled. Your staff can sell products freely, and your Inventory page tracks <strong>Total Units Sold</strong>.
                                     </p>
                                 </div>
@@ -65,8 +65,8 @@ export default function StockItemsSection({ data, setData }) {
                 </div>
 
                 {/* Right Card: Pricing Tiers & Safety Alerts */}
-                <div className="bg-surface rounded-2xl border border-line p-6 shadow-xs space-y-4">
-                    <h3 className="text-sm font-bold text-ink border-b border-line pb-3">Prices and low-stock warnings</h3>
+                <div className="bg-surface rounded-[14px] border border-line p-4 shadow-xs space-y-4">
+                    <h3 className="text-base font-bold text-ink border-b border-line pb-3">Prices and low-stock warnings</h3>
 
                     <div className="divide-y divide-line">
                         <Toggle
@@ -86,7 +86,7 @@ export default function StockItemsSection({ data, setData }) {
                         />
 
                         <div className="py-3.5 space-y-1.5">
-                            <label className="text-2xs font-bold uppercase tracking-wider text-ink-muted">
+                            <label className="text-xs font-bold uppercase tracking-wider text-ink-muted">
                                 Warn when stock falls to
                             </label>
                             <div className="flex items-center gap-2">
@@ -95,11 +95,11 @@ export default function StockItemsSection({ data, setData }) {
                                     min="0"
                                     value={data.low_stock_threshold || 10}
                                     onChange={(e) => setData('low_stock_threshold', parseInt(e.target.value, 10) || 0)}
-                                    className="w-32 px-3.5 py-2 bg-app border border-line rounded-xl text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
+                                    className="w-32 px-3.5 py-2 bg-app border border-line rounded-[12px] text-sm font-bold text-ink focus:ring-2 focus:ring-brand-500 outline-none"
                                 />
-                                <span className="text-xs font-bold text-ink-muted">units</span>
+                                <span className="text-sm font-bold text-ink-muted">units</span>
                             </div>
-                            <p className="text-3xs text-ink-muted">Items with on-hand quantity at or below this value trigger alerts.</p>
+                            <p className="text-xs text-ink-muted">Items with on-hand quantity at or below this value trigger alerts.</p>
                         </div>
                     </div>
                 </div>
@@ -109,18 +109,18 @@ export default function StockItemsSection({ data, setData }) {
             <Modal show={showDisableModal} onClose={() => setShowDisableModal(false)} maxWidth="md">
                 <div className="p-6 space-y-5">
                     <div className="flex items-start gap-4">
-                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 rounded-2xl shrink-0">
+                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 rounded-[14px] shrink-0">
                             <ShieldAlert size={28} />
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-ink">Disable Stock Quantity Tracking?</h2>
-                            <p className="text-xs text-ink-muted mt-1">
+                            <p className="text-sm text-ink-muted mt-1">
                                 Switch to Unlimited / Restaurant Selling Mode. Please review how this affects your store:
                             </p>
                         </div>
                     </div>
 
-                    <div className="bg-app border border-line rounded-xl p-4 space-y-3 text-xs">
+                    <div className="bg-app border border-line rounded-[12px] p-4 space-y-3 text-sm">
                         <div className="flex items-start gap-2.5">
                             <CheckCircle2 size={16} className="text-teal-600 shrink-0 mt-0.5" />
                             <div>
@@ -166,7 +166,7 @@ export default function StockItemsSection({ data, setData }) {
                         <button
                             type="button"
                             onClick={() => setShowDisableModal(false)}
-                            className="px-4 py-2.5 rounded-xl text-xs font-bold text-ink-secondary bg-sunken hover:bg-interactive-hover transition-colors"
+                            className="px-4 py-2.5 rounded-[12px] text-sm font-bold text-ink-secondary bg-sunken hover:bg-interactive-hover transition-colors"
                         >
                             Keep Tracking Stock
                         </button>
@@ -176,7 +176,7 @@ export default function StockItemsSection({ data, setData }) {
                                 setData('stock_maintenance', '0');
                                 setShowDisableModal(false);
                             }}
-                            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+                            className="px-5 py-2.5 rounded-[12px] text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-md transition-all active:scale-95 flex items-center gap-1.5"
                         >
                             <Sparkles size={14} />
                             Confirm & Enable Unlimited Selling

@@ -3,7 +3,8 @@ import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useTerms, useTermText } from '@/lib/terms';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import ConfirmModal from '@/Components/ConfirmModal';
 import ExpenseTourGuide from '@/Components/ExpenseTourGuide';
@@ -42,7 +43,7 @@ import axios from 'axios';
 import { handleApprovalResponse } from '@/lib/approval-response';
 
 import { vq } from '@/theme/runtime';
-import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 // -- Party Search Field (same component as Payments In/Out) ------------------
 const AC_OFF = 'payee-search-' + Math.random().toString(36).slice(2);
 
@@ -242,6 +243,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  } = usePage().props;
 
  // Infinite Scroll State
+ const moneyNavGroups = useMoneyNavGroups();
  const [allExpenses, setAllExpenses] = useState(expenses.data || []);
  const [nextPageUrl, setNextPageUrl] = useState(expenses.next_page_url);
  const isLoading = useRef(false);
@@ -614,20 +616,144 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  }
  };
 
+ const navGroups = useMoneyNavGroups();
+ const [catMenuOpen, setCatMenuOpen] = useState(false);
+ const activeCategoryLabel = activeCategory === 'all' ? 'All categories' : (categories.find(c => String(c.id) === String(activeCategory))?.name || 'Category');
+
  return (
- <OneGlanceLayout title="Expenses" activeMenu="Money">
+ <OneGlanceLayout title="Expenses" activeMenu="Money" noPadding>
  <Head title="Expenses" />
 
- <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-y-auto md:overflow-hidden">
+ <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-y-auto md:contents">
+ <ListPageFrame className="max-md:contents">
+ {/* ── Desktop header: two rows ── */}
+ <ListToolbar
+ title="Expenses"
+ navGroups={navGroups}
+ activeId="expenses"
+ left={(
+ <div className="flex items-center gap-2">
+ <div className="relative">
+ <button
+ type="button"
+ onClick={() => setCatMenuOpen(v => !v)}
+ aria-haspopup="listbox"
+ aria-expanded={catMenuOpen}
+ className={`h-10 px-3 rounded-[12px] border text-sm font-semibold flex items-center gap-2 max-w-[220px] transition-colors ${activeCategory !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
+ >
+ <Layers size={15} className="shrink-0" />
+ <span className="truncate">{activeCategoryLabel}</span>
+ <ChevronDown size={15} className={`shrink-0 transition-transform duration-200 ${catMenuOpen ? 'rotate-180' : ''}`} />
+ </button>
+ {catMenuOpen && (
+ <>
+ <div className="fixed inset-0 z-10" onClick={() => setCatMenuOpen(false)} aria-hidden="true" />
+ <div role="listbox" className="absolute left-0 top-full mt-2 w-72 z-20 bg-surface border border-line rounded-[14px] shadow-xl p-2 animate-[vqDrop_0.16s_ease-out] origin-top">
+ <div className="max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-0.5">
+ {[{ id: 'all', name: 'All categories' }, ...categories].map(cat => {
+ const on = String(activeCategory) === String(cat.id);
+ return (
+ <button
+ key={cat.id}
+ type="button"
+ role="option"
+ aria-selected={on}
+ onClick={() => { handleCategoryChange(cat.id); setCatMenuOpen(false); }}
+ className={`h-9 px-3 rounded-[12px] text-sm text-left flex items-center justify-between gap-2 transition-colors ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink hover:bg-interactive-hover'}`}
+ >
+ <span className="truncate">{cat.name}</span>
+ {on && <Check size={15} className="shrink-0" />}
+ </button>
+ );
+ })}
+ </div>
+ <div className="h-px bg-line my-1.5" />
+ {isCreatingCategory && !isModalOpen ? (
+ <div className="flex items-center gap-1.5">
+ <input
+ autoFocus
+ type="text"
+ value={newCategoryName}
+ onChange={(e) => setNewCategoryName(e.target.value)}
+ onKeyDown={(e) => {
+ if (e.key === 'Enter') handleCreateCategory();
+ if (e.key === 'Escape') setIsCreatingCategory(false);
+ }}
+ placeholder="Category name"
+ className="flex-1 min-w-0 h-9 px-3 text-sm bg-app border border-line rounded-[12px] outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+ />
+ <button type="button" onClick={() => handleCreateCategory()} className="h-9 w-9 flex items-center justify-center bg-emerald-500 text-white rounded-[12px] hover:bg-emerald-600" title="Save Category"><Check size={14} /></button>
+ <button type="button" onClick={() => setIsCreatingCategory(false)} className="h-9 w-9 flex items-center justify-center bg-sunken text-ink-muted rounded-[12px] hover:bg-interactive-hover" title="Cancel"><X size={14} /></button>
+ </div>
+ ) : (
+ <button type="button" onClick={() => setIsCreatingCategory(true)} className="w-full h-9 px-3 rounded-[12px] text-sm font-semibold text-ink hover:bg-interactive-hover flex items-center gap-2">
+ <Plus size={14} className="text-brand-600" /> Add Category
+ </button>
+ )}
+ </div>
+ </>
+ )}
+ </div>
+ <div className="flex items-center gap-1.5">
+ {[['all', 'All Time'], ['today', 'Today']].map(([key, label]) => (
+ <button
+ key={key}
+ type="button"
+ onClick={() => handleFilterChange(key)}
+ className={`h-10 px-3 rounded-[12px] border text-sm font-semibold transition-colors ${activeFilter === key ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:border-brand-500/30 dark:text-brand-400' : 'border-line bg-app text-ink hover:bg-interactive-hover'}`}
+ >{label}</button>
+ ))}
+ </div>
+ </div>
+ )}
+ search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search expenses…' }}
+ actions={<ListAddButton id="tour-expense-create-btn" onClick={handleCreate} icon={Plus}>Record Expense</ListAddButton>}
+ />
+ <ListStatCards cards={[
+ { label: "Today's Expenses", value: formatCurrency(stats.today), icon: TrendingDown, icon_tone: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' },
+ { label: 'This Week', value: formatCurrency(stats.week), icon: Calendar, icon_tone: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', value_tone: 'text-amber-600' },
+ { label: 'This Month', value: formatCurrency(stats.month), icon: Wallet, value_tone: 'text-brand-600' },
+ { label: 'Total Expenses', value: formatCurrency(stats.total), icon: Receipt, icon_tone: 'bg-neutral-100 text-ink-secondary dark:bg-neutral-800' },
+ ]} />
+
+ {/* Phone / existing header (hidden on md+) */}
+ <div className="contents md:hidden">
  <MoneyModuleTabs activeTab="expenses" />
 
  {/* Mobile Stats Toggle/Summary */}
- <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: "Today's Expenses", value: formatCurrency(stats.today), tone: 'ink' },
-  { label: 'This Week', value: formatCurrency(stats.week), tone: 'amber' },
-  { label: 'This Month', value: formatCurrency(stats.month), tone: 'brand' },
-  { label: 'Total Expenses', value: formatCurrency(stats.total), tone: 'ink' }
-]} />
+                <MobileListHeader
+                    title={tp('expense', 'Expenses')}
+                    navGroups={moneyNavGroups}
+                    activeId="expenses"
+                    filter={{
+                        active: activeFilter !== 'all' || activeCategory !== 'all',
+                        sections: [
+                            { label: 'Period', value: activeFilter, options: [{ value: 'all', label: 'All time' }, { value: 'today', label: 'Today' }, { value: 'month', label: 'This Month' }, { value: 'year', label: 'This Year' }], onSelect: handleFilterChange },
+                            { label: 'Category', value: activeCategory, options: [{ value: 'all', label: 'All categories' }, ...categories.map(c => ({ value: c.id, label: c.name }))], onSelect: handleCategoryChange },
+                        ],
+                        footer: (
+                            <div className="flex items-center gap-1.5 px-1 pt-2 mt-1 border-t border-line">
+                                <input
+                                    type="text"
+                                    value={newCategoryName}
+                                    onChange={(e) => setNewCategoryName(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') handleCreateCategory(); }}
+                                    placeholder="New category name"
+                                    className="min-w-0 flex-1 h-10 px-3 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500"
+                                />
+                                <button type="button" onClick={() => handleCreateCategory()} aria-label="Add category" className="h-10 w-10 shrink-0 rounded-[8px] bg-brand-600 text-white flex items-center justify-center active:bg-brand-700"><Plus size={16} /></button>
+                            </div>
+                        ),
+                    }}
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), onKeyDown: handleServerSearch, placeholder: 'Search expenses...' }}
+                    add={{ id: 'tour-expense-create-btn-mobile', onClick: handleCreate, label: 'Record expense' }}
+                    stats={{ hero: 2, items: [
+                        { label: "Today's Expenses", value: formatCurrency(stats.today), tone: 'rose', icon: TrendingDown },
+                        { label: 'This Week', value: formatCurrency(stats.week), tone: 'amber', icon: Calendar },
+                        { label: 'This Month', value: formatCurrency(stats.month), tone: 'brand', icon: Wallet },
+                        { label: 'Total Expenses', value: formatCurrency(stats.total), tone: 'ink', icon: Receipt },
+                    ] }}
+                />
 
  {/* Stats Cards - Compact Row */}
  <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
@@ -676,7 +802,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  onMouseLeave={handleMouseLeave}
  onMouseUp={handleMouseUp}
  onMouseMove={handleMouseMove}
- className="bg-surface px-2 py-2 rounded-xl border border-line shadow-sm shrink-0 flex items-center gap-2 overflow-x-auto custom-scrollbar cursor-grab active:cursor-grabbing select-none"
+ className="hidden md:flex bg-surface px-2 py-2 rounded-xl border border-line shadow-sm shrink-0 items-center gap-2 overflow-x-auto custom-scrollbar cursor-grab active:cursor-grabbing select-none"
  >
  {/* Label: hidden on mobile */}
  <div className="hidden md:flex items-center gap-2 shrink-0">
@@ -759,134 +885,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  </div>
 
  {/* Mobile Toolbar (hidden on desktop) */}
- <div className="md:hidden flex flex-col gap-0 bg-surface rounded-xl border border-line shadow-sm shrink-0">
- {/* Title row + icon buttons */}
- <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
- <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- {tp('expense', 'Expenses')} <span className="text-rose-600">Transactions</span>
- </h1>
- <div className="flex items-center gap-1">
- <button
- onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Search"
- >
- <Search size={16} />
- </button>
- <button
- onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Filter"
- >
- <Filter size={16} />
- </button>
- <button
- id="tour-expense-create-btn-mobile"
- onClick={handleCreate}
- className="ml-1 px-3.5 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
- >
- <Plus size={14} /> Record
- </button>
- </div>
- </div>
 
- {/* Expandable Search */}
- {showMobileSearch && (
- <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
- <div className="relative w-full">
- <input
- autoFocus
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- onKeyDown={handleServerSearch}
- placeholder="Search expenses..."
- className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
- />
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
- </div>
- </div>
- )}
-
- {/* Expandable Filters */}
- {showMobileFilters && (
- <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal flex flex-col gap-2">
- <div className="flex items-center gap-2">
- <span className="text-2xs font-bold text-ink-muted uppercase tracking-wider shrink-0">Period:</span>
- <div className="flex bg-sunken rounded-lg p-1 gap-1 flex-1">
- <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-sunken text-ink shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}>All</button>
- <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Today</button>
- <button onClick={() => { handleFilterChange('month'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'month' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Month</button>
- <button onClick={() => { handleFilterChange('year'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'year' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Year</button>
- </div>
- </div>
- </div>
- )}
  </div>
 
  {/* Main Content Area - Desktop table / Mobile cards below */}
- <div className="hidden md:flex flex-col flex-1 min-h-0 bg-surface rounded-xl border border-line shadow-sm overflow-hidden">
- {/* Toolbar */}
- <div className="p-2 md:p-3 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-2 bg-sunken/50 dark:bg-surface shrink-0">
- {/* Left/Top actions: Search & Filters (Desktop) / Mobile Toggle Buttons */}
- <div className="flex flex-wrap items-center justify-between gap-y-2 md:justify-start gap-2 w-full md:w-auto">
- <div className="hidden md:flex items-center gap-2">
- <div className="w-64 relative">
- <input
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- onKeyDown={handleServerSearch}
- placeholder="Search expenses..."
- className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
- />
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
- </div>
-
- <div className="flex bg-surface rounded-lg border border-line p-1">
- <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-sunken text-ink' : 'text-ink-muted hover:text-ink-secondary'}`}>All Time</button>
- <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-2xs font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-ink-muted hover:text-ink-secondary'}`}>Today</button>
- </div>
- </div>
-
- {/* Mobile Toggle Buttons */}
- <div className="flex md:hidden items-center gap-1">
- <button
- onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >
- <Search size={18} />
- </button>
- <button
- onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >
- <Filter size={18} />
- </button>
- </div>
-
- <button
- id="tour-expense-create-btn-mobile"
- onClick={handleCreate}
- className="md:hidden px-3.5 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
- >
- <Plus size={14} />
- Record
- </button>
- </div>
-
- {/* Desktop Create Button */}
- <div className="hidden md:flex items-center gap-2">
- <button
- id="tour-expense-create-btn"
- onClick={handleCreate}
- className="px-4 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg active:scale-95 font-bold text-sm"
- >
- <Plus size={16} />
- Record Expense
- </button>
- </div>
- </div>
+ <div className="hidden md:flex flex-col flex-1 min-h-0 bg-surface rounded-xl md:rounded-[14px] border border-line shadow-sm overflow-hidden">
 
  {/* Mobile Expandable Search */}
  {showMobileSearch && (
@@ -923,17 +926,17 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <table className="hidden md:table w-full text-left border-collapse">
  <thead className="sticky top-0 z-10 bg-app border-b border-line">
  <tr>
- <th onClick={() => handleSort('date')} className="p-4 text-xs font-bold text-ink-muted uppercase cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover transition-colors w-[12%]">
+ <th onClick={() => handleSort('date')} className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover transition-colors w-[12%]">
  <div className="flex items-center gap-1">Date {sortConfig.key === 'date' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}</div>
  </th>
- <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[15%]">Category</th>
- <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[25%]">Description & Payee</th>
- <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[12%]">Payment</th>
- <th className="p-4 text-xs font-bold text-ink-muted uppercase w-[10%]">Ref</th>
- <th onClick={() => handleSort('amount')} className="p-4 text-xs font-bold text-ink-muted uppercase cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover transition-colors text-right w-[15%]">
+ <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase w-[15%]">Category</th>
+ <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase w-[25%]">Description & Payee</th>
+ <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase w-[12%]">Payment</th>
+ <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase w-[10%]">Ref</th>
+ <th onClick={() => handleSort('amount')} className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase cursor-pointer hover:bg-sunken dark:hover:bg-interactive-hover transition-colors text-right w-[15%]">
  <div className="flex items-center justify-end gap-1">Amount {sortConfig.key === 'amount' && (sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />)}</div>
  </th>
- <th className="p-4 text-xs font-bold text-ink-muted uppercase text-right w-[11%]">Actions</th>
+ <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase text-right w-[11%]">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-line bg-surface">
@@ -1180,6 +1183,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  {nextPageUrl ? 'Loading more...' : ''}
  </div>
  </div>
+ </ListPageFrame>
  </div>
 
  {/* -- Modern Pro Expense Modal -- */}

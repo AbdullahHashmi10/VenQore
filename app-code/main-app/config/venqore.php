@@ -55,6 +55,12 @@ return [
     'foh_redirects' => (bool) env('VQ_FOH_REDIRECTS', true),
 
     /*
+    | Signup builder v2 (BUILDER_FINAL_PLAN.md). Off by default: the old builder stays the
+    | live path until the owner pilot passes. Turn on with VQ_BUILDER_V2=true.
+    */
+    'builder_v2' => (bool) env('VQ_BUILDER_V2', false),
+
+    /*
     | Comma-separated tenant slugs that get V3 purchases even while
     | `purchase_cutover` is false. Your pilot list.
     */

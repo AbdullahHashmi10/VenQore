@@ -496,7 +496,7 @@ const EXPECTED_CHEQUE_CARD_KEYS = [
     'cheque.post_dated_due',
 ];
 
-const EXPECTED_TOTAL_CARDS = 374;
+const EXPECTED_TOTAL_CARDS = 379;
 
 let cardsJson;
 try {
@@ -533,7 +533,7 @@ describe('G) Seven V6 dashboard card key registration', () => {
         }
     });
 
-    it('G-02 total card catalogue count equals 374', () => {
+    it('G-02 total card catalogue count equals 379', () => {
         if (!cardsJson) return;
         expect(cardsJson).toHaveLength(EXPECTED_TOTAL_CARDS);
     });

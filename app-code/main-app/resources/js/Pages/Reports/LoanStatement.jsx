@@ -1,21 +1,20 @@
 import React from 'react';
-import ReportPage from './Components/ReportPage';
 import { Landmark } from 'lucide-react';
+import { ReportShell, ReportKpis, ReportSection, ReportTable } from '@/Components/Reports/ReportKit';
 
-export default function LoanStatement({ loans }) {
+export default function LoanStatement({ loans = [] }) {
+    const list = Array.isArray(loans) ? loans : [];
     return (
-        <ReportPage
-            title="Loan Statement"
-            subtitle="Overview of all active loans and liabilities"
-            icon={Landmark}
-        >
-            <div className="p-5 sm:p-12 text-center">
-                <div className="w-20 h-20 rounded-2xl bg-app flex items-center justify-center mx-auto mb-6">
-                    <Landmark size={40} className="text-neutral-300" />
-                </div>
-                <h3 className="text-xl font-bold text-ink mb-2">No Loan Data Available</h3>
-                <p className="text-ink-muted max-w-sm mx-auto">You don't have any active loans or loan accounts recorded in the system yet.</p>
-            </div>
-        </ReportPage>
+        <ReportShell title="Loan Statement" subtitle="Overview of all active loans and liabilities" activeKey="loan-statement">
+            <ReportKpis items={[{ label: 'Loan Accounts', value: list.length, icon: Landmark, tone: 'brand' }]} />
+            <ReportSection title="Loans" flush>
+                <ReportTable
+                    columns={[{ key: 'name', label: 'Loan', get: (l) => l.name || l.title || '' }]}
+                    rows={list}
+                    empty="No loan data available. You don't have any active loans or loan accounts recorded yet."
+                    emptyIcon={Landmark}
+                />
+            </ReportSection>
+        </ReportShell>
     );
 }

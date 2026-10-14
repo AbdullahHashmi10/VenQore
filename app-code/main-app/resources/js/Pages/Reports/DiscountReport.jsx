@@ -1,34 +1,41 @@
 import React, { useState, useMemo } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import { router, usePage } from '@inertiajs/react';
 import {
-    Percent, Search, Filter, ArrowLeft, Tag, Users, TrendingUp, AlertTriangle, BadgePercent
+    Percent, Search, Tag, Users, TrendingUp, AlertTriangle, Receipt, PieChart as PieIcon, Gauge, ArrowDownCircle,
 } from 'lucide-react';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend
-} from 'recharts';
-import { formatCurrency } from '@/Utils/format';
-
-import { vq } from '@/theme/runtime';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import {
+    ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, DateRangeFilter, filterInputCls,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
+
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+const pctOf = (inv) => {
+    const subTotal = Number(inv.total_amount) + Number(inv.discount);
+    return subTotal > 0 ? (Number(inv.discount) / subTotal) * 100 : 0;
+};
+
+function DiscountBadge({ pct }) {
+    const cls = pct < 5 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+        : pct < 15 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
+    return <span className={`rounded-[12px] px-2 py-1 text-2xs font-bold ${cls}`}>{pct.toFixed(1)}%</span>;
+}
+
 export default function DiscountReport({ invoices = [], filters = {} }) {
     const tt = useTermText();
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState({ key: 'discount', direction: 'desc' });
-    const [dateRange, setDateRange] = useState(filters.range || 'this_month');
-    const [customStart, setCustomStart] = useState('');
-    const [customEnd, setCustomEnd] = useState('');
+    const [from, setFrom] = useState(filters.start_date || '');
+    const [to, setTo] = useState(filters.end_date || '');
 
     // --- Derived Data ---
     const processedData = useMemo(() => {
         let data = invoices.filter(inv => Number(inv.discount) > 0); // Only bills with discount
-
-        // 1. Filter
         if (searchQuery) {
             const lowerQ = searchQuery.toLowerCase();
             data = data.filter(inv =>
@@ -36,427 +43,129 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
                 (inv.party?.name || '').toLowerCase().includes(lowerQ)
             );
         }
-
-        // 2. Sort
-        data.sort((a, b) => {
-            let valA = a[sortBy.key];
-            let valB = b[sortBy.key];
-
-            // Handle numeric or special keys
-            if (sortBy.key === 'party_name') {
-                valA = a.party?.name || 'Walk-in';
-                valB = b.party?.name || 'Walk-in';
-            } else if (sortBy.key === 'percentage') {
-                const subTotalA = Number(a.total_amount) + Number(a.discount);
-                const subTotalB = Number(b.total_amount) + Number(b.discount);
-                valA = subTotalA > 0 ? (Number(a.discount) / subTotalA) * 100 : 0;
-                valB = subTotalB > 0 ? (Number(b.discount) / subTotalB) * 100 : 0;
-            } else {
-                valA = Number(valA);
-                valB = Number(valB);
-            }
-
-            if (valA < valB) return sortBy.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return sortBy.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-
-        return data;
-    }, [invoices, searchQuery, sortBy]);
+        return [...data].sort((a, b) => Number(b.discount) - Number(a.discount));
+    }, [invoices, searchQuery]);
 
     // --- Stats ---
     const stats = useMemo(() => {
         const totalDiscount = processedData.reduce((acc, curr) => acc + Number(curr.discount), 0);
+        const billTotal = processedData.reduce((acc, curr) => acc + Number(curr.total_amount), 0);
         const count = processedData.length;
         const avgDiscount = count > 0 ? totalDiscount / count : 0;
-
         let maxDiscount = 0;
         let heavyDiscountCount = 0; // > 15%
-
         processedData.forEach(inv => {
             const val = Number(inv.discount);
             if (val > maxDiscount) maxDiscount = val;
-
-            const subTotal = Number(inv.total_amount) + val;
-            const pct = subTotal > 0 ? (val / subTotal) * 100 : 0;
-            if (pct > 15) heavyDiscountCount++;
+            if (pctOf(inv) > 15) heavyDiscountCount++;
         });
-
-        return { totalDiscount, count, avgDiscount, maxDiscount, heavyDiscountCount };
+        const rate = totalDiscount + billTotal > 0 ? (totalDiscount / (totalDiscount + billTotal)) * 100 : 0;
+        return { totalDiscount, count, avgDiscount, maxDiscount, heavyDiscountCount, rate };
     }, [processedData]);
 
-    // --- Chart: Discount Severity (Pie) ---
-    const severityData = useMemo(() => {
+    const severitySlices = useMemo(() => {
         let low = 0, medium = 0, high = 0;
         processedData.forEach(inv => {
-            const subTotal = Number(inv.total_amount) + Number(inv.discount);
-            const pct = subTotal > 0 ? (Number(inv.discount) / subTotal) * 100 : 0;
-
+            const pct = pctOf(inv);
             if (pct < 5) low++;
             else if (pct < 15) medium++;
             else high++;
         });
-
         return [
-            { name: 'Light (<5%)', value: low, color: vq.emerald[500] }, // Emerald
-            { name: 'Standard (5-15%)', value: medium, color: vq.blue[500] }, // Blue
-            { name: 'Heavy (>15%)', value: high, color: vq.rose[500] } // Rose
+            { name: 'Light (<5%)', value: low },
+            { name: 'Standard (5-15%)', value: medium },
+            { name: 'Heavy (>15%)', value: high },
         ].filter(d => d.value > 0);
     }, [processedData]);
 
-    // --- Chart: Top Customers by Discount Given (Bar) ---
     const topCustomers = useMemo(() => {
         const map = {};
         processedData.forEach(inv => {
             const name = inv.party?.name || 'Walk-in';
-            if (!map[name]) map[name] = 0;
-            map[name] += Number(inv.discount);
+            map[name] = map[name] || { value: 0, n: 0 };
+            map[name].value += Number(inv.discount);
+            map[name].n += 1;
         });
-
-        return Object.entries(map)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 5); // Top 5
+        return Object.entries(map).map(([label, v]) => ({ label, value: v.value, sub: `${v.n} bills` })).sort((a, b) => b.value - a.value);
     }, [processedData]);
 
+    const daily = useMemo(() => {
+        const map = {};
+        processedData.forEach(inv => {
+            if (!inv.created_at) return;
+            const k = ymd(new Date(inv.created_at));
+            map[k] = (map[k] || 0) + Number(inv.discount);
+        });
+        return Object.keys(map).sort().map(k => ({ x: k, y: map[k] }));
+    }, [processedData]);
 
-    const handleSort = (key) => {
-        setSortBy(prev => ({
-            key,
-            direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
-        }));
-    };
-
-    const handleRangeChange = (r) => {
-        setDateRange(r);
-        if (r !== 'custom') {
+    const applyRange = ({ from: f, to: t }) => {
+        setFrom(f || '');
+        setTo(t || '');
+        if (f && t) {
             router.get(route("store.reports.discount-report", {
                 store_slug: store.slug
-            }), { range: r }, { preserveState: true, preserveScroll: true });
+            }), { range: 'custom', start_date: f, end_date: t }, { preserveState: true, preserveScroll: true });
         }
     };
 
-    const applyCustomRange = () => {
-        router.get(route("store.reports.discount-report", {
-            store_slug: store.slug
-        }), {
-            range: 'custom',
-            start_date: customStart,
-            end_date: customEnd
-        }, { preserveState: true, preserveScroll: true });
-    };
+    const columns = [
+        { key: 'invoice_number', label: 'Invoice', sortable: true, get: (i) => `#${i.invoice_number}`, render: (i) => <span className="font-mono font-bold text-brand-600 dark:text-brand-400">#{i.invoice_number}</span> },
+        { key: 'created_at', label: 'Date', sortable: true, get: (i) => (i.created_at ? ymd(new Date(i.created_at)) : ''), render: (i) => new Date(i.created_at).toLocaleDateString() },
+        { key: 'party_name', label: tt('Customer'), sortable: true, get: (i) => i.party?.name || 'Walk-in' },
+        { key: 'total_amount', label: 'Bill Total', align: 'right', sortable: true, get: (i) => Number(i.total_amount) || 0, render: (i) => formatCurrency(i.total_amount, store) },
+        { key: 'discount', label: 'Amount Off', align: 'right', sortable: true, get: (i) => Number(i.discount) || 0, render: (i) => <span className="font-bold tabular-nums text-rose-600 dark:text-rose-400">-{formatCurrency(i.discount, store)}</span> },
+        { key: 'percentage', label: '%', align: 'right', sortable: true, get: (i) => pctOf(i).toFixed(1), render: (i) => <DiscountBadge pct={pctOf(i)} /> },
+    ];
 
+    const kpis = [
+        { label: 'Total Discounts', value: formatCurrency(stats.totalDiscount, store), icon: Tag, tone: 'rose' },
+        { label: 'Discounted Bills', value: formatNumber(stats.count), icon: Percent, tone: 'brand', sub: `${stats.count > 0 ? ((stats.count / invoices.length) * 100).toFixed(1) : 0}% of total bills` },
+        { label: 'Avg per Bill', value: formatCurrency(stats.avgDiscount, store), icon: TrendingUp, tone: 'blue' },
+        { label: 'Biggest Discount', value: formatCurrency(stats.maxDiscount, store), icon: ArrowDownCircle, tone: 'violet' },
+        { label: 'Discount Rate', value: `${stats.rate.toFixed(1)}%`, icon: Gauge, tone: 'sky', sub: 'Of gross value' },
+        { label: 'Heavy Discounts', value: formatNumber(stats.heavyDiscountCount), icon: AlertTriangle, tone: 'amber', sub: 'Bills with > 15%' },
+    ];
 
-    return (
-        <ReportsLayout title="Discount Report">
-            <Head title="Discount Analysis" />
-            <div className="flex flex-col h-full gap-4 w-full">
-
-                {/* 1. HEADER */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-3 pl-2">
-                        <Link href={route("store.reports.index", {
-                            store_slug: store.slug
-                        })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
-                            <ArrowLeft size={18} />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
-                                <BadgePercent className="text-rose-500" size={20} />
-                                Discount Analytics
-                            </h1>
-                            <p className="text-xs text-ink-muted font-medium">Tracking giveaways & price reductions</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-rose-500 transition-colors" size={14} />
-                            <input
-                                type="text"
-                                placeholder={tt('Search Customer...')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-rose-500/20 w-48 transition-all"
-                            />
-                        </div>
-
-                        <div className="flex bg-sunken p-1 rounded-xl items-center">
-                            {['today', 'this_month', 'this_year'].map((r) => (
-                                <button
-                                    key={r}
-                                    onClick={() => handleRangeChange(r)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${dateRange === r
-                                        ? 'bg-sunken shadow-sm text-rose-600 dark:text-rose-400'
-                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
-                                        }`}
-                                >
-                                    {r.replace('_', ' ')}
-                                </button>
-                            ))}
-                            {/* Custom Date Trigger */}
-                            <div className="flex items-center ml-1 border-l border-line pl-1 gap-2">
-                                <button
-                                    onClick={() => handleRangeChange('custom')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dateRange === 'custom'
-                                        ? 'bg-sunken shadow-sm text-rose-600 dark:text-rose-400'
-                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
-                                        }`}
-                                >
-                                    Custom
-                                </button>
-                                {dateRange === 'custom' && (
-                                    <div className="flex items-center gap-1 animate-in slide-in-from-right-2 fade-in duration-slow">
-                                        <input
-                                            type="date"
-                                            value={customStart}
-                                            onChange={e => setCustomStart(e.target.value)}
-                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-rose-500"
-                                        />
-                                        <span className="text-ink-muted">-</span>
-                                        <input
-                                            type="date"
-                                            value={customEnd}
-                                            onChange={e => setCustomEnd(e.target.value)}
-                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-rose-500"
-                                        />
-                                        <button onClick={applyCustomRange} className="p-1.5 bg-rose-600 text-white rounded-lg hover:bg-rose-700">
-                                            <ArrowLeft size={10} className="rotate-180" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. KPI CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
-                    <StatCard
-                        title="Total Discounts"
-                        value={formatCurrency(stats.totalDiscount)}
-                        icon={<Tag size={18} />}
-                        color="rose"
-                    />
-                    <StatCard
-                        title="Discounted Bills"
-                        value={stats.count}
-                        icon={<Percent size={18} />}
-                        color="indigo"
-                        footer={`${stats.count > 0 ? ((stats.count / invoices.length) * 100).toFixed(1) : 0}% of Total Bills`}
-                    />
-                    <StatCard
-                        title="Avg per Bill"
-                        value={formatCurrency(stats.avgDiscount)}
-                        icon={<TrendingUp size={18} />}
-                        color="blue"
-                    />
-                    <StatCard
-                        title="Heavy Discounts"
-                        value={stats.heavyDiscountCount}
-                        icon={<AlertTriangle size={18} />}
-                        color="amber"
-                        footer="Bills with > 15%"
-                    />
-                </div>
-
-                {/* 3. MAIN CONTENT */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-
-                    {/* LEFT: TABLE (2 Cols) */}
-                    <div className="lg:col-span-2 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-line bg-sunken/50 dark:bg-surface flex justify-between items-center">
-                            <h3 className="text-sm font-bold text-ink-secondary dark:text-ink uppercase tracking-wide">Discount Details</h3>
-                            <span className="text-xs font-mono text-ink-muted bg-sunken px-2 py-1 rounded">
-                                {processedData.length} Records
-                            </span>
-                        </div>
-
-                        <div className="flex-1 overflow-auto custom-scrollbar relative">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
-                                    <tr>
-                                        <SortableHeader label="Invoice" colKey="invoice_number" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Date" colKey="created_at" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label={tt('Customer')} colKey="party_name" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Bill Total" colKey="total_amount" align="right" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Amount Off" colKey="discount" align="right" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="%" colKey="percentage" align="right" currentSort={sortBy} onSort={handleSort} />
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-line">
-                                    {processedData.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="6" className="h-64">
-                                                <div className="flex flex-col items-center justify-center h-full text-ink-muted gap-3">
-                                                    <div className="bg-sunken p-4 rounded-full">
-                                                        <Tag size={32} className="text-neutral-300 opacity-50" />
-                                                    </div>
-                                                    <p className="font-medium text-sm">No discounts found</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        processedData.map((inv, idx) => {
-                                            const subTotal = Number(inv.total_amount) + Number(inv.discount);
-                                            const pct = subTotal > 0 ? (Number(inv.discount) / subTotal) * 100 : 0;
-                                            return (
-                                                <tr key={idx} className="group hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                                    <td className="px-6 py-3 font-mono text-xs text-ink-muted">#{inv.invoice_number}</td>
-                                                    <td className="px-6 py-3 text-xs text-ink-muted">
-                                                        {new Date(inv.created_at).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-sm font-medium text-ink-secondary dark:text-ink">
-                                                        {inv.party?.name || 'Walk-in'}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-right text-xs text-ink-muted font-mono">
-                                                        {formatCurrency(inv.total_amount)}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-right text-sm font-bold text-rose-600 dark:text-rose-400 font-mono">
-                                                        -{formatCurrency(inv.discount)}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-right">
-                                                        <DiscountBadge pct={pct} />
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {/* RIGHT: CHARTS (1 Col) - Flex Split */}
-                    <div className="flex flex-col gap-4 h-full min-h-0 overflow-hidden">
-
-                        {/* 1. By Severity */}
-                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Discount Range</h3>
-                            <div className="flex-1 w-full h-full min-h-0 relative">
-                                {severityData.length > 0 ? (
-                                    <>
-                                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={severityData}
-                                                    dataKey="value"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="70%"
-                                                    paddingAngle={5}
-                                                >
-                                                    {severityData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                                    ))}
-                                                </Pie>
-                                                <RechartsTooltip
-                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                                    itemStyle={{ color: '#fff' }}
-                                                />
-                                                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
-                                            <div className="text-center">
-                                                <p className="text-2xs text-ink-muted font-bold uppercase">Avg</p>
-                                                <p className="text-xl font-bold text-rose-600 dark:text-rose-400">
-                                                    {stats.count > 0 ? (stats.totalDiscount / (stats.totalDiscount + processedData.reduce((a, c) => a + Number(c.total_amount), 0)) * 100).toFixed(1) : 0}%
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-ink-muted italic">No data</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 2. Top Customers */}
-                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">{tt('Top Discounted Customers')}</h3>
-                            <div className="flex-1 w-full h-full min-h-0">
-                                {topCustomers.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                        <BarChart data={topCustomers} layout="vertical" margin={{ left: 10, right: 30 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
-                                            <RechartsTooltip
-                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                                formatter={(value) => formatCurrency(value)}
-                                            />
-                                            <Bar dataKey="value" fill={vq.rose[500]} radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-ink-muted italic">No data</div>
-                                )}
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+    const filterNode = (
+        <>
+            <DateRangeFilter from={from} to={to} onChange={applyRange} />
+            <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={14} />
+                <input type="text" placeholder={tt('Search Customer...')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`${filterInputCls} w-56 pl-9`} />
             </div>
-        </ReportsLayout>
+        </>
     );
-}
-
-// --- Components ---
-function StatCard({ title, value, icon, color, footer }) {
-    const bgColors = {
-        rose: 'bg-rose-500',
-        indigo: 'bg-brand-500',
-        blue: 'bg-blue-500',
-        amber: 'bg-amber-500',
-    };
-    const textColors = {
-        rose: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20',
-        indigo: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20',
-        blue: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
-        amber: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20',
-    };
 
     return (
-        <div className="bg-surface border border-line rounded-xl p-3 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-line dark:hover:border-line-strong transition-colors">
-            <div className="flex justify-between items-start mb-2 relative z-10">
-                <div className={`p-2 rounded-lg ${textColors[color]} shrink-0`}>
-                    {icon}
-                </div>
-                {footer && <span className="text-2xs font-bold text-ink-muted bg-sunken px-2 py-0.5 rounded-full">{footer}</span>}
-            </div>
-            <div className="relative z-10">
-                <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{title}</p>
-                <h3 className="text-xl font-bold text-ink tracking-tight mt-0.5">{value}</h3>
-            </div>
-            <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 dark:opacity-10 ${bgColors[color]} pointer-events-none transition-transform duration-slower`} />
-        </div>
-    );
-}
-
-function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) {
-    const isActive = currentSort.key === colKey;
-    return (
-        <th
-            onClick={() => onSort(colKey)}
-            className={`px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer group bg-sunken hover:bg-sunken dark:hover:bg-interactive-hover transition-colors select-none`}
-            style={{ textAlign: align }}
+        <ReportShell
+            title="Discount Report"
+            subtitle="Tracking giveaways & price reductions"
+            filters={filterNode}
+            exportConfig={{ filename: 'discount-report', columns: columns.map((c) => ({ label: c.label, get: c.get })), rows: processedData }}
         >
-            <div className={`flex items-center gap-1.5 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
-                {label}
-                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-rose-500' : 'text-neutral-300 group-hover:text-ink-muted'}`}>
-                    <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
-                    <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
-                </div>
-            </div>
-        </th>
-    );
-}
+            <ReportKpis items={kpis} />
 
-function DiscountBadge({ pct }) {
-    if (pct < 5) return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold rounded">{pct.toFixed(1)}%</span>;
-    if (pct < 15) return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-2xs font-bold rounded">{pct.toFixed(1)}%</span>;
-    return <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-2xs font-bold rounded animate-pulse">{pct.toFixed(1)}%</span>;
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Discounts Given" subtitle="Total discount per day" icon={TrendingUp} tone="rose">
+                        <TrendChart points={daily} label="Discount" type="area" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Discount Range" subtitle="Bills by discount size" icon={PieIcon} tone="amber">
+                        <DonutChart slices={severitySlices} unit="integer" height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            <ReportSection title={tt('Top Discounted Customers')} subtitle="By total discount received" icon={Users} tone="violet">
+                <RankBars items={topCustomers} colorIndex={3} />
+            </ReportSection>
+
+            <ReportSection title="Discount Details" subtitle={`${processedData.length} records`} icon={Receipt} flush>
+                <ReportTable columns={columns} rows={processedData} rowKey={(i, idx) => i.id ?? idx} pageSize={25} empty="No discounts found" />
+            </ReportSection>
+        </ReportShell>
+    );
 }

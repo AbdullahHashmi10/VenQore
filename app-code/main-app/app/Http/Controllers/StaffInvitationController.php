@@ -230,7 +230,7 @@ class StaffInvitationController extends Controller
             return false;
         }));
 
-        $locations = \App\Models\Warehouse::where('tenant_id', $tenant->id)->select('id', 'name', 'code')->get();
+        $locations = \App\Models\Warehouse::where('tenant_id', $tenant->id)->select('id', 'name')->get();
 
         return Inertia::render('Admin/Users', [
             'mode'                   => 'admin',

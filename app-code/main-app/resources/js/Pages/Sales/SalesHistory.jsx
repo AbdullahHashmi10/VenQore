@@ -33,11 +33,12 @@ import {
  Filter,
  PackageMinus
 } from 'lucide-react';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import WhatsAppShareModal from '@/Components/WhatsAppShareModal';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
-import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 const AmazonLogo = ({ size = 12 }) => (
  <svg viewBox="0 0 16 16" style={{ width: size, height: size, display: 'block' }}>
@@ -72,7 +73,8 @@ const EbayLogo = ({ size = 12 }) => {
 export default function SalesIndex({ sales, filters, stats, open_online_orders = [] }) {
  const { t, tp } = useTerms();
  const tt = useTermText();
- const { auth, flash, store, settings, vensynq_enabled } = usePage().props;
+ const { auth, flash, store, settings, vensynq_enabled, modules } = usePage().props;
+ const navGroups = useSellNavGroups();
  const isSuperAdmin = auth.user?.role === 'platform_admin' || auth.user?.role === 'admin' || auth.user?.role === 'owner';
 
  // Infinite Scroll State
@@ -313,234 +315,106 @@ export default function SalesIndex({ sales, filters, stats, open_online_orders =
  // The blueprint asks for a specific Header Area. I will place the buttons below tabs.
 
  return (
- <OneGlanceLayout title="Sales History" activeMenu="Sell">
+ <OneGlanceLayout title="Sales History" activeMenu="Sell" noPadding>
  <Head title="Sales History" />
 
- <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
+ <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
 
 
 
- <SellModuleTabs activeTab="orders" />
+ <div className="md:hidden"><SellModuleTabs activeTab="orders" /></div>
 
  {/* Mobile Stats Toggle/Summary (Visible below md) */}
- <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Sale', value: formatCurrency(stats?.total_sale || 0, store), tone: 'ink' },
-  { label: 'Paid Amount', value: formatCurrency(stats?.total_paid || 0, store), tone: 'emerald' },
-  { label: 'Unpaid (Due)', value: formatCurrency(stats?.total_unpaid || 0, store), tone: 'rose' },
-  { label: 'Transactions', value: stats?.transaction_count || 0, tone: 'ink' }
-]} />
+                <MobileListHeader
+                    title={tp('sale', 'Sales')}
+                    navGroups={navGroups}
+                    activeId="orders"
+                    links={[
+                        { label: 'Export spreadsheet', icon: FileSpreadsheet, href: route('store.sales.export', { ...filters, store_slug: store?.slug }) },
+                        { label: 'Analytics', icon: BarChart3, href: route('store.reports.analytics', { store_slug: store?.slug }) },
+                    ]}
+                    filter={{
+                        active: activeFilter !== 'all' || channel !== 'all',
+                        sections: [
+                            { label: 'Channel', value: channel, options: [{ value: 'all', label: 'All channels' }, { value: 'online', label: 'Online' }, { value: 'pos', label: 'POS' }, { value: 'manual', label: 'Invoice' }], onSelect: (v) => { setChannel(v); applyFilters({ channel: v }); } },
+                            { label: 'Period', value: activeFilter, keepOpen: false, options: [{ value: 'all', label: 'All time' }, { value: 'today', label: 'Today' }, { value: 'month', label: 'This Month' }, { value: 'year', label: 'This Year' }, { value: 'custom', label: 'Custom' }], onSelect: (k) => { if (k === 'custom') { setActiveFilter('custom'); return; } setActiveFilter(k); setDateRange({ from: '', to: '' }); applyFilters({ filter: k, from_date: '', to_date: '' }); } },
+                        ],
+                        footer: activeFilter === 'custom' ? (
+                            <div className="flex items-center gap-1.5 px-1 pt-2">
+                                <input type="date" name="from" value={dateRange.from} onChange={handleDateChange} className="min-w-0 flex-1 h-10 px-2 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500" />
+                                <span className="text-ink-muted text-xs">→</span>
+                                <input type="date" name="to" value={dateRange.to} onChange={handleDateChange} className="min-w-0 flex-1 h-10 px-2 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500" />
+                            </div>
+                        ) : null,
+                    }}
+                    search={{ value: searchTerm, onChange: (v) => handleSearch({ target: { value: v } }), onKeyDown: handleServerSearch, placeholder: 'Search invoice, customer...' }}
+                    add={(!Array.isArray(modules) || modules.includes('invoicing')) ? { href: route('store.sales.invoice.create', { store_slug: store?.slug }), label: 'New Invoice' } : null}
+                    stats={{ hero: 0, items: [
+                        { label: 'Total Sale', value: formatCurrency(stats?.total_sale || 0, store), tone: 'brand', icon: FileText },
+                        { label: 'Paid Amount', value: formatCurrency(stats?.total_paid || 0, store), tone: 'emerald', icon: CheckSquare },
+                        { label: 'Unpaid (Due)', value: formatCurrency(stats?.total_unpaid || 0, store), tone: 'rose', icon: Clock },
+                        { label: 'Transactions', value: stats?.transaction_count || 0, tone: 'blue', icon: History },
+                    ] }}
+                />
 
- {/* Stats Cards Section */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
- <FileText size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Total Sale</p>
- </div>
- <p className="text-base font-bold text-ink">{formatCurrency(stats?.total_sale || 0, store)}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
- <CheckSquare size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Paid Amount</p>
- </div>
- <p className="text-base font-bold text-emerald-600">{formatCurrency(stats?.total_paid || 0, store)}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
- <Clock size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Unpaid (Due)</p>
- </div>
- <p className="text-base font-bold text-rose-600">{formatCurrency(stats?.total_unpaid || 0, store)}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
- <History size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Transactions</p>
- </div>
- <p className="text-base font-bold text-ink">{stats?.transaction_count || 0}</p>
- </div>
- </div>
-
- {/* 1. Header Area - PC / Desktop Layout (Hidden on Mobile) */}
- <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- {/* Left: Title + Filter Pills */}
- <div className="flex items-center gap-2 flex-wrap">
- <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- {tp('sale', 'Sales')} <span className="text-brand-600">Transactions</span>
- </h1>
- <div className="h-4 w-px bg-sunken mx-1"></div>
- <div className="flex items-center gap-1 shrink-0">
- {[['all', 'All'], ['online', 'Online'], ['pos', 'POS'], ['manual', 'Invoice']].map(([k, label]) => (
- <button
- key={k}
- onClick={() => { setChannel(k); applyFilters({ channel: k }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${channel === k ? (k === 'online' ? 'bg-teal-600 text-white' : 'bg-brand-600 text-white') : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >{label}</button>
- ))}
- </div>
- <div className="h-4 w-px bg-sunken mx-1"></div>
- <button
- onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >All</button>
- <button
- onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Today</button>
- <button
- onClick={() => { setActiveFilter('month'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'month', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >This Month</button>
- <button
- onClick={() => { setActiveFilter('year'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'year', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >This Year</button>
- <button
- onClick={() => setActiveFilter('custom')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-brand text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Custom</button>
- {/* Custom Date Range - Inline */}
+ {/* Desktop header: row 1 toolbar, row 2 stat cards */}
+ <ListToolbar
+ title={tp('sale', 'Sales')}
+ navGroups={navGroups}
+ activeId="orders"
+ left={(
+ <>
+ <select value={channel} onChange={(e) => { setChannel(e.target.value); applyFilters({ channel: e.target.value }); }} className="h-10 pl-3 pr-8 rounded-[12px] border border-line bg-surface text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer hover:bg-interactive-hover" aria-label="Channel">
+ <option value="all">All channels</option>
+ <option value="online">Online</option>
+ <option value="pos">POS</option>
+ <option value="manual">Invoice</option>
+ </select>
+ <select
+ value={activeFilter}
+ onChange={(e) => {
+ const k = e.target.value;
+ if (k === 'custom') { setActiveFilter('custom'); return; }
+ setActiveFilter(k); setDateRange({ from: '', to: '' }); applyFilters({ filter: k, from_date: '', to_date: '' });
+ }}
+ className="h-10 pl-3 pr-8 rounded-[12px] border border-line bg-surface text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer hover:bg-interactive-hover"
+ aria-label="Period"
+ >
+ <option value="all">All time</option>
+ <option value="today">Today</option>
+ <option value="month">This Month</option>
+ <option value="year">This Year</option>
+ <option value="custom">Custom</option>
+ </select>
  {activeFilter === 'custom' && (
- <div className="flex items-center gap-1.5 ml-1">
- <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
- className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
+ <div className="flex items-center gap-1.5">
+ <input type="date" name="from" value={dateRange.from} onChange={handleDateChange} className="h-10 px-2 text-sm font-semibold bg-surface border border-line rounded-[12px] text-ink focus:ring-2 focus:ring-brand-500 outline-none" />
  <span className="text-ink-muted text-xs">→</span>
- <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
- className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500" />
+ <input type="date" name="to" value={dateRange.to} onChange={handleDateChange} className="h-10 px-2 text-sm font-semibold bg-surface border border-line rounded-[12px] text-ink focus:ring-2 focus:ring-brand-500 outline-none" />
  </div>
  )}
- </div>
-
- {/* Right: Search + Actions */}
- <div className="flex items-center gap-2">
- <div className="w-64 relative">
- <input
- type="text"
- value={searchTerm}
- onChange={handleSearch}
- onKeyDown={handleServerSearch}
- placeholder="Search invoice, customer..."
- className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
+ </>
+ )}
+ search={{ value: searchTerm, onChange: (v) => handleSearch({ target: { value: v } }), onKeyDown: handleServerSearch, placeholder: 'Search invoice, customer...' }}
+ actions={(
+ <>
+ <a href={route('store.sales.export', { ...filters, store_slug: store?.slug })} className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-emerald-600" title="Export"><FileSpreadsheet size={18} /></a>
+ <Link href={route('store.reports.analytics', { store_slug: store?.slug })} className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-ink-muted" title="Analytics"><BarChart3 size={18} /></Link>
+ <button type="button" className="h-10 w-10 rounded-[12px] border border-line bg-surface flex items-center justify-center hover:bg-interactive-hover transition-colors text-ink-muted" title="Print" onClick={() => PrintService.printPage()}><Printer size={18} /></button>
+ {(!Array.isArray(modules) || modules.includes('invoicing')) && (
+ <ListAddButton href={route('store.sales.invoice.create', { store_slug: store?.slug })} icon={Plus}>New Invoice</ListAddButton>
+ )}
+ </>
+ )}
  />
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
- </div>
- <div className="flex items-center gap-0.5 border-l border-line pl-2">
- <a href={route('store.sales.export', { ...filters, store_slug: store?.slug })} className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
- <FileSpreadsheet size={18} />
- </a>
- <Link href={route('store.reports.analytics', { store_slug: store?.slug })} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Analytics">
- <BarChart3 size={18} />
- </Link>
- <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
- <Printer size={18} />
- </button>
- </div>
- </div>
- </div>
+ <ListStatCards cards={[
+ { label: 'Total Sale', value: formatCurrency(stats?.total_sale || 0, store), icon: FileText, icon_tone: 'bg-brand-100 text-brand-600' },
+ { label: 'Paid Amount', value: formatCurrency(stats?.total_paid || 0, store), icon: CheckSquare, icon_tone: 'bg-emerald-100 text-emerald-600', value_tone: 'text-emerald-600' },
+ { label: 'Unpaid (Due)', value: formatCurrency(stats?.total_unpaid || 0, store), icon: Clock, icon_tone: 'bg-rose-100 text-rose-600', value_tone: 'text-rose-600' },
+ { label: 'Transactions', value: stats?.transaction_count || 0, icon: History, icon_tone: 'bg-blue-100 text-blue-600' },
+ ]} />
 
  {/* 1. Header Area - Mobile Layout (4 Buttons) */}
- <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
- <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- {tp('sale', 'Sales')} <span className="text-brand-600">Transactions</span>
- </h1>
- <div className="flex items-center gap-1">
- {/* Button 1: Search Toggle */}
- <button
- onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Search"
- >
- <Search size={16} />
- </button>
- {/* Button 2: Filter Toggle */}
- <button
- onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Filters"
- >
- <Filter size={16} />
- </button>
- {/* Button 3: Spreadsheet/Export */}
- <a
- href={route('store.sales.export', { ...filters, store_slug: store?.slug })}
- className="p-2 bg-sunken text-emerald-600 hover:bg-interactive-hover rounded-lg transition-colors"
- title="Export spreadsheet"
- >
- <FileSpreadsheet size={16} />
- </a>
- {/* Button 4: Graph/Analytics */}
- <Link
- href={route('store.reports.analytics', { store_slug: store?.slug })}
- className="p-2 bg-sunken text-brand-600 hover:bg-interactive-hover rounded-lg transition-colors"
- title="View analytics graph"
- >
- <BarChart3 size={16} />
- </Link>
- </div>
- </div>
-
- {/* Expandable Search Input on Mobile */}
- {showMobileSearch && (
- <div className="w-full relative mt-1 border-t border-line pt-2">
- <input
- type="text"
- value={searchTerm}
- onChange={handleSearch}
- onKeyDown={handleServerSearch}
- placeholder="Search invoice, customer..."
- className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
- />
- <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
- </div>
- )}
-
- {/* Expandable Filters Panel on Mobile */}
- {showMobileFilters && (
- <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
- <div className="flex flex-wrap gap-1.5">
- <button
- onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >All</button>
- <button
- onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >Today</button>
- <button
- onClick={() => { setActiveFilter('month'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'month', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >This Month</button>
- <button
- onClick={() => { setActiveFilter('year'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'year', from_date: '', to_date: '' }); }}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >This Year</button>
- <button
- onClick={() => setActiveFilter('custom')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-brand text-white' : 'bg-sunken text-ink-muted'}`}
- >Custom</button>
- </div>
- {activeFilter === 'custom' && (
- <div className="flex items-center gap-1.5 mt-1">
- <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
- className="px-2 py-1 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500 flex-1" />
- <span className="text-ink-muted text-xs">→</span>
- <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
- className="px-2 py-1 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-brand-500 flex-1" />
- </div>
- )}
- </div>
- )}
- </div>
 
  {/* Bulk Action Bar */}
  {selectedSales.length > 0 && (
@@ -566,11 +440,11 @@ export default function SalesIndex({ sales, filters, stats, open_online_orders =
  )}
 
  {/* 2. Main Transactions Table */}
- <div className="flex-1 min-h-[calc(100vh-190px)] lg:min-h-0 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
+ <div className="flex-1 min-h-[calc(100vh-190px)] md:min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
  <table className="hidden md:table w-full text-left border-collapse">
  <thead>
  <tr className="bg-app border-b border-line sticky top-0 z-10">
- <th className="p-2 md:p-4 w-8 md:w-10">
+ <th className="sticky top-0 z-10 bg-app p-2 md:p-4 w-8 md:w-10">
  <input
  type="checkbox"
  className="rounded border-line text-brand-600 focus:ring-brand-600"
@@ -586,7 +460,7 @@ export default function SalesIndex({ sales, filters, stats, open_online_orders =
  onDragOver={(e) => handleDragOver(e, index)}
  onDrop={(e) => handleDrop(e, index)}
  onClick={() => col.key !== 'actions' && handleSort(col.key)}
- className={`
+ className={`sticky top-0 z-10 bg-app 
  p-2 md:p-4 text-2xs md:text-xs font-bold text-ink-muted uppercase tracking-wider 
  cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
  ${col.className || ''}
@@ -1060,7 +934,7 @@ export default function SalesIndex({ sales, filters, stats, open_online_orders =
  {sales.next_page_url ? 'Loading...' : ''}
  </div>
  </div>
- </div>
+ </ListPageFrame>
 
  {/* Quick View Modal - Centered Popup */}
  {

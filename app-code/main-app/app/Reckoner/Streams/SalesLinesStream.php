@@ -123,4 +123,105 @@ class SalesLinesStream
             'denominator' => $gross,
         ];
     }
+
+    /**
+     * Sales by product category (recognised sales only, returns excluded).
+     *
+     * @return array<string,float> category name => sales value
+     */
+    public function byCategory(string $from, string $to, int|string $tenantId): array
+    {
+        $rows = DB::table('sale_items as si')
+            ->join('sales as s', 'si.sale_id', '=', 's.id')
+            ->leftJoin('products as p', 'si.product_id', '=', 'p.id')
+            ->leftJoin('categories as c', 'p.category_id', '=', 'c.id')
+            ->where('s.tenant_id', $tenantId)
+            ->where('si.tenant_id', $tenantId)
+            ->whereBetween(DB::raw('DATE(COALESCE(s.posted_at, s.created_at))'), [$from, $to])
+            ->whereNull('s.original_sale_id')
+            ->whereIn('s.status', ['posted', 'completed'])
+            ->whereNull('s.deleted_at')
+            ->whereNull('si.deleted_at')
+            ->selectRaw('COALESCE(c.name, "General") as cat_name, SUM(si.line_total) as val')
+            ->groupBy('cat_name')
+            ->orderByDesc('val')
+            ->get();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $out[$r->cat_name] = round((float) $r->val, 2);
+        }
+
+        return $out;
+    }
+
+    /**
+     * Sales of one product category: total and a day-by-day series.
+     *
+     * @return array{total: float, points: array<string,float>}
+     */
+    public function categorySales(string $from, string $to, int|string $tenantId, ?string $categoryId): array
+    {
+        $q = DB::table('sale_items as si')
+            ->join('sales as s', 'si.sale_id', '=', 's.id')
+            ->join('products as p', 'si.product_id', '=', 'p.id')
+            ->where('s.tenant_id', $tenantId)
+            ->where('si.tenant_id', $tenantId)
+            ->whereBetween(DB::raw('DATE(COALESCE(s.posted_at, s.created_at))'), [$from, $to])
+            ->whereNull('s.original_sale_id')
+            ->whereIn('s.status', ['posted', 'completed'])
+            ->whereNull('s.deleted_at')
+            ->whereNull('si.deleted_at');
+        if ($categoryId !== null && $categoryId !== '') {
+            $q->where('p.category_id', $categoryId);
+        }
+        $rows = $q->selectRaw('DATE(COALESCE(s.posted_at, s.created_at)) as d, SUM(si.line_total) as val')
+            ->groupBy('d')->pluck('val', 'd')->all();
+
+        $points = [];
+        $total = 0.0;
+        $cur = new \DateTimeImmutable($from);
+        $end = new \DateTimeImmutable($to);
+        while ($cur <= $end) {
+            $d = $cur->format('Y-m-d');
+            $points[$d] = round((float) ($rows[$d] ?? 0), 2);
+            $total += $points[$d];
+            $cur = $cur->modify('+1 day');
+        }
+
+        return ['total' => round($total, 2), 'points' => $points];
+    }
+
+    /**
+     * Units sold across every channel (POS, invoices, online): total and daily.
+     *
+     * @return array{total: float, points: array<string,float>}
+     */
+    public function itemsSold(string $from, string $to, int|string $tenantId): array
+    {
+        $rows = DB::table('sale_items as si')
+            ->join('sales as s', 'si.sale_id', '=', 's.id')
+            ->where('s.tenant_id', $tenantId)
+            ->where('si.tenant_id', $tenantId)
+            ->whereBetween(DB::raw('DATE(COALESCE(s.posted_at, s.created_at))'), [$from, $to])
+            ->whereNull('s.original_sale_id')
+            ->whereIn('s.status', ['posted', 'completed'])
+            ->whereNull('s.deleted_at')
+            ->whereNull('si.deleted_at')
+            ->selectRaw('DATE(COALESCE(s.posted_at, s.created_at)) as d, SUM(si.quantity) as val')
+            ->groupBy('d')->pluck('val', 'd')->all();
+
+        $points = [];
+        $total = 0.0;
+        $cur = new \DateTimeImmutable($from);
+        $end = new \DateTimeImmutable($to);
+        while ($cur <= $end) {
+            $d = $cur->format('Y-m-d');
+            $points[$d] = round((float) ($rows[$d] ?? 0), 2);
+            $total += $points[$d];
+            $cur = $cur->modify('+1 day');
+        }
+
+        return ['total' => round($total, 2), 'points' => $points];
+    }
 }

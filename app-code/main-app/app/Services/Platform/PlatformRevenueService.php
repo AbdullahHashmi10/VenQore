@@ -37,10 +37,43 @@ class PlatformRevenueService
 
         $mrr = 0.0;
         foreach ($paid as $t) {
-            $mrr += $this->pricing->monthly((string) $t->plan, $currency);
+            $mrr += $this->pricing->monthly($this->planOf($t), $currency);
         }
 
         return round($mrr, 2);
+    }
+
+    /**
+     * MRR after each store's coupon discount (the headline "MRR" figure).
+     * Same paying-store definition and plan pricing as mrr(); one query for
+     * all coupon redemptions.
+     */
+    public function couponAdjustedMrr(string $currency = 'USD'): float
+    {
+        $paid = $this->paidTenants();
+        if ($paid->isEmpty()) {
+            return 0.0;
+        }
+
+        $redemptions = \App\Models\CouponRedemption::withoutTenantScope()
+            ->whereIn('tenant_id', $paid->pluck('id'))
+            ->with('coupon')
+            ->get()
+            ->keyBy('tenant_id');
+
+        $total = 0.0;
+        foreach ($paid as $t) {
+            $price  = $this->pricing->monthly($this->planOf($t), $currency);
+            $coupon = $redemptions[$t->id]->coupon ?? null;
+            if ($coupon) {
+                $price = in_array($coupon->discount_type, ['percentage', 'percent'], true)
+                    ? $price - $price * ((float) $coupon->discount_value / 100)
+                    : $price - (float) $coupon->discount_value;
+            }
+            $total += max(0.0, $price);
+        }
+
+        return round($total, 2);
     }
 
     /** Annual Recurring Revenue. */
@@ -100,7 +133,7 @@ class PlatformRevenueService
         $byPlan = [];
 
         foreach ($paid as $t) {
-            $slug = (string) ($t->plan ?: 'unknown');
+            $slug = $this->planOf($t) ?: 'unknown';
             $byPlan[$slug] ??= ['plan' => $slug, 'count' => 0, 'mrr' => 0.0];
             $byPlan[$slug]['count']++;
             $byPlan[$slug]['mrr'] += $this->pricing->monthly($slug, $currency);
@@ -210,7 +243,17 @@ class PlatformRevenueService
                         });
                   });
             })
-            ->get(['id', 'plan', 'status', 'lemon_squeezy_subscription_id']);
+            ->get(['id', 'plan', 'plan_limits', 'status', 'lemon_squeezy_subscription_id']);
+    }
+
+    /**
+     * The canonical plan a tenant is billed on. Legacy rows (growth/business/
+     * counter) priced from their stale legacy plan rows, and LTD stores (stored
+     * as plan='ltd') priced at 0 because no plan row is called 'ltd'.
+     */
+    protected function planOf(Tenant $t): string
+    {
+        return \App\Support\PlanCatalog::canonical($t->effectivePlan());
     }
 
     protected function dateLimit(?string $period): ?Carbon

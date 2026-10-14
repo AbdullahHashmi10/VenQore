@@ -15,6 +15,10 @@ import {
     Terminal,
     Globe
 } from 'lucide-react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 
 export default function AdminLogs({ logs = [] }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -86,112 +90,52 @@ export default function AdminLogs({ logs = [] }) {
     };
 
     return (
-        <OneGlanceLayout title="Security Command Center" mode="admin">
+        <OneGlanceLayout title="Security Command Center" mode="admin" noPadding>
             <Head title="Security Logs" />
 
-            <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
+            <div className="max-md:p-1.5 max-md:h-full md:contents">
+            <ListPageFrame className="max-md:max-w-[1600px] max-md:mx-auto max-md:h-full max-md:flex max-md:flex-col max-md:gap-6">
+                <ListToolbar
+                    title="Security Audit Log"
+                    left={<ListFilterPill icon={Filter} label="Status" value={filterLevel} onChange={setFilterLevel} options={['all', 'info', 'success', 'warning', 'error'].map(l => ({ value: l, label: l === 'all' ? 'All statuses' : l.charAt(0).toUpperCase() + l.slice(1) }))} />}
+                    search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search logs...' }}
+                    actions={<button type="button" onClick={refreshPage} className="h-10 w-10 rounded-[12px] border border-line bg-app text-ink-muted hover:text-brand-500 hover:bg-interactive-hover flex items-center justify-center transition-colors" title="Refresh Logs"><RefreshCw size={16} /></button>}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Events', value: displayLogs.length, icon: FileText },
+                    { label: 'Critical', value: displayLogs.filter(l => l.level === 'error').length, icon: AlertOctagon, icon_tone: 'bg-rose-50 text-rose-600' },
+                    { label: 'Warnings', value: displayLogs.filter(l => l.level === 'warning').length, icon: AlertTriangle, icon_tone: 'bg-amber-50 text-amber-600' },
+                    { label: 'Success', value: displayLogs.filter(l => l.level === 'success').length, icon: CheckCircle, icon_tone: 'bg-emerald-50 text-emerald-600' },
+                ]} />
 
-                {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
-                    <div>
-                        <h1 className="text-2xl font-bold text-ink flex items-center gap-2">
-                            <Shield className="text-brand-500" />
-                            Security Audit Log
-                        </h1>
-                        <p className="text-sm text-ink-muted">Real-time system activity tracking</p>
-                    </div>
-
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        <div className="relative flex-1 md:w-64 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-brand-500 transition-colors" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Search logs..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm border border-line rounded-xl bg-surface text-ink focus:ring-2 focus:ring-brand-500 transition-all shadow-sm"
-                            />
-                        </div>
-
-                        <button onClick={refreshPage} className="p-2 bg-sunken rounded-xl text-ink-muted hover:text-brand-500 transition-colors" title="Refresh Logs">
-                            <RefreshCw size={20} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
-                    <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center text-brand-600">
-                            <FileText size={24} />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Events</p>
-                            <p className="text-2xl font-bold text-ink">{displayLogs.length}</p>
-                        </div>
-                    </div>
-                    <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/20 flex items-center justify-center text-rose-600">
-                            <AlertOctagon size={24} />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Critical</p>
-                            <p className="text-2xl font-bold text-ink">{displayLogs.filter(l => l.level === 'error').length}</p>
-                        </div>
-                    </div>
-                    <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center text-amber-600">
-                            <AlertTriangle size={24} />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Warnings</p>
-                            <p className="text-2xl font-bold text-ink">{displayLogs.filter(l => l.level === 'warning').length}</p>
-                        </div>
-                    </div>
-                    <div className="bg-surface p-4 rounded-2xl border border-line shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600">
-                            <CheckCircle size={24} />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Success</p>
-                            <p className="text-2xl font-bold text-ink">{displayLogs.filter(l => l.level === 'success').length}</p>
-                        </div>
-                    </div>
-                </div>
+                <MobileListHeader
+                    title="Security Audit Log"
+                    filter={{
+                        active: filterLevel !== 'all',
+                        sections: [{ label: 'Status', value: filterLevel, options: ['all', 'info', 'success', 'warning', 'error'].map(l => ({ value: l, label: l === 'all' ? 'All statuses' : l.charAt(0).toUpperCase() + l.slice(1) })), onSelect: setFilterLevel }],
+                    }}
+                    search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Search logs...' }}
+                    actions={[{ icon: RefreshCw, label: 'Refresh', onClick: refreshPage }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Events', value: displayLogs.length, tone: 'ink', icon: FileText },
+                    { label: 'Critical', value: displayLogs.filter(l => l.level === 'error').length, tone: 'rose', icon: AlertOctagon },
+                    { label: 'Warnings', value: displayLogs.filter(l => l.level === 'warning').length, tone: 'amber', icon: AlertTriangle },
+                    { label: 'Success', value: displayLogs.filter(l => l.level === 'success').length, tone: 'emerald', icon: CheckCircle },
+                ]} />
 
                 {/* Logs Table */}
-                <div className="flex-1 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden min-h-0">
-                    {/* Toolbar */}
-                    <div className="p-4 border-b border-line flex items-center gap-2">
-                        <Filter size={16} className="text-ink-muted" />
-                        <span className="text-sm font-bold text-ink-secondary mr-2">Status:</span>
-
-                        {['all', 'info', 'success', 'warning', 'error'].map(level => (
-                            <button
-                                key={level}
-                                onClick={() => setFilterLevel(level)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
-                                    ${filterLevel === level
-                                        ? 'bg-brand-600 text-white shadow-md '
-                                        : 'bg-sunken text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover'
-                                    }
-`}
-                            >
-                                {level}
-                            </button>
-                        ))}
-                    </div>
-
+                <div className="flex-1 bg-surface border border-line rounded-2xl md:rounded-[14px] shadow-sm flex flex-col overflow-hidden min-h-0">
                     {/* Table Area */}
                     <div className="flex-1 overflow-auto custom-scrollbar">
                         <table className="w-full text-left border-collapse">
                             <thead className="bg-app sticky top-0 z-10 backdrop-blur-md">
                                 <tr className="text-xs font-bold text-ink-muted uppercase tracking-wider border-b border-line">
-                                    <th className="px-6 py-4 w-48">Timestamp</th>
-                                    <th className="px-6 py-4 w-32">Status</th>
-                                    <th className="px-6 py-4">Activity</th>
-                                    <th className="px-6 py-4">User</th>
-                                    {/* <th className="px-6 py-4 text-right">IP Address</th> */}
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 w-48">Timestamp</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4 w-32">Status</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4">Activity</th>
+                                    <th className="sticky top-0 z-10 bg-app px-6 py-4">User</th>
+                                    {/* <th className="sticky top-0 z-10 bg-app px-6 py-4 text-right">IP Address</th> */}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -251,6 +195,7 @@ export default function AdminLogs({ logs = [] }) {
                         </table>
                     </div>
                 </div>
+            </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

@@ -58,7 +58,7 @@ export default function CompareIndex({ competitors = [] }) {
                         {[
                             { icon: ShieldCheck, title: "Zero Processing Markup", text: "Pay flat subscription rates with $0 hidden transaction percentages." },
                             { icon: BarChart3, title: "Auditor-Grade Books", text: "Every sale, purchase, and refund creates a balanced double-entry journal." },
-                            { icon: Zap, title: "100% Offline PWA", text: "Keep checking out customers even during complete internet blackouts." },
+                            { icon: Zap, title: "Offline till", text: "Keep checking out customers during an internet outage, for up to 7 days." },
                             { icon: Layers, title: "Eight Correctness Laws", text: "Financial precision verified by robust automated regression suites." },
                         ].map((pillar, i) => (
                             <div key={i} className="vq-card vq-tile">

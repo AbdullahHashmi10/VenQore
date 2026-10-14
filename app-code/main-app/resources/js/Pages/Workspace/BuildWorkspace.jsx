@@ -57,19 +57,21 @@ import {
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import useTurnstile from '@/Components/Builder/useTurnstile';
 import BusinessTypePicker from '@/Components/Builder/BusinessTypePicker';
+import BuilderV2 from '@/Components/Builder/v2/BuilderV2';
+import { post as postV2 } from '@/Components/Builder/v2/api';
 import { rankBusinessTypes } from '@/Components/Builder/matchBusinessTypes';
 import {
     BuilderShell,
     ConversationalDiscovery,
+    GiftBundle,
     HandoffTips,
-    LiveStack,
-    ModuleGrid,
+    ModuleCatalog,
+    moduleGlyph,
     PromptTextarea,
     QuestionStep,
-    RecommendedBand,
-    StackPill,
     useDiscovery,
     useSessionState,
+    isAnswered,
 } from '@/Components/Builder';
 
 /* Every in-progress attempt in this tab shares one slot. A visitor who leaves
@@ -176,6 +178,9 @@ export default function BuildWorkspace({
     license = null,
     businessTypes = [],
     sectors = {},
+    gifts = null,
+    companions = {},
+    builderV2 = false,
 }) {
     const getTurnstileToken = useTurnstile();
 
@@ -262,7 +267,73 @@ export default function BuildWorkspace({
        blank slate skips every question and opens the full list with nothing
        chosen, so the whole setup is however many taps they feel like. */
     const [blankSlate, setBlankSlate] = useSessionState(`${STORAGE_KEY}:blankSlate`, false);
-    const activeModules = edited ?? proposedModules;
+    /* ── Free extras (config/signup_gifts.php) ───────────────────────────
+       null = not touched: the defaults decide (always / sells_goods). Once the
+       visitor taps one it becomes an explicit list and is never second-guessed.
+       Claimed gifts are UNIONED into the module set, so a gift survives the
+       visitor editing the stack, re-answering a question or skipping ahead. */
+    const giftItems = useMemo(() => gifts?.items || [], [gifts]);
+    const giftKeys = useMemo(() => giftItems.map((g) => g.key), [giftItems]);
+    const [giftChoice, setGiftChoice] = useSessionState(`${STORAGE_KEY}:gifts`, null);
+    /* Companions (config/module_companions.php): buy from suppliers → you
+       will also return things to them. Folded into the PROPOSAL, one hop, so
+       they show on the review with a reason and the visitor can still switch
+       any of them off (an edit replaces the proposal, as before). */
+    const companionWhy = useMemo(() => {
+        const out = {};
+        for (const k of proposedModules || []) {
+            for (const [to, why] of Object.entries(companions?.[k] || {})) {
+                if (!(proposedModules || []).includes(to) && !out[to]) out[to] = why;
+            }
+        }
+        return out;
+    }, [proposedModules, companions]);
+    const proposedWithCompanions = useMemo(
+        () => Array.from(new Set([...(proposedModules || []), ...Object.keys(companionWhy)])),
+        [proposedModules, companionWhy],
+    );
+    const [v2Session, setV2Session] = useSessionState(`${STORAGE_KEY}:v2session`, '');
+    const [v2Modules, setV2Modules] = useSessionState(`${STORAGE_KEY}:v2modules`, []);
+    const baseActive = edited ?? proposedWithCompanions;
+    const sellsGoods = (baseActive || []).includes('products');
+    const claimedGifts = useMemo(() => {
+        // Builder v2: the server's module list is the truth, so what was added on the preview is still ticked here.
+        if (v2Session) return giftKeys.filter((k) => (v2Modules || []).includes(k));
+        if (Array.isArray(giftChoice)) return giftChoice.filter((k) => giftKeys.includes(k));
+        if (blankSlate) return [];
+        return giftItems
+            .filter((g) => g.default_on === 'always' || (g.default_on === 'sells_goods' && sellsGoods))
+            .map((g) => g.key);
+    }, [v2Session, v2Modules, giftChoice, giftKeys, giftItems, sellsGoods, blankSlate]);
+    const toggleGift = async (key) => {
+        if (v2Session) {
+            // The server owns the module list: ask it, then take its answer back.
+            const r = await postV2('override', { session_id: v2Session, module: key, action: claimedGifts.includes(key) ? 'remove' : 'add' });
+            if (r.ok && Array.isArray(r.data?.modules)) setV2Modules(r.data.modules);
+            return;
+        }
+        setGiftChoice(claimedGifts.includes(key) ? claimedGifts.filter((k) => k !== key) : [...claimedGifts, key]);
+    };
+    /* Builder v2: the SERVER composed these. The old gift/override logic never touches them. */
+    const legacyActive = useMemo(
+        () => Array.from(new Set([...(baseActive || []).filter((k) => !giftKeys.includes(k)), ...claimedGifts])),
+        [baseActive, giftKeys, claimedGifts],
+    );
+    const activeModules = v2Session ? v2Modules : legacyActive;
+    /* Guided by default: the hand-picked catalogue opens only on request
+       ("In a hurry? Choose modules myself") or on the blank slate. */
+    const [customising, setCustomising] = useSessionState(`${STORAGE_KEY}:customising`, false);
+    /* True once they have gone round the "make it yours" questions (or skipped
+       out of them). The reveal then becomes a plain review — "here is everything
+       we think is right, add what you like" — and stops offering more questions. */
+    const [deepRound, setDeepRound] = useSessionState(`${STORAGE_KEY}:deepRound`, false);
+    const reviewMode = deepRound && !blankSlate;
+    const showCatalog = customising || blankSlate || reviewMode;
+    const catalogRef = useRef(null);
+    const openCatalog = () => {
+        setCustomising(true);
+        window.setTimeout(() => catalogRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    };
 
     const [discoveryMode, setDiscoveryMode] = useSessionState(`${STORAGE_KEY}:discoveryMode`, 'ai');
 
@@ -318,6 +389,16 @@ export default function BuildWorkspace({
        deeper round. `turns` is how many questions were actually asked, which
        decides whether offering more is honest or just nagging. */
     const [aiSession, setAiSession] = useSessionState(`${STORAGE_KEY}:aiSession`, null);
+    /* The deeper round, written-question form. The AI's pool is the capability
+       registry filtered to this trade, and round one's tick lists usually
+       settle most of it — so "a few more questions" often found nothing left
+       and jumped straight to the review. When that happens the round continues
+       with the written question bank instead: only questions that could still
+       switch something on, at most DEEP_LIMIT of them, each skippable.
+       deepCurrent = the question on screen (frozen, so answering it cannot swap
+       it out); deepSeen = keys already shown this round. */
+    const [deepCurrent, setDeepCurrent] = useSessionState(`${STORAGE_KEY}:deepCurrent`, null);
+    const [deepSeen, setDeepSeen] = useSessionState(`${STORAGE_KEY}:deepSeen`, []);
     const [deepening, setDeepening] = useState(false);
 
     const handleAiComplete = (proposal, modules, preset, meta = {}) => {
@@ -336,6 +417,9 @@ export default function BuildWorkspace({
         }
         setPhase('reveal');
     };
+    /* (Deep round via AI that ends having asked very little is handled by the
+       server's MIN_ROUND_TURNS; the written fallback above covers the case
+       where it asks nothing at all.) */
 
     const handleAiStateUpdate = (confirmedCaps, facts) => {
         /* `capabilities` holds {key, label, …} objects (see analyse). The
@@ -355,12 +439,13 @@ export default function BuildWorkspace({
        cleared the moment provisioning actually succeeds — see `provision`. */
     const forgetAttempt = () => {
         forgetAnswers();
+        try { window.sessionStorage.removeItem('vq-builder-v2'); } catch (e) { /* nothing to clean up */ }
         [
             'phase', 'qIndex', 'prompt', 'presetKey', 'presetLabel',
             'presetDesc', 'baseModules', 'capabilities', 'edited', 'matched',
             'converse', 'discoveryMode', 'path', 'planKey', 'planTouched',
             'businessType', 'businessLabel', 'terms', 'candidates',
-            'reasons', 'unsupported', 'blankSlate', 'aiSession',
+            'v2session', 'v2modules', 'reasons', 'unsupported', 'blankSlate', 'aiSession', 'customising', 'deepRound', 'gifts', 'deepCurrent', 'deepSeen',
         ].forEach((slot) => {
             try {
                 window.sessionStorage.removeItem(`${STORAGE_KEY}:${slot}`);
@@ -377,7 +462,13 @@ export default function BuildWorkspace({
        second render and a frame of the wrong UI. Deriving it means the bad state
        never exists in the first place. */
     const phase =
-        rawPhase === 'questions' && questions.length === 0
+        builderV2 && (rawPhase === 'intent' || rawPhase === 'questions' || rawPhase === 'reveal')
+            ? 'v2'
+            :
+        /* Only the written questions can be "empty". In AI mode the questions come
+           from the conversation, not from `questions` — treating an empty written
+           list as "nothing to ask" bounced every AI round straight back here. */
+        rawPhase === 'questions' && discoveryMode === 'manual' && questions.length === 0
             ? 'reveal'
             : rawPhase === 'identity' // merged into 'account'; old tabs may still hold it
               ? 'account'
@@ -484,6 +575,9 @@ export default function BuildWorkspace({
             setReasons({});
             setUnsupported([]);
             setBlankSlate(false);
+            setDeepRound(false);
+            setCustomising(false);
+            setGiftChoice(null);
             /* The trade and its vocabulary belong to the attempt that resolved
                them. Leaving them behind is why a tab that once described a
                plumbing business kept telling the NEXT description that its
@@ -571,12 +665,32 @@ export default function BuildWorkspace({
         [recommended, allModules],
     );
 
-    /* Shown once. The band owns them, so the main grid does not repeat them. */
-    const gridCatalogue = useMemo(
-        () => allModules.filter((m) => !recommended?.[m.key]),
-        [allModules, recommended],
-    );
+    /* Shown once. The band owns them, so the main grid does not repeat them.
+       Arranged by business type relevance: modules belonging to the matched business
+       type / preset are placed first, with less relevant modules at the bottom.
+       Critically, this arrangement is computed ONCE per business profile and does NOT
+       shift when individual cards are toggled on or off. */
+    const gridCatalogue = useMemo(() => {
+        const available = allModules.filter((m) => !recommended?.[m.key]);
+        const primarySet = new Set([...(baseModules || []), ...(presets?.[presetKey]?.modules || [])]);
+        return [...available].sort((a, b) => {
+            const aPrimary = primarySet.has(a.key);
+            const bPrimary = primarySet.has(b.key);
+            if (aPrimary && !bPrimary) return -1;
+            if (!aPrimary && bPrimary) return 1;
+            return 0; // retain stable natural catalog order within each tier
+        });
+    }, [allModules, recommended, baseModules, presets, presetKey]);
 
+    /* What we recommend, keyed for the catalogue badge: the proposal itself
+       plus the house suggestions, each with its reason when we have one. */
+    const recommendedWhy = useMemo(() => {
+        const out = {};
+        for (const k of proposedModules || []) out[k] = (reasons && typeof reasons[k] === 'string' && reasons[k]) || true;
+        for (const r of recommendedList) out[r.key] = r.why || out[r.key] || true;
+        for (const [k, why] of Object.entries(companionWhy)) if (!out[k] || out[k] === true) out[k] = why;
+        return out;
+    }, [proposedModules, reasons, recommendedList, companionWhy]);
     const catalogueByKey = useMemo(() => {
         const map = {};
         for (const m of allModules) map[m.key] = m;
@@ -589,6 +703,23 @@ export default function BuildWorkspace({
         }
         return map;
     }, [allModules, capabilities]);
+
+    const catalogueModules = useMemo(
+        () => allModules.map((m) => ({ ...m, ...(catalogueByKey[m.key] || {}), group: m.group })),
+        [allModules, catalogueByKey],
+    );
+    const recommendedSetup = useMemo(
+        () => (proposedWithCompanions || []).map((k) => catalogueByKey[k]).filter(Boolean),
+        [proposedWithCompanions, catalogueByKey],
+    );
+    const changedCount = useMemo(() => {
+        if (edited === null) return 0;
+        const a = new Set(proposedWithCompanions || []), b = new Set(edited);
+        let n = 0;
+        for (const k of a) if (!b.has(k)) n++;
+        for (const k of b) if (!a.has(k)) n++;
+        return n;
+    }, [edited, proposedWithCompanions]);
 
     /* Hard dependencies of what is currently on. Registry-driven: a module with
        no `requires` never locks anything. */
@@ -633,12 +764,67 @@ export default function BuildWorkspace({
        updaters must be pure, and React is free to run them twice. */
     const questionsRef = useRef(questions);
     const qIndexRef = useRef(qIndex);
+    const deepCurrentRef = useRef(deepCurrent);
+    const deepSeenRef = useRef(deepSeen);
+    const activeRef = useRef(activeModules);
+    const answersRef = useRef(answers);
     useEffect(() => {
         questionsRef.current = questions;
         qIndexRef.current = qIndex;
+        deepCurrentRef.current = deepCurrent;
+        deepSeenRef.current = deepSeen;
+        activeRef.current = activeModules;
+        answersRef.current = answers;
     });
 
+    /* Could this question still change the setup? Only if at least one module
+       any of its answers would switch on is not on already. A question that
+       cannot move the stack is not worth anyone's time. */
+    const DEEP_LIMIT = 5;
+    const canStillAdd = (q, active) => {
+        const implies = q?.implies || {};
+        const mods = Object.values(implies).flat();
+        return mods.some((k) => !active.includes(k));
+    };
+    const pickDeepQuestion = (seen) =>
+        (questionsRef.current || []).find(
+            (q) =>
+                q.key !== 'what' &&
+                !seen.includes(q.key) &&
+                !isAnswered(q, answersRef.current || {}) &&
+                canStillAdd(q, activeRef.current || []),
+        ) || null;
+    const nextDeepQuestion = () => {
+        const seen = deepCurrentRef.current
+            ? Array.from(new Set([...(deepSeenRef.current || []), deepCurrentRef.current]))
+            : deepSeenRef.current || [];
+        setDeepSeen(seen);
+        const next = seen.length < DEEP_LIMIT ? pickDeepQuestion(seen) : null;
+        if (!next) {
+            setDeepCurrent(null);
+            setDiscoveryMode('ai');
+            setPhase('reveal');
+            return;
+        }
+        setDeepCurrent(next.key);
+    };
+    /* Begin the written deeper round. Returns false when there is genuinely
+       nothing left that could change the setup. */
+    const startDeepWritten = () => {
+        const first = pickDeepQuestion([]);
+        if (!first) return false;
+        setDeepSeen([]);
+        setDeepCurrent(first.key);
+        setDiscoveryMode('manual');
+        setPhase('questions');
+        return true;
+    };
+
     const advance = () => {
+        if (deepCurrentRef.current) {
+            nextDeepQuestion();
+            return;
+        }
         const next = qIndexRef.current + 1;
         if (next >= questionsRef.current.length) {
             setPhase('reveal');
@@ -676,6 +862,7 @@ export default function BuildWorkspace({
         }
         setDiscoveryMode('ai');
         setBlankSlate(false);
+        setDeepRound(false);   // a new sentence starts the first round again
         setPath('questions');
         setPhase('questions');
     };
@@ -692,6 +879,8 @@ export default function BuildWorkspace({
         const p = presets?.[t.preset] || {};
         resetAnswers();
         setEdited(null);
+        setDeepRound(false);
+        setAiSession(null);
         setBusinessType(key);
         setBusinessLabel(t.label);
         setTerms(t.terms || {});
@@ -757,6 +946,7 @@ export default function BuildWorkspace({
             setSkipping(false);
         }
         foldInConfirmedCapabilities();
+        setDeepCurrent(null);
         setPhase('reveal');
     };
 
@@ -794,12 +984,29 @@ export default function BuildWorkspace({
     };
 
     const toggleModule = (key) => {
+        if (giftKeys.includes(key)) {
+            toggleGift(key);
+            return;
+        }
         const current = activeModules;
         setEdited(
             current.includes(key)
                 ? current.filter((k) => k !== key)
                 : [...current, key],
         );
+    };
+
+    const selectAllModules = () => {
+        const allKeys = allModules.map((m) => m.key);
+        setEdited(Array.from(new Set([...activeModules, ...allKeys])));
+        setGiftChoice(giftKeys);
+    };
+
+    const deselectAllModules = () => {
+        // Keep locked modules (dependencies) if any
+        const lockedKeys = Object.keys(locked || {});
+        setEdited(lockedKeys);
+        setGiftChoice([]);
     };
 
     const sendDemand = async () => {
@@ -823,20 +1030,71 @@ export default function BuildWorkspace({
        did not get to, rather than starting again. Only offered after they have
        seen what their first answers produced — that is the point at which
        asking for more of someone's time is a fair trade rather than a form. */
+    /* Ask the server for the next round of questions and hand the first one to
+       the conversation screen. Returns 'ok' | 'none' | 'error'.
+       Two things were missing before, and either alone made the button do
+       nothing: the route is behind the security check (it needs the same token
+       /start sends), and the question it returned was thrown away — the
+       conversation screen then found nothing to resume and began again. */
+    const CONVERSE_SLOT = `${STORAGE_KEY}:converse`;
     const deepenQuestions = async () => {
-        if (!aiSession?.id || deepening) return;
+        if (!aiSession?.id) return 'error';
         setDeepening(true);
         try {
-            const data = await postJson(route('workspace.converse.deepen'), { session_id: aiSession.id });
-            if (data?.ok && data.question) {
-                setDiscoveryMode('ai');
-                setPhase('questions');
+            const token = await getTurnstileToken();
+            const data = await postJson(route('workspace.converse.deepen'), {
+                session_id: aiSession.id,
+                ...(token ? { 'cf-turnstile-response': token } : {}),
+            });
+            const question = ((data && (data.question || data.assistant_message)) || '').trim();
+            if (data?.ok && question && !data.fallback && !data.is_complete) {
+                let stored = {};
+                try { stored = JSON.parse(window.sessionStorage.getItem(CONVERSE_SLOT) || '{}') || {}; } catch (e) { stored = {}; }
+                const seed = {
+                    ...stored,
+                    prompt: (prompt || '').trim() || 'I want to set up a new workspace for my business.',
+                    sessionId: data.session_id || aiSession.id,
+                    history: stored.history || [],
+                    current: {
+                        question,
+                        hint: data.question_hint || null,
+                        options: Array.isArray(data.quick_options) ? data.quick_options.slice(0, 5) : [],
+                        notice: null,
+                        opener: false,
+                        multi: !!data.is_multi,
+                    },
+                };
+                try { window.sessionStorage.setItem(CONVERSE_SLOT, JSON.stringify(seed)); } catch (e) { /* the screen will start a fresh round instead */ }
+                return 'ok';
             }
+            if (data?.is_complete) return 'none';
+            return 'error';
         } catch (e) {
-            /* Staying on the reveal is a perfectly good outcome. */
+            return 'error';
         } finally {
             setDeepening(false);
         }
+    };
+
+    /* "Continue — a few more questions". Continues the conversation they have
+       if there is one, otherwise opens a fresh one for this business. */
+    const refineWithQuestions = async () => {
+        if (deepening) return;
+        setBlankSlate(false);
+        setDeepRound(true);
+        setDiscoveryMode('ai');
+        setPath('questions');
+        setDeepCurrent(null);
+        setDeepSeen([]);
+        if (aiSession?.id) {
+            const result = await deepenQuestions();
+            if (result === 'ok') { setPhase('questions'); return; }
+        }
+        /* The AI had nothing left to ask (or could not continue). Carry on with
+           the written questions rather than skipping to the review — they
+           asked for more questions, so they get them. */
+        if (startDeepWritten()) return;
+        setPhase('reveal');
     };
 
     const requestNotify = async () => {
@@ -872,6 +1130,7 @@ export default function BuildWorkspace({
                 phone,
                 // Signed-in users are identified by their session, not the form.
                 ...(authUser ? {} : { email, password }),
+                ...(v2Session ? { builder_session: v2Session } : {}),
                 modules: activeModules,
                 preset_key: presetKey || null,
                 business_type: businessType || null,
@@ -934,8 +1193,11 @@ export default function BuildWorkspace({
     const qCount = path === 'preset' ? 0 : questions.length;
     const planSteps = plans.length ? 1 : 0;
     const totalSteps = (hasIntent ? 1 : 0) + qCount + 2 + planSteps;
+    const [v2Prog, setV2Prog] = useState({ step: 1, total: 8 });
     const stepNow =
-        phase === 'intent'
+        phase === 'v2'
+            ? v2Prog.step
+            : phase === 'intent'
             ? 1
             : phase === 'questions'
               ? (hasIntent ? 1 : 0) +
@@ -949,6 +1211,9 @@ export default function BuildWorkspace({
                   : totalSteps;
 
     const backTarget = () => {
+        if (phase === 'questions' && deepCurrent) {
+            return () => { setDeepCurrent(null); setDiscoveryMode('ai'); setDeepRound(false); setPhase('reveal'); };
+        }
         if (phase === 'questions' && qIndex > 0 && discoveryMode === 'manual') return () => setQIndex((i) => i - 1);
         if (phase === 'questions') return editPrompt;
         if (phase === 'reveal' && path === 'preset') return () => setPhase('intent');
@@ -994,7 +1259,10 @@ export default function BuildWorkspace({
        recorded; our own engine works out what they add up to; the reveal is
        where that arrives. It is also free: nothing has to be re-resolved on
        the server after every single answer. */
-    const showStack = phase === 'reveal';
+    /* The reveal is full width. There is no side panel: the checkpoint card
+       already shows what has been set up, and a second copy beside it only
+       competed with the one thing this screen is for. */
+    const isReveal = phase === 'reveal';
 
     return (
         <>
@@ -1002,11 +1270,11 @@ export default function BuildWorkspace({
             <BuilderShell
                 siteChrome
                 step={stepNow}
-                total={phase === 'building' ? 0 : totalSteps}
+                total={phase === 'building' ? 0 : phase === 'v2' ? v2Prog.total : totalSteps}
                 eyebrow={displayLabel || 'Your ERP, built by AI'}
                 orbState={orbState}
                 onBack={phase === 'building' ? null : backTarget()}
-                wide={showStack}
+                wide={isReveal}
                 footer={
                     <span className="flex items-center gap-1.5">
                         <ShieldCheck size={12} className="text-accent-text" />
@@ -1015,24 +1283,9 @@ export default function BuildWorkspace({
                 }
             >
                 <div
-                    className={
-                        showStack
-                            ? 'grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_23rem] xl:gap-8 2xl:grid-cols-[minmax(0,1fr)_26rem]'
-                            : 'mx-auto w-full max-w-3xl'
-                    }
+                    className={isReveal ? 'w-full' : 'mx-auto w-full max-w-3xl'}
                 >
                     <div className="min-w-0">
-                        {/* Phone: the panel compressed to the two parts that
-                            carry the payoff. See StackPill. */}
-                        {showStack && (
-                            <StackPill
-                                modules={activeModules}
-                                catalogue={catalogueByKey}
-                                justAdded={lastAdded}
-                                className="mb-5 lg:hidden"
-                            />
-                        )}
-
                         {/* Mode and escape hatch on ONE line. This was a pill row
                             stacked on top of a bordered card carrying three lines of
                             copy about being in a hurry — together they pushed the
@@ -1042,7 +1295,7 @@ export default function BuildWorkspace({
                             competing with it for the same glance. */}
                         {phase === 'questions' && (
                             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                                <div
+                                {deepCurrent ? <span className="text-xs font-semibold text-ink-secondary">A few more questions</span> : <div
                                     className="inline-flex items-center gap-0.5 rounded-full border border-line bg-surface p-1"
                                     role="group"
                                     aria-label="Answer with AI, or do it yourself"
@@ -1073,7 +1326,7 @@ export default function BuildWorkspace({
                                         <Sliders size={13} />
                                         I&rsquo;ll answer myself
                                     </button>
-                                </div>
+                                </div>}
 
                                 <button
                                     type="button"
@@ -1087,9 +1340,34 @@ export default function BuildWorkspace({
                                     className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-xs font-semibold text-ink-secondary transition-colors duration-fast ease-standard hover:bg-interactive-hover hover:text-ink disabled:opacity-60"
                                 >
                                     <FastForward size={13} />
-                                    {skipping ? 'Setting up…' : 'Skip questions'}
+                                    {skipping ? 'Setting up…' : deepRound ? 'Skip the rest — show my modules' : 'Skip questions'}
                                 </button>
                             </div>
+                        )}
+
+                        {phase === 'questions' && deepRound && (
+                            <p className="-mt-2 mb-4 text-xs text-ink-muted">
+                                Up to 5 quick questions. Skip any you like &mdash; you can switch anything on yourself
+                                on the next screen, and your free extras are already saved.
+                            </p>
+                        )}
+
+                        {phase === 'v2' && (
+                            <BuilderV2
+                                initialPrompt={initialPrompt}
+                                initialType={initialType}
+                                initialPreset={initialPreset}
+                                onProgress={setV2Prog}
+                                businessTypes={businessTypes}
+                                getTurnstileToken={getTurnstileToken}
+                                email={email || authUser?.email || ''}
+                                onBuild={({ sessionId, modules, typeKey }) => {
+                                    setV2Session(sessionId);
+                                    setV2Modules(modules);
+                                    if (typeKey) setBusinessType(typeKey);
+                                    setPhase(plans.length ? 'plan' : 'account');
+                                }}
+                            />
                         )}
 
                         <AnimatePresence mode="wait">
@@ -1182,7 +1460,7 @@ export default function BuildWorkspace({
                                             <div className="relative flex items-center py-2">
                                                 <div className="w-full border-t border-line" />
                                                 <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap bg-app px-3 text-2xs font-semibold uppercase tracking-widest text-ink-muted">
-                                                    or skip the questions
+                                                    in a hurry? skip the questions
                                                 </span>
                                             </div>
                                             <h2 id="vq-types-title" className="mt-4 text-base font-semibold text-ink">
@@ -1220,7 +1498,36 @@ export default function BuildWorkspace({
                                         storageKey={`${STORAGE_KEY}:converse`}
                                     />
                                 ) : (
-                                    questions[qIndex] && (
+                                    deepCurrent ? (() => {
+                                        const dq = questions.find((q) => q.key === deepCurrent);
+                                        if (!dq) return null;
+                                        return (
+                                            <div key={`deep-${dq.key}`}>
+                                                <p className="mb-3 text-2xs font-semibold uppercase tracking-widest text-accent-text">
+                                                    Question {Math.min(deepSeen.length + 1, DEEP_LIMIT)} of up to {DEEP_LIMIT}
+                                                </p>
+                                                <QuestionStep
+                                                    key={dq.key}
+                                                    question={dq}
+                                                    value={answers[dq.key]}
+                                                    onAnswer={handleAnswer}
+                                                    onContinue={() => { commitMulti(dq.key); advance(); }}
+                                                    autoAdvance={advance}
+                                                />
+                                                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                                                    <span className="text-xs text-ink-muted">Not sure, or not relevant?</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={advance}
+                                                        className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-xs font-semibold text-ink-secondary transition-colors duration-fast ease-standard hover:bg-interactive-hover hover:text-ink"
+                                                    >
+                                                        <FastForward size={13} />
+                                                        Skip this question
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })() : questions[qIndex] && (
                                         <QuestionStep
                                             key={questions[qIndex].key}
                                             question={questions[qIndex]}
@@ -1242,22 +1549,63 @@ export default function BuildWorkspace({
                                     exit={{ opacity: 0, y: -12 }}
                                     transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
                                 >
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent-quiet px-3 py-1 text-3xs font-bold uppercase tracking-widest text-accent-text">
-                                        <Sparkles size={12} />
-                                        {displayLabel || 'Your workspace'}
-                                    </span>
-
-                                    <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
-                                        {blankSlate
-                                            ? 'Build it yourself.'
-                                            : headline || 'Your system is ready to build.'}
-                                    </h1>
-                                    <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-secondary">
-                                        {blankSlate
-                                            ? 'Nothing is switched on. Tap whatever you want — anything that needs something else switches that on too, and nothing here costs extra.'
-                                            : presetDesc ||
-                                              'Everything below is switched on for you. Add or remove anything — nothing here costs extra.'}
-                                    </p>
+                                    {blankSlate ? (
+                                        <>
+                                            <span className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent-quiet px-3 py-1 text-3xs font-bold uppercase tracking-widest text-accent-text">
+                                                <Sparkles size={12} />
+                                                {displayLabel || 'Your workspace'}
+                                            </span>
+                                            <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+                                                Build it yourself.
+                                            </h1>
+                                            <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-secondary">
+                                                Nothing is switched on. Tap whatever you want &mdash; anything that
+                                                needs something else switches that on too, and nothing here costs extra.
+                                            </p>
+                                        </>
+                                    ) : reviewMode ? (
+                                        <>
+                                            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-2xs font-semibold uppercase tracking-widest" aria-label="Setup progress">
+                                                <li className="inline-flex items-center gap-1.5 text-accent-text"><Check size={12} strokeWidth={3} /> Essentials</li>
+                                                <li className="text-ink-faint" aria-hidden="true">&mdash;</li>
+                                                <li className="inline-flex items-center gap-1.5 text-accent-text"><Check size={12} strokeWidth={3} /> Made yours</li>
+                                                <li className="text-ink-faint" aria-hidden="true">&mdash;</li>
+                                                <li className="inline-flex items-center gap-1.5 text-ink"><span className="h-1.5 w-1.5 rounded-full bg-accent-fill" /> Final check</li>
+                                                <li className="text-ink-faint" aria-hidden="true">&mdash;</li>
+                                                <li className="text-ink-muted">Launch</li>
+                                            </ol>
+                                            <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+                                                Here&rsquo;s everything we think is right for you.
+                                            </h1>
+                                            <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-secondary">
+                                                <span className="vq-num font-semibold text-ink">{activeModules.length}</span> modules are switched on
+                                                for you. If there&rsquo;s anything else you&rsquo;d like, add it below &mdash; then
+                                                continue to create your store.
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Where they are: the essentials are done, the fitting is next.
+                                                It reads as the middle of a journey, not the end of one. */}
+                                            <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-2xs font-semibold uppercase tracking-widest" aria-label="Setup progress">
+                                                <li className="inline-flex items-center gap-1.5 text-accent-text"><Check size={12} strokeWidth={3} /> Essentials</li>
+                                                <li className="text-ink-faint" aria-hidden="true">&mdash;</li>
+                                                <li className="inline-flex items-center gap-1.5 text-ink"><span className="h-1.5 w-1.5 rounded-full bg-accent-fill" /> Make it yours</li>
+                                                <li className="text-ink-faint" aria-hidden="true">&mdash;</li>
+                                                <li className="text-ink-muted">Plan</li>
+                                                <li className="text-ink-faint" aria-hidden="true">&mdash;</li>
+                                                <li className="text-ink-muted">Launch</li>
+                                            </ol>
+                                            <h1 className="mt-4 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-4xl">
+                                                Good start. Now let&rsquo;s make it fit{displayLabel ? ` your ${displayLabel.toLowerCase()}` : ' your business'}.
+                                            </h1>
+                                            <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-secondary">
+                                                We&rsquo;ve set up the essentials. A few more questions about how you
+                                                actually work let us fine-tune the rest &mdash; so the software feels
+                                                built for you from day one, not something you have to bend into shape.
+                                            </p>
+                                        </>
+                                    )}
 
                                     {/* Honest note — shown only when nothing about what was typed
                                         actually matched a trade this product has a preset for (see
@@ -1368,64 +1716,167 @@ export default function BuildWorkspace({
                                         </div>
                                     )}
 
-                                    <div className="mt-7">
-                                        <div className="mb-3 flex items-baseline justify-between gap-4">
-                                            <h2 className="text-sm font-semibold text-ink">
-                                                What your workspace can do
-                                            </h2>
-                                            <span className="text-2xs text-ink-muted">
-                                                Tap to add or remove
-                                            </span>
-                                        </div>
-                                        <ModuleGrid
-                                            catalogue={gridCatalogue}
-                                            active={activeModules}
-                                            locked={locked}
-                                            onToggle={toggleModule}
-                                        />
-                                    </div>
+                                    {/* ── The checkpoint ─────────────────────────────────────────
+                                        A stop on the way, not a destination. Full width, no side
+                                        panel. The way forward is the questions: one big, warm,
+                                        obvious button. Doing it yourself is offered below as an
+                                        honest second option; building as-is is plain text. */}
+                                    {!blankSlate && !reviewMode && (
+                                        <div className="mt-8 space-y-4">
+                                            <GiftBundle gifts={gifts} claimed={claimedGifts} onToggle={toggleGift} />
+                                            <div className="overflow-hidden rounded-xl border border-accent bg-surface shadow-sm">
+                                                <div className="bg-accent-quiet p-6 sm:p-8 lg:p-10">
+                                                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                                                        <div className="max-w-2xl">
+                                                            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-fill px-2.5 py-1 text-3xs font-bold uppercase tracking-widest text-accent-on">
+                                                                <Sparkles size={11} /> Best way to continue
+                                                            </span>
+                                                            <h2 className="mt-4 text-2xl font-semibold leading-snug text-ink sm:text-3xl">
+                                                                Tell us more about your business
+                                                            </h2>
+                                                            <p className="mt-2 text-base leading-relaxed text-ink-secondary">
+                                                                Up to five quick questions, about two minutes. Each answer adds
+                                                                something you&rsquo;d miss or removes something you&rsquo;d never use.
+                                                                Skip any question &mdash; or stop whenever you like and keep what you have.
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={refineWithQuestions}
+                                                            disabled={deepening}
+                                                            className="inline-flex h-14 w-full shrink-0 items-center justify-center gap-2.5 rounded-lg bg-accent-fill px-8 text-base font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60 lg:w-auto"
+                                                        >
+                                                            <MessageSquareText size={18} />
+                                                            {deepening ? 'Getting your first question…' : 'Continue — a few more questions'}
+                                                            <ArrowRight size={18} />
+                                                        </button>
+                                                    </div>
 
-                                    {/* Underneath the catalogue, not above it. A band
-                                        of things WE chose sitting at the top made our
-                                        suggestions the headline of a page whose whole
-                                        claim is that it was built around them. */}
-                                    {!blankSlate && recommendedList.length > 0 && (
-                                        <RecommendedBand
-                                            items={recommendedList}
-                                            active={activeModules}
-                                            onToggle={toggleModule}
+                                                    <ul className="mt-8 grid gap-4 sm:grid-cols-3">
+                                                        {[
+                                                            ['Only what you need', 'No clutter from features your business never touches.'],
+                                                            ['Your words, your screens', 'Menus, reports and the till follow how you actually trade.'],
+                                                            ['Right from day one', 'Far less to change or switch on later.'],
+                                                        ].map(([t, d]) => (
+                                                            <li key={t} className="flex items-start gap-3">
+                                                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-fill text-accent-on">
+                                                                    <Check size={11} strokeWidth={3} />
+                                                                </span>
+                                                                <span className="text-sm text-ink">
+                                                                    <span className="font-semibold">{t}.</span>{' '}
+                                                                    <span className="text-ink-secondary">{d}</span>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+
+                                                <div className="border-t border-line p-6 sm:px-8 lg:px-10">
+                                                    <div className="flex items-baseline justify-between gap-3">
+                                                        <h3 className="text-sm font-semibold text-ink">What we&rsquo;ve set up so far</h3>
+                                                        <span className="vq-num text-sm font-semibold text-accent-text">{activeModules.length} modules</span>
+                                                    </div>
+                                                    <ul className="mt-3 flex flex-wrap gap-2" aria-label="Modules set up so far">
+                                                        {recommendedSetup.map((m) => {
+                                                            const Glyph = moduleGlyph(m.key, m.icon);
+                                                            return (
+                                                                <li
+                                                                    key={m.key}
+                                                                    title={recommendedWhy[m.key] && recommendedWhy[m.key] !== true ? recommendedWhy[m.key] : m.description || undefined}
+                                                                    className="inline-flex items-center gap-1.5 rounded-full border border-line bg-sunken px-3 py-1.5 text-xs font-semibold text-ink"
+                                                                >
+                                                                    <Glyph size={13} className="text-accent-text" />
+                                                                    {m.label}
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                            {/* The honest second option: pick it yourself. */}
+                                            <button
+                                                type="button"
+                                                onClick={openCatalog}
+                                                className="group flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-surface px-5 py-4 text-left transition-colors duration-fast ease-standard hover:border-line-strong hover:bg-interactive-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                                            >
+                                                <span className="flex items-center gap-3">
+                                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sunken text-ink-muted group-hover:text-ink">
+                                                        <Sliders size={16} />
+                                                    </span>
+                                                    <span>
+                                                        <span className="block text-sm font-semibold text-ink">
+                                                            {customising ? 'Choosing my own modules' : 'I\u2019d rather choose my own modules'}
+                                                        </span>
+                                                        <span className="block text-xs text-ink-muted">
+                                                            Browse all {allModules.length} modules and switch on exactly what you want.
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                                <ChevronDown size={18} className={`shrink-0 text-ink-muted transition-transform duration-fast ${customising ? 'rotate-180' : ''}`} />
+                                            </button>
+
+                                            <p className="text-xs text-ink-muted">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { if (!customising) setEdited(null); goToPlan(); }}
+                                                    disabled={activeModules.length === 0}
+                                                    className="text-ink-muted underline-offset-4 hover:text-ink hover:underline disabled:opacity-50"
+                                                >
+                                                    Build this workspace as it is
+                                                </button>
+                                                {edited !== null && changedCount > 0 && (
+                                                    <>
+                                                        <span className="mx-2 text-ink-faint" aria-hidden="true">·</span>
+                                                        You&rsquo;ve changed {changedCount} {changedCount === 1 ? 'module' : 'modules'}.{' '}
+                                                        <button type="button" onClick={() => setEdited(null)} className="underline-offset-4 hover:text-ink hover:underline">
+                                                            Undo
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {(reviewMode || blankSlate) && (
+                                        <GiftBundle
+                                            gifts={gifts}
+                                            claimed={claimedGifts}
+                                            onToggle={toggleGift}
+                                            variant={reviewMode ? 'hero' : 'compact'}
+                                            className="mt-8"
                                         />
                                     )}
 
-                                    {/* Two things people need to know before they commit:
-                                        that they can make it sharper now, and that
-                                        nothing here is a one-time decision. The second
-                                        matters more — most of the hesitation on this
-                                        screen is someone worrying they are choosing
-                                        wrong forever. */}
-                                    <div className="mt-6 rounded-lg border border-line bg-surface p-5">
-                                        {aiSession?.id && !blankSlate && (
-                                            <div className="mb-4 border-b border-line-subtle pb-4">
-                                                <p className="text-sm font-semibold text-ink">
-                                                    Want it closer to how you actually work?
-                                                </p>
-                                                <p className="mt-1 text-xs leading-relaxed text-ink-secondary">
-                                                    We asked the short version. A few more questions
-                                                    &mdash; about your stock, your team, how people pay you
-                                                    &mdash; and this stops being a good guess.
-                                                </p>
-                                                <button
-                                                    type="button"
-                                                    onClick={deepenQuestions}
-                                                    disabled={deepening}
-                                                    className="mt-3 inline-flex h-10 items-center gap-2 rounded-md border border-accent bg-accent-quiet px-4 text-xs font-semibold text-accent-text transition-colors duration-fast ease-standard hover:bg-accent-fill hover:text-accent-on disabled:opacity-60"
-                                                >
-                                                    <MessageSquareText size={14} />
-                                                    {deepening ? 'Picking up where we left off…' : 'Ask me a few more'}
-                                                </button>
+                                    {showCatalog && (
+                                        <div className="mt-10" ref={catalogRef} id="vq-choose-modules">
+                                            <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                                                <div>
+                                                    <h2 className="text-lg font-semibold text-ink">{reviewMode ? 'Add anything else you\u2019d like' : 'Choose your modules'}</h2>
+                                                    <p className="text-sm text-ink-secondary">
+                                                        Switch on what you need. Anything a module depends on comes on with it.
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2 text-xs">
+                                                    <button type="button" onClick={selectAllModules} className="font-semibold text-accent-text hover:underline">Switch all on</button>
+                                                    <span className="text-ink-faint">·</span>
+                                                    <button type="button" onClick={deselectAllModules} className="font-semibold text-ink-secondary hover:underline">Switch all off</button>
+                                                </div>
                                             </div>
-                                        )}
+                                            <ModuleCatalog
+                                                modules={catalogueModules}
+                                                active={activeModules}
+                                                locked={locked}
+                                                recommended={blankSlate ? {} : recommendedWhy}
+                                                onToggle={(key) => toggleModule(key)}
+                                            />
+                                        </div>
+                                    )}
 
+                                    {showCatalog && (
+                                        <div>
+                                    {/* Guarantee notice: nothing here is final */}
+                                    <div className="mt-6 rounded-lg border border-line bg-surface p-5">
                                         <p className="text-xs leading-relaxed text-ink-secondary">
                                             <span className="font-semibold text-ink">Nothing here is final.</span>{' '}
                                             Once you are in, everything on this page lives under{' '}
@@ -1480,20 +1931,17 @@ export default function BuildWorkspace({
                                             disabled={activeModules.length === 0}
                                             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-colors duration-normal ease-standard hover:bg-accent-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                                         >
-                                            <Rocket size={16} />
-                                            Build this workspace
+                                            {reviewMode ? 'Continue to create my store' : 'Continue with my modules'}
                                             <ArrowRight size={16} />
                                         </button>
                                         {path === 'preset' ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => setPhase('intent')}
-                                                className="text-xs font-semibold text-accent-text underline-offset-4 hover:underline"
-                                            >
+                                            <button type="button" onClick={() => setPhase('intent')} className="text-xs font-semibold text-accent-text underline-offset-4 hover:underline">
                                                 Pick a different business type
                                             </button>
                                         ) : null}
                                     </div>
+                                        </div>
+                                    )}
                                 </motion.div>
                             )}
 
@@ -1626,6 +2074,8 @@ export default function BuildWorkspace({
                                         {activeModules.length} modules, configured.{' '}
                                         {authUser ? 'Name it and it is ready.' : 'Name it, create a login, and it is yours.'}
                                     </p>
+
+                                    <GiftBundle gifts={gifts} claimed={claimedGifts} onToggle={toggleGift} variant="compact" className="mt-4" />
 
                                     {license && (
                                         <p className="mt-4 flex items-center gap-2 rounded-md border border-accent bg-accent-quiet px-4 py-2.5 text-xs text-ink">
@@ -1817,36 +2267,6 @@ export default function BuildWorkspace({
                         </AnimatePresence>
                     </div>
 
-                    {/* The panel that makes the questions worth asking. */}
-                    {showStack && (
-                        <div className="sticky top-6 hidden max-h-[calc(100vh-3rem)] flex-col gap-3.5 lg:flex">
-                            <LiveStack
-                                modules={activeModules}
-                                catalogue={catalogueByKey}
-                                attribution={attribution}
-                                reasons={reasons}
-                                lastAnswer={lastAnswer}
-                                className="max-h-[68vh]"
-                            />
-                            {phase === 'reveal' && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={goToPlan}
-                                        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent-fill px-6 text-sm font-semibold text-accent-on shadow-glow transition-all duration-normal ease-standard hover:bg-accent-fill-hover hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                                    >
-                                        <Rocket size={16} />
-                                        Build this workspace
-                                        <ArrowRight size={16} />
-                                    </button>
-                                </motion.div>
-                            )}
-                        </div>
-                    )}
                 </div>
             </BuilderShell>
         </>

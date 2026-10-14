@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import ServiceNavTabs from '@/Pages/Services/ServiceNavTabs';
+import ServiceNavTabs, { useServiceNavGroups } from '@/Pages/Services/ServiceNavTabs';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import {
     Calendar as CalendarIcon,
     Clock,
@@ -204,16 +205,41 @@ export default function ServiceCalendar({
         });
     };
 
+    const serviceNavGroups = useServiceNavGroups();
+
     return (
-        <OneGlanceLayout title="Dispatch Calendar" activeMenu="Sell">
+        <OneGlanceLayout title="Dispatch Calendar" activeMenu="Sell" noPadding>
             <Head title="Services Dispatch Calendar" />
 
-            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+            <ListPageFrame className="p-1.5">
+            <ListToolbar
+                title="Dispatch Calendar"
+                navGroups={serviceNavGroups}
+                activeId="calendar"
+                actions={(
+                    <>
+                        <div className="inline-flex rounded-[12px] bg-sunken p-0.5">
+                            {[['lanes', 'Tech Lanes'], ['week', 'Week View'], ['agenda', 'Agenda List']].map(([k, l]) => (
+                                <button
+                                    key={k}
+                                    type="button"
+                                    onClick={() => setViewMode(k)}
+                                    className={`h-9 rounded-[10px] px-3 text-xs font-semibold transition-colors ${viewMode === k ? 'bg-accent-fill text-accent-on' : 'text-ink-secondary hover:text-ink'}`}
+                                >
+                                    {l}
+                                </button>
+                            ))}
+                        </div>
+                        <ListAddButton icon={Plus} onClick={() => handleSlotClick()}>Quick Book</ListAddButton>
+                    </>
+                )}
+            />
+            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:mx-0 md:max-w-none md:w-full md:px-1 md:py-0 md:flex-1 md:min-h-0 md:overflow-auto">
                 {/* Unified Services Tabs */}
-                <ServiceNavTabs active="calendar" />
+                <div className="md:hidden"><ServiceNavTabs active="calendar" /></div>
 
                 {/* Header & Controls Bar */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between md:hidden">
                     <div>
                         <h1 className="font-display text-2xl font-semibold tracking-tight text-ink">
                             Dispatch & Scheduling
@@ -267,7 +293,7 @@ export default function ServiceCalendar({
                 </div>
 
                 {/* Date Navigator & Filters Bar */}
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3.5 shadow-sm">
+                <div className="mt-5 md:mt-0 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-3.5 shadow-sm">
                     {/* Date Stepper */}
                     <div className="flex items-center gap-2">
                         <button
@@ -629,6 +655,7 @@ export default function ServiceCalendar({
                     )}
                 </div>
             </div>
+            </ListPageFrame>
 
             {/* QUICK BOOK APPOINTMENT MODAL */}
             {isQuickBookOpen && (

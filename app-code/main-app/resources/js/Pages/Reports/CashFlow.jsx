@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import ReportPage from './Components/ReportPage';
-import { RefreshCw, Calendar } from 'lucide-react';
+import { RefreshCw, TrendingUp, Landmark, Wallet } from 'lucide-react';
 import { usePage, router } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, DateRangeFilter } from '@/Components/Reports/ReportKit';
+import { TrendChart } from '@/Components/Reports/ReportCharts';
 
 export default function CashFlow({ operating, investing, financing, filters = {} }) {
     const { store } = usePage().props;
@@ -11,94 +12,90 @@ export default function CashFlow({ operating, investing, financing, filters = {}
 
     const netCashFlow = operating + investing + financing;
 
-    const applyDateFilter = () => {
-        router.get(route("store.reports.cash-flow", {
-            store_slug: store.slug
-        }), {
-            start_date: startDate,
-            end_date: endDate
+    const applyDateFilter = (start = startDate, end = endDate) => {
+        router.get(route('store.reports.cash-flow', { store_slug: store.slug }), {
+            start_date: start,
+            end_date: end,
         }, { preserveState: true, preserveScroll: true });
     };
 
+    const rows = [
+        { id: 'op', label: 'Operating activities', amount: operating },
+        { id: 'inv', label: 'Investing activities', amount: investing },
+        { id: 'fin', label: 'Financing activities', amount: financing },
+    ];
+    const inflow = rows.filter((r) => r.amount > 0).reduce((s, r) => s + r.amount, 0);
+    const outflow = rows.filter((r) => r.amount < 0).reduce((s, r) => s + Math.abs(r.amount), 0);
+    const chartSeries = [
+        { name: 'Cash in', points: rows.map((r) => ({ x: r.label.replace(' activities', ''), y: Math.max(r.amount, 0) })) },
+        { name: 'Cash out', points: rows.map((r) => ({ x: r.label.replace(' activities', ''), y: Math.max(-r.amount, 0) })) },
+    ];
+
+    const summary = [
+        { id: 'begin', label: 'Cash at beginning of period', amount: 0 },
+        { id: 'net', label: 'Net increase / decrease in cash', amount: netCashFlow },
+        { id: 'end', label: 'Cash at end of period', amount: netCashFlow },
+    ];
+
+    const filterNode = (
+        <>
+            <DateRangeFilter
+                from={startDate}
+                to={endDate}
+                onChange={({ from, to }) => { setStartDate(from); setEndDate(to); applyDateFilter(from, to); }}
+            />
+        </>
+    );
+
     return (
-        <ReportPage
+        <ReportShell
             title="Cash Flow Statement"
-            subtitle={`Analysis of cash movement in the business from ${filters.start_date || ''} to ${filters.end_date || ''}`}
-            icon={RefreshCw}
+            subtitle={`${filters.start_date || ''} to ${filters.end_date || ''}`}
+            activeKey="cash-flow"
+            filters={filterNode}
+            exportConfig={{
+                filename: 'cash-flow',
+                columns: [{ label: 'Line', get: (r) => r.label }, { label: 'Amount', get: (r) => r.amount }],
+                rows: [...rows, ...summary],
+            }}
         >
-            {/* Interactive Date Filter Row */}
-            <div className="p-6 border-b border-line bg-sunken/50 dark:bg-surface flex flex-col sm:flex-row justify-between items-center gap-4">
-                <span className="text-xs font-bold text-ink-muted uppercase tracking-widest">Filter Cash Flow Period</span>
-                <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex items-center gap-2 bg-surface border border-line px-3 py-1.5 rounded-xl shadow-sm">
-                        <Calendar size={14} className="text-ink-muted" />
-                        <input
-                            type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="bg-transparent text-xs border-none outline-none text-ink-secondary dark:text-ink"
-                        />
-                        <span className="text-ink-muted text-xs font-bold px-1">TO</span>
-                        <input
-                            type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="bg-transparent text-xs border-none outline-none text-ink-secondary dark:text-ink"
-                        />
-                    </div>
-                    <button
-                        onClick={applyDateFilter}
-                        className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all shadow-sm active:scale-95"
-                    >
-                        Apply Filter
-                    </button>
-                </div>
-            </div>
+            <ReportKpis items={[
+                { label: 'Operating', value: formatCurrency(operating, store), icon: TrendingUp, tone: 'emerald', valueTone: operating < 0 ? 'rose' : undefined },
+                { label: 'Investing', value: formatCurrency(investing, store), icon: Landmark, tone: 'blue', valueTone: investing < 0 ? 'rose' : undefined },
+                { label: 'Financing', value: formatCurrency(financing, store), icon: Wallet, tone: 'violet', valueTone: financing < 0 ? 'rose' : undefined },
+                { label: 'Net Cash Flow', value: formatCurrency(netCashFlow, store), icon: RefreshCw, tone: netCashFlow >= 0 ? 'emerald' : 'rose', valueTone: netCashFlow >= 0 ? 'emerald' : 'rose', trend: netCashFlow >= 0 ? 'up' : 'down' },
+            ]} />
 
-            <div className="p-4 sm:p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
-                        <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Operating Activities</p>
-                        <p className="text-2xl font-bold text-emerald-900 dark:text-white">{formatCurrency(operating, store)}</p>
-                    </div>
-                    <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800">
-                        <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2">Investing Activities</p>
-                        <p className="text-2xl font-bold text-blue-900 dark:text-white">{formatCurrency(investing, store)}</p>
-                    </div>
-                    <div className="p-6 bg-brand-50 dark:bg-brand-900/20 rounded-2xl border border-brand-100 dark:border-brand-800">
-                        <p className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-2">Financing Activities</p>
-                        <p className="text-2xl font-bold text-brand-900 dark:text-white">{formatCurrency(financing, store)}</p>
-                    </div>
-                </div>
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Cash in vs cash out" subtitle="By activity">
+                        <TrendChart series={chartSeries} type="bar" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Totals">
+                        <ul className="flex flex-col gap-2">
+                            <li className="flex h-12 items-center justify-between rounded-[12px] bg-app px-4"><span className="text-sm text-ink-secondary">Cash in</span><span className="font-bold tabular-nums text-emerald-600">{formatCurrency(inflow, store)}</span></li>
+                            <li className="flex h-12 items-center justify-between rounded-[12px] bg-app px-4"><span className="text-sm text-ink-secondary">Cash out</span><span className="font-bold tabular-nums text-rose-600">{formatCurrency(outflow, store)}</span></li>
+                            <li className="flex h-12 items-center justify-between rounded-[12px] bg-brand-600 px-4 font-bold text-white"><span className="text-sm">Net</span><span className="tabular-nums">{formatCurrency(netCashFlow, store)}</span></li>
+                        </ul>
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
 
-                <div className="bg-neutral-900 text-white p-4 sm:p-8 rounded-2xl flex justify-between items-center shadow-lg">
-                    <div>
-                        <h3 className="text-lg font-bold text-ink-muted uppercase tracking-widest mb-1">Net Cash Flow</h3>
-                        <p className="text-2xl sm:text-4xl font-bold text-white">{formatCurrency(netCashFlow, store)}</p>
-                    </div>
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${netCashFlow >= 0 ? 'bg-emerald-500' : 'bg-red-500'} shadow-lg`}>
-                        <RefreshCw size={32} className="text-white" />
-                    </div>
-                </div>
-
-                <div className="space-y-4">
-                    <h4 className="text-sm font-bold text-ink-muted uppercase tracking-widest">Summary Breakdown</h4>
-                    <div className="space-y-2">
-                        <div className="flex justify-between p-4 bg-app rounded-xl">
-                            <span className="text-ink-secondary">Cash at Beginning of Period</span>
-                            <span className="font-bold text-ink">{formatCurrency(0, store)}</span>
-                        </div>
-                        <div className="flex justify-between p-4 bg-app rounded-xl">
-                            <span className="text-ink-secondary">Net Increase/Decrease in Cash</span>
-                            <span className={`font-bold ${netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(netCashFlow, store)}</span>
-                        </div>
-                        <div className="flex justify-between p-4 bg-brand-600 text-white rounded-xl font-bold shadow-md">
-                            <span>Cash at End of Period</span>
-                            <span>{formatCurrency(netCashFlow, store)}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </ReportPage>
+            <ReportSection title="Summary breakdown" flush>
+                <ReportTable
+                    columns={[
+                        { key: 'label', label: 'Line', render: (r) => <span className="font-medium text-ink">{r.label}</span> },
+                        { key: 'amount', label: 'Amount', align: 'right', render: (r) => (
+                            <span className={`font-bold tabular-nums ${r.amount < 0 ? 'text-rose-600' : 'text-ink'}`}>{formatCurrency(r.amount, store)}</span>
+                        ) },
+                    ]}
+                    rows={[...rows, ...summary]}
+                    rowKey={(r) => r.id}
+                    pageSize={0}
+                />
+            </ReportSection>
+        </ReportShell>
     );
 }

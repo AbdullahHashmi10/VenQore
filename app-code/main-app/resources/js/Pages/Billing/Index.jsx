@@ -367,7 +367,8 @@ export default function BillingIndex({
     pk_verification,
     trial_credit = null,
     intended_plan = null,
-    current_plan = null
+    current_plan = null,
+    current_plan_name = null
 }) {
     const tt = useTermText();
     const { store, pricing } = usePage().props;
@@ -577,7 +578,7 @@ export default function BillingIndex({
     };
 
     // Current plan normalized
-    const currentPlanKey = normalizePlan(current_plan ?? tenant?.plan ?? 'starter');
+    const currentPlanKey = normalizePlan(current_plan || tenant?.plan || 'starter');
     const currentMeta = PLAN_META[currentPlanKey] || PLAN_META.starter;
     const isLtd = currentPlanKey.startsWith('ltd');
 
@@ -722,7 +723,7 @@ export default function BillingIndex({
                                     {currentPlanKey}
                                 </span>
                             </div>
-                            <div className="text-2xl font-bold text-ink tracking-tight">{currentMeta.label}</div>
+                            <div className="text-2xl font-bold text-ink tracking-tight">{PLAN_META[currentPlanKey] ? currentMeta.label : (current_plan_name || currentPlanKey)}</div>
                             <div className="text-xs text-ink-muted mt-1">
                                 {isViewOnly ? `View-Only Mode (${viewOnlyDaysLeft} days remaining)`
                                     : tenant?.status === 'suspended' ? 'Trial Expired / Suspended'

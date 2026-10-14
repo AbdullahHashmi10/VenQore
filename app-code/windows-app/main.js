@@ -26,8 +26,24 @@ const os = require('os');
 const crypto = require('crypto');
 const netSock = require('net');
 
+const { isLocalOrigin } = require('./lib/env-profile');
+
+const LOCAL_BUILD_CONFIG = (() => {
+    try {
+        const p = path.join(__dirname, 'local-build.json');
+        if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
+    } catch {}
+    try {
+        const pkg = require('./package.json');
+        if (pkg.name === 'venqore-station-local' || pkg.productName === 'VenQore Station Local') return { isLocalBuild: true };
+    } catch {}
+    return null;
+})();
+const IS_LOCAL_BUILD = !!LOCAL_BUILD_CONFIG || process.argv.includes('--local-build');
+
 // Optional signed environment profile (see lib/env-profile.js). Settled before anything reads userData.
 const PROFILE = (() => {
+    if (IS_LOCAL_BUILD) return null;
     try {
         const base = app.getPath('appData');
         const p = require('./lib/env-profile').load(path.join(base, 'VenQore Station'));
@@ -35,6 +51,14 @@ const PROFILE = (() => {
         return p;
     } catch { return null; }
 })();
+
+// For Local build, isolate all user data into 'VenQore Station Local'
+if (IS_LOCAL_BUILD) {
+    try {
+        const base = app.getPath('appData');
+        app.setPath('userData', path.join(base, 'VenQore Station Local'));
+    } catch {}
+}
 
 const logger = require('./lib/logger');
 const { Prefs } = require('./lib/prefs');
@@ -48,27 +72,48 @@ const {
     isGoogleOAuthCallbackUrl,
 } = require('./lib/oauth-navigation');
 
-// ─── SEALED CLOUD ORIGIN ──────────────────────────────────────────────────────
-// The only site Station will load. Command-line flags cannot change it in an installed build.
+// ─── SEALED ORIGIN / ENVIRONMENT ─────────────────────────────────────────────
 const DEV = !app.isPackaged && process.argv.includes('--dev');
-const TESTING = DEV || !!PROFILE;
-// VenQore serves its public site AND the POS from one domain (no subdomains), so Station loads
-// www.venqore.com and keeps the cashier inside the app (see isMarketingUrl).
-const CLOUD_URL = PROFILE ? PROFILE.origin : DEV ? (process.env.VENQORE_DEV_URL || 'http://127.0.0.1:8000') : 'https://www.venqore.com';
+const TESTING = DEV || !!PROFILE || IS_LOCAL_BUILD;
+
+function resolveLocalOrigin(customTarget) {
+    const raw = customTarget || process.env.VENQORE_LOCAL_URL || 'http://127.0.0.1:8000';
+    if (isLocalOrigin(raw) && !/venqore\.com/i.test(raw)) {
+        return new URL(raw).origin;
+    }
+    return 'http://127.0.0.1:8000';
+}
+
+const prefs = new Prefs(app.getPath('userData'));
+
+// In Local build, the target URL is sealed strictly to local / LAN addresses and never venqore.com.
+const CLOUD_URL = IS_LOCAL_BUILD
+    ? resolveLocalOrigin(prefs.get('localServerUrl'))
+    : (PROFILE ? PROFILE.origin : DEV ? (process.env.VENQORE_DEV_URL || 'http://127.0.0.1:8000') : 'https://www.venqore.com');
 const TRUSTED_ORIGIN = new URL(CLOUD_URL).origin;
-// The bare domain redirects to www; both are ours.
-const TRUSTED_ORIGINS = new Set(DEV || PROFILE ? [TRUSTED_ORIGIN] : [TRUSTED_ORIGIN, 'https://venqore.com']);
-const PARTITION = 'persist:venqore_cloud';
-const APP_NAME = 'VenQore Station';
+
+// In Local build, TRUSTED_ORIGINS strictly contains ONLY the local origin. venqore.com is NEVER included.
+const TRUSTED_ORIGINS = new Set(
+    IS_LOCAL_BUILD
+        ? [TRUSTED_ORIGIN]
+        : (DEV || PROFILE ? [TRUSTED_ORIGIN] : [TRUSTED_ORIGIN, 'https://venqore.com'])
+);
+const PARTITION = IS_LOCAL_BUILD ? 'persist:venqore_local' : 'persist:venqore_cloud';
+const APP_NAME = IS_LOCAL_BUILD ? 'VenQore Station Local' : 'VenQore Station';
 const APP_VER = app.getVersion();
 const PORTABLE = !!process.env.PORTABLE_EXECUTABLE_DIR;
 const ASSETS = path.join(__dirname, 'assets');
 
 // ─── BOOTSTRAP (before ready) ─────────────────────────────────────────────────
-app.setAppUserModelId('com.venqore.station');
+app.setAppUserModelId(IS_LOCAL_BUILD ? 'com.venqore.station.local' : 'com.venqore.station');
 app.userAgentFallback = `${app.userAgentFallback} VenQoreStation/${APP_VER}`;
 logger.install(path.join(app.getPath('userData'), 'logs'));
-const prefs = new Prefs(app.getPath('userData'));
+const ownerAccess = new (require('./lib/owner-access').OwnerAccess)(prefs);
+const { parsePairingLink } = require('./lib/pairing-link');
+const kioskReadiness = require('./lib/kiosk-readiness').inspectWindows();
+const { finishClose } = require('./lib/close-update');
+const updatePolicy = require('./lib/update-policy');
+const STARTED_AT = Date.now();
 if (prefs.get('safeGraphics')) app.disableHardwareAcceleration();
 // v2 passed --disable-software-rasterizer, which turns the window black on
 // till PCs without a working GPU driver. Chromium's fallback is left alone.
@@ -84,8 +129,6 @@ let displayState = null;
 let tray = null;
 let isQuitting = false;
 let online = null;
-let pinFailures = 0;
-let pinLockedUntil = 0;
 let keepAwakeId = null;
 let gpuCrashes = 0;
 // The pairing secret is the till's password to VenQore. Keep it encrypted with the Windows user's
@@ -110,7 +153,25 @@ let updateState = { state: PORTABLE ? 'portable' : 'idle' };
 const originOf = (u) => { try { return new URL(u).origin; } catch { return null; } };
 const isTrustedUrl = (u) => TRUSTED_ORIGINS.has(originOf(u));
 const oauthContents = new WeakSet();
+function isBlockedInLocalBuild(u) {
+    if (!IS_LOCAL_BUILD) return false;
+    try {
+        const parsed = new URL(u);
+        if (/venqore\.com/i.test(parsed.hostname)) return true;
+        if (!isLocalOrigin(u)) return true;
+        return false;
+    } catch {
+        return true;
+    }
+}
 function isAllowedGuestNavigation(contents, url) {
+    if (IS_LOCAL_BUILD) {
+        if (isBlockedInLocalBuild(url)) {
+            logger.warn('[Security] Refused non-local or public URL in Local Testing build:', url);
+            return false;
+        }
+        return isTrustedUrl(url);
+    }
     if (isTrustedUrl(url)) {
         if (isGoogleOAuthStartUrl(url, TRUSTED_ORIGINS)) oauthContents.add(contents);
         if (isGoogleOAuthCallbackUrl(url, TRUSTED_ORIGINS)) oauthContents.delete(contents);
@@ -132,6 +193,7 @@ const MARKETING_ROOTS = new Set(['features', 'roadmap', 'solutions', 'compare', 
     'documents', 'reckoner', 'ledger', 'blueprint', 'security', 'onboarding', 'dashboard-preview', 'pos', 'subscribe', 'digital-products',
     'partner-support', 'docs', 'blog', 'privacy', 'terms', 'next-dashboard', 'new-dashboard']);
 function isMarketingUrl(u) {
+    if (IS_LOCAL_BUILD) return false;
     try {
         const url = new URL(u);
         if (!TRUSTED_ORIGINS.has(url.origin)) return false;
@@ -161,6 +223,11 @@ function handle(channel, who, fn) {
             console.warn(`[Security] Blocked ${channel} from ${event.senderFrame && event.senderFrame.url}`);
             return { success: false, error: 'Blocked: untrusted sender' };
         }
+        const protectedChannels = new Set(['shell:save-prefs', 'shell:set-role', 'shell:printer-profile', 'shell:network-printer-add', 'shell:network-printer-remove', 'shell:serial-open', 'shell:serial-close', 'amd:save-prefs', 'amd:set-printer']);
+        if (protectedChannels.has(channel) && prefs.hasPin() && (!isShellSender(event) || !ownerAccess.authorized())) {
+            return { ok: false, success: false, error: 'Owner authorization expired. Reopen Station settings and enter the PIN.' };
+        }
+        if (isQuitting && ['amd:print', 'amd:print-html', 'amd:drawer', 'amd:test-print'].includes(channel)) return { success: false, error: 'Station is closing. Reopen it before printing.' };
         try { return await fn(event, ...args); }
         catch (e) { console.error(`[IPC] ${channel}:`, e); return { success: false, error: e.message }; }
     });
@@ -194,7 +261,7 @@ app.on('web-contents-created', (_e, contents) => {
                 },
             };
         }
-        if (/^https?:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
+        if (!prefs.get('appLock') && /^https?:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
         return { action: 'deny' };
     });
     contents.on('did-create-window', (win) => { docWindows.add(win.webContents); win.setMenu(null); });
@@ -208,7 +275,7 @@ app.on('web-contents-created', (_e, contents) => {
         if (url !== 'about:blank' && !isAllowedGuestNavigation(contents, url)) {
             event.preventDefault();
             console.warn('[Security] Blocked navigation to', url);
-            if (/^https:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
+            if (!prefs.get('appLock') && /^https:\/\//i.test(url)) shell.openExternal(url).catch(() => {});
         }
     });
 
@@ -249,6 +316,7 @@ async function start() {
     console.log(`[${APP_NAME}] v${APP_VER} starting (${DEV ? 'dev' : 'production'}, ${PORTABLE ? 'portable' : 'installed'}) → ${CLOUD_URL}`);
     Menu.setApplicationMenu(null);
     try { secretStore.migrate(); } catch (e) { console.warn('[Security] secret migration:', e.message); }
+    if (prefs.get('stagedUpdateVersion') && prefs.get('stagedUpdateVersion') === APP_VER) prefs.set({ stagedUpdateVersion: null, updateAttempt: null }, { immediate: true });
     configureSession();
     createWindow();
     setupTray();
@@ -312,7 +380,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: b?.width || 1366, height: b?.height || 820, x: b?.x, y: b?.y,
         minWidth: 900, minHeight: 600,
-        title: APP_NAME,
+        title: IS_LOCAL_BUILD ? 'VenQore Station Local (Dev & Offline Test)' : APP_NAME,
         frame: false,
         fullscreen,
         show: false,
@@ -392,7 +460,7 @@ function attachGuest(wc) {
         if (details.isMainFrame && details.url !== 'about:blank' && !isAllowedGuestNavigation(guest, details.url)) {
             details.preventDefault();
             console.warn('[Security] Blocked POS navigation to', details.url);
-            if (/^https:\/\//i.test(details.url)) shell.openExternal(details.url).catch(() => {});
+            if (!prefs.get('appLock') && /^https:\/\//i.test(details.url)) shell.openExternal(details.url).catch(() => {});
         }
     });
     const backToApp = () => setTimeout(() => { if (guest && !guest.isDestroyed()) guest.loadURL(`${CLOUD_URL}/login`).catch(() => {}); }, 0);
@@ -425,7 +493,7 @@ function shortcut(e, input) {
     if (ctrl && !input.shift && !input.alt && (k === '=' || k === '+')) return act(() => setZoom((Number(prefs.get('zoom')) || 1) + 0.1));
     if (ctrl && !input.shift && !input.alt && k === '-') return act(() => setZoom((Number(prefs.get('zoom')) || 1) - 0.1));
     if (ctrl && !input.shift && !input.alt && k === '0') return act(() => setZoom(1));
-    if (k === 'f11' && !input.shift && !ctrl) return act(() => mainWindow.setFullScreen(!mainWindow.isFullScreen()));
+    if (k === 'f11' && !input.shift && !ctrl) return act(() => { if (!prefs.get('appLock')) mainWindow.setFullScreen(!mainWindow.isFullScreen()); });
 }
 
 // ─── TRAY ─────────────────────────────────────────────────────────────────────
@@ -483,17 +551,12 @@ function requestClose(source) {
 }
 
 function pinGate(pin) {
-    if (!prefs.hasPin()) return { ok: true };
-    const now = Date.now();
-    if (now < pinLockedUntil) return { ok: false, error: `Too many wrong PINs. Try again in ${Math.ceil((pinLockedUntil - now) / 1000)} s.`, locked: true };
-    if (prefs.verifyPin(String(pin || ''))) { pinFailures = 0; return { ok: true }; }
-    pinFailures++;
-    if (pinFailures >= 5) { pinLockedUntil = now + 60_000; pinFailures = 0; console.warn('[Security] PIN locked after 5 failures'); }
-    return { ok: false, error: 'Wrong PIN' };
+    return ownerAccess.verify(pin);
 }
 
-async function quitApp() {
-    if (isQuitting) return;
+async function quitApp(restart = false) {
+    if (isQuitting) return { success: false, error: 'Station is already closing.' };
+    if (printers.pendingJobs) return { success: false, error: 'Wait for receipts to finish printing, then close Station again.' };
     isQuitting = true;
     console.log('[Station] quitting');
     try { await serial.closeAll(); } catch {}
@@ -508,7 +571,11 @@ async function quitApp() {
     prefs.flush();
     spool.stop();
     renderer.dispose();
-    app.quit();
+    finishClose({ updater: autoUpdater, state: updateState.state, portable: PORTABLE, restart,
+        quit: () => app.quit(), relaunch: () => app.relaunch(),
+        onError: error => console.error('[Updater] Installation deferred:', error.message),
+    });
+    return { success: true };
 }
 
 app.on('before-quit', (e) => { if (!isQuitting) { e.preventDefault(); requestClose('system'); } });
@@ -551,13 +618,14 @@ async function sendHeartbeat(pairingCode = null) {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
             if (data.code === 'PAIRING_REQUIRED' || data.code === 'DEVICE_AUTH_FAILED') toShell('station:pairing-required', { code: data.code });
-            return { ok: false, status: res.status, code: data.code, error: data.error || `Server answered ${res.status}` };
+            const firstValidation = data.errors && typeof data.errors === 'object' ? Object.values(data.errors).flat()[0] : null;
+            return { ok: false, status: res.status, code: data.code, error: firstValidation || data.error || data.message || `Server answered ${res.status}` };
         }
         if (typeof data.device_secret === 'string' && data.device_secret.length >= 32) secretStore.set(data.device_secret);
         if (data.terminal_id && data.terminal_id !== prefs.get('terminalId')) prefs.set({ terminalId: data.terminal_id });
         markOnlineSync();
         toShell('station:sync', { at: new Date().toISOString(), paired: true });
-        return { ok: true };
+        return { ok: true, replaced: data.replaced_terminal ? String(data.replaced_terminal.name || 'this counter').slice(0, 80) : null };
     } catch (e) {
         return { ok: false, error: 'Could not reach VenQore. Check the internet connection.' };
     } finally { heartbeatBusy = false; }
@@ -569,6 +637,10 @@ function markOnlineSync() {
     lastSyncWrite = Date.now();
     prefs.set({ lastOnlineSyncAt: new Date().toISOString() });
 }
+
+// How long a till may stay offline before it locks. Same number as the browser licence check
+// (main-app/resources/js/lib/offlinePolicy.js) and the public pages. Change them together.
+const OFFLINE_LIMIT_DAYS = 7;
 
 function offlineDays() {
     const t = Date.parse(prefs.get('lastOnlineSyncAt') || '');
@@ -592,7 +664,7 @@ function probe() {
 
 function startConnectionMonitor() {
     const tick = async () => {
-        const now = net.isOnline() ? await probe() : false;
+        const now = (IS_LOCAL_BUILD || net.isOnline()) ? await probe() : false;
         if (now !== online) {
             online = now;
             console.log('[Net]', now ? 'online' : 'offline');
@@ -603,7 +675,8 @@ function startConnectionMonitor() {
         }
         if (now) { markOnlineSync(); syncActivityLogs().catch(() => {}); }
         const days = offlineDays();
-        toShell('station:offline-lock', { locked: !now && days > 7, days: Math.floor(days), lastSync: prefs.get('lastOnlineSyncAt') });
+        const isLocked = !IS_LOCAL_BUILD && (!now && days > OFFLINE_LIMIT_DAYS);
+        toShell('station:offline-lock', { locked: isLocked, days: Math.floor(days), lastSync: prefs.get('lastOnlineSyncAt') });
         setTimeout(tick, now ? 10_000 : 4_000);
     };
     tick();
@@ -793,27 +866,71 @@ function setupDisplays() {
 // ─── AUTO-UPDATER ─────────────────────────────────────────────────────────────
 let autoUpdater = null;
 function setUpdate(s) { updateState = { ...updateState, ...s }; toShell('station:update', updateState); }
+/* No release has been activated yet: the update feed (latest.yml) is published last, after a release is
+   approved, so until then the server answers 404. That is "nothing newer exists", not a failure, and the
+   person must not be shown a raw HTTP error for it. Any other problem is still reported. */
+function onUpdateError(e) {
+    const msg = String((e && e.message) || e || '');
+    if (/Cannot find channel|latest\.yml|\b404\b/.test(msg) && !/ENOTFOUND|ECONN|ETIMEDOUT|ERR_INTERNET|net::/i.test(msg)) {
+        console.log('[Updater] no update feed published yet (404) - treating as up to date');
+        setUpdate({ state: 'current', error: null, checkedAt: new Date().toISOString() });
+        return;
+    }
+    setUpdate({ state: 'error', error: msg.split('\n')[0].slice(0, 160) });
+}
 function setupAutoUpdater() {
+    if (IS_LOCAL_BUILD) {
+        setUpdate({ state: 'disabled' });
+        return;
+    }
     try { ({ autoUpdater } = require('electron-updater')); } catch (e) { console.warn('[Updater] unavailable', e.message); return; }
     autoUpdater.logger = { info: (m) => console.log('[Updater]', m), warn: (m) => console.warn('[Updater]', m), error: (m) => console.error('[Updater]', m), debug: () => {} };
     autoUpdater.autoDownload = true;          // v2 never downloaded: autoDownload=false and nothing called download
-    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.autoInstallOnAppQuit = false; // normal close installs explicitly; OS shutdown must not launch setup
     autoUpdater.on('checking-for-update', () => setUpdate({ state: 'checking', error: null }));
     autoUpdater.on('update-not-available', () => setUpdate({ state: 'current', checkedAt: new Date().toISOString() }));
     autoUpdater.on('update-available', (i) => { setUpdate({ state: 'downloading', version: i.version, percent: 0 }); toGuest('amd:update-available', { version: i.version }); });
     autoUpdater.on('download-progress', (p) => { setUpdate({ state: 'downloading', percent: Math.round(p.percent) }); toGuest('amd:update-progress', { percent: Math.round(p.percent) }); });
-    autoUpdater.on('update-downloaded', (i) => { setUpdate({ state: 'ready', version: i.version, percent: 100 }); toGuest('amd:update-ready', { version: i.version }); });
-    autoUpdater.on('error', (e) => setUpdate({ state: 'error', error: String(e && e.message || e).split('\n')[0].slice(0, 160) }));
-    setTimeout(checkUpdates, 20_000);
-    setInterval(checkUpdates, 6 * 3600_000);
+    autoUpdater.on('update-downloaded', (i) => {
+        setUpdate({ state: 'ready', version: i.version, percent: 100 });
+        toGuest('amd:update-ready', { version: i.version });
+        prefs.set({ stagedUpdateVersion: i.version }, { immediate: true });
+        applyUpdateOnLaunch();
+    });
+    autoUpdater.on('error', (e) => onUpdateError(e));
+    // Check soon after launch so a download from the previous session (cached) is found within seconds.
+    setTimeout(checkUpdates, 4_000);
+    setInterval(checkUpdates, 3 * 3600_000);
+}
+/** Silent install when Station is opened: nobody is mid-sale yet and local data is untouched by the installer. */
+function applyUpdateOnLaunch() {
+    if (!autoUpdater || isQuitting) return;
+    const verdict = updatePolicy.shouldApplyOnLaunch({
+        state: updateState.state, version: updateState.version, current: APP_VER,
+        uptimeMs: Date.now() - STARTED_AT, pendingJobs: printers.pendingJobs,
+        enabled: prefs.get('autoInstallUpdates') !== false, attempt: prefs.get('updateAttempt'),
+    });
+    if (!verdict.apply) { console.log('[Updater] not installing on launch:', verdict.reason); return; }
+    console.log('[Updater] installing', updateState.version, 'on launch');
+    prefs.set({ updateAttempt: updatePolicy.nextAttempt(prefs.get('updateAttempt'), updateState.version) }, { immediate: true });
+    setUpdate({ state: 'installing' });
+    isQuitting = true;
+    try { prefs.flush(); spool.stop(); } catch {}
+    // isSilent = true (no installer UI), isForceRunAfter = true (Station reopens by itself).
+    setTimeout(() => {
+        try { autoUpdater.quitAndInstall(true, true); }
+        catch (e) { isQuitting = false; setUpdate({ state: 'ready' }); console.error('[Updater] launch install failed:', e.message); }
+    }, 1500);
 }
 function checkUpdates() {
+    if (IS_LOCAL_BUILD) return { success: false, error: 'Automatic updates are disabled in this Local Testing build.' };
     if (!autoUpdater) return { success: false, error: PORTABLE ? 'The portable build updates manually — install the setup version for automatic updates.' : 'Updates are not available in this build.' };
-    autoUpdater.checkForUpdates().catch(e => setUpdate({ state: 'error', error: e.message }));
+    autoUpdater.checkForUpdates().catch(e => onUpdateError(e));
     return { success: true };
 }
 function installUpdate() {
     if (!autoUpdater || updateState.state !== 'ready') return { success: false, error: 'No update is ready yet.' };
+    if (printers.pendingJobs) return { success: false, error: 'Wait for printing to finish before installing the update.' };
     isQuitting = true;
     setImmediate(() => autoUpdater.quitAndInstall(false, true));
     return { success: true };
@@ -821,6 +938,7 @@ function installUpdate() {
 
 // ─── DIAGNOSTICS ──────────────────────────────────────────────────────────────
 async function exportDiagnostics() {
+    if (prefs.get('appLock')) return { success: false, error: 'Turn off app lock before exporting diagnostics.' };
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
         title: 'Save Station diagnostics',
         defaultPath: path.join(app.getPath('desktop'), `venqore-station-diagnostics-${new Date().toISOString().slice(0, 10)}.json`),
@@ -930,29 +1048,38 @@ on('amd:launch-dual-pos', ['guest'], () => openCustomerDisplay()); // v2 name
 
 // Window / app
 on('amd:window-close', ['guest'], () => requestClose('page'));
-on('amd:force-close', ['guest'], () => quitApp()); // the page ran its own manager check
+on('amd:force-close', ['guest'], () => requestClose('page')); // never trust a page's claim that it checked a PIN
 on('amd:window-reload', ['guest'], () => toShell('station:command', 'reload'));
 on('amd:open-settings', ['guest'], () => toShell('station:command', 'settings'));
 handle('amd:open-external', ['guest', 'shell'], async (_e, url) => {
+    if (prefs.get('appLock')) return { success: false, error: 'External applications are disabled while Station app lock is on.' };
     if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return { success: false, error: 'Only http(s) links can be opened.' };
+    if (IS_LOCAL_BUILD && (!isLocalOrigin(url) || /venqore\.com/i.test(url))) {
+        return { success: false, error: 'Public websites and venqore.com are disabled in this Local Testing build.' };
+    }
     await shell.openExternal(url);
     return { success: true };
 });
 on('amd:download-update', ['guest'], () => checkUpdates());
-on('amd:install-update', ['guest'], () => installUpdate());
+on('amd:install-update', ['guest'], () => toShell('station:command', 'install-update'));
 handle('amd:get-cloud-url', ['shell'], () => CLOUD_URL);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // IPC — LOCAL SHELL (window.station)
 // ══════════════════════════════════════════════════════════════════════════════
 handle('shell:state', ['shell'], () => ({
+    kioskReadiness,
     prefs: prefs.publicView(), cloudUrl: CLOUD_URL, version: APP_VER, platform: process.platform,
     portable: PORTABLE, dev: TESTING, profile: PROFILE ? { slug: PROFILE.slug } : null, online, update: updateState, window: windowState(),
     offline: { days: Math.floor(offlineDays()), lastSync: prefs.get('lastOnlineSyncAt') },
     hardware: hardwareStatus(), electron: process.versions.electron,
+    isLocalBuild: IS_LOCAL_BUILD,
 }));
 
 handle('shell:pair', ['shell'], async (_e, { slug, code } = {}) => {
+    if (secretStore.has() && prefs.hasPin() && !ownerAccess.authorized()) return { ok: false, error: 'Unlock Station settings before changing pairing.' };
+    const link = parsePairingLink(slug, IS_LOCAL_BUILD ? TRUSTED_ORIGIN : null);
+    if (link) { slug = link.slug; code = link.code; }
     slug = String(slug || '').trim().toLowerCase();
     const m = /\/s\/([a-z0-9-]{1,63})(\/|$)/i.exec(slug); // pasted a full POS link
     if (m) slug = m[1].toLowerCase();
@@ -970,7 +1097,7 @@ handle('shell:pair', ['shell'], async (_e, { slug, code } = {}) => {
         return { ok: false, error: msg };
     }
     startHeartbeat();
-    return { ok: true, slug };
+    return { ok: true, slug, replaced: r.replaced || null };
 });
 
 handle('shell:link-store', ['shell'], (_e, slug) => {
@@ -995,10 +1122,15 @@ const SHELL_PREFS = {
     poleIdleLine1: v => typeof v === 'string' && v.length <= 20, poleIdleLine2: v => typeof v === 'string' && v.length <= 20,
     lockSettings: v => typeof v === 'boolean', consentAccepted: v => typeof v === 'boolean',
     activityTrackingEnabled: v => typeof v === 'boolean',
+    appLock: v => typeof v === 'boolean',
+    autoInstallUpdates: v => typeof v === 'boolean',
+    localServerUrl: v => typeof v === 'string' && isLocalOrigin(v) && !/venqore\.com/i.test(v),
 };
 handle('shell:save-prefs', ['shell'], (_e, updates = {}) => {
     const clean = {};
     for (const [k, v] of Object.entries(updates || {})) if (SHELL_PREFS[k] && SHELL_PREFS[k](v)) clean[k] = v;
+    if (clean.appLock === true && !prefs.hasPin()) return { success: false, error: 'Set an owner PIN before enabling app lock.' };
+    if (clean.appLock === true || (prefs.get('appLock') && clean.appLock !== false)) { clean.windowMode = 'fullscreen'; clean.lockSettings = true; }
     if (clean.activityTrackingEnabled === true && !prefs.hasPin()) return { success: false, error: 'Set a manager PIN before turning on monitoring.' };
     if (clean.activityTrackingEnabled === true && !prefs.get('activityTrackingEnabled')) clean.consentAccepted = false;
     const restartNeeded = 'safeGraphics' in clean && clean.safeGraphics !== prefs.get('safeGraphics');
@@ -1009,10 +1141,12 @@ handle('shell:save-prefs', ['shell'], (_e, updates = {}) => {
     return { success: true, restartNeeded, prefs: prefs.publicView() };
 });
 
-handle('shell:verify-pin', ['shell'], (_e, pin) => pinGate(pin));
+handle('shell:verify-pin', ['shell'], (_e, pin) => ownerAccess.verify(pin, true));
+handle('shell:lock-owner', ['shell'], () => { ownerAccess.lock(); return { success: true }; });
 handle('shell:set-pin', ['shell'], (_e, { current, next } = {}) => {
     const g = pinGate(current); if (!g.ok) return { success: false, ...g };
     if (next === null) {
+        if (prefs.get('appLock')) return { success: false, error: 'Turn off app lock before removing the PIN.' };
         if (prefs.get('activityTrackingEnabled')) return { success: false, error: 'Turn off monitoring before removing the PIN.' };
         prefs.setPin(null); prefs.set({ lockSettings: false }, { immediate: true });
         return { success: true };
@@ -1020,17 +1154,16 @@ handle('shell:set-pin', ['shell'], (_e, { current, next } = {}) => {
     if (!/^\d{4,8}$/.test(String(next || ''))) return { success: false, error: 'Use 4 to 8 digits.' };
     if (next === '1234' || /^(\d)\1+$/.test(next)) return { success: false, error: 'Pick a PIN that is harder to guess.' };
     prefs.setPin(String(next));
+    ownerAccess.verify(String(next), true);
     return { success: true };
 });
 handle('shell:quit', ['shell'], async (_e, { pin } = {}) => {
     const g = pinGate(pin); if (!g.ok) return { success: false, ...g };
-    setImmediate(quitApp);
-    return { success: true };
+    return quitApp();
 });
 handle('shell:relaunch', ['shell'], (_e, { pin } = {}) => {
     const g = pinGate(pin); if (!g.ok) return { success: false, ...g };
-    isQuitting = true; app.relaunch(); setTimeout(() => app.exit(0), 200);
-    return { success: true };
+    return quitApp(true);
 });
 
 // Printers
@@ -1064,19 +1197,27 @@ handle('shell:pole-test', ['shell'], () => serial.pole('VenQore Station', 'Displ
 
 // Station
 handle('shell:check-updates', ['shell'], () => checkUpdates());
-handle('shell:install-update', ['shell'], () => installUpdate());
+handle('shell:install-update', ['shell'], (_e, { pin, confirmed } = {}) => {
+    const g = pinGate(pin); if (!g.ok) return { success: false, ...g };
+    if (confirmed !== true) return { success: false, error: 'Finish sales, synchronize offline work and complete printing before restarting.' };
+    return installUpdate();
+});
 handle('shell:zoom', ['shell'], (_e, z) => setZoom(z));
 handle('shell:window', ['shell'], (_e, action) => {
+    if (prefs.get('appLock')) return { success: false, error: 'Turn off app lock in owner settings first.' };
     if (!mainWindow) return;
     if (action === 'minimize') mainWindow.minimize();
     if (action === 'maximize') mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
     if (action === 'fullscreen') mainWindow.setFullScreen(!mainWindow.isFullScreen());
     return windowState();
 });
-handle('shell:open-logs', ['shell'], () => { const d = logger.dir(); if (d) shell.openPath(d); return { success: !!d }; });
+handle('shell:open-logs', ['shell'], () => { if (prefs.get('appLock')) return { success: false, error: 'App lock is on.' }; const d = logger.dir(); if (d) shell.openPath(d); return { success: !!d }; });
 handle('shell:open-file', ['shell'], (_e, p) => {
+    if (prefs.get('appLock')) return { success: false, error: 'App lock is on.' };
     const dl = app.getPath('downloads');
-    if (typeof p !== 'string' || !path.resolve(p).startsWith(path.resolve(dl))) return { success: false };
+    if (typeof p !== 'string') return { success: false };
+    const relative = path.relative(dl, path.resolve(p));
+    if (!relative || relative.startsWith('..') || path.isAbsolute(relative)) return { success: false };
     shell.openPath(p); return { success: true };
 });
 handle('shell:diagnostics', ['shell'], () => exportDiagnostics());
@@ -1088,6 +1229,7 @@ handle('shell:clear-cache', ['shell'], async (_e, { pin } = {}) => {
     return { success: true };
 });
 handle('shell:devtools', ['shell'], (_e, { pin } = {}) => {
+    if (prefs.get('appLock')) return { success: false, error: 'Turn off app lock before opening developer tools.' };
     if (!TESTING) { const g = pinGate(pin); if (!g.ok) return { success: false, ...g }; }
     if (guest && !guest.isDestroyed()) guest.openDevTools({ mode: 'detach' });
     return { success: true };

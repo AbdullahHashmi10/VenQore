@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Head, usePage, router, Link } from '@inertiajs/react';
 import { useTerms, useTermText } from '@/lib/terms';
+import { useConnectivity } from '@/lib/connectivity';
 import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import '@/NewPos/newpos.css';
@@ -132,6 +133,8 @@ import { useAppearance } from '@/Contexts/AppearanceContext';
    `table`, so a counter till carries none of it -- not a mock floor, not a
    dead settings row, not eight hard-coded tables that wrote nowhere. */
 import useTableService, { serverLineToCart, cartLineToServer } from '@/Pos/Table/useTableService';
+import { useOfflineSync } from '@/Hooks/useOfflineSync';
+import { isLocalId } from '@/lib/offlineFloor';
 import { KitchenPrintService } from '@/Utils/KitchenPrintService';
 import FloorPane, { elapsed as tableElapsed } from '@/Pos/Table/FloorPane';
 import TableBar, { SeatDialog, MoveSheet, NewTicketDialog } from '@/Pos/Table/TableBar';
@@ -940,7 +943,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
        tab; a dark kitchen sees only those. Both come off the same store
        settings the Floor Builder writes. */
     const lanes = { takeaway: !!fohSettings.takeaway, delivery: !!fohSettings.delivery };
-    const { tables, enabledTypes } = useFoh({ storeSlug: store?.slug, floorState, fohSettings, tab, orderId });
+    const { tables, enabledTypes } = useFoh({ storeSlug: store?.slug, floorState, fohSettings, tab, orderId, actor: auth?.user });
     /* ONE CLOCK, so every card in a paint agrees what time it is and the
        alarm sort cannot disagree with the alarm ring. Ticking here rather
        than inside each tile also means the floor re-sorts as a table crosses
@@ -1290,13 +1293,16 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
             });
             const groups = Array.isArray(data?.groups) ? data.groups : [];
             modifierCache.current[product.id] = groups;
+            try { localStorage.setItem(`vq_mods_${store?.slug}_${product.id}`, JSON.stringify(groups)); } catch (_) { /* storage full or blocked: the live answer is still used */ }
             return groups;
         } catch (_) {
             /* No options endpoint, or it failed: the dish still has to be
                sellable. A missing modifier list is not a reason to refuse an
-               order. */
-            modifierCache.current[product.id] = [];
-            return [];
+               order. With no internet, the add-ons last seen for this dish are used. */
+            let groups = [];
+            try { groups = JSON.parse(localStorage.getItem(`vq_mods_${store?.slug}_${product.id}`) || '[]') || []; } catch (_) { groups = []; }
+            modifierCache.current[product.id] = groups;
+            return groups;
         }
     };
 
@@ -1604,21 +1610,18 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
 
 
     // Offline Sync Configuration
-    const [isOnline, setIsOnline] = useState(navigator.onLine);
+    const isOnline = useConnectivity();
     const [offlineSales, setOfflineSales] = useState([]);
     const [showSyncHub, setShowSyncHub] = useState(false);
 
-    const isSyncing = false, pendingCount = 0, lastSyncTime = null, syncErrors = [];
-    const checkPending = () => {};
-    const syncPendingSales = async () => {};
-    const getPendingSales = async () => [];
-    const deletePendingSale = async () => {};
+    /* The same device queue the POS till uses: a payment taken with no internet is
+       kept here under its receipt key and sent when the server answers. */
+    const {
+        isSyncing, pendingCount, lastSyncTime, syncErrors, checkPending, syncPendingSales,
+        getPendingSales, deletePendingSale, saveOfflineSale,
+    } = useOfflineSync();
 
     useEffect(() => {
-        const handleStatusChange = () => setIsOnline(navigator.onLine);
-        window.addEventListener('online', handleStatusChange);
-        window.addEventListener('offline', handleStatusChange);
-
         // Listen for CSRF mismatch events from bootstrap.js
         const handleCsrfMismatch = () => {
              addToast('Security token refreshed. Please try saving again.', 'warning');
@@ -1626,8 +1629,6 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
         window.addEventListener('amd:csrf-mismatch', handleCsrfMismatch);
 
         return () => {
-            window.removeEventListener('online', handleStatusChange);
-            window.removeEventListener('offline', handleStatusChange);
             window.removeEventListener('amd:csrf-mismatch', handleCsrfMismatch);
         };
     }, []);
@@ -2076,7 +2077,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
 
     const removeFromCart = (cartItemId) => {
         const line = activeSale.cart.find(item => item.cartItemId === cartItemId || item.lineId === cartItemId);
-        if (!isOnline || line?.paidSaleId || caps.canVoid === false) return;
+        if (line?.paidSaleId || caps.canVoid === false) return;
         const newCart = activeSale.cart.filter(item => item.cartItemId !== cartItemId && item.lineId !== cartItemId);
         /* A line the guest sent from their phone: offer a reason, which their status page shows ("Sold out", "Kitchen closed"). */
         if (tableMode && line?.fromGuest && line.lineId && tables.selected?.id && !line.sent) {
@@ -2093,7 +2094,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
     /* `opts.exact` is for weighed goods (0.350 kg): the whole-unit floor of 1 does not apply.
        Every other caller keeps the old behaviour. The server accepts quantities down to 0.001. */
     const updateQty = (cartItemId, delta, opts = null) => {
-        if (!isOnline || (delta < 0 && caps.canVoid === false)) return;
+        if (delta < 0 && caps.canVoid === false) return;
         const newCart = activeSale.cart.map(item => {
             if (item.paidSaleId) return item;
             const matches = item.cartItemId === cartItemId || (item.lineId && item.lineId === cartItemId);
@@ -2230,7 +2231,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
     const handleCheckoutClick = () => {
         if (!mayPay) { dropCheck(); return; }
         if (tab === 'tables' && openSheet !== 'tender') { setOpenSheet('tender'); return; }
-        if (!isOnline || selectedTable?.paid_at || !selectedTable?.occupancy_id) return;
+        if (selectedTable?.paid_at || !selectedTable?.occupancy_id) return;
         if (activeSale.cart.length === 0) return;
 
         let rawTendered = activeSale.cashReceived;
@@ -2311,7 +2312,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
     /* Resolves true when the sale was recorded (online or queued offline).
        `approval` = { approvedBy, pin } from the manager-approval modal. */
     const processCheckout = async (paymentData, addToLedger = false, approval = null) => {
-        if (checkoutLock.current || !mayPay || !isOnline || !selectedTable?.occupancy_id || selectedTable.paid_at || paidOrders.current.has(selectedTable.occupancy_id)) return false;
+        if (checkoutLock.current || !mayPay || !selectedTable?.occupancy_id || selectedTable.paid_at || paidOrders.current.has(selectedTable.occupancy_id)) return false;
         checkoutLock.current = true;
         setProcessingPayment(true);
 
@@ -2346,7 +2347,29 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                 const response = await axios.post(route('store.pos.sales.store', { store_slug: store?.slug }), payload, { headers: { 'Idempotency-Key': checkoutKey.current } });
                 responseData = response.data;
             } else {
-                throw new Error("Offline");
+                /* No internet: keep the payment on this device under its receipt key (never the
+                   manager PIN), settle the table here, and let the queue send it when the server
+                   answers. A table opened offline has no server id yet, so the sale is sent
+                   without one and the table is closed by the floor's own replay. */
+                const key = checkoutKey.current;
+                const saved = await saveOfflineSale({
+                    ...basePayload,
+                    occupancy_id: isLocalId(selectedTable.occupancy_id) ? null : selectedTable.occupancy_id,
+                    idempotency_key: key,
+                    occurred_at: new Date().toISOString(),
+                });
+                if (!saved) {
+                    showAlert('Payment not saved', 'This device could not store the payment, so nothing was recorded. Check the device storage and try again.', 'error');
+                    return false;
+                }
+                responseData = {
+                    success: true,
+                    reference: 'OFFLINE-' + String(key).slice(-8).toUpperCase(),
+                    idempotency_key: key,
+                    created_at: new Date().toISOString(),
+                    is_offline: true,
+                    status_unconfirmed: true,
+                };
             }
 
             if (responseData.success) {
@@ -2383,7 +2406,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
 
             setApprovalRequest(null);
             const ref = error?.response?.data?.correlation_id;
-            showAlert('Payment status unconfirmed', `The payment may or may not have reached the books${ref ? ` (ref ${ref})` : ''}. Keep this order open and press Pay again when connected — the same receipt key is reused, so it cannot be charged twice. FOH does not queue offline payments.`, 'error');
+            showAlert('Payment status unconfirmed', `The payment may or may not have reached the books${ref ? ` (ref ${ref})` : ''}. Keep this order open and press Pay again when connected — the same receipt key is reused, so it cannot be charged twice.`, 'error');
             return false;
         } finally {
             checkoutLock.current = false;
@@ -2657,7 +2680,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
             if (settingsOpen || tab === 'overview') return;
             if ((e.ctrlKey || e.altKey) && ['t', 'n'].includes(e.key.toLowerCase())) { e.preventDefault(); startNewOrder(); return; }
             if (e.ctrlKey && ['s', 'w', 'Tab'].includes(e.key)) { e.preventDefault(); return; }
-            if (selectedTable?.paid_at || !isOnline) return;
+            if (selectedTable?.paid_at) return;
 
             // ESC: Close topmost open layer / modal or clear search
             if (e.key === 'Escape') {
@@ -4510,7 +4533,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                     onCovers={setCovers} onConvert={setOrderType} onFire={fireToKitchen} kitchen={kitchenOn} onBill={dropCheck}
                     checkDropped={!!selectedTable.check_dropped_at} onSplit={() => setSplitOpen(true)}
                     onMove={() => setMovingTable(true)} onClose={closeSelectedTable}
-                    busy={tables.busy || !isOnline || processingPayment} canDiscard={caps.canVoid !== false}
+                    busy={tables.busy || processingPayment} canDiscard={caps.canVoid !== false}
                 />
             )}
 
@@ -4574,7 +4597,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                         <button
                             type="button"
                             onClick={handleCheckoutClick}
-                            disabled={processingPayment || !isOnline || !selectedTable || !!selectedTable.paid_at || activeSale.cart.length === 0}
+                            disabled={processingPayment || !selectedTable || !!selectedTable.paid_at || activeSale.cart.length === 0}
                             className="h-10 sm:h-11 px-6 sm:px-8 rounded-[14px] bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 cursor-pointer active:scale-95"
                             data-primary="1"
                         >
@@ -5141,7 +5164,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                     type="button"
                     id="tour-pos-checkout"
                     onClick={handleCheckoutClick}
-                    disabled={processingPayment || !isOnline || !selectedTable || !!selectedTable.paid_at || activeSale.cart.length === 0}
+                    disabled={processingPayment || !selectedTable || !!selectedTable.paid_at || activeSale.cart.length === 0}
                     style={{
                         boxShadow: '0 6px 24px -4px rgba(11, 170, 143, 0.45)'
                     }}
@@ -5220,7 +5243,6 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
         if (!card?.occupancy_id || card.paid_at || loadedOccupancy.current !== card.occupancy_id) return true;
         const { cart, ...extras } = activeSale;
         orderDrafts.current[card.occupancy_id] = extras;
-        if (!isOnline) { addToast('Reconnect before switching orders.', 'warning'); return false; }
         const result = await tables.flushOrder(card.occupancy_id, activeSale.cart, {
             covers: card.covers, orderType: card.order_type, note: activeSale.remarks || activeSale.notes || '',
             partyId: deliveryDraft?.partyId || activeSale.customer?.id || card.party_id,
@@ -5249,7 +5271,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
     };
     const pickCard = async card => { setOnlineId(null); return pickTable(card); };
     const startNewOrder = async () => {
-        if (!isOnline || !await flushCurrentOrder()) return;
+        if (!await flushCurrentOrder()) return;
         if (tab === 'tables') { backToFloor(); return; }
         if (tab === 'delivery') { await backToFloor(); return; }
         if (tab === 'overview') return;
@@ -5365,7 +5387,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                         </button>
                         <button
                             onClick={handleCheckoutClick}
-                            disabled={processingPayment || !isOnline || !selectedTable || !!selectedTable.paid_at || activeSale.cart.length === 0}
+                            disabled={processingPayment || !selectedTable || !!selectedTable.paid_at || activeSale.cart.length === 0}
                             className="h-11 px-8 rounded-[14px] bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-bold text-base shadow-lg shadow-emerald-900/25 transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 shrink-0 cursor-pointer active:scale-95"
                             data-primary="1"
                         >
@@ -5456,7 +5478,17 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                         onFullscreen={toggleFullscreen} onDrawer={handleOpenCashDrawer}
                         onShift={() => registerShift ? setShowCloseShiftModal(true) : setShowOpenShiftModal(true)}
                         isPosStaff={isPosStaff} online={isOnline} canManage={canManageStore} />
-                    {!isOnline && <div className="foh-register-offline" role="status">FOH is offline. Reconnect to change an order or take payment.</div>}
+                    {(!isOnline || tables.offline.pending > 0) && <div className="foh-register-offline" role="status">
+                        {!isOnline
+                            ? 'No internet. Tables, takeaway and delivery keep working and are saved on this device. Run each table from one device only.'
+                            : 'Back online. Sending the changes made offline…'}
+                        {tables.offline.pending > 0 ? ` (${tables.offline.pending} waiting)` : ''}
+                    </div>}
+                    {tables.offline.conflicts.length > 0 && <div className="foh-register-offline" role="alert">
+                        <strong>Needs a look: another device changed these tables while you were offline.</strong>
+                        <ul>{tables.offline.conflicts.map(c => <li key={c.at + c.message}>{c.message}{c.lines?.length ? ` — ${c.lines.join(', ')}` : ''}</li>)}</ul>
+                        <button type="button" onClick={tables.offline.dismissConflicts}>Done</button>
+                    </div>}
                     <div className="foh-register-content" data-tab={tab}>
                     {tab === 'overview' && <OverviewTab tables={tables} money={money} goto={openOrderFromOverview} fohSettings={fohSettings} online={online.orders} gotoOnline={openOnline} />}
                     {tab === 'tables' && !selectedTable && <FloorPane embedded title="Tables"
@@ -5554,14 +5586,14 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                         <header className="vq-pane-h">{selectedTable.code} · {laneBadge(selectedTable).text}</header>
                         <div className="vq-pane-body p-6"><h2 className="text-xl font-bold">{laneBadge(selectedTable).text}</h2>
                             <p className="text-ink-muted mt-2">Paid {money(selectedTable.paid_total)}</p>
-                            <button className="vqt-btn vqt-btn-go mt-6" disabled={!isOnline || tables.busy || !kitchenDone(selectedTable)}
+                            <button className="vqt-btn vqt-btn-go mt-6" disabled={tables.busy || !kitchenDone(selectedTable)}
                                 onClick={() => tables.collected(selectedTable.occupancy_id)}>{tab === 'delivery' ? 'Handed to rider' : 'Collected'}</button>
                         </div>
                     </section>}
                     {tab === 'delivery' && !onlineOrder && <DeliveryWorkspace card={selectedTable} saveRef={deliverySaveRef}
                         storeSlug={store?.slug} defaults={fohSettings} onEnsure={ensureActiveOrder}
                         onUpdate={tables.updateDelivery} onDraft={setDeliveryDraft} onError={message => addToast(message, 'error')}
-                        money={money} disabled={!isOnline || tables.busy} />}
+                        money={money} disabled={tables.busy} />}
                     </div>
                 </div>
 

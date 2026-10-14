@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { Head, Link, useForm, usePage } from '@inertiajs/react'; // usePage added
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Plus, Edit, Trash2, ArrowLeft, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, ArrowLeft, Save, X, Layers, Boxes } from 'lucide-react';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import { useTermText } from '@/lib/terms';
 
 export default function VariantsIndex({ product, variants, globalAttributes = [] }) {
@@ -90,33 +93,51 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
     };
 
     return (
-        <OneGlanceLayout title={`Variants: ${product.name}`} activeMenu="Stock">
+        <OneGlanceLayout title={`Variants: ${product.name}`} activeMenu="Stock" noPadding>
             <Head title={`Variants - ${product.name}`} />
 
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-y-2">
-                <Link
-                    href={route('store.inventory.index', { store_slug: store?.slug })}
-                    className="flex items-center gap-2 text-ink-muted hover:text-brand-600 transition-colors"
-                >
-                    <ArrowLeft size={20} /> {tt('Back to Products')}
-                </Link>
-                <button
-                    onClick={() => openModal()}
-                    className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg"
-                >
-                    <Plus size={20} /> Add Variant
-                </button>
-            </div>
+            <ListPageFrame className="p-1.5">
+            <ListToolbar
+                title="Variants"
+                left={
+                    <>
+                        <Link
+                            href={route('store.inventory.index', { store_slug: store?.slug })}
+                            className="h-10 px-3 rounded-[12px] border border-line bg-app text-ink hover:bg-interactive-hover text-sm font-semibold flex items-center gap-2 whitespace-nowrap"
+                        >
+                            <ArrowLeft size={15} /> {tt('Back to Products')}
+                        </Link>
+                        <span className="text-sm text-ink-muted truncate max-w-[260px]">{product.name}</span>
+                    </>
+                }
+                actions={<ListAddButton icon={Plus} onClick={() => openModal()}>Add Variant</ListAddButton>}
+            />
+            <ListStatCards cards={[
+                { label: 'Variants', value: variants.length, icon: Layers, icon_tone: 'bg-brand-50 text-brand-600' },
+                { label: 'Total Stock', value: variants.reduce((s, x) => s + (Number(x.stock_quantity) || 0), 0), icon: Boxes, icon_tone: 'bg-emerald-50 text-emerald-600' },
+                { label: 'With Price Override', value: variants.filter((x) => x.price).length, icon: Edit, icon_tone: 'bg-amber-50 text-amber-600' },
+            ]} />
+            <MobileListHeader
+                title="Variants"
+                links={[{ label: tt('Back to Products'), icon: ArrowLeft, href: route('store.inventory.index', { store_slug: store?.slug }) }]}
+                add={{ onClick: () => openModal(), label: 'Add Variant' }}
+            />
+            <MobileStats bp="md" hero={0} items={[
+                { label: 'Variants', value: variants.length, tone: 'brand', icon: Layers },
+                { label: 'Total Stock', value: variants.reduce((s, x) => s + (Number(x.stock_quantity) || 0), 0), tone: 'emerald', icon: Boxes },
+                { label: 'With Price Override', value: variants.filter((x) => x.price).length, tone: 'amber', icon: Edit },
+            ]} />
+            <div className="md:hidden h-1" />
 
-            <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
+                <div className="bg-surface rounded-2xl md:rounded-[14px] shadow-sm border border-line overflow-hidden md:flex-1 md:min-h-0 md:overflow-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-app text-ink-muted text-xs uppercase tracking-wider">
-                            <th className="p-4 font-semibold">Attributes</th>
-                            <th className="p-4 font-semibold">SKU</th>
-                            <th className="p-4 font-semibold">Price Override</th>
-                            <th className="p-4 font-semibold">Stock</th>
-                            <th className="p-4 font-semibold text-right">Actions</th>
+                            <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Attributes</th>
+                            <th className="sticky top-0 z-10 bg-app p-4 font-semibold">SKU</th>
+                            <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Price Override</th>
+                            <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Stock</th>
+                            <th className="sticky top-0 z-10 bg-app p-4 font-semibold text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-line">
@@ -165,6 +186,7 @@ export default function VariantsIndex({ product, variants, globalAttributes = []
                     </tbody>
                 </table>
             </div>
+            </ListPageFrame>
 
             {/* Modal */}
             {isModalOpen && (

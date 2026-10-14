@@ -1,3 +1,4 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -29,16 +30,19 @@ import {
     Filter
 } from 'lucide-react';
 import axios from 'axios';
-import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
+import PurchaseModuleTabs, { usePurchaseNavGroups } from '@/Components/PurchaseModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import ConfirmModal from '@/Components/ConfirmModal';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
-import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {} }) {
     const { t, tp } = useTerms();
     const tt = useTermText();
     const { store, settings, vensynq_enabled } = usePage().props;
+    const purchaseNavGroups = usePurchaseNavGroups();
     // Infinite Scroll State
     const [allPurchases, setAllPurchases] = useState(purchases.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(purchases.next_page_url);
@@ -274,185 +278,88 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
     };
 
     return (
-        <OneGlanceLayout title="Purchases History" activeMenu="Purchase">
+        <OneGlanceLayout title="Purchases History" activeMenu="Purchase" noPadding>
             <Head title="Purchases History" />
-            <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
-                <PurchaseModuleTabs activeTab="purchases" />
+            <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
+                <div className="md:hidden"><PurchaseModuleTabs activeTab="purchases" /></div>
 
                 {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Purchases', value: renderCurrency(stats?.total_purchase || 0, store), tone: 'ink' },
-  { label: 'Paid Amount', value: renderCurrency(stats?.total_paid || 0, store), tone: 'emerald' },
-  { label: 'Unpaid (Due)', value: renderCurrency(stats?.total_due || 0, store), tone: 'rose' },
-  { label: 'Transactions', value: purchases?.total || sortedPurchases.length || 0, tone: 'ink' }
-]} />
-
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <ShoppingBag size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Purchases</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{renderCurrency(stats?.total_purchase || 0, store)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckSquare size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Paid Amount</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{renderCurrency(stats?.total_paid || 0, store)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
-                                <Clock size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Unpaid (Due)</p>
-                        </div>
-                        <p className="text-base font-bold text-rose-600">{renderCurrency(stats?.total_due || 0, store)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <History size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Transactions</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{purchases?.total || sortedPurchases.length || 0}</p>
-                    </div>
-                </div>
-
-                {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            {t('purchase', 'Purchase')} <span className="text-brand-600 dark:text-brand-400">Transactions</span>
-                        </h1>
-                        <div className="h-4 w-px bg-line mx-1"></div>
-                        <button
-                            onClick={() => applyFilterType('all')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
-                        >All</button>
-                        <button
-                            onClick={() => applyFilterType('today')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
-                        >Today</button>
-                        <button
-                            onClick={() => applyFilterType('month')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
-                        >This Month</button>
-                        <button
-                            onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:text-ink hover:bg-interactive-hover'}`}
-                        >Custom</button>
-                        {activeFilter === 'custom' && (
-                            <div className="flex items-center gap-1.5 ml-1">
-                                <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-sunken border border-line rounded-md text-ink focus:ring-1 focus:ring-brand-500" />
+                <MobileListHeader
+                    title="Purchases"
+                    navGroups={purchaseNavGroups}
+                    activeId="purchases"
+                    filter={{
+                        active: activeFilter !== 'all',
+                        sections: [
+                            { label: 'Date', value: activeFilter, options: [{ value: 'all', label: 'All dates' }, { value: 'today', label: 'Today' }, { value: 'month', label: 'This Month' }, { value: 'custom', label: 'Custom range' }], onSelect: (v) => (v === 'custom' ? setActiveFilter('custom') : applyFilterType(v)), keepOpen: false },
+                        ],
+                        footer: activeFilter === 'custom' ? (
+                            <div className="flex items-center gap-1.5 px-1 pt-2">
+                                <input type="date" name="from" value={dateRange.from} onChange={handleDateChange} className="min-w-0 flex-1 h-10 px-2 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500" />
                                 <span className="text-ink-muted text-xs">→</span>
-                                <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-sunken border border-line rounded-md text-ink focus:ring-1 focus:ring-brand-500" />
+                                <input type="date" name="to" value={dateRange.to} onChange={handleDateChange} className="min-w-0 flex-1 h-10 px-2 text-sm bg-app border border-line rounded-[8px] text-ink outline-none focus:ring-2 focus:ring-brand-500" />
                             </div>
-                        )}
-                    </div>
+                        ) : null,
+                    }}
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), placeholder: tt('Search purchase #, supplier...') }}
+                    add={{ href: route('store.purchases.create', { store_slug: store?.slug }), label: 'New Purchase' }}
+                    stats={{ hero: 2, items: [
+                        { label: 'Total Purchases', value: renderCurrency(stats?.total_purchase || 0, store), tone: 'brand', icon: ShoppingBag },
+                        { label: 'Paid Amount', value: renderCurrency(stats?.total_paid || 0, store), tone: 'emerald', icon: CheckSquare },
+                        { label: 'Unpaid (Due)', value: renderCurrency(stats?.total_due || 0, store), tone: 'rose', icon: Clock },
+                        { label: 'Transactions', value: purchases?.total || sortedPurchases.length || 0, tone: 'blue', icon: History },
+                    ] }}
+                />
 
-                    {/* Right: Search + Actions */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-64 relative">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                onKeyDown={handleServerSearch}
-                                placeholder={tt('Search purchase #, supplier...')}
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink placeholder:text-ink-muted"
+                {/* ── Desktop: ROW 1 toolbar + ROW 2 stat cards ── */}
+                <ListToolbar
+                    title="Purchases"
+                    navGroups={purchaseNavGroups}
+                    activeId="purchases"
+                    left={(
+                        <>
+                            <ListFilterPill
+                                icon={Clock}
+                                label="All dates"
+                                value={activeFilter}
+                                options={[{ value: 'all', label: 'All dates' }, { value: 'today', label: 'Today' }, { value: 'month', label: 'This Month' }, { value: 'custom', label: 'Custom range' }]}
+                                onChange={(v) => (v === 'custom' ? setActiveFilter('custom') : applyFilterType(v))}
                             />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600 transition-colors" title="Export">
+                            {activeFilter === 'custom' && (
+                                <div className="flex items-center gap-1.5">
+                                    <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
+                                        className="h-10 px-2 text-sm font-semibold bg-app border border-line rounded-[12px] text-ink focus:ring-1 focus:ring-brand-500" />
+                                    <span className="text-ink-muted text-xs">→</span>
+                                    <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
+                                        className="h-10 px-2 text-sm font-semibold bg-app border border-line rounded-[12px] text-ink focus:ring-1 focus:ring-brand-500" />
+                                </div>
+                            )}
+                        </>
+                    )}
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), placeholder: tt('Search purchase #, supplier...') }}
+                    actions={(
+                        <>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-emerald-600 hover:bg-interactive-hover transition-colors" title="Export" onClick={() => exportRowsToCsv('purchases', [{label:'Date',get:r=>r.date||r.created_at},{label:'Invoice #',get:r=>r.invoice_number||r.reference_number},{label:'Supplier',get:r=>r.supplier?.name},{label:'Payment Method',get:r=>r.payment_method},{label:'Total',get:r=>r.total},{label:'Status',get:r=>r.status}], sortedPurchases)}>
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors" title="Print" onClick={() => PrintService.printPage()}>
+                            <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
-                        </div>
-                    </div>
-                </div>
+                            <ListAddButton icon={Plus} href={route('store.purchases.create', { store_slug: store?.slug })}>New Purchase</ListAddButton>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Purchases', value: renderCurrency(stats?.total_purchase || 0, store), icon: ShoppingBag },
+                    { label: 'Paid Amount', value: renderCurrency(stats?.total_paid || 0, store), icon: CheckSquare, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Unpaid (Due)', value: renderCurrency(stats?.total_due || 0, store), icon: Clock, icon_tone: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400', value_tone: 'text-rose-600' },
+                    { label: 'Transactions', value: purchases?.total || sortedPurchases.length || 0, icon: History, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' },
+                ]} />
 
                 {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
-                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
-                            Purchase Transactions
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Filters"
-                            >
-                                <Filter size={16} />
-                            </button>
-                            <Link
-                                href={route('store.purchases.create', { store_slug: store?.slug })}
-                                className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
-                                title="New Purchase"
-                            >
-                                <Plus size={16} />
-                            </Link>
-                        </div>
-                    </div>
-
-                    {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-line pt-2">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                onKeyDown={handleServerSearch}
-                                placeholder={tt('Search purchase #, supplier...')}
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none text-ink placeholder:text-ink-muted"
-                            />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
-                        </div>
-                    )}
-
-                    {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
-                            <div className="flex flex-wrap gap-1.5">
-                                <button
-                                    onClick={() => applyFilterType('all')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >All</button>
-                                <button
-                                    onClick={() => applyFilterType('today')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Today</button>
-                                <button
-                                    onClick={() => applyFilterType('month')}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Month</button>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
                 {/* Main Table / Container */}
-                <div className="flex-1 overflow-auto md:rounded-2xl md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
                     <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-sunken border-b border-line sticky top-0 z-10">
@@ -464,7 +371,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
-                                        className={`
+                                        className={`sticky top-0 z-10 bg-sunken 
                                             p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
                                             cursor-pointer select-none hover:bg-interactive-hover transition-colors
                                             ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
@@ -796,7 +703,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     confirmLabel="Delete Purchase"
                     isDangerous={true}
                 />
-            </div>
+            </ListPageFrame>
             {/* Quick View Modal - Centered Popup */}
             {quickViewItem && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewItem(null)}>

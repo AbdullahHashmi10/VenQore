@@ -360,3 +360,10 @@ Artisan::command('inspire', function () {
 
 // Commerce: privacy retention for closed online orders
 \Illuminate\Support\Facades\Schedule::command('commerce:purge-customer-data')->dailyAt('03:30');
+
+// Notification bell: store alerts for owners/admins/managers (low stock, overdue money, urgent Growth insights).
+\Illuminate\Support\Facades\Schedule::command('notifications:publish')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('notifications-publish');

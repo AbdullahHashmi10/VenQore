@@ -202,3 +202,6 @@ a:hover { text-decoration: underline; }
 .bar-env { margin-left: 10px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .06em;
   background: rgba(245, 158, 11, .16); color: #B45309; border: 1px solid rgba(245, 158, 11, .45); white-space: nowrap; }
 :root[data-theme="dark"] .bar-env { color: #FBBF24; }
+
+.replace-note { margin-top: 18px; padding: 12px 14px; border-radius: 12px; background: rgba(79, 70, 229, .08); border: 1px solid rgba(79, 70, 229, .22); font-size: 13px; line-height: 1.45; display: grid; gap: 4px; }
+.replace-note b:first-child { font-size: 13.5px; }

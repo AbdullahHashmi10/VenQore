@@ -76,6 +76,7 @@ class GrowthEngineController extends Controller
         }
 
         $tenantId = $this->tenantId();
+        $this->engine->ensureFresh($tenantId);
 
         $base = AiRecommendation::query()
             ->where('tenant_id', $tenantId)
@@ -141,6 +142,7 @@ class GrowthEngineController extends Controller
     public function dashboard()
     {
         $tenantId = $this->tenantId();
+        $this->engine->ensureFresh($tenantId);
 
         $base = AiRecommendation::query()->where('tenant_id', $tenantId)->active();
 
@@ -460,11 +462,12 @@ class GrowthEngineController extends Controller
             ], 429);
         }
 
-        RunGrowthEngineForTenant::dispatch($tenantId, 'deep', true);
+        // Runs right after this response, so the button works even when no queue worker is running.
+        RunGrowthEngineForTenant::dispatchAfterResponse($tenantId, 'deep', true);
 
         return response()->json([
             'success' => true,
-            'message' => 'Analysis queued — new insights will appear here in a few moments.',
+            'message' => 'Analysis started — new insights will appear here in a minute. Reload the page to see them.',
         ]);
     }
 
@@ -658,6 +661,51 @@ class GrowthEngineController extends Controller
     // ═══════════════════════════════════════════════════════════════════════
     //  LOYALTY  (unchanged behaviour — carried over from V1)
     // ═══════════════════════════════════════════════════════════════════════
+
+    /** Loyalty overview: who holds points, recent activity, current rates. */
+    public function loyaltyIndex()
+    {
+        $tenantId = $this->tenantId();
+        $enabled  = PlanGate::check('loyalty_points');
+
+        $balances = LoyaltyBalance::query()
+            ->where('tenant_id', $tenantId)
+            ->with('party:id,name,phone')
+            ->orderByDesc('balance')
+            ->limit(500)
+            ->get()
+            ->map(fn ($b) => [
+                'id' => $b->id, 'party_id' => $b->party_id,
+                'name' => $b->party?->name ?? 'Customer', 'phone' => $b->party?->phone,
+                'balance' => (int) $b->balance, 'earned' => (int) $b->lifetime_earned, 'redeemed' => (int) $b->lifetime_redeemed,
+            ]);
+
+        $recent = \App\Models\LoyaltyPoint::query()
+            ->where('tenant_id', $tenantId)
+            ->with('party:id,name')
+            ->latest()
+            ->limit(30)
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id, 'name' => $p->party?->name ?? 'Customer', 'points' => (int) $p->points,
+                'type' => $p->type, 'description' => $p->description, 'at' => $p->created_at?->toDateTimeString(),
+            ]);
+
+        $rates = DB::table('ai_settings')->where('tenant_id', $tenantId)
+            ->whereIn('key', ['loyalty_points_per_amount', 'loyalty_points_earned_per_unit', 'loyalty_redemption_rate'])
+            ->pluck('value', 'key');
+
+        return Inertia::render('Loyalty/Index', [
+            'enabled'  => $enabled,
+            'balances' => $balances,
+            'recent'   => $recent,
+            'rates'    => [
+                'per_amount'  => (float) ($rates['loyalty_points_per_amount'] ?? 100),
+                'per_unit'    => (float) ($rates['loyalty_points_earned_per_unit'] ?? 1),
+                'redemption'  => (float) ($rates['loyalty_redemption_rate'] ?? 10),
+            ],
+        ]);
+    }
 
     public function customerLoyalty($partyId)
     {

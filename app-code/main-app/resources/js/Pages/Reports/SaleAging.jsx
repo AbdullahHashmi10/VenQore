@@ -1,34 +1,36 @@
 import React, { useState, useMemo } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import { usePage } from '@inertiajs/react';
 import {
-    Clock, Search, Filter, ArrowLeft, Users, TrendingUp, AlertTriangle, AlertOctagon, Calendar
+    Clock, Search, Users, TrendingUp, AlertTriangle, AlertOctagon, Calendar, Receipt, PieChart as PieIcon, BarChart3,
 } from 'lucide-react';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend
-} from 'recharts';
-import { formatCurrency } from '@/Utils/format';
-
-import { vq } from '@/theme/runtime';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import {
+    ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, filterInputCls,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
+
+const BUCKETS = ['all', '0-30', '30-60', '60-90', '90+'];
+const BUCKET_NAMES = { '0-30': '0-30 Days', '30-60': '30-60 Days', '60-90': '60-90 Days', '90+': '90+ Days' };
+
+function AgingBadge({ category }) {
+    const base = 'rounded-[12px] px-2 py-1 text-2xs font-bold';
+    if (category === '90+') return <span className={`${base} bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400`}>Critical 90+</span>;
+    if (category === '60-90') return <span className={`${base} bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400`}>High 60-90</span>;
+    if (category === '30-60') return <span className={`${base} bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400`}>At Risk 30-60</span>;
+    return <span className={`${base} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400`}>Fresh 0-30</span>;
+}
+
 export default function SaleAging({ invoices = [], filters = {} }) {
     const tt = useTermText();
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState({ key: 'days', direction: 'desc' });
-    const [customStart, setCustomStart] = useState('');
-    const [customEnd, setCustomEnd] = useState('');
-    const [bucketFilter, setBucketFilter] = useState('all'); // all, 0-30, 31-60, 61-90, 90+
+    const [bucketFilter, setBucketFilter] = useState('all'); // all, 0-30, 30-60, 60-90, 90+
 
     // --- Derived Data ---
     const processedInvoices = useMemo(() => {
         let data = [...invoices];
-
-        // 1. Search Filter
         if (searchQuery) {
             const lowerQ = searchQuery.toLowerCase();
             data = data.filter(inv =>
@@ -36,365 +38,118 @@ export default function SaleAging({ invoices = [], filters = {} }) {
                 (inv.party || '').toLowerCase().includes(lowerQ)
             );
         }
-
-        // 2. Bucket Filter
         if (bucketFilter !== 'all') {
             data = data.filter(inv => inv.category === bucketFilter);
         }
-
-        // 3. Sort
-        data.sort((a, b) => {
-            let valA = a[sortBy.key];
-            let valB = b[sortBy.key];
-
-            if (sortBy.key === 'amount') {
-                valA = Number(valA);
-                valB = Number(valB);
-            } else if (sortBy.key === 'days') {
-                valA = Number(valA);
-                valB = Number(valB);
-            }
-
-            if (valA < valB) return sortBy.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return sortBy.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-
-        return data;
-    }, [invoices, searchQuery, sortBy, bucketFilter]);
+        return data.sort((a, b) => Number(b.days) - Number(a.days));
+    }, [invoices, searchQuery, bucketFilter]);
 
     // --- Stats ---
     const stats = useMemo(() => {
         const totalOutstanding = processedInvoices.reduce((acc, curr) => acc + Number(curr.amount), 0);
         const count = processedInvoices.length;
-
-        // Buckets
         const buckets = { '0-30': 0, '30-60': 0, '60-90': 0, '90+': 0 };
         let criticalAmount = 0;
-
         processedInvoices.forEach(inv => {
             const amt = Number(inv.amount);
             if (buckets[inv.category] !== undefined) buckets[inv.category] += amt;
             else buckets['90+'] += amt; // Fallback
-
             if (inv.category === '90+' || inv.category === '60-90') criticalAmount += amt;
         });
-
         const riskScore = totalOutstanding > 0 ? (criticalAmount / totalOutstanding) * 100 : 0;
-
         return { totalOutstanding, count, buckets, criticalAmount, riskScore };
     }, [processedInvoices]);
 
-    // --- Chart: Aging Distribution (Donut) ---
-    const agingData = useMemo(() => {
-        const data = [
-            { name: '0-30 Days', value: stats.buckets['0-30'], color: vq.emerald[500], category: '0-30' },
-            { name: '30-60 Days', value: stats.buckets['30-60'], color: vq.blue[500], category: '30-60' },
-            { name: '60-90 Days', value: stats.buckets['60-90'], color: vq.amber[500], category: '60-90' },
-            { name: '90+ Days', value: stats.buckets['90+'], color: vq.red[500], category: '90+' }
-        ].filter(d => d.value > 0);
-        return data;
-    }, [stats]);
+    const bucketPoints = Object.keys(BUCKET_NAMES).map(k => ({ x: BUCKET_NAMES[k], y: stats.buckets[k] }));
+    const agingSlices = Object.keys(BUCKET_NAMES).map(k => ({ name: BUCKET_NAMES[k], value: stats.buckets[k] })).filter(d => d.value > 0);
 
-    // --- Chart: Top Debtors (Bar) ---
-    const topDebtors = useMemo(() => {
+    // Parties: one row per debtor
+    const parties = useMemo(() => {
         const map = {};
         processedInvoices.forEach(inv => {
             const name = inv.party || 'Unknown';
-            if (!map[name]) map[name] = 0;
-            map[name] += Number(inv.amount);
+            map[name] = map[name] || { party: name, invoices: 0, amount: 0, oldest: 0 };
+            map[name].invoices += 1;
+            map[name].amount += Number(inv.amount);
+            map[name].oldest = Math.max(map[name].oldest, Number(inv.days) || 0);
         });
-
-        return Object.entries(map)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 5);
+        return Object.values(map).sort((a, b) => b.amount - a.amount);
     }, [processedInvoices]);
 
-    const handleSort = (key) => {
-        setSortBy(prev => ({
-            key,
-            direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
-        }));
-    };
+    const invoiceColumns = [
+        { key: 'invoice_number', label: 'Invoice', sortable: true, get: (i) => `#${i.invoice_number}`, render: (i) => <span className="font-mono font-bold text-brand-600 dark:text-brand-400">#{i.invoice_number}</span> },
+        { key: 'party', label: tt('Customer'), sortable: true, get: (i) => i.party },
+        { key: 'amount', label: 'Owed Amount', align: 'right', sortable: true, get: (i) => Number(i.amount) || 0, render: (i) => <span className="font-bold tabular-nums text-ink">{formatCurrency(i.amount, store)}</span> },
+        { key: 'days', label: 'Days Old', align: 'center', sortable: true, get: (i) => Number(i.days) || 0, render: (i) => `${i.days}d` },
+        { key: 'category', label: 'Status', align: 'center', sortable: true, get: (i) => i.category, render: (i) => <AgingBadge category={i.category} /> },
+    ];
+    const partyColumns = [
+        { key: 'party', label: tt('Customer'), sortable: true, get: (p) => p.party },
+        { key: 'invoices', label: 'Open Bills', align: 'center', sortable: true, get: (p) => p.invoices },
+        { key: 'oldest', label: 'Oldest', align: 'center', sortable: true, get: (p) => p.oldest, render: (p) => `${p.oldest}d` },
+        { key: 'amount', label: 'Outstanding', align: 'right', sortable: true, get: (p) => p.amount, render: (p) => <span className="font-bold tabular-nums text-ink">{formatCurrency(p.amount, store)}</span> },
+        { key: 'share', label: 'Share', align: 'right', sortable: true, get: (p) => (stats.totalOutstanding > 0 ? ((p.amount / stats.totalOutstanding) * 100).toFixed(1) : '0.0'), render: (p) => `${stats.totalOutstanding > 0 ? ((p.amount / stats.totalOutstanding) * 100).toFixed(1) : '0.0'}%` },
+    ];
 
+    const kpis = [
+        { label: 'Total Outstanding', value: formatCurrency(stats.totalOutstanding, store), icon: AlertOctagon, tone: 'brand', sub: `${formatNumber(stats.count)} open invoices` },
+        { label: 'Critical Amount (>60d)', value: formatCurrency(stats.criticalAmount, store), icon: AlertTriangle, tone: 'rose', valueTone: stats.criticalAmount > 0 ? 'rose' : undefined, sub: 'Immediate action required' },
+        { label: 'Risk Exposure', value: `${stats.riskScore.toFixed(1)}%`, icon: TrendingUp, tone: 'amber', sub: '% of debt > 60 days' },
+        { label: 'Fresh Debt (<30d)', value: formatCurrency(stats.buckets['0-30'], store), icon: Calendar, tone: 'emerald', sub: 'Healthy receivables' },
+        { label: '30-60 Days', value: formatCurrency(stats.buckets['30-60'], store), icon: Clock, tone: 'blue' },
+        { label: tt('Debtors'), value: formatNumber(parties.length), icon: Users, tone: 'violet' },
+    ];
 
-    return (
-        <ReportsLayout title="Sale Aging Report">
-            <Head title="Aging Analysis" />
-            <div className="flex flex-col h-full gap-4 w-full">
-
-                {/* 1. HEADER */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-3 pl-2">
-                        <Link href={route("store.reports.index", {
-                            store_slug: store.slug
-                        })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
-                            <ArrowLeft size={18} />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
-                                <Clock className="text-orange-500" size={20} />
-                                Sale Aging
-                            </h1>
-                            <p className="text-xs text-ink-muted font-medium">Tracking outstanding receivables</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-orange-500 transition-colors" size={14} />
-                            <input
-                                type="text"
-                                placeholder="Search Debtor..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-orange-500/20 w-48 transition-all"
-                            />
-                        </div>
-
-                        {/* Bucket Quick Filter */}
-                        <div className="flex bg-sunken p-1 rounded-xl">
-                            {['all', '90+', '60-90'].map((b) => (
-                                <button
-                                    key={b}
-                                    onClick={() => setBucketFilter(b)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${bucketFilter === b
-                                        ? 'bg-sunken shadow-sm text-orange-600 dark:text-orange-400'
-                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
-                                        }`}
-                                >
-                                    {b === 'all' ? 'All Buckets' : b + ' Days'}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. KPI CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
-                    <StatCard
-                        title="Total Outstanding"
-                        value={formatCurrency(stats.totalOutstanding)}
-                        icon={<AlertOctagon size={18} />}
-                        color="indigo"
-                        footer={`${stats.count} Open Invoices`}
-                    />
-                    <StatCard
-                        title="Critical Amount (>60d)"
-                        value={formatCurrency(stats.criticalAmount)}
-                        icon={<AlertTriangle size={18} />}
-                        color="red"
-                        footer="Immediate Action Reqd"
-                    />
-                    <StatCard
-                        title="Risk Exposure"
-                        value={stats.riskScore.toFixed(1) + '%'}
-                        icon={<TrendingUp size={18} />}
-                        color="orange"
-                        footer="% of Debt > 60 Days"
-                    />
-                    <StatCard
-                        title="Fresh Debt (<30d)"
-                        value={formatCurrency(stats.buckets['0-30'])}
-                        icon={<Calendar size={18} />}
-                        color="emerald"
-                        footer="Healthy Receivables"
-                    />
-                </div>
-
-                {/* 3. MAIN CONTENT */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-
-                    {/* LEFT: TABLE (2 Cols) */}
-                    <div className="lg:col-span-2 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-line bg-sunken/50 dark:bg-surface flex justify-between items-center">
-                            <h3 className="text-sm font-bold text-ink-secondary dark:text-ink uppercase tracking-wide">Aging Details</h3>
-                            <span className="text-xs font-mono text-ink-muted bg-sunken px-2 py-1 rounded">
-                                {processedInvoices.length} Bills
-                            </span>
-                        </div>
-
-                        <div className="flex-1 overflow-auto custom-scrollbar relative">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
-                                    <tr>
-                                        <SortableHeader label="Invoice" colKey="invoice_number" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label={tt('Customer')} colKey="party" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Owed Amount" colKey="amount" align="right" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Days Old" colKey="days" align="center" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Status" colKey="category" align="center" currentSort={sortBy} onSort={handleSort} />
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-line">
-                                    {processedInvoices.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" className="h-64">
-                                                <div className="flex flex-col items-center justify-center h-full text-ink-muted gap-3">
-                                                    <div className="bg-sunken p-4 rounded-full">
-                                                        <Clock size={32} className="text-neutral-300 opacity-50" />
-                                                    </div>
-                                                    <p className="font-medium text-sm">No outstanding bills found</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        processedInvoices.map((inv, idx) => (
-                                            <tr key={idx} className="group hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                                <td className="px-6 py-3 font-mono text-xs text-ink-muted">#{inv.invoice_number}</td>
-                                                <td className="px-6 py-3 text-sm font-medium text-ink-secondary dark:text-ink">
-                                                    {inv.party}
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-bold text-ink-secondary font-mono">
-                                                    {formatCurrency(inv.amount)}
-                                                </td>
-                                                <td className="px-6 py-3 text-center text-xs text-ink-muted font-mono">
-                                                    {inv.days}d
-                                                </td>
-                                                <td className="px-6 py-3 text-center">
-                                                    <AgingBadge category={inv.category} />
-                                                </td>
-                                            </tr>
-                                        )
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {/* RIGHT: CHARTS (1 Col) - Flex Split */}
-                    <div className="flex flex-col gap-4 h-full min-h-0 overflow-hidden">
-
-                        {/* 1. Aging Breakdown */}
-                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Aging Breakdown</h3>
-                            <div className="flex-1 w-full h-full min-h-0 relative">
-                                {agingData.length > 0 ? (
-                                    <>
-                                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={agingData}
-                                                    dataKey="value"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="70%"
-                                                    paddingAngle={5}
-                                                >
-                                                    {agingData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                                    ))}
-                                                </Pie>
-                                                <RechartsTooltip
-                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                                    itemStyle={{ color: '#fff' }}
-                                                    formatter={(val) => formatCurrency(val)}
-                                                />
-                                                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
-                                            <div className="text-center">
-                                                <p className="text-2xs text-ink-muted font-bold uppercase">Total</p>
-                                                <p className="text-lg font-bold text-ink-secondary dark:text-white">
-                                                    {((stats.totalOutstanding / 1000).toFixed(1))}k
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-ink-muted italic">No data</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 2. Top Debtors */}
-                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Top Debtors</h3>
-                            <div className="flex-1 w-full h-full min-h-0">
-                                {topDebtors.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                        <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 30 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
-                                            <XAxis type="number" hide />
-                                            <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
-                                            <RechartsTooltip
-                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                                formatter={(value) => formatCurrency(value)}
-                                            />
-                                            <Bar dataKey="value" fill={vq.indigo[500]} radius={[0, 4, 4, 0]} barSize={16} background={{ fill: 'transparent' }} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-ink-muted italic">No data</div>
-                                )}
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+    const filterNode = (
+        <>
+            <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={14} />
+                <input type="text" placeholder="Search Debtor..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`${filterInputCls} w-56 pl-9`} />
             </div>
-        </ReportsLayout>
+            <div className="flex flex-wrap items-center gap-1">
+                {BUCKETS.map((b) => (
+                    <button key={b} type="button" onClick={() => setBucketFilter(b)}
+                        className={`h-10 rounded-[12px] px-3 text-sm font-semibold transition-colors ${bucketFilter === b ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'text-ink-secondary hover:bg-interactive-hover'}`}>
+                        {b === 'all' ? 'All Buckets' : `${b} Days`}
+                    </button>
+                ))}
+            </div>
+        </>
     );
-}
-
-// --- Components ---
-function StatCard({ title, value, icon, color, footer }) {
-    const bgColors = {
-        red: 'bg-red-500',
-        indigo: 'bg-brand-500',
-        emerald: 'bg-emerald-500',
-        orange: 'bg-orange-500',
-    };
-    const textColors = {
-        red: 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20',
-        indigo: 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/20',
-        emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
-        orange: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
-    };
 
     return (
-        <div className="bg-surface border border-line rounded-xl p-3 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-line dark:hover:border-line-strong transition-colors">
-            <div className="flex justify-between items-start mb-2 relative z-10">
-                <div className={`p-2 rounded-lg ${textColors[color]} shrink-0`}>
-                    {icon}
-                </div>
-                {footer && <span className="text-2xs font-bold text-ink-muted bg-sunken px-2 py-0.5 rounded-full">{footer}</span>}
-            </div>
-            <div className="relative z-10">
-                <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{title}</p>
-                <h3 className="text-xl font-bold text-ink tracking-tight mt-0.5">{value}</h3>
-            </div>
-            <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 dark:opacity-10 ${bgColors[color]} pointer-events-none transition-transform duration-slower`} />
-        </div>
-    );
-}
-
-function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) {
-    const isActive = currentSort.key === colKey;
-    return (
-        <th
-            onClick={() => onSort(colKey)}
-            className={`px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer group bg-sunken hover:bg-sunken dark:hover:bg-interactive-hover transition-colors select-none`}
-            style={{ textAlign: align }}
+        <ReportShell
+            title="Receivables Aging"
+            subtitle="Tracking outstanding receivables"
+            filters={filterNode}
+            exportConfig={{ filename: 'sale-aging', columns: invoiceColumns.map((c) => ({ label: c.label, get: c.get })), rows: processedInvoices }}
         >
-            <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
-                {label}
-                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-orange-500' : 'text-neutral-300 group-hover:text-ink-muted'}`}>
-                    <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
-                    <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
-                </div>
-            </div>
-        </th>
-    );
-}
+            <ReportKpis items={kpis} />
 
-function AgingBadge({ category }) {
-    if (category === '90+') return <span className="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-2xs font-bold rounded animate-pulse">Critical 90+</span>;
-    if (category === '60-90') return <span className="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 text-2xs font-bold rounded">High 60-90</span>;
-    if (category === '30-60') return <span className="px-2 py-0.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 text-2xs font-bold rounded">At Risk 30-60</span>;
-    return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold rounded">Fresh 0-30</span>;
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Aging Buckets" subtitle="Outstanding amount by age" icon={BarChart3} tone="amber">
+                        <TrendChart points={bucketPoints} label="Outstanding" type="bar" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Aging Breakdown" subtitle="Share of outstanding" icon={PieIcon} tone="rose">
+                        <DonutChart slices={agingSlices} height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            <ReportSection title="Top Debtors" subtitle="By outstanding amount" icon={Users} tone="violet">
+                <RankBars items={parties.map(p => ({ label: p.party, value: p.amount, sub: `${p.invoices} bills` }))} />
+            </ReportSection>
+
+            <ReportSection title={tt('Debtors')} subtitle={`${parties.length} parties`} icon={Users} flush>
+                <ReportTable columns={partyColumns} rows={parties} rowKey={(p) => p.party} pageSize={15} empty="No outstanding bills found" />
+            </ReportSection>
+
+            <ReportSection title="Aging Details" subtitle={`${processedInvoices.length} bills`} icon={Receipt} flush>
+                <ReportTable columns={invoiceColumns} rows={processedInvoices} rowKey={(i, idx) => `${i.invoice_number}-${idx}`} pageSize={25} empty="No outstanding bills found" />
+            </ReportSection>
+        </ReportShell>
+    );
 }

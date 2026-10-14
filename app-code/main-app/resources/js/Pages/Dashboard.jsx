@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
-import WelcomeTourModal from '@/Components/WelcomeTourModal';
 import DashboardTourGuide from '@/Components/DashboardTourGuide';
 import { usePermission } from '@/Hooks/usePermission';
 
@@ -622,16 +621,6 @@ export default function Dashboard({
                 </div>
             </div>
 
-            {!store?.is_demo && !store?.onboarding_completed && (
- store?.onboarding_step === 'welcome' || 
- store?.onboarding_step === 'purchase_tour_start' || 
- store?.onboarding_step === 'purchase_tour_sidebar' ||
- store?.onboarding_step === 'invoice_tour_start' ||
- store?.onboarding_step === 'pos_tour_start' ||
- store?.onboarding_step === 'expense_tour_start'
-            ) && (
-                <WelcomeTourModal store={store} />
-            )}
             
             {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
                 <DashboardTourGuide store={store} />

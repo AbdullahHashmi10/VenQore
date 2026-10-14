@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Legacy installer URLs follow the verified release pointer, even if an old EXE remains on disk.
+    RewriteRule ^downloads/VenQore_Station_Setup\.exe$ /station-download [R=302,L,NE]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

@@ -39,6 +39,7 @@ const TINTS = {
     amber: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
     brand: 'bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400',
     teal: 'bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400',
+    indigo: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400',
     ink: 'bg-app text-ink-secondary',
 };
 

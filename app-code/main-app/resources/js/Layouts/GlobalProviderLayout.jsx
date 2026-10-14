@@ -3,6 +3,8 @@ import { AttendanceProvider } from '@/Contexts/AttendanceContext';
 import { WorkspaceProvider } from '@/Contexts/WorkspaceContext';
 import { AlertProvider } from '@/Contexts/AlertContext';
 import OfflineLockScreen from '@/Components/OfflineLockScreen';
+import OfflineModeBanner from '@/Components/OfflineModeBanner';
+import { startAutoCaching } from '@/lib/offlineCache';
 import GlobalDialogOverride from '@/Utils/GlobalDialogOverride';
 import { SyncService } from '@/Services/SyncService';
 import PasscodeModal from '@/Components/PasscodeModal';
@@ -10,6 +12,7 @@ import { useGlobalShortcuts } from '@/Hooks/useGlobalShortcuts';
 import KeyboardShortcutsModal from '@/Components/KeyboardShortcutsModal';
 
 import { usePage } from '@inertiajs/react';
+import { setExportAllowed } from '@/lib/exportCsv';
 import { ThemeProvider } from '@/Contexts/ThemeContext';
 import { AppearanceProvider } from '@/Contexts/AppearanceContext';
 
@@ -40,8 +43,18 @@ export default function GlobalProviderLayout({ children }) {
 }
 
 function InnerGlobalLayout({ children, settings }) {
- const { props, url } = usePage();
+ const { props, url, version } = usePage();
  const [showExitModal, setShowExitModal] = useState(false);
+ 
+ // CSV download buttons on list pages check this (mirrors server hasPermission:
+ // owner / platform admin, or a stored data.export / data.* / * grant).
+ const exportUser = props.auth?.user;
+ const exportPerms = Array.isArray(exportUser?.permissions) ? exportUser.permissions : [];
+ const canExportData = !!exportUser && (
+ exportUser.is_owner === true || exportUser.is_platform_admin === true || exportUser.role === 'owner' ||
+ exportPerms.includes('*') || exportPerms.includes('data.*') || exportPerms.includes('data.export')
+ );
+ setExportAllowed(canExportData);
  const [showShortcuts, setShowShortcuts] = useState(false);
  const [showUpdateOverlay, setShowUpdateOverlay] = useState(false);
 
@@ -119,6 +132,11 @@ function InnerGlobalLayout({ children, settings }) {
  // Initial Sync/Check on load
  SyncService.runBackgroundSync();
 
+ // Keep the till and the floor ready to open with no internet (every page, re-saved about every 30 minutes while online).
+ const warmSlug = props.store?.slug;
+ const warmVersion = version;
+ const stopCaching = startAutoCaching({ slug: warmSlug, version: warmVersion });
+
  // Background Interval (30 Mins)
  const interval = setInterval(() => {
  SyncService.runBackgroundSync();
@@ -145,6 +163,7 @@ function InnerGlobalLayout({ children, settings }) {
 
  return () => {
  clearInterval(interval);
+ stopCaching();
  cleanup();
  if (window.handleAMDExit) delete window.handleAMDExit;
  };
@@ -211,6 +230,7 @@ function InnerGlobalLayout({ children, settings }) {
  no store to lock, and it read tenant props that do not
  exist there. */}
  {!isInstaller && !isMarketing && <OfflineLockScreen />}
+ {!isInstaller && !isMarketing && <OfflineModeBanner />}
  <PasscodeModal
  isOpen={showExitModal}
  onClose={() => setShowExitModal(false)}

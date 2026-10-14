@@ -117,6 +117,8 @@ class HandleInertiaRequests extends Middleware
                         'is_owner'          => $user ? ($user->role === 'owner') : false,
                         'pos_capabilities'  => $user ? ($user->getActiveMembership()?->pos_capabilities ?? []) : [],
                         'has_password'      => !empty($user->attributes['password'] ?? null),
+                        // Dock/rail navigation prefs (user_preferences, key 'nav'); null until saved.
+                        'nav_preferences'   => rescue(fn () => \App\Models\UserPreference::resolve($user->id, null, 'nav'), null, false),
                     ]
                 ) : null,
                 'notifications' => ($user && $this->hasTable('notifications')) ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {
@@ -153,6 +155,20 @@ class HandleInertiaRequests extends Middleware
                             fn () => \Illuminate\Support\Facades\DB::table('commerce_orders')->where('tenant_id', $tenant->id)->where('status', 'pending')->count());
                     }, 0, false)
                     : 0,
+                // Online Store dock badges: products not yet live, and store-level things needing attention
+                'online_store_attention' => ($user && $dbReady && $this->hasTable('storefronts') && $this->hasTable('storefront_products'))
+                    ? rescue(function () {
+                        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+                        if (!$tenant) return ['products' => 0, 'overview' => 0];
+                        return \Illuminate\Support\Facades\Cache::remember("online_store_attention:{$tenant->id}", 30, function () use ($tenant) {
+                            $db = \Illuminate\Support\Facades\DB::table('storefronts')->where('tenant_id', $tenant->id)->get(['status', 'intake_paused']);
+                            $overview = 0;
+                            foreach ($db as $sf) { $overview += ($sf->status !== 'published' ? 1 : 0) + ($sf->intake_paused ? 1 : 0); }
+                            $products = \Illuminate\Support\Facades\DB::table('storefront_products')->where('tenant_id', $tenant->id)->where('is_published', 0)->count();
+                            return ['products' => $products, 'overview' => $overview];
+                        });
+                    }, ['products' => 0, 'overview' => 0], false)
+                    : ['products' => 0, 'overview' => 0],
                 // Pending approvals count for sidebar badge
                 'pending_approvals_count' => ($user && $dbReady && $this->hasTable('approval_documents'))
                     ? rescue(function () use ($user) {

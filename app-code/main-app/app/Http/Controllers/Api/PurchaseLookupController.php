@@ -27,13 +27,17 @@ class PurchaseLookupController extends Controller
             ->where('purchases.tenant_id', $tenantId)
             ->where('purchases.party_id', $party)
             ->orderByDesc('purchases.purchase_date')
-            ->limit(25)
+            ->orderByDesc('purchases.created_at')
+            ->limit(100)
             ->get([
                 'purchases.id',
                 'purchases.reference as reference',
                 'purchases.invoice_number',
                 'purchases.purchase_date as date',
                 'purchases.total',
+                'purchases.payment_status',
+                'purchases.workflow_status',
+                DB::raw('(SELECT COUNT(*) FROM purchase_items pi WHERE pi.purchase_id = purchases.id) AS items_count'),
             ]);
 
         return response()->json($rows);

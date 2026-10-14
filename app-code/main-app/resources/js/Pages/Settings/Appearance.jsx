@@ -34,7 +34,7 @@ const MODES = [
 
 function Section({ title, description, children }) {
     return (
-        <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6">
+        <section className="rounded-[14px] border border-line bg-surface p-4">
             <div className="mb-4">
                 <h2 className="text-base font-semibold text-ink">{title}</h2>
                 {description && (
@@ -70,7 +70,7 @@ function Segmented({ options, value, onChange, columns = 3 }) {
                         onClick={() => onChange(option.value)}
                         aria-pressed={selected}
                         className={[
-                            'flex min-h-control-md flex-col items-center justify-center gap-1 rounded-xl border px-3 py-2 text-sm transition-colors',
+                            'flex min-h-control-md flex-col items-center justify-center gap-1 rounded-[12px] border px-3 py-2 text-sm transition-colors',
                             selected
                                 ? 'border-brand-500 bg-brand-500/10 text-ink'
                                 : 'border-line bg-app text-ink-secondary hover:bg-interactive-hover',
@@ -102,7 +102,7 @@ function ColourField({ label, value, fallbackLabel, onChange }) {
         <div>
             <label className="mb-2 block text-sm font-medium text-ink-secondary">{label}</label>
             <div className="flex items-center gap-3">
-                <label className="relative h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-xl border border-line-strong">
+                <label className="relative h-11 w-11 shrink-0 cursor-pointer overflow-hidden rounded-[12px] border border-line-strong">
                     <span
                         className="absolute inset-0"
                         style={value ? { backgroundColor: value } : undefined}
@@ -216,7 +216,7 @@ export default function Appearance({ canManageStoreDefault, storeSlug }) {
                                     disabled={switching}
                                     onClick={() => switchExperience(option.value)}
                                     className={[
-                                        'rounded-xl border p-4 text-left transition-colors disabled:opacity-60',
+                                        'rounded-[12px] border p-4 text-left transition-colors disabled:opacity-60',
                                         selected
                                             ? 'border-brand-500 bg-brand-500/10'
                                             : 'border-line bg-app hover:bg-interactive-hover',
@@ -248,7 +248,7 @@ export default function Appearance({ canManageStoreDefault, storeSlug }) {
                                     type="button"
                                     onClick={() => update({ theme: theme.id })}
                                     className={[
-                                        'flex items-center gap-3 rounded-xl border p-3 text-left transition-colors',
+                                        'flex items-center gap-3 rounded-[12px] border p-3 text-left transition-colors',
                                         selected
                                             ? 'border-brand-500 bg-brand-500/10'
                                             : 'border-line bg-app hover:bg-interactive-hover',
@@ -257,7 +257,7 @@ export default function Appearance({ canManageStoreDefault, storeSlug }) {
                                     {/* Swatches are literal hex, not theme tokens: this chip has
                                         to show what a theme looks like while a different one is
                                         active, so it is the one place tokens would be wrong. */}
-                                    <span className="flex shrink-0 overflow-hidden rounded-lg border border-line-strong">
+                                    <span className="flex shrink-0 overflow-hidden rounded-[12px] border border-line-strong">
                                         {theme.swatch.map((colour) => (
                                             <span
                                                 key={colour}
@@ -331,7 +331,7 @@ export default function Appearance({ canManageStoreDefault, storeSlug }) {
                         <button
                             type="button"
                             onClick={saveAsStoreDefault}
-                            className="min-h-control-md rounded-xl border border-line bg-app px-4 text-sm font-medium text-ink transition-colors hover:bg-interactive-hover"
+                            className="min-h-control-md rounded-[12px] border border-line bg-app px-4 text-sm font-medium text-ink transition-colors hover:bg-interactive-hover"
                         >
                             Save my current settings as the store default
                         </button>

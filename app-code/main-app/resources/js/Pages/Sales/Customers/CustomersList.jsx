@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Plus, Search, Edit, Trash2, X, Save, User, Phone, Mail, MapPin } from 'lucide-react';
-import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import { useContactsNavGroups } from '@/Components/ContactsModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton } from '@/Components/ListShell';
 import { useTermText } from '@/lib/terms';
 
 export default function CustomersIndex({ customers, filters = {} }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    const contactsNavGroups = useContactsNavGroups();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
@@ -95,41 +98,37 @@ export default function CustomersIndex({ customers, filters = {} }) {
     };
 
     return (
-        <OneGlanceLayout title={tt('Customers')} activeMenu="Contacts">
+        <OneGlanceLayout title={tt('Customers')} activeMenu="Contacts" noPadding>
             <Head title={tt('Customers')} />
 
-            <div className="flex flex-col h-full">
-                <ContactsModuleTabs activeTab="customers" />
+            <ListPageFrame className="flex flex-col h-full p-1.5">
+                <MobileListHeader
+                    title={tt('Customers')}
+                    navGroups={contactsNavGroups}
+                    activeId="customers"
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), onKeyDown: (e) => { if (e.key === 'Enter') handleSearch(e); }, placeholder: tt('Search customers...') }}
+                    add={{ onClick: () => openModal(), label: tt('Add Customer') }}
+                />
 
-                <div className="pb-8">
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                        <form onSubmit={handleSearch} className="relative w-full md:w-96">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={20} />
-                            <input
-                                type="text"
-                                placeholder={tt('Search customers...')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-surface text-ink-secondary dark:text-ink focus:ring-2 ring-brand-500/20 outline-none"
-                            />
-                        </form>
-                        <button
-                            onClick={() => openModal()}
-                            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg active:scale-95"
-                        >
-                            <Plus size={20} /> {tt('Add Customer')}
-                        </button>
-                    </div>
+                {/* Desktop: ROW 1 toolbar */}
+                    <ListToolbar
+                        title={tt('Customers')}
+                        navGroups={contactsNavGroups}
+                        activeId="customers"
+                        search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), onKeyDown: (e) => { if (e.key === 'Enter') handleSearch(e); }, placeholder: tt('Search customers...') }}
+                        actions={<ListAddButton icon={Plus} onClick={() => openModal()}>{tt('Add Customer')}</ListAddButton>}
+                    />
 
-                    <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
+                <div className="pb-8 pt-2 md:pt-0 md:pb-0 md:flex-1 md:min-h-0 md:flex md:flex-col">
+                    <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden md:flex-1 md:min-h-0 md:overflow-auto md:rounded-[14px]">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-app text-ink-muted text-xs uppercase tracking-wider">
-                                    <th className="p-4 font-semibold">Name</th>
-                                    <th className="p-4 font-semibold">Contact</th>
-                                    <th className="p-4 font-semibold">Address</th>
-                                    <th className="p-4 font-semibold">Loyalty Points</th>
-                                    <th className="p-4 font-semibold text-right">Actions</th>
+                                <tr className="bg-app text-ink-muted text-xs uppercase tracking-wider sticky top-0 z-10">
+                                    <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Name</th>
+                                    <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Contact</th>
+                                    <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Address</th>
+                                    <th className="sticky top-0 z-10 bg-app p-4 font-semibold">Loyalty Points</th>
+                                    <th className="sticky top-0 z-10 bg-app p-4 font-semibold text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -197,7 +196,7 @@ export default function CustomersIndex({ customers, filters = {} }) {
                         </table>
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-normal">
                     <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-normal">

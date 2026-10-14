@@ -1,228 +1,93 @@
-import PrintService from '@/Utils/PrintService';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { Package, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
-import MasterReport from '@/Components/Reports/MasterReport';
-import ReportsLayout from '@/Layouts/ReportsLayout';
-import { Head } from '@inertiajs/react';
+import { Package, DollarSign, TrendingUp, PieChart as PieIcon, Trophy, Table2 } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, FilterSelect } from '@/Components/Reports/ReportKit';
+import { DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 
 export default function StockValuation({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
     const tt = useTermText();
 
-    // Map Stats
-    const reportStats = [
-        {
-            label: 'Total Stock Value (Cost)',
-            value: formatCurrency(stats.total_cost_value, store),
-            icon: <DollarSign size={18} />,
-            type: 'up'
-        },
-        {
-            label: 'Total Retail Value',
-            value: formatCurrency(stats.total_retail_value, store),
-            icon: <TrendingUp size={18} />,
-            type: 'neutral'
-        },
-        {
-            label: 'Potential Profit',
-            value: formatCurrency(stats.potential_profit, store),
-            icon: <DollarSign size={18} />,
-            type: 'neutral'
-        },
-        {
-            label: 'Total Items',
-            value: formatNumber(stats.total_items),
-            icon: <Package size={18} />,
-            type: 'neutral'
-        }
-    ];
+    const apply = (key, value) => {
+        const next = { ...filters, [key]: value };
+        Object.keys(next).forEach((k) => { if (next[k] === '' || next[k] == null) delete next[k]; });
+        router.get(route('store.reports.stock-valuation', { store_slug: store.slug }), next, { preserveState: true, replace: true });
+    };
 
-    // Map Columns
+    const byCategory = useMemo(() => {
+        const m = {};
+        products.forEach((p) => {
+            const n = p.category?.name || 'Uncategorized';
+            m[n] = (m[n] || 0) + (Number(p.stock_value) || 0);
+        });
+        return Object.entries(m).map(([name, value]) => ({ name, value })).filter((s) => s.value > 0).sort((a, b) => b.value - a.value);
+    }, [products]);
+
+    const topValue = useMemo(() => [...products]
+        .sort((a, b) => (Number(b.stock_value) || 0) - (Number(a.stock_value) || 0))
+        .slice(0, 8)
+        .map((p) => ({ label: p.name, value: Number(p.stock_value) || 0, sub: `${formatNumber(p.stock_quantity)} units` })), [products]);
+
+    const totalCost = products.reduce((s, p) => s + (Number(p.stock_value) || 0), 0);
+    const totalRetail = products.reduce((s, p) => s + (Number(p.retail_value) || 0), 0);
+    const totalQty = products.reduce((s, p) => s + (Number(p.stock_quantity) || 0), 0);
+
     const columns = [
-        {
-            key: 'name',
-            label: tt('Product'),
-            sortable: true,
-            render: (row) => (
-                <div>
-                    <div className="font-medium text-ink">{row.name}</div>
-                    <div className="text-xs text-ink-muted">{row.sku}</div>
-                </div>
-            )
-        },
-        {
-            key: 'category',
-            label: 'Category',
-            sortable: true,
-            render: (row) => row.category?.name || '-'
-        },
-        {
-            key: 'remaining_qty',
-            label: 'Qty (FIFO)',
-            align: 'right',
-            sortable: true,
-            render: (row) => <span className="font-semibold">{formatNumber(row.stock_quantity)}</span>
-        },
-        {
-            key: 'unit_cost',
-            label: 'FIFO Unit Cost',
-            align: 'right',
-            render: (row) => formatCurrency(row.unit_cost, store)
-        },
-        {
-            key: 'sale_price',
-            label: 'Sale Price',
-            align: 'right',
-            render: (row) => formatCurrency(row.sale_price, store)
-        },
-        {
-            key: 'stock_value',
-            label: 'Stock Value',
-            align: 'right',
-            sortable: true,
-            render: (row) => <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(row.stock_value, store)}</span>
-        },
-        {
-            key: 'retail_value',
-            label: 'Retail Value',
-            align: 'right',
-            sortable: true,
-            render: (row) => <span className="font-medium text-ink-secondary">{formatCurrency(row.retail_value, store)}</span>
-        }
+        { key: 'name', label: tt('Product'), sortable: true, get: (r) => r.name,
+          render: (r) => (<div className="min-w-0"><div className="truncate text-sm font-semibold text-ink">{r.name}</div><div className="truncate text-xs text-ink-muted">{r.sku}</div></div>) },
+        { key: 'category', label: 'Category', sortable: true, get: (r) => r.category?.name || '', render: (r) => r.category?.name || '-' },
+        { key: 'stock_quantity', label: 'Qty (FIFO)', align: 'right', sortable: true, get: (r) => Number(r.stock_quantity) || 0, render: (r) => <span className="font-semibold">{formatNumber(r.stock_quantity)}</span> },
+        { key: 'unit_cost', label: 'FIFO Unit Cost', align: 'right', get: (r) => Number(r.unit_cost) || 0, render: (r) => formatCurrency(r.unit_cost, store) },
+        { key: 'sale_price', label: 'Sale Price', align: 'right', get: (r) => Number(r.sale_price) || 0, render: (r) => formatCurrency(r.sale_price, store) },
+        { key: 'stock_value', label: 'Stock Value', align: 'right', sortable: true, get: (r) => Number(r.stock_value) || 0, render: (r) => <span className="font-bold text-emerald-600">{formatCurrency(r.stock_value, store)}</span> },
+        { key: 'retail_value', label: 'Retail Value', align: 'right', sortable: true, get: (r) => Number(r.retail_value) || 0, render: (r) => <span className="font-medium text-ink-secondary">{formatCurrency(r.retail_value, store)}</span> },
     ];
 
-    // Filter Defs
-    const filterDefs = [
-        {
-            key: 'category_id',
-            type: 'select',
-            label: 'Category',
-            options: categories.map(c => ({ value: c.id, label: c.name }))
-        },
-        {
-            key: 'warehouse_id',
-            type: 'select',
-            label: 'Warehouse',
-            options: warehouses.map(w => ({ value: w.id, label: w.name }))
-        }
+    const exportColumns = [
+        { label: 'Product', get: (r) => r.name }, { label: 'SKU', get: (r) => r.sku }, { label: 'Category', get: (r) => r.category?.name || '' },
+        { label: 'Quantity', get: (r) => r.stock_quantity }, { label: 'FIFO Unit Cost', get: (r) => r.unit_cost }, { label: 'Sale Price', get: (r) => r.sale_price },
+        { label: 'Stock Value (Cost)', get: (r) => r.stock_value }, { label: 'Retail Value', get: (r) => r.retail_value },
     ];
-
-    const handleFilterChange = (newValues) => {
-        router.get(route("store.reports.stock-valuation", {
-            store_slug: store.slug
-        }), newValues, { preserveState: true, replace: true });
-    };
-
-    const handleExport = (type) => {
-        console.log('StockValuation handleExport called with type:', type);
-        console.log('Current products count:', products?.length);
-
-        if (type === 'print') {
-            PrintService.printPage();
-            return;
-        }
-
-        if (type === 'csv') {
-            if (!products || products.length === 0) {
-                alert('No data available to export.');
-                return;
-            }
-
-            const csvRows = [];
-            // Header
-            csvRows.push(['Product', 'SKU', 'Category', 'Quantity', 'FIFO Unit Cost', 'Sale Price', 'Stock Value (Cost)', 'Retail Value'].join(','));
-
-            // Data
-            products.forEach(row => {
-                csvRows.push([
-                    `"${row.name}"`,
-                    `"${row.sku}"`,
-                    `"${row.category?.name || ''}"`,
-                    row.stock_quantity,
-                    row.unit_cost,
-                    row.sale_price,
-                    row.stock_value,
-                    row.retail_value
-                ].join(','));
-            });
-
-            console.log('Generated CSV rows:', csvRows.length);
-            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', `stock_valuation_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            console.log('Download triggered.');
-        }
-    };
 
     return (
-        <ReportsLayout title="Stock Valuation">
-            <Head title="Stock Valuation" />
-
-            <div className="print:hidden">
-                <MasterReport
-                    title="Stock Valuation Report"
-                    stats={reportStats}
-                    columns={columns}
-                    data={products}
-                    filters={filterDefs}
-                    filterValues={filters}
-                    onFilterChange={handleFilterChange}
-                    onExport={handleExport}
-                />
-            </div>
-
-            {/* Print View Styling */}
-            <div className="hidden print:block p-4 sm:p-8">
-                <div className="text-center mb-10 border-b-2 border-neutral-900 pb-6">
-                    <h1 className="text-3xl font-bold">{store.name}</h1>
-                    <h2 className="text-xl font-bold text-ink-secondary uppercase tracking-widest mt-2">Stock Valuation Report</h2>
-                    <p className="text-sm text-ink-muted mt-1">Generated on {new Date().toLocaleDateString()}</p>
+        <ReportShell
+            title="Stock Valuation"
+            subtitle="What your stock is worth at cost and at retail"
+            activeKey="stock-valuation"
+            exportConfig={{ filename: `stock_valuation_${new Date().toISOString().split('T')[0]}`, columns: exportColumns, rows: products }}
+            filters={(
+                <div className="flex flex-wrap items-center gap-2">
+                    <FilterSelect label="Category" value={filters.category_id} onChange={(v) => apply('category_id', v)}
+                        options={[{ value: '', label: 'All' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]} />
+                    <FilterSelect label="Warehouse" value={filters.warehouse_id} onChange={(v) => apply('warehouse_id', v)}
+                        options={[{ value: '', label: 'All' }, ...warehouses.map((w) => ({ value: w.id, label: w.name }))]} />
                 </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-                    {reportStats.map((s, idx) => (
-                        <div key={idx} className="border p-4 rounded-xl">
-                            <p className="text-2xs font-bold text-ink-muted uppercase">{s.label}</p>
-                            <p className="text-xl font-bold">{s.value}</p>
-                        </div>
-                    ))}
-                </div>
-
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b-2 border-neutral-900">
-                            <th className="py-2 text-xs font-bold uppercase">{tt('Product / SKU')}</th>
-                            <th className="py-2 text-xs font-bold uppercase text-right">Qty</th>
-                            <th className="py-2 text-xs font-bold uppercase text-right">Cost</th>
-                            <th className="py-2 text-xs font-bold uppercase text-right">Valuation</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y border-b">
-                        {products.map((row, idx) => (
-                            <tr key={idx}>
-                                <td className="py-3">
-                                    <div className="font-bold">{row.name}</div>
-                                    <div className="text-2xs text-ink-muted">{row.sku}</div>
-                                </td>
-                                <td className="py-3 text-right font-bold">{formatNumber(row.stock_quantity)}</td>
-                                <td className="py-3 text-right">{formatCurrency(row.unit_cost, store)}</td>
-                                <td className="py-3 text-right font-bold">{formatCurrency(row.stock_value, store)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </ReportsLayout>
+            )}
+        >
+            <ReportKpis items={[
+                { label: 'Total Stock Value (Cost)', value: formatCurrency(stats.total_cost_value, store), icon: DollarSign, tone: 'emerald' },
+                { label: 'Total Retail Value', value: formatCurrency(stats.total_retail_value, store), icon: TrendingUp, tone: 'brand' },
+                { label: 'Potential Profit', value: formatCurrency(stats.potential_profit, store), icon: DollarSign, tone: 'amber' },
+                { label: 'Total Items', value: formatNumber(stats.total_items), icon: Package, tone: 'slate' },
+            ]} />
+            <ReportGrid>
+                <ReportCol span={5}>
+                    <ReportSection title="Value by category" subtitle="Share of stock value at cost" icon={PieIcon}>
+                        <DonutChart slices={byCategory} unit="currency" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={7}>
+                    <ReportSection title="Top value items" subtitle="Largest capital tied up" icon={Trophy} tone="amber">
+                        <RankBars items={topValue} unit="currency" />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+            <ReportSection title="Valuation detail" subtitle={`${products.length} products`} icon={Table2} flush>
+                <ReportTable columns={columns} rows={products} rowKey={(r) => r.id ?? r.sku}
+                    totals={{ name: 'Total', stock_quantity: formatNumber(totalQty), stock_value: formatCurrency(totalCost, store), retail_value: formatCurrency(totalRetail, store) }} />
+            </ReportSection>
+        </ReportShell>
     );
 }

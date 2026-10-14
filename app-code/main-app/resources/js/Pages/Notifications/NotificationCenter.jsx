@@ -1,6 +1,9 @@
 import React from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { usePage, Head, Link, router } from '@inertiajs/react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import { Bell, Check, Trash2, Clock, Info, AlertTriangle, CheckCircle, AlertOctagon } from 'lucide-react';
 
 export default function NotificationsIndex({ notifications }) {
@@ -26,34 +29,28 @@ export default function NotificationsIndex({ notifications }) {
     };
 
     return (
-        <OneGlanceLayout title="Notifications" activeMenu="Notifications">
+        <OneGlanceLayout title="Notifications" activeMenu="Notifications" noPadding>
             <Head title="Notifications" />
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-md:p-1.5 md:contents">
+            <ListPageFrame className="max-md:max-w-4xl max-md:mx-auto max-md:space-y-6">
+                <ListToolbar
+                    title="Notifications"
+                    actions={notifications.data.length > 0 ? <ListAddButton icon={Check} onClick={markAllRead}>Mark all read</ListAddButton> : null}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total', value: notifications.total ?? notifications.data.length, icon: Bell },
+                    { label: 'Unread', value: notifications.data.filter((n) => !n.read_at).length, icon: AlertTriangle, icon_tone: 'bg-amber-50 text-amber-600' },
+                ]} />
 
-                {/* Header Actions */}
-                <div className="flex justify-between items-center bg-surface p-6 rounded-2xl shadow-sm border border-line">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-xl text-brand-600">
-                            <Bell size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-ink">All Notifications</h2>
-                            <p className="text-sm text-ink-muted">Manage your system alerts and messages.</p>
-                        </div>
-                    </div>
-                    {notifications.data.length > 0 && (
-                        <button
-                            onClick={markAllRead}
-                            className="flex items-center gap-2 px-4 py-2 bg-sunken hover:bg-interactive-hover dark:hover:bg-interactive-hover text-ink-secondary rounded-xl transition-colors text-sm font-medium"
-                        >
-                            <Check size={16} /> Mark all read
-                        </button>
-                    )}
-                </div>
+                <MobileListHeader title="Notifications" add={notifications.data.length > 0 ? { onClick: markAllRead, label: 'Mark all read', icon: Check } : undefined} />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total', value: notifications.total ?? notifications.data.length, tone: 'ink', icon: Bell },
+                    { label: 'Unread', value: notifications.data.filter((n) => !n.read_at).length, tone: 'amber', icon: AlertTriangle },
+                ]} />
 
                 {/* Notifications List */}
-                <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden min-h-[400px]">
+                <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden min-h-[400px] md:min-h-0 md:flex-1 md:overflow-auto md:rounded-[14px]">
                     {notifications.data.length > 0 ? (
                         <div className="divide-y divide-line">
                             {notifications.data.map((notification) => (
@@ -121,7 +118,7 @@ export default function NotificationsIndex({ notifications }) {
 
                 {/* Pagination */}
                 {notifications.links && notifications.data.length > 0 && (
-                    <div className="flex justify-center mt-6">
+                    <div className="flex justify-center mt-6 md:mt-0 md:shrink-0">
                         {/* Simple Previous/Next for now, or proper pagination component */}
                         <div className="flex gap-2">
                             {notifications.links.map((link, i) => (
@@ -136,6 +133,7 @@ export default function NotificationsIndex({ notifications }) {
                         </div>
                     </div>
                 )}
+            </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

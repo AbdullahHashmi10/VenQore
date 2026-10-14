@@ -286,6 +286,8 @@ export default function OrderStatus({ order, store, events, rider = null, transf
                         {Number(order.discount_total) > 0 && <div className="vqs-between"><dt className="vqs-muted">You saved{order.promo_name ? ` (${order.promo_name})` : ''}</dt><dd className="vqs-num vqs-save" style={{ margin: 0 }}>{money(order.discount_total, sym)}</dd></div>}
                         {Number(order.delivery_fee) > 0 && <div className="vqs-between"><dt className="vqs-muted">Delivery{order.delivery_zone ? ` · ${order.delivery_zone}` : ''}</dt><dd className="vqs-num" style={{ margin: 0 }}>{money(order.delivery_fee, sym)}</dd></div>}
                         <div className="vqs-between big" style={{ paddingTop: 8, borderTop: '1px solid var(--vq-line)' }}><dt>Total</dt><dd className="vqs-num" style={{ margin: 0 }}>{money(order.total, sym)}</dd></div>
+                        {Number(order.points_used) > 0 && <div className="vqs-between"><dt className="vqs-muted">Loyalty points used</dt><dd className="vqs-num" style={{ margin: 0 }}>−{order.points_used}</dd></div>}
+                        {Number(order.loyalty_points) > 0 && <div className="vqs-between"><dt className="vqs-muted">{order.status === 'completed' ? 'Loyalty points earned' : 'Loyalty points you will earn'}</dt><dd className="vqs-num vqs-save" style={{ margin: 0 }}>+{order.loyalty_points}</dd></div>}
                     </dl>
                 </div>
 

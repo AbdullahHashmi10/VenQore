@@ -62,6 +62,13 @@ export default function Stores({ tenants, filters }) {
         }
     };
 
+    const onImpersonate = (st) => {
+        const passcode = prompt(`View "${st.name}" as its owner (${st.owner_email}). The session is read-only and logged.\n\nEnter your action passcode:`);
+        if (passcode) {
+            router.post(route('platform.impersonate.start', st.owner_id), { passcode });
+        }
+    };
+
     const onPurge = (id) => {
         const passcode = prompt('Enter your action passcode to confirm permanently purging this store:');
         if (passcode) {
@@ -343,6 +350,7 @@ export default function Stores({ tenants, filters }) {
                                                                         <Dropdown.Link
                                                                             href={route('platform.store.suspend', st.id)}
                                                                             method="post"
+                                                                            onBefore={() => confirm(`Suspend "${st.name}"? Its users lose access until you activate it again.`)}
                                                                             as="button"
                                                                             style={{ fontSize: 13, fontWeight: 600, color: BRAND.amber }}
                                                                         >
@@ -361,11 +369,23 @@ export default function Stores({ tenants, filters }) {
                                                                         </Dropdown.Link>
                                                                     )}
 
+                                                                    {st.owner_id && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => onImpersonate(st)}
+                                                                            className="block w-full px-4 py-2 text-start text-sm leading-5 text-ink-secondary hover:bg-interactive-hover"
+                                                                            style={{ fontSize: 13, fontWeight: 600 }}
+                                                                        >
+                                                                            View as Owner (read-only)
+                                                                        </button>
+                                                                    )}
+
                                                                     <div style={{ borderTop: `1px solid ${t.border}`, margin: '4px 0' }} />
 
                                                                     <Dropdown.Link
                                                                         href={route('platform.store.destroy', st.id)}
                                                                         method="delete"
+                                                                        onBefore={() => confirm(`Move "${st.name}" to the trash? You can restore it from the Trash view.`)}
                                                                         as="button"
                                                                         style={{ fontSize: 13, fontWeight: 600, color: BRAND.rose }}
                                                                     >

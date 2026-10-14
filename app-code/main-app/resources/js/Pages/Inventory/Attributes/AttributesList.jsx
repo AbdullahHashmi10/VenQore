@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { Head, useForm, Link, usePage } from '@inertiajs/react'; // usePage added
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader'; // Added
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import StockModuleTabs, { useStockNavGroups } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 
 import { Plus, Edit, Trash2, Save, X, Tag, Settings, List } from 'lucide-react'; // Icons added
 import { useTermText } from '@/lib/terms';
 
 export default function AttributesIndex({ attributes }) {
+    const navGroups = useStockNavGroups();
     const { store } = usePage().props;
     const tt = useTermText();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,36 +78,39 @@ export default function AttributesIndex({ attributes }) {
     };
 
     return (
-        <OneGlanceLayout title={tt('Product Attributes')} activeMenu="Stock">
+        <OneGlanceLayout title={tt('Product Attributes')} activeMenu="Stock" noPadding>
             <Head title="Attributes" />
 
-            <div className="flex flex-col h-full">
-                <StockModuleTabs activeTab="attributes" />
+            <ListPageFrame className="flex flex-col h-full p-1.5">
+                <ListToolbar
+                    title="Attributes"
+                    navGroups={navGroups}
+                    activeId="attributes"
+                    actions={<ListAddButton icon={Plus} onClick={() => openModal()}>Add Attribute</ListAddButton>}
+                />
+                <ListStatCards cards={[
+                    { label: 'Attributes', value: attributes.length, icon: Tag, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'Dropdown', value: attributes.filter((a) => a.type === 'select').length, icon: List, icon_tone: 'bg-blue-50 text-blue-600' },
+                    { label: 'Text', value: attributes.filter((a) => a.type === 'text').length, icon: Edit, icon_tone: 'bg-emerald-50 text-emerald-600' },
+                    { label: 'Number', value: attributes.filter((a) => a.type === 'number').length, icon: Settings, icon_tone: 'bg-amber-50 text-amber-600' },
+                ]} />
+                <MobileListHeader
+                    title="Attributes"
+                    navGroups={navGroups}
+                    activeId="attributes"
+                    add={{ onClick: () => openModal(), label: 'Add Attribute' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Attributes', value: attributes.length, tone: 'brand', icon: Tag },
+                    { label: 'Dropdown', value: attributes.filter((a) => a.type === 'select').length, tone: 'blue', icon: List },
+                    { label: 'Text', value: attributes.filter((a) => a.type === 'text').length, tone: 'emerald', icon: Edit },
+                    { label: 'Number', value: attributes.filter((a) => a.type === 'number').length, tone: 'amber', icon: Settings },
+                ]} />
 
+                <div className="flex-1 min-h-0 flex flex-col gap-6 md:gap-2 overflow-auto pb-6 md:pb-0">
+                    
 
-
-
-                <div className="flex-1 flex flex-col gap-6 overflow-auto pb-6">
-                    <PageHeader
-                        title={tt('Product Attributes')}
-                        subtitle={tt('Manage custom product attributes (Size, Color, etc.)')}
-                        icon={List}
-                        breadcrumbs={[
-                            { label: 'Inventory' },
-                            { label: 'Config' },
-                            { label: 'Attributes' }
-                        ]}
-                        actions={
-                            <button
-                                onClick={() => openModal()}
-                                className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2.5 rounded-xl hover:bg-brand-700 transition-all shadow-md hover:shadow-lg active:scale-95"
-                            >
-                                <Plus size={20} /> Add Attribute
-                            </button>
-                        }
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-2">
                         {attributes.map((attr) => (
                             <div key={attr.id} className="bg-surface rounded-2xl p-6 shadow-sm border border-line hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-4">
@@ -244,7 +251,7 @@ export default function AttributesIndex({ attributes }) {
                         </div>
                     )}
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

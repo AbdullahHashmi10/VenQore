@@ -96,6 +96,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
     const [couponInput, setCouponInput] = useState('');
     const [coupon, setCoupon] = useState('');
     const [couponError, setCouponError] = useState(null);
+    const [usePoints, setUsePoints] = useState(false);
     const zones = store.delivery_zones || [];
     const attempt = useRef({ sig: '', key: '' });
     const [opt, setOpt] = useState({});                   // card id -> chosen option id
@@ -146,7 +147,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
     useEffect(() => {
         if (cart.lines.length === 0 || onsiteMode) return undefined;
         const t = setTimeout(() => {
-            axios.post(`/shop/${store.slug}/quote`, { items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity, mods: (l.mods || []).map((m) => m.id) })), fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined })
+            axios.post(`/shop/${store.slug}/quote`, { items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity, mods: (l.mods || []).map((m) => m.id) })), fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined, use_points: usePoints || undefined })
                 .then((r) => { setQuote(r.data); setProblems([]); setCouponError(null); })
                 .catch((e) => {
                     const d = e.response?.data;
@@ -156,7 +157,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
                 });
         }, 250);
         return () => clearTimeout(t);
-    }, [cart.lines, fulfilment, store.slug, zone, coupon, onsiteMode]);
+    }, [cart.lines, fulfilment, store.slug, zone, coupon, onsiteMode, usePoints]);
 
     const openPicker = (item) => {
         const start = {};
@@ -220,7 +221,7 @@ export default function Store({ preview, store, items, pagination, limits, categ
         }
         const payload = {
             fulfilment, payment_method: payment, customer_name: form.customer_name, customer_phone: form.customer_phone, customer_email: form.customer_email || null, company_site: form.company_site, opened_at: openedAt,
-            delivery_address: fulfilment === 'delivery' ? form.delivery_address : null, delivery_zone: fulfilment === 'delivery' && zone ? zone : null, coupon: coupon || null, customer_note: form.customer_note || null,
+            delivery_address: fulfilment === 'delivery' ? form.delivery_address : null, delivery_zone: fulfilment === 'delivery' && zone ? zone : null, coupon: coupon || null, customer_note: form.customer_note || null, use_points: usePoints || undefined,
             items: cart.lines.map((l) => ({ item_id: l.item_id, quantity: l.quantity, mods: (l.mods || []).map((m) => m.id) })), expected_total: quote.total,
         };
         // same key for a retry of the SAME order; a changed order gets a new key
@@ -584,6 +585,16 @@ export default function Store({ preview, store, items, pagination, limits, categ
                                         {quote.discount_total > 0 && <div className="vqs-between"><dt className="vqs-muted">You save{quote.promo_name ? ` (${quote.promo_name})` : ''}</dt><dd className="vqs-num vqs-save" style={{ margin: 0 }}>{money(quote.discount_total, sym)}</dd></div>}
                                         {quote.delivery_fee > 0 && <div className="vqs-between"><dt className="vqs-muted">Delivery{quote.delivery_zone ? ` · ${quote.delivery_zone}` : ''}</dt><dd className="vqs-num" style={{ margin: 0 }}>{money(quote.delivery_fee, sym)}</dd></div>}
                                         <div className="vqs-between big"><dt>Total</dt><dd className="vqs-num" style={{ margin: 0 }}>{money(quote.total, sym)}</dd></div>
+                                        {quote.points_used > 0 && <div className="vqs-between"><dt className="vqs-muted">Loyalty points used ({quote.points_used})</dt><dd className="vqs-num vqs-save" style={{ margin: 0 }}>−{money(quote.points_discount, sym)}</dd></div>}
+                                        {!onsiteMode && customer?.loyalty?.balance > 0 && (
+                                            <label className="vqs-between" style={{ cursor: 'pointer', justifyContent: 'flex-start', gap: 8 }}>
+                                                <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} />
+                                                <span>Use my {customer.loyalty.balance.toLocaleString()} points (up to half of your items)</span>
+                                            </label>
+                                        )}
+                                        {quote.loyalty_points > 0 && (quote.loyalty_member
+                                            ? <div className="vqs-between"><dt className="vqs-muted">Loyalty points you'll earn</dt><dd className="vqs-num vqs-save" style={{ margin: 0 }}>+{quote.loyalty_points}</dd></div>
+                                            : <div className="vqs-between"><dt className="vqs-muted">Sign in with your email to earn {quote.loyalty_points} points on this order</dt></div>)}
                                     </dl>
                                 )}
                                 {!onsiteMode && belowMin && <Alert kind="warn">Add {money(minOrder - (quote.subtotal + quote.tax_total), sym)} more to reach the {money(minOrder, sym)} minimum order.</Alert>}

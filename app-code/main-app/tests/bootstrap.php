@@ -37,6 +37,9 @@ ini_set('memory_limit', '-1');
 // ---------------------------------------------------------------------------
 if ($autoload instanceof \Composer\Autoload\ClassLoader) {
     $autoload->addPsr4('Tests\\', __DIR__ . '/tests/', /* prepend */ true);
+    if (file_exists(__DIR__ . '/tests/TestCase.php')) {
+        $autoload->addClassMap(['Tests\\TestCase' => __DIR__ . '/tests/TestCase.php']);
+    }
 }
 
 // ---------------------------------------------------------------------------

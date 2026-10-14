@@ -1378,6 +1378,11 @@ class InternationalStoresSeeder extends Seeder
         ];
         foreach ($todayTimes as $idx => $t) {
             $tTime = Carbon::today()->setTimeFromTimeString($t);
+            // never seed a sale into the future: the Activity panel would read "in 1 hour"
+            if ($tTime->isFuture()) {
+                $tTime = Carbon::today()->addMinutes(15 + $idx * 11)
+                    ->min(Carbon::now()->subMinutes(5 + (count($todayTimes) - $idx) * 3));
+            }
             $cust = $customerList[array_rand($customerList)];
             $payMethod = ($idx % 2 === 0) ? 'card' : 'cash';
             $pRaw = $config['products'][$idx % count($config['products'])];

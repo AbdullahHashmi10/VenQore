@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar } from '@/Components/ListShell';
 import {
     Monitor, Smartphone, Download, CheckCircle2, ArrowRight,
     Shield, Cpu, Zap, Printer, Usb, Bell, Sparkles, ExternalLink,
@@ -13,10 +14,11 @@ export default function AppsIndex({ tenant, apps }) {
 
     const windowsApp = apps?.windows || {
         name: 'VenQore Station for Windows',
-        version: '1.4.2',
-        release_date: '2026-09-01',
-        installer_url: '/downloads/VenQore_Station_Setup.exe',
-        file_size: '84.6 MB',
+        version: 'Not published',
+        release_date: null,
+        installer_url: null,
+        file_size: 'Not available',
+        is_live: false,
         min_os: 'Windows 10 / 11 (64-bit)',
     };
 
@@ -56,10 +58,20 @@ export default function AppsIndex({ tenant, apps }) {
         <>
             <Head title="Native Applications & Hardware Bridge — VenQore" />
 
-            <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
+            <ListPageFrame className="p-1.5">
+            <ListToolbar
+                title="Native Applications"
+                actions={(
+                    <>
+                        <Link href={route('store.billing', { store_slug: storeSlug })} className="h-10 inline-flex items-center px-4 rounded-[12px] bg-surface hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink text-sm font-semibold transition-colors whitespace-nowrap">Billing &amp; Plans</Link>
+                        <Link href={route('store.dashboard', { store_slug: storeSlug })} className="h-10 inline-flex items-center px-4 rounded-[12px] bg-surface hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink text-sm font-semibold transition-colors whitespace-nowrap">Dashboard</Link>
+                    </>
+                )}
+            />
+            <div className="max-w-6xl mx-auto px-4 py-8 space-y-10 md:max-w-none md:mx-0 md:w-full md:px-1 md:py-0 md:space-y-0 md:flex md:flex-col md:gap-10 md:flex-1 md:min-h-0 md:overflow-auto">
 
                 {/* ── Page Header ───────────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-line">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-line md:hidden">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <span className="px-2.5 py-0.5 rounded-full text-3xs font-bold uppercase tracking-widest bg-[#0BAA8F]/15 text-[#0BAA8F] border border-[#0BAA8F]/30">
@@ -129,8 +141,8 @@ export default function AppsIndex({ tenant, apps }) {
                                     { title: 'Direct Raw ESC/POS Printing', desc: 'Instant thermal receipt output on Epson, Star, & Xprinter without browser print prompts.' },
                                     { title: 'Cash Drawer Kick Pulse', desc: 'Sends raw RJ11 impulse to drawer solenoid on cash invoice finalization.' },
                                     { title: 'Serial COM Port Bridge', desc: 'Live continuous polling for digital scales and RS-232 barcode scanners.' },
-                                    { title: 'Cashier Kiosk & Focus Tracking', desc: 'Prevents untracked cashier multitasking and records register lock events.' },
-                                    { title: 'Silent Background Auto-Updates', desc: 'Keeps till terminals secure and aligned with the latest VenQore POS releases.' },
+                                    { title: 'Owner PIN & App Lock', desc: 'Protects Station controls. A fully dedicated PC requires supported Windows kiosk configuration.' },
+                                    { title: 'Managed Updates', desc: 'Installed editions download published updates; an owner confirms when the till can restart. Portable editions update manually.' },
                                 ].map((item, idx) => (
                                     <div key={idx} className="flex items-start gap-3 text-xs">
                                         <CheckCircle2 size={16} className="text-[#0BAA8F] shrink-0 mt-0.5" />
@@ -146,12 +158,13 @@ export default function AppsIndex({ tenant, apps }) {
                         {/* Download CTA & Meta */}
                         <div className="relative z-10 pt-6 border-t border-line">
                             <a
-                                href={windowsApp.installer_url}
+                                href={windowsApp.is_live ? windowsApp.installer_url : undefined}
+                                aria-disabled={!windowsApp.is_live}
                                 download
                                 className="w-full py-4 px-6 rounded-xl bg-[#0BAA8F] hover:bg-[#09927D] text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-md active:scale-98"
                             >
                                 <Download size={16} />
-                                <span>Download Station Setup (.exe)</span>
+                                <span>{windowsApp.is_live ? (windowsApp.status === 'pilot' ? 'Download pilot setup (.exe)' : 'Download Station Setup (.exe)') : 'Installer not yet published'}</span>
                             </a>
                             <div className="flex flex-wrap items-center justify-between gap-y-2 text-3xs text-ink-muted mt-3 px-1">
                                 <span>Installer size: ~{windowsApp.file_size}</span>
@@ -341,8 +354,9 @@ export default function AppsIndex({ tenant, apps }) {
                 </div>
 
             </div>
+            </ListPageFrame>
         </>
     );
 }
 
-AppsIndex.layout = (page) => <OneGlanceLayout title="Native Applications" activeMenu="Apps">{page}</OneGlanceLayout>;
+AppsIndex.layout = (page) => <OneGlanceLayout title="Native Applications" activeMenu="Apps" noPadding>{page}</OneGlanceLayout>;

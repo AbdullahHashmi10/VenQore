@@ -703,6 +703,8 @@ class SaleController extends Controller
                 ], 'warning');
             }
 
+            \App\Services\LoyaltyAwarder::awardForSale($sale);
+
             return response()->json(\App\Services\Sales\CheckoutIntent::canonicalResponse($sale, [
                 'notifications' => $manufacturingNotifications,
             ]));
@@ -1016,7 +1018,7 @@ class SaleController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', '!=', 'returned')
-            ->whereBetween('sales.created_at', [$todayStart, $todayEnd])
+            ->whereBetween('sales.created_at', [$startOfMonth, $todayEnd])
             ->select(
                 'products.name',
                 'products.price',
@@ -1050,7 +1052,34 @@ class SaleController extends Controller
             ->get();
 
 
+        // Daily revenue/profit series, last 30 days (ledger-derived, one grouped query)
+        $trendMap = $this->frs->getProfitByPeriod($localToday->copy()->subDays(29)->startOfDay(), $localToday->copy()->endOfDay(), 'daily');
+        $revenueTrend = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $d = $localToday->copy()->subDays($i)->format('Y-m-d');
+            $revenueTrend[] = [
+                'date' => $d,
+                'revenue' => (float) ($trendMap[$d]['revenue'] ?? 0),
+                'profit' => (float) ($trendMap[$d]['profit'] ?? 0),
+            ];
+        }
+
+        // Top customers this month (single grouped query, tenant-scoped)
+        $topCustomers = DB::table('sales')
+            ->join('parties', 'sales.party_id', '=', 'parties.id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereNull('sales.deleted_at')
+            ->where('sales.status', '!=', 'returned')
+            ->where('sales.created_at', '>=', $startOfMonth)
+            ->select('parties.name', DB::raw('COUNT(*) as orders'), DB::raw('SUM(sales.net_sales) as total'))
+            ->groupBy('parties.id', 'parties.name')
+            ->orderByDesc('total')
+            ->take(8)
+            ->get();
+
         $data = [
+            'revenueTrend' => $revenueTrend,
+            'topCustomers' => $topCustomers,
             'stats' => [
                 'sales_today' => $todayRevenue,
                 'sales_today_growth' => round($dailyGrowth, 1),

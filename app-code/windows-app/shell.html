@@ -71,8 +71,12 @@
         <ol class="steps">
           <li><span class="num">1</span><span>On any device, open VenQore → <b>Settings → Terminals</b>.</span></li>
           <li><span class="num">2</span><span>Choose <b>Create pairing code</b>.</span></li>
-          <li><span class="num">3</span><span>Type your store and the code here.</span></li>
+          <li><span class="num">3</span><span>Paste the pairing link here, or type your store and code.</span></li>
         </ol>
+        <div class="replace-note">
+          <b>Reinstalled Windows or changed the PC?</b>
+          <span>Don't create a new terminal — it would use another seat. In <b>Settings → Terminals</b> press <b>Replace device / reinstall Windows</b> next to this counter, then paste that link here. Your counter, history and seat stay exactly as they were.</span>
+        </div>
       </div>
       <form class="card pair-card" id="pair-form" autocomplete="off">
         <div class="field">
@@ -81,7 +85,7 @@
             <span class="slug-pre" id="slug-pre">www.venqore.com/s/</span>
             <input class="input lg" id="pair-slug" placeholder="your-store" spellcheck="false" autocomplete="off">
           </div>
-          <p class="hint">You can also paste your full POS link.</p>
+          <p class="hint">Paste a pairing link to fill the store and code together, or enter your store name.</p>
         </div>
         <div class="field">
           <label for="pair-code">Pairing code</label>
@@ -335,6 +339,7 @@
         <div class="group">
           <div class="group-head"><div><h4>Updates</h4><p class="hint" id="upd-text">—</p></div><span class="chip" id="upd-chip"></span></div>
           <div class="progress hidden" id="upd-progress"><span id="upd-bar"></span></div>
+          <label class="line"><span>Install updates automatically <small class="hint">— downloaded in the background, installed when Station is opened or closed. Your sales, printers and pairing are kept.</small></span><span class="toggle"><input type="checkbox" id="opt-autoupdate"><span></span></span></label>
           <div class="row-gap"><button class="btn" id="upd-check"><i data-icon="refresh"></i>Check now</button><button class="btn primary hidden" id="upd-install"><i data-icon="download"></i>Restart &amp; install</button></div>
         </div>
         <div class="group">
@@ -355,7 +360,10 @@
         <div class="group">
           <div class="group-head"><div><h4>Manager PIN</h4><p class="hint">Asked before exiting Station and for protected settings. 4–8 digits, stored only as a salted hash.</p></div><span class="chip" id="pin-state"></span></div>
           <div class="row-gap"><button class="btn primary" id="pin-set">Set PIN</button><button class="btn danger hidden" id="pin-remove">Remove PIN</button></div>
-          <label class="line"><span>Require the PIN to open these settings</span><span class="toggle"><input type="checkbox" id="opt-locksettings"><span></span></span></label>
+          <label class="line"><span>Settings are always protected when a PIN is set</span><span class="toggle"><input type="checkbox" id="opt-locksettings" disabled><span></span></span></label>
+          <label class="line"><span>Lock Station controls to fullscreen</span><span class="toggle"><input type="checkbox" id="opt-applock"><span></span></span></label>
+          <p class="hint">App lock blocks Station's minimize, fullscreen toggle and external app links. It does not block Windows shortcuts or other programs. A fully dedicated PC requires Windows kiosk provisioning. Only the owner should know this PIN.</p>
+          <p class="hint" id="kiosk-readiness"></p>
         </div>
         <div class="group">
           <div class="group-head"><div><h4>Activity monitoring</h4><p class="hint">Records when the POS loses focus and takes encrypted screenshots during away time. Cashiers are asked to consent first. Needs a manager PIN.</p></div><span class="chip" id="mon-state"></span></div>

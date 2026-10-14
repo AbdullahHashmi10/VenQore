@@ -128,7 +128,7 @@ export default function BreakdownChart({ data, definition, meta, settings, chart
                             value: s.value,
                             color: seriesColor(i),
                         }))}
-                        innerRadius={donut ? Math.round(size * 0.28) : 0}
+                        innerRadius={donut ? Math.round(size * 0.34) : 0}
                         hoverOffset={8}
                         padAngle={0.02}
                         cornerRadius={2}

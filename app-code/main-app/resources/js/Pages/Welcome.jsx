@@ -436,7 +436,7 @@ export default function Welcome() {
                         <FeatureCard
                             icon={WifiOff}
                             title="Offline Mode"
-                            description="Internet down? No problem. Full functionality continues seamlessly."
+                            description="Internet down? The till keeps selling and sends the sales when you are back online."
                             colorClass="bg-neutral-600"
                             glowColor="text-ink-muted shadow-neutral-500/20"
                         />

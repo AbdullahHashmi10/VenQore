@@ -1,35 +1,42 @@
 import React, { useState, useMemo } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import { router, usePage } from '@inertiajs/react';
 import {
-    ShoppingCart, Search, Filter, ArrowLeft, Package, Clock, CheckCircle, XCircle, Box
+    Search, Package, Clock, CheckCircle, XCircle, DollarSign, Receipt, TrendingUp, PieChart as PieIcon, Users, BarChart3,
 } from 'lucide-react';
-import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend
-} from 'recharts';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import {
+    ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, DateRangeFilter, filterInputCls,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 
-import { vq } from '@/theme/runtime';
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+/** Dates the current server range covers, so the date filter can show what is active. */
+function rangeDates(filters) {
+    const now = new Date();
+    const range = filters.range || 'this_month';
+    if (range === 'today') return [ymd(now), ymd(now)];
+    if (range === 'this_month') return [ymd(new Date(now.getFullYear(), now.getMonth(), 1)), ymd(now)];
+    if (range === 'this_year') return [ymd(new Date(now.getFullYear(), 0, 1)), ymd(now)];
+    return [filters.start_date || '', filters.end_date || ''];
+}
+
+const STATUSES = ['all', 'pending', 'completed', 'cancelled'];
+
 export default function SaleOrders({ orders = [], filters = {} }) {
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
     const tt = useTermText();
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [sortBy, setSortBy] = useState({ key: 'date', direction: 'desc' });
     const [statusFilter, setStatusFilter] = useState('all'); // all, pending, completed, cancelled
-    const [dateRange, setDateRange] = useState(filters.range || 'this_month');
-    const [customStart, setCustomStart] = useState('');
-    const [customEnd, setCustomEnd] = useState('');
+    const [[from, to], setDates] = useState(() => rangeDates(filters));
 
     // --- Derived Data ---
     const processedOrders = useMemo(() => {
         let data = [...orders];
 
-        // 1. Search
         if (searchQuery) {
             const lowerQ = searchQuery.toLowerCase();
             data = data.filter(order =>
@@ -37,35 +44,12 @@ export default function SaleOrders({ orders = [], filters = {} }) {
                 (order.party?.name || '').toLowerCase().includes(lowerQ)
             );
         }
-
-        // 2. Status Filter
         if (statusFilter !== 'all') {
             data = data.filter(order => order.status === statusFilter);
         }
-
-        // 3. Sort
-        data.sort((a, b) => {
-            let valA = a[sortBy.key];
-            let valB = b[sortBy.key];
-
-            if (sortBy.key === 'amount') {
-                valA = Number(a.total_amount);
-                valB = Number(b.total_amount);
-            } else if (sortBy.key === 'date') {
-                valA = new Date(a.created_at);
-                valB = new Date(b.created_at);
-            } else if (sortBy.key === 'customer') {
-                valA = a.party?.name || '';
-                valB = b.party?.name || '';
-            }
-
-            if (valA < valB) return sortBy.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return sortBy.direction === 'asc' ? 1 : -1;
-            return 0;
-        });
-
+        data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         return data;
-    }, [orders, searchQuery, sortBy, statusFilter]);
+    }, [orders, searchQuery, statusFilter]);
 
     // --- Stats ---
     const stats = useMemo(() => {
@@ -82,368 +66,125 @@ export default function SaleOrders({ orders = [], filters = {} }) {
         return { total, totalValue, pending, completed, cancelled };
     }, [processedOrders]);
 
-    // --- Chart: Status Distribution (Donut) ---
-    const statusData = useMemo(() => {
-        return [
-            { name: 'Completed', value: stats.completed, color: vq.emerald[500] }, // Emerald
-            { name: 'Pending', value: stats.pending, color: vq.amber[500] },   // Amber
-            { name: 'Cancelled', value: stats.cancelled, color: vq.red[500] } // Red
-        ].filter(d => d.value > 0);
-    }, [stats]);
+    const statusSlices = [
+        { name: 'Completed', value: stats.completed },
+        { name: 'Pending', value: stats.pending },
+        { name: 'Cancelled', value: stats.cancelled },
+    ].filter(d => d.value > 0);
 
-    // --- Chart: Daily Volume (Bar) ---
-    // Simple grouping by date for the visible filtered dataset
-    const timelineData = useMemo(() => {
+    // Daily value + volume
+    const daily = useMemo(() => {
         const map = {};
         processedOrders.forEach(o => {
-            const date = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            if (!map[date]) map[date] = 0;
-            map[date] += 1;
+            const k = ymd(new Date(o.created_at));
+            map[k] = map[k] || { value: 0, count: 0 };
+            map[k].value += Number(o.total_amount) || 0;
+            map[k].count += 1;
         });
-
-        // Convert to array and take last 7 entries if too many
-        let arr = Object.keys(map).map(date => ({ date, count: map[date] }));
-        if (arr.length > 7) arr = arr.slice(arr.length - 7);
-        return arr;
+        return Object.keys(map).sort().map(k => ({ x: k, value: map[k].value, count: map[k].count }));
     }, [processedOrders]);
 
+    const topCustomers = useMemo(() => {
+        const map = {};
+        processedOrders.forEach(o => {
+            const name = o.party?.name || tt('Walk-in Customer');
+            map[name] = map[name] || { value: 0, n: 0 };
+            map[name].value += Number(o.total_amount) || 0;
+            map[name].n += 1;
+        });
+        return Object.entries(map).map(([label, v]) => ({ label, value: v.value, sub: `${v.n} orders` })).sort((a, b) => b.value - a.value);
+    }, [processedOrders]);
 
-    const handleSort = (key) => {
-        setSortBy(prev => ({
-            key,
-            direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
-        }));
-    };
-
-    const handleRangeChange = (r) => {
-        setDateRange(r);
-        if (r !== 'custom') {
+    const applyRange = ({ from: f, to: t }) => {
+        setDates([f || '', t || '']);
+        if (f && t) {
             router.get(route("store.reports.sale-orders", {
                 store_slug: store.slug
-            }), { range: r }, { preserveState: true, preserveScroll: true });
+            }), { range: 'custom', start_date: f, end_date: t }, { preserveState: true, preserveScroll: true });
         }
     };
 
-    const applyCustomRange = () => {
-        router.get(route("store.reports.sale-orders", {
-            store_slug: store.slug
-        }), {
-            range: 'custom',
-            start_date: customStart,
-            end_date: customEnd
-        }, { preserveState: true, preserveScroll: true });
+    const statusBadge = (status) => {
+        const cls = status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+            : status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+            : status === 'cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+            : 'bg-sunken text-ink-secondary';
+        return <span className={`rounded-[12px] px-2 py-1 text-2xs font-bold capitalize ${cls}`}>{status}</span>;
     };
 
+    const columns = [
+        { key: 'order_number', label: tt('Order #'), sortable: true, get: (o) => `#${o.order_number}`, render: (o) => <span className="font-mono font-bold text-sky-600 dark:text-sky-400">#{o.order_number}</span> },
+        { key: 'date', label: 'Date', sortable: true, get: (o) => ymd(new Date(o.created_at)), render: (o) => new Date(o.created_at).toLocaleDateString() },
+        { key: 'customer', label: tt('Customer'), sortable: true, get: (o) => o.party?.name || tt('Walk-in Customer') },
+        { key: 'amount', label: 'Amount', align: 'right', sortable: true, get: (o) => Number(o.total_amount) || 0, render: (o) => <span className="font-bold tabular-nums text-ink">{formatCurrency(o.total_amount, store)}</span> },
+        { key: 'status', label: 'Status', align: 'center', sortable: true, get: (o) => o.status, render: (o) => statusBadge(o.status) },
+    ];
 
-    return (
-        <ReportsLayout title="Sales Orders Report">
-            <Head title={tt('Order Management')} />
-            <div className="flex flex-col h-full gap-4 w-full">
+    const kpis = [
+        { label: tt('Total Orders'), value: formatNumber(stats.total), icon: Package, tone: 'sky' },
+        { label: 'Order Value', value: formatCurrency(stats.totalValue, store), icon: DollarSign, tone: 'brand' },
+        { label: 'Avg Order', value: formatCurrency(stats.total > 0 ? stats.totalValue / stats.total : 0, store), icon: Receipt, tone: 'blue' },
+        { label: 'Pending Processing', value: formatNumber(stats.pending), icon: Clock, tone: 'amber', sub: 'Needs action' },
+        { label: 'Completed', value: formatNumber(stats.completed), icon: CheckCircle, tone: 'emerald', sub: `${stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(0) : 0}% completion` },
+        { label: 'Cancelled', value: formatNumber(stats.cancelled), icon: XCircle, tone: 'rose' },
+    ];
 
-                {/* 1. HEADER */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-3 pl-2">
-                        <Link href={route("store.reports.index", {
-                            store_slug: store.slug
-                        })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
-                            <ArrowLeft size={18} />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
-                                <ShoppingCart className="text-sky-500" size={20} />
-                                {tt('Sales Orders')}
-                            </h1>
-                            <p className="text-xs text-ink-muted font-medium">{tt('Tracking order pipeline & status')}</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                        <div className="relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted group-focus-within:text-sky-500 transition-colors" size={14} />
-                            <input
-                                type="text"
-                                placeholder={tt('Search Orders...')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-9 pr-3 py-1.5 bg-app border-none rounded-xl text-sm focus:ring-2 focus:ring-sky-500/20 w-48 transition-all"
-                            />
-                        </div>
-
-                        <div className="flex bg-sunken p-1 rounded-xl items-center">
-                            {['today', 'this_month', 'this_year'].map((r) => (
-                                <button
-                                    key={r}
-                                    onClick={() => handleRangeChange(r)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${dateRange === r
-                                        ? 'bg-sunken shadow-sm text-sky-600 dark:text-sky-400'
-                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
-                                        }`}
-                                >
-                                    {r.replace('_', ' ')}
-                                </button>
-                            ))}
-                            <div className="flex items-center ml-1 border-l border-line pl-1 gap-2">
-                                <button
-                                    onClick={() => handleRangeChange('custom')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${dateRange === 'custom'
-                                        ? 'bg-sunken shadow-sm text-sky-600 dark:text-sky-400'
-                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
-                                        }`}
-                                >
-                                    Custom
-                                </button>
-                                {dateRange === 'custom' && (
-                                    <div className="flex items-center gap-1 animate-in slide-in-from-right-2 fade-in duration-slow">
-                                        <input
-                                            type="date"
-                                            value={customStart}
-                                            onChange={e => setCustomStart(e.target.value)}
-                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-sky-500"
-                                        />
-                                        <span className="text-ink-muted">-</span>
-                                        <input
-                                            type="date"
-                                            value={customEnd}
-                                            onChange={e => setCustomEnd(e.target.value)}
-                                            className="p-1 px-2 text-2xs rounded-lg border-none bg-sunken dark:text-white focus:ring-1 focus:ring-sky-500"
-                                        />
-                                        <button onClick={applyCustomRange} className="p-1.5 bg-sky-600 text-white rounded-lg hover:bg-sky-700">
-                                            <ArrowLeft size={10} className="rotate-180" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. KPI CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
-                    <StatCard
-                        title={tt('Total Orders')}
-                        value={stats.total}
-                        icon={<Package size={18} />}
-                        color="sky"
-                        footer={formatCurrency(stats.totalValue)}
-                    />
-                    <StatCard
-                        title="Pending Processing"
-                        value={stats.pending}
-                        icon={<Clock size={18} />}
-                        color="amber"
-                        footer="Needs Action"
-                    />
-                    <StatCard
-                        title="Completed"
-                        value={stats.completed}
-                        icon={<CheckCircle size={18} />}
-                        color="emerald"
-                        footer={`${stats.total > 0 ? ((stats.completed / stats.total) * 100).toFixed(0) : 0}% Completion`}
-                    />
-                    <StatCard
-                        title="Cancelled"
-                        value={stats.cancelled}
-                        icon={<XCircle size={18} />}
-                        color="rose"
-                    />
-                </div>
-
-                {/* 3. MAIN CONTENT */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-
-                    {/* LEFT: TABLE (2 Cols) */}
-                    <div className="lg:col-span-2 bg-surface border border-line rounded-2xl shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-4 border-b border-line bg-sunken/50 dark:bg-surface flex justify-between items-center">
-                            <div className="flex items-center gap-4">
-                                <h3 className="text-sm font-bold text-ink-secondary dark:text-ink uppercase tracking-wide">{tt('Order List')}</h3>
-                                {/* Status Toggle */}
-                                <div className="flex bg-sunken p-0.5 rounded-lg">
-                                    {['all', 'pending', 'completed'].map(s => (
-                                        <button
-                                            key={s}
-                                            onClick={() => setStatusFilter(s)}
-                                            className={`px-2 py-0.5 rounded-md text-2xs uppercase font-bold transition-all ${statusFilter === s ? 'bg-sunken shadow-sm text-sky-600' : 'text-ink-muted'}`}
-                                        >
-                                            {s}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <span className="text-xs font-mono text-ink-muted bg-sunken px-2 py-1 rounded">
-                                {processedOrders.length} Items
-                            </span>
-                        </div>
-
-                        <div className="flex-1 overflow-auto custom-scrollbar relative">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-app sticky top-0 z-10 backdrop-blur-sm">
-                                    <tr>
-                                        <SortableHeader label={tt('Order #')} colKey="order_number" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Date" colKey="date" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label={tt('Customer')} colKey="customer" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Amount" colKey="amount" align="right" currentSort={sortBy} onSort={handleSort} />
-                                        <SortableHeader label="Status" colKey="status" align="center" currentSort={sortBy} onSort={handleSort} />
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-line">
-                                    {processedOrders.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" className="h-64">
-                                                <div className="flex flex-col items-center justify-center h-full text-ink-muted gap-3">
-                                                    <div className="bg-sunken p-4 rounded-full">
-                                                        <Box size={32} className="text-neutral-300 opacity-50" />
-                                                    </div>
-                                                    <p className="font-medium text-sm">{tt('No orders found')}</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        processedOrders.map((order, idx) => (
-                                            <tr key={idx} className="group hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                                <td className="px-6 py-3 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold">#{order.order_number}</td>
-                                                <td className="px-6 py-3 text-xs text-ink-muted">
-                                                    {new Date(order.created_at).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-6 py-3 text-sm font-medium text-ink-secondary dark:text-ink">
-                                                    {order.party?.name || tt('Walk-in Customer')}
-                                                </td>
-                                                <td className="px-6 py-3 text-right text-sm font-bold text-ink-secondary font-mono">
-                                                    {formatCurrency(order.total_amount)}
-                                                </td>
-                                                <td className="px-6 py-3 text-center">
-                                                    <StatusBadge status={order.status} />
-                                                </td>
-                                            </tr>
-                                        )
-                                        )
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {/* RIGHT: CHARTS (1 Col) - Flex Split */}
-                    <div className="flex flex-col gap-4 h-full min-h-0 overflow-hidden">
-
-                        {/* 1. Status Overview */}
-                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">{tt('Order Status')}</h3>
-                            <div className="flex-1 w-full h-full min-h-0 relative">
-                                {statusData.length > 0 ? (
-                                    <>
-                                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={statusData}
-                                                    dataKey="value"
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius="50%"
-                                                    outerRadius="70%"
-                                                    paddingAngle={5}
-                                                >
-                                                    {statusData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                                    ))}
-                                                </Pie>
-                                                <RechartsTooltip
-                                                    contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                                    itemStyle={{ color: '#fff' }}
-                                                />
-                                                <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    </>
-                                ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-ink-muted italic">No data</div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 2. Volume Trend */}
-                        <div className="bg-surface border border-line rounded-2xl p-4 shadow-sm flex-1 min-h-0 flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-2">Daily Volume (Last 7 Days)</h3>
-                            <div className="flex-1 w-full h-full min-h-0">
-                                {timelineData.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                        <BarChart data={timelineData} margin={{ left: -20, right: 10 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} opacity={0.3} />
-                                            <XAxis dataKey="date" tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
-                                            <YAxis tick={{ fontSize: 10, fill: vq.slate[400] }} axisLine={false} tickLine={false} />
-                                            <RechartsTooltip
-                                                cursor={{ fill: vq.slate[100], opacity: 0.1 }}
-                                                contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                            />
-                                            <Bar dataKey="count" fill={vq.sky[500]} radius={[4, 4, 0, 0]} barSize={20} />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-ink-muted italic">No activity</div>
-                                )}
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+    const filterNode = (
+        <>
+            <DateRangeFilter from={from} to={to} onChange={applyRange} />
+            <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={14} />
+                <input type="text" placeholder={tt('Search Orders...')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={`${filterInputCls} w-56 pl-9`} />
             </div>
-        </ReportsLayout>
+            <div className="flex flex-wrap items-center gap-1">
+                {STATUSES.map((s) => (
+                    <button key={s} type="button" onClick={() => setStatusFilter(s)}
+                        className={`h-10 rounded-[12px] px-3 text-sm font-semibold capitalize transition-colors ${statusFilter === s ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'text-ink-secondary hover:bg-interactive-hover'}`}>
+                        {s}
+                    </button>
+                ))}
+            </div>
+        </>
     );
-}
-
-// --- Components ---
-function StatCard({ title, value, icon, color, footer }) {
-    const bgColors = {
-        sky: 'bg-sky-500',
-        amber: 'bg-amber-500',
-        emerald: 'bg-emerald-500',
-        rose: 'bg-rose-500',
-    };
-    const textColors = {
-        sky: 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-900/20',
-        amber: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20',
-        emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20',
-        rose: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20',
-    };
 
     return (
-        <div className="bg-surface border border-line rounded-xl p-3 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-line dark:hover:border-line-strong transition-colors">
-            <div className="flex justify-between items-start mb-2 relative z-10">
-                <div className={`p-2 rounded-lg ${textColors[color]} shrink-0`}>
-                    {icon}
-                </div>
-                {footer && <span className="text-2xs font-bold text-ink-muted bg-sunken px-2 py-0.5 rounded-full">{footer}</span>}
-            </div>
-            <div className="relative z-10">
-                <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">{title}</p>
-                <h3 className="text-xl font-bold text-ink tracking-tight mt-0.5">{value}</h3>
-            </div>
-            <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-5 dark:opacity-10 ${bgColors[color]} pointer-events-none transition-transform duration-slower`} />
-        </div>
-    );
-}
-
-function SortableHeader({ label, colKey, align = 'left', currentSort, onSort }) {
-    const isActive = currentSort.key === colKey;
-    return (
-        <th
-            onClick={() => onSort(colKey)}
-            className={`px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider cursor-pointer group bg-sunken hover:bg-sunken dark:hover:bg-interactive-hover transition-colors select-none`}
-            style={{ textAlign: align }}
+        <ReportShell
+            title="Sales Orders Report"
+            subtitle={tt('Tracking order pipeline & status')}
+            filters={filterNode}
+            exportConfig={{ filename: 'sales-orders', columns: columns.map((c) => ({ label: c.label, get: c.get })), rows: processedOrders }}
         >
-            <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : align === 'right' ? 'justify-end' : 'justify-start'}`}>
-                {label}
-                <div className={`flex flex-col text-4xs leading-none ${isActive ? 'text-sky-500' : 'text-neutral-300 group-hover:text-ink-muted'}`}>
-                    <span className={isActive && currentSort.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>?</span>
-                    <span className={isActive && currentSort.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>?</span>
-                </div>
-            </div>
-        </th>
-    );
-}
+            <ReportKpis items={kpis} />
 
-function StatusBadge({ status }) {
-    if (status === 'completed') return <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-2xs font-bold rounded">Completed</span>;
-    if (status === 'pending') return <span className="px-2 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-2xs font-bold rounded animate-pulse">Pending</span>;
-    if (status === 'cancelled') return <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 text-2xs font-bold rounded">Cancelled</span>;
-    return <span className="px-2 py-0.5 bg-sunken text-ink-secondary dark:bg-surface dark:text-ink-muted text-2xs font-bold rounded">{status}</span>;
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Order Value Trend" subtitle="Value of orders placed per day" icon={TrendingUp} tone="sky">
+                        <TrendChart points={daily.map(d => ({ x: d.x, y: d.value }))} label="Order value" type="area" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title={tt('Order Status')} icon={PieIcon} tone="amber">
+                        <DonutChart slices={statusSlices} unit="integer" height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            <ReportGrid>
+                <ReportCol span={6}>
+                    <ReportSection title="Daily Volume" subtitle="Orders per day" icon={BarChart3} tone="blue">
+                        <TrendChart points={daily.map(d => ({ x: d.x, y: d.count }))} label="Orders" type="bar" unit="integer" height={240} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={6}>
+                    <ReportSection title={tt('Top Customers')} subtitle="By order value" icon={Users} tone="violet">
+                        <RankBars items={topCustomers} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            <ReportSection title={tt('Order List')} subtitle={`${processedOrders.length} orders`} icon={Receipt} flush>
+                <ReportTable columns={columns} rows={processedOrders} rowKey={(o, i) => o.id ?? i} pageSize={25} empty={tt('No orders found')} />
+            </ReportSection>
+        </ReportShell>
+    );
 }

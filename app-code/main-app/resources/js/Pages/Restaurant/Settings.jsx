@@ -7,6 +7,7 @@ import {
     LayoutGrid, VolumeX, AlertCircle, CheckCircle2, Loader2,
 } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { ListPageFrame, ListToolbar } from '@/Components/ListShell';
 
 /* ─────────────────────────────────────────────────────────────
    Small building blocks — pure V6 semantic tokens.
@@ -117,13 +118,37 @@ export default function RestaurantSettings({
     const isSavingKey = (key) => saving && savingKey === key;
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout noPadding>
             <Head title="Restaurant Settings — VenQore" />
 
-            <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8">
+            <ListPageFrame className="p-1.5">
+            <ListToolbar
+                title="Restaurant Settings"
+                actions={(
+                    <>
+                        <Link
+                            href={route('store.restaurant.kitchen', { store_slug: storeSlug })}
+                            className="h-10 inline-flex items-center gap-2 px-3.5 rounded-[12px] bg-surface hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink text-sm font-semibold transition-colors"
+                        >
+                            <ChefHat size={15} className="text-brand-600 dark:text-brand-400" />
+                            <span>Kitchen Display</span>
+                        </Link>
+                        <Link
+                            href={route('store.restaurant.queue', { store_slug: storeSlug })}
+                            target="_blank"
+                            className="h-10 inline-flex items-center gap-2 px-3.5 rounded-[12px] bg-surface hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink text-sm font-semibold transition-colors"
+                        >
+                            <Tv size={15} className="text-emerald-600 dark:text-emerald-400" />
+                            <span>TV Queue</span>
+                            <ExternalLink size={12} className="text-ink-faint" />
+                        </Link>
+                    </>
+                )}
+            />
+            <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8 md:max-w-none md:mx-0 md:w-full md:p-1 md:flex-1 md:min-h-0 md:overflow-auto">
 
                 {/* ── Page Header ───────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 md:hidden">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 rounded-2xl bg-brand-50 dark:bg-brand-900/30 border border-brand-100 dark:border-brand-800 text-brand-600 dark:text-brand-400 shrink-0">
                             <UtensilsCrossed size={24} />
@@ -401,6 +426,7 @@ export default function RestaurantSettings({
                 </section>
 
             </div>
+            </ListPageFrame>
         </OneGlanceLayout>
     );
 }

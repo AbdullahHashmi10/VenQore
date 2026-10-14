@@ -1,8 +1,11 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import ContactsModuleTabs, { useContactsNavGroups } from '@/Components/ContactsModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import PrintService from '@/Utils/PrintService';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import {
@@ -13,13 +16,14 @@ import { useAlert } from '@/Contexts/AlertContext';
 import PlanGate from '@/Components/PlanGate';
 import { useTerms, useTermText } from '@/lib/terms';
 import axios from 'axios';
-import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
 
 export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  const { showAlert, showConfirm } = useAlert();
  const { url, store } = usePage().props;
  const { t, tp } = useTerms();
  const tt = useTermText();
+ const contactsNavGroups = useContactsNavGroups();
  const { url: currentUrl } = usePage();
  const params = new URLSearchParams(window.location.search);
  const type = params.get('type');
@@ -202,6 +206,18 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  setIsModalOpen(true);
  };
 
+ // Dock quick action: /parties?new=1 opens the add-contact form
+ useEffect(() => {
+ const sp = new URLSearchParams(window.location.search);
+ if (sp.get('new')) {
+ handleCreate();
+ sp.delete('new');
+ const q = sp.toString();
+ window.history.replaceState({}, '', window.location.pathname + (q ? `?${q}` : ''));
+ }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, []);
+
  // Open edit modal
  const handleEdit = (party) => {
  setEditingParty(party);
@@ -347,210 +363,72 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  };
 
  return (
- <OneGlanceLayout title="Contacts" activeMenu="Contacts">
+ <OneGlanceLayout title="Contacts" activeMenu="Contacts" noPadding>
  <Head title="Contacts" />
 
- <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
- <ContactsModuleTabs activeTab={activeTab} />
+ <ListPageFrame className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden">
+ <div className="md:hidden"><ContactsModuleTabs activeTab={activeTab} /></div>
 
  {/* Mobile Stats Toggle/Summary */}
- <MobileStats bp="sm" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Parties', value: stats.total || 0, tone: 'ink' },
-  { label: tp('customer', 'Customers'), value: stats.customers || 0, tone: 'blue' },
-  { label: 'To Receive', value: formatCurrency(stats.receivables), tone: 'emerald' },
-  { label: 'Payables', value: formatCurrency(stats.payables), tone: 'rose' }
-]} />
+                <MobileListHeader
+                    title={activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : activeTab === 'ledgers' ? 'Ledgers' : 'All Parties'}
+                    navGroups={contactsNavGroups}
+                    activeId={activeTab}
+                    links={[{ label: 'Print', icon: Printer, onClick: () => PrintService.printPage() }]}
+                    filter={{
+                        active: typeFilter !== 'all',
+                        sections: [
+                            { label: 'Type', value: typeFilter, options: [{ value: 'all', label: 'All types' }, { value: 'customer', label: tp('customer', 'Customers') }, { value: 'supplier', label: tp('supplier', 'Suppliers') }], onSelect: handleTypeFilter },
+                        ],
+                    }}
+                    search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), onKeyDown: handleServerSearch, placeholder: 'Search contacts...' }}
+                    add={{ onClick: handleCreate, label: 'Add Party' }}
+                    stats={{ hero: 2, items: [
+                        { label: 'Total Parties', value: stats.total || 0, tone: 'brand', icon: Users },
+                        { label: tp('customer', 'Customers'), value: stats.customers || 0, tone: 'blue', icon: UserCheck },
+                        { label: 'To Receive', value: formatCurrency(stats.receivables), tone: 'emerald', icon: TrendingUp },
+                        { label: 'Payables', value: formatCurrency(stats.payables), tone: 'rose', icon: TrendingDown },
+                    ] }}
+                />
 
- {/* Stats Cards - Responsive Grid */}
+ {/* ── Desktop: ROW 1 toolbar + ROW 2 stat cards ── */}
+ <ListToolbar
+ title={activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : activeTab === 'ledgers' ? 'Ledgers' : 'All Parties'}
+ navGroups={contactsNavGroups}
+ activeId={activeTab}
+ left={(
+ <ListFilterPill
+ icon={Users}
+ label="All types"
+ value={typeFilter}
+ options={[{ value: 'all', label: 'All types' }, { value: 'customer', label: tp('customer', 'Customers') }, { value: 'supplier', label: tp('supplier', 'Suppliers') }]}
+ onChange={handleTypeFilter}
+ />
+ )}
+ search={{ value: searchTerm, onChange: (v) => setSearchTerm(v), onKeyDown: handleServerSearch, placeholder: 'Search contacts...' }}
+ actions={(
+ <>
+ <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-emerald-600 hover:bg-interactive-hover transition-colors" title="Export" onClick={() => exportRowsToCsv('parties', [{label:'Name',get:r=>r.name},{label:'Type',get:r=>r.type},{label:'Phone',get:r=>r.phone},{label:'Email',get:r=>r.email},{label:'Credit Limit',get:r=>r.credit_limit}], sortedParties)}>
+ <Download size={18} />
+ </button>
+ <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print" onClick={() => PrintService.printPage()}>
+ <Printer size={18} />
+ </button>
+ <ListAddButton icon={Plus} onClick={handleCreate}>Add Party</ListAddButton>
+ </>
+ )}
+ />
  <PlanGate feature="outstanding_balance_grid" showUpgradeBadge={false}>
- <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 hidden sm:grid`}>
- <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
- <div className="flex items-center gap-1.5 shrink-0">
- <div className="p-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
- <Users size={14} />
- </div>
- <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Total Parties</p>
- </div>
- <p className="text-sm sm:text-base md:text-lg font-bold text-ink leading-none mt-1 sm:mt-0">{stats.total || 0}</p>
- </div>
- <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
- <div className="flex items-center gap-1.5 shrink-0">
- <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:blue-400 rounded-lg shrink-0">
- <UserCheck size={14} />
- </div>
- <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">{tp('customer', 'Customers')}</p>
- </div>
- <p className="text-sm sm:text-base md:text-lg font-bold text-blue-600 leading-none mt-1 sm:mt-0">{stats.customers || 0}</p>
- </div>
- <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
- <div className="flex items-center gap-1.5 shrink-0">
- <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
- <TrendingUp size={14} />
- </div>
- <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">To Receive</p>
- </div>
- <p className="text-sm sm:text-base md:text-lg font-bold text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.receivables)}</p>
- </div>
- <div className="bg-surface px-2.5 py-2 rounded-xl border border-line shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
- <div className="flex items-center gap-1.5 shrink-0">
- <div className="p-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg shrink-0">
- <TrendingDown size={14} />
- </div>
- <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase tracking-tight truncate">Payables</p>
- </div>
- <p className="text-sm sm:text-base md:text-lg font-bold text-rose-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.payables)}</p>
- </div>
- </div>
+ <ListStatCards cards={[
+ { label: 'Total Parties', value: stats.total || 0, icon: Users },
+ { label: tp('customer', 'Customers'), value: stats.customers || 0, icon: UserCheck, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', value_tone: 'text-blue-600' },
+ { label: 'To Receive', value: formatCurrency(stats.receivables), icon: TrendingUp, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+ { label: 'Payables', value: formatCurrency(stats.payables), icon: TrendingDown, icon_tone: 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400', value_tone: 'text-rose-600' },
+ ]} />
  </PlanGate>
 
- {/* Mobile Toolbar (sm:hidden) */}
- <div className="sm:hidden flex flex-col bg-surface rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
- <h1 className="text-xs font-bold text-ink uppercase tracking-tight">
- {activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : 'All'} <span className="text-brand-600">Contacts</span>
- </h1>
- <div className="flex items-center gap-1">
- <button
- onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
- className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Search"
- >
- <Search size={14} />
- </button>
- <button
- onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
- className={`p-1.5 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Filter"
- >
- <Filter size={14} />
- </button>
- <div className="flex items-center border-l border-line pl-1.5 ml-0.5">
- <button className="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 rounded" title="Export">
- <Download size={14} />
- </button>
- <button onClick={() => PrintService.printPage()} className="p-1 text-ink-muted hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded" title="Print">
- <Printer size={14} />
- </button>
- </div>
- <button
- onClick={handleCreate}
- className="ml-1 px-2.5 py-1.5 bg-gradient-brand text-white rounded-lg flex items-center gap-1 transition-all shadow-md font-bold text-2xs"
- >
- <Plus size={12} /> Add
- </button>
- </div>
- </div>
+ {/* Mobile Toolbar (md:hidden) */}
 
- {/* Expandable Mobile Search */}
- {showMobileSearch && (
- <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
- <div className="relative w-full">
- <input
- autoFocus
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- onKeyDown={handleServerSearch}
- placeholder="Search contacts..."
- className="w-full pl-8 pr-4 py-1.5 text-xs bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
- />
- <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={12} />
- </div>
- </div>
- )}
-
- {/* Expandable Mobile Filters panel */}
- {showMobileFilters && (
- <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
- <div className="flex items-center gap-1.5">
- <span className="text-3xs font-bold text-ink-muted uppercase tracking-wider shrink-0">Type:</span>
- <div className="flex bg-sunken rounded-lg p-1 gap-1 flex-1">
- <button
- onClick={() => { handleTypeFilter('all'); setShowMobileFilters(false); }}
- className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
- >All</button>
- <button
- onClick={() => { handleTypeFilter('customer'); setShowMobileFilters(false); }}
- className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'customer' ? 'bg-sunken text-blue-600 dark:text-blue-400 shadow-sm' : 'text-ink-muted'}`}
- >{tp('customer', 'Customers')}</button>
- <button
- onClick={() => { handleTypeFilter('supplier'); setShowMobileFilters(false); }}
- className={`flex-1 text-center py-1 rounded text-3xs font-bold uppercase transition-all ${typeFilter === 'supplier' ? 'bg-sunken text-amber-600 dark:text-amber-400 shadow-sm' : 'text-ink-muted'}`}
- >{tp('supplier', 'Suppliers')}</button>
- </div>
- </div>
- </div>
- )}
- </div>
-
- {/* Desktop Header Bar (sm:flex, hidden on mobile) */}
- <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- {/* Left: Title + Filter Pills */}
- <div className="flex flex-wrap items-center justify-between gap-y-2 sm:justify-start gap-2 w-full sm:w-auto">
- <div className="flex items-center gap-2">
- <h1 className="text-sm sm:text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- {activeTab === 'customers' ? tp('customer', 'Customers') : activeTab === 'suppliers' ? tp('supplier', 'Suppliers') : 'All'} <span className="text-brand-600">Contacts</span>
- </h1>
- <div className="hidden sm:block h-4 w-px bg-sunken mx-1"></div>
- </div>
- <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
- <button
- onClick={() => handleTypeFilter('all')}
- className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'all'
- ? 'bg-brand-600 text-white shadow-sm'
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >All</button>
- <button
- onClick={() => handleTypeFilter('customer')}
- className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'customer'
- ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-sm '
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >{tp('customer', 'Customers')}</button>
- <button
- onClick={() => handleTypeFilter('supplier')}
- className={`px-2 py-0.5 text-3xs sm:text-2xs font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'supplier'
- ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm '
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >{tp('supplier', 'Suppliers')}</button>
- </div>
- </div>
-
- {/* Right: Search + Actions + Add Button */}
- <div className="flex flex-wrap items-center justify-between gap-y-2 sm:justify-end gap-2 w-full sm:w-auto">
- <div className="relative flex-1 sm:flex-none">
- <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
- <input
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- onKeyDown={handleServerSearch}
- placeholder="Search..."
- className="pl-8 pr-2 py-1 text-xs bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-full sm:w-36"
- />
- </div>
- <div className="flex items-center gap-1 shrink-0">
- <div className="flex items-center gap-0.5 border-l border-line pl-1.5">
- <button className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
- <Download size={14} />
- </button>
- <button onClick={() => PrintService.printPage()} className="p-1 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print">
- <Printer size={14} />
- </button>
- </div>
- <button
- onClick={handleCreate}
- className="flex items-center gap-1 px-2.5 py-1 text-xs bg-gradient-brand text-white rounded-lg transition-all font-bold shadow-md shrink-0"
- >
- <Plus size={12} />
- <span>Add Party</span>
- </button>
- </div>
- </div>
- </div>
- 
  {/* Bulk Actions Bar */}
  {selectedParties.length > 0 && (
  <div className="bg-brand-600 text-white px-4 py-2 rounded-xl flex flex-wrap items-center justify-between gap-y-2 shadow-lg animate-in slide-in-from-top-2 shrink-0">
@@ -573,14 +451,14 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  )}
 
  {/* Main Contacts Area */}
- <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+ <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
  
  {/* Desktop Table View */}
  <div className="hidden sm:block">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-app border-b border-line sticky top-0 z-10">
- <th className="p-3 w-10">
+ <th className="sticky top-0 z-10 bg-app p-3 w-10">
  <input
  type="checkbox"
  className="rounded border-line text-brand-600 focus:ring-brand-600 cursor-pointer"
@@ -596,7 +474,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  Party Name <SortIcon columnKey="name" />
  </div>
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
  Type
  </th>
  <th
@@ -607,13 +485,13 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  Balance <SortIcon columnKey="balance" />
  </div>
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-right">
  Credit Limit
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
  Phone
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
  Actions
  </th>
  </tr>
@@ -826,7 +704,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
  {nextPageUrl ? 'Loading...' : ''}
  </div>
  </div>
- </div>
+ </ListPageFrame>
 
  {/* Create/Edit Modal */}
  <FormModal

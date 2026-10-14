@@ -836,12 +836,12 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             <label htmlFor="capture-party-select" className="text-2xs font-bold uppercase tracking-wider text-[rgba(241,245,242,0.5)] block ml-1">
                                 Who is this document for? <span className="normal-case font-bold text-[rgba(241,245,242,0.4)]">(optional — helps the AI a lot)</span>
                             </label>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 max-md:flex-col">
                                 <CustomSelect
                                     id="capture-party-side"
                                     value={capturePartySide}
                                     onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
-                                    className="w-36 shrink-0"
+                                    className="w-36 shrink-0 max-md:w-full"
                                     options={[
                                         { value: 'customer', label: tt('Customer') },
                                         { value: 'supplier', label: tt('Supplier') }
@@ -852,7 +852,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     value={capturePartyId}
                                     onChange={e => setCapturePartyId(e.target.value)}
                                     placeholder="Let the AI read it from the document"
-                                    className="flex-1"
+                                    className="flex-1 min-w-0"
                                     options={[
                                         { value: '', label: 'Let the AI read it from the document' },
                                         ...((capturePartySide === 'supplier'

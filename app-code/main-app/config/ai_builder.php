@@ -380,17 +380,17 @@ return [
         [
             'key'       => 'credit',
             'type'      => 'choice',
-            'question'  => 'Do people ever pay you after they have taken the goods?',
-            'hint'      => 'Khata, 30-day terms, running tabs, part payments, deposits.',
+            'question'  => 'Do any customers take what they bought now and pay you later — days or weeks afterwards?',
+            'hint'      => 'For example: a running tab, 30-day payment terms, monthly accounts, or paying in instalments.',
             'icon'      => 'HandCoins',
             'options'   => [
-                'often'     => 'Regularly — it is how we work',
-                'sometimes' => 'Now and then, for people we know',
-                'never'     => 'No, we are paid before they leave',
+                'often'     => 'Yes, regularly — many customers pay later',
+                'sometimes' => 'Occasionally, for customers we trust',
+                'never'     => 'No — everyone pays in full at the time',
             ],
             'implies'   => [
                 'often'     => ['customers', 'khata_credit', 'payments'],
-                'sometimes' => ['customers', 'khata_credit'],
+                'sometimes' => ['customers', 'khata_credit', 'payments'],
                 'never'     => [],
             ],
             'option_meta' => [
@@ -684,32 +684,56 @@ return [
         | counter is exactly the "form, not a flow" failure this bank exists to
         | avoid.
         */
+        /*
+        | Tax — asked of everyone. Most sellers charge some sales tax / VAT /
+        | GST, and a store that cannot print tax on a receipt is the first
+        | thing they will think is missing.
+        */
+        [
+            'key'       => 'tax',
+            'type'      => 'choice',
+            'question'  => 'Do you charge sales tax, VAT or GST on what you sell?',
+            'hint'      => 'We will set up tax rates and show tax correctly on your receipts and invoices.',
+            'icon'      => 'FileSignature',
+            'options'   => [
+                'added'    => 'Yes — tax is added on top of my prices',
+                'included' => 'Yes — my prices already include tax',
+                'none'     => 'No, I do not charge tax',
+            ],
+            'implies'   => [
+                'added'    => ['tax_compliance'],
+                'included' => ['tax_compliance'],
+                'none'     => [],
+            ],
+            'option_meta' => [
+                'added'    => ['icon' => 'Receipt',    'hint' => 'Receipt shows price + tax'],
+                'included' => ['icon' => 'BadgeCheck', 'hint' => 'Receipt shows the tax inside the price'],
+                'none'     => ['icon' => 'FileText',   'hint' => 'You can switch it on any time'],
+            ],
+        ],
+
         [
             'key'          => 'books_banking',
             'type'         => 'multi',
-            'question'     => 'Anything on the finance side you would like properly tracked?',
+            'question'     => 'Which of these money matters would you like tracked?',
             'hint'         => 'Pick what would actually help. Skipping is a fine answer.',
             'icon'         => 'Wallet',
-            'applies_to'   => ['wholesale', 'multi_branch_retail'],
             'optional'     => true,
             'reassurance'  => 'All of these are included on every plan, and you can switch any of them on later. Nothing here costs extra.',
             'options'      => [
                 'bank'   => 'Bank balances and transfers',
                 'loans'  => 'A loan or financing we are repaying',
                 'assets' => 'Equipment or vehicles we own',
-                'tax'    => 'Tax filing and e-invoicing',
             ],
             'implies'      => [
                 'bank'   => ['bank_accounts', 'bank_reconciliation'],
                 'loans'  => ['loans', 'accounting_workspace'],
                 'assets' => ['fixed_assets', 'accounting_workspace'],
-                'tax'    => ['tax_compliance'],
             ],
             'option_meta'  => [
                 'bank'   => ['icon' => 'Wallet',       'hint' => 'Balances that match the bank statement'],
                 'loans'  => ['icon' => 'HandCoins',    'hint' => 'Every repayment against what is owed'],
                 'assets' => ['icon' => 'Factory',      'hint' => 'What you own long-term, written down over time'],
-                'tax'    => ['icon' => 'FileSignature', 'hint' => 'Rates, summaries, e-invoicing'],
             ],
         ],
 

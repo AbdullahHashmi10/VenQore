@@ -11,6 +11,10 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import RestaurantFeatureGate from '@/Components/Restaurant/RestaurantFeatureGate';
 import ConfirmModal from '@/Components/ConfirmModal';
 import { formatCurrency } from '@/Utils/format';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 
 export default function RestaurantRiders({
     storeSlug,
@@ -265,128 +269,71 @@ export default function RestaurantRiders({
     }
 
     return (
-        <OneGlanceLayout>
+        <OneGlanceLayout noPadding>
             <Head title="Delivery Riders — Restaurant" />
 
-            <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 rounded-2xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400">
-                                <Bike size={24} />
-                            </div>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink flex items-center gap-2">
-                                    <span>Delivery Riders</span>
-                                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 font-medium">
-                                        Staff Records
-                                    </span>
-                                </h1>
-                                <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
-                                    Manage your delivery fleet and drivers. Riders are staff members and do not consume user login seats.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-2.5">
+            <ListPageFrame className="p-2.5">
+            <ListToolbar
+                title="Delivery Riders"
+                left={(
+                    <ListFilterPill
+                        icon={Filter}
+                        label="All Riders"
+                        value={statusFilter}
+                        options={[
+                            { value: 'all', label: 'All Riders' },
+                            { value: 'active', label: 'Active' },
+                            { value: 'busy', label: 'On Delivery' },
+                            { value: 'inactive', label: 'Inactive' },
+                        ]}
+                        onChange={setStatusFilter}
+                    />
+                )}
+                search={{ value: search, onChange: setSearch, placeholder: 'Search rider by name, phone, or vehicle...' }}
+                actions={(
+                    <>
                         <Link
                             href={route('store.restaurant.dispatch', { store_slug: storeSlug })}
-                            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-surface hover:bg-sunken text-ink-secondary hover:text-ink border border-line text-xs font-semibold transition-all shadow-sm"
+                            className="h-10 px-3.5 rounded-[12px] bg-surface hover:bg-sunken text-ink-secondary hover:text-ink border border-line text-sm font-semibold flex items-center gap-2 transition-colors whitespace-nowrap"
                         >
-                            <Navigation size={14} className="text-brand-600 dark:text-brand-400" />
+                            <Navigation size={15} className="text-brand-600 dark:text-brand-400" />
                             <span>Dispatch Board</span>
                         </Link>
-
-                        <button
-                            type="button"
-                            onClick={handleOpenAdd}
-                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-400 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
-                        >
-                            <Plus size={16} />
-                            <span>Add New Rider</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
-                            <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Total Riders</span>
-                            <span className="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400"><Bike size={16} /></span>
-                        </div>
-                        <div className="text-2xl font-bold text-ink">{metrics.total}</div>
-                        <p className="text-xs text-ink-muted mt-1">Registered delivery staff</p>
-                    </div>
-
-                    <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
-                            <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Active On Duty</span>
-                            <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"><CheckCircle2 size={16} /></span>
-                        </div>
-                        <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{metrics.active}</div>
-                        <p className="text-xs text-ink-muted mt-1">Available for new deliveries</p>
-                    </div>
-
-                    <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
-                            <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Out on Delivery</span>
-                            <span className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"><Clock size={16} /></span>
-                        </div>
-                        <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{metrics.onDelivery}</div>
-                        <p className="text-xs text-ink-muted mt-1">{metrics.totalActiveDeliveries} in transit</p>
-                    </div>
-
-                    <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-line shadow-sm relative overflow-hidden">
-                        <div className="flex flex-wrap items-center justify-between gap-y-2 mb-2">
-                            <span className="text-xs font-medium text-ink-muted uppercase tracking-wider">Seat Licenses</span>
-                            <span className="p-2 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"><ShieldCheck size={16} /></span>
-                        </div>
-                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">0 Seats Used</div>
-                        <p className="text-xs text-ink-muted mt-1">Unlimited staff riders allowed</p>
-                    </div>
-                </div>
-
-                {/* Filter and Search Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface border border-line rounded-2xl">
-                    <div className="relative flex-1 max-w-md">
-                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            placeholder="Search rider by name, phone, or vehicle..."
-                            className="w-full bg-sunken border border-line rounded-xl pl-9 pr-4 py-2 text-xs text-ink placeholder-ink-muted focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-1.5 overflow-x-auto">
-                        {[
-                            { key: 'all', label: 'All Riders' },
-                            { key: 'active', label: 'Active' },
-                            { key: 'busy', label: 'On Delivery' },
-                            { key: 'inactive', label: 'Inactive' },
-                        ].map((filter) => (
-                            <button
-                                key={filter.key}
-                                type="button"
-                                onClick={() => setStatusFilter(filter.key)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
-                                    statusFilter === filter.key
-                                        ? 'bg-brand-600 dark:bg-brand-500 text-white shadow-sm'
-                                        : 'text-ink-muted hover:text-ink hover:bg-sunken'
-                                }`}
-                            >
-                                {filter.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                        <ListAddButton icon={Plus} onClick={handleOpenAdd}>Add New Rider</ListAddButton>
+                    </>
+                )}
+            />
+            <ListStatCards cards={[
+                { label: 'Total Riders', value: metrics.total, icon: Bike },
+                { label: 'Active On Duty', value: metrics.active, icon: CheckCircle2, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600 dark:text-emerald-400' },
+                { label: 'Out on Delivery', value: metrics.onDelivery, icon: Clock, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', value_tone: 'text-amber-600 dark:text-amber-400' },
+                { label: 'Seat Licenses', value: '0 Seats Used', icon: ShieldCheck, icon_tone: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400', value_tone: 'text-purple-600 dark:text-purple-400' },
+            ]} />
+            <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 md:contents md:space-y-0">
+                <MobileListHeader
+                    title="Delivery Riders"
+                    links={[{ label: 'Dispatch Board', icon: Navigation, href: route('store.restaurant.dispatch', { store_slug: storeSlug }) }]}
+                    filter={{
+                        active: statusFilter !== 'all',
+                        sections: [{ label: 'Status', value: statusFilter, options: [
+                            { value: 'all', label: 'All Riders' },
+                            { value: 'active', label: 'Active' },
+                            { value: 'busy', label: 'On Delivery' },
+                            { value: 'inactive', label: 'Inactive' },
+                        ], onSelect: setStatusFilter }],
+                    }}
+                    search={{ value: search, onChange: setSearch, placeholder: 'Search riders...' }}
+                    add={{ onClick: handleOpenAdd, label: 'Add New Rider' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total', value: metrics.total, tone: 'ink', icon: Bike },
+                    { label: 'Active', value: metrics.active, tone: 'emerald', icon: CheckCircle2 },
+                    { label: 'On Delivery', value: metrics.onDelivery, tone: 'amber', icon: Clock },
+                    { label: 'Seats Used', value: 0, tone: 'purple', icon: ShieldCheck },
+                ]} />
 
                 {/* Riders List / Table */}
-                <div className="bg-surface border border-line rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-surface border border-line rounded-2xl md:rounded-[14px] shadow-sm overflow-hidden md:flex-1 md:min-h-0 md:flex md:flex-col">
                     {filteredRiders.length === 0 ? (
                         <div className="py-16 text-center px-4">
                             <div className="w-14 h-14 rounded-3xl bg-sunken border border-line flex items-center justify-center mx-auto mb-4 text-ink-muted">
@@ -412,16 +359,16 @@ export default function RestaurantRiders({
                             )}
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto md:overflow-auto md:flex-1 md:min-h-0">
                             <table className="w-full text-left border-collapse text-xs">
-                                <thead>
+                                <thead className="md:sticky md:top-0 md:z-10 md:bg-sunken">
                                     <tr className="border-b border-line bg-sunken/40 text-ink-muted font-semibold">
-                                        <th className="py-3 px-4">Rider</th>
-                                        <th className="py-3 px-4">Contact Phone</th>
-                                        <th className="py-3 px-4">Commission</th>
-                                        <th className="py-3 px-4">Live Status</th>
-                                        <th className="py-3 px-4">Duty Status</th>
-                                        <th className="py-3 px-4 text-right">Actions</th>
+                                        <th className="sticky top-0 z-10 bg-sunken py-3 px-4">Rider</th>
+                                        <th className="sticky top-0 z-10 bg-sunken py-3 px-4">Contact Phone</th>
+                                        <th className="sticky top-0 z-10 bg-sunken py-3 px-4">Commission</th>
+                                        <th className="sticky top-0 z-10 bg-sunken py-3 px-4">Live Status</th>
+                                        <th className="sticky top-0 z-10 bg-sunken py-3 px-4">Duty Status</th>
+                                        <th className="sticky top-0 z-10 bg-sunken py-3 px-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-line">
@@ -542,6 +489,7 @@ export default function RestaurantRiders({
                     )}
                 </div>
             </div>
+            </ListPageFrame>
 
             {/* Add Rider Modal */}
             {addModalOpen && (

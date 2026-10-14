@@ -31,16 +31,19 @@ import {
  ShoppingBag,
  ShoppingCart,
  CheckCircle2,
+ Check,
  Wrench
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import SmartCombobox from '@/Components/SmartCombobox';
 import { useTermText } from '@/lib/terms';
 import MobileStats from '@/Components/MobileStats';
 
 export default function PreOrders({ orders, filters: rawFilters, stats }) {
  const { store, flash } = usePage().props;
+ const navGroups = useSellNavGroups();
  const filters = (rawFilters && !Array.isArray(rawFilters)) ? rawFilters : {};
  const tt = useTermText();
 
@@ -268,167 +271,89 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
  return (
- <OneGlanceLayout title={tt('Pre-Orders')} activeMenu="Sell">
+ <OneGlanceLayout title={tt('Pre-Orders')} activeMenu="Sell" noPadding>
  <Head title={tt('Pre-Orders')} />
- <div className="flex flex-col min-h-full lg:h-full bg-app p-1 md:p-2 gap-1 lg:overflow-hidden relative">
- <SellModuleTabs activeTab="pre-sales" />
+ <ListPageFrame className="flex flex-col min-h-full bg-app p-2.5 gap-1">
+ <div className="md:hidden"><SellModuleTabs activeTab="pre-sales" /></div>
 
- {/* Mobile Stats Toggle/Summary (Visible below md) */}
- <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: tt('Total Orders'), value: stats?.order_count || 0, tone: 'ink' },
-  { label: 'Confirmed', value: stats?.confirmed_count || 0, tone: 'emerald' },
-  { label: 'Pending', value: stats?.pending_count || 0, tone: 'amber' },
-  { label: 'Total Value', value: formatCurrency(stats?.total_orders || 0, store), tone: 'ink' }
-]} />
+ {/* Desktop header: row 1 toolbar, row 2 stat cards */}
+ <ListToolbar
+ title={tt('Pre-Orders')}
+ navGroups={navGroups}
+ activeId="pre-sales"
+ left={(
+ <select value={activeFilter} onChange={(e) => applyFilterType(e.target.value)} className="h-10 pl-3 pr-8 rounded-[12px] border border-line bg-surface text-sm font-semibold text-ink outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer hover:bg-interactive-hover" aria-label="Filter">
+ <option value="all">All</option>
+ <option value="today">Today</option>
+ <option value="confirmed">Confirmed</option>
+ </select>
+ )}
+ search={{ value: searchTerm, onChange: (v) => handleSearch({ target: { value: v } }), onKeyDown: handleServerSearch, placeholder: tt('Search orders...') }}
+ actions={(
+ <ListAddButton href={route('store.pre-sales.create', { store_slug: store?.slug })} icon={Plus}>{tt('New Pre-Order')}</ListAddButton>
+ )}
+ />
+ <ListStatCards cards={[
+ { label: tt('Total Orders'), value: stats?.order_count || 0, icon: ShoppingBag, icon_tone: 'bg-brand-100 text-brand-600' },
+ { label: 'Confirmed', value: stats?.confirmed_count || 0, icon: CheckSquare, icon_tone: 'bg-emerald-100 text-emerald-600', value_tone: 'text-emerald-600' },
+ { label: 'Pending', value: stats?.pending_count || 0, icon: Clock, icon_tone: 'bg-amber-100 text-amber-600', value_tone: 'text-amber-600' },
+ { label: 'Total Value', value: formatCurrency(stats?.total_orders || 0, store), icon: History, icon_tone: 'bg-blue-100 text-blue-600' },
+ ]} />
 
- {/* Stats Cards Section */}
- <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
- <ShoppingBag size={16} />
+{/* Mobile header (phone only) */}
+ <div className="md:hidden relative z-40 shrink-0 bg-surface border border-line rounded-[14px] shadow-sm">
+ {showMobileFilters && <div className="fixed inset-0 z-30" onClick={() => setShowMobileFilters(false)} aria-hidden="true" />}
+ <div className="relative z-40 h-12 flex items-center gap-1 px-1.5">
+ <div className="min-w-0 flex-1 pl-2">
+ <span className="text-[15px] font-bold text-ink tracking-tight truncate block">{tt('Pre-Orders')}</span>
  </div>
- <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Orders')}</p>
- </div>
- <p className="text-base font-bold text-ink">{stats?.order_count || 0}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+ <div>
+ <button type="button" onClick={() => setShowMobileFilters(!showMobileFilters)} aria-haspopup="listbox" aria-expanded={showMobileFilters} aria-label="Filter"
+ className={`h-9 px-2 rounded-[10px] border flex items-center gap-1 transition-colors ${activeFilter !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-line bg-app text-ink-secondary'}`}>
  <CheckSquare size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Confirmed</p>
- </div>
- <p className="text-base font-bold text-emerald-600">{stats?.confirmed_count || 0}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
- <Clock size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Pending</p>
- </div>
- <p className="text-base font-bold text-amber-600">{stats?.pending_count || 0}</p>
- </div>
- <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
- <div className="flex items-center gap-2">
- <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
- <History size={16} />
- </div>
- <p className="text-xs font-bold text-ink-muted uppercase">Total Value</p>
- </div>
- <p className="text-base font-bold text-ink">{formatCurrency(stats?.total_orders || 0, store)}</p>
- </div>
- </div>
-
- {/* PC / Desktop Header Area (Hidden on Mobile) */}
- <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex items-center gap-2 flex-wrap">
- <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- Pre-<span className="text-brand-600">{tt('Orders')}</span>
- </h1>
- <div className="h-4 w-px bg-sunken mx-1"></div>
- <button
- onClick={() => applyFilterType('all')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >All</button>
- <button
- onClick={() => applyFilterType('today')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Today</button>
- <button
- onClick={() => applyFilterType('confirmed')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- >Confirmed</button>
- </div>
-
- <div className="flex items-center gap-2">
- <div className="w-64 relative">
- <input
- type="text"
- value={searchTerm}
- onChange={handleSearch}
- onKeyDown={handleServerSearch}
- placeholder={tt('Search orders...')}
- className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
- />
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
- </div>
- <div className="flex items-center gap-0.5 border-l border-line pl-2">
- <Link href={route('store.pre-sales.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors" style={{ color: '#ffffff' }}>
- <Plus size={14} className="text-white shrink-0" /> <span className="text-white">{tt('New Pre-Order')}</span>
- </Link>
- </div>
- </div>
- </div>
-
- {/* Mobile Layout Header Area */}
- <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
- <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
- Pre-<span className="text-brand-600">{tt('Orders')}</span>
- </h1>
- <div className="flex items-center gap-1">
- <button
- onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Search"
- >
- <Search size={16} />
+ <ChevronDown size={14} className={`transition-transform duration-200 ${showMobileFilters ? 'rotate-180' : ''}`} />
  </button>
- <button
- onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
- className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
- title="Filters"
- >
- <ChevronDown size={16} />
- </button>
- <Link
- href={route('store.pre-sales.create', { store_slug: store?.slug })}
- className="p-2 bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors"
- title={tt('New Pre-Order')}
- >
- <Plus size={16} />
- </Link>
- </div>
- </div>
-
- {showMobileSearch && (
- <div className="w-full relative mt-1 border-t border-line pt-2">
- <input
- type="text"
- value={searchTerm}
- onChange={handleSearch}
- onKeyDown={handleServerSearch}
- placeholder={tt('Search orders...')}
- className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
- />
- <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
- </div>
- )}
-
  {showMobileFilters && (
- <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
- <div className="flex flex-wrap gap-1.5">
- <button
- onClick={() => applyFilterType('all')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >All</button>
- <button
- onClick={() => applyFilterType('today')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-brand-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >Today</button>
- <button
- onClick={() => applyFilterType('confirmed')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-sunken text-ink-muted'}`}
- >Confirmed</button>
+ <div role="listbox" className="absolute left-0 right-0 top-full mt-1 bg-surface border border-line rounded-[12px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+ {[['all', 'All'], ['today', 'Today'], ['confirmed', 'Confirmed']].map(([key, label]) => (
+ <button key={key} type="button" role="option" aria-selected={activeFilter === key} onClick={() => { applyFilterType(key); setShowMobileFilters(false); }}
+ className={`w-full h-10 px-3 rounded-[8px] text-sm text-left flex items-center justify-between gap-2 ${activeFilter === key ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}>
+ <span className="truncate">{label}</span>
+ {activeFilter === key && <Check size={15} className="shrink-0" />}
+ </button>
+ ))}
+ </div>
+ )}
+ </div>
+ <button type="button" onClick={() => setShowMobileSearch(!showMobileSearch)} aria-label="Search"
+ className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${showMobileSearch || searchTerm ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'bg-app text-ink-secondary'}`}>
+ <Search size={17} />
+ </button>
+ <Link href={route('store.pre-sales.create', { store_slug: store?.slug })} aria-label={tt('New Pre-Order')}
+ className="h-9 w-9 rounded-[10px] bg-brand-600 text-white flex items-center justify-center shadow-sm active:bg-brand-700">
+ <Plus size={19} />
+ </Link>
+ </div>
+ {showMobileSearch && (
+ <div className="px-1.5 pb-1.5 -mt-0.5">
+ <div className="relative">
+ <input autoFocus type="text" value={searchTerm} onChange={handleSearch} onKeyDown={handleServerSearch} placeholder={tt('Search orders...')}
+ className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[10px] text-ink placeholder:text-ink-muted outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={15} />
  </div>
  </div>
  )}
  </div>
 
- {/* Main Orders Table */}
- <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
+ <MobileStats bp="md" hero={3} items={[
+ { label: tt('Total Orders'), value: stats?.order_count || 0, tone: 'brand', icon: ShoppingBag },
+ { label: 'Confirmed', value: stats?.confirmed_count || 0, tone: 'emerald', icon: CheckSquare },
+ { label: 'Pending', value: stats?.pending_count || 0, tone: 'amber', icon: Clock },
+ { label: 'Total Value', value: formatCurrency(stats?.total_orders || 0, store), tone: 'blue', icon: History }
+ ]} />
+
+  {/* Main Orders Table */}
+ <div className="flex-1 md:min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
  <table className="hidden md:table w-full text-left border-collapse">
  <thead>
  <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -440,7 +365,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  onDragOver={(e) => handleDragOver(e, index)}
  onDrop={(e) => handleDrop(e, index)}
  onClick={() => col.key !== 'actions' && handleSort(col.key)}
- className={`
+ className={`sticky top-0 z-10 bg-app 
  p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
  cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
  ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-brand-500' : ''}
@@ -700,7 +625,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
  </div>
  </div>
  </div>
- </div>
+ </ListPageFrame>
  {/* Quick View Modal - Centered Popup */}
  {quickViewItem && (
  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-normal" onClick={() => setQuickViewItem(null)}>

@@ -35,6 +35,7 @@ function CartDefault({ store, preview, show_images: show, limits, rating_summary
     const [couponInput, setCouponInput] = useState('');
     const [coupon, setCoupon] = useState('');
     const [couponError, setCouponError] = useState(null);
+    const [usePoints, setUsePoints] = useState(false);
     const [quote, setQuote] = useState(null);
     const [problems, setProblems] = useState([]);
     const [notice, setNotice] = useState(null);
@@ -59,7 +60,7 @@ function CartDefault({ store, preview, show_images: show, limits, rating_summary
     useEffect(() => {
         if (lines.length === 0) { setQuote(null); setProblems([]); return undefined; }
         const t = setTimeout(() => {
-            axios.post(`/shop/${store.slug}/quote`, { items, fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined })
+            axios.post(`/shop/${store.slug}/quote`, { items, fulfilment, delivery_zone: fulfilment === 'delivery' && zone ? zone : undefined, coupon: coupon || undefined, use_points: usePoints || undefined })
                 .then((r) => { setQuote(r.data); setProblems([]); setCouponError(null); })
                 .catch((e) => {
                     const d = e.response?.data;
@@ -70,7 +71,7 @@ function CartDefault({ store, preview, show_images: show, limits, rating_summary
         }, 250);
         return () => clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [JSON.stringify(items), fulfilment, store.slug, zone, coupon]);
+    }, [JSON.stringify(items), fulfilment, store.slug, zone, coupon, usePoints]);
 
     const minOrder = Number(quote?.min_order ?? store.min_order_amount ?? 0);
     const reached = quote ? quote.subtotal + quote.tax_total : 0;
@@ -86,7 +87,7 @@ function CartDefault({ store, preview, show_images: show, limits, rating_summary
         setBusy(true); setNotice(null); setFieldErrors({});
         const payload = {
             fulfilment, payment_method: payment, customer_name: form.customer_name, customer_phone: form.customer_phone, customer_email: form.customer_email || null, company_site: form.company_site, opened_at: openedAt,
-            delivery_address: fulfilment === 'delivery' ? form.delivery_address : null, delivery_zone: fulfilment === 'delivery' && zone ? zone : null, coupon: coupon || null, customer_note: form.customer_note || null,
+            delivery_address: fulfilment === 'delivery' ? form.delivery_address : null, delivery_zone: fulfilment === 'delivery' && zone ? zone : null, coupon: coupon || null, customer_note: form.customer_note || null, use_points: usePoints || undefined,
             items, expected_total: quote.total,
         };
         const sig = JSON.stringify(payload); // the same order retried keeps its key, so it is never placed twice
@@ -227,6 +228,16 @@ function CartDefault({ store, preview, show_images: show, limits, rating_summary
                             {quote.discount_total > 0 && <div className="vqsf-sum save"><span>You save{quote.promo_name ? ` · ${quote.promo_name}` : ''}</span><span>−{money(quote.discount_total, sym)}</span></div>}
                             {fulfilment === 'delivery' && <div className="vqsf-sum"><span>Delivery{quote.delivery_zone ? ` · ${quote.delivery_zone}` : ''}</span><span>{quote.delivery_fee > 0 ? money(quote.delivery_fee, sym) : zoneMissing ? 'Choose area' : 'Free'}</span></div>}
                             <div className="vqsf-sum big"><span>Total</span><span>{money(quote.total, sym)}</span></div>
+                            {quote.points_used > 0 && <div className="vqsf-sum save"><span>Loyalty points used ({quote.points_used})</span><span>−{money(quote.points_discount, quote.currency_symbol)}</span></div>}
+                            {customer?.loyalty?.balance > 0 && (
+                                <label className="vqsf-sum" style={{ cursor: 'pointer', gap: 8, justifyContent: 'flex-start' }}>
+                                    <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} />
+                                    <span>Use my {customer.loyalty.balance.toLocaleString()} points (up to half of your items)</span>
+                                </label>
+                            )}
+                            {quote.loyalty_points > 0 && (quote.loyalty_member
+                                ? <div className="vqsf-sum save"><span>Loyalty points you'll earn</span><span>+{quote.loyalty_points}</span></div>
+                                : <div className="vqsf-sum"><span>Sign in with your email to earn {quote.loyalty_points} points on this order</span><span /></div>)}
                         </div>
                     ) : problems.length === 0 && <div className="vqsf-sum"><span>Working out your total…</span><span /></div>}
 

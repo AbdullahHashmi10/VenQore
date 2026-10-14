@@ -365,6 +365,18 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
         setIsModalOpen(true);
     };
 
+    // Dock quick action: /inventory/list?new=1 opens the add-product form
+    useEffect(() => {
+        const sp = new URLSearchParams(window.location.search);
+        if (sp.get('new')) {
+            handleAddProduct();
+            sp.delete('new');
+            const q = sp.toString();
+            window.history.replaceState({}, '', window.location.pathname + (q ? `?${q}` : ''));
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleAddService = () => {
         setSelectedProduct(null);
         setModalInitialType('service');
@@ -478,21 +490,195 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
             <div className="flex flex-col h-full bg-transparent gap-2 px-1.5 pt-1.5 pb-1.5 md:px-4 md:pt-2 md:pb-2 overflow-y-auto md:overflow-hidden relative">
 
-                {/* Phone / small tablet: section dropdown (desktop gets the title dropdown in the toolbar) */}
-                <div className="md:hidden">
-                    <StockModuleTabs activeTab="products" />
+                {/* ── PHONE · same two rows as desktop ──
+                    Row 1: [page ▾ nav] [category ▾] ···· [search] [+ add]
+                    Row 2: the four stat cards, one starred (drop down for the rest) */}
+                <div className="md:hidden relative z-40 shrink-0 bg-surface border border-line rounded-[14px] shadow-sm">
+                    <div className="h-12 flex items-center gap-1 px-1.5">
+                        {/* page navigation */}
+                        <div className="min-w-0 flex-1" data-menu>
+                            <button
+                                type="button"
+                                onClick={() => toggleMenu('nav')}
+                                aria-haspopup="menu"
+                                aria-expanded={openMenu === 'nav'}
+                                className={`h-9 max-w-full pl-2 pr-1.5 rounded-[10px] flex items-center gap-1 transition-colors ${openMenu === 'nav' ? 'bg-interactive-hover' : 'active:bg-interactive-hover'}`}
+                            >
+                                <span className="text-[15px] font-bold text-ink tracking-tight truncate">{pageTitle}</span>
+                                <ChevronDown size={16} className={`shrink-0 text-ink-muted transition-transform duration-200 ${openMenu === 'nav' ? 'rotate-180' : ''}`} />
+                            </button>
+                            {openMenu === 'nav' && (
+                                <div role="menu" className="absolute left-0 right-0 top-full mt-1 max-h-[62vh] overflow-y-auto overscroll-contain bg-surface border border-line rounded-[14px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+                                    {navGroups.map((group, gi) => (
+                                        <div key={group.id} className={gi > 0 ? 'mt-1' : ''}>
+                                            <div className="px-2.5 pt-2 pb-1 text-2xs font-bold uppercase tracking-wider text-ink-muted">{group.label}</div>
+                                            {group.items.map(item => {
+                                                const ItemIcon = item.icon;
+                                                const on = item.id === 'products';
+                                                return (
+                                                    <Link
+                                                        key={item.id}
+                                                        href={item.href}
+                                                        onClick={() => setOpenMenu(null)}
+                                                        role="menuitem"
+                                                        className={`flex items-center gap-3 h-10 px-2.5 rounded-[10px] text-sm ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}
+                                                    >
+                                                        <ItemIcon size={15} className={on ? '' : 'text-ink-muted'} />
+                                                        <span className="flex-1 truncate">{item.label}</span>
+                                                        {on && <Check size={15} />}
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    ))}
+                                    <div className="h-px bg-line my-1.5" />
+                                    <Link
+                                        href={route('store.admin.data', { store_slug: store?.slug })}
+                                        onClick={() => setOpenMenu(null)}
+                                        role="menuitem"
+                                        className="flex items-center gap-3 h-10 px-2.5 rounded-[10px] text-sm text-ink active:bg-interactive-hover"
+                                    >
+                                        <Upload size={15} className="text-ink-muted" />
+                                        <span className="flex-1 truncate">Import / Export data</span>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* category (+ type when both kinds exist) */}
+                        <div data-menu>
+                            <button
+                                type="button"
+                                onClick={() => toggleMenu('category')}
+                                aria-haspopup="listbox"
+                                aria-expanded={openMenu === 'category'}
+                                aria-label="Category and type filter"
+                                className={`relative h-9 px-2 rounded-[10px] border flex items-center gap-1 transition-colors ${activeCategory !== 'all' || activeType !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-line bg-app text-ink-secondary'}`}
+                            >
+                                <Layers size={16} />
+                                <ChevronDown size={14} className={`transition-transform duration-200 ${openMenu === 'category' ? 'rotate-180' : ''}`} />
+                            </button>
+                            {openMenu === 'category' && (
+                                <div role="listbox" className="absolute left-0 right-0 top-full mt-1 bg-surface border border-line rounded-[14px] shadow-xl p-2 animate-[vqDrop_0.16s_ease-out] origin-top">
+                                    {bothKinds && (
+                                        <div className="grid grid-cols-3 gap-1 p-0.5 mb-2 rounded-[12px] bg-app border border-line">
+                                            {[['all', 'All'], ['standard', tt('Products')], ['service', tt('Services')]].map(([key, label]) => (
+                                                <button
+                                                    key={key}
+                                                    type="button"
+                                                    onClick={() => handleTypeChange(key)}
+                                                    className={`h-8 rounded-[10px] text-xs font-semibold transition-colors ${activeType === key ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-muted'}`}
+                                                >{label}</button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {categories.length > 8 && (
+                                        <input
+                                            type="text"
+                                            value={categoryQuery}
+                                            onChange={(e) => setCategoryQuery(e.target.value)}
+                                            placeholder="Find a category…"
+                                            className="w-full h-9 px-3 mb-1.5 text-sm bg-app border border-line rounded-[10px] outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                        />
+                                    )}
+                                    <div className="max-h-[48vh] overflow-y-auto overscroll-contain flex flex-col gap-0.5">
+                                        {[{ id: 'all', name: 'All categories' }, ...visibleCategories].map(cat => {
+                                            const on = String(activeCategory) === String(cat.id);
+                                            return (
+                                                <button
+                                                    key={cat.id}
+                                                    type="button"
+                                                    role="option"
+                                                    aria-selected={on}
+                                                    onClick={() => { handleCategoryChange(cat.id); setOpenMenu(null); }}
+                                                    className={`h-10 px-3 rounded-[10px] text-sm text-left flex items-center justify-between gap-2 ${on ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}
+                                                >
+                                                    <span className="truncate">{cat.name}</span>
+                                                    {on && <Check size={15} className="shrink-0" />}
+                                                </button>
+                                            );
+                                        })}
+                                        {visibleCategories.length === 0 && <p className="px-3 py-2 text-sm text-ink-muted">No category matches.</p>}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* search */}
+                        <button
+                            type="button"
+                            onClick={() => setShowMobileSearch(!showMobileSearch)}
+                            aria-label="Search"
+                            className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${showMobileSearch || searchTerm ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'bg-app text-ink-secondary'}`}
+                        >
+                            <Search size={17} />
+                        </button>
+
+                        {/* the one add button */}
+                        {bothKinds ? (
+                            <div data-menu>
+                                <button
+                                    id={!isMd ? 'tour-add-product' : undefined}
+                                    type="button"
+                                    onClick={() => toggleMenu('add')}
+                                    aria-haspopup="menu"
+                                    aria-expanded={openMenu === 'add'}
+                                    aria-label="Add product or service"
+                                    className="h-9 w-9 rounded-[10px] bg-brand-600 text-white flex items-center justify-center shadow-sm active:bg-brand-700"
+                                >
+                                    <Plus size={19} />
+                                </button>
+                                {openMenu === 'add' && (
+                                    <div role="menu" className="absolute right-0 top-full mt-1 w-56 bg-surface border border-line rounded-[14px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top-right">
+                                        <button type="button" role="menuitem" onClick={() => { setOpenMenu(null); handleAddProduct(); }} className="w-full h-10 px-3 rounded-[10px] flex items-center gap-2.5 text-sm font-semibold text-ink active:bg-interactive-hover">
+                                            <Package size={16} className="text-brand-600" /> {tt('Add Product')}
+                                        </button>
+                                        <button type="button" role="menuitem" onClick={() => { setOpenMenu(null); handleAddService(); }} className="w-full h-10 px-3 rounded-[10px] flex items-center gap-2.5 text-sm font-semibold text-ink active:bg-interactive-hover">
+                                            <Wrench size={16} className="text-indigo-600" /> {tt('Add Service')}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : hasProducts ? (
+                            <button id={!isMd ? 'tour-add-product' : undefined} type="button" onClick={handleAddProduct} aria-label={tt('Add Product')} className="h-9 w-9 rounded-[10px] bg-brand-600 text-white flex items-center justify-center shadow-sm active:bg-brand-700">
+                                <Plus size={19} />
+                            </button>
+                        ) : hasServices ? (
+                            <button id={!isMd ? 'tour-add-product' : undefined} type="button" onClick={handleAddService} aria-label={tt('Add Service')} className="h-9 w-9 rounded-[10px] bg-indigo-600 text-white flex items-center justify-center shadow-sm active:bg-indigo-700">
+                                <Wrench size={17} />
+                            </button>
+                        ) : null}
+                    </div>
+
+                    {showMobileSearch && (
+                        <div className="px-1.5 pb-1.5 -mt-0.5">
+                            <div className="relative">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={handleServerSearch}
+                                    placeholder={bothKinds ? 'Search products & services…' : hasProducts ? 'Search products…' : 'Search services…'}
+                                    className="w-full h-10 pl-9 pr-9 text-sm bg-app border border-line rounded-[10px] text-ink placeholder:text-ink-muted outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={15} />
+                                {searchTerm && (
+                                    <button type="button" aria-label="Clear search" onClick={() => { setSearchTerm(''); applyFilters({ search: '' }); }} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-lg text-ink-muted">
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                {/* Mobile Stats (phones only) */}
-                <MobileStats bp="md" hero={2} open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-                    { label: bothKinds ? tt('Total Items') : hasProducts ? tt('Total Products') : tt('Total Services'), value: stats?.total_products?.toLocaleString() || 0, tone: 'brand', icon: Package },
-                    hasProducts && isStockTracked
-                        ? { label: 'Low Stock', value: stats?.low_stock_count?.toLocaleString() || 0, tone: (stats?.low_stock_count || 0) > 0 ? 'amber' : 'ink', icon: AlertTriangleIcon }
-                        : { label: 'Units Sold', value: Number(stats?.total_units_sold || 0).toLocaleString(), tone: 'teal', icon: BarChart3 },
-                    hasProducts
-                        ? { label: 'Inventory value', value: formatCurrency(stats?.inventory_value || 0, store), tone: 'emerald', icon: DollarSign }
-                        : { label: 'Avg. service rate', value: formatCurrency(stats?.avg_service_rate || 0, store), tone: 'emerald', icon: DollarSign },
-                ]} />
+                <MobileStats bp="md" hero={3} items={cards.map(c => ({
+                    label: c.label,
+                    value: c.value,
+                    icon: c.icon,
+                    tone: /emerald/.test(c.value_tone) ? 'emerald' : /amber/.test(c.value_tone) ? 'amber' : /red/.test(c.value_tone) ? 'red' : /teal/.test(c.value_tone) ? 'teal' : /indigo/.test(c.value_tone) ? 'indigo' : /brand/.test(c.value_tone) ? 'brand' : 'ink',
+                }))} />
 
                 {/* ── ROW 1 · toolbar (desktop): [page title ▾ nav]  ····  [search] [category ▾] [+ add] ── */}
                 <div className="hidden md:flex relative z-20 h-14 shrink-0 items-center justify-between gap-3 px-2 bg-surface border border-line rounded-[14px] shadow-sm">
@@ -709,108 +895,6 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                         </Link>
                     </div>
                 )}
-
-                {/* Phone: type segmented control (only when both kinds exist) + category chips */}
-                <div className="md:hidden bg-surface rounded-[14px] border border-line shadow-sm shrink-0 p-1.5 flex flex-col gap-1.5 select-none">
-                    {bothKinds && (
-                        <div className="grid grid-cols-3 gap-0.5 rounded-[12px] bg-app p-0.5">
-                            {[['all', 'All Items', null], ['standard', tt('Products'), null], ['service', tt('Services'), Wrench]].map(([key, label, Icon]) => (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    onClick={() => handleTypeChange(key)}
-                                    className={`flex items-center justify-center gap-1 rounded-[10px] py-1.5 text-xs font-semibold transition-colors ${activeType === key ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted'}`}
-                                >
-                                    {Icon && <Icon size={12} />}
-                                    <span className="truncate">{label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                    <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar vq-no-scrollbar px-0.5 pb-0.5">
-                        <button
-                            onClick={() => handleCategoryChange('all')}
-                            className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap border ${activeCategory === 'all' ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface border-line text-ink-secondary'}`}
-                        >
-                            All
-                        </button>
-                        {categories.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => handleCategoryChange(cat.id)}
-                                className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap border ${String(activeCategory) === String(cat.id) ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface border-line text-ink-secondary'}`}
-                            >
-                                {cat.name}
-                            </button>
-                        ))}
-                        <span className="shrink-0 w-4" aria-hidden="true" />
-                    </div>
-                </div>
-
-                {/* Mobile Toolbar */}
-                <div className="md:hidden flex flex-col gap-0 bg-surface rounded-[14px] border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 px-3 py-2">
-                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">{pageTitle}</h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setShowMobileSearch(!showMobileSearch)}
-                                className={`p-2 rounded-[12px] transition-colors ${showMobileSearch ? 'bg-brand-600 text-white shadow-sm' : 'bg-sunken text-ink-muted'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                            <Link
-                                href={route('store.admin.data', { store_slug: store?.slug })}
-                                className="p-2 bg-sunken text-ink-muted rounded-[12px] transition-colors"
-                                title="Import/Export"
-                            >
-                                <Upload size={16} />
-                            </Link>
-                            {hasServices && (
-                                <button
-                                    onClick={handleAddService}
-                                    className="px-2.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[12px] flex items-center gap-1 transition-all shadow-md active:scale-95 font-bold text-xs"
-                                    title={tt('Add Service')}
-                                >
-                                    <Wrench size={13} /> {tt('Service')}
-                                </button>
-                            )}
-                            {hasProducts && (
-                                <button
-                                    id={!isMd ? 'tour-add-product' : undefined}
-                                    onClick={handleAddProduct}
-                                    className="ml-1 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-[12px] flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
-                                >
-                                    <Plus size={14} /> {tt('Product')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                    {showMobileSearch && (
-                        <div className="px-3 pb-2 border-t border-line pt-2 animate-in slide-in-from-top duration-normal">
-                            <div className="relative w-full flex gap-2">
-                                <div className="relative flex-1">
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        onKeyDown={handleServerSearch}
-                                        placeholder={tt('Search products & services...')}
-                                        className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-[12px] focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
-                                    />
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
-                                </div>
-                                <button
-                                    onClick={() => { applyFilters({ search: searchTerm }); setShowMobileSearch(false); }}
-                                    className="px-3 py-1.5 bg-brand-600 text-white rounded-[12px] text-xs font-bold"
-                                >
-                                    Go
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
                 {/* Bulk Actions Bar */}
                 {selectedProducts.length > 0 && (

@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Head, router, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import StockModuleTabs, { useStockNavGroups } from '@/Components/StockModuleTabs';
+import MobileStats from '@/Components/MobileStats';
+import MobileListHeader from '@/Components/MobileListHeader';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import FormModal, { FormField, FormInput, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import axios from 'axios';
 import {
@@ -25,6 +28,7 @@ import { useTermText } from '@/lib/terms';
 export default function Categories({ categories: serverCategories = [], stats, filters }) {
     const { flash, store } = usePage().props;
     const tt = useTermText();
+    const navGroups = useStockNavGroups();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [formData, setFormData] = useState({ name: '', description: '', parent_id: '' });
@@ -223,98 +227,41 @@ export default function Categories({ categories: serverCategories = [], stats, f
     const parentOptions = allCategories.filter(c => !editingCategory || c.id !== editingCategory.id);
 
     return (
-        <OneGlanceLayout title="Categories" activeMenu="Stock">
+        <OneGlanceLayout title="Categories" activeMenu="Stock" noPadding>
             <Head title="Categories" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden relative">
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
 
 
 
-                <StockModuleTabs activeTab="categories" />
+                <ListToolbar
+                    title="Categories"
+                    navGroups={navGroups}
+                    activeId="categories"
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search categories...' }}
+                    actions={<ListAddButton icon={Plus} onClick={handleCreate}>Add Category</ListAddButton>}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Categories', value: stats?.total_categories || 0, icon: Layers, icon_tone: 'bg-brand-50 text-brand-600' },
+                    { label: 'Main Categories', value: stats?.parent_categories || 0, icon: FolderTree, icon_tone: 'bg-blue-50 text-blue-600' },
+                    { label: tt('Products Linked'), value: stats?.total_products || 0, icon: Box, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Top Category', value: stats?.most_populated?.name || '-', icon: BarChart3, icon_tone: 'bg-brand-50 text-brand-600', value_tone: 'text-brand-600 max-w-[140px] truncate' },
+                ]} />
 
-                {/* Compact Stats Cards (Matches SalesHistory) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Layers size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Categories</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats?.total_categories || 0}</p>
-                    </div>
+                <div className="md:hidden"><StockModuleTabs activeTab="categories" /></div>
 
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <FolderTree size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Main Categories</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{stats?.parent_categories || 0}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <Box size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Products Linked')}</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{stats?.total_products || 0}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg shrink-0">
-                                <BarChart3 size={16} />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-xs font-bold text-ink-muted uppercase truncate">Top Category</p>
-                            </div>
-                        </div>
-                        <p className="text-sm font-bold text-brand-600 truncate max-w-[50%]" title={stats?.most_populated?.name}>
-                            {stats?.most_populated?.name || '-'}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Header Actions (Matches SalesHistory Header) */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            {tt('Product')} <span className="text-brand-600">Categories (Updated)</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <span className="text-2xs font-bold uppercase rounded-full bg-sunken text-ink-muted px-2.5 py-1">
-                            List View
-                        </span>
-                    </div>
-
-                    {/* Right: Search + Button */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-64 relative">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={handleServerSearch}
-                                placeholder="Search categories..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow outline-none"
-                            />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={16} />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button
-                                onClick={handleCreate}
-                                className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm "
-                            >
-                                <Plus size={14} /> Add New
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Categories"
+                    search={{ event: true,  value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), onKeyDown: handleServerSearch, placeholder: 'Search categories...' }}
+                    add={{ onClick: handleCreate, label: 'Add Category' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Categories', value: stats?.total_categories || 0, tone: 'brand', icon: Layers },
+                    { label: 'Main Categories', value: stats?.parent_categories || 0, tone: 'blue', icon: FolderTree },
+                    { label: tt('Products Linked'), value: stats?.total_products || 0, tone: 'emerald', icon: Box },
+                    { label: 'Top Category', value: stats?.most_populated?.name || '-', tone: 'brand', icon: BarChart3 }
+                ]} />
 
                 {/* Bulk Actions Bar */}
                 {selectedCategories.length > 0 && (
@@ -338,11 +285,11 @@ export default function Categories({ categories: serverCategories = [], stats, f
                 )}
 
                 {/* Custom Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                <th className="p-4 w-10">
+                                <th className="sticky top-0 z-10 bg-app p-4 w-10">
                                     <input
                                         type="checkbox"
                                         className="rounded border-line text-brand-600 focus:ring-brand-600"
@@ -486,7 +433,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                         {nextPageUrl ? 'Loading...' : (sortedCategories.length > 0 ? 'End of list' : '')}
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
 
             {/* Create/Edit Modal */}
             <FormModal

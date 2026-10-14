@@ -228,15 +228,15 @@ export default function SettingsPanel({ settings }) {
  switch (activeSection) {
  case 'general':
  return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+ <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
  <div className="space-y-2">
  <label className="block text-sm font-bold text-ink-secondary mb-2">Store Name</label>
  <input
  type="text"
  value={data.store_name}
  onChange={(e) => setData('store_name', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="My Store"
  />
  </div>
@@ -246,7 +246,7 @@ export default function SettingsPanel({ settings }) {
  type="text"
  value={data.store_phone}
  onChange={(e) => setData('store_phone', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="+92 300 1234567"
  />
  </div>
@@ -255,7 +255,7 @@ export default function SettingsPanel({ settings }) {
  <textarea
  value={data.store_address}
  onChange={(e) => setData('store_address', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none resize-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none resize-none"
  rows={3}
  placeholder="Full store address"
  />
@@ -266,7 +266,7 @@ export default function SettingsPanel({ settings }) {
  <select
  value={data.default_tax_rate}
  onChange={(e) => setData('default_tax_rate', e.target.value)}
- className="w-full pl-4 pr-10 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer font-bold text-ink"
+ className="w-full pl-4 pr-10 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer font-bold text-ink"
  >
  <option value="0">None (0%)</option>
  {(() => {
@@ -303,7 +303,7 @@ export default function SettingsPanel({ settings }) {
  type="text"
  value={data.custom_domain}
  onChange={(e) => setData('custom_domain', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="e.g. store.mydomain.com"
  />
  </div>
@@ -320,7 +320,7 @@ export default function SettingsPanel({ settings }) {
  <select
  value={data.invoice_theme}
  onChange={(e) => setData('invoice_theme', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none cursor-pointer"
  >
  <option value="classic">Classic Minimalist</option>
  <option value="modern">Modern Professional</option>
@@ -335,19 +335,19 @@ export default function SettingsPanel({ settings }) {
  type="color"
  value={data.invoice_primary_color}
  onChange={(e) => setData('invoice_primary_color', e.target.value)}
- className="h-11 w-14 bg-sunken border border-line dark:border-line rounded-xl cursor-pointer p-1"
+ className="h-11 w-14 bg-sunken border border-line dark:border-line rounded-[12px] cursor-pointer p-1"
  />
  <input
  type="text"
  value={data.invoice_primary_color}
  onChange={(e) => setData('invoice_primary_color', e.target.value)}
- className="flex-1 px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="flex-1 px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  />
  </div>
  </div>
 
  <div className="space-y-2 md:col-span-2">
- <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-sunken rounded-xl border border-line">
+ <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 bg-sunken rounded-[12px] border border-line">
  <div>
  <h4 className="text-sm font-bold text-ink">B2B Margin Display</h4>
  <p className="text-xs text-ink-muted">Display item-level profit margin column directly on B2B invoices.</p>
@@ -364,7 +364,7 @@ export default function SettingsPanel({ settings }) {
  <select
  value={data.product_cost_update_policy}
  onChange={(e) => setData('product_cost_update_policy', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  >
  <option value="never">Never (Keep V3 FIFO Batches Only)</option>
  <option value="always">Always (Update to Latest Purchase Price)</option>
@@ -379,8 +379,8 @@ export default function SettingsPanel({ settings }) {
 
  case 'pos':
  return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="bg-surface rounded-2xl border border-line p-6">
+ <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="bg-surface rounded-[14px] border border-line p-4">
  <SectionHeader title="Sales Configuration" description="Customize your point of sale experience" />
  <div className="divide-y divide-line">
  <Toggle
@@ -407,11 +407,11 @@ export default function SettingsPanel({ settings }) {
  label="Show Margin Percentage"
  description="Display profit margin in sales overview"
  />
- <div className="p-5 bg-app rounded-2xl border border-line dark:border-line">
+ <div className="p-4 bg-app rounded-[14px] border border-line dark:border-line">
  <div className="flex flex-col gap-2">
  <label className="text-sm font-bold text-ink-secondary">Round Off Invoice Totals</label>
  <p className="text-xs text-ink-muted">Choose rounding precision for sales and purchases</p>
- <div className="grid grid-cols-6 gap-1 mt-2">
+ <div className="grid max-md:grid-cols-3 grid-cols-6 gap-1 mt-2">
  {[
  { value: 'none', label: 'None' },
  { value: '0', label: 'Whole' },
@@ -427,7 +427,7 @@ export default function SettingsPanel({ settings }) {
  key={opt.value}
  type="button"
  onClick={() => setData('round_off_total', opt.value)}
- className={`py-2 px-1 text-center font-bold text-1xs rounded-lg border transition-all ${isActive
+ className={`py-2 px-1 text-center font-bold text-1xs rounded-[12px] border transition-all ${isActive
  ? 'border-brand-600 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300'
  : 'border-transparent bg-sunken text-ink-muted hover:bg-interactive-hover'
  }`}
@@ -450,7 +450,7 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  {/* Return Mode Configuration Card */}
- <div className="bg-surface rounded-2xl border border-line p-6">
+ <div className="bg-surface rounded-[14px] border border-line p-4">
  <SectionHeader title="Return Mode Configuration" description="Configure return settings and validation rules" />
  <div className="space-y-4">
  <div className="flex justify-between items-center py-2">
@@ -467,7 +467,7 @@ export default function SettingsPanel({ settings }) {
  setAcknowledgeOpenReturn(false);
  }
  }}
- className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  >
  <option value="reference">Reference Number Required</option>
  <option value="customer_or_reference">{tt('Customer or Reference')}</option>
@@ -476,7 +476,7 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  {data.pos_return_mode === 'open' && (
- <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3">
+ <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-[14px] space-y-3">
  <div className="flex items-start gap-3">
  <span className="text-amber-500 text-lg">⚠️</span>
  <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
@@ -510,7 +510,7 @@ export default function SettingsPanel({ settings }) {
  value={data.pos_return_window}
  onChange={(e) => setData('pos_return_window', e.target.value)}
  placeholder="e.g. 7, 14, 30 — leave empty to disable"
- className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-64 px-4 py-2.5 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  />
  </div>
 
@@ -520,18 +520,18 @@ export default function SettingsPanel({ settings }) {
  <span className="block text-sm font-bold text-ink-secondary">Window Behavior</span>
  <span className="block text-xs text-ink-muted">Action to take if return window has expired</span>
  </div>
- <div className="flex bg-sunken p-1 rounded-xl">
+ <div className="flex bg-sunken p-1 rounded-[12px]">
  <button
  type="button"
  onClick={() => setData('pos_return_window_behavior', 'warn')}
- className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
+ className={`px-4 py-2 text-xs font-bold rounded-[12px] transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
  >
  Soft Warning
  </button>
  <button
  type="button"
  onClick={() => setData('pos_return_window_behavior', 'block')}
- className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
+ className={`px-4 py-2 text-xs font-bold rounded-[12px] transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-surface text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted'}`}
  >
  Hard Block
  </button>
@@ -562,8 +562,8 @@ export default function SettingsPanel({ settings }) {
 
  case 'security':
  return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="bg-surface rounded-2xl border border-line p-6">
+ <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="bg-surface rounded-[14px] border border-line p-4">
  <SectionHeader title="Access Control" description="Manage login security" />
 
  <div className="mb-6">
@@ -576,7 +576,7 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  {data.enable_passcode && (
- <div className="p-6 bg-sunken rounded-2xl border border-line dark:border-line animate-in fade-in slide-in-from-top-2">
+ <div className="p-4 bg-sunken rounded-[14px] border border-line dark:border-line animate-in fade-in slide-in-from-top-2">
  <label className="block text-xs font-bold text-ink-secondary mb-2 uppercase tracking-wider">Global Admin Passcode</label>
  <div className="relative max-w-xs">
  <input
@@ -584,7 +584,7 @@ export default function SettingsPanel({ settings }) {
  maxLength="6"
  value={data.admin_passcode}
  onChange={(e) => setData('admin_passcode', e.target.value.replace(/[^0-9]/g, ''))}
- className="w-full pl-4 pr-10 py-3 bg-surface border border-line dark:border-line rounded-xl text-lg font-mono font-bold tracking-widest focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full pl-4 pr-10 py-3 bg-surface border border-line dark:border-line rounded-[12px] text-lg font-mono font-bold tracking-widest focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="Enter PIN"
  />
  <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
@@ -597,7 +597,7 @@ export default function SettingsPanel({ settings }) {
  )}
  </div>
 
- <div className="bg-surface rounded-2xl border border-line p-6">
+ <div className="bg-surface rounded-[14px] border border-line p-4">
  <SectionHeader title="SSO / SAML Authentication" description="Configure Single Sign-On for your organization" />
 
  <div className="mb-6">
@@ -617,7 +617,7 @@ export default function SettingsPanel({ settings }) {
  type="text"
  value={data.sso_idp_entity_id}
  onChange={(e) => setData('sso_idp_entity_id', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="https://identity-provider.com/metadata"
  />
  </div>
@@ -627,7 +627,7 @@ export default function SettingsPanel({ settings }) {
  type="text"
  value={data.sso_url}
  onChange={(e) => setData('sso_url', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="https://identity-provider.com/sso"
  />
  </div>
@@ -636,7 +636,7 @@ export default function SettingsPanel({ settings }) {
  <textarea
  value={data.sso_certificate}
  onChange={(e) => setData('sso_certificate', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-xl text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none resize-none"
+ className="w-full px-4 py-3 bg-sunken border border-line dark:border-line rounded-[12px] text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none resize-none"
  rows={5}
  placeholder="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
  />
@@ -649,8 +649,8 @@ export default function SettingsPanel({ settings }) {
 
  case 'approvals':
  return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="bg-surface rounded-2xl border border-line p-6 space-y-6">
+ <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="bg-surface rounded-[14px] border border-line p-4 space-y-4">
  <SectionHeader title="Approvals & Governance" description="Configure store-wide transaction maker-checker approval controls and dual authorization" />
 
  <div className="space-y-4">
@@ -668,13 +668,13 @@ export default function SettingsPanel({ settings }) {
  description="Enforce dual control so store owners cannot self-approve transactions they personally submitted as maker."
  />
 
- <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-line">
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-4 border-t border-line">
  <div className="space-y-2">
  <label className="block text-sm font-bold text-ink-secondary mb-1">Default Employee Approval Mode</label>
  <select
  value={data.approval_default_employee_mode}
  onChange={e => setData('approval_default_employee_mode', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  >
  <option value="inherit">Inherit Store Policy (Default)</option>
  <option value="required">Always Require Approval</option>
@@ -691,7 +691,7 @@ export default function SettingsPanel({ settings }) {
  step="0.01"
  value={data.approval_amount_threshold}
  onChange={e => setData('approval_amount_threshold', e.target.value)}
- className="w-full px-4 py-3 bg-sunken border border-line rounded-xl text-sm focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-sunken border border-line rounded-[12px] text-sm focus:ring-2 focus:ring-brand-500 outline-none"
  placeholder="0.00"
  />
  <p className="text-2xs text-ink-muted">Transactions equal to or above this amount automatically trigger approval review.</p>
@@ -704,13 +704,13 @@ export default function SettingsPanel({ settings }) {
 
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
  {/* Customer Receipts */}
- <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="p-4 bg-sunken/50 rounded-[12px] border border-line space-y-3">
  <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Customer Receipts</span>
  <select
  value={data.approval_policy_customer_receipt}
  onChange={e => setData('approval_policy_customer_receipt', e.target.value)}
- className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ className="px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs font-medium"
  >
  <option value="inherit">Inherit Store Policy</option>
  <option value="required">Always Required</option>
@@ -726,19 +726,19 @@ export default function SettingsPanel({ settings }) {
  value={data.approval_threshold_customer_receipt}
  onChange={e => setData('approval_threshold_customer_receipt', e.target.value)}
  placeholder="Inherit store threshold"
- className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs"
  />
  </div>
  </div>
 
  {/* Supplier Payments */}
- <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="p-4 bg-sunken/50 rounded-[12px] border border-line space-y-3">
  <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Supplier Payments</span>
  <select
  value={data.approval_policy_supplier_payment}
  onChange={e => setData('approval_policy_supplier_payment', e.target.value)}
- className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ className="px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs font-medium"
  >
  <option value="inherit">Inherit Store Policy</option>
  <option value="required">Always Required</option>
@@ -754,19 +754,19 @@ export default function SettingsPanel({ settings }) {
  value={data.approval_threshold_supplier_payment}
  onChange={e => setData('approval_threshold_supplier_payment', e.target.value)}
  placeholder="Inherit store threshold"
- className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs"
  />
  </div>
  </div>
 
  {/* Operating Expenses */}
- <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="p-4 bg-sunken/50 rounded-[12px] border border-line space-y-3">
  <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Operating Expenses</span>
  <select
  value={data.approval_policy_operating_expense}
  onChange={e => setData('approval_policy_operating_expense', e.target.value)}
- className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ className="px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs font-medium"
  >
  <option value="inherit">Inherit Store Policy</option>
  <option value="required">Always Required</option>
@@ -782,19 +782,19 @@ export default function SettingsPanel({ settings }) {
  value={data.approval_threshold_operating_expense}
  onChange={e => setData('approval_threshold_operating_expense', e.target.value)}
  placeholder="Inherit store threshold"
- className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs"
  />
  </div>
  </div>
 
  {/* Sales Invoices */}
- <div className="p-4 bg-sunken/50 rounded-xl border border-line space-y-3">
+ <div className="p-4 bg-sunken/50 rounded-[12px] border border-line space-y-3">
  <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">Sales Invoices (Admin)</span>
  <select
  value={data.approval_policy_sales_invoice}
  onChange={e => setData('approval_policy_sales_invoice', e.target.value)}
- className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ className="px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs font-medium"
  >
  <option value="inherit">Inherit Store Policy</option>
  <option value="required">Always Required</option>
@@ -810,7 +810,7 @@ export default function SettingsPanel({ settings }) {
  value={data.approval_threshold_sales_invoice}
  onChange={e => setData('approval_threshold_sales_invoice', e.target.value)}
  placeholder="Inherit store threshold"
- className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs"
+ className="w-full px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs"
  />
  </div>
  </div>
@@ -831,13 +831,13 @@ export default function SettingsPanel({ settings }) {
  { key: 'owner_drawings', label: 'Owner Drawings', sensitive: true },
  { key: 'fund_transfer', label: 'Internal Fund Transfer', sensitive: true },
  ].map(({ key, label, sensitive }) => (
- <div key={key} className={`p-4 bg-sunken/50 rounded-xl border space-y-3 ${sensitive ? 'border-orange-200' : 'border-line'}`}>
+ <div key={key} className={`p-4 bg-sunken/50 rounded-[12px] border space-y-3 ${sensitive ? 'border-orange-200' : 'border-line'}`}>
  <div className="flex flex-wrap items-center justify-between gap-y-2">
  <span className="font-semibold text-sm text-ink-primary">{label}</span>
  <select
  value={data[`approval_policy_${key}`]}
  onChange={e => setData(`approval_policy_${key}`, e.target.value)}
- className="px-3 py-1.5 bg-surface border border-line rounded-lg text-xs font-medium"
+ className="px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs font-medium"
  >
  <option value="inherit">Inherit Store Policy</option>
  <option value="required">Always Required</option>
@@ -846,7 +846,7 @@ export default function SettingsPanel({ settings }) {
  </div>
  <div className="flex items-center gap-2">
  <span className="text-xs text-ink-muted whitespace-nowrap">Threshold ({store?.currency_symbol || '$'}):</span>
- <input type="number" min="0" step="0.01" value={data[`approval_threshold_${key}`]} onChange={e => setData(`approval_threshold_${key}`, e.target.value)} placeholder="Inherit store threshold" className="w-full px-3 py-1.5 bg-surface border border-line rounded-lg text-xs" />
+ <input type="number" min="0" step="0.01" value={data[`approval_threshold_${key}`]} onChange={e => setData(`approval_threshold_${key}`, e.target.value)} placeholder="Inherit store threshold" className="w-full px-3 py-1.5 bg-surface border border-line rounded-[12px] text-xs" />
  </div>
  {sensitive && <p className="text-2xs text-amber-600">Owner / Admin access only by default</p>}
  </div>
@@ -859,15 +859,15 @@ export default function SettingsPanel({ settings }) {
 
  case 'terminals':
  return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-slow">
  <TerminalPairingSection storeSlug={store?.slug} />
  </div>
  );
 
  case 'taxes':
  return (
- <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-slow">
- <div className="bg-surface rounded-2xl border border-line p-6">
+ <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-slow">
+ <div className="bg-surface rounded-[14px] border border-line p-4">
  <SectionHeader title="Custom Tax Configurator" description="Define custom tax rates and brackets for B2B invoice billing" />
 
  <div className="space-y-4">
@@ -876,7 +876,7 @@ export default function SettingsPanel({ settings }) {
  <textarea
  value={data.tax_rates}
  onChange={(e) => setData('tax_rates', e.target.value)}
- className="w-full px-4 py-3 bg-app border border-line rounded-xl text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none"
+ className="w-full px-4 py-3 bg-app border border-line rounded-[12px] text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none"
  rows={10}
  placeholder='[{"id": 1, "name": "GST 18%", "rate": 18, "type": "percentage"}]'
  />
@@ -898,9 +898,9 @@ export default function SettingsPanel({ settings }) {
  <OneGlanceLayout mode="admin" title="Settings" activeMenu="Store Settings">
  <Head title="Settings" />
 
- <div className="h-full flex flex-col lg:flex-row gap-3 lg:gap-6 overflow-hidden">
+ <div className="h-full flex flex-col lg:flex-row gap-3 lg:gap-2 overflow-hidden">
  {/* Sidebar - Midnight Nebula Styled - Collapsible */}
- <div className={`${sidebarCollapsed ? 'w-full lg:w-20' : 'w-full lg:w-72'} ${mobileDetail ? 'max-lg:hidden' : 'max-lg:flex-1 max-lg:min-h-0'} bg-neutral-900 rounded-2xl border border-neutral-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
+ <div className={`${sidebarCollapsed ? 'w-full lg:w-20' : 'w-full lg:w-72'} ${mobileDetail ? 'max-lg:hidden' : 'max-lg:flex-1 max-lg:min-h-0'} bg-neutral-900 rounded-[14px] border border-neutral-800 shadow-sm p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-slow`}>
  {/* Nebula Background Elements */}
  <div className="absolute top-0 right-0 w-48 h-48 bg-brand-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-600/10 rounded-full blur-[40px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
@@ -912,7 +912,7 @@ export default function SettingsPanel({ settings }) {
  <button
  type="button"
  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
- className="w-10 h-10 rounded-xl bg-gradient-brand flex items-center justify-center text-white shadow-lg transition-transform shrink-0"
+ className="w-10 h-10 rounded-[12px] bg-gradient-brand flex items-center justify-center text-white shadow-sm transition-transform shrink-0"
  >
  <Settings size={20} className={`transition-transform ${sidebarCollapsed ? 'rotate-180' : ''}`} />
  </button>
@@ -966,8 +966,8 @@ export default function SettingsPanel({ settings }) {
  type="button"
  onClick={() => { setActiveSection(section.id); setMobileDetail(true); }}
  title={sidebarCollapsed ? section.name : undefined}
- className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-xl text-left transition-all duration-normal group relative overflow-hidden border ${isActive
- ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg '
+ className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-[12px] text-left transition-all duration-normal group relative overflow-hidden border ${isActive
+ ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-sm '
  : 'text-ink-muted hover:bg-white/5 hover:text-white border-transparent'
  }`}
  >
@@ -975,7 +975,7 @@ export default function SettingsPanel({ settings }) {
  <div className="absolute inset-0 bg-brand-600/20 opacity-100" />
  )}
 
- <div className={`relative z-10 w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800 group-hover:bg-interactive-hover'}`}>
+ <div className={`relative z-10 w-8 h-8 rounded-[12px] flex items-center justify-center shrink-0 transition-all duration-normal ${isActive ? 'bg-brand-500/30 shadow-[0_0_10px_rgba(99,102,241,0.4)]' : 'bg-neutral-800 group-hover:bg-interactive-hover'}`}>
  <Icon size={16} className={isActive ? 'text-white' : 'text-ink-muted group-hover:text-brand-400'} />
  </div>
 
@@ -999,7 +999,7 @@ export default function SettingsPanel({ settings }) {
  </div>
 
  {/* Content Area */}
- <div className={`${mobileDetail ? '' : 'max-lg:hidden'} flex-1 min-h-0 bg-surface rounded-2xl border border-line shadow-2xl flex flex-col overflow-hidden relative`}>
+ <div className={`${mobileDetail ? '' : 'max-lg:hidden'} flex-1 min-h-0 bg-surface rounded-[14px] border border-line shadow-sm flex flex-col overflow-hidden relative`}>
  <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full -mr-48 -mt-48 blur-[100px] pointer-events-none" />
  <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-500/5 rounded-full -ml-48 -mb-48 blur-[100px] pointer-events-none" />
 
@@ -1012,7 +1012,7 @@ export default function SettingsPanel({ settings }) {
  <div className="flex flex-wrap items-center justify-between gap-y-2">
  <div>
  <div className="flex items-center gap-3 mb-2">
- <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-full">Section</span>
+ <span className="px-3 py-1 bg-brand-100 dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 text-2xs font-bold uppercase tracking-[0.2em] rounded-[12px]">Section</span>
  <h2 className="text-xl sm:text-3xl font-bold text-ink tracking-tight">
  {SETTINGS_SECTIONS.find(s => s.id === activeSection)?.name}
  </h2>
@@ -1025,7 +1025,7 @@ export default function SettingsPanel({ settings }) {
  <button
  type="submit"
  disabled={processing || !isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)}
- className={`relative group px-4 sm:px-10 py-4 rounded-2xl font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-2xl ${(!isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+ className={`relative group px-4 sm:px-10 py-4 rounded-[14px] font-bold text-sm transition-all duration-slower transform active:scale-95 overflow-hidden shadow-sm ${(!isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
  >
  {/* Midnight Nebula Background for Button */}
  <div className="absolute inset-0 bg-neutral-900 z-0">

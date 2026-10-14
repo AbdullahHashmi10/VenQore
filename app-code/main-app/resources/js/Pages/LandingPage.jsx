@@ -199,7 +199,7 @@ export default function LandingPage() {
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>13,500+ tests &amp; 60,000+ assertions</b> verified before every update</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>6,700+ tests &amp; 135,000+ assertions</b> verified before every update</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
       {/*  Seamless Loop Duplicate  */}
@@ -207,7 +207,7 @@ export default function LandingPage() {
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>140+ universal features</b> ready to assemble for your business</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>Eight correctness laws</b> run against every reading on every release</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>One Core Ledger</b> under every module, so no two screens disagree</span>
-      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>13,500+ tests &amp; 60,000+ assertions</b> verified before every update</span>
+      <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>6,700+ tests &amp; 135,000+ assertions</b> verified before every update</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>8 invariant rules</b> run on every transaction post</span>
       <span className="vq-ticker-item"><span className="vq-ticker-dot"></span><b>0 balance drift</b> with immutable double-entry ledger</span>
     </div>
@@ -235,8 +235,8 @@ export default function LandingPage() {
             <span className="vq-trust__s">Universal business building blocks ready to assemble for your exact workflow.</span>
           </div>
           <div className="vq-trust__cell">
-            <span className="vq-trust__n" data-count="13500" data-count-suf="+">0</span>
-            <span className="vq-trust__l">13,500+ TESTS &amp; 60,000+ ASSERTIONS</span>
+            <span className="vq-trust__n" data-count="6700" data-count-suf="+">0</span>
+            <span className="vq-trust__l">6,700+ TESTS &amp; 135,000+ ASSERTIONS</span>
             <span className="vq-trust__s">Every single feature, calculation, and ledger invariant is verified before updates ship to production.</span>
           </div>
           <div className="vq-trust__cell">
@@ -1269,8 +1269,8 @@ export default function LandingPage() {
             <span className="vq-proof__s">Universal business modules assembled specifically for your business model with zero extraneous clutter.</span>
           </div>
           <div className="vq-spot" data-par="0.07">
-            <span className="vq-proof__n" data-count="13500" data-count-suf="+">0</span>
-            <span className="vq-proof__l">13,500+ TESTS &amp; 60,000+ ASSERTIONS</span>
+            <span className="vq-proof__n" data-count="6700" data-count-suf="+">0</span>
+            <span className="vq-proof__l">6,700+ TESTS &amp; 135,000+ ASSERTIONS</span>
             <span className="vq-proof__s">Automated tests guarding every single calculation, balance sheet integrity check, and ledger posting invariant before every release.</span>
           </div>
           <div className="vq-spot" data-par="0.11">
@@ -1288,7 +1288,7 @@ export default function LandingPage() {
         <div className="vq-founder vq-reveal">
           <span className="vq-kicker">ENGINEERED FOR MATHEMATICAL CERTAINTY</span>
           <p>VenQore was built on a single core principle: accounting and inventory software should never lose a single cent, mismatch a receipt, or hallucinate a ledger balance.</p>
-          <p>Every single detail is tested before any update or release. Every transaction posts through an immutable double-entry ledger verified against 8 strict accounting laws, 13,500+ automated tests, and 60,000+ deep assertions before anything is committed to your books.</p>
+          <p>Every single detail is tested before any update or release. Every transaction posts through an immutable double-entry ledger verified against 8 strict accounting laws, 6,700+ automated tests, and 135,000+ deep assertions before anything is committed to your books.</p>
           <b>&mdash; The VenQore Engineering Team</b>
           <a className="vq-link" href="/about">Read our technical architecture &rarr;</a>
         </div>
@@ -1319,7 +1319,7 @@ export default function LandingPage() {
           </div>
           <div className="vq-faq__item">
             <button className="vq-faq__q" type="button" aria-expanded="false">How is support and engineering handled?<span className="vq-faq__sign"></span></button>
-            <div className="vq-faq__a"><div><p>VenQore is built and maintained by dedicated systems and accounting engineers. You get direct support from product specialists who deploy weekly improvements and verify every single feature against 13,500+ automated tests and 60,000+ deep assertions before updates go live.</p></div></div>
+            <div className="vq-faq__a"><div><p>VenQore is built and maintained by dedicated systems and accounting engineers. You get direct support from product specialists who deploy weekly improvements and verify every single feature against 6,700+ automated tests and 135,000+ deep assertions before updates go live.</p></div></div>
           </div>
         </div>
       </div>

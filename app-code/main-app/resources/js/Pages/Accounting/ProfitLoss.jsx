@@ -1,116 +1,90 @@
-﻿import React from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
-import { Head, Link, usePage } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
-import PageHeader from '@/Components/PageHeader';
-import {
-    ArrowLeft,
-    TrendingUp,
-    TrendingDown,
-    Download,
-    PieChart,
-    ArrowRight
-} from 'lucide-react';
+import React from 'react';
+import { usePage } from '@inertiajs/react';
+import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { DonutChart, RankBars, TrendChart } from '@/Components/Reports/ReportCharts';
 
-export default function ProfitLoss({ incomeAccounts, expenseAccounts, totalIncome, totalExpense, netProfit }) {
-    const { store } = usePage().props;
+function AccountsTable({ title, icon, tone, accounts = [], total, totalClass }) {
     return (
-        <ReportsLayout title="Profit & Loss Statement">
-            <Head title="Profit & Loss" />
+        <ReportSection title={title} icon={icon} tone={tone} flush>
+            <ReportTable
+                columns={[
+                    { key: 'name', label: 'Account', render: (a) => <span className="font-bold text-ink-secondary">{a.name}</span> },
+                    { key: 'balance', label: 'Amount', align: 'right', get: (a) => parseFloat(a.balance) || 0, render: (a) => <span className="font-bold tabular-nums text-ink">{formatCurrency(parseFloat(a.balance) || 0)}</span> },
+                ]}
+                rows={accounts}
+                rowKey={(a, i) => a.id ?? i}
+                totals={{ name: `Total ${title}`, balance: <span className={totalClass}>{formatCurrency(total)}</span> }}
+                pageSize={0}
+            />
+        </ReportSection>
+    );
+}
 
-            <div className="h-full flex flex-col gap-6 p-6 overflow-hidden">
+export default function ProfitLoss({ incomeAccounts = [], expenseAccounts = [], totalIncome = 0, totalExpense = 0, netProfit = 0 }) {
+    usePage();
+    const rank = (list) => list
+        .map((a) => ({ label: a.name, value: Math.abs(parseFloat(a.balance) || 0) }))
+        .filter((a) => a.value > 0)
+        .sort((a, b) => b.value - a.value);
+    const incomeRank = rank(incomeAccounts);
+    const expenseRank = rank(expenseAccounts);
 
-                <PageHeader
-                    title="Profit & Loss"
-                    subtitle="Income and expenses summary"
-                    icon={PieChart}
-                    breadcrumbs={[
-                        { label: 'Money' },
-                        { label: 'Accounting' },
-                        { label: 'Profit & Loss' }
-                    ]}
-                    actions={
-                        <button className="flex items-center gap-2 px-4 py-2 bg-surface border border-line rounded-xl font-bold text-ink-secondary hover:bg-interactive-hover transition-all shadow-sm">
-                            <Download size={18} /> Export PDF
-                        </button>
-                    }
-                />
+    return (
+        <ReportShell
+            title="Profit & Loss"
+            subtitle="Income and expenses summary"
+            activeKey="profit-loss"
+            exportConfig={{
+                filename: 'profit-and-loss',
+                columns: [
+                    { label: 'Section', get: (r) => r.section },
+                    { label: 'Account', get: (r) => r.name },
+                    { label: 'Amount', get: (r) => r.balance },
+                ],
+                rows: [
+                    ...incomeAccounts.map((a) => ({ section: 'Income', ...a })),
+                    ...expenseAccounts.map((a) => ({ section: 'Expense', ...a })),
+                ],
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Net Profit', value: formatCurrency(netProfit), icon: netProfit >= 0 ? TrendingUp : TrendingDown, tone: netProfit >= 0 ? 'emerald' : 'rose', valueTone: netProfit >= 0 ? 'emerald' : 'rose', trend: netProfit >= 0 ? 'up' : 'down' },
+                { label: 'Total Income', value: formatCurrency(totalIncome), icon: TrendingUp, tone: 'emerald' },
+                { label: 'Total Expenses', value: formatCurrency(totalExpense), icon: TrendingDown, tone: 'rose' },
+                { label: 'Margin', value: totalIncome > 0 ? `${((netProfit / totalIncome) * 100).toFixed(1)}%` : '-', icon: Wallet, tone: 'brand' },
+            ]} />
 
-                <div className="overflow-y-auto custom-scrollbar flex-1">
+            <ReportGrid>
+                <ReportCol span={4}>
+                    <ReportSection title="Income vs expenses">
+                        <TrendChart
+                            series={[{ name: 'Amount', points: [{ x: 'Income', y: Number(totalIncome) || 0 }, { x: 'Expenses', y: Number(totalExpense) || 0 }] }]}
+                            type="bar" height={240} legend={false}
+                        />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Income sources">
+                        <DonutChart slices={incomeRank.map((r) => ({ name: r.label, value: r.value }))} height={240} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="Top expenses">
+                        <RankBars items={expenseRank} limit={5} colorIndex={1} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
 
-                    {/* Net Profit Card */}
-                    <div className={`mb-8 p-4 sm:p-8 rounded-2xl border ${netProfit >= 0 ? 'bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900/30' : 'bg-rose-50 border-rose-100 dark:bg-rose-900/10 dark:border-rose-900/30'} flex flex-col md:flex-row justify-between items-center gap-6`}>
-                        <div className="flex items-center gap-6">
-                            <div className={`p-4 rounded-2xl ${netProfit >= 0 ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'} shadow-lg`}>
-                                {netProfit >= 0 ? <TrendingUp size={32} /> : <TrendingDown size={32} />}
-                            </div>
-                            <div>
-                                <p className={`text-sm font-bold uppercase tracking-widest ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>Net Profit</p>
-                                <h3 className={`text-2xl sm:text-4xl font-bold ${netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                                    {getCurrencySymbol()} {netProfit.toLocaleString()}
-                                </h3>
-                            </div>
-                        </div>
-                        <div className="flex gap-8 text-right">
-                            <div>
-                                <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-1">Total Income</p>
-                                <p className="text-xl font-bold text-ink-secondary">{getCurrencySymbol()} {totalIncome.toLocaleString()}</p>
-                            </div>
-                            <div className="w-px h-10 bg-sunken"></div>
-                            <div>
-                                <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-1">Total Expenses</p>
-                                <p className="text-xl font-bold text-ink-secondary">{getCurrencySymbol()} {totalExpense.toLocaleString()}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Income Section */}
-                        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
-                            <div className="p-6 border-b border-line bg-emerald-50/30 dark:bg-emerald-900/5">
-                                <h3 className="text-lg font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
-                                    <TrendingUp size={20} />
-                                    Operating Income
-                                </h3>
-                            </div>
-                            <div className="divide-y divide-line">
-                                {incomeAccounts.map(account => (
-                                    <div key={account.id} className="p-4 flex justify-between items-center hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                        <span className="text-sm font-bold text-ink-secondary">{account.name}</span>
-                                        <span className="text-sm font-bold text-ink">{getCurrencySymbol()} {parseFloat(account.balance).toLocaleString()}</span>
-                                    </div>
-                                ))}
-                                <div className="p-6 bg-app flex justify-between items-center">
-                                    <span className="text-sm font-bold text-ink uppercase tracking-widest">Total Income</span>
-                                    <span className="text-lg font-bold text-emerald-600">{getCurrencySymbol()} {totalIncome.toLocaleString()}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Expense Section */}
-                        <div className="bg-surface rounded-2xl border border-line overflow-hidden shadow-sm">
-                            <div className="p-6 border-b border-line bg-rose-50/30 dark:bg-rose-900/5">
-                                <h3 className="text-lg font-bold text-rose-700 dark:text-rose-400 flex items-center gap-2">
-                                    <TrendingDown size={20} />
-                                    Operating Expenses
-                                </h3>
-                            </div>
-                            <div className="divide-y divide-line">
-                                {expenseAccounts.map(account => (
-                                    <div key={account.id} className="p-4 flex justify-between items-center hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                        <span className="text-sm font-bold text-ink-secondary">{account.name}</span>
-                                        <span className="text-sm font-bold text-ink">{getCurrencySymbol()} {parseFloat(account.balance).toLocaleString()}</span>
-                                    </div>
-                                ))}
-                                <div className="p-6 bg-app flex justify-between items-center">
-                                    <span className="text-sm font-bold text-ink uppercase tracking-widest">Total Expenses</span>
-                                    <span className="text-lg font-bold text-rose-600">{getCurrencySymbol()} {totalExpense.toLocaleString()}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </ReportsLayout>
+            <ReportGrid>
+                <ReportCol span={6}>
+                    <AccountsTable title="Income" icon={TrendingUp} tone="emerald" accounts={incomeAccounts} total={totalIncome} totalClass="text-emerald-600" />
+                </ReportCol>
+                <ReportCol span={6}>
+                    <AccountsTable title="Expenses" icon={TrendingDown} tone="rose" accounts={expenseAccounts} total={totalExpense} totalClass="text-rose-600" />
+                </ReportCol>
+            </ReportGrid>
+        </ReportShell>
     );
 }

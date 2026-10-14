@@ -1,5 +1,22 @@
 import axios from 'axios';
+import { reportRequest, isOnline } from './lib/connectivity';
+import { writeAllowedOffline } from './lib/offlinePolicy';
 window.axios = axios;
+
+// Did this request go to our own server? A failing third-party call must not look like "we are offline".
+const isSameOrigin = (config) => {
+    try { return new URL(config?.url || '', config?.baseURL || window.location.origin).origin === window.location.origin; }
+    catch { return true; }
+};
+let lastOfflineBlockToast = 0;
+const notifyOfflineBlocked = () => {
+    const now = Date.now();
+    if (now - lastOfflineBlockToast < 4000) return;
+    lastOfflineBlockToast = now;
+    window.dispatchEvent(new CustomEvent('amd:toast', {
+        detail: { message: "You're offline. Saving needs internet. The POS till still works.", type: 'warning' },
+    }));
+};
 
 // Automatically rewrite local development URLs (like 127.0.0.1:8000 or localhost:8000)
 // to match the actual domain/port the user is visiting from. This prevents ERR_CONNECTION_REFUSED
@@ -14,6 +31,16 @@ window.axios.interceptors.request.use(
                 const path = config.url.replace(localRegex, '');
                 config.url = `${window.location.origin}${path}`;
             }
+        }
+        // Offline: refuse to save anything half-way. The POS till keeps its own durable queue
+        // (Hooks/useOfflineSync) and does not go through here while offline.
+        const method = String(config.method || 'get').toLowerCase();
+        if (method !== 'get' && method !== 'head' && !isOnline() && !config._allowOffline && !writeAllowedOffline(config.url)) {
+            notifyOfflineBlocked();
+            const blocked = new Error('You are offline. This action needs internet.');
+            blocked.isOfflineBlocked = true;
+            blocked.config = config;
+            return Promise.reject(blocked);
         }
         return config;
     },
@@ -77,6 +104,7 @@ document.addEventListener('inertia:success', syncCsrfFromPage);
 // Global Response Handler - Dispatch toast events for all AJAX responses
 window.axios.interceptors.response.use(
     response => {
+        reportRequest({ ok: true, sameOrigin: isSameOrigin(response.config) });
         // Check if response has success message - dispatch toast event (only if message is a string)
         if (response.data && response.data.success && response.data.message && typeof response.data.message === 'string') {
             window.dispatchEvent(new CustomEvent('amd:toast', {
@@ -86,6 +114,14 @@ window.axios.interceptors.response.use(
         return response;
     },
     async error => {
+        // Our own offline guard (request interceptor above): already explained to the person.
+        if (error?.isOfflineBlocked) return Promise.reject(error);
+
+        // Feed the shared connectivity state: any server answer = reachable; no answer at all = not.
+        const wasOnline = isOnline();
+        if (error?.response) reportRequest({ ok: true, sameOrigin: isSameOrigin(error.config) });
+        else if (error?.code === 'ERR_NETWORK') reportRequest({ ok: false, sameOrigin: isSameOrigin(error.config) });
+
         // Handle 419 Token Mismatch — Silently repair and retry.
         // This is the "invisible shield": we handle this immediately and silently.
         if (error.response && error.response.status === 419) {
@@ -222,11 +258,13 @@ window.axios.interceptors.response.use(
 
         if (!error.response || (error.response.status >= 500 && error.response.status !== 503 && !hasSpecificError)) {
             const isOffline = !error.response || error.code === 'ERR_NETWORK';
+            // Already offline: the offline notice at the bottom of the screen explains it; do not stack error pop-ups.
+            if (isOffline && !wasOnline) return Promise.reject(error);
 
             window.dispatchEvent(new CustomEvent('amd:network-error', {
                 detail: {
                     message: isOffline
-                        ? 'Connection lost. Please check your internet.'
+                        ? "Can't reach VenQore. Check your internet connection. The POS till keeps working and saves sales on this device."
                         : 'We encountered an unexpected issue. Our team is working on it.'
                 }
             }));

@@ -20,7 +20,7 @@ export default function Toggle({
         <div className={`flex flex-wrap items-center justify-between gap-y-2 py-3.5 ${isDisabled ? 'opacity-60 grayscale-[0.5]' : ''} ${className}`}>
             <div className="flex items-center gap-3.5 flex-1 pr-4 min-w-0">
                 {Icon && (
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center shrink-0 transition-colors ${
                         isChecked 
                             ? 'bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400' 
                             : 'bg-app text-ink-muted'
@@ -30,27 +30,27 @@ export default function Toggle({
                 )}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <p className={`font-bold text-sm leading-snug ${variant === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-ink'}`}>
+                        <p className={`font-bold text-base leading-snug ${variant === 'danger' ? 'text-red-600 dark:text-red-400' : 'text-ink'}`}>
                             {label}
                         </p>
                         {upcoming && (
-                            <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-4xs font-bold uppercase tracking-wider rounded border border-amber-200 dark:border-amber-500/30">
+                            <span className="px-1.5 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-2xs font-bold uppercase tracking-wider rounded-[6px] border border-amber-200 dark:border-amber-500/30">
                                 Upcoming
                             </span>
                         )}
                         {comingSoon && (
-                            <span className="px-1.5 py-0.5 bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 text-4xs font-bold uppercase tracking-wider rounded border border-sky-200 dark:border-sky-500/30">
+                            <span className="px-1.5 py-0.5 bg-sky-100 dark:bg-sky-500/20 text-sky-600 dark:text-sky-400 text-2xs font-bold uppercase tracking-wider rounded-[6px] border border-sky-200 dark:border-sky-500/30">
                                 Coming Soon
                             </span>
                         )}
                         {variant === 'danger' && (
-                            <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-4xs font-bold uppercase tracking-wider rounded border border-red-200 dark:border-red-500/30">
+                            <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-2xs font-bold uppercase tracking-wider rounded-[6px] border border-red-200 dark:border-red-500/30">
                                 Warning
                             </span>
                         )}
                     </div>
                     {description && (
-                        <p className={`text-xs mt-0.5 leading-relaxed ${variant === 'danger' ? 'text-red-500/80' : 'text-ink-muted'}`}>
+                        <p className={`text-sm mt-0.5 leading-relaxed ${variant === 'danger' ? 'text-red-500/80' : 'text-ink-muted'}`}>
                             {description}
                         </p>
                     )}

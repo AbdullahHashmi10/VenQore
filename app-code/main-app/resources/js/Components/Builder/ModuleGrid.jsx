@@ -33,6 +33,8 @@ export default function ModuleGrid({
     active = [],
     locked = {},
     onToggle,
+    onSelectAll,
+    onDeselectAll,
     searchable = true,
 }) {
     const still = useReducedMotion();
@@ -40,7 +42,7 @@ export default function ModuleGrid({
 
     const rows = useMemo(() => {
         const q = query.trim().toLowerCase();
-        const matched = catalogue.filter((m) => {
+        return catalogue.filter((m) => {
             if (!q) return true;
             return (
                 (m.label || '').toLowerCase().includes(q) ||
@@ -48,37 +50,56 @@ export default function ModuleGrid({
                 m.key.toLowerCase().includes(q)
             );
         });
-        /* On first, then registry order within each half. */
-        return [
-            ...matched.filter((m) => active.includes(m.key)),
-            ...matched.filter((m) => !active.includes(m.key)),
-        ];
-    }, [catalogue, active, query]);
+    }, [catalogue, query]);
 
     return (
         <div>
             {searchable && (
-                <div className="relative mb-4">
-                    <Search
-                        size={15}
-                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
-                    />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search everything VenQore can do…"
-                        className="h-11 w-full rounded-md border border-line bg-surface pl-10 pr-10 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                    />
-                    {query && (
-                        <button
-                            type="button"
-                            onClick={() => setQuery('')}
-                            aria-label="Clear search"
-                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-faint transition-colors duration-fast ease-standard hover:bg-interactive-hover hover:text-ink"
-                        >
-                            <X size={14} />
-                        </button>
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="relative flex-1">
+                        <Search
+                            size={15}
+                            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
+                        />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search everything VenQore can do…"
+                            className="h-11 w-full rounded-md border border-line bg-surface pl-10 pr-10 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                        />
+                        {query && (
+                            <button
+                                type="button"
+                                onClick={() => setQuery('')}
+                                aria-label="Clear search"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-faint transition-colors duration-fast ease-standard hover:bg-interactive-hover hover:text-ink"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                    {(onSelectAll || onDeselectAll) && (
+                        <div className="flex shrink-0 items-center gap-2">
+                            {onSelectAll && (
+                                <button
+                                    type="button"
+                                    onClick={onSelectAll}
+                                    className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-surface px-3.5 text-xs font-semibold text-ink transition-colors duration-fast ease-standard hover:border-line-strong hover:bg-interactive-hover"
+                                >
+                                    Select all
+                                </button>
+                            )}
+                            {onDeselectAll && (
+                                <button
+                                    type="button"
+                                    onClick={onDeselectAll}
+                                    className="inline-flex h-11 items-center justify-center rounded-md border border-line bg-surface px-3.5 text-xs font-semibold text-ink-secondary transition-colors duration-fast ease-standard hover:border-line-strong hover:bg-interactive-hover hover:text-ink"
+                                >
+                                    Deselect all
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

@@ -11,18 +11,31 @@ import {
  ToggleRight
 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
+import { ListPageFrame, ListToolbar } from '@/Components/ListShell';
 
 export default function OnlineStoreIndex() {
  const [storeEnabled, setStoreEnabled] = useState(false);
  const tt = useTermText();
 
  return (
- <OneGlanceLayout title="Online Store" activeMenu="Online Store">
+ <OneGlanceLayout title="Online Store" activeMenu="Online Store" noPadding>
  <Head title="Online Store Management" />
 
- <div className="space-y-6">
+ <ListPageFrame className="p-1.5">
+ <ListToolbar
+ title="Online Store"
+ actions={(
+ <>
+ <span className="text-sm font-medium text-ink-secondary">Store Status: {storeEnabled ? 'Live' : 'Hidden'}</span>
+ <button type="button" onClick={() => setStoreEnabled(!storeEnabled)} aria-label="Toggle store status" className={`transition-colors ${storeEnabled ? 'text-emerald-500' : 'text-neutral-300'}`}>
+ {storeEnabled ? <ToggleRight size={36} /> : <ToggleLeft size={36} />}
+ </button>
+ </>
+ )}
+ />
+ <div className="space-y-6 md:space-y-0 md:flex md:flex-col md:gap-6 md:flex-1 md:min-h-0 md:overflow-auto">
  {/* Header */}
- <div className="flex justify-between items-center">
+ <div className="flex justify-between items-center md:hidden">
  <div>
  <h1 className="text-2xl font-bold text-ink flex items-center gap-3">
  <div className="p-2 bg-brand-100 dark:bg-brand-900/30 rounded-xl">
@@ -90,6 +103,7 @@ export default function OnlineStoreIndex() {
  <p className="text-ink-muted mt-2">Themes, Custom Domain, and Advanced SEO tools will be available in the next update.</p>
  </div>
  </div>
+ </ListPageFrame>
  </OneGlanceLayout>
  );
 }

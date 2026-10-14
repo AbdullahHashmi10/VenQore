@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Lock, Monitor, UtensilsCrossed, ArrowUpRight } from 'lucide-react';
+import { Lock, Monitor, UtensilsCrossed, ArrowUpRight, Plus, Undo2, ArrowDownLeft, ArrowUpRight as ArrowOut } from 'lucide-react';
 import { useNavLabel, useTermText } from '@/lib/terms';
 import { isReportLocked } from '@/lib/reportPlanMap';
 import { SubIcon } from '@/lib/navIcons';
@@ -34,7 +34,7 @@ const SPRING = { type: 'spring', duration: 0.5, bounce: 0.06 };
 const GLASS = 'bg-surface border border-line shadow-xl';
 const PANEL_SPRING = { type: 'spring', duration: 0.42, bounce: 0.08 };
 
-function resolveLink(sub, routeParams, planFeatures, auth, store) {
+export function resolveLink(sub, routeParams, planFeatures, auth, store) {
     const label = typeof sub === 'object' ? sub.label : sub;
     const base = (typeof sub === 'object' && sub.route) ? sub.route : subItemRoute(label, auth);
     if (!base) return { label, disabled: true };
@@ -49,7 +49,19 @@ function resolveLink(sub, routeParams, planFeatures, auth, store) {
     return { label, href, locked };
 }
 
-export default function DockNav({ items, isItemActive, pos, vertical = false, footer = null, labelMode = 'beside' }) {
+/* The one thing people open each module to do. Rendered as buttons beside "Open".
+   `query` pages open their own "new" form when they see ?new=1. */
+const QUICK_ACTIONS = {
+    Sell:     [{ label: 'New invoice',  route: 'store.sales.invoice.create', perms: ['sales.create'], draftKinds: ['Invoices', 'Sales'] },
+               { label: 'New return',   route: 'store.returns.create', perms: ['sales.returns'], icon: 'return', draftKinds: ['Returns'] }],
+    Purchase: [{ label: 'New purchase', route: 'store.purchases.create', perms: ['purchases.create', 'purchases'], draftKinds: ['Purchases'] },
+               { label: 'New return',   route: 'store.debit-notes.create', perms: ['purchases.returns'], icon: 'return', draftKinds: ['Debit notes'] }],
+    Stock:    [{ label: 'Add product',  route: 'store.inventory.index', perms: ['inventory.create'], query: { new: 1 } }],
+    Contacts: [{ label: 'Add contact',  route: 'store.parties.index', perms: ['sales.create', 'purchases.suppliers'], query: { new: 1 } }],
+    Money:    [{ label: 'Money in', route: 'store.payments.in', tone: 'in' }, { label: 'Money out', route: 'store.payments.out', tone: 'out' }],
+};
+
+export default function DockNav({ items, isItemActive, pos, vertical = false, footer = null, drafts = {}, labelMode = 'beside' }) {
     const { store, planFeatures = {}, auth } = usePage().props;
     const tt = useTermText();
     const navLabel = useNavLabel();
@@ -80,14 +92,27 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
                 links: (g.items || []).filter(Boolean).map((s) => resolveLink(s, params, planFeatures, auth, store)).filter(Boolean),
             }))
             .filter((g) => g.links.length > 0);
+        const lb = item.linkBadges || {};
+        groups.forEach((g) => g.links.forEach((l) => { l.badge = lb[l.label] || 0; }));
+        const actions = (QUICK_ACTIONS[item.name] || [])
+            .filter((a) => window.route().has(a.route))
+            .filter((a) => {
+                const u = auth?.user || {};
+                if (!a.perms || ['owner', 'admin', 'manager'].includes(u.role) || u.is_platform_admin) return true;
+                const mine = u.permissions || [];
+                return a.perms.some((k) => mine.some((p) => p === k || p.startsWith(k + '.')));
+            })
+            .map((a) => ({ ...a, open: (drafts[item.name] || []).filter((d) => (a.draftKinds || []).includes(d.kind)).length, href: window.route(a.route, { ...(params || {}), ...(a.query || {}) }) }));
         const linkCount = groups.reduce((n, g) => n + g.links.filter((l) => !l.disabled).length, 0);
         return {
             key: item.name,
             label: tt(item.name),
             icon: item.icon,
-            badge: item.badgeCount || 0,
+            badge: (item.badgeCount || 0) + (drafts[item.name] || []).length,
+            drafts: drafts[item.name] || [],
             href: item.route && window.route().has(item.route) ? window.route(item.route, params) : null,
             groups,
+            actions,
             hasPanel: linkCount > 1,
             item,
         };
@@ -164,7 +189,7 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
 
     const openEntry = entries.find((e) => e.key === openKey);
     const cols = openEntry ? Math.min(Math.max(openEntry.groups.length, 1), vertical ? 4 : 3) : 1;
-    const panelW = Math.min(cols * COL_W + (cols - 1) * 8 + 16, vw - 16);
+    const panelW = Math.min(Math.max(cols * COL_W + (cols - 1) * 8 + 16, 300), vw - 16);
     const panelLeft = panelPos ? (vertical ? panelPos.left : Math.min(Math.max(panelPos.center - panelW / 2, 8), vw - panelW - 8)) : 0;
     const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
     const panelTop = panelPos && vertical ? Math.max(8, Math.min(panelPos.top, vh - 260)) : 0;
@@ -189,6 +214,7 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
                 onFocus={() => { enterBar(); setHoverKey(entry.key); }}
                 onClick={() => onTab(entry)}
                 onDoubleClick={() => onTabDouble(entry)}
+                onKeyDown={(e) => onTabKey(e, entry.key)}
                 style={{ paddingLeft: PAD_L }}
                 className={`relative shrink-0 h-10 flex items-center justify-start overflow-hidden rounded-[12px] text-sm font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500/60
                     ${active ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400'
@@ -213,6 +239,20 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
         );
     };
 
+    // Roving keyboard focus: arrows move between tabs (left/right for the dock, up/down for the rail).
+    const onTabKey = (e, key) => {
+        const order = [...leftEntries, ...rightEntries].map((x) => x.key);
+        const i = order.indexOf(key);
+        const prev = vertical ? 'ArrowUp' : 'ArrowLeft';
+        const next = vertical ? 'ArrowDown' : 'ArrowRight';
+        let to = null;
+        if (e.key === next) to = order[(i + 1) % order.length];
+        else if (e.key === prev) to = order[(i - 1 + order.length) % order.length];
+        else if (e.key === 'Home') to = order[0];
+        else if (e.key === 'End') to = order[order.length - 1];
+        if (to) { e.preventDefault(); tabRefs.current[to]?.focus(); }
+    };
+
     const PosIcon = pos?.foh ? UtensilsCrossed : Monitor;
 
     const renderVTab = (entry) => {
@@ -233,6 +273,7 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
             onFocus: () => { enterBar(); setHoverKey(entry.key); },
             onClick: () => onTab(entry),
             onDoubleClick: () => onTabDouble(entry),
+            onKeyDown: (e) => onTabKey(e, entry.key),
         };
         const badge = entry.badge > 0 && (
             <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold leading-4 text-center">
@@ -288,17 +329,38 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
                             exit={reduce ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.98, filter: 'blur(3px)', transition: { duration: 0.1 } }}
                             transition={PANEL_SPRING}
                             style={vertical ? { transformOrigin: '0% 20px', maxHeight: `calc(100vh - ${panelTop}px - 12px)` } : { transformOrigin: `${panelPos.center - panelLeft}px 100%`, maxHeight: 'calc(100vh - 140px)' }}
-                            className={`overflow-y-auto overscroll-contain rounded-[14px] p-2 ${GLASS}`}
+                            className={`overflow-y-auto overflow-x-hidden overscroll-contain rounded-[14px] p-2 ${GLASS}`}
                             role="menu"
                         >
-                            <div className="flex items-center justify-between gap-2 px-2.5 pt-1.5 pb-2">
-                                <span className="text-sm font-bold text-ink">{openEntry.label}</span>
+                            <div className="flex items-center justify-between gap-1 px-2.5 pt-1.5 pb-2 flex-wrap">
+                                <span className="text-sm font-bold text-ink mr-auto">{openEntry.label}</span>
+                                {openEntry.actions.map((a) => (
+                                    <Link key={a.label} href={a.href} onClick={closePanel}
+                                        className="h-7 px-2 rounded-[10px] text-xs font-semibold flex items-center gap-1 whitespace-nowrap text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors">
+                                        {a.tone === 'in' ? <ArrowDownLeft size={12} /> : a.tone === 'out' ? <ArrowOut size={12} /> : a.icon === 'return' ? <Undo2 size={12} /> : <Plus size={12} />} {a.label}
+                                        {a.open > 0 && <span className="ml-0.5 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold leading-4 text-center">{a.open}</span>}
+                                    </Link>
+                                ))}
                                 {openEntry.href && (
-                                    <Link href={openEntry.href} onClick={closePanel} className="h-7 px-2.5 rounded-[12px] text-xs font-semibold text-brand-700 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10 hover:bg-brand-100 flex items-center gap-1 transition-colors">
+                                    <Link href={openEntry.href} onClick={closePanel} className="h-7 px-2 rounded-[10px] text-xs font-semibold text-brand-700 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 flex items-center gap-1 whitespace-nowrap transition-colors">
                                         Open <ArrowUpRight size={12} />
                                     </Link>
                                 )}
                             </div>
+                            {openEntry.drafts.length > 0 && (
+                                <div className="mx-1 mb-2 rounded-[12px] border border-amber-300/60 bg-amber-50 dark:bg-amber-500/10 p-1.5">
+                                    <p className="px-1.5 pb-1 text-2xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                                        {openEntry.drafts.length} unfinished — pick up where you left off
+                                    </p>
+                                    {openEntry.drafts.map((d) => (
+                                        <button key={d.id} type="button" onClick={() => { closePanel(); d.onOpen(); }}
+                                            className="w-full flex items-center justify-between gap-2 h-8 px-2 rounded-[10px] text-sm text-ink hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors text-left">
+                                            <span className="truncate"><span className="text-ink-muted text-xs mr-1.5">{d.kind}</span>{d.title}</span>
+                                            <span className="shrink-0 text-xs text-ink-muted">{d.meta}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                             <div className="grid gap-x-2 gap-y-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
                                 {openEntry.groups.map((g) => (
                                     <div key={g.group} className="pb-1">
@@ -315,6 +377,11 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
                                                 className="flex items-center justify-between gap-2 h-8 px-2.5 rounded-[12px] text-sm text-ink hover:bg-interactive-hover hover:text-brand-700 dark:hover:text-brand-400 transition-colors"
                                             >
                                                 <span className="flex items-center gap-2 min-w-0"><SubIcon label={l.label} className="text-ink-muted" /><span className="truncate">{navLabel(l.label)}</span></span>
+                                                {l.badge > 0 && (
+                                                    <span className="shrink-0 flex items-center gap-1 min-w-[18px] h-[18px] px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-bold leading-[18px] justify-center">
+                                                        {l.badge > 99 ? '99+' : l.badge}
+                                                    </span>
+                                                )}
                                                 {l.locked && <Lock size={12} className="shrink-0 text-amber-500" />}
                                             </Link>
                                         ))}

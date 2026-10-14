@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
@@ -16,12 +16,30 @@ import {
     Trophy
 } from 'lucide-react';
 import MidnightNebula from '@/Components/MidnightNebula';
-import SellModuleTabs from '@/Components/SellModuleTabs';
+import SellModuleTabs, { useSellNavGroups } from '@/Components/SellModuleTabs';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 import { useTermText } from '@/lib/terms';
 
-export default function SalesDashboard({ stats, recentSales, salesByMethod, topSelling }) {
+function useIsDesktop() {
+    const q = '(min-width: 768px)';
+    const [on, setOn] = useState(() => (typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(q).matches : true));
+    useEffect(() => {
+        const m = window.matchMedia(q);
+        const h = () => setOn(m.matches);
+        h();
+        m.addEventListener('change', h);
+        return () => m.removeEventListener('change', h);
+    }, []);
+    return on;
+}
+
+export default function SalesDashboard({ stats, recentSales, salesByMethod, topSelling, revenueTrend = [], topCustomers = [] }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    const sellNavGroups = useSellNavGroups();
+    const isDesktop = useIsDesktop();
 
     if (!stats) {
         return (
@@ -60,15 +78,89 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
         );
     };
 
+    const money = (v) => formatCurrency(Number(v || 0), store);
+    const trend = (g) => (g > 0 ? 'up' : g < 0 ? 'down' : undefined);
+    const profit30 = (revenueTrend || []).reduce((a, r) => a + Number(r.profit || 0), 0);
+    const rev30 = (revenueTrend || []).reduce((a, r) => a + Number(r.revenue || 0), 0);
+    const methodLabel = (m) => String(m || 'Other').replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+    const statusCls = (st) => (st === 'paid' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : st === 'partial' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400');
+
+    const desktop = (
+        <>
+            <ReportShell title="Sales Dashboard" navGroups={sellNavGroups} activeKey="overview" activeMenu="Sell" showHub={false}>
+                <ReportKpis items={[
+                    { label: 'Revenue today', value: money(stats.sales_today), icon: DollarSign, tone: 'emerald', valueTone: 'emerald', sub: `${stats.orders_today || 0} ${tt('Orders')}${stats.sales_today_growth ? ` · ${Math.abs(stats.sales_today_growth)}% vs yesterday` : ''}`, trend: trend(stats.sales_today_growth) },
+                    { label: 'Revenue this month', value: money(stats.sales_month), icon: Calendar, tone: 'brand', sub: `${stats.orders_month || 0} ${tt('Orders')}${stats.sales_month_growth ? ` · ${Math.abs(stats.sales_month_growth)}% vs last month` : ''}`, trend: trend(stats.sales_month_growth) },
+                    { label: tt('Avg. Order Value'), value: money(stats.avg_order_value), icon: TrendingUp, tone: 'blue', sub: stats.avg_order_growth ? `${Math.abs(stats.avg_order_growth)}% vs last month` : 'This month', trend: trend(stats.avg_order_growth) },
+                    { label: tt('Active Customers'), value: (stats.active_customers || 0).toLocaleString(), icon: Users, tone: 'violet', sub: 'Last 30 days' },
+                    revenueTrend.length ? { label: 'Profit (30 days)', value: money(profit30), icon: Package, tone: 'amber', valueTone: profit30 < 0 ? 'rose' : undefined, sub: `On ${money(rev30)} revenue` } : null,
+                ]} />
+                <ReportGrid>
+                    <ReportCol span={8}>
+                        <ReportSection title="Revenue trend" subtitle="Last 30 days · revenue and profit" icon={TrendingUp} tone="emerald">
+                            <TrendChart type="area" height={280} series={[
+                                { name: 'Revenue', points: revenueTrend.map((r) => ({ x: r.date, y: Number(r.revenue) })) },
+                                { name: 'Profit', points: revenueTrend.map((r) => ({ x: r.date, y: Number(r.profit) })) },
+                            ]} />
+                        </ReportSection>
+                    </ReportCol>
+                    <ReportCol span={4}>
+                        <ReportSection title="Sales by payment method" subtitle="This month" icon={DollarSign} tone="blue">
+                            <DonutChart height={280} slices={(salesByMethod || []).map((m) => ({ name: methodLabel(m.payment_method), value: Number(m.total || 0) }))} />
+                        </ReportSection>
+                    </ReportCol>
+                </ReportGrid>
+                <ReportGrid>
+                    <ReportCol span={6}>
+                        <ReportSection title="Top selling items" subtitle="This month" icon={Trophy} tone="amber">
+                            <RankBars items={(topSelling || []).map((i) => ({ label: i.name, value: Number(i.revenue || 0), sub: `${i.qty} units` }))} empty="No item sales this month" />
+                        </ReportSection>
+                    </ReportCol>
+                    <ReportCol span={6}>
+                        <ReportSection title="Top customers" subtitle="This month" icon={Users} tone="violet">
+                            <RankBars colorIndex={1} items={(topCustomers || []).map((c) => ({ label: c.name, value: Number(c.total || 0), sub: `${c.orders} ${tt('Orders')}` }))} empty="No named customers this month" />
+                        </ReportSection>
+                    </ReportCol>
+                </ReportGrid>
+                <ReportSection title="Recent transactions" icon={Monitor} tone="brand" flush
+                    right={<Link href={route('store.sales.index', { store_slug: store?.slug })} className="flex h-10 items-center gap-2 rounded-[12px] border border-line px-3 text-sm font-bold text-ink-secondary hover:bg-interactive-hover">View all <ArrowRight size={14} /></Link>}>
+                    <ReportTable
+                        rows={recentSales || []}
+                        rowKey={(r) => r.id}
+                        onRowClick={(r) => router.visit(route('store.sales.show', { store_slug: store?.slug, sale: r.id }))}
+                        empty="No recent sales found"
+                        columns={[
+                            { key: 'reference_number', label: 'Reference', render: (r) => <span className="font-bold text-brand-600 dark:text-brand-400">{r.reference_number}</span> },
+                            { key: 'party', label: tt('Customer'), get: (r) => r.party?.name || tt('Walk-in Customer') },
+                            { key: 'created_at', label: 'Date', get: (r) => (r.created_at ? new Date(r.created_at).toLocaleString() : '') },
+                            { key: 'total', label: 'Amount', align: 'right', render: (r) => <span className="font-bold text-ink">{money(r.total)}</span> },
+                            { key: 'payment_status', label: 'Status', align: 'right', render: (r) => <span className={`inline-flex rounded-full px-2 py-0.5 text-2xs font-bold uppercase ${statusCls(r.payment_status)}`}>{r.payment_status}</span> },
+                        ]}
+                    />
+                </ReportSection>
+            </ReportShell>
+        </>
+    );
+
+    if (isDesktop) return desktop;
+
     return (
-        <OneGlanceLayout title="Sell Command Center" activeMenu="Sell">
+        <>
+        <OneGlanceLayout title="Sell Command Center" activeMenu="Sell" noPadding>
             <Head title="Sales Hub" />
 
             {/* Dashboard Container - Full Height on Desktop, Scrollable on Mobile */}
-            <div className="flex flex-col xl:h-full gap-4 pb-2">
+            <ListPageFrame className="flex flex-col xl:h-full gap-4 pb-2 p-1.5">
+                <ListToolbar title="Sell Command Center" navGroups={sellNavGroups} activeId="overview" />
+                <ListStatCards cards={[
+                    { label: 'Revenue Today', value: formatCurrency(Number(stats.sales_today || 0), store), icon: DollarSign, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600', sub: `${stats.orders_today || 0} ${tt('Orders')}${stats.sales_today_growth ? ` · ${Math.abs(stats.sales_today_growth)}%` : ''}`, trend: (stats.sales_today_growth > 0 ? 'up' : stats.sales_today_growth < 0 ? 'down' : undefined) },
+                    { label: 'Monthly Revenue', value: formatCurrency(Number(stats.sales_month || 0), store), icon: Calendar, sub: `${stats.orders_month || 0} ${tt('Orders')}${stats.sales_month_growth ? ` · ${Math.abs(stats.sales_month_growth)}%` : ''}`, trend: (stats.sales_month_growth > 0 ? 'up' : stats.sales_month_growth < 0 ? 'down' : undefined) },
+                    { label: tt('Avg. Order Value'), value: formatCurrency(Number(stats.avg_order_value || 0), store), icon: TrendingUp, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', sub: stats.avg_order_growth ? `${Math.abs(stats.avg_order_growth)}%` : undefined, trend: (stats.avg_order_growth > 0 ? 'up' : stats.avg_order_growth < 0 ? 'down' : undefined) },
+                    { label: tt('Active Customers'), value: (stats.active_customers || 0).toLocaleString(), icon: Users, sub: 'Last 30 Days' },
+                ]} />
 
-                {/* 1. Header & Pulse (Auto Height) */}
-                <div className="shrink-0 space-y-4">
+                {/* 1. Header & Pulse (Auto Height) — phone only; desktop uses the toolbar + cards above */}
+                <div className="shrink-0 space-y-4 md:hidden">
                     {/* Secondary Navigation */}
                     <SellModuleTabs activeTab="overview" />
 
@@ -114,7 +206,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                 </div>
 
                 {/* 2. Middle & Bottom Sections (Flexible Grid) */}
-                <div className="flex-1 flex flex-col xl:grid xl:grid-rows-2 gap-4 min-h-0">
+                <div className="flex-1 flex flex-col xl:grid xl:grid-rows-2 gap-4 min-h-0 md:overflow-y-auto xl:overflow-visible">
 
                     {/* Top Selling & Payment Breakdown */}
                     <section className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:h-full min-h-0">
@@ -261,7 +353,8 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                         </div>
                     </section>
                 </div>
-            </div>
+            </ListPageFrame>
         </OneGlanceLayout >
+        </>
     );
 }

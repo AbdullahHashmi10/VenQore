@@ -139,6 +139,69 @@ class PurchaseHeadersStream
     }
 
     /**
+     * Spend on one product category: total, and a day-by-day series.
+     *
+     * @return array{total: float, points: array<string,float>}
+     */
+    public function categorySpend(string $from, string $to, int|string $tenantId, ?string $categoryId): array
+    {
+        $q = DB::table('purchase_items as pi')
+            ->join('purchases as p', 'pi.purchase_id', '=', 'p.id')
+            ->join('products as prod', 'pi.product_id', '=', 'prod.id')
+            ->where('p.tenant_id', $tenantId)
+            ->where('pi.tenant_id', $tenantId)
+            ->whereBetween(DB::raw('DATE(COALESCE(p.purchase_date, p.created_at))'), [$from, $to]);
+        if ($categoryId !== null && $categoryId !== '') {
+            $q->where('prod.category_id', $categoryId);
+        }
+        $rows = $q->selectRaw('DATE(COALESCE(p.purchase_date, p.created_at)) as d, SUM(COALESCE(pi.line_total, pi.qty * pi.unit_cost)) as val')
+            ->groupBy('d')->pluck('val', 'd')->all();
+
+        $points = [];
+        $total = 0.0;
+        $cur = Carbon::parse($from);
+        $end = Carbon::parse($to);
+        while ($cur->lte($end)) {
+            $d = $cur->toDateString();
+            $points[$d] = round((float) ($rows[$d] ?? 0), 2);
+            $total += $points[$d];
+            $cur->addDay();
+        }
+
+        return ['total' => round($total, 2), 'points' => $points];
+    }
+
+    /**
+     * Units bought: total and daily.
+     *
+     * @return array{total: float, points: array<string,float>}
+     */
+    public function itemsPurchased(string $from, string $to, int|string $tenantId): array
+    {
+        $rows = DB::table('purchase_items as pi')
+            ->join('purchases as p', 'pi.purchase_id', '=', 'p.id')
+            ->where('p.tenant_id', $tenantId)
+            ->where('pi.tenant_id', $tenantId)
+            ->where('p.workflow_status', '!=', 'cancelled')
+            ->whereBetween(DB::raw('DATE(COALESCE(p.purchase_date, p.created_at))'), [$from, $to])
+            ->selectRaw('DATE(COALESCE(p.purchase_date, p.created_at)) as d, SUM(pi.qty) as val')
+            ->groupBy('d')->pluck('val', 'd')->all();
+
+        $points = [];
+        $total = 0.0;
+        $cur = Carbon::parse($from);
+        $end = Carbon::parse($to);
+        while ($cur->lte($end)) {
+            $d = $cur->toDateString();
+            $points[$d] = round((float) ($rows[$d] ?? 0), 2);
+            $total += $points[$d];
+            $cur->addDay();
+        }
+
+        return ['total' => round($total, 2), 'points' => $points];
+    }
+
+    /**
      * Daily purchase spend trend.
      */
     public function dailySpendTrend(string $from, string $to, int|string $tenantId): array

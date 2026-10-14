@@ -60,6 +60,7 @@ class OrderService
     {
         $from = $o->status;
         $o->forceFill(array_merge($extra, ['status' => $to, 'version' => $o->version + 1]))->save();
+        try { \Illuminate\Support\Facades\Cache::forget("online_orders_pending:{$o->tenant_id}"); } catch (\Throwable $e) { /* cache only */ }
         $this->event($o, $type, $from, $to, 'staff', $actor, $note);
     }
 
@@ -177,9 +178,24 @@ class OrderService
     /** A closed order gives its coupon use back (once). */
     private function releasePromo(CommerceOrder $o): void
     {
+        $this->refundPoints($o);
         if ($o->promotion_id && ! $o->promo_released) {
             DB::table('commerce_promotions')->where('id', $o->promotion_id)->where('uses', '>', 0)->decrement('uses');
             $o->forceFill(['promo_released' => true])->save();
+        }
+    }
+
+    /** Points spent on an order that will never complete go back to the member, once. */
+    private function refundPoints(CommerceOrder $o): void
+    {
+        if ($o->loyalty_points_used > 0 && ! $o->loyalty_refunded && $o->party_id) {
+            DB::table('loyalty_balances')->where('party_id', $o->party_id)->update([
+                'balance' => DB::raw('balance + ' . (int) $o->loyalty_points_used),
+                'lifetime_redeemed' => DB::raw('GREATEST(0, lifetime_redeemed - ' . (int) $o->loyalty_points_used . ')'), 'updated_at' => now()]);
+            DB::table('loyalty_points')->insert(['id' => (string) Str::uuid(), 'tenant_id' => $o->tenant_id, 'party_id' => $o->party_id,
+                'points' => (int) $o->loyalty_points_used, 'type' => 'adjusted', 'description' => 'Points returned: order ' . $o->public_number . ' was not completed',
+                'created_at' => now(), 'updated_at' => now()]);
+            $o->forceFill(['loyalty_refunded' => true])->save();
         }
     }
 
@@ -423,6 +439,14 @@ class OrderService
                     'version' => $o->version + 1,
                 ])->save();
                 $this->event($o, 'completed', $from, 'completed', 'staff', $actor, 'Sale ' . $sale->reference_number . ($paid ? ' (paid)' : ' (on credit — receivable)'), ['sale_id' => $sale->id]);
+
+                // Loyalty: the order's customer earns points on the sale (plan-gated, never blocks completion).
+                $sale->party_id ??= $partyId;
+                // points are earned only by a customer who signed in with a verified email when ordering
+                $earned = $o->loyalty_member ? \App\Services\LoyaltyAwarder::awardForSale($sale, $tenantId) : 0;
+                if ($earned > 0) {
+                    $this->event($o, 'loyalty_awarded', null, null, 'system', null, $earned . ' loyalty points added to the customer');
+                }
 
                 return $o->fresh(['items']);
             });

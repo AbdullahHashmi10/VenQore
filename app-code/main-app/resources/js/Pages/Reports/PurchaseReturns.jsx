@@ -1,20 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
-import {
-    ArrowLeft, Search, Filter, Calendar, PackageMinus, Printer, FileText, ArrowUpRight
-} from 'lucide-react';
+import { Link, router, usePage } from '@inertiajs/react';
+import { Search, PackageMinus, ArrowUpRight, Hash, Users, TrendingDown, Building2 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer
-} from 'recharts';
+    ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, FilterSelect, filterInputCls,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
+
+const RANGES = [
+    { value: 'today', label: 'Today' },
+    { value: 'yesterday', label: 'Yesterday' },
+    { value: 'this_week', label: 'This Week' },
+    { value: 'this_month', label: 'This Month' },
+    { value: 'last_month', label: 'Last Month' },
+    { value: 'this_year', label: 'This Year' },
+    { value: 'all', label: 'All Time' },
+];
+
+const statusCls = (s) => (s === 'refunded' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+    : s === 'approved' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
+        : 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400');
 
 export default function PurchaseReturnsReport({ returns = [], filters = {}, suppliers = [] }) {
     const { store } = usePage().props;
@@ -24,218 +30,120 @@ export default function PurchaseReturnsReport({ returns = [], filters = {}, supp
     const [dateRange, setDateRange] = useState(filters.range || 'this_month');
     const [supplierId, setSupplierId] = useState(filters.supplier_id || '');
 
-    // Resolve date range query updates
     const handleFilterChange = (range, supplier) => {
         setDateRange(range);
         setSupplierId(supplier);
-
         router.get(route('store.reports.purchase-returns', {
             store_slug: store.slug,
             range: range,
-            supplier_id: supplier
+            supplier_id: supplier,
         }), {}, { preserveState: true });
     };
 
     const processedData = useMemo(() => {
-        let data = [...returns];
-
-        if (searchQuery) {
-            const lowerQ = searchQuery.toLowerCase();
-            data = data.filter(ret =>
-                (ret.reference_number || '').toLowerCase().includes(lowerQ) ||
-                (ret.supplier?.name || '').toLowerCase().includes(lowerQ) ||
-                (ret.reason || '').toLowerCase().includes(lowerQ)
-            );
-        }
-
-        return data;
+        if (!searchQuery) return returns;
+        const q = searchQuery.toLowerCase();
+        return returns.filter((ret) =>
+            (ret.reference_number || '').toLowerCase().includes(q) ||
+            (ret.supplier?.name || '').toLowerCase().includes(q) ||
+            (ret.reason || '').toLowerCase().includes(q));
     }, [returns, searchQuery]);
 
-    const totalReturnAmount = useMemo(() => {
-        return processedData.reduce((sum, r) => sum + parseFloat(r.amount || 0), 0);
-    }, [processedData]);
+    const totalReturnAmount = useMemo(() => processedData.reduce((s, r) => s + parseFloat(r.amount || 0), 0), [processedData]);
 
-    const chartData = useMemo(() => {
-        const groups = {};
-        processedData.forEach(r => {
-            const dateStr = new Date(r.date).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-            groups[dateStr] = (groups[dateStr] || 0) + parseFloat(r.amount || 0);
+    const charts = useMemo(() => {
+        const daily = {}; const sup = {}; const status = {};
+        processedData.forEach((r) => {
+            const amt = parseFloat(r.amount || 0);
+            const d = r.date ? String(r.date).split('T')[0].split(' ')[0] : '';
+            if (d) daily[d] = (daily[d] || 0) + amt;
+            const n = r.supplier?.name || 'Walk-in';
+            sup[n] = (sup[n] || 0) + amt;
+            const s = r.status || 'pending';
+            status[s] = (status[s] || 0) + amt;
         });
-
-        return Object.entries(groups).map(([date, amount]) => ({
-            date,
-            amount: parseFloat(amount.toFixed(2))
-        })).reverse(); // Oldest first
+        return {
+            trend: Object.keys(daily).sort().map((x) => ({ x, y: parseFloat(daily[x].toFixed(2)) })),
+            suppliers: Object.entries(sup).map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value),
+            status: Object.entries(status).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value })),
+        };
     }, [processedData]);
+
+    const avg = processedData.length ? totalReturnAmount / processedData.length : 0;
+
+    const columns = [
+        { key: 'ref', label: 'Ref Number', sortable: true, get: (r) => r.reference_number || `#${r.id}`, render: (r) => <span className="font-bold text-ink">{r.reference_number || `#${r.id}`}</span> },
+        { key: 'date', label: 'Date', sortable: true, get: (r) => r.date || '', render: (r) => new Date(r.date).toLocaleDateString() },
+        { key: 'supplier', label: tt('Supplier'), sortable: true, get: (r) => r.supplier?.name || 'Walk-in', render: (r) => <span className="font-bold text-ink">{r.supplier?.name || 'Walk-in'}</span> },
+        { key: 'reason', label: 'Reason', get: (r) => r.reason || '', render: (r) => <span className="italic text-ink-muted">{r.reason || '—'}</span> },
+        { key: 'amount', label: 'Amount', align: 'right', sortable: true, get: (r) => parseFloat(r.amount || 0), render: (r) => <span className="font-bold text-rose-600">{formatCurrency(r.amount, store)}</span> },
+        { key: 'status', label: 'Status', align: 'center', sortable: true, get: (r) => r.status || '', render: (r) => <span className={`inline-flex items-center rounded-[12px] px-2 py-0.5 text-2xs font-bold uppercase ${statusCls(r.status)}`}>{r.status}</span> },
+        { key: 'actions', label: 'Actions', align: 'center', render: (r) => (
+            <Link href={route('store.debit-notes.show', { store_slug: store?.slug, id: r.id })}
+                className="inline-flex items-center gap-1 text-2xs font-bold uppercase text-brand-600 hover:underline dark:text-brand-400">
+                View Details <ArrowUpRight size={12} />
+            </Link>
+        ) },
+    ];
+
+    const filterNode = (
+        <>
+            <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" size={16} />
+                <input type="text" placeholder={tt('Search by Supplier name or ID...')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`${filterInputCls} w-64 pl-9`} />
+            </div>
+            <FilterSelect label="Period" value={dateRange} onChange={(v) => handleFilterChange(v, supplierId)} options={RANGES} />
+            <FilterSelect value={supplierId} onChange={(v) => handleFilterChange(dateRange, v)}
+                options={[{ value: '', label: tt('All Suppliers') }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))]} />
+        </>
+    );
 
     return (
-        <ReportsLayout title="Purchase Returns Report" activeTab="purchases">
-            <Head title="Purchase Returns Report" />
+        <ReportShell
+            title="Purchase Returns Report"
+            subtitle={tt('Track and analyze stock returns and debit notes sent to suppliers.')}
+            filters={filterNode}
+            exportConfig={{
+                filename: 'purchase-returns',
+                columns: [
+                    { label: 'Ref Number', get: (r) => r.reference_number || `#${r.id}` },
+                    { label: 'Date', get: (r) => r.date },
+                    { label: tt('Supplier'), get: (r) => r.supplier?.name || 'Walk-in' },
+                    { label: 'Reason', get: (r) => r.reason || '' },
+                    { label: 'Amount', get: (r) => r.amount },
+                    { label: 'Status', get: (r) => r.status },
+                ],
+                rows: processedData,
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Total Returned', value: formatCurrency(totalReturnAmount, store), icon: PackageMinus, tone: 'rose', valueTone: 'rose' },
+                { label: 'Debit Notes', value: processedData.length, icon: Hash, tone: 'brand' },
+                { label: 'Average Return', value: formatCurrency(avg, store), icon: TrendingDown, tone: 'amber' },
+                { label: tt('Suppliers'), value: charts.suppliers.length, icon: Building2, tone: 'violet' },
+            ]} />
 
-            <div className="space-y-6">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href={route('store.reports.index', { store_slug: store?.slug })}
-                            className="p-2 text-ink-muted hover:text-ink-secondary rounded-lg hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
-                        >
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl md:text-2xl font-bold text-ink uppercase tracking-wider flex items-center gap-2">
-                                <PackageMinus className="text-red-500 w-6 h-6" />
-                                Purchase Returns
-                            </h1>
-                            <p className="text-xs text-ink-muted">{tt('Track and analyze stock returns and debit notes sent to suppliers.')}</p>
-                        </div>
-                    </div>
+            <ReportGrid>
+                <ReportCol span={8}>
+                    <ReportSection title="Returns trend" subtitle="Value returned per day" icon={TrendingDown} tone="rose">
+                        <TrendChart series={[{ name: 'Returned', points: charts.trend }]} type="bar" unit="currency" height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={4}>
+                    <ReportSection title="By status" subtitle="Returned value" icon={PackageMinus} tone="amber">
+                        <DonutChart slices={charts.status} unit="currency" height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
 
-                    {/* Filter controls */}
-                    <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-line">
-                            <Calendar size={16} className="text-ink-muted" />
-                            <select
-                                value={dateRange}
-                                onChange={(e) => handleFilterChange(e.target.value, supplierId)}
-                                className="border-0 bg-transparent text-xs font-bold text-ink-secondary p-0 focus:ring-0 focus:outline-none cursor-pointer"
-                            >
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="this_week">This Week</option>
-                                <option value="this_month">This Month</option>
-                                <option value="last_month">Last Month</option>
-                                <option value="this_year">This Year</option>
-                                <option value="all">All Time</option>
-                            </select>
-                        </div>
+            <ReportSection title={tt('Returns by supplier')} icon={Users} tone="violet">
+                <RankBars items={charts.suppliers} unit="currency" />
+            </ReportSection>
 
-                        <div className="flex items-center gap-2 bg-surface px-3 py-2 rounded-xl border border-line">
-                            <select
-                                value={supplierId}
-                                onChange={(e) => handleFilterChange(dateRange, e.target.value)}
-                                className="border-0 bg-transparent text-xs font-bold text-ink-secondary p-0 focus:ring-0 focus:outline-none cursor-pointer"
-                            >
-                                <option value="">{tt('All Suppliers')}</option>
-                                {suppliers.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Total Stats Card */}
-                <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                    <div>
-                        <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">Total Returned Amount</span>
-                        <div className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">
-                            {formatCurrency(totalReturnAmount, store)}
-                        </div>
-                    </div>
-                    <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-2xl">
-                        <PackageMinus className="text-red-500 w-8 h-8" />
-                    </div>
-                </div>
-
-                {chartData.length > 0 && (
-                    <div className="bg-surface rounded-2xl p-6 border border-line shadow-sm">
-                        <h3 className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-4">Returns Trend</h3>
-                        <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                                    <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} />
-                                    <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} />
-                                    <Tooltip 
-                                        formatter={(value) => [formatCurrency(value, store), 'Returned']}
-                                        contentStyle={{ backgroundColor: 'rgb(var(--vq-slate-800))', borderRadius: '12px', border: 'none', color: '#fff' }}
-                                    />
-                                    <Bar dataKey="amount" fill="#F43F5E" radius={[8, 8, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                )}
-
-                {/* Table search & list */}
-                <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
-                    <div className="p-4 md:p-6 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted w-4 h-4" />
-                            <input
-                                type="text"
-                                placeholder={tt('Search by Supplier name or ID...')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-xs md:text-sm bg-app border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:text-white"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs md:text-sm">
-                            <thead className="bg-app text-ink-muted uppercase font-bold tracking-wider text-2xs">
-                                <tr>
-                                    <th className="px-6 py-4">Ref Number</th>
-                                    <th className="px-6 py-4">Date</th>
-                                    <th className="px-6 py-4">{tt('Supplier')}</th>
-                                    <th className="px-6 py-4">Reason</th>
-                                    <th className="px-6 py-4 text-right">Amount</th>
-                                    <th className="px-6 py-4 text-center">Status</th>
-                                    <th className="px-6 py-4 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-line font-medium">
-                                {processedData.length > 0 ? (
-                                    processedData.map((item) => (
-                                        <tr key={item.id} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                            <td className="px-6 py-4 font-bold text-ink">
-                                                {item.reference_number || `#${item.id}`}
-                                            </td>
-                                            <td className="px-6 py-4 text-ink-secondary">
-                                                {new Date(item.date).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 font-bold text-ink">
-                                                {item.supplier?.name || 'Walk-in'}
-                                            </td>
-                                            <td className="px-6 py-4 text-ink-muted italic">
-                                                {item.reason || '—'}
-                                            </td>
-                                            <td className="px-6 py-4 text-right font-bold text-red-600 dark:text-red-400">
-                                                {formatCurrency(item.amount, store)}
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-2xs font-bold uppercase ${
-                                                    item.status === 'refunded' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
-                                                    item.status === 'approved' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400' :
-                                                    'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400'
-                                                }`}>
-                                                    {item.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <Link
-                                                    href={route('store.debit-notes.show', { store_slug: store?.slug, id: item.id })}
-                                                    className="inline-flex items-center gap-1 text-2xs font-bold text-brand-600 dark:text-brand-400 hover:underline uppercase"
-                                                >
-                                                    View Details <ArrowUpRight size={12} />
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="7" className="px-6 py-8 text-center text-ink-muted font-semibold">
-                                            No purchase returns found for the selected criteria.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </ReportsLayout>
+            <ReportSection title="Purchase returns" subtitle={`${processedData.length} records`} flush>
+                <ReportTable columns={columns} rows={processedData} rowKey={(r) => r.id} empty="No purchase returns found for the selected criteria." />
+            </ReportSection>
+        </ReportShell>
     );
 }

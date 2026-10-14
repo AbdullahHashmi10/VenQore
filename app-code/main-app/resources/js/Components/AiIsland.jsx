@@ -373,6 +373,10 @@ export default function AiIsland({
   // Capture hosts the full AI Scan workflow, so it takes 80% of the viewport;
   // every other open state is the standard hub.
   const target = useMemo(() => {
+    if (mode === 'open' && phone) {
+      // Phone: the hub is a near-full-screen sheet so every tab and option is reachable.
+      return { w: vw - 16, h: vh - 20 };
+    }
     if (mode === 'open') {
       if (tab === 'capture') {
         // AI Scan is a full workflow — intake, review, post. At 80% it still
@@ -382,12 +386,14 @@ export default function AiIsland({
       return MODES.open;
     }
     if (mode === 'rest' && phone) return MODES.phone;
+    if (mode === 'alert' && phone) return { w: vw - 16, h: 132 };
+    if (mode === 'working' && phone) return { w: Math.min(vw - 48, 300), h: 40 };
     if (mode === 'rest' && compact) return hovered ? MODES.orbHover : MODES.orb;
     return MODES[mode] || MODES.rest;
   }, [mode, tab, compact, phone, hovered, vw, vh]);
 
-  const width = Math.min(target.w, vw - 48);   // --vq-gutter on both sides
-  const height = Math.min(target.h, vh - 88);
+  const width = Math.min(target.w, phone ? vw - 12 : vw - 48);   // --vq-gutter on both sides
+  const height = Math.min(target.h, phone ? vh - 12 : vh - 88);
   const restBase = phone ? MODES.phone : (compact ? MODES.orb : MODES.rest);
   const restWidth = Math.min(restBase.w, vw - 48);
   const restHeight = restBase.h;
@@ -887,7 +893,7 @@ export default function AiIsland({
                 onMouseEnter={() => setIsHoveringAlert(true)}
                 onMouseLeave={() => setIsHoveringAlert(false)}
               >
-                <div className="flex items-center gap-3">
+                <div className={phone ? 'flex flex-wrap items-center gap-x-3 gap-y-2' : 'flex items-center gap-3'}>
                   <motion.span
                     initial={{ scale: 0.6, rotate: -12 }}
                     animate={{ scale: 1, rotate: 0 }}
@@ -904,16 +910,16 @@ export default function AiIsland({
                       : <AlertTriangle size={19} />}
                   </motion.span>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0" style={phone ? { flexBasis: '60%' } : undefined}>
                     <p className="truncate" style={{ ...T.small, fontWeight: 700, color: '#F1F5F2' }}>
                       {activeNotification?.title || 'Store alert'}
                     </p>
-                    <p className="truncate" style={{ ...T.caption, color: `${INK}.65)` }}>
+                    <p className={phone ? 'line-clamp-2' : 'truncate'} style={{ ...T.caption, color: `${INK}.65)` }}>
                       {activeNotification?.message || activeNotification?.desc || 'Action required in your store.'}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className={phone ? 'flex items-center gap-2 w-full justify-end' : 'flex items-center gap-2 shrink-0'}>
                     {activeNotification?.action_url ? (
                       <Link
                         href={activeNotification.action_url}
@@ -959,10 +965,46 @@ export default function AiIsland({
           {/* ── OPEN HUB ─────────────────────────────────────────────────── */}
           {mode === 'open' && (
             <Pane key="open">
-              <div className="w-full h-full flex flex-col">
+              <div className="w-full h-full flex flex-col" style={phone ? { zoom: 0.84 } : undefined}>
 
                 {/* Tab rail. The active pill is a shared layoutId, so it SLIDES
                     between tabs rather than cross-fading. */}
+                {phone ? (
+                  <div className="shrink-0 px-3 pt-3 pb-2">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <span style={{ ...T.small, fontWeight: 700, color: `${INK}.92)` }}>{TAB[tab]?.label || 'VenQore AI'}</span>
+                      <span className="flex items-center gap-2">
+                        {iconBtn(toggleSound, soundEnabled ? 'Mute island sounds' : 'Enable island sounds',
+                          soundEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />)}
+                        <button type="button" onClick={closeIsland} aria-label="Close"
+                          className="grid place-items-center shrink-0 rounded-xl"
+                          style={{ width: 34, height: 34, background: `${INK}.08)`, color: `${INK}.75)` }}>
+                          <X size={18} />
+                        </button>
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1 p-1 rounded-2xl" style={{ background: `${INK}.06)` }}>
+                      {TABS.map((t) => {
+                        const Icon = t.icon;
+                        const active = tab === t.id;
+                        const count = t.id === 'alerts' ? unread : t.id === 'growth' ? (growth_engine?.count || 0) : 0;
+                        return (
+                          <button key={t.id} type="button" onClick={() => { setTab(t.id); haptic('click'); }}
+                            className="relative flex flex-col items-center justify-center gap-1 rounded-xl"
+                            style={{ padding: '8px 2px', color: active ? '#062421' : `${INK}.7)`, background: active ? '#23C4A6' : 'transparent', minWidth: 0 }}>
+                            <span className="relative">
+                              <Icon size={18} />
+                              {count > 0 && (
+                                <span className="absolute -top-1.5 -right-2.5 rounded-full" style={{ fontSize: 10, lineHeight: '14px', minWidth: 14, textAlign: 'center', padding: '0 3px', background: active ? '#062421' : '#23C4A6', color: active ? '#23C4A6' : '#062421', fontWeight: 700 }}>{count}</span>
+                              )}
+                            </span>
+                            <span style={{ fontSize: 11, fontWeight: 700, lineHeight: 1.1 }} className="truncate max-w-full">{t.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
                 <div className="flex items-center gap-2 px-4 pt-4 pb-3 shrink-0">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto custom-scrollbar">
                     {TABS.map((t) => {
@@ -1016,9 +1058,10 @@ export default function AiIsland({
                     ESC
                   </button>
                 </div>
+                )}
 
                 {/* Body */}
-                <div className="flex-1 min-h-0 px-4 pb-4">
+                <div className={`flex-1 min-h-0 ${phone ? 'px-2 pb-2' : 'px-4 pb-4'}`}>
                   <AnimatePresence mode="wait" initial={false}>
 
                     {/* ── ASK VENA ─────────────────────────────────────── */}
@@ -1047,7 +1090,7 @@ export default function AiIsland({
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={onInputKey}
-                                placeholder={dictation.listening ? 'Listening…' : 'Ask Vena, or search screens and records…'}
+                                placeholder={dictation.listening ? 'Listening…' : (phone ? 'Ask Vena or search…' : 'Ask Vena, or search screens and records…')}
                                 autoComplete="off"
                                 caretColor="bg-[#23C4A6]"
                                 className="flex-1 min-w-0"

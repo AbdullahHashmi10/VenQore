@@ -192,8 +192,9 @@
                     }
                 });
 
-                // 2. Register the unified sw.js only in production/staging environment
-                const isDev = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                // 2. Register the unified sw.js everywhere except while the Vite dev server is running
+                //    (a built copy on localhost must behave like production, or offline cannot be tested).
+                const isDev = {{ file_exists(public_path('hot')) ? 'true' : 'false' }};
                 if (!isDev) {
                     navigator.serviceWorker.register('/sw.js')
                         .then(reg => console.log('[SW] Unified service worker registered:', reg.scope))

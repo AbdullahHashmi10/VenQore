@@ -87,7 +87,8 @@ class ImpersonationController extends Controller
         }
 
         $platformOwner = User::find($impersonatorId);
-        if (!$platformOwner) {
+        if (!$platformOwner || !$platformOwner->is_platform_admin) {
+            $request->session()->forget(['impersonating_user_id', 'impersonator_id']);
             return redirect()->route('login');
         }
 
@@ -116,15 +117,11 @@ class ImpersonationController extends Controller
         ]);
 
         $user = auth()->user();
-        $membership = \App\Models\TenantUser::where('user_id', $user->id)
-            ->where('tenant_id', $user->last_store_id ?: 1)
-            ->first();
-
-        if (!$membership || !$membership->security_pin) {
+        if (!\App\Support\PlatformActionPasscode::isSet($user)) {
             abort(403, 'Action passcode is not set. Please set it in your account security settings first.');
         }
 
-        if (!\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+        if (!\App\Support\PlatformActionPasscode::check($user, (string) $request->passcode)) {
             abort(403, 'Invalid action passcode.');
         }
     }

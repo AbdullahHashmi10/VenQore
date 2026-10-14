@@ -65,6 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
         'platform_pin',
+        'platform_action_passcode',
     ];
 
     protected function casts(): array

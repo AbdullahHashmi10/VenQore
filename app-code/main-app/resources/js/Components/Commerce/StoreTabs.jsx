@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { BadgePercent, Bell, ChevronDown, ChevronRight, ExternalLink, Eye, LayoutDashboard, Package, QrCode, Settings2, ShoppingBag, Store, Bike } from 'lucide-react';
 import { ORDER_ALERT_EVENT } from '@/Components/Commerce/OrderAlertWatcher';
+import { ListToolbar } from '@/Components/ListShell';
 
 
 /** Online Store sub-navigation + the alert state supplied by the global watcher. */
-export default function StoreTabs({ active, urls, status, action }) {
+export default function StoreTabs({ active, urls, status, action, search, left, extraActions }) {
     const [open, setOpen] = useState(false);
     const page = usePage();
     const { flash } = page.props;
@@ -22,13 +23,13 @@ export default function StoreTabs({ active, urls, status, action }) {
     }, []);
 
     const tabs = [
-        ['home', 'Overview', urls?.home, LayoutDashboard],
-        ['orders', 'Orders', urls?.orders, ShoppingBag],
+        ['home', 'Store Overview', urls?.home, LayoutDashboard],
+        ['orders', 'Online Orders', urls?.orders, ShoppingBag],
         ['deliveries', 'Deliveries', urls?.orders ? urls.orders.replace(/\/orders$/, '/deliveries') : null, Bike],
-        ['products', 'Products', urls?.products, Package],
-        ['promotions', 'Offers', urls?.promotions, BadgePercent],
+        ['products', 'Online Products', urls?.products, Package],
+        ['promotions', 'Offers & Coupons', urls?.promotions, BadgePercent],
         ['catalogue', 'QR Menu & Catalogue', catalogueHref, QrCode],
-        ['settings', 'Settings', urls?.settings, Settings2],
+        ['settings', 'Online Store Settings', urls?.settings, Settings2],
     ].filter(([, , href]) => !!href);
     const live = status === 'published';
     const latest = alerts.latest?.[0];
@@ -53,8 +54,40 @@ export default function StoreTabs({ active, urls, status, action }) {
         </Tag>
     );
 
+    const toolbarGroups = [{ id: 'store', label: hasShop ? 'Online Store' : 'QR Menu & Catalogue', items: tabs.map(([key, label, href, Icon]) => ({ id: key, label, href, icon: Icon })) }];
+    const toolbarAct = act && (
+        <Tag {...tagProps} onClick={act.onClick}
+            className="h-10 px-4 rounded-[12px] bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold flex items-center gap-2 shadow-sm transition-colors whitespace-nowrap disabled:opacity-60">
+            <ActIcon size={16} aria-hidden="true" />
+            {act.label}
+        </Tag>
+    );
+
     return (
-        <div className="flex flex-col gap-1 shrink-0">
+        <div className="flex flex-col gap-2 shrink-0">
+            {/* desktop (md+): shared list toolbar; the phone block below is untouched */}
+            <ListToolbar
+                search={search}
+                title={active === 'home' || !current ? (hasShop ? 'Online Store' : 'QR Menu & Catalogue') : current[1]}
+                navGroups={toolbarGroups}
+                activeId={current?.[0]}
+                left={(
+                    <>
+                        {status && hasShop && (
+                            <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${live ? 'text-emerald-700 dark:text-emerald-300' : status === 'suspended' ? 'text-rose-700' : 'text-ink-muted'}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${live ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-400'}`} aria-hidden="true" />
+                                {live ? 'Live' : status === 'suspended' ? 'Suspended' : 'Not live'}
+                            </span>
+                        )}
+                        {alerts.unread > 0 && (
+                            <span className="inline-flex min-w-5 h-5 px-1.5 items-center justify-center rounded-full bg-rose-600 text-white text-xs font-bold" title="New order alerts">{alerts.unread}</span>
+                        )}
+                        {left}
+                    </>
+                )}
+                actions={<>{extraActions}{toolbarAct}</>}
+            />
+            <div className="md:hidden flex flex-col gap-1">
             <div className="flex flex-col lg:flex-row items-center gap-3 bg-surface border border-line p-2 rounded-2xl shadow-sm">
                 {/* phone: current page + menu */}
                 <div className="flex lg:hidden items-center justify-between w-full gap-2">
@@ -98,17 +131,18 @@ export default function StoreTabs({ active, urls, status, action }) {
                     {act && <div className="hidden lg:flex shrink-0 self-stretch items-center">{actionBtn}</div>}
                 </div>
             </div>
+            </div>
             {alerts.unread > 0 && latest && (
-                <a href={latest.url} className="group flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:border-amber-300 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
+                <a href={latest.url} className="group flex items-center gap-2 rounded-[14px] border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 hover:border-amber-300 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">
                     <Bell size={15} className="shrink-0" aria-hidden="true" />
                     <span className="min-w-0 flex-1 truncate font-semibold">{latest.title}</span>
                     {alerts.unread > 1 && <span className="shrink-0 text-xs opacity-80">+{alerts.unread - 1} more</span>}
                     <ChevronRight size={15} className="shrink-0 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                 </a>
             )}
-            {flash?.success && <output className="block rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 px-3 py-2 text-sm dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-200">{flash.success}</output>}
-            {flash?.error && <div className="rounded-xl border border-red-200 bg-red-50 text-red-900 px-3 py-2 text-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-200" role="alert">{flash.error}</div>}
-            {flash?.info && <output className="block rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">{flash.info}</output>}
+            {flash?.success && <output className="block rounded-[14px] border border-emerald-200 bg-emerald-50 text-emerald-900 px-3 py-2 text-sm dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-200">{flash.success}</output>}
+            {flash?.error && <div className="rounded-[14px] border border-red-200 bg-red-50 text-red-900 px-3 py-2 text-sm dark:bg-red-900/20 dark:border-red-800 dark:text-red-200" role="alert">{flash.error}</div>}
+            {flash?.info && <output className="block rounded-[14px] border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 text-sm dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200">{flash.info}</output>}
         </div>
     );
 }

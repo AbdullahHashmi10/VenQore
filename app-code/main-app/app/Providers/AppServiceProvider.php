@@ -37,6 +37,13 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Growth\OutcomeEvaluator::class);
         $this->app->singleton(\App\Services\Growth\MetricSnapshotter::class);
         $this->app->singleton(\App\Services\Growth\GrowthEngine::class);
+
+        // ── Builder v2 (BUILDER_FINAL_PLAN.md) ──────────────────────────
+        $this->app->singleton(\App\Services\Builder\BuilderPolicy::class, fn () => \App\Services\Builder\BuilderPolicy::fromConfig());
+        $this->app->singleton(\App\Services\Builder\BuilderEngine::class, fn ($app) => new \App\Services\Builder\BuilderEngine(
+            $app->make(\App\Services\Builder\BuilderPolicy::class),
+            new \App\Services\Builder\CapabilityGate($app->make(\App\Services\Builder\BuilderPolicy::class))
+        ));
     }
 
     /**

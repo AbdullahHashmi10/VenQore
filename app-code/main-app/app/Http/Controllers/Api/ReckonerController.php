@@ -124,6 +124,7 @@ class ReckonerController extends Controller
             'requests.*.custom.to' => 'nullable|date',
             'requests.*.granularity' => 'nullable|string',
             'requests.*.args' => 'nullable|array',
+            'requests.*.ref' => 'nullable|string|max:200',
         ]);
 
         $requests = array_map(fn (array $r) => new ReckonerRequest(
@@ -136,9 +137,31 @@ class ReckonerController extends Controller
 
         $results = app(Reckoner::class)->readMany($requests, $user, $tenant);
 
-        return response()->json([
-            'data' => array_map(fn ($result) => $result->toArray(), array_values($results)),
-        ]);
+        // Echo the caller's own `ref` on each answer, so a page that asks for the
+        // same reading twice with different arguments can tell the answers apart
+        // without depending on the order they come back in.
+        $data = [];
+        $used = [];
+        foreach ($requests as $i => $req) {
+            $id = $req->getCompositeId();
+            if (! isset($results[$id])) {
+                continue;
+            }
+            $row = $results[$id]->toArray();
+            $ref = $validated['requests'][$i]['ref'] ?? null;
+            if ($ref !== null) {
+                $row['ref'] = $ref;
+            }
+            $data[] = $row;
+            $used[$id] = true;
+        }
+        foreach ($results as $id => $result) {
+            if (! isset($used[$id])) {
+                $data[] = $result->toArray();
+            }
+        }
+
+        return response()->json(['data' => $data]);
     }
 
     /**

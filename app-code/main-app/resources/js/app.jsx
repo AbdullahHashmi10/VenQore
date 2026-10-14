@@ -12,6 +12,9 @@ import GlobalErrorBoundary from '@/Components/GlobalErrorBoundary';
 
 import { vq } from '@/theme/runtime';
 import { applyAppearance } from '@/theme/appearance';
+import { startConnectivityMonitor, isOnline } from '@/lib/connectivity';
+import { writeAllowedOffline } from '@/lib/offlinePolicy';
+import { rememberStore } from '@/lib/offlineCache';
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 // Intercept non-JSON responses from Inertia server calls (preventing the default modal block)
@@ -21,9 +24,37 @@ router.on('invalid', (event) => {
     window.location.href = `/error/${status}`;
 });
 
+startConnectivityMonitor();
+
+// Offline rules for in-app navigation (see docs/OFFLINE_CONTRACT.md):
+//  - looking at pages is allowed: the service worker answers with the saved copy;
+//  - saving is not: say so instead of failing half-way;
+//  - background refreshes of part of a page are skipped.
+const offlineToast = (message) => window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message, type: 'warning' } }));
+router.on('before', (event) => {
+    if (isOnline()) return;
+    const visit = event.detail?.visit;
+    if (!visit) return;
+    let target;
+    try { target = new URL(visit.url, window.location.origin); } catch { return; }
+    if (String(visit.method || 'get').toLowerCase() !== 'get') {
+        if (writeAllowedOffline(target.pathname) || target.pathname.endsWith('/logout')) return;
+        offlineToast("You're offline. Saving needs internet. The POS till still works.");
+        return false;
+    }
+    if ((visit.only && visit.only.length) || (visit.except && visit.except.length)) return false;
+});
+// A page that was never opened on this device cannot be shown offline.
+router.on('exception', (event) => {
+    if (isOnline()) return;
+    event.preventDefault?.();
+    offlineToast("This page isn't saved on this device. Open it once while online and it will be available offline.");
+});
+
 // Synchronize window.amdSettings whenever Inertia navigates
 router.on('navigate', (event) => {
     const pageProps = event.detail?.page?.props;
+    if (pageProps?.store?.slug) rememberStore(pageProps.store.slug);
     if (pageProps?.settings) {
         const store = pageProps.store || {};
         const settings = pageProps.settings || {};

@@ -80,6 +80,22 @@ class NotificationController extends Controller
             }
 
             $userId = (string) $user->id;
+
+            // Where no scheduler is running (local, small installs) the bell would stay
+            // empty forever, so refresh this store's alerts at most once an hour from here.
+            if (app()->bound('current.tenant')) {
+                $tenant = app('current.tenant');
+                app(\App\Services\Growth\GrowthEngine::class)->ensureFresh($tenant->id); // self-running: no cron/worker needed
+                \Illuminate\Support\Facades\Cache::remember('notif_publish_' . $tenant->id, now()->addHour(), function () use ($tenant) {
+                    try {
+                        app(\App\Services\Notifications\NotificationPublisher::class)->publishForTenant($tenant);
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('Notification publish failed: ' . $e->getMessage());
+                    }
+                    return true;
+                });
+            }
+
             $notifications = \Illuminate\Notifications\DatabaseNotification::where('notifiable_type', get_class($user))
                 ->whereRaw('CAST(notifiable_id AS CHAR) = ?', [$userId])
                 ->latest()

@@ -1,3 +1,4 @@
+import PhoneSectionDropdown from '@/Components/PhoneSectionDropdown';
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTerms } from '@/lib/terms';
@@ -12,7 +13,8 @@ import {
     ChevronDown
 } from 'lucide-react';
 
-export default function SellModuleTabs({ activeTab }) {
+// Single source for the Sell section's navigation groups (module-filtered).
+export function useSellNavGroups() {
     const { store, modules } = usePage().props;
     const { tp } = useTerms();
     // Helper to safely get route
@@ -77,6 +79,12 @@ export default function SellModuleTabs({ activeTab }) {
             })
         })).filter(group => group.items.length > 0);
     }, [rawGroups, modules]);
+    return groups;
+}
+
+export default function SellModuleTabs({ activeTab }) {
+    const { store, modules } = usePage().props;
+    const groups = useSellNavGroups();
 
     // Determine initial group based on activeTab
     const getInitialGroup = () => {
@@ -101,9 +109,10 @@ export default function SellModuleTabs({ activeTab }) {
     const ActiveIcon = activeItemObj?.icon || activeGroupObj?.icon;
 
     return (
-        <div className="flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm">
+        <div className="max-lg:!p-0 max-lg:!border-0 max-lg:!bg-transparent max-lg:!shadow-none max-lg:!gap-0 flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm">
+            <PhoneSectionDropdown title="Sell" groups={groups} activeTab={activeTab} />
             {/* Mobile Header (Only visible below lg) */}
-            <div className="flex lg:hidden items-center justify-between w-full">
+            <div className="hidden">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="flex items-center gap-2 px-3 py-2 bg-sunken rounded-xl text-sm font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all duration-normal"
@@ -130,7 +139,7 @@ export default function SellModuleTabs({ activeTab }) {
             </div>
 
             {/* Collapsible content area */}
-            <div className={`w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-line' : 'hidden'}`}>
+            <div className={`max-lg:!hidden w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-line' : 'hidden'}`}>
                 {/* Level 1: Category Selector */}
                 <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
                     {groups.map((group) => {

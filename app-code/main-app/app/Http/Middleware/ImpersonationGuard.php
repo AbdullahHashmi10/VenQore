@@ -33,7 +33,7 @@ class ImpersonationGuard
         }
 
         // Always allow the impersonation exit route
-        if ($request->routeIs('admin.impersonate.end')) {
+        if ($request->routeIs('platform.impersonate.end', 'admin.impersonate.end')) {
             return $next($request);
         }
 

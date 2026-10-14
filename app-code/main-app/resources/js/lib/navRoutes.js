@@ -30,6 +30,7 @@ export function subItemRoute(itemName, auth) {
                             'POS': 'store.pos',
                             'Tables': 'store.tables.index',
                             'FOH': 'store.foh',
+                            'Restaurant Dashboard': 'store.restaurant.overview',
                             'FOH Settings': 'store.foh.settings',
                             'Add-ons': 'store.addons.index',
                             'Floor': 'store.tables.index',

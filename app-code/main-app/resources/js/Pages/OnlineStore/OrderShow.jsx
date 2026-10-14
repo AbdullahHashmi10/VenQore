@@ -36,7 +36,7 @@ const waNumber = (phone, sym) => {
     return d.startsWith('0') && sym === 'Rs' ? `92${d.slice(1)}` : d;
 };
 
-export default function OrderShow({ order, lines, events, sale, urls, substitutes = [], party_matches = [] }) {
+export default function OrderShow({ order, lines, events, sale, urls, substitutes = [], party_matches = [], loyalty = null }) {
     const { errors } = usePage().props;
     const [reason, setReason] = useState('');
     const [busy, setBusy] = useState(false);
@@ -84,13 +84,13 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
     return (
         <OneGlanceLayout title="Online Store" activeMenu="Online Store">
             <Head title={`Online order ${order.public_number}`} />
-            <div className="flex flex-col min-h-full min-w-0 bg-app p-1 md:p-2 gap-1">
+            <div className="flex flex-col min-h-full min-w-0 bg-app p-1.5 md:px-4 md:pt-2 md:pb-4 gap-2">
             <StoreTabs active="orders" urls={urls} />
-            <section className="rounded-xl border border-line bg-surface p-3 shadow-sm">
-                <Link href={urls.back} className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft size={14} />All orders</Link>
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+            <section className="rounded-[14px] border border-line bg-surface p-3 shadow-sm">
+                <Link href={urls.back} className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><ArrowLeft size={14} />Online orders</Link>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-3">
-                        <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${order.fulfilment === 'delivery' ? 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' : 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'}`}>
+                        <span className={`inline-flex h-11 w-11 items-center justify-center rounded-[14px] ${order.fulfilment === 'delivery' ? 'bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' : 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'}`}>
                             {order.fulfilment === 'delivery' ? <Bike size={20} /> : <StoreIcon size={20} />}
                         </span>
                         <div>
@@ -108,23 +108,25 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
             </section>
             {errors?.order && <Alert kind="error">{errors.order}</Alert>}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 [&>*]:min-w-0">
-                <div className="lg:col-span-2 flex flex-col gap-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 [&>*]:min-w-0">
+                <div className="lg:col-span-2 flex flex-col gap-2">
                     <Card>
                         <div className="mb-3"><CardTitle icon={Package} title="Items" sub={`${lines.length} line${lines.length === 1 ? '' : 's'}`} /></div>
-                        <table className="w-full text-sm">
-                            <thead><tr className="text-left text-ink-muted"><th className="py-1">Item</th><th className="text-right">Qty</th><th className="text-right">Online price</th><th className="text-right">Total</th>{order.status === 'pending' && <th className="text-right">In stock</th>}</tr></thead>
-                            <tbody>
+                        <div className="rounded-[14px] border border-line overflow-hidden">
+                        <table className="w-full text-left border-collapse text-sm">
+                            <thead><tr className="bg-app border-b border-line"><th className="p-3 text-xs font-bold text-ink-muted uppercase tracking-wider">Item</th><th className="p-3 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Qty</th><th className="p-3 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Online price</th><th className="p-3 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Total</th>{order.status === 'pending' && <th className="p-3 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">In stock</th>}</tr></thead>
+                            <tbody className="divide-y divide-line">
                                 {lines.map((l, i) => (
-                                    <tr key={i} className="border-t border-line">
-                                        <td className="py-2">{l.title}{(l.mods || []).length > 0 && <div className="text-xs font-medium text-ink">{l.mods.map((m) => m.name).join(', ')}</div>}{l.notes && <div className="text-xs italic text-ink-muted">Note: {l.notes}</div>}<div className="text-xs text-ink-muted">{l.rule === 'fixed_override' ? 'fixed online price' : l.rule === 'percent' ? `${l.rule_percent > 0 ? '+' : ''}${l.rule_percent}% on ${money(l.base_price, sym)}` : 'regular price'}</div></td>
-                                        <td className="text-right tabular-nums">{l.quantity}</td><td className="text-right tabular-nums">{money(l.online_price, sym)}</td><td className="text-right tabular-nums">{money(l.line_total, sym)}</td>
-                                        {order.status === 'pending' && <td className={`text-right tabular-nums ${l.available !== null && l.available < l.quantity ? 'text-red-600 font-semibold' : ''}`}>{l.available ?? '—'}</td>}
+                                    <tr key={i} className="h-14">
+                                        <td className="p-3 max-w-[260px]"><div className="truncate font-medium text-ink">{l.title}</div><div className="truncate text-xs text-ink-muted">{[(l.mods || []).length > 0 ? l.mods.map((m) => m.name).join(', ') : null, l.notes ? `Note: ${l.notes}` : null, l.rule === 'fixed_override' ? 'fixed online price' : l.rule === 'percent' ? `${l.rule_percent > 0 ? '+' : ''}${l.rule_percent}% on ${money(l.base_price, sym)}` : 'regular price'].filter(Boolean).join(' · ')}</div></td>
+                                        <td className="p-3 text-right tabular-nums whitespace-nowrap">{l.quantity}</td><td className="p-3 text-right tabular-nums whitespace-nowrap">{money(l.online_price, sym)}</td><td className="p-3 text-right tabular-nums whitespace-nowrap">{money(l.line_total, sym)}</td>
+                                        {order.status === 'pending' && <td className={`p-3 text-right tabular-nums whitespace-nowrap ${l.available !== null && l.available < l.quantity ? 'text-red-600 font-semibold' : ''}`}>{l.available ?? '—'}</td>}
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        <dl className="mt-3 text-sm space-y-1 text-right">
+                        </div>
+                        <dl className="mt-2 text-sm space-y-1 text-right">
                             <div><dt className="inline text-ink-muted">Subtotal </dt><dd className="inline tabular-nums">{money(order.subtotal, sym)}</dd></div>
                             {Number(order.tax_total) > 0 && <div><dt className="inline text-ink-muted">Tax </dt><dd className="inline tabular-nums">{money(order.tax_total, sym)}</dd></div>}
                             {Number(order.delivery_fee) > 0 && <div><dt className="inline text-ink-muted">Delivery </dt><dd className="inline tabular-nums">{money(order.delivery_fee, sym)}</dd></div>}
@@ -152,7 +154,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                             </>
                         )}
                         {order.status === 'pending' && rev && (
-                            <div className="rounded-xl border border-line p-3 space-y-3">
+                            <div className="rounded-[14px] border border-line p-3 space-y-3">
                                 <p className="text-xs text-ink-muted">Short on something? Lower a quantity, remove a line or offer a substitute. Nothing changes until the customer agrees on their status page. Kept lines keep their price; a substitute is priced at today&apos;s online price.</p>
                                 {lines.map((l) => {
                                     const r = rev.rows[l.id] || { action: '' };
@@ -186,7 +188,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         )}
                         {['ready', 'out_for_delivery'].includes(order.status) && (
                             <div className="border-t border-line pt-3 space-y-3">
-                                <div className="p-3 rounded-xl bg-surface-2/60 border border-line flex flex-col gap-2">
+                                <div className="p-3 rounded-[12px] bg-surface-2/60 border border-line flex flex-col gap-2">
                                     <div className="flex flex-wrap items-center justify-between gap-y-2">
                                         <span className="text-xs font-semibold text-ink-secondary flex items-center gap-1.5">
                                             <User size={14} className="text-brand-600" />
@@ -231,21 +233,27 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                     </Card>
                 </div>
 
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2">
                     <Card>
                         <CardTitle icon={User} tone="violet" title={order.customer_name} sub={order.customer_phone} />
-                        <p className="mt-3 grid grid-cols-2 gap-2 text-sm"><a className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-line px-3 py-2 font-semibold hover:border-brand-300" href={`tel:${order.customer_phone}`}><Phone size={14} />Call</a>
-                            <a className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 font-semibold text-white hover:bg-emerald-700" target="_blank" rel="noopener noreferrer" href={`https://wa.me/${waNumber(order.customer_phone, order.currency_symbol)}?text=${encodeURIComponent(`Hi ${order.customer_name}, about your order ${order.public_number}: `)}`}><MessageCircle size={14} />WhatsApp</a></p>
+                        {loyalty && (
+                            <p className="mt-2 rounded-[10px] bg-brand-50 px-3 py-2 text-sm text-brand-700 dark:bg-brand-500/10 dark:text-brand-400">
+                                <b>{loyalty.balance.toLocaleString()}</b> loyalty points on file{loyalty.balance > 0 && loyalty.value > 0 ? ` (about ${loyalty.value} to redeem)` : ''}
+                                {loyalty.will_earn > 0 ? <> · {loyalty.completed ? 'earned' : 'will earn'} <b>+{loyalty.will_earn}</b> on this order</> : null}
+                            </p>
+                        )}
+                        <p className="mt-3 grid grid-cols-2 gap-2 text-sm"><a className="inline-flex items-center justify-center gap-1.5 h-10 rounded-[12px] border border-line px-3 font-semibold hover:border-brand-300" href={`tel:${order.customer_phone}`}><Phone size={14} />Call</a>
+                            <a className="inline-flex items-center justify-center gap-1.5 h-10 rounded-[12px] bg-emerald-600 px-3 font-semibold text-white hover:bg-emerald-700" target="_blank" rel="noopener noreferrer" href={`https://wa.me/${waNumber(order.customer_phone, order.currency_symbol)}?text=${encodeURIComponent(`Hi ${order.customer_name}, about your order ${order.public_number}: `)}`}><MessageCircle size={14} />WhatsApp</a></p>
                         <p className="text-sm text-ink-muted mt-2">{order.fulfilment === 'delivery' ? 'Delivery to:' : 'Pickup'}</p>
                         {order.delivery_address && <p className="text-sm whitespace-pre-line">{order.delivery_address}</p>}
-                        {order.customer_note && <p className="text-sm mt-2 bg-sunken rounded-xl p-2">“{order.customer_note}”</p>}
+                        {order.customer_note && <p className="text-sm mt-2 bg-sunken rounded-[12px] p-2">“{order.customer_note}”</p>}
                     </Card>
                     <Card>
                         <div className="mb-2"><CardTitle icon={CreditCard} tone="emerald" title="Payment" /></div>
                         <p className="text-sm font-semibold text-ink">{METHOD_LABEL[order.payment_method]}</p>
                         <p className="text-sm text-ink-muted">{PAYMENT_LABEL[order.payment_status]}</p>
                         {order.bank_reference && (
-                            <div className="mt-3 p-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-xs space-y-2">
+                            <div className="mt-3 p-3 rounded-[12px] bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-xs space-y-2">
                                 <div className="flex flex-wrap items-center justify-between gap-y-2 gap-2">
                                     <span className="font-semibold text-amber-900 dark:text-amber-200">Customer Transfer Ref:</span>
                                     <span className="font-mono bg-white dark:bg-amber-900/60 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-700/60 text-[11px] font-bold text-amber-900 dark:text-amber-100">
@@ -260,7 +268,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                         <button
                                             type="button"
                                             onClick={() => setShowReceipt(true)}
-                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-sm transition-all"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs shadow-sm transition-all"
                                         >
                                             <Eye size={13} />
                                             View Transfer Receipt
@@ -283,7 +291,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         <div className="mb-3"><CardTitle icon={History} tone="slate" title="History" /></div>
                         <ol className="relative ml-1.5 border-l border-line">
                             {events.map((e, i) => (
-                                <li key={i} className="relative pl-5 pb-3 last:pb-0">
+                                <li key={i} className="relative pl-5 pb-2 last:pb-0">
                                     <span className={`absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-surface ${i === events.length - 1 ? 'bg-brand-600' : 'bg-ink-muted/40'}`} aria-hidden="true" />
                                     <div className="text-sm font-medium text-ink">{e.to_status ? STATUS_LABEL[e.to_status] : e.type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())}</div>
                                     <div className="text-xs text-ink-muted">{e.created_at}{e.note ? ` · ${e.note}` : ''}</div>
@@ -301,7 +309,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                     onClick={() => setShowReceipt(false)}
                 >
                     <div
-                        className="relative max-w-3xl w-full max-h-[90vh] bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col"
+                        className="relative max-w-3xl w-full max-h-[90vh] bg-surface rounded-[14px] border border-line shadow-2xl overflow-hidden flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-surface-2/60">
@@ -316,14 +324,14 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                     href={order.bank_receipt_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="px-2.5 py-1.5 rounded-lg bg-surface border border-line hover:bg-interactive-hover text-ink text-xs inline-flex items-center gap-1 font-medium transition-colors"
+                                    className="px-2.5 py-1.5 rounded-[12px] bg-surface border border-line hover:bg-interactive-hover text-ink text-xs inline-flex items-center gap-1 font-medium transition-colors"
                                 >
                                     <ExternalLink size={13} /> Open full size
                                 </a>
                                 <button
                                     type="button"
                                     onClick={() => setShowReceipt(false)}
-                                    className="p-1.5 rounded-lg hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-colors"
+                                    className="p-1.5 rounded-[12px] hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-colors"
                                     aria-label="Close modal"
                                 >
                                     <X size={18} />
@@ -332,12 +340,12 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         </div>
                         <div className="p-4 overflow-auto flex items-center justify-center bg-neutral-900/5 min-h-[320px]">
                             {order.bank_receipt_url.toLowerCase().endsWith('.pdf') ? (
-                                <iframe src={order.bank_receipt_url} title="Receipt PDF" className="w-full h-[650px] rounded-lg border border-line" />
+                                <iframe src={order.bank_receipt_url} title="Receipt PDF" className="w-full h-[650px] rounded-[12px] border border-line" />
                             ) : (
                                 <img
                                     src={order.bank_receipt_url}
                                     alt="Payment transfer proof screenshot"
-                                    className="max-h-[75vh] w-auto max-w-full rounded-lg object-contain shadow-md border border-line"
+                                    className="max-h-[75vh] w-auto max-w-full rounded-[12px] object-contain shadow-md border border-line"
                                 />
                             )}
                         </div>
@@ -352,13 +360,13 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                     onClick={() => setCompleteModal({ isOpen: false, collectNow: false, isAlreadyPaid: false })}
                 >
                     <div
-                        className="relative max-w-lg w-full bg-surface rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                        className="relative max-w-lg w-full bg-surface rounded-[14px] border border-line shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
                         <div className="flex flex-wrap items-center justify-between gap-y-2 p-4 border-b border-line bg-surface-2/60">
                             <div className="flex items-center gap-2.5">
-                                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+                                <div className={`w-9 h-9 rounded-[12px] flex items-center justify-center ${
                                     completeModal.isAlreadyPaid 
                                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
                                         : completeModal.collectNow
@@ -383,7 +391,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                             <button
                                 type="button"
                                 onClick={() => setCompleteModal({ isOpen: false, collectNow: false, isAlreadyPaid: false })}
-                                className="p-1.5 rounded-lg hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-colors"
+                                className="p-1.5 rounded-[12px] hover:bg-interactive-hover text-ink-secondary hover:text-ink transition-colors"
                                 aria-label="Close modal"
                             >
                                 <X size={18} />
@@ -393,7 +401,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                         {/* Modal Body */}
                         <div className="p-4 space-y-4 overflow-y-auto max-h-[75vh]">
                             {/* Financial Notice */}
-                            <div className={`p-3 rounded-xl border text-xs leading-relaxed ${
+                            <div className={`p-3 rounded-[12px] border text-xs leading-relaxed ${
                                 completeModal.isAlreadyPaid
                                     ? 'bg-purple-50/70 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/50 text-purple-900 dark:text-purple-200'
                                     : completeModal.collectNow
@@ -420,11 +428,11 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                 <label className="block text-xs font-semibold text-ink-secondary mb-1.5">
                                     Which customer should this transaction be assigned to?
                                 </label>
-                                <div className="grid grid-cols-2 p-1 bg-surface-2/80 rounded-xl border border-line gap-1">
+                                <div className="grid grid-cols-2 p-1 bg-surface-2/80 rounded-[12px] border border-line gap-1">
                                     <button
                                         type="button"
                                         onClick={() => setCustomerMode('new')}
-                                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-[12px] text-xs font-bold transition-all ${
                                             customerMode === 'new'
                                                 ? 'bg-surface text-ink shadow-sm'
                                                 : 'text-ink-secondary hover:text-ink'
@@ -436,7 +444,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                     <button
                                         type="button"
                                         onClick={() => setCustomerMode('link')}
-                                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                                        className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-[12px] text-xs font-bold transition-all ${
                                             customerMode === 'link'
                                                 ? 'bg-surface text-ink shadow-sm'
                                                 : 'text-ink-secondary hover:text-ink'
@@ -450,7 +458,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
 
                             {/* Mode 1: Create New Customer Form */}
                             {customerMode === 'new' && (
-                                <div className="space-y-3 p-3.5 bg-surface-2/40 rounded-xl border border-line animate-in fade-in duration-150">
+                                <div className="space-y-3 p-3.5 bg-surface-2/40 rounded-[12px] border border-line animate-in fade-in duration-150">
                                     <div className="flex flex-wrap items-center justify-between gap-y-2 text-xs">
                                         <span className="font-semibold text-ink">Online Order Customer Details</span>
                                         <span className="text-[11px] text-ink-muted">Pre-filled from order</span>
@@ -490,7 +498,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                     </div>
 
                                     {party_matches && party_matches.length > 0 && (
-                                        <div className="p-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs text-sky-900 dark:text-sky-200 flex items-start gap-2">
+                                        <div className="p-2.5 rounded-[12px] bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs text-sky-900 dark:text-sky-200 flex items-start gap-2">
                                             <AlertCircle size={15} className="text-sky-600 dark:text-sky-400 mt-0.5 shrink-0" />
                                             <div>
                                                 <span>We found <strong>{party_matches.length} existing customer(s)</strong> with matching phone. </span>
@@ -512,7 +520,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
 
                             {/* Mode 2: Link Existing Customer */}
                             {customerMode === 'link' && (
-                                <div className="space-y-3 p-3.5 bg-surface-2/40 rounded-xl border border-line animate-in fade-in duration-150">
+                                <div className="space-y-3 p-3.5 bg-surface-2/40 rounded-[12px] border border-line animate-in fade-in duration-150">
                                     <div className="text-xs font-semibold text-ink">
                                         Search and select from your existing customer directory:
                                     </div>
@@ -527,7 +535,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                                         key={m.id}
                                                         type="button"
                                                         onClick={() => setSelectedCustomer(m)}
-                                                        className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 ${
+                                                        className={`px-2.5 py-1 rounded-[12px] text-xs font-medium border transition-all flex items-center gap-1.5 ${
                                                             selectedCustomer?.id === m.id
                                                                 ? 'bg-brand-50 dark:bg-brand-950/60 border-brand-500 text-brand-700 dark:text-brand-300 font-bold'
                                                                 : 'bg-surface border-line hover:border-brand-300 text-ink'
@@ -553,7 +561,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                     </div>
 
                                     {selectedCustomer ? (
-                                        <div className="p-3 rounded-lg bg-surface border border-brand-300/80 dark:border-brand-700/80 shadow-sm flex items-start justify-between gap-3">
+                                        <div className="p-3 rounded-[12px] bg-surface border border-brand-300/80 dark:border-brand-700/80 shadow-sm flex items-start justify-between gap-3">
                                             <div className="space-y-0.5">
                                                 <div className="flex items-center gap-1.5">
                                                     <CheckCircle2 size={15} className="text-brand-600" />
@@ -569,7 +577,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                                             </span>
                                         </div>
                                     ) : (
-                                        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200">
+                                        <div className="p-3 rounded-[12px] bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200">
                                             Please select an existing customer from the dropdown above, or switch to "Create New Customer".
                                         </div>
                                     )}
@@ -577,7 +585,7 @@ export default function OrderShow({ order, lines, events, sale, urls, substitute
                             )}
 
                             {/* Summary Confirmation Banner */}
-                            <div className="p-3 rounded-xl bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2">
+                            <div className="p-3 rounded-[12px] bg-surface border border-line flex flex-wrap items-center justify-between gap-y-2">
                                 <div>
                                     <span className="text-[11px] text-ink-muted block uppercase tracking-wider font-semibold">Attributed Customer</span>
                                     <span className="font-bold text-ink text-sm">

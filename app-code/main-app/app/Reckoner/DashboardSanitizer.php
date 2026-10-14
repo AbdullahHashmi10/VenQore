@@ -237,6 +237,13 @@ class DashboardSanitizer
             }
         }
 
+        // A card narrowed to one product category: the id only, shape-checked.
+        if (isset($style['filter']) && is_array($style['filter'])
+            && isset($style['filter']['category']) && is_string($style['filter']['category'])
+            && preg_match('/^[A-Za-z0-9-]{1,64}$/', $style['filter']['category'])) {
+            $clean['filter'] = ['category' => $style['filter']['category']];
+        }
+
         // v2 presentation: a family + variant chosen from closed sets, a
         // tone from the palette, and display switches. All slug-shaped or
         // boolean; nothing free-form reaches the DOM.

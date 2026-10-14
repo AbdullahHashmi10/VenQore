@@ -1,35 +1,33 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { router, usePage, Head, Link } from '@inertiajs/react';
-import ReportsLayout from '@/Layouts/ReportsLayout';
+import React, { useState } from 'react';
+import { router, usePage } from '@inertiajs/react';
 import {
-    TrendingUp, TrendingDown, DollarSign, ArrowLeft, Filter,
-    Info, HelpCircle, AlertCircle, PieChart as PieIcon, Activity,
-    Zap, Target, Lightbulb, ArrowUpRight, ShieldCheck, X, Check, Loader2
+    TrendingUp, TrendingDown, DollarSign, Activity, Percent, Zap, Loader2, X, ShieldCheck, AlertCircle, PieChart as PieIcon, BarChart3, FileText,
 } from 'lucide-react';
-import {
-    PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
-} from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 import { useTermText } from '@/lib/terms';
+import {
+    RangePicker, ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, DateRangeFilter, filterInputCls,
+} from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart } from '@/Components/Reports/ReportCharts';
 
-import { vq } from '@/theme/runtime';
+const RANGES = [
+    { id: 'this_month', label: 'This Month' },
+    { id: 'last_month', label: 'Last Month' },
+    { id: 'this_year', label: 'This Year' },
+    { id: 'custom', label: 'Custom' },
+];
+
 export default function ProfitLoss({ stats = {}, filters = {} }) {
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
+    const pageProps = usePage().props;
     const tt = useTermText();
 
-    const { props } = usePage();
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
     const [range, setRange] = useState(filters.range || 'this_month');
-
-    // Analysis State
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState(null);
 
-    // --- Derived Metrics ---
     const revenue = parseFloat(stats.revenue || 0);
     const cogs = parseFloat(stats.cogs || 0);
     const expenses = parseFloat(stats.expenses || 0);
@@ -41,517 +39,152 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
     const cogsRatio = revenue ? ((cogs / revenue) * 100).toFixed(1) : 0;
     const expenseRatio = revenue ? ((expenses / revenue) * 100).toFixed(1) : 0;
 
-    // --- Chart Data ---
-    const breakdownData = [
-        { name: 'COGS', value: cogs, color: vq.amber[500] },     // Amber
-        { name: 'Expenses', value: expenses, color: vq.red[500] }, // Red
-        { name: 'Net Profit', value: Math.max(0, netProfit), color: vq.emerald[500] } // Emerald
-    ].filter(d => d.value > 0);
+    const slices = [
+        { name: 'COGS', value: cogs },
+        { name: 'Expenses', value: expenses },
+        { name: 'Net Profit', value: Math.max(0, netProfit) },
+    ].filter((d) => d.value > 0);
 
-    // --- formatters ---
+    const compare = [
+        { x: 'Revenue', y: revenue },
+        { x: 'COGS', y: cogs },
+        { x: 'Gross Profit', y: grossProfit },
+        { x: 'Expenses', y: expenses },
+        { x: 'Net Profit', y: netProfit },
+    ];
 
-    // --- Handlers ---
-    const handleRangeChange = (r) => {
-        setRange(r);
-        if (r !== 'custom') {
-            router.get(route("store.reports.profit-loss", {
-                store_slug: store.slug
-            }), { range: r }, { preserveState: true, preserveScroll: true });
-        }
-    };
-
-    const applyCustomRange = () => {
-        router.get(route("store.reports.profit-loss", {
-            store_slug: store.slug
-        }), {
-            range: 'custom',
-            start_date: startDate,
-            end_date: endDate
-        }, { preserveState: true, preserveScroll: true });
-    };
+    const go = (params) => router.get(route('store.reports.profit-loss', { store_slug: store.slug }), params, { preserveState: true, preserveScroll: true });
+    const handleRangeChange = (r) => { setRange(r); if (r !== 'custom') go({ range: r }); };
+    const applyCustomRange = () => go({ range: 'custom', start_date: startDate, end_date: endDate });
 
     const runAnalysis = () => {
         setIsAnalyzing(true);
-        // Simulate complex calculation delay
         setTimeout(() => {
             const insights = [];
-
-            // Logic derived from actual stats
-            if (grossMargin < 20) {
-                insights.push({ type: 'danger', title: 'Low Gross Margin', text: tt('Your production costs (COGS) are eating most of your revenue. Negotiate better rates with suppliers.') });
-            } else {
-                insights.push({ type: 'success', title: 'Healthy Gross Margin', text: 'Your core product pricing is solid. You have good room for overheads.' });
-            }
-
-            if (expenseRatio > 40) {
-                insights.push({ type: 'warning', title: 'High Overheads', text: `Your operating expenses are ${expenseRatio}% of revenue. This is higher than the recommended 30% benchmark.` });
-            }
-
-            if (revenue === 0) {
-                insights.push({ type: 'neutral', title: 'No Data', text: 'Start making sales to unlock deeper insights.' });
-            } else if (netProfit > 0) {
-                insights.push({ type: 'opportunity', title: 'Growth Opportunity', text: 'You are profitable! Consider reinvesting 20% of net profit into marketing to accelerate growth.' });
-            }
-
-            setAnalysisResult({
-                score: Math.max(0, Math.min(100, (parseFloat(netMargin) + 50))), // Rough score algo
-                insights
-            });
+            if (grossMargin < 20) insights.push({ type: 'danger', title: 'Low Gross Margin', text: tt('Your production costs (COGS) are eating most of your revenue. Negotiate better rates with suppliers.') });
+            else insights.push({ type: 'success', title: 'Healthy Gross Margin', text: 'Your core product pricing is solid. You have good room for overheads.' });
+            if (expenseRatio > 40) insights.push({ type: 'warning', title: 'High Overheads', text: `Your operating expenses are ${expenseRatio}% of revenue. This is higher than the recommended 30% benchmark.` });
+            if (revenue === 0) insights.push({ type: 'neutral', title: 'No Data', text: 'Start making sales to unlock deeper insights.' });
+            else if (netProfit > 0) insights.push({ type: 'opportunity', title: 'Growth Opportunity', text: 'You are profitable! Consider reinvesting 20% of net profit into marketing to accelerate growth.' });
+            setAnalysisResult({ score: Math.max(0, Math.min(100, parseFloat(netMargin) + 50)), insights });
             setIsAnalyzing(false);
         }, 2000);
     };
 
+    const cogsLedger = () => pageProps.meta?.cogs_account_id && router.visit(route('store.reports.account-ledger', {
+        store_slug: store.slug, account_id: pageProps.meta.cogs_account_id, start_date: filters.start_date, end_date: filters.end_date,
+    }));
+
+    const rows = [
+        { id: 'rev', label: 'Sales Revenue', amount: revenue, percent: 100, info: 'Total income from goods sold before any deductions.', kind: 'head' },
+        { id: 'cogs', label: 'Cost of Goods Sold (COGS)', amount: -cogs, percent: cogsRatio, info: 'Direct costs attributable to the production of the goods sold (e.g., material cost).', kind: 'neg', action: !!pageProps.meta?.cogs_account_id },
+        { id: 'gp', label: 'Gross Profit', amount: grossProfit, percent: grossMargin, info: 'Revenue minus COGS. Indicates how efficiently you produce goods.', kind: 'sub' },
+        { id: 'opex', label: 'Operating Expenses', amount: -expenses, percent: expenseRatio, info: 'Expenses incurred in normal business operations (Rent, Utilities, Salaries).', kind: 'neg' },
+        { id: 'net', label: 'Net Profit / (Loss)', amount: netProfit, percent: netMargin, info: "The 'Bottom Line'. Total earnings after subtracting all expenses and costs.", kind: 'total' },
+    ];
+
+    const columns = [
+        {
+            key: 'label', label: 'Description',
+            render: (r) => (
+                <span title={r.info} className={`${r.kind === 'sub' || r.kind === 'total' ? 'font-bold uppercase tracking-wider text-ink' : r.kind === 'head' ? 'font-bold text-ink' : ''}`}>
+                    {r.label}{r.action ? <span className="ml-2 text-xs font-bold text-brand-500">View Ledger &rarr;</span> : null}
+                </span>
+            ),
+        },
+        {
+            key: 'amount', label: 'Amount', align: 'right',
+            render: (r) => (
+                <span className={`font-bold ${r.kind === 'neg' ? 'text-rose-500' : r.kind === 'sub' || r.kind === 'total' ? (r.amount < 0 ? 'text-rose-600' : 'text-emerald-600') : 'text-ink'}`}>
+                    {formatCurrency(r.amount, store)}
+                </span>
+            ),
+        },
+        { key: 'percent', label: '% Sales', align: 'right', render: (r) => `${r.percent}%` },
+    ];
+
+    const filters_ = (
+        <>
+            <RangePicker value={range} onChange={handleRangeChange} options={RANGES} />
+            {range === 'custom' && (
+                <div className="flex flex-wrap items-center gap-2">
+                    <DateRangeFilter presets={false} from={startDate} to={endDate} onChange={({ from, to }) => { setStartDate(from); setEndDate(to); }} />
+                    <button type="button" onClick={applyCustomRange} className="h-10 rounded-[12px] bg-brand-600 px-4 text-sm font-bold text-white transition-colors hover:bg-brand-700">Apply</button>
+                </div>
+            )}
+        </>
+    );
+
     return (
-        <ReportsLayout title="Profit & Loss Statement">
-            <Head title="Profit & Loss" />
-            <div className="flex flex-col h-full gap-4 w-full relative">
+        <ReportShell
+            title="Profit & Loss" subtitle="Financial performance for the selected period" activeKey="profit-loss"
+            filters={filters_}
+            actions={(
+                <button type="button" onClick={runAnalysis} disabled={isAnalyzing}
+                    className="flex h-10 items-center gap-2 rounded-[12px] bg-emerald-600 px-3 text-sm font-bold text-white transition-colors hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-50">
+                    {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                    <span className="hidden sm:inline">{isAnalyzing ? 'Scanning...' : 'Run Analysis'}</span>
+                </button>
+            )}
+            exportConfig={{
+                filename: 'profit-loss',
+                columns: [{ label: 'Description', get: (r) => r.label }, { label: 'Amount', get: (r) => r.amount }, { label: '% Sales', get: (r) => r.percent }],
+                rows,
+            }}
+        >
+            <ReportKpis items={[
+                { label: 'Revenue', value: formatCurrency(revenue, store), icon: DollarSign, tone: 'blue' },
+                { label: 'Net Profit', value: formatCurrency(netProfit, store), sub: `${netMargin}% of revenue`, icon: DollarSign, tone: netProfit >= 0 ? 'emerald' : 'rose', valueTone: netProfit >= 0 ? 'emerald' : 'rose' },
+                { label: 'Gross Profit', value: formatCurrency(grossProfit, store), sub: `${grossMargin}% margin`, icon: TrendingUp, tone: 'blue' },
+                { label: 'Total Expenses', value: formatCurrency(expenses, store), sub: `${expenseRatio}% of revenue`, icon: TrendingDown, tone: 'rose' },
+                { label: 'COGS', value: formatCurrency(cogs, store), sub: `${cogsRatio}% of revenue`, icon: Percent, tone: 'amber' },
+                { label: 'Revenue Efficiency', value: `${(100 - expenseRatio - cogsRatio).toFixed(1)}%`, sub: 'Retained from sales', icon: Activity, tone: 'brand' },
+            ]} />
 
-                {/* 1. Header & Controls */}
-                <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-surface p-3 rounded-2xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-3 pl-2">
-                        <Link href={route("store.reports.index", {
-                            store_slug: store.slug
-                        })} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-xl text-ink-muted transition-colors">
-                            <ArrowLeft size={18} />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
-                                Profit & Loss <span className="text-ink-muted font-medium text-sm hidden sm:inline">Statement</span>
-                            </h1>
-                            <p className="text-xs text-ink-muted font-medium">Financial performance for the selected period</p>
+            <ReportGrid>
+                <ReportCol span={7}>
+                    <ReportSection title="Income vs costs" subtitle="Revenue, costs and profit for the period" icon={BarChart3}>
+                        <TrendChart type="bar" label="Amount" points={compare} height={260} legend={false} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={5}>
+                    <ReportSection title="Revenue distribution" subtitle={`Net margin ${netMargin}%`} icon={PieIcon} tone="amber"
+                        right={netProfit >= 0 && netMargin > 20 ? <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600"><ShieldCheck size={14} />Excellent</span> : netMargin > 5 ? <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-600"><Activity size={14} />Stable</span> : <span className="inline-flex items-center gap-1 text-xs font-bold text-rose-600"><AlertCircle size={14} />Needs attention</span>}>
+                        <DonutChart slices={slices} height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+
+            <ReportSection title="Income statement" subtitle="Click COGS to open its ledger" icon={FileText} tone="violet" flush>
+                <ReportTable columns={columns} rows={rows} rowKey={(r) => r.id} pageSize={0}
+                    onRowClick={(r) => { if (r.id === 'cogs') cogsLedger(); }} />
+            </ReportSection>
+
+            {analysisResult && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/60 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-md overflow-hidden rounded-[14px] border border-line bg-surface shadow-2xl">
+                        <div className="relative bg-brand-600 p-6 text-white">
+                            <div className="mb-2 flex items-start justify-between">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-white/20"><Activity size={22} /></div>
+                                <button type="button" onClick={() => setAnalysisResult(null)} className="text-white/70 transition-colors hover:text-white"><X size={20} /></button>
+                            </div>
+                            <h2 className="text-2xl font-bold tracking-tight">Analysis Report</h2>
+                            <p className="text-sm font-medium text-brand-200">Business Health Score: <span className="font-bold text-white">{analysisResult.score.toFixed(0)}/100</span></p>
                         </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        <div className="flex bg-sunken p-1 rounded-xl overflow-x-auto max-w-full shrink-0">
-                            {[
-                                { id: 'this_month', label: 'This Month' },
-                                { id: 'last_month', label: 'Last Month' },
-                                { id: 'this_year', label: 'This Year' },
-                                { id: 'custom', label: 'Custom' }
-                            ].map((opt) => (
-                                <button
-                                    key={opt.id}
-                                    onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${range === opt.id
-                                        ? 'bg-sunken shadow-sm text-brand-600 dark:text-brand-400'
-                                        : 'text-ink-muted hover:text-ink-secondary dark:hover:text-neutral-300'
-                                        }`}
-                                >
-                                    {opt.label}
-                                </button>
+                        <div className="flex max-h-[60vh] flex-col gap-2 overflow-y-auto p-4">
+                            {analysisResult.insights.map((insight, idx) => (
+                                <div key={idx} className={`rounded-[12px] border-l-4 p-4 ${insight.type === 'danger' ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/10' : insight.type === 'warning' ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/10' : insight.type === 'success' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10' : 'border-brand-500 bg-sunken'}`}>
+                                    <h4 className={`mb-1 text-sm font-bold ${insight.type === 'danger' ? 'text-rose-700 dark:text-rose-400' : insight.type === 'warning' ? 'text-amber-700 dark:text-amber-400' : insight.type === 'success' ? 'text-emerald-700 dark:text-emerald-400' : 'text-ink'}`}>{insight.title}</h4>
+                                    <p className="text-xs leading-relaxed text-ink-secondary">{insight.text}</p>
+                                </div>
                             ))}
                         </div>
-
-                        {range === 'custom' && (
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-slow bg-surface border border-line p-1.5 rounded-xl w-full sm:w-auto">
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary w-full sm:w-auto"
-                                />
-                                <span className="text-ink-muted text-xs font-bold text-center shrink-0">TO</span>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2 py-1 bg-app border-none rounded-lg text-xs focus:ring-1 focus:ring-brand-500 text-ink-secondary w-full sm:w-auto"
-                                />
-                                <button
-                                    onClick={applyCustomRange}
-                                    className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm w-full sm:w-auto text-center"
-                                >
-                                    Apply
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* 2. Top Level KPI Cards (Key Ratios) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 shrink-0">
-                    <RatioCard
-                        title="Net Profit"
-                        value={formatCurrency(netProfit, store)}
-                        subtitle={`${netMargin}% of Revenue`}
-                        color={netProfit >= 0 ? "emerald" : "rose"}
-                        icon={<DollarSign />}
-                    />
-                    <RatioCard
-                        title="Gross Profit"
-                        value={formatCurrency(grossProfit, store)}
-                        subtitle={`${grossMargin}% Margin`}
-                        color="blue"
-                        icon={<TrendingUp />}
-                    />
-                    <RatioCard
-                        title="Total Expenses"
-                        value={formatCurrency(expenses, store)}
-                        subtitle={`${expenseRatio}% of Revenue`}
-                        color="rose"
-                        icon={<TrendingDown />}
-                    />
-                    <RatioCard
-                        title="Revenue Efficiency"
-                        value={`${(100 - expenseRatio - cogsRatio).toFixed(1)}%`}
-                        subtitle="Retained from Sales"
-                        color="indigo"
-                        icon={<Activity />}
-                    />
-                </div>
-
-                {/* 3. Main Content: 3-COLUMN LAYOUT */}
-                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 flex-1 min-h-0">
-
-                    {/* LEFT COL: Detailed P&L Statement (Spans 2 cols) */}
-                    <div className="xl:col-span-2 bg-surface rounded-2xl border border-line shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-4 sm:p-5 border-b border-line flex justify-between items-center bg-sunken/50 dark:bg-surface">
-                            <h2 className="text-base sm:text-lg font-bold text-ink">Income Statement</h2>
-                            <button className="text-2xs sm:text-xs font-bold text-brand-600 hover:text-brand-700 bg-brand-50 px-2.5 py-1.5 rounded-lg transition-colors">
-                                Download PDF
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-1 sm:p-2">
-                            <table className="w-full text-xs sm:text-sm text-left">
-                                <thead className="text-2xs text-ink-muted uppercase bg-app">
-                                    <tr>
-                                        <th className="px-3 sm:px-6 py-2 sm:py-3 rounded-l-lg">Description</th>
-                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-right">Amount</th>
-                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-right rounded-r-lg">% Sales</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-line">
-                                    <StatementRow
-                                        label="Sales Revenue"
-                                        amount={revenue}
-                                        percent={100}
-                                        info="Total income from goods sold before any deductions."
-                                        isHeader
-                                        store={store}
-                                    />
-                                    <StatementRow
-                                        label="Cost of Goods Sold (COGS)"
-                                        amount={-cogs}
-                                        percent={cogsRatio}
-                                        info="Direct costs attributable to the production of the goods sold (e.g., material cost)."
-                                        isNegative
-                                        store={store}
-                                        action={() => props.meta?.cogs_account_id && router.visit(route("store.reports.account-ledger", {
-                                            store_slug: store.slug,
-                                            account_id: props.meta.cogs_account_id,
-                                            start_date: filters.start_date,
-                                            end_date: filters.end_date
-                                        }))}
-                                    />
-                                    <SummaryRow
-                                        label="Gross Profit"
-                                        amount={grossProfit}
-                                        type="subtotal"
-                                        info="Revenue minus COGS. Indicates how efficiently you produce goods."
-                                        store={store}
-                                    />
-                                    <StatementRow
-                                        label="Operating Expenses"
-                                        amount={-expenses}
-                                        percent={expenseRatio}
-                                        info="Expenses incurred in normal business operations (Rent, Utilities, Salaries)."
-                                        isNegative
-                                        store={store}
-                                    />
-                                    <SummaryRow
-                                        label="Net Profit / (Loss)"
-                                        amount={netProfit}
-                                        type="total"
-                                        info="The 'Bottom Line'. Total earnings after subtracting all expenses and costs."
-                                        store={store}
-                                    />
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {/* MIDDLE COL: Visuals (1 col) */}
-                    <div className="xl:col-span-1 flex flex-col gap-4">
-                        <div className="bg-surface p-5 rounded-2xl border border-line shadow-sm flex-1 min-h-[300px] flex flex-col">
-                            <h3 className="text-xs font-bold text-ink-muted uppercase mb-4 flex items-center gap-2">
-                                <PieIcon size={14} /> Revenue Distribution
-                            </h3>
-                            <div className="flex-1 relative">
-                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                    <PieChart>
-                                        <Pie
-                                            data={breakdownData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {breakdownData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                            ))}
-                                        </Pie>
-                                        <RechartsTooltip
-                                            formatter={(val) => formatCurrency(val, store)}
-                                            contentStyle={{ backgroundColor: vq.slate[800], border: 'none', borderRadius: '8px', color: '#fff' }}
-                                            itemStyle={{ color: '#fff' }}
-                                        />
-                                        <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-8">
-                                    <div className="text-center">
-                                        <p className="text-2xs text-ink-muted font-bold uppercase">Net Margin</p>
-                                        <p className={`text-xl font-bold ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                                            {netMargin}%
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-brand-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-brand-500/20 rounded-full blur-xl translate-y-1/3 -translate-x-1/3" />
-
-                            <div className="relative z-10">
-                                <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">
-                                    <HelpCircle size={14} /> Health Check
-                                </h3>
-                                <div className="text-xs opacity-80 leading-relaxed space-y-2">
-                                    <p>Your <strong className="text-white">OpEx Ratio</strong> is {expenseRatio}%. {expenseRatio > 40 ? 'Consider reducing overheads.' : 'This is healthy.'}</p>
-                                    <div className="mt-2 pt-2 border-t border-white/10">
-                                        {netMargin > 20 ? (
-                                            <span className="inline-flex items-center gap-1 text-emerald-300 font-bold">
-                                                <ShieldCheck size={14} /> Excellent Health
-                                            </span>
-                                        ) : netMargin > 5 ? (
-                                            <span className="inline-flex items-center gap-1 text-blue-300 font-bold">
-                                                <Activity size={14} /> Stable
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 text-rose-300 font-bold">
-                                                <AlertCircle size={14} /> Needs Attention
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* RIGHT COL: Growth Engine (New Section using Side Space) */}
-                    <div className="xl:col-span-1 flex flex-col gap-4 h-full">
-                        <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg text-white h-full relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
-                            <h3 className="text-base font-bold uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
-                                <Zap size={18} fill="currentColor" /> Growth Engine
-                            </h3>
-
-                            <div className="space-y-4">
-                                <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
-                                    <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2">
-                                        <Target size={12} /> Profit Optimization
-                                    </h4>
-                                    <p className="text-1xs text-neutral-300 leading-relaxed">
-                                        {netMargin < 10
-                                            ? "Your margin is tight. Focus on high-margin items and reduce 'Loss Leaders' this week."
-                                            : "Strong margins! Reinvest surplus into marketing best-sellers to scale volume."}
-                                    </p>
-                                </div>
-
-                                <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
-                                    <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2">
-                                        <Lightbulb size={12} /> Smart Insight
-                                    </h4>
-                                    <p className="text-1xs text-neutral-300 leading-relaxed">
-                                        Increasing your average ticket size by just <strong>10%</strong> would add
-                                        <strong className="text-white ml-1">{formatCurrency(revenue * 0.1, store)}</strong> to your revenue without new customers.
-                                    </p>
-                                </div>
-
-                                <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10 group cursor-pointer hover:bg-white/10 transition-colors">
-                                    <h4 className="text-xs font-bold text-brand-300 mb-1 flex items-center gap-2">
-                                        <ArrowUpRight size={12} /> Action Plan
-                                    </h4>
-                                    <ul className="text-2xs text-neutral-300 space-y-1.5 mt-2">
-                                        <li className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                                            {tt('Review Supplier Costs')}
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-brand-500"></div>
-                                            Audit Utility Expenses
-                                        </li>
-                                        <li className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
-                                            Push Upsells at Checkout
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={runAnalysis}
-                                disabled={isAnalyzing}
-                                className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait"
-                            >
-                                {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} fill="currentColor" />}
-                                {isAnalyzing ? 'Scanning Data...' : 'Run Full Analysis'}
-                            </button>
+                        <div className="flex justify-end border-t border-line bg-app p-4">
+                            <button type="button" onClick={() => setAnalysisResult(null)} className="h-10 rounded-[12px] bg-neutral-800 px-4 text-sm font-bold text-white transition-colors hover:bg-neutral-700">Dismiss Report</button>
                         </div>
                     </div>
                 </div>
-
-                {/* 4. Analysis Report Modal (Overlay) */}
-                {analysisResult && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/60 backdrop-blur-sm animate-in fade-in duration-normal">
-                        <div className="bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-line overflow-hidden animate-in zoom-in-95 duration-normal">
-                            {/* Modal Header */}
-                            <div className="bg-brand-600 p-6 text-white relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                                <div className="relative z-10">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="bg-white/20 p-2 rounded-lg backdrop-blur-md">
-                                            <Activity size={24} />
-                                        </div>
-                                        <button onClick={() => setAnalysisResult(null)} className="text-white/70 hover:text-white transition-colors">
-                                            <X size={20} />
-                                        </button>
-                                    </div>
-                                    <h2 className="text-2xl font-bold tracking-tight">Analysis Report</h2>
-                                    <p className="text-brand-200 text-sm font-medium">Business Health Score: <span className="text-white font-bold">{analysisResult.score.toFixed(0)}/100</span></p>
-                                </div>
-                            </div>
-
-                            {/* Modal Body */}
-                            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                                {analysisResult.insights.map((insight, idx) => (
-                                    <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10' :
-                                            insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10' :
-                                                insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10' :
-                                                    'bg-sunken border-brand-500 dark:bg-surface'
-                                        }`}>
-                                        <h4 className={`text-sm font-bold mb-1 ${insight.type === 'danger' ? 'text-rose-700 dark:text-rose-400' :
-                                                insight.type === 'warning' ? 'text-amber-700 dark:text-amber-400' :
-                                                    insight.type === 'success' ? 'text-emerald-700 dark:text-emerald-400' :
-                                                        'text-ink'
-                                            }`}>
-                                            {insight.title}
-                                        </h4>
-                                        <p className="text-xs text-ink-secondary leading-relaxed">
-                                            {insight.text}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Modal Footer */}
-                            <div className="p-4 border-t border-line bg-app flex justify-end">
-                                <button
-                                    onClick={() => setAnalysisResult(null)}
-                                    className="px-4 py-2 bg-neutral-800 hover:bg-interactive-hover text-white text-xs font-bold rounded-lg transition-colors"
-                                >
-                                    Dismiss Report
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-            </div>
-        </ReportsLayout>
-    );
-}
-
-// ... Sub-components remain unchanged ...
-function RatioCard({ title, value, subtitle, color, icon }) {
-    const colors = {
-        indigo: 'bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400',
-        emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
-        rose: 'bg-rose-50 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400',
-        blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
-        amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
-    };
-
-    return (
-        <div className="bg-surface p-3 sm:p-4 rounded-2xl border border-line shadow-sm relative overflow-hidden group">
-            <div className="flex justify-between items-start mb-2">
-                <div className={`p-1.5 sm:p-2 rounded-lg ${colors[color]} shrink-0`}>
-                    {React.cloneElement(icon, { size: 16 })}
-                </div>
-            </div>
-            <div>
-                <p className="text-2xs sm:text-xs font-bold text-ink-muted uppercase">{title}</p>
-                <h3 className="text-lg sm:text-2xl font-bold text-ink tracking-tight my-0.5 sm:my-1">{value}</h3>
-                <p className={`text-2xs sm:text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-ink-muted'}`}>{subtitle}</p>
-            </div>
-        </div>
-    );
-}
-
-function StatementRow({ label, amount, percent, info, isHeader, isNegative, action, store }) {
-
-    return (
-        <tr className={`group transition-colors ${action ? 'hover:bg-interactive-hover dark:hover:bg-interactive-hover cursor-pointer' : ''}`} onClick={action}>
-            <td className="px-3 sm:px-6 py-2.5 sm:py-4">
-                <div className="flex items-center gap-2">
-                    <span className={`font-medium text-xs sm:text-sm ${isHeader ? 'text-ink font-bold' : 'text-ink-secondary'}`}>
-                        {label}
-                    </span>
-                    <div className="group/tooltip relative">
-                        <Info size={13} className="text-neutral-300 hover:text-brand-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-neutral-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
-                            {info}
-                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-                        </div>
-                    </div>
-                </div>
-                {action && <p className="text-3xs sm:text-2xs text-brand-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
-            </td>
-            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right font-bold text-xs sm:text-sm ${isNegative ? 'text-rose-500' : 'text-ink-secondary dark:text-ink'}`}>
-                {formatCurrency(amount, store)}
-            </td>
-            <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
-                <div className="flex items-center justify-end gap-1.5 sm:gap-2">
-                    <span className="text-2xs sm:text-xs text-ink-muted font-medium">{percent}%</span>
-                    <div className="w-12 sm:w-16 h-1 sm:h-1.5 bg-sunken rounded-full overflow-hidden shrink-0">
-                        <div className="h-full bg-sunken rounded-full" style={{ width: `${Math.min(percent, 100)}%` }}></div>
-                    </div>
-                </div>
-            </td>
-        </tr>
-    );
-}
-
-function SummaryRow({ label, amount, type, info, store }) {
-    const isTotal = type === 'total';
-    const isLoss = amount < 0;
-
-    return (
-        <tr className={`bg-sunken/80 dark:bg-surface ${isTotal ? 'border-t-2 border-line' : ''}`}>
-            <td className="px-3 sm:px-6 py-2.5 sm:py-4">
-                <div className="flex items-center gap-2">
-                    <span className={`uppercase tracking-wider ${isTotal ? 'text-sm sm:text-base font-bold text-ink' : 'text-xs sm:text-sm font-bold text-ink-secondary dark:text-ink'}`}>
-                        {label}
-                    </span>
-                    <div className="group/tooltip relative">
-                        <Info size={13} className="text-ink-muted hover:text-brand-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-neutral-800 text-white text-3xs sm:text-2xs p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
-                            {info}
-                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
-                        </div>
-                    </div>
-                </div>
-            </td>
-            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right ${isTotal ? 'text-base sm:text-xl font-bold' : 'text-sm sm:text-lg font-bold'} ${isLoss ? 'text-rose-600' : 'text-emerald-600'}`}>
-                {formatCurrency(amount, store)}
-            </td>
-            <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right"></td>
-        </tr>
+            )}
+        </ReportShell>
     );
 }

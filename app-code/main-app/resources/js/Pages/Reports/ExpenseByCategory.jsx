@@ -1,53 +1,47 @@
 import React from 'react';
-import ReportPage from './Components/ReportPage';
-import { PieChart } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
+import { PieChart, Wallet, Layers, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { DonutChart, RankBars } from '@/Components/Reports/ReportCharts';
 
-export default function ExpenseByCategory({ expenses }) {
+export default function ExpenseByCategory({ expenses = [] }) {
     const { store } = usePage().props;
-    const total = expenses.reduce((sum, exp) => sum + exp.total, 0);
+    const money = (v) => formatCurrency(v || 0, store);
+    const total = expenses.reduce((sum, exp) => sum + (Number(exp.total) || 0), 0);
+    const pct = (exp) => (total > 0 ? (exp.total / total) * 100 : 0);
+    const name = (exp) => exp.category || 'Uncategorized';
+    const top = [...expenses].sort((a, b) => b.total - a.total)[0];
+
+    const columns = [
+        { key: 'category', label: 'Category', sortable: true, get: name, render: (e) => <span className="font-bold text-ink">{name(e)}</span> },
+        { key: 'total', label: 'Total', align: 'right', sortable: true, render: (e) => <span className="font-bold text-ink">{money(e.total)}</span> },
+        { key: 'share', label: 'Share', align: 'right', sortable: true, get: pct, render: (e) => <span className="text-xs font-bold text-ink-muted">{pct(e).toFixed(1)}%</span> },
+    ];
 
     return (
-        <ReportPage
-            title="Expense by Category"
-            subtitle="Breakdown of expenses across different categories"
-            icon={PieChart}
-        >
-            <div className="p-4 sm:p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-bold text-ink-muted uppercase tracking-widest">Category Breakdown</h4>
-                        <div className="space-y-3">
-                            {expenses.map((exp, idx) => {
-                                const percentage = total > 0 ? (exp.total / total) * 100 : 0;
-                                return (
-                                    <div key={idx} className="space-y-1">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="font-bold text-ink">{exp.category || 'Uncategorized'}</span>
-                                            <span className="text-ink-muted">{formatCurrency(exp.total, store)} ({percentage.toFixed(1)}%)</span>
-                                        </div>
-                                        <div className="w-full bg-sunken h-2 rounded-full overflow-hidden">
-                                            <div
-                                                className="bg-brand-500 h-full transition-all duration-slower"
-                                                style={{ width: `${percentage}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="bg-app rounded-2xl p-4 sm:p-8 flex flex-col items-center justify-center text-center">
-                        <div className="w-20 h-20 rounded-2xl bg-brand-600 text-white flex items-center justify-center mb-4 shadow-xl ">
-                            <PieChart size={40} />
-                        </div>
-                        <p className="text-xs font-bold text-ink-muted uppercase tracking-widest mb-1">Total Expenses</p>
-                        <p className="text-2xl sm:text-4xl font-bold text-ink">{formatCurrency(total, store)}</p>
-                    </div>
-                </div>
-            </div>
-        </ReportPage>
+        <ReportShell title="Expense by Category" subtitle="Breakdown of expenses across different categories" activeKey="expense-by-category"
+            exportConfig={{ filename: 'expense-by-category', columns: columns.map((c) => ({ label: c.label, get: (r) => (c.get ? c.get(r) : r[c.key]) })), rows: expenses }}>
+            <ReportKpis items={[
+                { label: 'Total Expenses', value: money(total), icon: Wallet, tone: 'rose' },
+                { label: 'Categories', value: expenses.length, icon: Layers, tone: 'sky' },
+                { label: 'Largest Category', value: top ? name(top) : '-', icon: TrendingUp, tone: 'amber', sub: top ? `${money(top.total)} (${pct(top).toFixed(1)}%)` : undefined },
+            ]} />
+            <ReportGrid>
+                <ReportCol span={5}>
+                    <ReportSection title="Share by category" icon={PieChart}>
+                        <DonutChart height={240} slices={expenses.map((e) => ({ name: name(e), value: Number(e.total) || 0 })).filter((x) => x.value > 0)} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={7}>
+                    <ReportSection title="Category breakdown" subtitle="Top 8">
+                        <RankBars items={expenses.map((e) => ({ label: name(e), value: Number(e.total) || 0, sub: `${pct(e).toFixed(1)}%` })).sort((a, b) => b.value - a.value)} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+            <ReportSection title="Categories" subtitle={`${expenses.length} records`} flush>
+                <ReportTable columns={columns} rows={expenses} rowKey={(e, i) => i} totals={{ category: 'Total', total: money(total), share: total > 0 ? '100%' : '' }} />
+            </ReportSection>
+        </ReportShell>
     );
 }

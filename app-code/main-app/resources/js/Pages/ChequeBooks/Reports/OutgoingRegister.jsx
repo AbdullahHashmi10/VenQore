@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
+import { useChequeReportNavGroups, ToolbarDate } from '@/Components/ChequeReportNav';
 import PremiumSelect from '@/Components/PremiumSelect';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
@@ -12,6 +17,7 @@ import {
 export default function OutgoingRegister({ leaves, bankAccounts = [], filters = {} }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug;
+    const navGroups = useChequeReportNavGroups();
     const [search, setSearch] = useState(filters.search || '');
     const [selectedBank, setSelectedBank] = useState(filters.bank_account_id || '');
     const [selectedStatus, setSelectedStatus] = useState(filters.status || '');
@@ -41,151 +47,66 @@ export default function OutgoingRegister({ leaves, bankAccounts = [], filters = 
     };
 
     return (
-        <OneGlanceLayout title="Outgoing Cheque Register" activeMenu="Money">
+        <OneGlanceLayout title="Outgoing Cheque Register" activeMenu="Money" noPadding>
             <Head title="Outgoing Cheque Register" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                {/* Line 1: Module Navigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
+            <div className="max-md:p-1.5 max-md:h-full md:contents">
+            <ListPageFrame className="max-md:flex max-md:flex-col max-md:h-full max-md:bg-app max-md:p-2 max-md:gap-1 max-md:overflow-hidden">
+                <ListToolbar
+                    title="Outgoing Cheque Register"
+                    navGroups={navGroups}
+                    activeId="outgoing"
+                    left={<>
+                        <ListFilterPill label="All Bank Accounts" value={String(selectedBank)} allValue="" onChange={(val) => { setSelectedBank(val); handleFilterChange({ bank_account_id: val }); }} options={[
+                            { value: '', label: 'All Bank Accounts' }, ...bankAccounts.map((b) => ({ value: String(b.id), label: b.name })),
+                        ]} />
+                        <ListFilterPill label="All Statuses" value={selectedStatus} allValue="" onChange={(val) => { setSelectedStatus(val); handleFilterChange({ status: val }); }} options={[
+                            { value: '', label: 'All Statuses' }, { value: 'issued', label: 'Issued' }, { value: 'cleared', label: 'Cleared' }, { value: 'bounced', label: 'Bounced' }, { value: 'stopped', label: 'Stopped' }, { value: 'reserved', label: 'Reserved' }, { value: 'void', label: 'Void' },
+                        ]} />
+                        <ToolbarDate title="From" value={fromDate} onChange={(v) => { setFromDate(v); handleFilterChange({ from_date: v }); }} />
+                        <ToolbarDate title="To" value={toDate} onChange={(v) => { setToDate(v); handleFilterChange({ to_date: v }); }} />
+                    </>}
+                    search={{ value: search, onChange: (v) => { setSearch(v); handleFilterChange({ search: v }); }, placeholder: 'Search cheque #, payee...' }}
+                    actions={<button type="button" onClick={handleExport} className="h-10 px-4 rounded-[12px] border border-line bg-app text-ink text-sm font-bold flex items-center gap-2 hover:bg-interactive-hover transition-colors whitespace-nowrap"><Download size={16} />Export</button>}
+                />
+                <ListStatCards cards={[{ label: 'Cheque leaves', value: leaves.total ?? (leaves.data || []).length, icon: FileText }]} />
 
-                {/* Line 2: Reports Sub-nav pills */}
-                <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center gap-2 overflow-x-auto shrink-0">
-                    <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted shrink-0">Reports:</span>
-                    <Link
-                        href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 shrink-0"
-                    >
-                        Outgoing Register
-                    </Link>
-                    <Link
-                        href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
-                    >
-                        Incoming Register
-                    </Link>
-                    <Link
-                        href={route('store.banking.reports.cheque-utilization', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
-                    >
-                        Chequebook Utilization
-                    </Link>
-                    <Link
-                        href={route('store.banking.reports.post-dated-cheques', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
-                    >
-                        Post-Dated Cheques
-                    </Link>
-                </div>
-
-                {/* Line 3: Compact Header & Filter Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex items-center gap-2">
-                        <Link
-                            href={route('store.banking.cheque-books.index', { store_slug: storeSlug })}
-                            className="p-1.5 hover:bg-interactive-hover rounded-lg text-ink-muted transition-colors"
-                        >
-                            <ArrowLeft size={16} />
-                        </Link>
-                        <h1 className="text-base font-bold text-ink uppercase tracking-tight">
-                            Outgoing <span className="text-brand-600">Register</span>
-                        </h1>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="relative w-40 sm:w-56">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search cheque #, payee..."
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    handleFilterChange({ search: e.target.value });
-                                }}
-                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
-                            />
-                        </div>
-
-                    <div>
-                        <PremiumSelect
-                            value={selectedBank}
-                            onChange={(val) => {
-                                setSelectedBank(val);
-                                handleFilterChange({ bank_account_id: val });
-                            }}
-                            options={[
-                                { value: '', label: 'All Bank Accounts' },
-                                ...bankAccounts.map((b) => ({
-                                    value: String(b.id),
-                                    label: b.name
-                                }))
-                            ]}
-                            placeholder="All Bank Accounts"
-                            inputClassName="!rounded-full !py-2 !px-4 !bg-neutral-50 dark:!bg-neutral-900/50 !border-neutral-200 dark:!border-neutral-700 text-xs sm:text-sm font-medium"
-                            className="w-full"
-                        />
-                    </div>
-
-                    <div>
-                        <PremiumSelect
-                            value={selectedStatus}
-                            onChange={(val) => {
-                                setSelectedStatus(val);
-                                handleFilterChange({ status: val });
-                            }}
-                            options={[
-                                { value: '', label: 'All Statuses' },
-                                { value: 'issued', label: 'Issued' },
-                                { value: 'cleared', label: 'Cleared' },
-                                { value: 'bounced', label: 'Bounced' },
-                                { value: 'stopped', label: 'Stopped' },
-                                { value: 'reserved', label: 'Reserved' },
-                                { value: 'void', label: 'Void' }
-                            ]}
-                            placeholder="All Statuses"
-                            inputClassName="!rounded-full !py-2 !px-4 !bg-neutral-50 dark:!bg-neutral-900/50 !border-neutral-200 dark:!border-neutral-700 text-xs sm:text-sm font-medium"
-                            className="w-full"
-                        />
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                        <input
-                            type="date"
-                            value={fromDate}
-                            onChange={(e) => {
-                                setFromDate(e.target.value);
-                                handleFilterChange({ from_date: e.target.value });
-                            }}
-                            className="w-full py-1.5 px-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs"
-                            placeholder="From"
-                        />
-                        <span className="text-neutral-400">-</span>
-                        <input
-                            type="date"
-                            value={toDate}
-                            onChange={(e) => {
-                                setToDate(e.target.value);
-                                handleFilterChange({ to_date: e.target.value });
-                            }}
-                            className="w-full py-1.5 px-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs"
-                            placeholder="To"
-                        />
-                    </div>
-                </div>
+                <MobileListHeader
+                    title="Outgoing Cheques"
+                    navGroups={navGroups}
+                    activeId="outgoing"
+                    filter={{
+                        active: !!(selectedBank || selectedStatus || fromDate || toDate),
+                        sections: [
+                            { label: 'Status', value: selectedStatus, options: [{ value: '', label: 'All Statuses' }, { value: 'issued', label: 'Issued' }, { value: 'cleared', label: 'Cleared' }, { value: 'bounced', label: 'Bounced' }, { value: 'stopped', label: 'Stopped' }, { value: 'reserved', label: 'Reserved' }, { value: 'void', label: 'Void' }], onSelect: (val) => { setSelectedStatus(val); handleFilterChange({ status: val }); } },
+                            { label: 'Bank', value: String(selectedBank), options: [{ value: '', label: 'All Bank Accounts' }, ...bankAccounts.map((b) => ({ value: String(b.id), label: b.name }))], onSelect: (val) => { setSelectedBank(val); handleFilterChange({ bank_account_id: val }); } },
+                        ],
+                        footer: (
+                            <div className="flex items-center gap-1.5 px-1 pt-2 mt-1 border-t border-line">
+                                <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); handleFilterChange({ from_date: e.target.value }); }} className="h-9 min-w-0 flex-1 px-2 rounded-[10px] border border-line bg-app text-xs text-ink" />
+                                <span className="text-ink-muted">-</span>
+                                <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); handleFilterChange({ to_date: e.target.value }); }} className="h-9 min-w-0 flex-1 px-2 rounded-[10px] border border-line bg-app text-xs text-ink" />
+                            </div>
+                        ),
+                    }}
+                    search={{ value: search, onChange: (v) => { setSearch(v); handleFilterChange({ search: v }); }, placeholder: 'Search cheque #, payee...' }}
+                    actions={[{ icon: Download, label: 'Export', onClick: handleExport }]}
+                />
+                <MobileStats bp="md" hero={0} items={[{ label: 'Cheque leaves', value: leaves.total ?? (leaves.data || []).length, tone: 'brand', icon: FileText }]} />
 
                 {/* Line 4: Full Width Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
-                    <div className="overflow-x-auto">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
+                    <div className="overflow-x-auto md:overflow-visible">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
-                            <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
+                            <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700 md:sticky md:top-0 md:z-10">
                                 <tr>
-                                    <th className="px-6 py-3.5">Cheque Number</th>
-                                    <th className="px-6 py-3.5">Bank Account</th>
-                                    <th className="px-6 py-3.5">Payee / Party</th>
-                                    <th className="px-6 py-3.5">Cheque Date</th>
-                                    <th className="px-6 py-3.5">Amount</th>
-                                    <th className="px-6 py-3.5">Status</th>
-                                    <th className="px-6 py-3.5">Clear / Bounce Date</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Cheque Number</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Bank Account</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Payee / Party</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Cheque Date</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Amount</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Status</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Clear / Bounce Date</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -234,7 +155,7 @@ export default function OutgoingRegister({ leaves, bankAccounts = [], filters = 
                         </table>
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

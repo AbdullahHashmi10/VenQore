@@ -1,45 +1,52 @@
-import React from 'react';
-import ReportPage from './Components/ReportPage';
-import { Tags } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
+import React, { useMemo } from 'react';
+import { Tags, TrendingUp, ShoppingCart, Scale } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable } from '@/Components/Reports/ReportKit';
+import { TrendChart, RankBars } from '@/Components/Reports/ReportCharts';
 
-export default function SalePurchaseByItemCategory({ categories }) {
-    const { store } = usePage().props;
+export default function SalePurchaseByItemCategory({ categories = [] }) {
+    const rows = useMemo(() => categories.map((cat) => {
+        const sales = (cat.products || []).reduce((s, p) => s + (Number(p.sale_items_sum_subtotal) || 0), 0);
+        const purchases = (cat.products || []).reduce((s, p) => s + (Number(p.purchase_items_sum_subtotal) || 0), 0);
+        return { name: cat.name, sales, purchases, net: sales - purchases };
+    }), [categories]);
+    const sales = rows.reduce((a, r) => a + r.sales, 0);
+    const purchases = rows.reduce((a, r) => a + r.purchases, 0);
+
+    const columns = [
+        { key: 'name', label: 'Category', sortable: true, render: (r) => <span className="font-bold text-ink">{r.name}</span> },
+        { key: 'sales', label: 'Sales', align: 'right', sortable: true, render: (r) => <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(r.sales)}</span> },
+        { key: 'purchases', label: 'Purchases', align: 'right', sortable: true, render: (r) => <span className="text-red-600 dark:text-red-400">{formatCurrency(r.purchases)}</span> },
+        { key: 'net', label: 'Net', align: 'right', sortable: true, render: (r) => <span className={`font-bold ${r.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(r.net)}</span> },
+    ];
+
     return (
-        <ReportPage
-            title="Sale & Purchase by Category"
-            subtitle="Transaction summary grouped by product categories"
-            icon={Tags}
-        >
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-app border-b border-line">
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider">Category</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Sales</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Purchases</th>
-                            <th className="px-6 py-4 text-xs font-bold text-ink-muted uppercase tracking-wider text-right">Net</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-line">
-                        {categories.map((cat, idx) => {
-                            const sales = cat.products.reduce((sum, p) => sum + p.sale_items_sum_subtotal, 0);
-                            const purchases = cat.products.reduce((sum, p) => sum + p.purchase_items_sum_subtotal, 0);
-                            return (
-                                <tr key={idx} className="hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors">
-                                    <td className="px-6 py-4 font-bold text-ink">{cat.name}</td>
-                                    <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(sales)}</td>
-                                    <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">{formatCurrency(purchases)}</td>
-                                    <td className={`px-6 py-4 text-right text-sm font-bold ${sales - purchases >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                        {formatCurrency(sales - purchases)}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </ReportPage>
+        <ReportShell title="Sale & Purchase by Category" subtitle="Transaction summary grouped by product categories"
+            exportConfig={{ filename: 'sale-purchase-by-category', columns: columns.map((c) => ({ label: c.label, get: (r) => r[c.key] })), rows }}>
+            <ReportKpis items={[
+                { label: 'Sales', value: formatCurrency(sales), icon: TrendingUp, tone: 'emerald' },
+                { label: 'Purchases', value: formatCurrency(purchases), icon: ShoppingCart, tone: 'rose' },
+                { label: 'Net', value: formatCurrency(sales - purchases), icon: Scale, tone: 'brand', valueTone: sales - purchases < 0 ? 'rose' : undefined },
+                { label: 'Categories', value: rows.length, icon: Tags, tone: 'sky' },
+            ]} />
+            <ReportGrid>
+                <ReportCol span={7}>
+                    <ReportSection title="Sales vs purchases" subtitle="By category">
+                        <TrendChart type="bar" height={260} series={[
+                            { name: 'Sales', points: rows.map((r) => ({ x: r.name, y: r.sales })) },
+                            { name: 'Purchases', points: rows.map((r) => ({ x: r.name, y: r.purchases })) },
+                        ]} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={5}>
+                    <ReportSection title="Top categories by sales" subtitle="Top 8">
+                        <RankBars items={[...rows].sort((a, b) => b.sales - a.sales).map((r) => ({ label: r.name, value: r.sales }))} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+            <ReportSection title="Categories" subtitle={`${rows.length} records`} flush>
+                <ReportTable columns={columns} rows={rows} rowKey={(r, i) => i} totals={{ name: 'Total', sales: formatCurrency(sales), purchases: formatCurrency(purchases), net: formatCurrency(sales - purchases) }} />
+            </ReportSection>
+        </ReportShell>
     );
 }

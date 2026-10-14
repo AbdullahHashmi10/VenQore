@@ -309,7 +309,7 @@ export default function RegisterSettings(props) {
             case 'layout': return <LayoutPage />;
             case 'catalog': return <CatalogPage />;
             case 'screen': return <ScreenPage />;
-            case 'buttons': return <ButtonsPage SURFACE_BUTTONS={SURFACE_BUTTONS} />;
+            case 'buttons': return <ButtonsPage SURFACE_BUTTONS={props.holdEnabled === false ? SURFACE_BUTTONS.filter(b => b.id !== 'parked') : SURFACE_BUTTONS} />;
             case 'checkout': return <CheckoutPage />;
             case 'restaurant': return <RestaurantPage />;
             case 'kitchen': return <KitchenPage kitchen={kitchen} setKitchen={setKitchen} />;

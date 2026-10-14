@@ -1,4 +1,9 @@
-# VenQore Station 3.1
+# VenQore Station 3.2
+
+3.2 adds main-process owner authorization, persistent PIN retry limits, app lock,
+single-paste pairing links, Windows kiosk capability reporting and owner-confirmed
+update restarts. App lock does not replace Windows kiosk provisioning. Full OS
+lockdown is not available on every Windows edition.
 
 The Windows companion for the VenQore cloud POS. Station shows the sealed
 VenQore origin (`https://www.venqore.com` (app pages only; the public marketing pages on the same domain are never shown on a till)) full-screen and gives that page —
@@ -37,10 +42,17 @@ npm run build:win    # dist/VenQore-Station-Setup-<v>.exe  +  dist/VenQore-Stati
 `npm run icons` regenerates every icon from `assets/icon.svg` (the same mark as
 the web app's `/images/icon.svg`). `build:win` runs it first.
 
-To ship an update: upload `VenQore-Station-Setup-<v>.exe`, its `.blockmap` and
-`latest.yml` to `https://updates.venqore.com/station/`. Installed Stations
-download it in the background and install it on the next restart. The portable
-build does not auto-update.
+Run `npm run release:stage -- --pilot` to assemble an unsigned test handoff,
+or `npm run release:stage` for a signed staging candidate. Both validate the
+installer against its feed and retain its blockmap, checksums and source hashes.
+Neither publishes anything. Pilot feeds are deliberately not named `latest.yml`.
+
+After testing and approval, publish artifacts to
+`https://www.venqore.com/downloads/station/`, then activate `release.json` and
+`latest.yml` last. Existing versions still need the old
+`https://updates.venqore.com/station/` host repaired, or a manual installer upgrade.
+Installed Stations download published updates in the background; an owner must
+confirm a safe restart to apply them. Portable builds update manually.
 
 ## Files
 

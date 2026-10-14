@@ -25,6 +25,18 @@ class PkVerificationController extends Controller
             'image_back'  => 'required|image|max:5120',
         ]);
 
+        // Only an owner/admin of THIS store may submit for it. Before this check
+        // any signed-in user could post another store's id and overwrite (or
+        // reset an approved) verification.
+        $isMember = \App\Models\TenantUser::where('tenant_id', $request->tenant_id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'active')
+            ->whereIn('role', ['owner', 'admin'])
+            ->exists();
+        if (!$isMember) {
+            abort(403, 'You can only verify a store you own or administer.');
+        }
+
         $cleanCnic = str_replace('-', '', $request->cnic);
         $cnicHash = hash('sha256', $cleanCnic);
 
@@ -78,7 +90,7 @@ class PkVerificationController extends Controller
             'reviewed_at' => now(),
         ]);
 
-        return redirect()->route('platform.dashboard')->with('success', 'CNIC verification request approved.');
+        return back()->with('success', 'CNIC verification request approved.');
     }
 
     /**
@@ -99,7 +111,7 @@ class PkVerificationController extends Controller
             'reviewed_at'      => now(),
         ]);
 
-        return redirect()->route('platform.dashboard')->with('success', 'CNIC verification request rejected.');
+        return back()->with('success', 'CNIC verification request rejected.');
     }
 
     /**

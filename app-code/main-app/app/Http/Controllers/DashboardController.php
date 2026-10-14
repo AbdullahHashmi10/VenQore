@@ -150,9 +150,9 @@ class DashboardController extends Controller
         } catch (\Throwable) {}
 
         $bankAccounts = \App\Models\BankAccount::where('account_type', '!=', 'cash')
-            ->get()->map(fn($a) => ['name' => $a->bank_name ?? $a->name, 'current_balance' => $a->v3Balance()]);
+            ->get()->map(fn($a) => ['id' => $a->id, 'name' => $a->bank_name ?? $a->name, 'current_balance' => $a->v3Balance()]);
         $cashAccounts = \App\Models\BankAccount::where('account_type', 'cash')
-            ->get()->map(fn($a) => ['name' => $a->bank_name ?? 'Cash', 'current_balance' => $a->v3Balance()]);
+            ->get()->map(fn($a) => ['id' => $a->id, 'name' => $a->bank_name ?? 'Cash', 'current_balance' => $a->v3Balance()]);
 
         $receivables = [
             'total'          => $outstanding['receivables'],
@@ -801,7 +801,16 @@ class DashboardController extends Controller
             ];
         }
 
+        $productCategories = [];
+        try {
+            $productCategories = \App\Models\Category::orderBy('name')->get(['id', 'name'])
+                ->map(fn ($c) => ['id' => (string) $c->id, 'name' => $c->name])->values()->all();
+        } catch (\Throwable) {
+            // categories are a convenience for the card editor; never block the dashboard
+        }
+
         return Inertia::render('NewDashboard', [
+            'productCategories'  => $productCategories,
             'readings'           => app(DashboardPresenter::class)->filterCatalog(\App\Reckoner\ReckonerRegistry::v6Catalog(), $user, $tenant),
             'layoutLaw'          => \App\Reckoner\LayoutLaw::law(),
             ...$this->dashboardFrameProps($tenant, $user),

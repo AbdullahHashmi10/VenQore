@@ -135,6 +135,7 @@ class OrderInboxController extends Controller
             'events' => $o->events()->get(['type', 'from_status', 'to_status', 'actor_type', 'note', 'created_at'])->map(fn ($e) => ['type' => $e->type, 'from_status' => $e->from_status, 'to_status' => $e->to_status, 'actor_type' => $e->actor_type, 'note' => $e->note, 'created_at' => CommerceOrder::localTime($e->created_at, $this->tz())]),
             'substitutes' => $o->status === 'pending' ? DB::table('storefront_products as sp')->join('products as p', 'p.id', '=', 'sp.product_id')->where('sp.storefront_id', $o->storefront_id)->where('sp.tenant_id', $tid)->where('sp.is_published', 1)->whereNull('p.deleted_at')->orderBy('p.name')->limit(300)->get(['sp.id', 'p.name', 'sp.public_name', 'sp.option_label'])->map(fn ($r) => ['id' => $r->id, 'name' => ($r->public_name ?: $r->name) . ($r->option_label ? ' — ' . $r->option_label : '')]) : [],
             'sale' => $sale ? (array) $sale : null,
+            'loyalty' => \App\Services\LoyaltyAwarder::summaryForOrder($o),
             'party_matches' => $o->party_id || $o->status === 'completed' ? [] : $this->partyMatches($tid, (string) $o->customer_phone),
             'urls' => $this->nav() + [
                 'back' => $this->url('orders'),

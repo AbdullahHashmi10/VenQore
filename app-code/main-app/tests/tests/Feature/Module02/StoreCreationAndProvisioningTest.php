@@ -89,9 +89,9 @@ test('store creation seeds default data', function () {
     $this->assertNotNull($tenant);
 
     // Verify seeder counts matching reality:
-    // 30 accounts, 9 settings, 1 warehouse, 6 expense categories, 1 bank account
+    // 30 accounts, 10 seeded settings + prepares_orders (StoreProvisioner), 1 warehouse, 6 expense categories, 1 bank account
     $this->assertEquals(30, DB::table('accounts')->where('tenant_id', $tenant->id)->count());
-    $this->assertEquals(10, DB::table('settings')->where('tenant_id', $tenant->id)->count());
+    $this->assertEquals(11, DB::table('settings')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(1, DB::table('warehouses')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(6, DB::table('expense_categories')->where('tenant_id', $tenant->id)->count());
     $this->assertEquals(1, DB::table('bank_accounts')->where('tenant_id', $tenant->id)->count());

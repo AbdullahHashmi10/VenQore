@@ -1,7 +1,11 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import React, { useState, useEffect } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import StockModuleTabs from '@/Components/StockModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import StockModuleTabs, { useStockNavGroups, ListFilterSelect } from '@/Components/StockModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import PrintService from '@/Utils/PrintService';
 import Pagination from '@/Components/Pagination';
 import { useDebounce } from 'use-debounce';
@@ -26,6 +30,7 @@ import {
 export default function StockTransfers({ transfers = { data: [], links: [] }, warehouses = [], stats = {}, filters = {} }) {
  const { props } = usePage();
  const store = props.store || {};
+ const navGroups = useStockNavGroups();
  const [searchTerm, setSearchTerm] = useState(filters.search || '');
  const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
  const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
@@ -86,136 +91,66 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  const transferList = transfers.data || [];
 
  return (
- <OneGlanceLayout title="Stock Transfers" activeMenu="Stock">
+ <OneGlanceLayout title="Stock Transfers" activeMenu="Stock" noPadding>
  <Head title="Stock Transfers" />
 
- <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
- <StockModuleTabs activeTab="transfers" />
-
- {/* Stats Row - Compact Single Line (like Proposals) */}
- <div className="flex flex-wrap items-center justify-between gap-y-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- <div className="flex items-center gap-2">
- <div className="flex items-center gap-3 px-3 py-1">
- <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
- <ArrowLeftRight size={16} />
- </div>
- <div>
- <p className="text-2xs font-bold text-ink-muted uppercase">Total</p>
- <p className="text-sm font-bold text-ink">{stats.total_transfers || 0}</p>
- </div>
- </div>
- <div className="w-px h-8 bg-sunken"></div>
- <div className="flex items-center gap-3 px-3 py-1">
- <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
- <Clock size={16} />
- </div>
- <div>
- <p className="text-2xs font-bold text-ink-muted uppercase">Pending</p>
- <p className="text-sm font-bold text-amber-600">{stats.pending_approval || 0}</p>
- </div>
- </div>
- <div className="w-px h-8 bg-sunken"></div>
- <div className="flex items-center gap-3 px-3 py-1">
- <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
- <Truck size={16} />
- </div>
- <div>
- <p className="text-2xs font-bold text-ink-muted uppercase">In Transit</p>
- <p className="text-sm font-bold text-blue-600">{stats.in_progress || 0}</p>
- </div>
- </div>
- <div className="w-px h-8 bg-sunken"></div>
- <div className="flex items-center gap-3 px-3 py-1">
- <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
- <CheckCircle size={16} />
- </div>
- <div>
- <p className="text-2xs font-bold text-ink-muted uppercase">Completed</p>
- <p className="text-sm font-bold text-emerald-600">{stats.completed || 0}</p>
- </div>
- </div>
- </div>
-
- {/* New Transfer Button */}
- <Link
- href={route('store.stock-transfers.create', { store_slug: store.slug })}
- className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-brand text-white rounded-lg transition-all font-bold text-xs shadow-lg "
- >
- <Plus size={14} />
- New Transfer
- </Link>
- </div>
-
- {/* Header Bar - Title + Filter Pills + Search */}
- <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
- {/* Left: Title + Filter Pills */}
- <div className="flex items-center gap-2 flex-wrap">
- <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
- Stock <span className="text-brand-600">Transfers</span>
- </h1>
- <div className="h-4 w-px bg-sunken mx-1"></div>
- <button
- onClick={() => handleStatusChange('all')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'all'
- ? 'bg-brand-600 text-white'
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >All</button>
- <button
- onClick={() => handleStatusChange('pending')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'pending'
- ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg '
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >Pending</button>
- <button
- onClick={() => handleStatusChange('in_progress')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'in_progress'
- ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg '
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >In Transit</button>
- <button
- onClick={() => handleStatusChange('completed')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'completed'
- ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg '
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >Completed</button>
- <button
- onClick={() => handleStatusChange('cancelled')}
- className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${statusFilter === 'cancelled'
- ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white shadow-lg '
- : 'bg-sunken text-ink-muted hover:bg-interactive-hover'
- }`}
- >Cancelled</button>
- </div>
-
- {/* Right: Search + Export */}
- <div className="flex items-center gap-2">
- <div className="relative">
- <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
- <input
- type="text"
- value={searchTerm}
- onChange={(e) => setSearchTerm(e.target.value)}
- placeholder="Search..."
- className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
+ <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+ <ListToolbar
+ title="Stock Transfers"
+ navGroups={navGroups}
+ activeId="transfers"
+ left={
+ <ListFilterSelect
+ value={statusFilter}
+ onChange={handleStatusChange}
+ ariaLabel="Status"
+ options={[{ value: 'all', label: 'All statuses' }, { value: 'pending', label: 'Pending' }, { value: 'in_progress', label: 'In Transit' }, { value: 'completed', label: 'Completed' }, { value: 'cancelled', label: 'Cancelled' }]}
  />
- </div>
- <div className="flex items-center gap-0.5 border-l border-line pl-2">
- <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+ }
+ search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search transfers...' }}
+ actions={
+ <>
+ <button style={canExportCsv() ? undefined : { display: 'none' }} className="h-10 w-10 flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-[12px] text-emerald-600" title="Export" onClick={() => exportRowsToCsv('stock-transfers', [{label:'Transfer #',get:r=>r.reference_number||`TRF-${r.id}`},{label:'From',get:r=>r.from_warehouse?.name},{label:'To',get:r=>r.to_warehouse?.name},{label:'Items',get:r=>r.items?.length||r.items_count||0},{label:'Date',get:r=>r.created_at},{label:'Status',get:r=>r.status}], transferList)}>
  <Download size={16} />
  </button>
- <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
+ <button onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center hover:bg-interactive-hover rounded-[12px] text-ink-muted hover:text-ink transition-colors" title="Print">
  <Printer size={16} />
  </button>
- </div>
- </div>
- </div>
+ <ListAddButton icon={Plus} href={route('store.stock-transfers.create', { store_slug: store.slug })}>New Transfer</ListAddButton>
+ </>
+ }
+ />
+ <ListStatCards cards={[
+ { label: 'Total', value: stats.total_transfers || 0, icon: ArrowLeftRight, icon_tone: 'bg-sunken text-ink-secondary' },
+ { label: 'Pending', value: stats.pending_approval || 0, icon: Clock, icon_tone: 'bg-amber-50 text-amber-600', value_tone: 'text-amber-600' },
+ { label: 'In Transit', value: stats.in_progress || 0, icon: Truck, icon_tone: 'bg-blue-50 text-blue-600', value_tone: 'text-blue-600' },
+ { label: 'Completed', value: stats.completed || 0, icon: CheckCircle, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+ ]} />
+
+ {/* Stats Row - Compact Single Line (like Proposals) */}
+<MobileListHeader
+ title="Stock Transfers"
+ navGroups={navGroups}
+ activeId="transfers"
+ filter={{
+ active: statusFilter !== 'all',
+ sections: [{ label: 'Status', value: statusFilter, options: [{ value: 'all', label: 'All statuses' }, { value: 'pending', label: 'Pending' }, { value: 'in_progress', label: 'In Transit' }, { value: 'completed', label: 'Completed' }, { value: 'cancelled', label: 'Cancelled' }], onSelect: handleStatusChange }],
+ }}
+ search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search transfers...' }}
+ actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+ add={{ href: route('store.stock-transfers.create', { store_slug: store.slug }), label: 'New Transfer' }}
+ />
+ <MobileStats bp="md" hero={0} items={[
+ { label: 'Total', value: stats.total_transfers || 0, tone: 'ink', icon: ArrowLeftRight },
+ { label: 'Pending', value: stats.pending_approval || 0, tone: 'amber', icon: Clock },
+ { label: 'In Transit', value: stats.in_progress || 0, tone: 'blue', icon: Truck },
+ { label: 'Completed', value: stats.completed || 0, tone: 'emerald', icon: CheckCircle },
+ ]} />
+
+ {/* Header Bar - Title + Filter Pills + Search */}
 
  {/* Main Table */}
- <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+ <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -227,10 +162,10 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  Transfer # <SortIcon columnKey="reference" />
  </div>
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">
  From → To
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
  Items
  </th>
  <th
@@ -241,10 +176,10 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  Date <SortIcon columnKey="date" />
  </div>
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
  Status
  </th>
- <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
+ <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">
  Actions
  </th>
  </tr>
@@ -350,7 +285,7 @@ export default function StockTransfers({ transfers = { data: [], links: [] }, wa
  <Pagination links={transfers.links} />
  </div>
  )}
- </div>
+ </ListPageFrame>
  </OneGlanceLayout>
  );
 }

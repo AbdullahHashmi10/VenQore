@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link, usePage, router } from '@inertiajs/react';
 import SidebarItem from '@/Components/SidebarItem';
 import DockNav from '@/Components/DockNav';
+import PhoneDockDrawer from '@/Components/PhoneDockDrawer';
 import CommandPalette from '@/Components/CommandPalette';
 import OmniSearch from '@/Components/OmniSearch';
 import AiIsland from '@/Components/AiIsland';
-import OnboardingDriver from '@/Components/OnboardingDriver';
 import DemoBanner from '@/Components/DemoBanner';
 import HeaderCalculatorButton from '@/Components/Calculator/HeaderCalculatorButton';
 import CalculatorPopover from '@/Components/Calculator/CalculatorPopover';
@@ -82,6 +82,7 @@ import Toast from '@/Components/Toast';
 import ApprovalSubmissionModal from '@/Components/ApprovalSubmissionModal';
 import UpgradeModal from '@/Components/UpgradeModal';
 import GlobalOnboardingWidget from '@/Components/GlobalOnboardingWidget';
+import GuidedTour from '@/Components/GuidedTour';
 import ImpersonationBanner from '@/Components/ImpersonationBanner';
 import PlanUsageBanner from '@/Components/PlanUsageBanner';
 import SubscriptionExpiryBanner from '@/Components/SubscriptionExpiryBanner';
@@ -96,22 +97,94 @@ import { useTermText } from '@/lib/terms';
 import BottomNavBar from '@/Components/BottomNavBar';
 import KitchenPrinterAlertModal from '@/Components/Pos/KitchenPrinterAlertModal';
 import OrderAlertWatcher from '@/Components/Commerce/OrderAlertWatcher';
+import useOnlineOrderEcho from '@/hooks/useOnlineOrderEcho';
 
-export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false, dock: dockProp = false }) {
+export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false, hideSidebar = false, dock: dockPropRaw, dockInset = false }) {
  const {
- store
+ store,
+ auth: sharedAuth,
  } = usePage().props;
  const tt = useTermText();
 
  const isStarterOrLtd1 = store?.plan === 'starter' || store?.plan === 'ltd_1';
 
  const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId, activePreSaleInvoices, setCurrentPreSaleId } = useWorkspace();
- const [navMode, setNavMode] = useState(() => { try { return localStorage.getItem('vq_nav_mode') === 'rail' ? 'rail' : 'dock'; } catch (e) { return 'dock'; } });
- const changeNavMode = (m) => { setNavMode(m); try { localStorage.setItem('vq_nav_mode', m); } catch (e) { /* ignore */ } };
- const [railLabels, setRailLabels] = useState(() => { try { return localStorage.getItem('vq_rail_labels') === 'below' ? 'below' : 'beside'; } catch (e) { return 'beside'; } });
- const changeRailLabels = (m) => { setRailLabels(m); try { localStorage.setItem('vq_rail_labels', m); } catch (e) { /* ignore */ } };
- const dock = dockProp;
+ // Server value (auth.user.nav_preferences) wins, then localStorage, then defaults.
+ const serverNav = sharedAuth?.user?.nav_preferences || null;
+ const [navMode, setNavMode] = useState(() => { if (serverNav?.mode === 'rail' || serverNav?.mode === 'dock') return serverNav.mode; try { return localStorage.getItem('vq_nav_mode') === 'rail' ? 'rail' : 'dock'; } catch (e) { return 'dock'; } });
+ const [railLabels, setRailLabels] = useState(() => { if (serverNav?.labels === 'below' || serverNav?.labels === 'beside') return serverNav.labels; try { return localStorage.getItem('vq_rail_labels') === 'below' ? 'below' : 'beside'; } catch (e) { return 'beside'; } });
+ const navSaveTimer = useRef(null);
+ const navPending = useRef({});
+ const saveNavPref = (patch) => {
+  navPending.current = { ...navPending.current, ...patch };
+  clearTimeout(navSaveTimer.current);
+  navSaveTimer.current = setTimeout(() => {
+   const body = navPending.current; navPending.current = {};
+   try {
+    if (!store?.slug || !window.axios) return;
+    const p = window.axios.patch(route('store.user.nav-preferences', { store_slug: store.slug }), body);
+    p && p.catch && p.catch(() => {});
+   } catch (e) { /* ignore */ }
+  }, 600);
+ };
+ const changeNavMode = (m) => { setNavMode(m); try { localStorage.setItem('vq_nav_mode', m); } catch (e) { /* ignore */ } saveNavPref({ mode: m }); };
+ const changeRailLabels = (m) => { setRailLabels(m); try { localStorage.setItem('vq_rail_labels', m); } catch (e) { /* ignore */ } saveNavPref({ labels: m }); };
+ // The dock / side rail is a desktop navigation: below lg (phones, small tablets) the
+ // normal drawer + top bar + bottom nav are used instead.
+ const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches);
+ useEffect(() => {
+  const mq = window.matchMedia('(max-width: 1023px)');
+  const on = () => setIsNarrow(mq.matches);
+  mq.addEventListener?.('change', on);
+  return () => mq.removeEventListener?.('change', on);
+ }, []);
+ // Desktop store pages get the dock/side rail by default; a page can still pass dock={false}.
+ // Phones keep their own navigation, and platform-admin pages (no store) keep the classic sidebar.
+ const dockProp = dockPropRaw !== undefined ? dockPropRaw : (!isNarrow && !hideSidebar && !!store && !sharedAuth?.user?.is_platform_admin);
+ const dock = dockProp && !isNarrow;
  const railMode = dock && navMode === 'rail';
+ // The bottom dock floats OVER the page. Whatever scrolls at the bottom of the content area gets
+ // the dock's height as extra bottom padding, so scrolled all the way down the last row is
+ // fully visible, and no full-width strip is reserved under the dock.
+ const contentRef = useRef(null);
+ useEffect(() => {
+  const root = contentRef.current;
+  if (!root || !dock || railMode) return undefined;
+  const CLEAR = 84;
+  const padded = [];
+  let timer = null;
+  const pad = (el) => {
+   if (el.dataset.dockPadded) return;
+   const orig = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+   el.dataset.dockPadded = String(orig);
+   el.style.paddingBottom = `${orig + CLEAR}px`;
+   padded.push(el);
+  };
+  const scan = () => {
+   const rr = root.getBoundingClientRect();
+   let found = 0;
+   root.querySelectorAll('*').forEach((el) => {
+    if (el.dataset.dockPadded) { found += 1; return; }
+    const cs = getComputedStyle(el);
+    if (cs.overflowY !== 'auto' && cs.overflowY !== 'scroll') return;
+    if (cs.position === 'fixed' || cs.position === 'absolute') return;
+    const r = el.getBoundingClientRect();
+    if (r.height < 160 || r.width < 240 || Math.abs(r.bottom - rr.bottom) > 8) return;
+    pad(el); found += 1;
+   });
+   // a page that scrolls the content area itself: pages with their own padding already reserve room
+   if (!found && !root.dataset.dockPadded && root.scrollHeight > root.clientHeight + 2 && (parseFloat(getComputedStyle(root).paddingBottom) || 0) < 40) pad(root);
+  };
+  const later = () => { clearTimeout(timer); timer = setTimeout(scan, 120); };
+  scan();
+  const mo = new MutationObserver(later);
+  mo.observe(root, { childList: true, subtree: true });
+  window.addEventListener('resize', later);
+  return () => {
+   mo.disconnect(); clearTimeout(timer); window.removeEventListener('resize', later);
+   padded.forEach((el) => { el.style.paddingBottom = ''; delete el.dataset.dockPadded; });
+  };
+ }, [dock, railMode]);
  const [docDrafts, setDocDrafts] = useState([]);
  useEffect(() => {
   if (!dockProp) return undefined;
@@ -136,13 +209,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   return () => { window.removeEventListener('vqdoc-drafts', read); window.removeEventListener('focus', read); window.removeEventListener('storage', read); };
  }, [dockProp]);
  // Online orders: pull fresh shared props (cached 15s server-side) so the Online Store badge moves without a reload.
+ // Live: a broadcast bumps the badge instantly; polling stays only as a fallback when the socket is unavailable.
+ const [liveOrderBump, setLiveOrderBump] = useState(0);
+ const reloadTimer = useRef(null);
+ const echoLive = useOnlineOrderEcho(store?.id, dockProp && !!store, () => {
+  setLiveOrderBump((n) => n + 1);
+  clearTimeout(reloadTimer.current);
+  reloadTimer.current = setTimeout(() => router.reload({ only: ['auth'], preserveScroll: true, preserveState: true, onSuccess: () => setLiveOrderBump(0) }), 1500);
+ });
+ useEffect(() => () => clearTimeout(reloadTimer.current), []);
  useEffect(() => {
-  if (!dockProp) return undefined;
+  if (!dockProp || echoLive) return undefined;
   const id = setInterval(() => {
    if (document.visibilityState === 'visible') router.reload({ only: ['auth'], preserveScroll: true, preserveState: true });
   }, 20000);
   return () => clearInterval(id);
- }, [dockProp]);
+ }, [dockProp, echoLive]);
  const [settingsSec, setSettingsSec] = useState(null);
  const { url, props } = usePage();
  const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo, planFeatures } = props;
@@ -777,8 +859,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 			});
 			return acc;
 		}, []),
+		{ key: 'purchase-live', label: 'Purchases', rows: visiblePurchases.filter((d) => (d.supplier || d.party) || itemsFilled(d) > 0).map((d, i) => ({ id: `pur-${d.id}`, title: (d.supplier || d.party)?.name || `Purchase ${i + 1}`, meta: `${itemsFilled(d)} items`, onOpen: () => { setCurrentPurchaseId(d.id); router.visit(route('store.purchases.create', { store_slug: store?.slug })); } })) },
 		{ key: 'pos', label: (props?.runs_foh === true) ? 'FOH' : 'POS', rows: userPosSessions.filter((d) => (d.cart || []).length > 0).map((d, i) => ({ id: `pos-${d.id}`, title: d.customer?.name || `Sale ${i + 1}`, meta: `${d.cart.length} items`, onOpen: () => { setCurrentPosId(d.id); router.visit(route((props?.runs_foh === true) ? 'store.foh' : 'store.pos', { store_slug: store?.slug })); } })) },
 	];
+
+	// Unfinished work per dock module, so the dock can show it where you'd resume it.
+	const BUY_KEYS = ['purchase-live', 'purchase', 'purchase-order', 'debit-note'];
+	const SELL_KEYS = ['invoice', 'presale', 'sales', 'quotation', 'sales-order', 'sale-return', 'pos'];
+	const dockDrafts = {
+		Sell: draftGroups.filter((g) => SELL_KEYS.includes(g.key)).flatMap((g) => g.rows.map((r) => ({ ...r, kind: g.label }))),
+		Purchase: draftGroups.filter((g) => BUY_KEYS.includes(g.key)).flatMap((g) => g.rows.map((r) => ({ ...r, kind: g.label }))),
+	};
 
 	const onboardingMetrics = props.onboarding_metrics || {
 		has_products: false,
@@ -848,11 +939,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		name: 'Restaurant',
 		icon: UtensilsCrossed,
 		subs: [
-			{ group: runsFoh ? 'Point of Sale' : 'Front of House', items: [runsFoh ? 'POS' : 'FOH'] },
+			{ group: 'Front of House', items: ['Restaurant Dashboard', 'FOH'] },
 			{ group: 'Kitchen & Display', items: ['Kitchen', 'Order TV Screen'] },
 			{ group: 'Setup', items: ['Floor Plan', 'Riders', 'FOH Settings'] },
 		],
-		route: store ? 'store.foh' : null,
+		route: store ? 'store.restaurant.overview' : null,
 		routeParams: store ? { store_slug: store.slug } : {},
 	}] : []),
  {
@@ -862,7 +953,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { group: 'Transactions', items: ['Purchases', 'Purchase Orders'] },
  { group: 'Post-Purchase', items: ['Purchase Returns'] }
  ],
- route: store ? 'store.purchases.index' : 'purchases.index',
+ route: store ? 'store.purchases.dashboard' : 'purchases.index',
  routeParams: store ? { store_slug: store.slug } : {}
  },
  {
@@ -883,7 +974,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  subs: [
  { group: 'Partners', items: ['Customers', 'Suppliers', 'Parties'] },
  ],
- route: store ? 'store.parties.index' : 'parties.index',
+ route: store ? 'store.parties.dashboard' : 'parties.index',
  routeParams: store ? { store_slug: store.slug } : {}
  },
  {
@@ -893,7 +984,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  { group: 'Cash Flow', items: ['Payments', 'Expenses', 'To Receive', 'To Pay'] },
  { group: 'Banking', items: ['Fund Management', 'Bank Accounts', 'Bank Reconciliation'] },
  ],
- route: store ? 'store.transactions.index' : 'transactions.index',
+ route: store ? 'store.money.dashboard' : 'transactions.index',
  routeParams: store ? { store_slug: store.slug } : {}
  },
  {
@@ -914,19 +1005,21 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  },
  ...(store && isOnlineStoreActive ? [{
  name: 'Online Store',
- badgeCount: props.auth?.online_orders_pending || 0,
+ badgeCount: (props.auth?.online_orders_pending || 0) + liveOrderBump,
+ linkBadges: { 'Online Orders': (props.auth?.online_orders_pending || 0) + liveOrderBump, 'Store Overview': props.auth?.online_store_attention?.overview || 0, 'Online Products': props.auth?.online_store_attention?.products || 0 },
  icon: Store,
  subs: [
  { group: 'Online Store', items: [
+ { label: 'Dashboard', route: 'store.commerce.dashboard' },
  { label: 'Store Overview', route: 'store.commerce.home' },
  { label: 'Online Orders', route: 'store.commerce.orders' },
  { label: 'Online Products', route: 'store.commerce.products' },
  { label: 'Offers & Coupons', route: 'store.commerce.promotions' },
  { label: 'QR Menu & Catalogue', route: 'store.commerce.catalogue' },
- { label: 'Store Settings', route: 'store.commerce.settings' },
+ { label: 'Online Store Settings', route: 'store.commerce.settings' },
  ] },
  ],
- route: 'store.commerce.home',
+ route: 'store.commerce.dashboard',
  routeParams: { store_slug: store.slug }
  }] : []),
  {
@@ -1759,7 +1852,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 {/* Store logo — top-left, embossed into the page (no container, no elevation) */}
  {!fullScreen && !hideSidebar && !hideHeader && (
  <div
- className="hidden lg:flex absolute top-0 left-0 z-30 h-14 pt-2 items-center pointer-events-none overflow-hidden transition-[width] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+ className="hidden lg:flex absolute top-0 left-0 z-30 h-14 pt-2 items-center pointer-events-none transition-[width] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
  style={{ width: dock ? 'auto' : (showExpandedSidebar ? 'var(--vq-nav-w-full)' : 'var(--vq-nav-w-rail)') }}
  title={store?.name || 'VenQore'}
  >
@@ -1775,10 +1868,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  )}
 
  {/* --- SIDEBAR --- */}
- {mobileSidebarOpen && (
+ {mobileSidebarOpen && !dockProp && !isNarrow && (
  <div data-vq-drawer-scrim="" className="fixed inset-0 lg:hidden" style={{ zIndex: 1500, background: 'rgba(13,20,18,0.45)', opacity: 1, pointerEvents: 'auto' }} onClick={() => setMobileSidebarOpen(false)} aria-hidden="true" />
  )}
- {!fullScreen && !hideSidebar && !dock && (
+ {!fullScreen && !hideSidebar && !dockProp && !isNarrow && (
  <aside
  ref={sidebarRef}
  onMouseLeave={handleSidebarMouseLeave}
@@ -2001,11 +2094,29 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </aside>
  )}
 
+ {/* --- PHONE: the dock's sidebar, opened by the hamburger --- */}
+ {isNarrow && !fullScreen && !hideSidebar && store && !(isPlatformAdmin && !store) && (
+ <PhoneDockDrawer
+  isOpen={mobileSidebarOpen}
+  onClose={() => setMobileSidebarOpen(false)}
+  items={menuItems}
+  isItemActive={(item) => activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home') || (!activeMenu && isMenuItemActive(item))}
+  pos={(!enabledModuleSet || enabledModuleSet.has('pos') || runsFoh)
+   && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos'))
+   ? {
+      href: isPosRoute ? route('store.dashboard', { store_slug: store.slug }) : route(runsFoh ? 'store.foh' : 'store.pos', { store_slug: store.slug }),
+      label: isPosRoute ? 'Close POS' : (runsFoh ? 'FOH' : 'POS'), foh: !!runsFoh && !isPosRoute,
+     }
+   : null}
+ />
+ )}
+
  {/* --- DOCK (opt-in per page) --- */}
  {dock && !fullScreen && store && !(isPlatformAdmin && !store) && (
  <DockNav
   vertical={railMode}
   labelMode={railLabels}
+  drafts={dockDrafts}
   footer={railMode ? renderAvatar('relative', 'absolute bottom-0 left-full ml-3') : null}
   items={menuItems}
   isItemActive={(item) => activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home') || (!activeMenu && isMenuItemActive(item))}
@@ -2406,9 +2517,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
           title="Online store"
       >
           <Store size={18} />
-          {(props.auth?.online_orders_pending || 0) > 0 && (
+          {((props.auth?.online_orders_pending || 0) + liveOrderBump) > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-[18px] text-center ring-2 ring-[var(--vq-bg)]">
-                  {props.auth.online_orders_pending > 99 ? '99+' : props.auth.online_orders_pending}
+                  {((props.auth.online_orders_pending || 0) + liveOrderBump) > 99 ? '99+' : (props.auth.online_orders_pending || 0) + liveOrderBump}
               </span>
           )}
       </Link>
@@ -2612,7 +2723,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
  {/* DYNAMIC CONTENT AREA */}
- <div data-vq-content className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-1.5 md:p-6'}${railMode ? (railLabels === 'beside' ? ' lg:pl-[68px]' : ' lg:pl-[92px]') : ''}`}>
+ <div data-vq-content ref={contentRef} className={`flex-1 min-h-0 overflow-y-auto animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'p-1.5 md:p-6'}${railMode ? (railLabels === 'beside' ? ' lg:pl-[68px]' : ' lg:pl-[92px]') : ''}${dock && !railMode && !noPadding ? ' lg:pb-[76px]' : ''}`}>
  {children}
  {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
  {showMobileNavBar && (
@@ -2649,7 +2760,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </div >
  <PwaInstallPrompt />
  <VersionChecker />
- <OnboardingDriver />
+ <GuidedTour />
  <GlobalOnboardingWidget
      store={store}
      isOpen={isChecklistModalOpen}

@@ -9,7 +9,7 @@
     "online.orders_manage":     { "from": ["sales.edit"] },
     "online.orders_cancel":     { "from": ["sales.void"] },
     "online.orders_collect":    { "from": ["finance.receive_payment"] },
-    "online.rider_deliveries":  { "from": [] },
+    "online.rider_deliveries":  { "from": ["admin.settings_manage"] },
     "foh.manage":               { "from": ["admin.settings_manage"] },
     "ai.manage":                { "from": ["admin.settings_manage"] },
     "ai.use":                   { "from": ["*any*"] }

@@ -55,7 +55,7 @@ export const NAV_GROUPS = [
         label: 'Customers',
         items: [
             { key: 'stores', label: 'Stores', icon: Store, route: 'platform.stores', match: 'platform.stores', desc: 'All merchant stores — suspend, extend, impersonate' },
-            { key: 'users', label: 'Platform Users', icon: Users, route: 'platform.users', match: 'platform.users', desc: 'Owners, staff & platform admins' },
+            { key: 'users', label: 'Platform Users', icon: Users, route: 'platform.users', match: 'platform.users', desc: 'Store owners & staff accounts (platform team is on Overview)' },
             { key: 'overrides', label: 'Tenant Overrides', icon: SlidersHorizontal, route: 'platform.tenants.overrides', match: 'platform.tenants.*', desc: 'Per-tenant limit overrides with expiry' },
             { key: 'impersonation', label: 'Impersonation', icon: UserCog, page: 'impersonation', desc: 'Audited session takeover log' },
             { key: 'pk-verify', label: 'PK Verifications', icon: BadgeCheck, page: 'pk-verifications', badge: 'new', desc: 'CNIC review queue for PKR pricing' },

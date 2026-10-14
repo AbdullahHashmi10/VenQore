@@ -477,7 +477,9 @@ class Tenant extends Model
     public function effectivePlan(): string
     {
         if ($this->plan !== 'ltd') {
-            return $this->plan ?? 'starter';
+            // '' is treated like null: an empty plan column must not resolve to
+            // a plan with no limits at all (every feature would fail closed).
+            return $this->plan ?: 'starter';
         }
 
         if (isset($this->plan_limits['ltd_tier'])) {
@@ -512,6 +514,31 @@ class Tenant extends Model
         }
 
         return 'ltd_1';
+    }
+
+    /**
+     * The plan a billing event (Lemon Squeezy checkout, webhook, "Already paid?"
+     * sync) should leave this store on.
+     *
+     * A plan assigned by the platform owner in Platform HQ is recorded in
+     * plan_limits.platform_assigned_plan. Billing may move the store UP from
+     * it, but never down: before this, an old Starter subscription on the
+     * owner's email silently replaced a Scale plan assigned in Platform HQ the
+     * next time billing synced.
+     */
+    public function planFromBilling(?string $billingPlan): ?string
+    {
+        $assigned = is_array($this->plan_limits) ? ($this->plan_limits['platform_assigned_plan'] ?? null) : null;
+        if (!$assigned || !$billingPlan) {
+            return $billingPlan;
+        }
+
+        if (\App\Support\PlanCatalog::rank($billingPlan) < \App\Support\PlanCatalog::rank($assigned)) {
+            \Illuminate\Support\Facades\Log::info("Tenant {$this->id}: billing plan '{$billingPlan}' ignored — platform assigned '{$assigned}'.");
+            return $this->plan;
+        }
+
+        return $billingPlan;
     }
 
     public function setPlanAttribute($value)

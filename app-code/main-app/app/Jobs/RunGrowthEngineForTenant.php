@@ -56,6 +56,8 @@ class RunGrowthEngineForTenant implements ShouldQueue, ShouldBeUnique
 
     public function handle(GrowthEngine $engine): void
     {
+        @ignore_user_abort(true);
+        @set_time_limit(300);
         $tenant = Tenant::find($this->tenantId);
         if ($tenant && !\App\Services\ModuleService::enabled($tenant, 'ai_insights')) {
             Log::info("[GrowthEngine] Skipping tenant {$this->tenantId} — 'ai_insights' module is disabled.");

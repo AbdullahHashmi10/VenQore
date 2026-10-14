@@ -3,6 +3,19 @@ import { Link, usePage } from '@inertiajs/react';
 import { ClipboardList, Calendar, Wrench, Sparkles, Plus } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
+/** Service section pages as ListShell nav groups (desktop title dropdown). */
+export function useServiceNavGroups() {
+    const tt = useTermText();
+    const { store } = usePage().props;
+    const storeSlug = store?.slug || (typeof window !== 'undefined' ? window.location.pathname.split('/')[2] : '');
+    return [{ id: 'services', label: 'Services', items: [
+        { id: 'jobs', label: tt('Work Orders'), icon: ClipboardList, href: route('store.service-jobs.index', { store_slug: storeSlug }) },
+        { id: 'calendar', label: 'Dispatch Calendar', icon: Calendar, href: route('store.service-jobs.calendar', { store_slug: storeSlug }) },
+        { id: 'tools', label: 'Tools & Equipment', icon: Wrench, href: route('store.tools.index', { store_slug: storeSlug }) },
+        { id: 'catalog', label: tt('Services Catalog'), icon: Sparkles, href: route('store.services.catalogue', { store_slug: storeSlug }) + '?type=service' },
+    ] }];
+}
+
 export default function ServiceNavTabs({ active = 'jobs' }) {
     const tt = useTermText();
     const { store } = usePage().props;

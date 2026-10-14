@@ -38,6 +38,8 @@ Route::get('/rider/{token}', [\App\Http\Controllers\Commerce\RiderPortalControll
 Route::post('/rider/{token}/step', [\App\Http\Controllers\Commerce\RiderPortalController::class, 'step'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:60,1')->name('commerce.rider.step');
 Route::get('/order-lookup', [PublicStoreController::class, 'lookupForm'])->name('commerce.order-lookup');
 Route::post('/order-lookup', [PublicStoreController::class, 'lookup'])->middleware('throttle:6,1')->name('commerce.order-lookup.find');
+Route::post('/shop/{slug}/customer/otp', [PublicStoreController::class, 'customerOtpStart'])->where('slug', '[a-z0-9-]+')->middleware('throttle:8,1')->name('commerce.customer.otp');
+Route::post('/shop/{slug}/customer/otp/verify', [PublicStoreController::class, 'customerOtpVerify'])->where('slug', '[a-z0-9-]+')->middleware('throttle:15,1')->name('commerce.customer.otp.verify');
 Route::post('/shop/{slug}/customer/login', [PublicStoreController::class, 'customerLogin'])->where('slug', '[a-z0-9-]+')->middleware('throttle:30,1')->name('commerce.customer.login');
 Route::post('/shop/{slug}/customer/logout', [PublicStoreController::class, 'customerLogout'])->where('slug', '[a-z0-9-]+')->name('commerce.customer.logout');
 Route::post('/shop/{slug}/reserve', [\App\Http\Controllers\Commerce\TableRequestController::class, 'store'])->where('slug', '[a-z0-9-]+')->middleware('throttle:6,1')->name('commerce.reserve');
@@ -54,6 +56,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     ->prefix('s/{store_slug}/online-store')
     ->name('store.commerce.')
     ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\ModuleDashboardController::class, 'online'])->middleware('permission:online.store_manage,online.catalogue_manage,online.products_manage,online.promotions_manage,online.orders_view')->name('dashboard');
         Route::get('/', [StoreManagerController::class, 'home'])->middleware('permission:online.store_manage,online.catalogue_manage,online.products_manage,online.promotions_manage,online.orders_view')->name('home');
         Route::get('/settings', [StoreManagerController::class, 'settings'])->middleware('permission:online.store_manage,online.catalogue_manage')->name('settings');
         Route::post('/settings', [StoreManagerController::class, 'saveSettings'])->middleware('permission:online.store_manage,online.catalogue_manage')->name('settings.save');

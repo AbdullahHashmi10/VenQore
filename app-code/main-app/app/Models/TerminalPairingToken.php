@@ -22,6 +22,7 @@ class TerminalPairingToken extends Model
     protected $fillable = [
         'tenant_id', 'token', 'label', 'terminal_id',
         'expires_at', 'used_at', 'created_by',
+        'replacement_terminal_id',
     ];
 
     protected $casts = [

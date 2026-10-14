@@ -1,8 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
+import ContactsModuleTabs, { useContactsNavGroups } from '@/Components/ContactsModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import { ListPageFrame, ListToolbar, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import PrintService from '@/Utils/PrintService';
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import {
     UserCheck,
     Search,
@@ -31,6 +36,7 @@ import { useTermText } from '@/lib/terms';
 export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps = [], terminalActivities = [], filters = {} }) {
     const { store } = usePage().props;
     const tt = useTermText();
+    const contactsNavGroups = useContactsNavGroups();
     const [searchTerm, setSearchTerm] = useState('');
     const [dateFilter, setDateFilter] = useState(filters.date || new Date().toISOString().split('T')[0]);
     const [activeSubTab, setActiveSubTab] = useState('attendance'); // 'attendance' or 'security'
@@ -50,6 +56,15 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
     }, [staff, attendance, gaps]);
 
     // Filter staff
+    const handleExportCsv = () => exportRowsToCsv('staff-attendance-' + dateFilter, [
+        { label: 'Staff', get: (m) => m.name },
+        { label: 'Role', get: (m) => m.role },
+        { label: 'Date', get: () => dateFilter },
+        { label: 'Status', get: (m) => attendance.find(a => a.user_id === m.id && a.date === dateFilter)?.status },
+        { label: 'Check In', get: (m) => attendance.find(a => a.user_id === m.id && a.date === dateFilter)?.check_in },
+        { label: 'Check Out', get: (m) => attendance.find(a => a.user_id === m.id && a.date === dateFilter)?.check_out },
+    ], filteredStaff);
+
     const filteredStaff = useMemo(() => {
         return staff.filter(s =>
             !searchTerm || s.name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -105,127 +120,92 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
     };
 
     return (
-        <OneGlanceLayout title={tt('Staff Attendance')} activeMenu="Staff Attendance" mode="admin">
+        <OneGlanceLayout title={tt('Staff Attendance')} activeMenu="Staff Attendance" mode="admin" noPadding>
             <Head title={tt('Staff Attendance')} />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <ContactsModuleTabs activeTab="attendance" />
-
-                {/* Stats Cards - 5 Separate Cards in Row */}
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <UserCheck size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">{tt('Total Staff')}</p>
-                        </div>
-                        <p className="text-lg font-bold text-ink">{stats.totalStaff}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <CheckCircle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Present</p>
-                        </div>
-                        <p className="text-lg font-bold text-emerald-600">{stats.present}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
-                                <XCircle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Absent</p>
-                        </div>
-                        <p className="text-lg font-bold text-red-600">{stats.absent}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangle size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Pending Gaps</p>
-                        </div>
-                        <p className="text-lg font-bold text-amber-600">{stats.pendingGaps}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Timer size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Hours Today</p>
-                        </div>
-                        <p className="text-lg font-bold text-brand-600">{stats.totalHoursToday.toFixed(1)}h</p>
-                    </div>
-                </div>
-
-                {/* Header Bar - Title + Sub-Tabs + Date + Search */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Sub-Tabs + Date Filter */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            {tt('Staff')} <span className="text-brand-600">Attendance</span>
-                        </h1>
-                        
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        
-                        <div className="flex gap-1 bg-sunken p-0.5 rounded-lg text-xs font-bold uppercase shrink-0">
-                            <button 
-                                onClick={() => setActiveSubTab('attendance')}
-                                className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'attendance' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
-                            >
-                                📋 {tt('Staff Log')}
-                            </button>
-                            <button 
-                                onClick={() => setActiveSubTab('security')}
-                                className={`px-2.5 py-1 rounded-md transition-all ${activeSubTab === 'security' ? 'bg-sunken text-brand-600 dark:text-brand-400 shadow-sm' : 'text-ink-muted hover:text-ink-secondary'}`}
-                            >
-                                🛡️ Terminal Security
-                            </button>
-                        </div>
-
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        
-                        <div className="relative">
-                            <Calendar size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
-                            <input
-                                type="date"
-                                value={dateFilter}
-                                onChange={(e) => {
-                                    const newDate = e.target.value;
-                                    setDateFilter(newDate);
-                                    router.get(route('store.staff-attendance.index', { store_slug: store.slug }), { date: newDate }, { preserveState: true, preserveScroll: true });
-                                }}
-                                className="pl-8 pr-2 py-1 text-sm font-medium bg-sunken border-none rounded-lg focus:ring-0 cursor-pointer text-ink-secondary w-36"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Right: Search + Export */}
-                    <div className="flex items-center gap-2">
-                        {activeSubTab === 'attendance' && (
-                            <div className="relative">
-                                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+            <ListPageFrame className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
+                <MobileListHeader
+                    title={tt('Staff Attendance')}
+                    navGroups={contactsNavGroups}
+                    activeId="attendance"
+                    filter={{
+                        active: activeSubTab !== 'attendance',
+                        sections: [{ label: 'View', value: activeSubTab, options: [{ value: 'attendance', label: tt('Staff Log') }, { value: 'security', label: 'Terminal Security' }], onSelect: setActiveSubTab }],
+                        footer: (
+                            <div className="p-2">
                                 <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder={tt('Search staff...')}
-                                    className="pl-9 pr-3 py-1.5 text-sm bg-app border border-line rounded-lg focus:ring-2 ring-brand-500/20 focus:border-brand-500 outline-none w-44"
+                                    type="date"
+                                    value={dateFilter}
+                                    onChange={(e) => {
+                                        const newDate = e.target.value;
+                                        setDateFilter(newDate);
+                                        router.get(route('store.staff-attendance.index', { store_slug: store.slug }), { date: newDate }, { preserveState: true, preserveScroll: true });
+                                    }}
+                                    className="h-9 w-full px-2 text-sm font-semibold bg-app border border-line rounded-[10px] text-ink"
                                 />
                             </div>
-                        )}
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
-                                <Download size={16} />
+                        ),
+                    }}
+                    search={activeSubTab === 'attendance' ? { value: searchTerm, onChange: setSearchTerm, placeholder: tt('Search staff...') } : undefined}
+                    actions={[{ icon: Printer, label: 'Print', onClick: () => PrintService.printPage() }]}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Present', value: `${stats.present} / ${stats.totalStaff}`, tone: 'emerald', icon: CheckCircle },
+                    { label: 'Absent', value: stats.absent, tone: 'red', icon: XCircle },
+                    { label: 'Pending Gaps', value: stats.pendingGaps, tone: 'amber', icon: AlertTriangle },
+                    { label: 'Hours Today', value: `${stats.totalHoursToday.toFixed(1)}h`, tone: 'ink', icon: Timer },
+                ]} />
+
+                {/* Desktop: ROW 1 toolbar + ROW 2 stat cards */}
+                <ListToolbar
+                    title={tt('Staff Attendance')}
+                    navGroups={contactsNavGroups}
+                    activeId="attendance"
+                    left={(
+                        <>
+                            <ListFilterPill
+                                icon={UserCheck}
+                                label={tt('Staff Log')}
+                                value={activeSubTab}
+                                allValue="attendance"
+                                options={[{ value: 'attendance', label: tt('Staff Log') }, { value: 'security', label: 'Terminal Security' }]}
+                                onChange={setActiveSubTab}
+                            />
+                            <div className="relative">
+                                <Calendar size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" />
+                                <input
+                                    type="date"
+                                    value={dateFilter}
+                                    onChange={(e) => {
+                                        const newDate = e.target.value;
+                                        setDateFilter(newDate);
+                                        router.get(route('store.staff-attendance.index', { store_slug: store.slug }), { date: newDate }, { preserveState: true, preserveScroll: true });
+                                    }}
+                                    className="h-10 pl-8 pr-2 text-sm font-semibold bg-app border border-line rounded-[12px] cursor-pointer text-ink w-40"
+                                />
+                            </div>
+                        </>
+                    )}
+                    search={activeSubTab === 'attendance' ? { value: searchTerm, onChange: setSearchTerm, placeholder: tt('Search staff...') } : undefined}
+                    actions={(
+                        <>
+                            {activeSubTab === 'attendance' && (
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" onClick={handleExportCsv} className="h-10 w-10 flex items-center justify-center rounded-[12px] text-emerald-600 hover:bg-interactive-hover transition-colors" title="Export">
+                                <Download size={18} />
                             </button>
-                            <button onClick={() => PrintService.printPage()} className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted hover:text-ink transition-colors" title="Print">
-                                <Printer size={16} />
+                            )}
+                            <button type="button" onClick={() => PrintService.printPage()} className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print">
+                                <Printer size={18} />
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </>
+                    )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Present', value: `${stats.present} / ${stats.totalStaff}`, icon: CheckCircle, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Absent', value: stats.absent, icon: XCircle, icon_tone: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400', value_tone: 'text-red-600' },
+                    { label: 'Pending Gaps', value: stats.pendingGaps, icon: AlertTriangle, icon_tone: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400', value_tone: 'text-amber-600' },
+                    { label: 'Hours Today', value: `${stats.totalHoursToday.toFixed(1)}h`, icon: Timer },
+                ]} />
 
                 {/* Pending Gap Claims (if any) */}
                 {activeSubTab === 'attendance' && gaps.filter(g => g.status === 'pending').length > 0 && (
@@ -259,19 +239,19 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                 )}
 
                 {/* Main Content Area */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     {activeSubTab === 'attendance' ? (
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">{tt('Staff Member')}</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Status</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check In</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check Out</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Hours</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Breaks</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Gaps</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">History</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">{tt('Staff Member')}</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Status</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check In</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Check Out</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Hours</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Breaks</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Gaps</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">History</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -359,12 +339,12 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Terminal ID / Name</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Device Fingerprint</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Away (Focus Lost)</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Resume (Focus Back)</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Duration</th>
-                                    <th className="p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Screen Capture</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider">Terminal ID / Name</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Device Fingerprint</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Away (Focus Lost)</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Resume (Focus Back)</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Duration</th>
+                                    <th className="sticky top-0 z-10 bg-app p-3 text-2xs font-bold text-ink-muted uppercase tracking-wider text-center">Screen Capture</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
@@ -431,7 +411,7 @@ export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps
                         </table>
                     )}
                 </div>
-            </div>
+            </ListPageFrame>
 
             {/* Decrypted Screen Capture Modal */}
             {selectedScreenshotId && (

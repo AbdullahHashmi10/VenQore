@@ -1,7 +1,12 @@
 import React from 'react';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
 import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
+import { useChequeReportNavGroups, ToolbarDate } from '@/Components/ChequeReportNav';
 import {
     BarChart3, ArrowLeft, Building2, BookOpen
 } from 'lucide-react';
@@ -9,58 +14,43 @@ import {
 export default function ChequeUtilization({ books = [] }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug;
+    const navGroups = useChequeReportNavGroups();
 
     return (
-        <OneGlanceLayout title="Chequebook Utilization" activeMenu="Money">
+        <OneGlanceLayout title="Chequebook Utilization" activeMenu="Money" noPadding>
             <Head title="Chequebook Utilization" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                {/* Line 1: Module Navigation Tabs */}
-                <MoneyModuleTabs activeTab="cheque-books" className="!mb-0" />
-
-                {/* Line 2: Reports Sub-nav pills */}
-                <div className="bg-surface px-3 py-1.5 rounded-xl border border-line shadow-sm flex items-center gap-2 overflow-x-auto shrink-0">
-                    <span className="text-2xs font-bold uppercase tracking-wider text-ink-muted shrink-0">Reports:</span>
-                    <Link
-                        href={route('store.banking.reports.outgoing-cheques', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
-                    >
-                        Outgoing Register
-                    </Link>
-                    <Link
-                        href={route('store.banking.reports.incoming-cheques', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
-                    >
-                        Incoming Register
-                    </Link>
-                    <Link
-                        href={route('store.banking.reports.cheque-utilization', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 shrink-0"
-                    >
-                        Chequebook Utilization
-                    </Link>
-                    <Link
-                        href={route('store.banking.reports.post-dated-cheques', { store_slug: storeSlug })}
-                        className="px-3 py-1 text-xs font-bold rounded-lg text-ink-muted hover:bg-interactive-hover shrink-0"
-                    >
-                        Post-Dated Cheques
-                    </Link>
-                </div>
+            <div className="max-md:p-1.5 max-md:h-full md:contents">
+            <ListPageFrame className="max-md:flex max-md:flex-col max-md:h-full max-md:bg-app max-md:p-2 max-md:gap-1 max-md:overflow-hidden">
+                <ListToolbar title="Chequebook Utilization" navGroups={navGroups} activeId="utilization" />
+                <ListStatCards cards={[
+                    { label: 'Chequebooks', value: (books || []).length, icon: BookOpen },
+                    { label: 'Total leaves', value: (books || []).reduce((a, b) => a + Number(b.total_leaves_count || 0), 0), icon: BookOpen },
+                    { label: 'Available', value: (books || []).reduce((a, b) => a + Number(b.available_leaves_count || 0), 0), icon: BookOpen, icon_tone: 'bg-emerald-50 text-emerald-600', value_tone: 'text-emerald-600' },
+                    { label: 'Used', value: (books || []).reduce((a, b) => a + Number(b.used_leaves_count || 0), 0), icon: BarChart3, icon_tone: 'bg-blue-50 text-blue-600' },
+                ]} />
+                <MobileListHeader title="Chequebook Utilization" navGroups={navGroups} activeId="utilization" />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Chequebooks', value: (books || []).length, tone: 'ink', icon: BookOpen },
+                    { label: 'Total leaves', value: (books || []).reduce((a, b) => a + Number(b.total_leaves_count || 0), 0), tone: 'ink', icon: BookOpen },
+                    { label: 'Available', value: (books || []).reduce((a, b) => a + Number(b.available_leaves_count || 0), 0), tone: 'emerald', icon: BookOpen },
+                    { label: 'Used', value: (books || []).reduce((a, b) => a + Number(b.used_leaves_count || 0), 0), tone: 'blue', icon: BarChart3 },
+                ]} />
 
                 {/* Line 3: Full Width Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
-                    <div className="overflow-x-auto">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
+                    <div className="overflow-x-auto md:overflow-visible">
                         <table className="w-full text-left text-sm text-neutral-600 dark:text-neutral-300">
-                            <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
+                            <thead className="bg-neutral-50 dark:bg-neutral-900/50 text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-700 md:sticky md:top-0 md:z-10">
                                 <tr>
-                                    <th className="px-6 py-3.5">Bank Account & Range</th>
-                                    <th className="px-6 py-3.5 text-center">Total</th>
-                                    <th className="px-6 py-3.5 text-center text-emerald-600">Available</th>
-                                    <th className="px-6 py-3.5 text-center text-blue-600">Issued</th>
-                                    <th className="px-6 py-3.5 text-center text-purple-600">Cleared</th>
-                                    <th className="px-6 py-3.5 text-center text-red-600">Bounced</th>
-                                    <th className="px-6 py-3.5 text-center text-neutral-500">Void / Stopped</th>
-                                    <th className="px-6 py-3.5">Utilization Rate</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Bank Account & Range</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-center">Total</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-center text-emerald-600">Available</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-center text-blue-600">Issued</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-center text-purple-600">Cleared</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-center text-red-600">Bounced</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5 text-center text-neutral-500">Void / Stopped</th>
+                                    <th className="sticky top-0 z-10 bg-neutral-50 dark:bg-neutral-900 px-6 py-3.5">Utilization Rate</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-neutral-200 dark:divide-neutral-700">
@@ -130,6 +120,7 @@ export default function ChequeUtilization({ books = [] }) {
                         </table>
                     </div>
                 </div>
+            </ListPageFrame>
             </div>
         </OneGlanceLayout>
     );

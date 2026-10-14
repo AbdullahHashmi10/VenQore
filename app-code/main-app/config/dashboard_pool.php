@@ -78,7 +78,7 @@ return array (
       5 => 'core.receivables',
       6 => 'core.payables',
       7 => 'pos.revenue',
-      8 => 'pos.revenue_trend',
+      8 => 'pos.weekday_split',
       9 => 'pos.sale_count',
       10 => 'pos.avg_ticket',
       11 => 'pos.payment_breakdown',

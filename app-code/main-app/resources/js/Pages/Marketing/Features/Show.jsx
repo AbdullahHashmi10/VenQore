@@ -13,7 +13,7 @@ import {
     Smartphone, Palette, Warehouse, GitMerge, BarChart3,
     Landmark, List, Calendar, RefreshCw, Scale, FileText,
     ShieldCheck, Zap, Gift, TrendingDown, ArrowLeftRight,
-    Pause, TrendingUp,
+    Pause, TrendingUp, Utensils,
 } from 'lucide-react';
 
 const iconMap = {
@@ -21,7 +21,7 @@ const iconMap = {
     CreditCard, Printer, Lock, Database, Repeat, Smartphone, Palette,
     Warehouse, GitMerge, BarChart3, Landmark, List, Calendar, RefreshCw,
     Scale, FileText, ShieldCheck, Zap, Gift, TrendingDown, ArrowLeftRight,
-    Pause, TrendingUp,
+    Pause, TrendingUp, Utensils,
 };
 
 const statusColors = {

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Download, X } from 'lucide-react';
+import { isStation } from '@/lib/station';
 
 export default function PwaInstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState(null);
     const [showPrompt, setShowPrompt] = useState(false);
 
     useEffect(() => {
+        // Inside the Windows app there is nothing to install.
+        if (isStation()) return undefined;
         const handler = (e) => {
             // Check if dismissed previously
             if (localStorage.getItem('pwa_prompt_dismissed') === 'true') return;
@@ -52,7 +55,7 @@ export default function PwaInstallPrompt() {
         setShowPrompt(false);
     };
 
-    if (!showPrompt) return null;
+    if (!showPrompt || isStation()) return null;
 
     return (
         <div className="fixed bottom-4 right-4 z-command animate-in slide-in-from-bottom duration-slower">

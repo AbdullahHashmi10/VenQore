@@ -1,33 +1,14 @@
+import { exportRowsToCsv, canExportCsv } from '@/lib/exportCsv';
 import PrintService from '@/Utils/PrintService';
 import React, { useState, useEffect, useCallback } from 'react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import axios from 'axios';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import {
-    FileMinus,
-    Search,
-    Plus,
-    Download,
-    Eye,
-    Calendar,
-    DollarSign,
-    User,
-    ArrowUpRight,
-    Printer,
-    MoreVertical,
-    FileSpreadsheet,
-    History,
-    Trash2,
-    CheckSquare,
-    Clock,
-    ShoppingBag,
-    ChevronUp,
-    ChevronDown,
-    X,
-    Filter
-} from 'lucide-react';
-import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
+import { FileMinus, Search, Plus, Download, Eye, Calendar, DollarSign, User, ArrowUpRight, Printer, MoreVertical, FileSpreadsheet, History, Trash2, CheckSquare, Clock, ShoppingBag, ChevronUp, ChevronDown, X, Filter, Check } from 'lucide-react';
+import PurchaseModuleTabs, { usePurchaseNavGroups } from '@/Components/PurchaseModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
+import ListFilterPill from '@/Components/ListFilterPill';
 import SmartCombobox from '@/Components/SmartCombobox';
 import { useTermText } from '@/lib/terms';
 import MobileStats from '@/Components/MobileStats';
@@ -223,193 +204,133 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
     };
 
     const { store, settings } = usePage().props;
+    const purchaseNavGroups = usePurchaseNavGroups();
 
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     return (
-        <OneGlanceLayout title="Debit Notes" activeMenu="Purchase">
+        <OneGlanceLayout title="Debit Notes" activeMenu="Purchase" noPadding>
             <Head title="Debit Notes" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <PurchaseModuleTabs activeTab="debit-notes" />
+            <ListPageFrame className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden">
+                <div className="md:hidden"><PurchaseModuleTabs activeTab="debit-notes" /></div>
 
-                {/* Mobile Stats Toggle/Summary */}
-                <MobileStats bp="md" open={isStatsExpanded} onToggle={() => setIsStatsExpanded(!isStatsExpanded)} items={[
-  { label: 'Total Notes', value: computedStats.total, tone: 'ink' },
-  { label: 'Total Value', value: formatCurrency(computedStats.totalAmount, store), tone: 'emerald' },
-  { label: 'Open Credits', value: computedStats.open, tone: 'blue' }
-]} />
-
-                {/* Stats Cards - Compact */}
-                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 hidden md:grid`}>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-sunken text-ink-secondary rounded-lg">
-                                <FileMinus size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Notes</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{computedStats.total}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <DollarSign size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Value</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{formatCurrency(computedStats.totalAmount, store)}</p>
-                    </div>
-
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <ArrowUpRight size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Open Credits</p>
-                        </div>
-                        <p className="text-base font-bold text-blue-600">{computedStats.open}</p>
-                    </div>
-
-                    <Link href={route('store.debit-notes.create', { store_slug: store.slug })} className="bg-red-600 hover:bg-red-700 !text-white px-3 py-2 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all" style={{ color: '#ffffff' }}>
-                        <Plus size={18} className="text-white shrink-0" />
-                        <span className="font-bold text-sm text-white">New Debit Note</span>
-                    </Link>
-                </div>
-
-                {/* PC / Desktop Header Area (Hidden on Mobile) */}
-                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0 flex items-center gap-2">
-                            Debit <span className="text-red-600">Notes</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <button
-                            onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >All</button>
-                        <button
-                            onClick={() => { setActiveFilter('open'); applyFilters({ filter: 'open' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Open</button>
-                        <button
-                            onClick={() => { setActiveFilter('used'); applyFilters({ filter: 'used' }); }}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Used</button>
-
-                        <button
-                            onClick={() => setActiveFilter('custom')}
-                            className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                        >Custom</button>
-
-                        {activeFilter === 'custom' && (
-                            <div className="flex items-center gap-1.5 ml-1">
-                                <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-red-500" />
-                                <span className="text-ink-muted text-xs">→</span>
-                                <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
-                                    className="px-2 py-0.5 text-xs font-semibold bg-app border border-line dark:border-line rounded-md text-ink-secondary dark:text-ink focus:ring-1 focus:ring-red-500" />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right: Search + Actions */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-52">
-                            <SmartCombobox
-                                items={allNotes}
-                                value={searchTerm}
-                                onQueryChange={(val) => {
-                                    setSearchTerm(val);
+                {/* ── Desktop: ROW 1 toolbar + ROW 2 stat cards ── */}
+                <ListToolbar
+                    title="Debit Notes"
+                    navGroups={purchaseNavGroups}
+                    activeId="debit-notes"
+                    left={(
+                        <>
+                            <ListFilterPill
+                                icon={Filter}
+                                label="All notes"
+                                value={activeFilter}
+                                options={[{ value: 'all', label: 'All notes' }, { value: 'open', label: 'Open' }, { value: 'used', label: 'Used' }, { value: 'custom', label: 'Custom range' }]}
+                                onChange={(v) => {
+                                    if (v === 'all') { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }
+                                    else if (v === 'custom') { setActiveFilter('custom'); }
+                                    else { setActiveFilter(v); applyFilters({ filter: v }); }
                                 }}
-                                onSelect={(item) => {
-                                    setSearchTerm(item.reference_number);
-                                    applyFilters({ search: item.reference_number });
-                                }}
-                                placeholder="Search note..."
-                                displayKey="reference_number"
-                                filterKey="reference_number"
                             />
-                        </div>
-                        <div className="flex items-center gap-0.5 border-l border-line pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+                            {activeFilter === 'custom' && (
+                                <div className="flex items-center gap-1.5">
+                                    <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
+                                        className="h-10 px-2 text-sm font-semibold bg-app border border-line rounded-[12px] text-ink focus:ring-1 focus:ring-brand-500" />
+                                    <span className="text-ink-muted text-xs">→</span>
+                                    <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
+                                        className="h-10 px-2 text-sm font-semibold bg-app border border-line rounded-[12px] text-ink focus:ring-1 focus:ring-brand-500" />
+                                </div>
+                            )}
+                        </>
+                    )}
+                    actions={(
+                        <>
+                            <div className="w-64">
+                                <SmartCombobox
+                                    items={allNotes}
+                                    value={searchTerm}
+                                    onQueryChange={(val) => {
+                                        setSearchTerm(val);
+                                    }}
+                                    onSelect={(item) => {
+                                        setSearchTerm(item.reference_number);
+                                        applyFilters({ search: item.reference_number });
+                                    }}
+                                    placeholder="Search note..."
+                                    displayKey="reference_number"
+                                    filterKey="reference_number"
+                                />
+                            </div>
+                            <button style={canExportCsv() ? undefined : { display: 'none' }} type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-emerald-600 hover:bg-interactive-hover transition-colors" title="Export" onClick={() => exportRowsToCsv('debit-notes', [{label:'Date',get:r=>r.date},{label:'Reference',get:r=>r.reference_number||`DN-${r.id}`},{label:'Supplier',get:r=>r.supplier?.name},{label:'Amount',get:r=>r.amount},{label:'Reason',get:r=>r.reason},{label:'Status',get:r=>r.status}], sortedData)}>
                                 <FileSpreadsheet size={18} />
                             </button>
-                            <button className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-ink-muted" title="Print" onClick={() => PrintService.printPage()}>
+                            <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Mobile Layout Header Area */}
-                <div className="flex lg:hidden flex-col gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 w-full">
-                        <h1 className="text-sm font-bold text-ink uppercase tracking-tight">
-                            Debit Notes
-                        </h1>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-red-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Search"
-                            >
-                                <Search size={16} />
-                            </button>
-                            <button
-                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
-                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-red-600 text-white shadow-sm' : 'bg-sunken text-ink-muted hover:bg-interactive-hover'}`}
-                                title="Filters"
-                            >
-                                <Filter size={16} />
-                            </button>
-                            <Link
-                                href={route('store.debit-notes.create', { store_slug: store.slug })}
-                                className="p-2 bg-red-600 text-white hover:bg-red-700 rounded-lg transition-colors"
-                                title="New Debit Note"
-                            >
-                                <Plus size={16} />
-                            </Link>
-                        </div>
-                    </div>
-
-                    {showMobileSearch && (
-                        <div className="w-full relative mt-1 border-t border-line pt-2">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search note reference..."
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-app border border-line rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-shadow outline-none text-ink"
-                            />
-                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-ink-muted pointer-events-none" size={14} />
-                        </div>
+                            <ListAddButton icon={Plus} href={route('store.debit-notes.create', { store_slug: store.slug })}>New Debit Note</ListAddButton>
+                        </>
                     )}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Notes', value: computedStats.total, icon: FileMinus, icon_tone: 'bg-sunken text-ink-secondary' },
+                    { label: 'Total Value', value: formatCurrency(computedStats.totalAmount, store), icon: DollarSign, icon_tone: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Open Credits', value: computedStats.open, icon: ArrowUpRight, icon_tone: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400', value_tone: 'text-blue-600' },
+                ]} />
 
-                    {showMobileFilters && (
-                        <div className="w-full mt-1 border-t border-line pt-2 flex flex-col gap-2">
-                            <div className="flex flex-wrap gap-1.5">
-                                <button
-                                    onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >All</button>
-                                <button
-                                    onClick={() => { setActiveFilter('open'); applyFilters({ filter: 'open' }); }}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'open' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Open</button>
-                                <button
-                                    onClick={() => { setActiveFilter('used'); applyFilters({ filter: 'used' }); }}
-                                    className={`px-2.5 py-1 text-2xs font-bold uppercase rounded-full transition-all ${activeFilter === 'used' ? 'bg-red-600 text-white' : 'bg-sunken text-ink-muted'}`}
-                                >Used</button>
-                            </div>
-                        </div>
-                    )}
-                </div>
+               {/* Mobile header (phone only) */}
+ <div className="md:hidden relative z-40 shrink-0 bg-surface border border-line rounded-[14px] shadow-sm">
+ {showMobileFilters && <div className="fixed inset-0 z-30" onClick={() => setShowMobileFilters(false)} aria-hidden="true" />}
+ <div className="relative z-40 h-12 flex items-center gap-1 px-1.5">
+ <div className="min-w-0 flex-1 pl-2">
+ <span className="text-[15px] font-bold text-ink tracking-tight truncate block">Debit Notes</span>
+ </div>
+ <div>
+ <button type="button" onClick={() => setShowMobileFilters(!showMobileFilters)} aria-haspopup="listbox" aria-expanded={showMobileFilters} aria-label="Filter"
+ className={`h-9 px-2 rounded-[10px] border flex items-center gap-1 transition-colors ${activeFilter !== 'all' ? 'border-brand-300 bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'border-line bg-app text-ink-secondary'}`}>
+ <Filter size={16} />
+ <ChevronDown size={14} className={`transition-transform duration-200 ${showMobileFilters ? 'rotate-180' : ''}`} />
+ </button>
+ {showMobileFilters && (
+ <div role="listbox" className="absolute left-0 right-0 top-full mt-1 max-h-[60vh] overflow-y-auto bg-surface border border-line rounded-[12px] shadow-xl p-1.5 animate-[vqDrop_0.16s_ease-out] origin-top">
+ {[['all', 'All notes'], ['open', 'Open'], ['used', 'Used']].map(([key, label]) => (
+ <button key={key} type="button" role="option" aria-selected={activeFilter === key} onClick={() => { if (key === 'all') { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); } else { setActiveFilter(key); applyFilters({ filter: key }); }; setShowMobileFilters(false); }}
+ className={`w-full h-10 px-3 rounded-[8px] text-sm text-left flex items-center justify-between gap-2 ${activeFilter === key ? 'bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 font-semibold' : 'text-ink active:bg-interactive-hover'}`}>
+ <span className="truncate">{label}</span>
+ {activeFilter === key && <Check size={15} className="shrink-0" />}
+ </button>
+ ))}
+ </div>
+ )}
+ </div>
+ <button type="button" onClick={() => setShowMobileSearch(!showMobileSearch)} aria-label="Search"
+ className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${showMobileSearch || searchTerm ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400' : 'bg-app text-ink-secondary'}`}>
+ <Search size={17} />
+ </button>
+ <Link href={route('store.debit-notes.create', { store_slug: store.slug })} aria-label="New Debit Note"
+ className="h-9 w-9 rounded-[10px] bg-brand-600 text-white flex items-center justify-center shadow-sm active:bg-brand-700">
+ <Plus size={19} />
+ </Link>
+ </div>
+ {showMobileSearch && (
+ <div className="px-1.5 pb-1.5 -mt-0.5">
+ <div className="relative">
+ <input autoFocus type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search note reference..."
+ className="w-full h-10 pl-9 pr-3 text-sm bg-app border border-line rounded-[10px] text-ink placeholder:text-ink-muted outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" />
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted pointer-events-none" size={15} />
+ </div>
+ </div>
+ )}
+ </div>
 
-                {/* Main Table Container */}
-                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-line md:dark:border-line md:shadow-sm bg-transparent md:bg-white md:dark:bg-app">
+ <MobileStats bp="md" hero={1} items={[
+ { label: 'Total Notes', value: computedStats.total, tone: 'brand', icon: FileMinus },
+ { label: 'Total Value', value: formatCurrency(computedStats.totalAmount, store), tone: 'emerald', icon: DollarSign },
+ { label: 'Open Credits', value: computedStats.open, tone: 'blue', icon: ArrowUpRight }
+ ]} />
+
+  {/* Main Table Container */}
+                <div className="flex-1 min-h-0 overflow-auto md:rounded-[14px] md:border md:border-line md:shadow-sm bg-transparent md:bg-surface">
                     <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
@@ -421,7 +342,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                         onDragOver={(e) => handleDragOver(e, index)}
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
-                                        className={`
+                                        className={`sticky top-0 z-10 bg-app 
                                             p-4 text-xs font-bold text-ink-muted uppercase tracking-wider 
                                             cursor-pointer select-none hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors
                                             ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-red-500' : ''}
@@ -499,7 +420,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                                                         {activeActionMenu === row.id && (
                                                                             <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-[14px] shadow-xl border border-line p-1 z-50 animate-in zoom-in-95">
                                                                                 <div className="py-1">
-                                                                                    <Link href={route('store.debit-notes.show', row.id)} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
+                                                                                    <Link href={(row?.id ? route('store.debit-notes.show', { store_slug: store.slug, id: row.id }) : '#')} className="w-full text-left px-3 py-2 hover:bg-interactive-hover rounded dark:hover:bg-interactive-hover flex items-center gap-2 text-sm text-ink-secondary">
                                                                                         <Eye size={14} /> View Details
                                                                                     </Link>
                                                                                     <button 
@@ -615,7 +536,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                             {/* Action Buttons */}
                                             <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                                                 <Link
-                                                    href={route('store.debit-notes.show', row.id)}
+                                                    href={(row?.id ? route('store.debit-notes.show', { store_slug: store.slug, id: row.id }) : '#')}
                                                     className="p-1.5 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg text-red-600 transition-colors"
                                                     title="View"
                                                 >
@@ -629,7 +550,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                         )}
                     </div>
                 </div>
-            </div>
+            </ListPageFrame>
 
             {/* Quick View Modal */}
             {quickViewItem && (
@@ -677,7 +598,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                     <Printer size={16} /> Print Receipt
                                 </button>
                                 <Link
-                                    href={route('store.debit-notes.show', quickViewItem.id)}
+                                    href={(quickViewItem?.id ? route('store.debit-notes.show', { store_slug: store.slug, id: quickViewItem.id }) : '#')}
                                     className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
                                 >
                                     <Eye size={16} /> View Full Details

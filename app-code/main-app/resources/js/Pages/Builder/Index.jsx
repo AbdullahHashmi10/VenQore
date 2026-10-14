@@ -16,14 +16,14 @@ import {
     BarChart3, ShieldCheck, Send, ChefHat, UtensilsCrossed,
     CheckCircle2, Star, Filter, Info, ChevronRight, CheckCheck,
 } from 'lucide-react';
-import Toggle from '@/Components/Toggle';
+import { ModuleCatalog } from '@/Components/Builder';
 
 const GROUP_ORDER = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 const GROUP_THEMES = {
     A: { name: 'Catalog', color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-500/10 border-sky-500/20' },
-    B: { name: 'Sell', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-    C: { name: 'Stock', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+    B: { name: 'Sell', color: 'text-success-700 dark:text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
+    C: { name: 'Stock', color: 'text-warning-700 dark:text-amber-400', bg: 'bg-warning-500/10 border-warning-500/20' },
     D: { name: 'Buy', color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
     E: { name: 'Make', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
     F: { name: 'Money', color: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-500/10 border-teal-500/20' },
@@ -290,16 +290,20 @@ export default function BuilderIndex({
             return true;
         });
 
-        // Sorting
+        // Sorting - stable order so toggling cards on/off does not jump their positions
         list = [...list].sort((a, b) => {
             if (sortBy === 'recommended') {
                 if (a.recommended && !b.recommended) return -1;
                 if (!a.recommended && b.recommended) return 1;
-                if (!!moduleState[a.key] !== !!moduleState[b.key]) return moduleState[a.key] ? -1 : 1;
+                const gDiff = (a.group || '').localeCompare(b.group || '');
+                if (gDiff !== 0) return gDiff;
                 return a.label.localeCompare(b.label);
             }
             if (sortBy === 'active') {
-                if (!!moduleState[a.key] !== !!moduleState[b.key]) return moduleState[a.key] ? -1 : 1;
+                // If user explicitly asks to sort by active, sort active first, but keep secondary sort stable
+                const aActive = !!moduleState[a.key];
+                const bActive = !!moduleState[b.key];
+                if (aActive !== bActive) return aActive ? -1 : 1;
                 return a.label.localeCompare(b.label);
             }
             if (sortBy === 'name') {
@@ -321,200 +325,174 @@ export default function BuilderIndex({
         return recs.length > 0 && recs.every((m) => !!moduleState[m.key]);
     }, [modules, moduleState]);
 
+    const activeKeys = useMemo(() => Object.keys(moduleState).filter((k) => moduleState[k]), [moduleState]);
+    const recommendedMap = useMemo(
+        () => Object.fromEntries(modules.filter((m) => m.recommended).map((m) => [m.key, true])),
+        [modules],
+    );
+    const recommendedOn = modules.filter((m) => m.recommended && moduleState[m.key]).length;
+    const onCatalogToggle = (key, nextOn) => {
+        const mod = byKey[key];
+        if (!mod) return;
+        nextOn ? handleToggleOn(mod) : startDisable(mod);
+    };
+    const scrollToCatalog = () =>
+        document.getElementById('vq-module-catalog')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const tradeLabel = businessLabel || (businessType ? businessType.replace(/_/g, ' ') : null);
+
     return (
         <OneGlanceLayout title="Builder" activeMenu="Settings">
-            <Head title="Modules & Capabilities" />
+            <Head title="Modules" />
 
-            <div className="w-full max-w-[1920px] mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-                
-                {/* ── Top Header & Business Banner ────────────────────────────── */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="mx-auto w-full max-w-[1600px] space-y-6 px-4 py-6 pb-32 sm:px-6 lg:px-8">
+
+                {/* ── Header ─────────────────────────────────────────────────── */}
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <div className="flex items-center gap-2 text-brand-600">
-                            <Sparkles size={18} />
-                            <span className="text-xs font-bold uppercase tracking-wider">Module Suite &amp; Workspace Builder</span>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-ink mt-1">Manage Business Modules</h1>
-                        <p className="text-sm text-ink-muted mt-1 max-w-3xl">
-                            Turn capabilities on or off anytime. Modules adapt your dashboards, registers, documents, and navigation seamlessly without deleting any existing records.
+                        <p className="text-2xs font-bold uppercase tracking-widest text-accent-text">Store configuration</p>
+                        <h1 className="mt-1 text-2xl font-semibold text-ink sm:text-3xl">Your modules</h1>
+                        <p className="mt-1 max-w-3xl text-sm text-ink-secondary">
+                            Switch features on or off at any time. Turning something off only hides it &mdash;
+                            your records are never deleted.
                         </p>
                     </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                        <Link
-                            href={route('store.onboarding.v2', routeArgs())}
-                            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-line bg-surface text-xs font-semibold text-ink-secondary hover:text-brand-600 hover:border-brand-500/50 shadow-sm transition-all"
-                        >
-                            <Sparkles size={14} className="text-brand-600" />
-                            Run AI Setup Wizard
-                        </Link>
+                    <div className="flex shrink-0 items-center gap-6">
+                        <div className="text-right">
+                            <div className="vq-num text-2xl font-semibold text-ink">
+                                {enabledCount}<span className="text-sm font-normal text-ink-muted"> / {totalCount}</span>
+                            </div>
+                            <div className="text-3xs font-semibold uppercase tracking-widest text-ink-muted">switched on</div>
+                        </div>
                     </div>
                 </div>
 
-                {/* ── Active Business Profile Card ─────────────────────────────── */}
-                <div className="rounded-2xl border border-line bg-gradient-to-r from-surface via-surface to-brand-500/5 p-5 sm:p-6 shadow-sm relative overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-600 shrink-0 shadow-inner">
-                                <Store size={24} />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-xs font-bold uppercase tracking-wider text-brand-600 bg-brand-500/10 px-2.5 py-0.5 rounded-full border border-brand-500/20">
-                                        Active Business Profile
+                {/* ── Recommended setup (guided by default) ─────────────────── */}
+                {recommendedCount > 0 && (
+                    <div className="overflow-hidden rounded-xl border border-accent bg-surface shadow-sm">
+                        <div className="flex flex-col gap-5 bg-accent-quiet p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex min-w-0 items-start gap-4">
+                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-fill text-accent-on">
+                                    <Store size={22} />
+                                </span>
+                                <div className="min-w-0">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-fill px-2.5 py-1 text-3xs font-bold uppercase tracking-widest text-accent-on">
+                                        <Sparkles size={11} /> We recommend
                                     </span>
-                                    {businessSector && (
-                                        <span className="text-xs font-medium text-ink-muted bg-sunken px-2.5 py-0.5 rounded-full border border-line">
-                                            Sector: {businessSector.replace(/_/g, ' ')}
-                                        </span>
-                                    )}
-                                    {businessPreset && (
-                                        <span className="text-xs font-medium text-ink-muted bg-sunken px-2.5 py-0.5 rounded-full border border-line">
-                                            Preset: {businessPreset.replace(/_/g, ' ')}
-                                        </span>
-                                    )}
-                                </div>
-                                <h2 className="text-lg sm:text-xl font-bold text-ink mt-1.5 capitalize">
-                                    {businessLabel || (businessType ? businessType.replace(/_/g, ' ') : 'General Store & Services')}
-                                </h2>
-                                <p className="text-xs sm:text-sm text-ink-muted mt-0.5">
-                                    Configured with tailored defaults, terminology, and {recommendedCount} recommended core modules for your trade.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Quick Stats & Actions */}
-                        <div className="flex items-center gap-4 sm:gap-6 shrink-0 border-t md:border-t-0 md:border-l border-line pt-4 md:pt-0 md:pl-6">
-                            <div className="flex items-center gap-4 text-center">
-                                <div>
-                                    <div className="text-xl font-bold text-ink font-numeric">{enabledCount} <span className="text-xs font-normal text-ink-muted">/ {totalCount}</span></div>
-                                    <div className="text-3xs uppercase font-semibold text-ink-muted tracking-wider">Active</div>
-                                </div>
-                                <div className="w-px h-8 bg-line" />
-                                <div>
-                                    <div className="text-xl font-bold text-amber-600 font-numeric">{recommendedCount}</div>
-                                    <div className="text-3xs uppercase font-semibold text-ink-muted tracking-wider">Recommended</div>
+                                    <h2 className="mt-2 text-lg font-semibold capitalize text-ink">
+                                        {tradeLabel ? `The setup for your ${tradeLabel}` : 'The setup for your business'}
+                                    </h2>
+                                    <p className="mt-0.5 text-sm text-ink-secondary">
+                                        {allRecommendedActive
+                                            ? `You're on our recommended setup — all ${recommendedCount} are on. Add anything extra below.`
+                                            : `${recommendedOn} of ${recommendedCount} recommended modules are on. Switching the rest on gives you the system we'd set up for a business like yours.`}
+                                    </p>
                                 </div>
                             </div>
-
-                            {recommendedCount > 0 && (
+                            <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+                                {allRecommendedActive ? (
+                                    <span className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 text-sm font-semibold text-ink">
+                                        <CheckCheck size={16} className="text-accent-text" /> Recommended setup is on
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={enableAllRecommended}
+                                        disabled={busy}
+                                        className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-accent-fill px-5 text-sm font-semibold text-accent-on shadow-sm transition-colors duration-fast hover:bg-accent-fill-hover disabled:opacity-60"
+                                    >
+                                        <Sparkles size={15} /> Use the recommended setup
+                                    </button>
+                                )}
                                 <button
                                     type="button"
-                                    onClick={enableAllRecommended}
-                                    disabled={busy || allRecommendedActive}
-                                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 ${
-                                        allRecommendedActive
-                                            ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 cursor-default'
-                                            : 'bg-brand-600 text-white hover:bg-brand-700 active:scale-95'
-                                    }`}
+                                    onClick={scrollToCatalog}
+                                    className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-line bg-surface px-4 text-sm font-semibold text-ink-secondary transition-colors duration-fast hover:border-line-strong hover:text-ink"
                                 >
-                                    {allRecommendedActive ? (
-                                        <>
-                                            <CheckCheck size={14} />
-                                            <span>All Recommended Active</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles size={14} />
-                                            <span>Enable Recommended ({recommendedCount})</span>
-                                        </>
-                                    )}
+                                    <SlidersHorizontal size={15} /> Choose myself
                                 </button>
-                            )}
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-2 px-5 py-3 text-xs text-ink-secondary sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                            <span>Not sure what you need? Answer a few questions and we&rsquo;ll work it out again.</span>
+                            <Link
+                                href={route('store.onboarding.v2', routeArgs())}
+                                className="inline-flex items-center gap-1 font-semibold text-accent-text hover:underline"
+                            >
+                                Ask me the questions <ArrowRight size={13} />
+                            </Link>
                         </div>
                     </div>
-                </div>
+                )}
 
-                {/* ── Highlighted missing module banner ────────────────────────── */}
+                {/* ── Module they tried to open ──────────────────────────────── */}
                 {highlightMod && !moduleState[highlightMod.key] && (
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 gap-4 p-4 rounded-2xl border border-brand-500/40 bg-brand-500/10 shadow-sm animate-pulse">
+                    <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-accent bg-accent-quiet p-4">
                         <div className="flex items-center gap-3">
-                            <ShieldAlert size={22} className="text-brand-600 shrink-0" />
+                            <ShieldAlert size={20} className="shrink-0 text-accent-text" />
                             <div>
-                                <p className="text-sm font-bold text-ink">
-                                    You tried accessing <span className="text-brand-600">{highlightMod.label}</span>
-                                </p>
-                                <p className="text-xs text-ink-muted">
-                                    This module is currently disabled. Turn it on below to unlock its pages, register workflows, and reports.
-                                </p>
+                                <p className="text-sm font-semibold text-ink">{highlightMod.label} is switched off</p>
+                                <p className="text-xs text-ink-secondary">Turn it on to open its pages, reports and register options.</p>
                             </div>
                         </div>
                         <button
                             type="button"
                             onClick={() => handleToggleOn(highlightMod)}
-                            className="shrink-0 px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 transition-colors shadow-sm"
+                            className="shrink-0 rounded-md bg-accent-fill px-4 py-2 text-xs font-semibold text-accent-on hover:bg-accent-fill-hover"
                         >
                             Turn on {highlightMod.label}
                         </button>
                     </div>
                 )}
 
-                {/* ── Natural Language Prompt Bar ─────────────────────────────── */}
-                <div className="p-4 rounded-2xl border border-line bg-surface/80 shadow-sm">
-                    <form onSubmit={submitModify} className="flex flex-col sm:flex-row gap-2.5">
-                        <div className="relative flex-1">
-                            <Sparkles size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-600 pointer-events-none" />
-                            <input
-                                id="vq-builder-modify"
-                                type="text"
-                                value={modifyText}
-                                onChange={(e) => setModifyText(e.target.value)}
-                                placeholder='Type what you want: e.g. "turn on invoicing and batch tracking" or "call customers patients"'
-                                className="w-full pl-10 pr-4 py-2.5 bg-sunken border border-line rounded-xl text-xs sm:text-sm text-ink placeholder:text-ink-muted focus:ring-2 focus:ring-brand-500 outline-none transition-all"
-                                maxLength={200}
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={modifyBusy || !modifyText.trim()}
-                            className="px-4 py-2.5 rounded-xl bg-ink text-surface text-xs sm:text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shrink-0"
-                        >
-                            {modifyBusy ? <Loader2 size={16} className="animate-spin" /> : <span>Apply Instruction</span>}
-                            {!modifyBusy && <ArrowRight size={14} />}
-                        </button>
-                    </form>
-                    {modifyResult && (
-                        <div
-                            className={`mt-2.5 text-xs rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-y-2 ${
-                                modifyResult.success
-                                    ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30'
-                                    : 'bg-red-500/10 text-red-600 border border-red-500/30'
-                            }`}
-                        >
-                            <span>{modifyResult.message}</span>
-                            {modifyResult.intent === 'ADD_CARD' && (
-                                <button
-                                    type="button"
-                                    onClick={() => router.visit(route('store.dashboard', routeArgs()))}
-                                    className="ml-2 underline font-semibold text-brand-600"
-                                >
-                                    Go to dashboard
-                                </button>
-                            )}
-                        </div>
-                    )}
-                </div>
+                {/* ── Say it in words ────────────────────────────────────────── */}
+                <form onSubmit={submitModify} className="flex flex-col gap-2.5 rounded-lg border border-line bg-surface p-3 sm:flex-row">
+                    <div className="relative flex-1">
+                        <Sparkles size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-accent-text" />
+                        <input
+                            id="vq-builder-modify"
+                            type="text"
+                            value={modifyText}
+                            onChange={(e) => setModifyText(e.target.value)}
+                            placeholder='Or just say it: "turn on invoicing and batch tracking", "call customers patients"'
+                            className="h-11 w-full rounded-md border border-line bg-sunken pl-10 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                            maxLength={200}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={modifyBusy || !modifyText.trim()}
+                        className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-ink px-4 text-sm font-semibold text-surface hover:opacity-90 disabled:opacity-50"
+                    >
+                        {modifyBusy ? <Loader2 size={16} className="animate-spin" /> : <>Do it <ArrowRight size={14} /></>}
+                    </button>
+                </form>
+                {modifyResult && (
+                    <div className={`flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs ${modifyResult.success ? 'border-success-500/30 bg-success-500/10 text-success-700' : 'border-danger-500/30 bg-danger-500/10 text-danger-700'}`}>
+                        <span>{modifyResult.success ? '✓ ' : '✕ '}{modifyResult.message}</span>
+                        {modifyResult.intent === 'ADD_CARD' && (
+                            <button type="button" onClick={() => router.visit(route('store.dashboard', routeArgs()))} className="font-semibold text-accent-text underline">
+                                Go to dashboard
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {error && (
-                    <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-red-600 flex items-center gap-2">
+                    <div className="flex items-center gap-2 rounded-lg border border-danger-500/30 bg-danger-500/10 p-4 text-sm text-danger-700">
                         <AlertTriangle size={16} className="shrink-0" /> {error}
                     </div>
                 )}
 
                 {questions.map((q) => (
-                    <div key={q.for} className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 shadow-sm">
+                    <div key={q.for} className="rounded-lg border border-warning-500/30 bg-warning-500/10 p-4">
                         <div className="flex items-start gap-3">
-                            <HelpCircle size={20} className="text-amber-600 shrink-0 mt-0.5" />
+                            <HelpCircle size={20} className="mt-0.5 shrink-0 text-warning-700" />
                             <div className="flex-1">
-                                <p className="text-sm text-ink font-semibold">{q.prompt}</p>
-                                <div className="flex flex-wrap gap-2 mt-3">
+                                <p className="text-sm font-semibold text-ink">{q.prompt}</p>
+                                <div className="mt-3 flex flex-wrap gap-2">
                                     {q.options.map((opt) => (
-                                        <button
-                                            key={opt}
-                                            type="button"
-                                            onClick={() => answerQuestion(opt)}
-                                            className="px-3.5 py-1.5 rounded-lg bg-surface border border-line text-xs font-bold text-ink hover:border-brand-500 hover:text-brand-600 transition-colors shadow-sm"
-                                        >
+                                        <button key={opt} type="button" onClick={() => answerQuestion(opt)}
+                                            className="rounded-md border border-line bg-surface px-3.5 py-1.5 text-xs font-semibold text-ink hover:border-accent hover:text-accent-text">
                                             {byKey[opt]?.label || opt}
                                         </button>
                                     ))}
@@ -525,18 +503,15 @@ export default function BuilderIndex({
                 ))}
 
                 {hasBlocks && (
-                    <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 space-y-3 shadow-sm">
+                    <div className="space-y-3 rounded-lg border border-danger-500/30 bg-danger-500/10 p-4">
                         {Object.entries(blocks).map(([key, verdict]) => (
-                            <div key={key} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div key={key} className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                                 <div className="flex items-start gap-2">
-                                    <ShieldAlert size={18} className="text-red-600 shrink-0 mt-0.5" />
-                                    <p className="text-xs sm:text-sm text-ink">{verdict.message}</p>
+                                    <ShieldAlert size={18} className="mt-0.5 shrink-0 text-danger-700" />
+                                    <p className="text-sm text-ink">{verdict.message}</p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => resolveBlockTogether(key, verdict.dependents)}
-                                    className="shrink-0 px-3 py-1.5 rounded-lg bg-surface border border-red-500/30 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors shadow-sm"
-                                >
+                                <button type="button" onClick={() => resolveBlockTogether(key, verdict.dependents)}
+                                    className="shrink-0 rounded-md border border-danger-500/30 bg-surface px-3 py-1.5 text-xs font-semibold text-danger-700">
                                     Turn these off together
                                 </button>
                             </div>
@@ -544,270 +519,17 @@ export default function BuilderIndex({
                     </div>
                 )}
 
-                {/* ── Filter & Search Controls ─────────────────────────────────── */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
-                    {/* Search Input */}
-                    <div className="relative flex-1 max-w-md">
-                        <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search by name, key, description, or capabilities…"
-                            className="h-10 w-full rounded-xl border border-line bg-surface pl-10 pr-9 text-xs sm:text-sm text-ink placeholder:text-ink-muted focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-sm"
-                        />
-                        {searchQuery && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchQuery('')}
-                                aria-label="Clear search"
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-ink-muted hover:bg-sunken hover:text-ink"
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Sorting dropdown */}
-                    <div className="flex items-center gap-2 self-end md:self-auto">
-                        <span className="text-xs text-ink-muted font-medium">Sort by:</span>
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
-                            className="h-10 px-3 py-1.5 bg-surface border border-line rounded-xl text-xs font-semibold text-ink focus:ring-2 focus:ring-brand-500 outline-none shadow-sm cursor-pointer"
-                        >
-                            <option value="recommended">Recommended first</option>
-                            <option value="active">Active first</option>
-                            <option value="name">Name (A–Z)</option>
-                            <option value="group">Group order</option>
-                        </select>
-                    </div>
+                {/* ── The catalogue ──────────────────────────────────────────── */}
+                <div id="vq-module-catalog" className="scroll-mt-6 pt-2">
+                    <ModuleCatalog
+                        modules={modules}
+                        active={activeKeys}
+                        recommended={recommendedMap}
+                        highlight={highlight}
+                        disabled={busy}
+                        onToggle={onCatalogToggle}
+                    />
                 </div>
-
-                {/* ── Category & Group Filter Pills ────────────────────────────── */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                    <button
-                        type="button"
-                        onClick={() => setActiveFilter('all')}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 ${
-                            activeFilter === 'all'
-                                ? 'bg-ink text-surface border-ink shadow-sm'
-                                : 'bg-surface text-ink-secondary border-line hover:border-line-strong'
-                        }`}
-                    >
-                        All <span className="opacity-70 font-numeric">({totalCount})</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => setActiveFilter('enabled')}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 ${
-                            activeFilter === 'enabled'
-                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                                : 'bg-surface text-emerald-600 border-line hover:border-emerald-500/40'
-                        }`}
-                    >
-                        ✓ Active <span className="opacity-80 font-numeric">({enabledCount})</span>
-                    </button>
-
-                    {recommendedCount > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => setActiveFilter('recommended')}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 flex items-center gap-1.5 ${
-                                activeFilter === 'recommended'
-                                    ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
-                                    : 'bg-surface text-amber-600 border-line hover:border-amber-500/40'
-                            }`}
-                        >
-                            <Star size={12} className="fill-current" />
-                            <span>Recommended <span className="opacity-80 font-numeric">({recommendedCount})</span></span>
-                        </button>
-                    )}
-
-                    <div className="w-px h-5 bg-line shrink-0 mx-1" />
-
-                    {GROUP_ORDER.map((g) => {
-                        const count = modules.filter((m) => m.group === g).length;
-                        if (!count) return null;
-                        const theme = GROUP_THEMES[g] || GROUP_THEMES.G;
-                        const label = groupLabels[g] || theme.name;
-                        const isSelected = activeFilter === g;
-
-                        return (
-                            <button
-                                key={g}
-                                type="button"
-                                onClick={() => setActiveFilter(isSelected ? 'all' : g)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 flex items-center gap-1.5 ${
-                                    isSelected
-                                        ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
-                                        : 'bg-surface text-ink-secondary border-line hover:border-line-strong'
-                                }`}
-                            >
-                                <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : theme.color.replace('text-', 'bg-')}`} />
-                                <span>{g} · {label}</span>
-                                <span className="opacity-60 font-numeric text-3xs">({count})</span>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* ── Cards Grid ──────────────────────────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
-                    <AnimatePresence initial={false}>
-                        {filteredModules.map((m, mi) => {
-                            const isEnabled = !!moduleState[m.key];
-                            const isHighlighted = highlight === m.key;
-                            const IconCmp = MODULE_ICONS[m.key] || Layers;
-                            const theme = GROUP_THEMES[m.group] || GROUP_THEMES.G;
-                            const groupName = groupLabels[m.group] || theme.name;
-
-                            return (
-                                <motion.div
-                                    key={m.key}
-                                    layout={!still}
-                                    initial={still ? false : { opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.96 }}
-                                    transition={{
-                                        duration: 0.22,
-                                        delay: Math.min(mi, 12) * 0.015,
-                                        ease: [0.22, 1, 0.36, 1],
-                                    }}
-                                    className={`group relative rounded-2xl border p-5 flex flex-col justify-between transition-all duration-200 shadow-sm ${
-                                        isHighlighted
-                                            ? 'ring-2 ring-brand-500 border-brand-500 bg-brand-500/5 shadow-md'
-                                            : isEnabled
-                                              ? 'border-brand-500/40 bg-gradient-to-b from-brand-500/[0.04] to-transparent shadow-brand-500/5'
-                                              : 'border-line bg-surface hover:border-line-strong hover:shadow'
-                                    }`}
-                                >
-                                    <div>
-                                        {/* Card Header: Icon + Group + Toggle */}
-                                        <div className="flex flex-wrap items-center justify-between gap-y-2 gap-3 mb-3">
-                                            <div className="flex items-center gap-2.5">
-                                                <div
-                                                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                                                        isEnabled
-                                                            ? 'bg-brand-600 text-white shadow-sm'
-                                                            : 'bg-sunken text-ink-muted group-hover:text-ink'
-                                                    }`}
-                                                >
-                                                    <IconCmp size={18} strokeWidth={2} />
-                                                </div>
-                                                <div>
-                                                    <span className="inline-block text-3xs font-bold uppercase tracking-wider text-ink-muted bg-sunken px-2 py-0.5 rounded-md border border-line">
-                                                        {m.group} · {groupName}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Toggle switch */}
-                                            <div onClick={(e) => e.stopPropagation()}>
-                                                <Toggle
-                                                    enabled={isEnabled}
-                                                    onChange={(next) => (next ? handleToggleOn(m) : startDisable(m))}
-                                                    disabled={busy}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Title and Badges */}
-                                        <div className="space-y-1.5">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <h3 className="font-bold text-ink text-base group-hover:text-brand-600 transition-colors">
-                                                    {m.label}
-                                                </h3>
-                                                {m.recommended && (
-                                                    <span className="inline-flex items-center gap-1 text-3xs font-bold text-amber-600 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
-                                                        <Star size={10} className="fill-current" /> Recommended
-                                                    </span>
-                                                )}
-                                                {isEnabled && (
-                                                    <span className="inline-flex items-center gap-1 text-3xs font-semibold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                                                        <Check size={10} strokeWidth={3} /> Active
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {/* Description */}
-                                            <p className="text-xs text-ink-muted leading-relaxed">
-                                                {m.description || 'Core business capabilities and data workflows.'}
-                                            </p>
-                                        </div>
-
-                                        {/* What it opens for */}
-                                        {m.opens && (
-                                            <div className="mt-3 pt-2.5 border-t border-line/60">
-                                                <span className="block text-3xs font-bold uppercase text-ink-muted tracking-wider">
-                                                    Unlocks for:
-                                                </span>
-                                                <p className="text-2xs text-ink-secondary mt-0.5 leading-snug">
-                                                    {m.opens}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Card Footer: Metadata and relationships */}
-                                    <div className="mt-4 pt-3 border-t border-line flex items-center justify-between gap-2 flex-wrap text-3xs text-ink-muted font-medium">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            {m.cards_count > 0 && (
-                                                <span className="inline-flex items-center gap-1 bg-sunken px-2 py-0.5 rounded-md border border-line text-ink-secondary" title="Analytics metrics provided on your dashboard">
-                                                    <BarChart3 size={11} className="text-brand-600" />
-                                                    <span>{m.cards_count} Metrics</span>
-                                                </span>
-                                            )}
-
-                                            {m.requires && m.requires.length > 0 && (
-                                                <span className="bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded-md border border-amber-500/20" title="Requires other modules">
-                                                    Needs: {m.requires.map(k => byKey[k]?.label || k).join(', ')}
-                                                </span>
-                                            )}
-
-                                            {m.enhances && m.enhances.length > 0 && (
-                                                <span className="bg-sunken px-2 py-0.5 rounded-md border border-line" title="Integrates with other modules">
-                                                    Works with: {m.enhances.slice(0, 2).map(k => byKey[k]?.label || k).join(', ')}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => (isEnabled ? startDisable(m) : handleToggleOn(m))}
-                                            disabled={busy}
-                                            className={`text-xs font-bold hover:underline shrink-0 ${
-                                                isEnabled ? 'text-red-500' : 'text-brand-600'
-                                            }`}
-                                        >
-                                            {isEnabled ? 'Turn off' : 'Turn on'}
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
-                </div>
-
-                {filteredModules.length === 0 && (
-                    <div className="rounded-2xl border border-dashed border-line bg-surface p-5 sm:p-12 text-center space-y-3">
-                        <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-ink-muted mx-auto">
-                            <Search size={20} />
-                        </div>
-                        <h3 className="text-base font-bold text-ink">No modules found matching &ldquo;{searchQuery}&rdquo;</h3>
-                        <p className="text-xs text-ink-muted max-w-md mx-auto">
-                            Try searching for other keywords like &ldquo;sales&rdquo;, &ldquo;stock&rdquo;, &ldquo;barcode&rdquo;, or reset the active filters.
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => { setSearchQuery(''); setActiveFilter('all'); }}
-                            className="px-4 py-2 rounded-xl bg-ink text-surface text-xs font-bold hover:opacity-90 transition-opacity"
-                        >
-                            Reset filters
-                        </button>
-                    </div>
-                )}
             </div>
 
             {/* ── Save Bar (Bottom Floating) ───────────────────────────────── */}
@@ -823,11 +545,11 @@ export default function BuilderIndex({
                         <div className="text-xs sm:text-sm text-ink-secondary">
                             <div className="font-semibold text-ink">You have unsaved module configuration changes</div>
                             {addedEntries.length > 0 && (
-                                <div className="text-brand-600 mt-0.5">
+                                <div className="text-accent-text mt-0.5">
                                     Auto-enabling required dependencies: {addedEntries.map(([k]) => byKey[k]?.label || k).join(', ')}.
                                 </div>
                             )}
-                            {notice && <span className="text-emerald-600 font-bold">{notice}</span>}
+                            {notice && <span className="text-success-700 font-bold">{notice}</span>}
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                             <button
@@ -842,7 +564,7 @@ export default function BuilderIndex({
                                 type="button"
                                 onClick={applyChanges}
                                 disabled={busy || questions.length > 0}
-                                className="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-xs sm:text-sm font-bold hover:bg-brand-700 disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all"
+                                className="px-5 py-2.5 rounded-xl bg-accent-fill text-accent-on text-xs sm:text-sm font-bold hover:bg-accent-fill-hover disabled:opacity-50 flex items-center gap-2 shadow-sm transition-all"
                             >
                                 {busy ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                                 <span>Save Changes</span>
@@ -864,10 +586,10 @@ export default function BuilderIndex({
                         initial={still ? false : { opacity: 0, scale: 0.96, y: 8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={SPRING}
-                        className="w-full max-w-md rounded-2xl bg-surface border border-line shadow-2xl p-6 space-y-4"
+                        className="w-full max-w-md rounded-xl bg-surface border border-line shadow-2xl p-6 space-y-4"
                     >
-                        <div className="flex items-center gap-3 text-amber-600">
-                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                        <div className="flex items-center gap-3 text-warning-700">
+                            <div className="w-10 h-10 rounded-xl bg-warning-500/10 border border-warning-500/20 flex items-center justify-center shrink-0">
                                 <MinusCircle size={22} />
                             </div>
                             <div>
@@ -877,8 +599,8 @@ export default function BuilderIndex({
                         </div>
 
                         {(pendingDisable.pending || []).length > 0 && (
-                            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-ink space-y-1.5">
-                                <span className="font-bold text-red-600">Customers are waiting right now</span>
+                            <div className="p-3.5 rounded-xl bg-danger-500/10 border border-danger-500/30 text-xs text-ink space-y-1.5">
+                                <span className="font-bold text-danger-700">Customers are waiting right now</span>
                                 <ul className="text-ink-secondary space-y-1">
                                     {pendingDisable.pending.map((p) => (
                                         <li key={p.label}><strong className="text-ink font-numeric">{p.count}</strong> {p.label}</li>
@@ -909,8 +631,8 @@ export default function BuilderIndex({
                         )}
 
                         {pendingDisable.cascade.length > 1 && (
-                            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-ink space-y-1">
-                                <span className="font-bold text-amber-600">Dependent modules also affected:</span>
+                            <div className="p-3.5 rounded-xl bg-warning-500/10 border border-warning-500/30 text-xs text-ink space-y-1">
+                                <span className="font-bold text-warning-700">Dependent modules also affected:</span>
                                 <p className="text-ink-secondary">
                                     {pendingDisable.cascade
                                         .filter((k) => k !== pendingDisable.module.key)
@@ -931,7 +653,7 @@ export default function BuilderIndex({
                             <button
                                 type="button"
                                 onClick={confirmDisable}
-                                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors shadow-sm"
+                                className="px-4 py-2 rounded-xl bg-danger-600 text-white text-xs font-bold hover:bg-danger-700 transition-colors shadow-sm"
                             >
                                 Turn Off Module
                             </button>

@@ -74,6 +74,21 @@ export default function TerminalPairingSection({ storeSlug }) {
         }
     };
 
+    const replaceDevice = async (terminal) => {
+        if (!window.confirm(`Replace the device for ${terminal.name}? Use the new code on the replacement PC. The old device stays connected until the code is used, then loses access. Your existing counter and staff seats stay unchanged. Recover unsynced sales from the old PC first if possible.`)) return;
+        setLoading(true);
+        setError('');
+        try {
+            await axios.post(route('store.terminal-pairing.store', { store_slug: storeSlug }), {
+                replacement_terminal_id: terminal.id,
+                label: `Replace ${terminal.name}`.slice(0, 100), ttl_minutes: 15,
+            });
+            await load();
+        } catch (e) {
+            setError(e.response?.data?.message || 'Could not create a device replacement code.');
+        } finally { setLoading(false); }
+    };
+
     const copy = async (code) => {
         try {
             await navigator.clipboard.writeText(code);
@@ -83,10 +98,10 @@ export default function TerminalPairingSection({ storeSlug }) {
     };
 
     return (
-        <div className="bg-surface rounded-2xl border border-line p-6">
+        <div className="bg-surface rounded-[14px] border border-line p-4">
             <SectionHeader
                 title="Pair New Station Terminal"
-                description="Create a one-time code, then enter it on the Station setup screen. Each code works once and expires after 60 minutes."
+                description="Create a code, then copy the pairing link into Station's Store field. It fills both fields together. Each code works once and expires after 60 minutes."
             />
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end mb-5">
@@ -98,14 +113,14 @@ export default function TerminalPairingSection({ storeSlug }) {
                         maxLength={100}
                         onChange={(e) => setLabel(e.target.value)}
                         placeholder="Front counter"
-                        className="mt-1 w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink"
+                        className="mt-1 w-full rounded-[8px] border border-line bg-surface px-3 py-2 text-sm text-ink"
                     />
                 </label>
                 <button
                     type="button"
                     onClick={create}
                     disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-md bg-accent-fill px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-accent-fill px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
                 >
                     {loading ? <RefreshCw size={16} className="animate-spin" /> : <Plus size={16} />}
                     Create pairing code
@@ -117,19 +132,23 @@ export default function TerminalPairingSection({ storeSlug }) {
             {tokens.length === 0 ? (
                 <p className="text-sm text-ink-muted">No active pairing codes.</p>
             ) : (
-                <ul className="divide-y divide-line rounded-md border border-line">
+                <ul className="divide-y divide-line rounded-[8px] border border-line">
                     {tokens.map((t) => (
                         <li key={t.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                             <Monitor size={16} className="text-ink-muted" aria-hidden="true" />
                             <code className="font-numeric text-base tracking-widest text-ink select-all">{t.token}</code>
                             <span className="text-sm text-ink-muted">{t.label || 'Unnamed terminal'}</span>
-                            <span className="ml-auto text-xs text-ink-muted">
+                            {t.replacement_terminal_id && <span className="text-sm text-ink-muted">Reuses existing terminal · no new seat</span>}
+                            <span className="ml-auto text-sm text-ink-muted">
                                 {t.expires_at ? `expires ${new Date(t.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
                             </span>
-                            <button type="button" onClick={() => copy(t.token)} className="rounded-md p-2 hover:bg-interactive-hover" aria-label="Copy code">
+                            <button type="button" onClick={() => copy(t.token)} className="rounded-[8px] p-2 hover:bg-interactive-hover" aria-label="Copy code">
                                 <Copy size={16} />{copied === t.token && <span className="sr-only">Copied</span>}
                             </button>
-                            <button type="button" onClick={() => revoke(t.id)} className="rounded-md p-2 hover:bg-interactive-hover" aria-label="Cancel code">
+                            <button type="button" onClick={() => copy(`https://www.venqore.com/s/${encodeURIComponent(storeSlug)}/station-pair#code=${encodeURIComponent(t.token)}`)} className="rounded-[8px] px-3 py-2 text-sm hover:bg-interactive-hover">
+                                {copied?.includes(`#code=${encodeURIComponent(t.token)}`) ? 'Link copied' : 'Copy pairing link'}
+                            </button>
+                            <button type="button" onClick={() => revoke(t.id)} className="rounded-[8px] p-2 hover:bg-interactive-hover" aria-label="Cancel code">
                                 <Trash2 size={16} />
                             </button>
                         </li>
@@ -141,16 +160,19 @@ export default function TerminalPairingSection({ storeSlug }) {
             {terminals.length === 0 ? (
                 <p className="text-sm text-ink-muted">No terminals paired yet.</p>
             ) : (
-                <ul className="divide-y divide-line rounded-md border border-line">
+                <ul className="divide-y divide-line rounded-[8px] border border-line">
                     {terminals.map((t) => (
                         <li key={t.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                             <Monitor size={16} className="text-ink-muted" aria-hidden="true" />
                             <span className="text-sm text-ink">{t.name}</span>
-                            <span className="text-xs text-ink-muted">
+                            <span className="text-sm text-ink-muted">
                                 {t.last_heartbeat_at ? `last seen ${new Date(t.last_heartbeat_at).toLocaleString()}` : 'never seen'}
                             </span>
-                            <button type="button" onClick={() => disconnect(t.id)} className="ml-auto rounded-md px-3 py-1 text-sm text-danger-700 hover:bg-interactive-hover">
+                            <button type="button" onClick={() => disconnect(t.id)} className="ml-auto rounded-[8px] px-3 py-1 text-sm text-danger-700 hover:bg-interactive-hover">
                                 Disconnect
+                            </button>
+                            <button type="button" disabled={loading} onClick={() => replaceDevice(t)} className="rounded-[8px] px-3 py-1 text-sm hover:bg-interactive-hover disabled:opacity-60">
+                                Replace device / reinstall Windows
                             </button>
                         </li>
                     ))}

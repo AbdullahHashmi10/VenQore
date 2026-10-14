@@ -14,7 +14,7 @@ export const competitors = {
         venqorePrice: 'From $18/mo ($180/yr billed annually)',
         venqoreTxFee: '$0 transaction markup',
         venqoreAccounting: 'Automated double-entry general ledger & balance sheet built in',
-        venqoreOffline: '100% offline-first PWA with local SQLite/IndexedDB & auto-sync',
+        venqoreOffline: 'Till sells offline for up to 7 days; sales saved on the device and auto-sent',
         pricingMath: {
             monthlySales: '$25,000',
             squareFee: '$660/mo in processing fees + $50/mo QuickBooks = $710/mo total cost',
@@ -30,7 +30,7 @@ export const competitors = {
             { feature: 'Per-Transaction Processing Markup', venqore: '$0 (0%)', competitor: '2.6% + 10¢ per sale' },
             { feature: 'Built-in Double-Entry Accounting', venqore: 'Yes — every sale posts a balanced journal entry', competitor: 'No — requires external accounting app' },
             { feature: 'Automated Balance Sheet & P&L', venqore: 'Yes — real-time all 40 reports', competitor: 'No — requires manual reconciliation' },
-            { feature: 'Offline-First PWA Architecture', venqore: 'Yes — full checkout, stock & ledger offline', competitor: 'Limited — card payments cached max 24h' },
+            { feature: 'Offline till', venqore: 'Yes: checkout offline for up to 7 days; ledger posts when sales sync', competitor: 'Limited: card payments cached max 24h' },
             { feature: 'FIFO Cost Batch Tracking', venqore: 'Yes — exact unit cost lineage per batch', competitor: 'No — basic average cost only' },
             { feature: 'Serial / IMEI Number Tracking', venqore: 'Yes — built-in item tracking', competitor: 'No — requires 3rd party add-on' },
             { feature: 'Multi-Warehouse & Branch Support', venqore: 'Yes — central management included', competitor: 'Requires Square for Retail Plus ($60/mo)' },
@@ -38,7 +38,7 @@ export const competitors = {
             { feature: 'AI Document Capture (SmartCapture)', venqore: 'Yes — photo & voice invoice extraction', competitor: 'No native document scanner' },
             { feature: 'Customer Credit Khata Ledger', venqore: 'Yes — built-in party balances & reminders', competitor: 'Limited house accounts' },
             { feature: 'WhatsApp & Digital Invoicing', venqore: 'Yes — direct 1-tap WhatsApp sharing', competitor: 'Email / SMS only' },
-            { feature: 'Thermal & WebUSB Printing', venqore: 'Yes — works with standard ESC/POS hardware', competitor: 'Proprietary Square hardware preferred' },
+            { feature: 'Thermal Printing', venqore: 'Yes — works with standard ESC/POS hardware', competitor: 'Proprietary Square hardware preferred' },
             { feature: 'Data Export & Ownership', venqore: 'Yes — full JSON, Excel & SQLite exports', competitor: 'Export CSVs only' },
             { feature: 'Automated Test Integrity Suite', venqore: 'Eight correctness laws, run on every release', competitor: 'Undisclosed' },
         ],
@@ -53,7 +53,7 @@ export const competitors = {
             },
             {
                 q: 'Can VenQore operate when my internet goes down?',
-                a: 'Yes. VenQore is built as an offline-first Progressive Web App (PWA). You can process checkout sales, manage inventory, print receipts, and issue invoices without internet access. When your internet connection is restored, VenQore automatically synchronizes your local data with the cloud.'
+                a: 'Yes, for the till. You can keep ringing sales and printing receipts (from the Windows app) without internet for up to 7 days; each sale is saved on the device and sent when the connection returns. Inventory, ledger and invoices update when the sales sync, and creating invoices or changing records needs internet.'
             },
             {
                 q: 'Can I import my existing product catalog from Square into VenQore?',
@@ -80,7 +80,7 @@ export const competitors = {
         venqorePrice: 'From $18/mo ($180/yr billed annually)',
         venqoreTxFee: '$0 transaction markup',
         venqoreAccounting: 'Auditor-grade double-entry general ledger, Trial Balance & Balance Sheet',
-        venqoreOffline: 'Offline-first PWA across Windows, Mac, iOS, Android & tablet',
+        venqoreOffline: 'Offline till on Windows, Mac, iOS, Android and tablet (up to 7 days)',
         pricingMath: {
             monthlySales: '$15,000',
             vyaparFee: 'Low upfront license, but requires hiring an accountant for year-end GST/tax reconciliation ($200+/mo)',
@@ -100,10 +100,10 @@ export const competitors = {
             { feature: 'Inventory Costing Method', venqore: 'FIFO cost batching with precise lineage', competitor: 'Simple average / last cost' },
             { feature: 'E-Commerce Channel Sync (VenSynQ)', venqore: 'WooCommerce, Amazon, TikTok Shop sync', competitor: 'Basic online storefront link' },
             { feature: 'AI Document Parsing (SmartCapture)', venqore: 'Scan paper bills & voice notes to posted entries', competitor: 'Manual entry only' },
-            { feature: 'Offline Operation Capability', venqore: '100% offline PWA on any device', competitor: 'Offline on desktop only' },
+            { feature: 'Offline Operation Capability', venqore: 'Offline till on any device (up to 7 days)', competitor: 'Offline on desktop only' },
             { feature: 'Serial & IMEI Item Tracking', venqore: 'Yes — full warranty & serial history', competitor: 'Basic serial number text' },
             { feature: 'Batch & Expiry Date Management', venqore: 'Yes — FIFO consumption by expiry date', competitor: 'Basic batch number entry' },
-            { feature: 'Custom Thermal & Label Printing', venqore: 'Yes — WebUSB, Bluetooth & ESC/POS', competitor: 'Windows printer drivers only' },
+            { feature: 'Custom Thermal & Label Printing', venqore: 'Yes — ESC/POS thermal printers via the Windows app', competitor: 'Windows printer drivers only' },
             { feature: 'User Roles & Permission Control', venqore: 'Granular cashier, manager, admin roles', competitor: 'Basic passcode lock' },
             { feature: 'Audit Trail & Change Logs', venqore: 'Complete immutable action logging', competitor: 'Limited event log' },
             { feature: 'Automated Codebase Verification', venqore: 'Eight correctness laws, run on every release', competitor: 'Undisclosed' },
@@ -119,7 +119,7 @@ export const competitors = {
             },
             {
                 q: 'Does VenQore run on Apple Mac and mobile devices unlike Vyapar?',
-                a: 'Yes. While Vyapar relies heavily on its Windows desktop application, VenQore is an offline-first Progressive Web App (PWA) that runs seamlessly across Mac, Windows, iPad, iPhone, Android phones, and Android tablets.'
+                a: 'Yes. While Vyapar relies heavily on its Windows desktop application, VenQore runs in the browser on Mac, Windows, iPad, iPhone, Android phones and tablets, and as the VenQore Station app on Windows. The till keeps selling offline for up to 7 days.'
             },
             {
                 q: 'Can VenQore manage multiple shop locations simultaneously?',

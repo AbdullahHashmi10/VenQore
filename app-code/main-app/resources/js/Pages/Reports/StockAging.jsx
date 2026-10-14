@@ -1,241 +1,92 @@
 import React, { useMemo } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import {
-    Hourglass,
-    AlertTriangle,
-    DollarSign,
-    Package,
-    Archive,
-    Calendar,
-    RefreshCw
-} from 'lucide-react';
-import MasterReport from '@/Components/Reports/MasterReport';
-import ReportsLayout from '@/Layouts/ReportsLayout';
-import { Head } from '@inertiajs/react';
+import { Hourglass, Package, DollarSign, Archive, RefreshCw, BarChart3, PieChart as PieIcon, Table2 } from 'lucide-react';
 import { formatCurrency, formatNumber } from '@/Utils/format';
+import { ReportShell, ReportKpis, ReportSection, ReportGrid, ReportCol, ReportTable, FilterSelect } from '@/Components/Reports/ReportKit';
+import { TrendChart, DonutChart } from '@/Components/Reports/ReportCharts';
 
-import { vq } from '@/theme/runtime';
+const statusOf = (days) => {
+    if (days > 180) return { label: 'Dead Stock', cls: 'bg-rose-50 text-rose-600' };
+    if (days > 90) return { label: 'Slow Moving', cls: 'bg-amber-50 text-amber-600' };
+    if (days > 30) return { label: 'Stable', cls: 'bg-blue-50 text-blue-600' };
+    return { label: 'Fresh', cls: 'bg-emerald-50 text-emerald-600' };
+};
+
 export default function StockAging({ batches = [], filters = {} }) {
-    const {
-        store
-    } = usePage().props;
+    const { store } = usePage().props;
 
-    // Derived Statistics
-    const stats = useMemo(() => {
-        let totalValue = 0;
-        let deadStockValue = 0; // > 180 days
-        let slowMovingValue = 0; // 90-180 days
-        let freshStockValue = 0; // < 90 days
+    const apply = (key, value) => {
+        const next = { ...filters, [key]: value };
+        Object.keys(next).forEach((k) => { if (next[k] === '' || next[k] == null) delete next[k]; });
+        router.get(route('store.reports.stock-aging', { store_slug: store.slug }), next, { preserveState: true, replace: true });
+    };
 
-        // cost_value is pre-computed by backend as remaining_qty * unit_cost (FIFO locked)
-        // NEVER compute quantity * cost_price here — that is the old phantom math
-        batches.forEach(b => {
-            const val = parseFloat(b.cost_value) || 0;
-            const days = parseInt(b.days) || 0;
-            totalValue += val;
-
-            if (days > 180) deadStockValue += val;
-            else if (days > 90) slowMovingValue += val;
-            else freshStockValue += val;
+    const s = useMemo(() => {
+        let total = 0, dead = 0, slow = 0, fresh = 0;
+        batches.forEach((b) => {
+            const v = parseFloat(b.cost_value) || 0; const d = parseInt(b.days) || 0;
+            total += v;
+            if (d > 180) dead += v; else if (d > 90) slow += v; else fresh += v;
         });
-
-        return {
-            totalValue,
-            deadStockValue,
-            slowMovingValue,
-            freshStockValue,
-            deadStockPercent: totalValue > 0 ? (deadStockValue / totalValue) * 100 : 0
-        };
+        return { total, dead, slow, fresh, deadPct: total > 0 ? (dead / total) * 100 : 0 };
     }, [batches]);
 
-    // Chart Data: Stock Value by Age Group
-    const chartData = [
-        { name: 'Fresh (0-90 Days)', value: stats.freshStockValue, fill: vq.emerald[500] },
-        { name: 'Slow (90-180 Days)', value: stats.slowMovingValue, fill: vq.amber[500] },
-        { name: 'Dead (180+ Days)', value: stats.deadStockValue, fill: vq.red[500] }
-    ];
+    const groups = [{ name: 'Fresh (0-90 days)', value: s.fresh }, { name: 'Slow (90-180 days)', value: s.slow }, { name: 'Dead (180+ days)', value: s.dead }];
 
-    const chartConfig = {
-        type: 'pie', // Using Donut/Pie chart for distribution
-        dataKey: 'value',
-        nameKey: 'name',
-        innerRadius: 60,
-        outerRadius: 100
-    };
-
-    // Fallback Bar Chart if Pie isn't desired
-    // MasterReport supports 'bar', 'area', 'pie'. Let's stick to bar for value comparison.
-    const barChartData = [
-        { name: 'Fresh', Value: stats.freshStockValue, fill: vq.emerald[500] },
-        { name: 'Slow', Value: stats.slowMovingValue, fill: vq.amber[500] },
-        { name: 'Dead', Value: stats.deadStockValue, fill: vq.red[500] }
-    ];
-    const barChartConfig = {
-        type: 'bar',
-        bars: [{ dataKey: 'Value', name: 'Stock Value' }],
-        xAxisKey: 'name'
-    };
-
-
-    const reportStats = [
-        {
-            label: 'Total Inventory Value',
-            value: formatCurrency(stats.totalValue),
-            subValue: 'Across all batches',
-            icon: <DollarSign size={20} className="text-ink-muted" />,
-            type: 'neutral'
-        },
-        {
-            label: 'Capital in Dead Stock',
-            value: formatCurrency(stats.deadStockValue),
-            subValue:'> 180 Days Old',
-            icon: <Archive size={20} className="text-red-500" />,
-            type: 'down'
-        },
-        {
-            label: 'Slow Moving Capital',
-            value: formatCurrency(stats.slowMovingValue),
-            subValue: '90-180 Days Old',
-            icon: <Hourglass size={20} className="text-orange-500" />,
-            type: 'neutral'
-        },
-        {
-            label: 'Inventory Health',
-            value: `${(100 - stats.deadStockPercent).toFixed(1)}%`,
-            subValue: 'Fresh Stock Ratio',
-            icon: <RefreshCw size={20} className="text-emerald-500" />,
-            type: 'up'
-        }
-    ];
-
-    // Helper for Status
-    const getStatus = (days) => {
-        if (days > 180) return { label: 'Dead Stock', class: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-900' };
-        if (days > 90) return { label: 'Slow Moving', class: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-900' };
-        if (days > 30) return { label: 'Stable', class: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900' };
-        return { label: 'Fresh', class: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900' };
-    };
-
-    // Columns
     const columns = [
-        {
-            key: 'product',
-            label: 'Inventory Item',
-            sortable: true,
-            width: '300px',
-            render: (row) => (
-                <div className="flex items-center gap-3 py-1">
-                    <div className="w-9 h-9 rounded-lg bg-app flex items-center justify-center shrink-0 border border-line overflow-hidden">
-                        <Package size={16} className="text-ink-muted" />
-                    </div>
-                    <div>
-                        <div className="font-bold text-sm text-ink line-clamp-1">{row.product}</div>
-                        <div className="text-2xs font-mono text-ink-muted">Batch: {row.batch || 'N/A'}</div>
-                    </div>
-                </div>
-            )
-        },
-        {
-            key: 'days',
-            label: 'Age',
-            sortable: true,
-            width: '180px',
-            render: (row) => {
-                const days = parseInt(row.days) || 0;
-                const percentage = Math.min(100, (days / 365) * 100);
-                const color = days > 180 ? 'bg-red-500' : days > 90 ? 'bg-orange-500' : 'bg-emerald-500';
-
-                return (
-                    <div className="w-full max-w-[140px]">
-                        <div className="flex justify-between text-1xs mb-1 font-bold">
-                            <span className="text-ink-secondary">{days} days</span>
-                            <span className="text-ink-muted">Target: 90</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-sunken rounded-full overflow-hidden">
-                            <div className={`h-full ${color} transition-all duration-slower`} style={{ width: `${percentage}%` }}></div>
-                        </div>
-                    </div>
-                );
-            }
-        },
-        {
-            key: 'category',
-            label: 'Status',
-            sortable: true,
-            render: (row) => {
-                const status = getStatus(parseInt(row.days));
-                return (
-                    <span className={`px-2.5 py-1 rounded-full text-2xs font-bold border ${status.class} uppercase tracking-wide`}>
-                        {status.label}
-                    </span>
-                );
-            }
-        },
-        {
-            key: 'quantity',
-            label: 'Qty On Hand',
-            align: 'right',
-            sortable: true,
-            render: (row) => (
-                <span className="font-mono text-sm font-bold text-ink-secondary">
-                    {formatNumber(row.quantity)}
-                </span>
-            )
-        },
-        {
-            key: 'cost_value',
-            label: 'Asset Value (FIFO)',
-            align: 'right',
-            sortable: true,
-            render: (row) => {
-                // cost_value = remaining_qty * unit_cost from inventory_batches (authoritative)
-                const val = parseFloat(row.cost_value) || 0;
-                return (
-                    <div className="font-mono font-bold text-sm text-ink">
-                        {formatCurrency(val)}
-                    </div>
-                );
-            }
-        }
+        { key: 'product', label: 'Inventory Item', sortable: true, get: (r) => r.product,
+          render: (r) => (
+            <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-line bg-app"><Package size={16} className="text-ink-muted" /></span>
+                <span className="min-w-0"><span className="block truncate text-sm font-semibold text-ink">{r.product}</span><span className="block truncate font-mono text-xs text-ink-muted">Batch: {r.batch || 'N/A'}</span></span>
+            </div>) },
+        { key: 'days', label: 'Age', sortable: true, get: (r) => parseInt(r.days) || 0,
+          render: (r) => {
+              const d = parseInt(r.days) || 0; const pct = Math.min(100, (d / 365) * 100);
+              const c = d > 180 ? 'bg-rose-500' : d > 90 ? 'bg-amber-500' : 'bg-emerald-500';
+              return (<div className="w-full max-w-[140px]"><div className="mb-1 flex justify-between text-xs font-bold"><span className="text-ink-secondary">{d} days</span><span className="text-ink-muted">Target: 90</span></div><div className="h-1.5 w-full overflow-hidden rounded-full bg-sunken"><div className={`h-full ${c}`} style={{ width: `${pct}%` }} /></div></div>);
+          } },
+        { key: 'category', label: 'Status', sortable: true, get: (r) => statusOf(parseInt(r.days) || 0).label,
+          render: (r) => { const st = statusOf(parseInt(r.days) || 0); return <span className={`rounded-[12px] px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${st.cls}`}>{st.label}</span>; } },
+        { key: 'quantity', label: 'Qty On Hand', align: 'right', sortable: true, get: (r) => Number(r.quantity) || 0, render: (r) => <span className="font-mono text-sm font-bold text-ink-secondary">{formatNumber(r.quantity)}</span> },
+        { key: 'cost_value', label: 'Asset Value (FIFO)', align: 'right', sortable: true, get: (r) => parseFloat(r.cost_value) || 0, render: (r) => <span className="font-mono text-sm font-bold text-ink">{formatCurrency(parseFloat(r.cost_value) || 0)}</span> },
     ];
-
-    const filterDefs = [
-        {
-            key: 'category', // Using existing backend key 'category' which likely maps to age bucket
-            type: 'select',
-            label: 'Age Group',
-            options: [
-                { value: '0-30', label: '0-30 Days (Fresh)' },
-                { value: '30-90', label: '30-90 Days (Stable)' },
-                { value: '90-180', label: '90-180 Days (Slow)' },
-                { value: '180+', label: '180+ Days (Dead)' }
-            ]
-        }
-    ];
-
-    const handleFilterChange = (newValues) => {
-        router.get(route("store.reports.stock-aging", {
-            store_slug: store.slug
-        }), newValues, { preserveState: true, replace: true });
-    };
 
     return (
-        <ReportsLayout title="Stock Aging Analysis">
-            <Head title="Stock Aging Report" />
-
-            <MasterReport
-                title="Stock Aging Report"
-                subTitle="Identify liquidity risks and dead stock capital"
-                stats={reportStats}
-                columns={columns}
-                data={batches}
-                filters={filterDefs}
-                filterValues={filters}
-                onFilterChange={handleFilterChange}
-                chartData={barChartData}
-                chartConfig={barChartConfig}
-                onExport={() => alert('Exporting Stock Aging Report...')}
-            />
-        </ReportsLayout>
+        <ReportShell
+            title="Stock Aging"
+            subtitle="Identify liquidity risks and dead stock capital"
+            activeKey="stock-aging"
+            exportConfig={{ filename: 'stock_aging', rows: batches, columns: [
+                { label: 'Product', get: (r) => r.product }, { label: 'Batch', get: (r) => r.batch || '' }, { label: 'Age (days)', get: (r) => parseInt(r.days) || 0 },
+                { label: 'Status', get: (r) => statusOf(parseInt(r.days) || 0).label }, { label: 'Quantity', get: (r) => r.quantity }, { label: 'Asset Value (FIFO)', get: (r) => parseFloat(r.cost_value) || 0 },
+            ] }}
+            filters={(
+                <FilterSelect label="Age group" value={filters.category} onChange={(v) => apply('category', v)}
+                    options={[{ value: '', label: 'All' }, { value: '0-30', label: '0-30 Days (Fresh)' }, { value: '30-90', label: '30-90 Days (Stable)' }, { value: '90-180', label: '90-180 Days (Slow)' }, { value: '180+', label: '180+ Days (Dead)' }]} />
+            )}
+        >
+            <ReportKpis items={[
+                { label: 'Total Inventory Value', value: formatCurrency(s.total), sub: 'Across all batches', icon: DollarSign, tone: 'slate' },
+                { label: 'Capital in Dead Stock', value: formatCurrency(s.dead), sub: '180+ days old', icon: Archive, tone: 'rose', valueTone: 'rose' },
+                { label: 'Slow Moving Capital', value: formatCurrency(s.slow), sub: '90-180 days old', icon: Hourglass, tone: 'amber' },
+                { label: 'Inventory Health', value: `${(100 - s.deadPct).toFixed(1)}%`, sub: 'Fresh stock ratio', icon: RefreshCw, tone: 'emerald' },
+            ]} />
+            <ReportGrid>
+                <ReportCol span={7}>
+                    <ReportSection title="Value by age" subtitle="Stock value in each age bucket" icon={BarChart3}>
+                        <TrendChart type="bar" unit="currency" label="Stock value" points={groups.map((g) => ({ x: g.name, y: g.value }))} height={260} />
+                    </ReportSection>
+                </ReportCol>
+                <ReportCol span={5}>
+                    <ReportSection title="Age mix" subtitle="Share of value" icon={PieIcon} tone="amber">
+                        <DonutChart slices={groups.filter((g) => g.value > 0)} unit="currency" height={260} />
+                    </ReportSection>
+                </ReportCol>
+            </ReportGrid>
+            <ReportSection title="Batches" subtitle={`${batches.length} batches`} icon={Table2} flush>
+                <ReportTable columns={columns} rows={batches} rowKey={(r) => r.id ?? `${r.product}-${r.batch}`} totals={{ product: 'Total', cost_value: formatCurrency(s.total) }} />
+            </ReportSection>
+        </ReportShell>
     );
 }

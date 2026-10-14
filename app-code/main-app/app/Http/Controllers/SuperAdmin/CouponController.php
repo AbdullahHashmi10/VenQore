@@ -27,12 +27,16 @@ class CouponController extends Controller
 
     public function store(Request $request)
     {
+        // Codes are matched in UPPER case at checkout (validateCoupon), so a
+        // code saved as "eid25" could never be redeemed. Normalise on save.
+        $request->merge(['code' => strtoupper(trim((string) $request->input('code')))]);
+
         $validated = $request->validate([
             'code'                => 'required|string|max:50|unique:coupons,code',
             'name'                => 'required|string|max:150',
             'description'         => 'nullable|string',
             'discount_type'       => 'required|in:percentage,fixed',
-            'discount_value'      => 'required|numeric|min:0',
+            'discount_value'      => ['required', 'numeric', 'min:0', \Illuminate\Validation\Rule::when($request->input('discount_type') === 'percentage', ['max:100'])],
             'max_discount'        => 'nullable|numeric|min:0',
             'applies_to'          => 'required|in:all,subscription,ltd,specific_plans',
             'platform_id'         => 'nullable|exists:platforms,id',

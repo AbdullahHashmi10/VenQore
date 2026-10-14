@@ -197,20 +197,9 @@ class PlatformOwnerAuthController extends Controller
             return back()->withErrors(['action_current_password' => 'Your current password is incorrect.']);
         }
 
-        $membership = \App\Models\TenantUser::where('user_id', $user->id)
-            ->where('tenant_id', $user->last_store_id ?: 1)
-            ->first();
-
-        if (!$membership) {
-            $membership = \App\Models\TenantUser::create([
-                'user_id' => $user->id,
-                'tenant_id' => $user->last_store_id ?: 1,
-                'role' => 'owner',
-                'status' => 'active'
-            ]);
-        }
-
-        $membership->update(['security_pin' => Hash::make($request->passcode)]);
+        // Stored on the user — never on a store membership (that used to create an
+        // owner membership in store #1 as a side effect).
+        \App\Support\PlatformActionPasscode::set($user, (string) $request->passcode);
         return back()->with('security_success', 'Action passcode has been set successfully.');
     }
 
@@ -223,13 +212,7 @@ class PlatformOwnerAuthController extends Controller
             return back()->withErrors(['action_clear_current_password' => 'Your current password is incorrect.']);
         }
 
-        $membership = \App\Models\TenantUser::where('user_id', $user->id)
-            ->where('tenant_id', $user->last_store_id ?: 1)
-            ->first();
-
-        if ($membership) {
-            $membership->update(['security_pin' => null]);
-        }
+        \App\Support\PlatformActionPasscode::set($user, null);
         return back()->with('security_success', 'Action passcode has been removed.');
     }
 }

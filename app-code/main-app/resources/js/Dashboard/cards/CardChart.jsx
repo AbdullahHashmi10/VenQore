@@ -169,8 +169,9 @@ export default function CardChart({ card, series, width, height, enter = true, r
 
 function useAxisMargins(width, unit, currency) {
   const small = width < 340;
-  const left = unit === 'currency' ? (small ? 46 : 54) : (small ? 34 : 42);
-  return { top: 14, right: 14, bottom: 26, left, small };
+  const left = unit === 'currency' ? (small ? 54 : 62) : (small ? 42 : 50);
+  /* right gutter leaves room for half of the last x-label ("Oct 31"), which is centred on the final point */
+  return { top: 14, right: 44, bottom: 36, left, small };
 }
 
 function curveOf(variant) {
@@ -215,21 +216,22 @@ function TimePlot({ card, series, width, height, enter, reduced, currency }) {
         <C data={data} className="h-full" aspectRatio="auto" margin={m}
           animationDuration={mo.duration} enterTransition={mo.transition}>
           <Grid horizontal vertical={false} strokeDasharray="3 5" numTicksRows={plotH < 140 ? 3 : 4} />
-          {card.family === 'area' && v === 'pattern' && (
-            <PatternLines id={`p${uid}`} height={7} width={7} stroke={seriesColor(0)} strokeWidth={1} orientation={['diagonal']} />
-          )}
-          {card.family === 'area' && v === 'pattern' && (
-            <PatternArea dataKey="s0" fill={`url(#p${uid})`} curve={curve} />
-          )}
+          {card.family === 'area' && v === 'pattern' && keys.map((k, i) => (
+            <PatternLines key={`pl${k}`} id={`p${uid}${i}`} height={7} width={7} stroke={seriesColor(i)} strokeWidth={1} orientation={['diagonal']} />
+          ))}
+          {card.family === 'area' && v === 'pattern' && keys.map((k, i) => (
+            <PatternArea key={`pa${k}`} dataKey={k} fill={`url(#p${uid}${i})`} curve={curve} />
+          ))}
           {keys.map((k, i) => card.family === 'area'
             ? <Area key={k} dataKey={k} fill={seriesColor(i)} stroke={seriesColor(i)}
                 fillOpacity={v === 'pattern' ? 0 : (v === 'soft' ? 0.22 : 0.34)} gradientToOpacity={0.02}
                 showLine={v !== 'soft'} fadeEdges={v === 'fade'} curve={curve}
                 showMarkers={v === 'markers' || fewPoints} animate={mo.animate} />
             : <Line key={k} dataKey={k} stroke={seriesColor(i)} strokeWidth={2.25} curve={curve}
+                fadeEdges={false}
                 showMarkers={v === 'markers' || fewPoints} dashFromIndex={i === 0 ? dashFrom : undefined}
                 animate={mo.animate} />)}
-          <XAxis numTicks={m.small ? 3 : 5} />
+          <XAxis numTicks={Math.max(3, Math.min(6, Math.floor(width / 110)))} />
           <YAxis numTicks={plotH < 140 ? 3 : 4} formatValue={fmtShort} />
           <ChartTooltip dotVariant="ring"
             rows={(p) => keys.map((k, i) => ({ label: series[i].label, value: fmtFull(p[k]), color: seriesColor(i) }))} />
@@ -281,14 +283,23 @@ function ComposedPlot({ card, series, width, height, enter, reduced, currency })
   const m = useAxisMargins(width, env.unit, currency);
   const mo = motionProps(enter, reduced);
   const data = useMemo(() => mergeSeries(series), [series]);
-  if (series.length < 2) return <CardState state="empty" message="A combo chart compares two readings — add a second reading in the editor." height={height} />;
   if (sparse) return <CardState state="empty" message={sparse} height={height} />;
   const v = card.variant;
   const keys = series.map((_, i) => `s${i}`);
   const fmtFull = (x) => formatValue(x, env.unit, { currency });
   const plotH = height - 26;
-  const barKeys = v === 'columns-line' ? [keys[0]] : keys;
-  const lineKeys = v === 'columns-line' ? keys.slice(1) : [];
+  /* which reading is drawn how — the variant is the recipe:
+       columns-line  first as columns, the rest as lines
+       area-columns  first as an area, the rest as columns
+       area-line     first as an area, the rest as lines
+       mixed         first as columns, second as an area, the rest as lines
+       grouped / stacked  every reading as columns */
+  let barKeys = keys, lineKeys = [], areaKeys = [];
+  if (v === 'columns-line') { barKeys = [keys[0]]; lineKeys = keys.slice(1); }
+  else if (v === 'area-columns') { areaKeys = [keys[0]]; barKeys = keys.slice(1); }
+  else if (v === 'area-line') { areaKeys = [keys[0]]; barKeys = []; lineKeys = keys.slice(1); }
+  else if (v === 'mixed') { barKeys = [keys[0]]; areaKeys = keys.slice(1, 2); lineKeys = keys.slice(2); }
+  if (!barKeys.length && !areaKeys.length && !lineKeys.length) barKeys = keys;
   return (
     <div className="vqcc-plot" style={{ height }}>
       <div style={{ height: plotH }}>
@@ -296,9 +307,11 @@ function ComposedPlot({ card, series, width, height, enter, reduced, currency })
           stacked={v === 'stacked'} barGap={3}
           animationDuration={mo.duration} enterTransition={mo.transition}>
           <Grid horizontal vertical={false} strokeDasharray="3 5" numTicksRows={3} />
+          {areaKeys.map(k => <Area key={k} dataKey={k} fill={seriesColor(keys.indexOf(k))} stroke={seriesColor(keys.indexOf(k))}
+            fillOpacity={0.3} gradientToOpacity={0.02} curve={curveMonotoneX} animate={mo.animate} />)}
           {barKeys.map(k => <SeriesBar key={k} dataKey={k} fill={seriesColor(keys.indexOf(k))} radius={3} animate={mo.animate} />)}
-          {lineKeys.map(k => <Line key={k} dataKey={k} stroke={seriesColor(keys.indexOf(k))} strokeWidth={2.25} curve={curveMonotoneX} animate={mo.animate} />)}
-          <XAxis numTicks={m.small ? 3 : 5} />
+          {lineKeys.map(k => <Line key={k} dataKey={k} stroke={seriesColor(keys.indexOf(k))} strokeWidth={2.25} curve={curveMonotoneX} fadeEdges={false} animate={mo.animate} />)}
+          <XAxis numTicks={Math.max(3, Math.min(6, Math.floor(width / 110)))} />
           <YAxis numTicks={3} formatValue={(x) => formatValue(x, env.unit, { currency, compact: true })} />
           <ChartTooltip dotVariant="ring"
             rows={(p) => keys.map((k, i) => ({ label: series[i].label, value: fmtFull(p[k]), color: seriesColor(i) }))} />
@@ -312,6 +325,17 @@ function ComposedPlot({ card, series, width, height, enter, reduced, currency })
 /* ── bars: time buckets, or categories ─────────────────────────────────── */
 
 const MAX_BARS = 12;
+
+/** A category label that has to fit a slot `px` wide: first name if the full
+    label would collide with its neighbour, then an ellipsis. */
+function fitLabel(label, px) {
+  const str = String(label ?? '');
+  const max = Math.max(3, Math.floor(px / 6.6));
+  if (str.length <= max) return str;
+  const first = str.split(/\s+/)[0];
+  if (first.length <= max) return first;
+  return str.slice(0, Math.max(2, max - 1)) + '\u2026';
+}
 
 function BarPlot({ card, series, width, height, enter, reduced, currency }) {
   const uid = useId().replace(/:/g, '');
@@ -327,7 +351,7 @@ function BarPlot({ card, series, width, height, enter, reduced, currency }) {
       const cap = Math.min(MAX_BARS, roomRows);
       const shown = sorted.slice(0, cap);
       return {
-        data: shown.map(p => ({ name: p.label, value: p.value })),
+        data: shown.map(p => ({ name: horizontal ? p.label : fitLabel(p.label, (width - 64) / Math.max(1, shown.length)), value: p.value })),
         note: sorted.length > shown.length ? `Top ${shown.length} of ${sorted.length}` : '',
       };
     }
@@ -558,12 +582,12 @@ function RadarPlot({ card, series, width, height, enter, reduced }) {
   const v = card.variant;
   return (
     <div className="vqcc-radial" style={{ height }}>
-      <RadarChart data={data} metrics={metrics} size={size} margin={Math.min(56, size * 0.2)} animate={mo.animate} enterTransition={mo.transition}>
+      <RadarChart data={data} metrics={metrics} size={size} margin={width - size > 110 ? Math.max(30, Math.min(40, size * 0.13)) : Math.min(56, size * 0.2)} animate={mo.animate} enterTransition={mo.transition}>
         <RadarGrid />
         <RadarAxis />
         <RadarArea index={0} color={seriesColor(0)} showPoints={v === 'points'} showGlow={false}
           className={v === 'outline' ? 'vqcc-radar-outline' : ''} />
-        <RadarLabels offset={14} fontSize={11} />
+        <RadarLabels offset={12} fontSize={12} />
       </RadarChart>
     </div>
   );
@@ -786,7 +810,7 @@ function ScatterPlot({ card, series, width, height, enter, reduced, currency }) 
         <Grid horizontal vertical={false} strokeDasharray="3 5" numTicksRows={height < 140 ? 3 : 4} />
         <Scatter dataKey="value" fill={seriesColor(0)} radius={v === 'rings' ? 5 : 4}
           strokeWidth={v === 'rings' ? 2 : 0} ringGap={2} yGradient={v === 'gradient'} animate={mo.animate} />
-        <XAxis numTicks={m.small ? 3 : 5} />
+        <XAxis numTicks={Math.max(3, Math.min(6, Math.floor(width / 110)))} />
         <YAxis numTicks={height < 140 ? 3 : 4} formatValue={fmtShort} />
         <ChartTooltip rows={(p) => [{ label: series[0].label, value: fmtFull(p.value), color: seriesColor(0) }]} />
       </ScatterChart>
@@ -868,15 +892,15 @@ function LivePlot({ card, series, width, height, reduced, currency }) {
   const asOf = env.asOf ? new Date(env.asOf) : null;
   return (
     <div className="vqcc-plot" style={{ height }}>
-      <div style={{ height: height >= 150 ? height - 18 : height }}>
+      <div style={{ height: height >= 150 ? height - 24 : height }}>
         <LiveLineChart data={points} value={last.value} window={win} paused
-          margin={{ top: 20, right: width < 340 ? 54 : 66, bottom: 30, left: width < 340 ? 38 : 48 }} className="h-full">
+          margin={{ top: 16, right: width < 340 ? 64 : 78, bottom: 34, left: width < 340 ? 56 : 64 }} className="h-full">
           <Grid horizontal vertical={false} strokeDasharray="3 5" />
           <LiveLine dataKey="value" stroke={seriesColor(0)} fill={v !== 'line-only'} pulse={!reduced}
             momentumColors={v === 'momentum' ? { up: 'var(--vq-ok, #078578)', down: 'var(--vq-bad, #bd604a)', flat: 'var(--vq-text-3, #70887c)' } : undefined}
             formatValue={fmtFull} />
           <LiveXAxis />
-          <LiveYAxis />
+          <LiveYAxis formatValue={(x) => formatValue(x, env.unit, { currency, compact: true })} />
           <ChartTooltip rows={(p) => [{ label: series[0].label, value: fmtFull(p.value), color: seriesColor(0) }]} />
         </LiveLineChart>
       </div>

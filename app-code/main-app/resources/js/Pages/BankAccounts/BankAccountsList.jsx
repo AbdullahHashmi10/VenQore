@@ -3,7 +3,10 @@ import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import BankAccountModal from '@/Components/BankAccounts/BankAccountModal';
-import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
+import MobileListHeader from '@/Components/MobileListHeader';
+import MobileStats from '@/Components/MobileStats';
+import MoneyModuleTabs, { useMoneyNavGroups } from '@/Components/MoneyModuleTabs';
+import { ListPageFrame, ListToolbar, ListAddButton, ListStatCards } from '@/Components/ListShell';
 import {
     Landmark,
     Plus,
@@ -108,96 +111,55 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
         }
     }, []);
 
+    const navGroups = useMoneyNavGroups();
+
     return (
-        <OneGlanceLayout title="Bank Accounts" activeMenu="Money">
+        <OneGlanceLayout title="Bank Accounts" activeMenu="Money" noPadding>
             <Head title="Bank Accounts" />
 
-            <div className="flex flex-col h-full bg-app p-2 gap-1 overflow-hidden">
-                <MoneyModuleTabs activeTab="accounts" className="!mb-0" />
+            <div className="flex flex-col h-full bg-app p-3.5 gap-1 overflow-hidden md:contents">
+              <ListPageFrame className="max-md:contents">
+                {/* ── Desktop header: two rows ── */}
+                <ListToolbar
+                    title="Bank Accounts"
+                    navGroups={navGroups}
+                    activeId="accounts"
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search accounts…' }}
+                    actions={<ListAddButton onClick={handleCreate} icon={Plus}>Add Account</ListAddButton>}
+                />
+                <ListStatCards cards={[
+                    { label: 'Total Balance', value: formatCurrency(stats.total_balance), icon: Landmark },
+                    { label: 'Cash on Hand', value: formatCurrency(stats.cash_balance), icon: Wallet, icon_tone: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400', value_tone: 'text-emerald-600' },
+                    { label: 'Money In (Today)', value: formatCurrency(stats.today_in), icon: TrendingUp, icon_tone: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', value_tone: 'text-blue-600' },
+                    { label: 'Money Out (Today)', value: formatCurrency(stats.today_out), icon: TrendingDown, icon_tone: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400', value_tone: 'text-rose-600' },
+                ]} />
 
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-lg">
-                                <Landmark size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Total Balance</p>
-                        </div>
-                        <p className="text-base font-bold text-ink">{formatCurrency(stats.total_balance)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <Wallet size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Cash on Hand</p>
-                        </div>
-                        <p className="text-base font-bold text-emerald-600">{formatCurrency(stats.cash_balance)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <TrendingUp size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Money In (Today)</p>
-                        </div>
-                        <p className="text-base font-bold text-blue-600">{formatCurrency(stats.today_in)}</p>
-                    </div>
-                    <div className="bg-surface px-3 py-2 rounded-xl border border-line shadow-sm flex flex-wrap items-center justify-between gap-y-2">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
-                                <TrendingDown size={16} />
-                            </div>
-                            <p className="text-xs font-bold text-ink-muted uppercase">Money Out (Today)</p>
-                        </div>
-                        <p className="text-base font-bold text-rose-600">{formatCurrency(stats.today_out)}</p>
-                    </div>
-                </div>
-
-                {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-surface px-3 py-2 rounded-xl border border-line shadow-sm shrink-0">
-                    {/* Left: Title */}
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-lg font-bold text-ink uppercase tracking-tight shrink-0">
-                            Bank <span className="text-brand-600">Accounts</span>
-                        </h1>
-                        <div className="h-4 w-px bg-sunken mx-1"></div>
-                        <span className="text-xs font-bold text-ink-muted">{filteredAccounts.length} Accounts</span>
-                    </div>
-
-                    {/* Right: Search + Actions */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative w-52 hidden md:block">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                            <input
-                                type="text"
-                                placeholder="Search accounts..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-3 py-1.5 text-xs font-bold bg-app border-none rounded-lg focus:ring-1 focus:ring-brand-500 text-ink-secondary dark:text-ink"
-                            />
-                        </div>
-                        <button
-                            onClick={handleCreate}
-                            className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 !text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors shadow-sm"
-                            style={{ color: '#ffffff' }}
-                        >
-                            <Plus size={14} className="text-white shrink-0" /> <span className="text-white">Add Account</span>
-                        </button>
-                    </div>
-                </div>
+                {/* Phone / existing header (hidden on md+) */}
+                {/* PHONE header (Inventory pattern) */}
+                <MobileListHeader
+                    title="Bank Accounts"
+                    navGroups={navGroups}
+                    activeId="accounts"
+                    search={{ value: searchTerm, onChange: setSearchTerm, placeholder: 'Search accounts…' }}
+                    add={{ onClick: handleCreate, label: 'Add Account' }}
+                />
+                <MobileStats bp="md" hero={0} items={[
+                    { label: 'Total Balance', value: formatCurrency(stats.total_balance), tone: 'brand', icon: Landmark },
+                    { label: 'Cash on Hand', value: formatCurrency(stats.cash_balance), tone: 'emerald', icon: Wallet },
+                    { label: 'Money In (Today)', value: formatCurrency(stats.today_in), tone: 'blue', icon: TrendingUp },
+                    { label: 'Money Out (Today)', value: formatCurrency(stats.today_out), tone: 'rose', icon: TrendingDown },
+                ]} />
 
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-line shadow-sm bg-surface">
+                <div className="flex-1 min-h-0 overflow-auto rounded-xl md:rounded-[14px] border border-line shadow-sm bg-surface">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-app border-b border-line sticky top-0 z-10">
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[35%]">Account Details</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[20%]">Number</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[15%]">Type</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[20%] text-right">Balance</th>
-                                <th className="p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[10%] text-right">Actions</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[35%]">Account Details</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[20%]">Number</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[15%]">Type</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[20%] text-right">Balance</th>
+                                <th className="sticky top-0 z-10 bg-app p-4 text-xs font-bold text-ink-muted uppercase tracking-wider w-[10%] text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-line">
@@ -286,6 +248,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                         </tbody>
                     </table>
                 </div>
+              </ListPageFrame>
             </div>
 
             {/* Create/Edit Modal */}

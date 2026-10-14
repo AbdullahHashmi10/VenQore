@@ -1,3 +1,4 @@
+import PhoneSectionDropdown from '@/Components/PhoneSectionDropdown';
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTerms } from '@/lib/terms';
@@ -16,10 +17,13 @@ import {
     ChevronRight,
     ChevronDown,
     BookOpen,
-    PieChart
+    PieChart,
+    LayoutDashboard,
 } from 'lucide-react';
 
-export default function MoneyModuleTabs({ activeTab, className = '' }) {
+// Single source for the Money section's navigation groups (module-filtered).
+// List pages' header dropdown reads this too — do not copy it.
+export function useMoneyNavGroups() {
     const { store, modules } = usePage().props;
     const { t, tp } = useTerms();
     // Helper to safely get route
@@ -37,6 +41,7 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             label: 'Cash Flow',
             icon: Repeat,
             items: [
+                { id: 'overview', label: 'Overview', href: getRoute('money.dashboard'), icon: LayoutDashboard },
                 { id: 'payments', label: tp('payment', 'Payments'), href: getRoute('payments.index'), icon: ArrowRight },
                 { id: 'expenses', label: tp('expense', 'Expenses'), href: getRoute('expenses.index'), icon: CreditCard },
                 { id: 'receivables', label: 'To Receive', href: getRoute('finance.receivables'), icon: TrendingUp },
@@ -84,6 +89,11 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             })
         })).filter(group => group.items.length > 0);
     }, [rawGroups, modules]);
+    return groups;
+}
+
+export default function MoneyModuleTabs({ activeTab, className = '' }) {
+    const groups = useMoneyNavGroups();
 
     // Determine initial group based on activeTab
     const [activeGroup, setActiveGroup] = useState(() => {
@@ -107,10 +117,11 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
     const ActiveIcon = activeItemObj?.icon || currentGroup?.icon;
 
     return (
-        <div className={`flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0 ${className}`}>
+        <div className={`max-lg:!p-0 max-lg:!border-0 max-lg:!bg-transparent max-lg:!shadow-none max-lg:!gap-0 flex flex-col lg:flex-row items-center gap-4 bg-surface border border-line p-2 rounded-2xl shadow-sm shrink-0 ${className}`}>
+            <PhoneSectionDropdown title="Money" groups={groups} activeTab={activeTab} />
 
             {/* Mobile Header (Only visible below lg) */}
-            <div className="flex lg:hidden items-center justify-between w-full">
+            <div className="hidden">
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="flex items-center gap-2 px-3 py-2 bg-sunken rounded-xl text-sm font-bold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-all duration-normal"
@@ -122,7 +133,7 @@ export default function MoneyModuleTabs({ activeTab, className = '' }) {
             </div>
 
             {/* Collapsible content area */}
-            <div className={`w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-line' : 'hidden'}`}>
+            <div className={`max-lg:!hidden w-full lg:flex lg:flex-row lg:items-center lg:gap-4 ${isExpanded ? 'flex flex-col gap-4 mt-3 pt-3 border-t border-line' : 'hidden'}`}>
                 {/* Level 1: Category Selector */}
                 <div className="flex items-center gap-1 bg-sunken p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
                     {groups.map((group) => {
