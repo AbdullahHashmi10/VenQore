@@ -31,7 +31,7 @@ class HelpScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 18),
                 Text(
-                  'Business pilot',
+                  'VenQore Mobile',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -40,7 +40,7 @@ class HelpScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'This version connects to your existing VenQore workspace. Customer shopping mode will be added later.',
+                  'Connect to your live VenQore workspace and discover local stores on the online marketplace.',
                   style: TextStyle(color: Color(0xFFD8ECE7), height: 1.45),
                 ),
               ],
@@ -69,7 +69,7 @@ class HelpScreen extends StatelessWidget {
             icon: Icons.cloud_off_outlined,
             title: 'Internet required',
             body:
-                'The pilot needs a connection. Offline sales and background sync are not included yet.',
+                'VenQore requires an active connection to process live sales, orders and synchronise operations.',
           ),
           const SizedBox(height: 18),
           OutlinedButton.icon(

@@ -14,11 +14,13 @@
  * and every saved page is deleted on log-in / log-out so a shared PC never shows the
  * previous person's data.
  */
-const VERSION = 'v4';
+const VERSION = 'v7';
 const SHELL_CACHE = `venqore-shell-${VERSION}`;
 const ASSET_CACHE = `venqore-assets-${VERSION}`;
 const PAGE_CACHE = `venqore-pages-${VERSION}`;
-const KEEP = [SHELL_CACHE, ASSET_CACHE, PAGE_CACHE];
+// Holds one entry: the page a rider's alerts should open (set by the page, never by the server).
+const LANDING_CACHE = 'vq-push-landing';
+const KEEP = [SHELL_CACHE, ASSET_CACHE, PAGE_CACHE, LANDING_CACHE];
 
 const OFFLINE_LIMIT_MS = 7 * 24 * 60 * 60 * 1000; // keep equal to resources/js/lib/offlinePolicy.js
 const DOC_TIMEOUT_MS = 8000;
@@ -46,6 +48,52 @@ self.addEventListener('message', (event) => {
     if (type === 'CLEAR_PAGES') event.waitUntil(caches.delete(PAGE_CACHE));
     if (type === 'PRUNE_PAGES') event.waitUntil(prunePages());
     if (type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// ── Web Push ─────────────────────────────────────────────────────────────────
+// The server sends {title, body, url, tag}. Text is already lock-screen safe (no address, no phone).
+self.addEventListener('push', (event) => {
+    let data = {};
+    try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+    const title = String(data.title || 'VenQore');
+    event.waitUntil(self.registration.showNotification(title, {
+        body: String(data.body || ''),
+        tag: data.tag || 'venqore',
+        renotify: true,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        vibrate: [200, 100, 200],
+        data: { url: data.url || '/' },
+    }));
+});
+
+// A tap brings the app forward (or opens it) on the right page. 'landing' = the page the rider
+// turned alerts on from, which only this device knows.
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    const wanted = (event.notification.data && event.notification.data.url) || '/';
+    event.waitUntil((async () => {
+        let path = wanted;
+        if (wanted === 'landing') {
+            try {
+                const hit = await (await caches.open(LANDING_CACHE)).match('/__landing');
+                path = hit ? await hit.text() : '/';
+            } catch { path = '/'; }
+        }
+        if (!String(path).startsWith('/')) path = '/';
+        const target = new URL(path, self.location.origin).href;
+        const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+        for (const w of windows) {
+            if (w.url === target || w.url.startsWith(target.split('?')[0])) {
+                await w.focus();
+                return;
+            }
+        }
+        if (windows[0] && 'navigate' in windows[0]) {
+            try { await windows[0].navigate(target); await windows[0].focus(); return; } catch { /* fall through */ }
+        }
+        await self.clients.openWindow(target);
+    })());
 });
 
 // Drop saved pages older than the offline limit (the newest copy of each page is always replaced on fetch).
@@ -145,18 +193,24 @@ async function pageNetworkFirst(event, req, kind) {
 }
 
 async function assetCacheFirst(event, req) {
-    const cache = await caches.open(ASSET_CACHE);
-    const hit = await cache.match(req);
-    if (hit) return hit;
     try {
+        const cache = await caches.open(ASSET_CACHE);
+        const hit = await cache.match(req);
+        if (hit) return hit;
+
         const response = await fetch(req);
-        if (response && response.status === 200 && response.type === 'basic') {
+        if (response && response.status === 200) {
             const copy = response.clone();
             event.waitUntil(cache.put(req, copy).then(() => trim(cache, MAX_ASSETS)).catch(() => {}));
         }
         return response;
     } catch (err) {
-        return Response.error();
+        // Fallback: attempt direct fetch or return 408 instead of failing the service worker promise
+        try {
+            return await fetch(req.url, { cache: 'no-cache' });
+        } catch {
+            return new Response('', { status: 408, statusText: 'Asset Request Timeout' });
+        }
     }
 }
 

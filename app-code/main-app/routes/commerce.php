@@ -36,6 +36,8 @@ Route::get('/book/{slug}', [\App\Http\Controllers\Commerce\BookingController::cl
 Route::post('/book/{slug}', [\App\Http\Controllers\Commerce\BookingController::class, 'store'])->where('slug', '[a-z0-9-]+')->middleware('throttle:8,1')->name('commerce.book.submit');
 Route::get('/rider/{token}', [\App\Http\Controllers\Commerce\RiderPortalController::class, 'show'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:60,1')->name('commerce.rider');
 Route::post('/rider/{token}/step', [\App\Http\Controllers\Commerce\RiderPortalController::class, 'step'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:60,1')->name('commerce.rider.step');
+Route::post('/rider/{token}/push', [\App\Http\Controllers\Commerce\RiderPushController::class, 'subscribeByToken'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('commerce.rider.push');
+Route::post('/rider/{token}/push/off', [\App\Http\Controllers\Commerce\RiderPushController::class, 'unsubscribeByToken'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('commerce.rider.push.off');
 Route::get('/order-lookup', [PublicStoreController::class, 'lookupForm'])->name('commerce.order-lookup');
 Route::post('/order-lookup', [PublicStoreController::class, 'lookup'])->middleware('throttle:6,1')->name('commerce.order-lookup.find');
 Route::post('/shop/{slug}/customer/otp', [PublicStoreController::class, 'customerOtpStart'])->where('slug', '[a-z0-9-]+')->middleware('throttle:8,1')->name('commerce.customer.otp');
@@ -89,6 +91,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/riders/{employee}/account', [\App\Http\Controllers\Commerce\DeliveryController::class, 'linkLogin'])->middleware('permission:online.orders_manage')->name('riders.account');
         Route::get('/my-rides', [\App\Http\Controllers\Commerce\RiderPortalController::class, 'mine'])->middleware('permission:online.rider_deliveries')->name('my-rides');
         Route::post('/my-rides/step', [\App\Http\Controllers\Commerce\RiderPortalController::class, 'mineStep'])->middleware('permission:online.rider_deliveries')->name('my-rides.step');
+        Route::post('/my-rides/push', [\App\Http\Controllers\Commerce\RiderPushController::class, 'subscribeMine'])->middleware(['permission:online.rider_deliveries', 'throttle:20,1'])->name('my-rides.push');
+        Route::post('/my-rides/push/off', [\App\Http\Controllers\Commerce\RiderPushController::class, 'unsubscribeMine'])->middleware(['permission:online.rider_deliveries', 'throttle:20,1'])->name('my-rides.push.off');
         Route::post('/riders/{employee}/profile', [\App\Http\Controllers\Commerce\DeliveryController::class, 'riderProfile'])->middleware('permission:online.orders_manage')->name('riders.profile');
         Route::post('/riders/{employee}/link', [\App\Http\Controllers\Commerce\DeliveryController::class, 'riderLink'])->middleware('permission:online.orders_manage')->name('riders.link');
 

@@ -256,6 +256,35 @@ class TableServiceController extends Controller
             }
         }
 
+        // What the kitchen was last told about each sent line is the server's record, not the register's:
+        // the register only echoes the fields it edits. Carry the sent quantity and the "as sent" note and
+        // modifiers across the save, then flag any sent line whose note or modifiers have changed since, so
+        // the next send prints it as CHANGED instead of silently skipping it (or cooking it twice).
+        $oldByIdent = [];
+        foreach ($oldCart as $ol) {
+            $ident = $ol['line_id'] ?? $ol['id'] ?? null;
+            if ($ident !== null && !isset($oldByIdent[(string) $ident])) {
+                $oldByIdent[(string) $ident] = $ol;
+            }
+        }
+        foreach ($newCart as $i => $nl) {
+            $ident = $nl['line_id'] ?? $nl['id'] ?? null;
+            $ol = $ident !== null ? ($oldByIdent[(string) $ident] ?? null) : null;
+            if ($ol === null) {
+                continue;
+            }
+            $oldSent = (float) ($ol['sent_qty'] ?? (!empty($ol['sent']) ? ($ol['qty'] ?? 1) : 0));
+            if ($oldSent <= 0) {
+                continue;
+            }
+            $newCart[$i]['sent_qty'] = min($oldSent, (float) ($nl['qty'] ?? 0));
+            $snap = isset($ol['sent_signature']) ? $ol : KitchenTicketService::stampSent($ol);
+            $newCart[$i]['sent_signature'] = $snap['sent_signature'];
+            $newCart[$i]['sent_notes'] = $snap['sent_notes'] ?? '';
+            $newCart[$i]['sent_mods'] = $snap['sent_mods'] ?? [];
+            $newCart[$i]['needs_resend'] = $snap['sent_signature'] !== KitchenTicketService::lineSignature($newCart[$i]);
+        }
+
         // The register only sends the fields it edits. Where a line came from a guest's QR order, keep the tags that tie it
         // to that guest's reference (so their status page still finds it), and remember any line staff took off the table.
         $oldById = [];
@@ -361,7 +390,7 @@ class TableServiceController extends Controller
         $unsent = array_values(array_filter($cart, function ($l) {
             $qty = (float) ($l['qty'] ?? 1);
             $sentQty = (float) ($l['sent_qty'] ?? (!empty($l['sent']) ? $qty : 0));
-            return empty($l['sent']) || $qty > $sentQty;
+            return empty($l['sent']) || $qty > $sentQty || KitchenTicketService::isChangedSinceSent($l);
         }));
         if (!count($unsent)) {
             return response()->json(['message' => 'Nothing new to send.'], 422);
@@ -1378,14 +1407,32 @@ class TableServiceController extends Controller
         if ($request->has('collected_amount')) $delivery['collected_amount'] = round((float) ($data['collected_amount'] ?? 0), 2);
 
         /* Rider: accept rider_id (resolves name + stamps commission) or raw name string. */
+        $riderNotice = null;
         if ($request->has('rider_id')) {
             $riderId = $data['rider_id'];
+            $previousRiderId = $delivery['rider_id'] ?? null;
             $delivery['rider_id'] = $riderId;
             if ($riderId) {
                 $employee = \App\Models\Employee::where('tenant_id', $tenant->id)->find($riderId);
                 if ($employee) {
                     $delivery['rider']           = $employee->name;
                     $delivery['commission_rate'] = (float) $employee->commission_rate;
+
+                    // Unified rider assignment alert (Master Plan Workstream B0/B1). Only when the rider
+                    // actually changed: saving other delivery fields re-sends rider_id every time.
+                    if ((string) $previousRiderId !== (string) $riderId) {
+                        $payMethod = $delivery['payment_method'] ?? 'cash';
+                        $details = [
+                            'order_id' => (string) $occ->id,
+                            'order_number' => $occ->label ?: ('#' . $occ->id),
+                            'cash_expected' => $payMethod === 'cash' ? (float) $this->unpaidTotal($session) : 0,
+                            'area' => (string) ($session['address'] ?? ''),
+                            'pickup_name' => $tenant->name ?? 'the restaurant',
+                        ];
+                        $riderNotice = $previousRiderId
+                            ? \App\Services\Delivery\RiderNotifier::reassigned((int) $tenant->id, $riderId, $previousRiderId, $details)
+                            : \App\Services\Delivery\RiderNotifier::assigned((int) $tenant->id, $riderId, $details);
+                    }
                 }
             } else {
                 $delivery['rider'] = '';
@@ -1413,7 +1460,9 @@ class TableServiceController extends Controller
         $occ->save();
         $occ->load('user');
 
-        return response()->json(['ticket' => $this->ticketShape($occ, [])]);
+        return response()->json(['ticket' => $this->ticketShape($occ, [])] + (
+            ($riderNotice['status'] ?? '') === 'notified' ? ['rider_whatsapp_url' => $riderNotice['whatsapp_share_url']] : []
+        ));
     }
 
     /**
@@ -2307,8 +2356,9 @@ class TableServiceController extends Controller
         foreach ($cart as $l) {
             $qty = (float) ($l['qty'] ?? 1);
             $sentQty = (float) ($l['sent_qty'] ?? (!empty($l['sent']) ? $qty : 0));
-            if (empty($l['sent']) || $qty > $sentQty) $unsent++;
-            if ((empty($l['sent']) || $qty > $sentQty) && ! empty($l['customer_pending'])) $customerPending++;
+            $pending = empty($l['sent']) || $qty > $sentQty || KitchenTicketService::isChangedSinceSent($l);
+            if ($pending) $unsent++;
+            if ($pending && ! empty($l['customer_pending'])) $customerPending++;
         }
 
         $unpaid = $this->unpaidTotal($s);
@@ -2529,8 +2579,9 @@ class TableServiceController extends Controller
         foreach ($cart as $l) {
             $qty = (float) ($l['qty'] ?? 1);
             $sentQty = (float) ($l['sent_qty'] ?? (!empty($l['sent']) ? $qty : 0));
-            if (empty($l['sent']) || $qty > $sentQty) $unsent++;
-            if ((empty($l['sent']) || $qty > $sentQty) && ! empty($l['customer_pending'])) $customerPending++;
+            $pending = empty($l['sent']) || $qty > $sentQty || KitchenTicketService::isChangedSinceSent($l);
+            if ($pending) $unsent++;
+            if ($pending && ! empty($l['customer_pending'])) $customerPending++;
         }
 
         $unpaid = $this->unpaidTotal($s);

@@ -154,6 +154,60 @@ class KitchenTicketService
         };
     }
 
+    /** Names of a line's modifiers, as the kitchen reads them, in a stable order. */
+    public static function lineModNames(array $line): array
+    {
+        $names = [];
+        foreach ((array) ($line['mods'] ?? $line['modifiers'] ?? []) as $m) {
+            $n = trim((string) (is_array($m) ? ($m['name'] ?? '') : $m));
+            if ($n !== '') {
+                $names[] = $n;
+            }
+        }
+        sort($names);
+        return $names;
+    }
+
+    /**
+     * What the kitchen needs to read to cook a line right: its note and its modifiers.
+     * Quantity is tracked separately (sent_qty); this is the "version" of the line.
+     */
+    public static function lineSignature(array $line): string
+    {
+        return md5(trim((string) ($line['notes'] ?? '')) . '|' . json_encode(self::lineModNames($line)));
+    }
+
+    /** Remember what the kitchen was told, so a later edit can be shown as a change. */
+    public static function stampSent(array $line): array
+    {
+        $line['sent_signature'] = self::lineSignature($line);
+        $line['sent_notes'] = trim((string) ($line['notes'] ?? ''));
+        $line['sent_mods'] = self::lineModNames($line);
+        unset($line['needs_resend']);
+        return $line;
+    }
+
+    /** True when a line already sent now has a different note or modifier set. */
+    public static function isChangedSinceSent(array $line): bool
+    {
+        $wasSent = !empty($line['sent']) || (float) ($line['sent_qty'] ?? 0) > 0;
+        return $wasSent
+            && isset($line['sent_signature'])
+            && $line['sent_signature'] !== self::lineSignature($line);
+    }
+
+    /** "WAS: no onions -> NOW: extra spicy" for a changed line. */
+    public static function describeChange(array $line): string
+    {
+        $fmt = function (string $notes, array $mods): string {
+            $parts = array_filter(array_merge($mods, $notes !== '' ? [$notes] : []));
+            return $parts ? implode(', ', $parts) : 'no notes';
+        };
+        $was = $fmt((string) ($line['old_notes'] ?? ''), (array) ($line['old_mods'] ?? []));
+        $now = $fmt(trim((string) ($line['notes'] ?? '')), self::lineModNames($line));
+        return 'WAS: ' . $was . ' -> NOW: ' . $now;
+    }
+
     /** The printer a station's tickets go to, for reprints of tickets fired earlier. */
     public static function printerForStation(int $tenantId, ?string $station): string
     {
@@ -197,8 +251,12 @@ class KitchenTicketService
             $sentQty = (float) ($line['sent_qty'] ?? (!empty($line['sent']) ? $qty : 0));
             $unsentDelta = max(0, $qty - $sentQty);
 
-            if ($unsentDelta <= 0 && !empty($line['sent'])) {
-                continue; // Already sent
+            // A line that was already sent, whose note or modifiers changed afterwards.
+            // The signature taken at send time is compared with what the line says now.
+            $isModified = self::isChangedSinceSent($line);
+
+            if ($unsentDelta <= 0 && !empty($line['sent']) && !$isModified) {
+                continue; // Already sent and not modified
             }
 
             $lineCourse = (int) ($line['course'] ?? 1);
@@ -218,14 +276,28 @@ class KitchenTicketService
 
             $st = $stationFor($line);
 
-            $lineCopy = $line;
-            $lineCopy['qty'] = $unsentDelta;
-            $lineCopy['resolved_station'] = $st['name'];
-            $lineCopy['resolved_printer'] = $st['printer'];
-            $lineCopy['resolved_course'] = $lineCourse;
+            $base = $line;
+            $base['resolved_station'] = $st['name'];
+            $base['resolved_printer'] = $st['printer'];
+            $base['resolved_course'] = $lineCourse;
+
+            // The kitchen already cooked the old version: tell it what changed, for the
+            // quantity that was sent. Anything added on top of that goes as its own new line.
+            if ($isModified && $sentQty > 0) {
+                $changed = $base;
+                $changed['qty'] = min($sentQty, $qty);
+                $changed['is_modification'] = true;
+                $changed['old_notes'] = (string) ($line['sent_notes'] ?? '');
+                $changed['old_mods'] = array_values((array) ($line['sent_mods'] ?? []));
+                $eligibleLines[] = $changed;
+            }
+            if ($unsentDelta > 0 || !$isModified) {
+                $new = $base;
+                $new['qty'] = $unsentDelta;
+                $eligibleLines[] = $new;
+            }
 
             $eligibleIndices[] = $idx;
-            $eligibleLines[] = $lineCopy;
         }
 
         if (empty($eligibleLines)) {
@@ -281,9 +353,10 @@ class KitchenTicketService
                     'course'        => $course,
                     'order_number'  => $occLabel,
                     'items'         => array_map(fn ($l) => [
-                        'name'      => $l['name'],
+                        'name'      => (!empty($l['is_modification']) ? '[CHANGED] ' : '') . $l['name'],
                         'qty'       => (float) ($l['qty'] ?? 1),
-                        'notes'     => $l['notes'] ?? '',
+                        'notes'     => !empty($l['is_modification']) ? self::describeChange($l) : ($l['notes'] ?? ''),
+                        'is_modification' => !empty($l['is_modification']),
                         'course'    => $course,
                         'mods'      => array_values($l['mods'] ?? []),
                         'modifiers' => array_map(fn ($m) => (string) ($m['name'] ?? ''), array_values($l['mods'] ?? [])),
@@ -302,11 +375,12 @@ class KitchenTicketService
                 }
             }
 
-            // Mark fired items as sent and unheld in occupancy, recording sent_qty
+            // Mark fired items as sent and unheld in occupancy, recording sent_qty and signature
             foreach ($eligibleIndices as $idx) {
                 $currentCart[$idx]['sent_qty'] = (float) ($currentCart[$idx]['qty'] ?? 1);
                 $currentCart[$idx]['sent'] = true;
                 $currentCart[$idx]['is_held'] = false;
+                $currentCart[$idx] = self::stampSent($currentCart[$idx]);
             }
             $session['cart'] = $currentCart;
             $session['sent_at'] = now()->toIso8601String();
@@ -513,6 +587,7 @@ class KitchenTicketService
                 'name'      => $it['name'] ?? 'Item',
                 'qty'       => (float) ($it['qty'] ?? 1),
                 'notes'     => $it['notes'] ?? '',
+                'is_modification' => !empty($it['is_modification']),
                 'course'    => (int) ($it['course'] ?? $workOrder->course ?? 1),
                 'modifiers' => $it['modifiers'] ?? (
                     isset($it['mods']) && is_array($it['mods'])
@@ -522,6 +597,7 @@ class KitchenTicketService
             ], $workOrder->items ?? []),
             'is_reprint'      => (bool) ($options['is_reprint'] ?? false),
             'is_cancellation' => (bool) ($options['is_cancellation'] ?? false),
+            'has_changes'     => collect($workOrder->items ?? [])->contains(fn ($it) => !empty($it['is_modification'])),
         ];
     }
 

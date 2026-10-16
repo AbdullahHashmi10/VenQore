@@ -92,6 +92,7 @@ class DeliveryController extends Controller
                 'cash' => $r->user()->hasPermission('online.orders_collect'),
             ],
             'riderLink' => session('rider_link'),
+            'riderWhatsapp' => session('rider_whatsapp'),
         ]);
     }
 
@@ -108,7 +109,18 @@ class DeliveryController extends Controller
     public function assign(Request $r)
     {
         $v = $r->validate(['order_id' => ['required', 'string', 'max:36'], 'rider_id' => ['required', 'string', 'max:36'], 'note' => ['nullable', 'string', 'max:255']]);
-        return $this->run(fn () => $this->deliveries->assign($v['order_id'], $this->tid(), $v['rider_id'], $r->user()->id, $v['note'] ?? null), 'Rider assigned.');
+        $response = $this->run(fn () => $this->deliveries->assign($v['order_id'], $this->tid(), $v['rider_id'], $r->user()->id, $v['note'] ?? null), 'Rider assigned.');
+
+        // Offer the dispatcher a ready-made WhatsApp message to the rider (nothing is sent until they tap it).
+        $notice = $this->deliveries->lastRiderNotice;
+        if ($notice && ($notice['status'] ?? '') === 'notified') {
+            $response->with('rider_whatsapp', [
+                'url' => $notice['whatsapp_share_url'],
+                'rider' => $notice['rider_name'] ?? null,
+                'message' => $notice['message_preview'] ?? '',
+            ]);
+        }
+        return $response;
     }
 
     public function returned(Request $r, string $id)

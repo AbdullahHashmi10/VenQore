@@ -24,6 +24,9 @@ class DeliveryService
         'out_for_delivery' => 'delivered',
     ];
 
+    /** The rider alert built by the last assign() call (WhatsApp share link and message), for the caller to show. */
+    public ?array $lastRiderNotice = null;
+
     public function __construct(private OrderService $orders)
     {
     }
@@ -79,24 +82,46 @@ class DeliveryService
                 if ($existing->rider_id === $riderId && ! in_array($existing->status, ['failed', 'returned'], true)) {
                     return DB::table('commerce_deliveries')->where('id', $existing->id)->first(); // idempotent
                 }
+                $oldRiderId = $existing->rider_id;
                 DB::table('commerce_deliveries')->where('id', $existing->id)->update([
                     'rider_id' => $riderId, 'status' => 'assigned', 'fail_reason' => null,
                     'assigned_by' => $actor, 'assigned_at' => now(), 'version' => $existing->version + 1, 'updated_at' => now(),
                 ]);
                 $this->event($existing->id, $tenantId, 'reassigned', $existing->status, 'assigned', 'staff', $actor ? (string) $actor : null, $note, ['from_rider' => $existing->rider_id, 'to_rider' => $riderId]);
+
+                $this->lastRiderNotice = \App\Services\Delivery\RiderNotifier::reassigned($tenantId, $riderId, (string) $oldRiderId, $this->noticePayload($o, $note));
+
                 return DB::table('commerce_deliveries')->where('id', $existing->id)->first();
             }
 
             $id = (string) Str::uuid();
+            $cashExpected = ($o->payment_method === 'cod' && $o->payment_status === 'unpaid') ? (float) $o->total : 0;
             DB::table('commerce_deliveries')->insert([
                 'id' => $id, 'tenant_id' => $tenantId, 'order_id' => $o->id, 'rider_id' => $riderId, 'status' => 'assigned',
-                'cash_expected' => ($o->payment_method === 'cod' && $o->payment_status === 'unpaid') ? (float) $o->total : 0,
+                'cash_expected' => $cashExpected,
                 'rider_fee' => $this->riderFee($tenantId),
                 'assigned_by' => $actor, 'assigned_at' => now(), 'created_at' => now(), 'updated_at' => now(),
             ]);
             $this->event($id, $tenantId, 'assigned', null, 'assigned', 'staff', $actor ? (string) $actor : null, $note);
+
+            $this->lastRiderNotice = \App\Services\Delivery\RiderNotifier::assigned($tenantId, $riderId, $this->noticePayload($o, $note));
+
             return DB::table('commerce_deliveries')->where('id', $id)->first();
         });
+    }
+
+    /** What the rider is told about an order: no customer name, phone or full address. */
+    private function noticePayload(CommerceOrder $o, ?string $note): array
+    {
+        $name = DB::table('tenants')->where('id', $o->tenant_id)->value('name');
+        return [
+            'order_id' => $o->id,
+            'order_number' => $o->public_number ?: substr((string) $o->id, 0, 8),
+            'pickup_name' => $name ?: 'the store',
+            'cash_expected' => ($o->payment_method === 'cod' && $o->payment_status === 'unpaid') ? (float) $o->total : 0,
+            'area' => (string) $o->delivery_address,
+            'note' => $note,
+        ];
     }
 
     /**

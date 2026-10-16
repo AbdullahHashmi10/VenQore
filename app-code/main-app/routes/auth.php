@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->middleware('throttle:20,1');
+Route::get('/auth/native-ticket/{ticket}', [\App\Http\Controllers\Auth\NativeGoogleAuthController::class, 'redeem'])->where('ticket', '[A-Za-z0-9]{64}')->middleware('throttle:20,1')->name('auth.native-ticket');
 
 // AUTH-01 (2026-09-10): emailed one-time code step (sign-up, every email/password
 // sign-in, first-time Google linking). Guests only — no session exists yet.

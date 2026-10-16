@@ -36,7 +36,7 @@ function RiderProfile({ r }) {
     );
 }
 
-export default function Deliveries({ riders = [], members = [], orders = [], urls, can = {}, riderLink = null }) {
+export default function Deliveries({ riders = [], members = [], orders = [], urls, can = {}, riderLink = null, riderWhatsapp = null }) {
     const { errors = {}, flash = {} } = usePage().props;
     const [pick, setPick] = useState({});
     const [copied, setCopied] = useState(false);
@@ -87,6 +87,14 @@ export default function Deliveries({ riders = [], members = [], orders = [], url
                 ]} />
 <div className="flex flex-col gap-2 md:flex-1 md:min-h-0 md:overflow-auto">
                 {(errors.delivery || flash.success) && <Alert kind={errors.delivery ? 'error' : 'success'}>{errors.delivery || flash.success}</Alert>}
+
+                {riderWhatsapp && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-[14px] border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+                        <span><b>{riderWhatsapp.rider || 'The rider'}</b> has been given this order. You can also message them on WhatsApp; nothing is sent until you press send there.</span>
+                        <a href={riderWhatsapp.url} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 rounded-[12px] bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">Send to rider on WhatsApp</a>
+                    </div>
+                )}
 
                 {riderLink && (
                     <div className="rounded-[14px] border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">

@@ -164,6 +164,91 @@ class FohBackendTest extends VenQoreTestCase
         return [$pos, $occ];
     }
 
+    private function openTicket(): Occupancy
+    {
+        return Occupancy::create([
+            'tenant_id' => $this->tenantId, 'position_id' => null, 'label' => 'TA-900', 'opened_at' => now(),
+            'session_data' => ['order_type' => 'takeaway', 'cart' => []],
+        ]);
+    }
+
+    private function saveLine(Occupancy $occ, array $line)
+    {
+        return $this->postJson($this->storeUrl($this->tenant, 'tables/order'), ['occupancy_id' => $occ->id, 'cart' => [$line]]);
+    }
+
+    private function sendTicket(Occupancy $occ)
+    {
+        return $this->postJson($this->storeUrl($this->tenant, 'tables/send'), ['occupancy_id' => $occ->id]);
+    }
+
+    /** @test */
+    public function a_note_changed_after_sending_prints_one_changed_slip_and_is_not_cooked_twice(): void
+    {
+        $occ = $this->openTicket();
+        $line = ['line_id' => 'L1', 'id' => $this->productId, 'name' => 'Karahi', 'price' => 500, 'qty' => 1, 'notes' => 'no onions', 'mods' => []];
+
+        $this->saveLine($occ, $line)->assertOk();
+        $this->sendTicket($occ)->assertOk()->assertJsonPath('sent', 1);
+
+        // The register echoes the line back as sent, unchanged: nothing to send.
+        $sent = $line + ['sent' => true, 'sent_qty' => 1];
+        $this->saveLine($occ, $sent)->assertOk();
+        $this->sendTicket($occ)->assertStatus(422);
+
+        // The customer changes their mind about the note.
+        $this->saveLine($occ, ['notes' => 'extra spicy'] + $sent)->assertOk();
+        $res = $this->sendTicket($occ)->assertOk();
+
+        $items = $res->json('kot.items');
+        $this->assertCount(1, $items);
+        $this->assertSame('[CHANGED] Karahi', $items[0]['name']);
+        $this->assertEquals(1, $items[0]['qty'], 'only what was already cooked is flagged, never re-cooked');
+        $this->assertTrue($items[0]['is_modification']);
+        $this->assertSame('WAS: no onions -> NOW: extra spicy', $items[0]['notes']);
+        $this->assertTrue($res->json('kot.has_changes'));
+
+        // And only once.
+        $this->saveLine($occ, ['notes' => 'extra spicy'] + $sent)->assertOk();
+        $this->sendTicket($occ)->assertStatus(422);
+    }
+
+    /** @test */
+    public function a_modifier_change_on_a_sent_line_is_sent_as_changed(): void
+    {
+        $occ = $this->openTicket();
+        $line = ['line_id' => 'L1', 'id' => $this->productId, 'name' => 'Karahi', 'price' => 500, 'qty' => 1, 'notes' => '',
+            'mods' => [['id' => 'm1', 'name' => 'Mild', 'price_delta' => 0]]];
+        $this->saveLine($occ, $line)->assertOk();
+        $this->sendTicket($occ)->assertOk();
+
+        $sent = $line + ['sent' => true, 'sent_qty' => 1];
+        $changed = array_merge($sent, ['mods' => [['id' => 'm2', 'name' => 'Hot', 'price_delta' => 0]]]);
+        $this->saveLine($occ, $changed)->assertOk();
+
+        $res = $this->sendTicket($occ)->assertOk();
+        $this->assertSame('[CHANGED] Karahi', $res->json('kot.items.0.name'));
+        $this->assertSame('WAS: Mild -> NOW: Hot', $res->json('kot.items.0.notes'));
+    }
+
+    /** @test */
+    public function more_quantity_plus_a_changed_note_prints_the_change_and_only_the_extra_portions(): void
+    {
+        $occ = $this->openTicket();
+        $line = ['line_id' => 'L1', 'id' => $this->productId, 'name' => 'Karahi', 'price' => 500, 'qty' => 1, 'notes' => 'mild', 'mods' => []];
+        $this->saveLine($occ, $line)->assertOk();
+        $this->sendTicket($occ)->assertOk();
+
+        $this->saveLine($occ, array_merge($line, ['qty' => 3, 'notes' => 'hot', 'sent' => false, 'sent_qty' => 1]))->assertOk();
+        $items = $this->sendTicket($occ)->assertOk()->json('kot.items');
+
+        $this->assertCount(2, $items);
+        $this->assertSame('[CHANGED] Karahi', $items[0]['name']);
+        $this->assertEquals(1, $items[0]['qty']);
+        $this->assertSame('Karahi', $items[1]['name']);
+        $this->assertEquals(2, $items[1]['qty'], 'the +2 goes to the kitchen as new, not all 3');
+    }
+
     /** @test */
     public function converting_dine_in_to_takeaway_frees_the_table_and_keeps_the_order(): void
     {

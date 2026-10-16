@@ -162,6 +162,9 @@ return [
         'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect'      => env('GOOGLE_REDIRECT_URL', 'http://127.0.0.1:8000/auth/google/callback'),
+        // Extra OAuth client ids whose ID tokens the phone app may present (comma separated). The app
+        // normally asks Google for a token for the web client id above, so this is usually empty.
+        'mobile_client_ids' => array_values(array_filter(array_map('trim', explode(',', (string) env('GOOGLE_MOBILE_CLIENT_IDS', ''))))),
     ],
 
     'cloudflare' => [

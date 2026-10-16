@@ -22,6 +22,7 @@
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "*",
         "maatwebsite/excel": "^3.1",
+        "minishlink/web-push": "^11.0",
         "pclzip/pclzip": "^2.8",
         "picqer/php-barcode-generator": "^3.2",
         "sentry/sentry-laravel": "^4.0",

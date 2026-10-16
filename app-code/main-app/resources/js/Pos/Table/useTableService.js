@@ -116,6 +116,9 @@ export function serverLineToCart(l, i) {
         discount: 0,
         notes: l.notes || '',
         sent: !!l.sent && sentQty >= qty,
+        /* Set by the server when the note or modifiers of a line the kitchen already has were
+           edited since it was sent: the next send prints it as CHANGED. */
+        needs_resend: !!l.needs_resend,
         course: Number(l.course) || 1,
         paidSaleId: l.paid_sale_id || null,
         fromGuest: !!l.customer_request_id,

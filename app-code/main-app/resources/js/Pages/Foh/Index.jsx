@@ -4528,7 +4528,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
             {selectedTable && (
                 <OrderHeader
                     card={selectedTable} covers={tableCovers} enabledTypes={enabledTypes}
-                    unsent={activeSale.cart.reduce((sum, line) => sum + Math.max(0, Number(line.qty || 0) - Number(line.sent_qty || 0)), 0)}
+                    unsent={activeSale.cart.reduce((sum, line) => sum + Math.max(0, Number(line.qty || 0) - Number(line.sent_qty || 0)) + (line.needs_resend ? 1 : 0), 0)}
                     elapsedLabel={tableElapsed(selectedTable.opened_at)} onBack={backToFloor}
                     onCovers={setCovers} onConvert={setOrderType} onFire={fireToKitchen} kitchen={kitchenOn} onBill={dropCheck}
                     checkDropped={!!selectedTable.check_dropped_at} onSplit={() => setSplitOpen(true)}
@@ -6775,6 +6775,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
                         const result = await tables.convert(selectedTable.occupancy_id, 'dine_in', { position_id: position.id, covers });
                         if (result) { loadedOccupancy.current = null; setConvertSeat(false); setTab('tables'); }
                     }} />}
+                <PosTourGuide store={store} cart={activeSale.cart} />
             </React.Fragment>
         </OneGlanceLayout>
     );

@@ -21,10 +21,13 @@ class NavigationPolicy {
     '/login/passcode',
     '/login/pin',
     '/logout',
+    '/my-rides',
     '/new-store',
+    '/order-lookup',
     '/privacy',
     '/redeem',
     '/register',
+    '/shop',
     '/staff-login',
     '/staff/hub',
     '/start',
@@ -35,9 +38,14 @@ class NavigationPolicy {
 
   static const _allowedPrefixes = <String>[
     '/2fa/',
+    '/auth/native-ticket/',
+    '/book/',
     '/invite/',
+    '/order-status/',
     '/reset-password/',
+    '/rider/',
     '/s/',
+    '/shop/',
     '/verify-email/',
   ];
 
@@ -52,11 +60,25 @@ class NavigationPolicy {
   bool isGoogleOAuthCallback(Uri uri) =>
       isSameOrigin(uri) && uri.path == '/auth/google/callback';
 
-  bool isGoogleOAuthProvider(Uri uri) =>
-      uri.scheme == 'https' &&
-      uri.host.toLowerCase() == 'accounts.google.com' &&
-      !uri.hasPort &&
-      uri.userInfo.isEmpty;
+  bool isGoogleOAuthProvider(Uri uri) {
+    if (uri.scheme != 'https' || uri.hasPort || uri.userInfo.isNotEmpty) {
+      return false;
+    }
+    final host = uri.host.toLowerCase();
+    if (host == 'accounts.google.com' ||
+        host == 'myaccount.google.com' ||
+        host == 'oauth2.googleapis.com' ||
+        host == 'accounts.youtube.com' ||
+        host == 'apis.google.com' ||
+        host == 'consent.google.com' ||
+        host == 'ssl.gstatic.com') {
+      return true;
+    }
+    if (host.startsWith('accounts.google.') && host.split('.').length <= 4) {
+      return true;
+    }
+    return false;
+  }
 
   NavigationAction evaluate(Uri uri) {
     if (!isSameOrigin(uri)) return NavigationAction.block;

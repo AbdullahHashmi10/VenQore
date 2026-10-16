@@ -196,7 +196,7 @@
                 //    (a built copy on localhost must behave like production, or offline cannot be tested).
                 const isDev = {{ file_exists(public_path('hot')) ? 'true' : 'false' }};
                 if (!isDev) {
-                    navigator.serviceWorker.register('/sw.js')
+                    navigator.serviceWorker.register('/sw.js?v=7')
                         .then(reg => console.log('[SW] Unified service worker registered:', reg.scope))
                         .catch(err => console.error('[SW] Registration failed:', err));
                 } else {

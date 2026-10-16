@@ -138,3 +138,12 @@ Route::middleware('plan.feature:ai_assistant')->group(function () {
 
 
 
+
+// ── Phone app: "Continue with Google" with the device's own account picker ──
+// Verifies the Google ID token and returns a one-time sign-in ticket (see NativeGoogleAuthController).
+Route::post('/mobile/auth/google', [\App\Http\Controllers\Auth\NativeGoogleAuthController::class, 'exchange'])
+    ->middleware('throttle:10,1')
+    ->name('api.mobile.auth.google');
+Route::get('/mobile/config', [\App\Http\Controllers\Auth\NativeGoogleAuthController::class, 'config'])
+    ->middleware('throttle:30,1')
+    ->name('api.mobile.config');

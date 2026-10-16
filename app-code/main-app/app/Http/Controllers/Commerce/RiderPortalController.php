@@ -28,14 +28,21 @@ class RiderPortalController extends Controller
 
     public function show(string $token)
     {
-        return $this->page($this->who($token), url('/rider/' . $token . '/step'));
+        return $this->page($this->who($token), url('/rider/' . $token . '/step'), [
+            'on' => url('/rider/' . $token . '/push'),
+            'off' => url('/rider/' . $token . '/push/off'),
+        ]);
     }
 
     /** Signed-in rider (store member linked to a rider employee). */
     public function mine(Request $r)
     {
         $l = $this->mineLink($r);
-        return $this->page($l, route('store.commerce.my-rides.step', ['store_slug' => app('current.tenant')->slug]));
+        $slug = app('current.tenant')->slug;
+        return $this->page($l, route('store.commerce.my-rides.step', ['store_slug' => $slug]), [
+            'on' => route('store.commerce.my-rides.push', ['store_slug' => $slug]),
+            'off' => route('store.commerce.my-rides.push.off', ['store_slug' => $slug]),
+        ]);
     }
 
     public function mineStep(Request $r)
@@ -50,16 +57,16 @@ class RiderPortalController extends Controller
         return $l;
     }
 
-    private function page(object $l, string $stepUrl)
+    private function page(object $l, string $stepUrl, array $pushUrls)
     {
         $emp = DB::table('employees')->where('id', $l->employee_id)->where('tenant_id', $l->tenant_id)->first(['name']);
         $tz = (string) (DB::table('storefronts')->where('tenant_id', $l->tenant_id)->value('timezone') ?: 'UTC');
         $dayStart = now($tz)->startOfDay()->utc();
         $rows = DB::table('commerce_deliveries as d')->join('commerce_orders as o', 'o.id', '=', 'd.order_id')
             ->where('d.tenant_id', $l->tenant_id)->where('d.rider_id', $l->employee_id)
-            ->where(function ($q) {
+            ->where(function ($q) use ($dayStart) {
                 $q->whereIn('d.status', ['assigned', 'accepted', 'collected', 'out_for_delivery', 'failed'])
-                  ->orWhere(function ($w) {
+                  ->orWhere(function ($w) use ($dayStart) {
                       $w->where('d.status', 'delivered')->where('d.delivered_at', '>=', $dayStart);
                   });
             })
@@ -82,6 +89,8 @@ class RiderPortalController extends Controller
                 'cash_to_hand_in' => $this->deliveries->outstandingCash((int) $l->tenant_id, $l->employee_id),
             ],
             'stepUrl' => $stepUrl,
+            // Null key = this server has no alert keys; the page then hides the switch.
+            'push' => \App\Services\Push\WebPushService::publicKey() ? ['key' => \App\Services\Push\WebPushService::publicKey()] + $pushUrls : null,
         ])->withViewData(['noindex' => true]);
     }
 

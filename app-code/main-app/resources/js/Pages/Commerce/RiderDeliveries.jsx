@@ -1,18 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
+import { disablePush, enablePush, pushState } from '@/lib/webPush';
 
 const NEXT = { assigned: ['accepted', 'Accept ride'], accepted: ['collected', 'Picked up from store'], collected: ['out_for_delivery', 'Start delivery'], out_for_delivery: ['delivered', 'Delivered'] };
 const LABEL = { assigned: 'New', accepted: 'Accepted', collected: 'Picked up', out_for_delivery: 'On the way', delivered: 'Delivered', failed: 'Failed' };
 const fmt = (n, s = 'Rs') => `${s} ${Number(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 const box = { flex: 1, minWidth: 100, border: '1px solid #ddd', borderRadius: 12, padding: 10 };
 
-export default function RiderDeliveries({ rider, deliveries = [], today, stepUrl }) {
+const ALERT_TEXT = {
+    on: 'Alerts are on. This phone will buzz when a delivery is given to you.',
+    off: 'Get an alert on this phone when a delivery is given to you, even when this page is closed.',
+    blocked: 'Alerts are blocked for this site. Allow notifications in the browser settings to turn them on.',
+};
+
+export default function RiderDeliveries({ rider, deliveries = [], today, stepUrl, push = null }) {
     const { errors = {} } = usePage().props;
     const [cash, setCash] = useState({});
     const [busy, setBusy] = useState(null);
+    const [alerts, setAlerts] = useState('unsupported');
+    const [alertBusy, setAlertBusy] = useState(false);
+    const [alertNote, setAlertNote] = useState('');
 
     const current = deliveries.filter((d) => d.status !== 'delivered');
     const done = deliveries.filter((d) => d.status === 'delivered');
+
+    useEffect(() => {
+        if (push) pushState().then(setAlerts);
+    }, [push]);
+
+    /* Keep the list fresh while the page is open: pick up rides given to this rider, and buzz once per new one. */
+    const seen = useRef(new Set(current.filter((d) => d.status === 'assigned').map((d) => d.id)));
+    useEffect(() => {
+        const fresh = current.filter((d) => d.status === 'assigned' && !seen.current.has(d.id));
+        if (fresh.length) {
+            fresh.forEach((d) => seen.current.add(d.id));
+            try { navigator.vibrate?.([200, 100, 200]); } catch { /* not supported */ }
+        }
+    }, [current]);
+    useEffect(() => {
+        const tick = () => {
+            if (document.visibilityState === 'visible' && navigator.onLine !== false) {
+                router.reload({ only: ['deliveries', 'today'], preserveScroll: true, preserveState: true });
+            }
+        };
+        const id = setInterval(tick, 20000);
+        document.addEventListener('visibilitychange', tick);
+        return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick); };
+    }, []);
+
+    const toggleAlerts = async () => {
+        setAlertBusy(true);
+        setAlertNote('');
+        if (alerts === 'on') {
+            await disablePush({ off: push.off });
+            setAlerts('off');
+        } else {
+            const res = await enablePush({ key: push.key, on: push.on });
+            if (res.ok) setAlerts('on');
+            else if (res.reason === 'blocked') setAlerts('blocked');
+            else setAlertNote(res.reason === 'server' ? 'Alerts are not available on this server yet.' : 'Could not turn alerts on. Try again.');
+        }
+        setAlertBusy(false);
+    };
 
     const step = (d, to, extra = {}) => {
         setBusy(d.id);
@@ -28,6 +77,18 @@ export default function RiderDeliveries({ rider, deliveries = [], today, stepUrl
             <Head title="My rides"><meta name="robots" content="noindex,nofollow" /></Head>
             <h1 style={{ fontSize: 22, margin: '4px 0' }}>My rides</h1>
             <p style={{ margin: 0, color: '#555' }}>{rider.name}</p>
+
+            {push && alerts !== 'unsupported' && (
+                <div style={{ margin: '12px 0 0', padding: 10, border: '1px solid #ddd', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{ flex: 1, minWidth: 180, fontSize: 14, color: '#444' }}>{ALERT_TEXT[alerts]}{alertNote ? ` ${alertNote}` : ''}</span>
+                    {alerts !== 'blocked' && (
+                        <button type="button" onClick={toggleAlerts} disabled={alertBusy}
+                            style={{ padding: '10px 14px', borderRadius: 10, border: alerts === 'on' ? '1px solid #999' : 0, background: alerts === 'on' ? '#fff' : '#0f766e', color: alerts === 'on' ? '#333' : '#fff', fontWeight: 700 }}>
+                            {alertBusy ? 'Please wait…' : alerts === 'on' ? 'Turn alerts off' : 'Turn alerts on'}
+                        </button>
+                    )}
+                </div>
+            )}
 
             <div style={{ display: 'flex', gap: 8, margin: '14px 0', flexWrap: 'wrap' }}>
                 <div style={box}><small>Rides now</small><br /><b>{current.length}</b></div>
@@ -54,6 +115,10 @@ export default function RiderDeliveries({ rider, deliveries = [], today, stepUrl
                             </div>
                             <div style={{ color: '#555', fontSize: 14 }}>{d.public_number}{d.assigned_at_local ? ` · given ${d.assigned_at_local}` : ''}</div>
                             <p style={{ margin: '8px 0' }}>{d.delivery_address}</p>
+                            {d.delivery_address && d.status !== 'failed' && (
+                                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(d.delivery_address)}`} target="_blank" rel="noopener noreferrer"
+                                    style={{ display: 'inline-block', margin: '0 0 8px', padding: '8px 12px', border: '1px solid #ccc', borderRadius: 10 }}>Open in maps</a>
+                            )}
                             {d.customer_note && <p style={{ margin: '0 0 8px', fontSize: 14 }}>Note: {d.customer_note}</p>}
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                                 {d.status !== 'failed' && <a href={`tel:${d.customer_phone}`} style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: 10 }}>Call {d.customer_phone}</a>}

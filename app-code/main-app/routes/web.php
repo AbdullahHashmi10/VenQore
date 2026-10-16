@@ -328,8 +328,10 @@ Route::get('/sitemap-{type}.xml', [\App\Http\Controllers\Marketing\SitemapContro
 // Login/logout are transactional entry points into the sandbox — noindex them.
 Route::get('/demo', [\App\Http\Controllers\DemoController::class, 'landing'])->name('demo.landing');
 Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
-    Route::match(['get', 'post'], '/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->middleware('throttle:10,1')->name('demo.login');
+    Route::match(['get', 'post'], '/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->middleware('throttle:60,1')->name('demo.login');
+    Route::get('/demo/options', [\App\Http\Controllers\DemoController::class, 'options'])->middleware('throttle:60,1');
     Route::post('/demo/logout', [\App\Http\Controllers\DemoController::class, 'logout'])->name('demo.logout');
+    Route::match(['get', 'post'], '/demo/switch-business', [\App\Http\Controllers\DemoController::class, 'switchBusiness'])->middleware('throttle:60,1')->name('demo.switch-business');
 });
 
 

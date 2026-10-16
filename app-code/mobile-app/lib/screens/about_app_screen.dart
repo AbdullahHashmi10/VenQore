@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config/app_config.dart';
 import '../theme/app_colors.dart';
+import '../widgets/brand_logo.dart';
 
 class AboutAppScreen extends StatelessWidget {
   const AboutAppScreen({super.key});
@@ -14,54 +15,38 @@ class AboutAppScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(22, 28, 22, 32),
           children: [
-            Center(
-              child: Container(
-                width: 76,
-                height: 76,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.pine,
-                  borderRadius: BorderRadius.circular(23),
-                ),
-                child: const Text(
-                  'V',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 38,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
+            const Center(
+              child: BrandLogo(size: 76, borderRadius: 23),
             ),
             const SizedBox(height: 18),
             const Text(
-              'VenQore Business Pilot',
+              'VenQore',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 23,
+                fontSize: 24,
                 fontWeight: FontWeight.w800,
                 color: AppColors.ink,
               ),
             ),
             const SizedBox(height: 6),
             const Text(
-              'Version 1.0.0 pilot',
+              'Version 1.1.4',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.inkMuted),
             ),
             const SizedBox(height: 30),
             const _InfoRow(
               label: 'Audience',
-              value: 'Business owners and employees',
+              value: 'Customers, business owners and staff',
             ),
             const _InfoRow(
               label: 'Customer mode',
-              value: 'Planned for a later version',
+              value: 'Online marketplace & store ordering',
             ),
             _InfoRow(label: 'Connected service', value: AppConfig.baseUri.host),
             const _InfoRow(
-              label: 'Offline transactions',
-              value: 'Not available in this pilot',
+              label: 'Platform',
+              value: 'Android & Web',
             ),
             const SizedBox(height: 24),
             Container(
@@ -71,7 +56,7 @@ class AboutAppScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(
-                'This pilot combines native onboarding and app controls with your live VenQore business workspace.',
+                'VenQore unites online marketplace ordering for customers with comprehensive sales, inventory and POS management for businesses.',
                 style: TextStyle(color: AppColors.ink, height: 1.45),
               ),
             ),
