@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronRight, Lock } from 'lucide-react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import FeatureLockBadge from '@/Components/FeatureLockBadge';
 import VenaLogo from '@/Components/VenaLogo';
 import { useNavLabel } from '@/lib/terms';
@@ -69,6 +69,49 @@ export default function SidebarItem({
             hoverTimerRef.current = null;
         }
     }, []);
+
+    const handleOnboardingNav = (e, itemName, targetUrl) => {
+        if (!store?.slug || store?.onboarding_completed || store?.onboarding_step === 'completed') return;
+
+        let targetStep = null;
+        let explicitUrl = targetUrl;
+
+        if (itemName === 'Products') {
+            targetStep = 'inventory_tour';
+        } else if (itemName === 'Purchases') {
+            targetStep = 'purchase_tour';
+            explicitUrl = window.route ? window.route('store.purchases.create', { store_slug: store.slug }) : targetUrl;
+        } else if (itemName === 'Invoices' || itemName === 'New Invoice') {
+            targetStep = 'invoice_tour';
+            explicitUrl = window.route ? window.route('store.sales.invoice.create', { store_slug: store.slug }) : targetUrl;
+        } else if (itemName === 'Point of Sale' || itemName === 'POS') {
+            targetStep = 'pos_tour';
+            explicitUrl = window.route ? window.route('store.pos', { store_slug: store.slug }) : targetUrl;
+        } else if (itemName === 'Expenses') {
+            targetStep = 'expense_tour';
+            explicitUrl = window.route ? window.route('store.expenses.index', { store_slug: store.slug }) : targetUrl;
+        } else if (itemName === 'Store Overview') {
+            targetStep = 'online_store_tour';
+            explicitUrl = window.route ? window.route('store.commerce.home', { store_slug: store.slug }) : targetUrl;
+        }
+
+        if (targetStep && window.route) {
+            e.preventDefault();
+            router.post(
+                window.route('store.onboarding.step', { store_slug: store.slug }),
+                { step: targetStep },
+                {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        router.visit(explicitUrl);
+                    },
+                    onError: () => {
+                        router.visit(explicitUrl);
+                    }
+                }
+            );
+        }
+    };
 
     return (
         <div
@@ -242,17 +285,16 @@ export default function SidebarItem({
                                                     <Lock size={12} className="shrink-0 text-amber-500/80 group-hover/lock:text-amber-500" />
                                                 </Link>
                                             ) : (
-                                                window.route().has(activeRouteName) && (
                                                     <Link
-                                                        id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
+                                                        id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : (itemName === 'Store Overview' ? 'tour-sidebar-store-overview' : undefined))}
                                                         href={window.route(activeRouteName, computedParams)}
+                                                        onClick={(e) => handleOnboardingNav(e, itemName, window.route(activeRouteName, computedParams))}
                                                         className="block pl-4 py-1.5 text-xs font-medium transition-colors text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                                     >
                                                         <span className="flex items-center gap-1.5">
                                                             {navLabel(itemName)}
                                                         </span>
                                                     </Link>
-                                                )
                                             )}
                                         </FeatureLockBadge>
                                     );
@@ -301,6 +343,7 @@ export default function SidebarItem({
                                 window.route().has(routeName) && (
                                     <Link
                                         href={window.route(routeName, routeParams || {})}
+                                        onClick={(e) => handleOnboardingNav(e, itemName, window.route(routeName, routeParams || {}))}
                                         className="block pl-4 py-2 text-xs font-medium transition-colors relative text-ink-muted dark:text-ink-muted hover:text-brand-600 dark:hover:text-brand-400"
                                     >
                                         <span className="flex items-center gap-1.5">

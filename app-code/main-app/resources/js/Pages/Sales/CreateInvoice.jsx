@@ -485,7 +485,10 @@ export default function CreateInvoice({ sale, aiPrefill, approval_correction = n
                        returns, and printing after it never happened. */
                     if (opts?.print && savedId) printSale(savedId);
                     /* Mid-onboarding the tour takes over from here. */
-                    if (store?.onboarding_step === 'invoice_tour') {
+                    const isTourActive = ['invoice_tour', 'invoice_tour_start', 'invoice_tour_sidebar'].includes(store?.onboarding_step)
+                        || (!store?.onboarding_completed && !usePage().props.onboarding_metrics?.has_sales);
+
+                    if (isTourActive) {
                         router.post(
                             route('store.onboarding.step', { store_slug: store?.slug }),
                             { step: 'invoice_congratulations' },

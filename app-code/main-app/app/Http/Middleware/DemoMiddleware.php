@@ -47,11 +47,13 @@ class DemoMiddleware
             ], 403);
         }
 
-        // Rate limit writes
+        // Abuse guard only — not a visitor limit. Demo visitors can make as many
+        // changes as they like; this ceiling is far above anything a person does
+        // by hand and exists so a script cannot hammer the shared demo database.
         if (in_array($request->method(), ['POST', 'PUT', 'PATCH', 'DELETE'])) {
             $writeLimit = RateLimiter::attempt(
                 'demo-write:' . $request->ip(),
-                100,
+                2000,
                 fn() => null,
                 3600
             );
@@ -60,7 +62,7 @@ class DemoMiddleware
                 if ($request->wantsJson() || $request->inertia()) {
                     return response()->json([
                         'demo' => true,
-                        'message' => 'You have made many changes in the demo. Start your free trial for unlimited access.',
+                        'message' => 'The demo is receiving unusually heavy traffic from your connection. Please wait a few minutes and try again.',
                     ], 429);
                 }
                 abort(429, 'Too many write attempts in demo mode.');

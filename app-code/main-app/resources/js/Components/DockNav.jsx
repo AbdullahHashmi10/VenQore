@@ -372,7 +372,14 @@ export default function DockNav({ items, isItemActive, pos, vertical = false, fo
                                                 key={l.label}
                                                 href={l.href}
                                                 role="menuitem"
-                                                onClick={closePanel}
+                                                onClick={() => {
+                                                    closePanel();
+                                                    if (l.label === 'Products' && store?.slug && !store?.onboarding_completed && store?.onboarding_step !== 'completed') {
+                                                        router.post(window.route('store.onboarding.step', { store_slug: store.slug }), { step: 'inventory_tour' }, { preserveScroll: true });
+                                                    } else if (l.label === 'Purchases' && store?.slug && !store?.onboarding_completed && store?.onboarding_step !== 'completed') {
+                                                        router.post(window.route('store.onboarding.step', { store_slug: store.slug }), { step: 'purchase_tour' }, { preserveScroll: true });
+                                                    }
+                                                }}
                                                 id={l.label === 'Products' ? 'tour-sidebar-products' : (l.label === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
                                                 className="flex items-center justify-between gap-2 h-8 px-2.5 rounded-[12px] text-sm text-ink hover:bg-interactive-hover hover:text-brand-700 dark:hover:text-brand-400 transition-colors"
                                             >

@@ -37,11 +37,12 @@ import ConfirmModal from '@/Components/ConfirmModal';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
 import MobileListHeader from '@/Components/MobileListHeader';
+import PurchaseTourGuide from '@/Components/PurchaseTourGuide';
 
 export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {} }) {
     const { t, tp } = useTerms();
     const tt = useTermText();
-    const { store, settings, vensynq_enabled } = usePage().props;
+    const { store, settings, vensynq_enabled, onboarding_metrics } = usePage().props;
     const purchaseNavGroups = usePurchaseNavGroups();
     // Infinite Scroll State
     const [allPurchases, setAllPurchases] = useState(purchases.data || []);
@@ -56,6 +57,19 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
             setNextPageUrl(purchases.next_page_url);
         }
     }, [purchases]);
+
+    // If navigating to purchases during onboarding with 0 purchases, advance straight to create purchase
+    const isEarlyPurchaseOnboarding = !store?.onboarding_completed && !onboarding_metrics?.has_purchases;
+    const isPurchaseTourActive = ['purchase_tour', 'purchase_tour_sidebar', 'purchase_tour_start'].includes(store?.onboarding_step)
+        || isEarlyPurchaseOnboarding;
+
+    useEffect(() => {
+        if (store?.slug && isPurchaseTourActive) {
+            if (purchases?.total === 0 || allPurchases.length === 0) {
+                router.visit(route('store.purchases.create', { store_slug: store.slug }));
+            }
+        }
+    }, [store?.slug, isPurchaseTourActive, purchases?.total, allPurchases.length]);
 
     // Parse URL params for sync
     const params = new URLSearchParams(window.location.search);
@@ -345,7 +359,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             <button type="button" className="h-10 w-10 flex items-center justify-center rounded-[12px] text-ink-muted hover:bg-interactive-hover transition-colors" title="Print" onClick={() => PrintService.printPage()}>
                                 <Printer size={18} />
                             </button>
-                            <ListAddButton icon={Plus} href={route('store.purchases.create', { store_slug: store?.slug })}>New Purchase</ListAddButton>
+                            <ListAddButton id="tour-new-purchase-btn" icon={Plus} href={route('store.purchases.create', { store_slug: store?.slug })}>New Purchase</ListAddButton>
                         </>
                     )}
                 />
@@ -864,6 +878,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     </div>
                 </div>
             )}
+            <PurchaseTourGuide store={store} />
         </OneGlanceLayout>
     );
 };

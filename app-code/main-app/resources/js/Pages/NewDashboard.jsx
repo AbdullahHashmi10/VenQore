@@ -48,6 +48,7 @@ import GlassIcons from '@/Components/ReactBits/GlassIcons';
 import V6FinancialSidebar from '@/Components/V6FinancialSidebar';
 import RightPanel from '@/Components/RightPanel';
 import PaymentModal from '@/Components/PaymentModal';
+import WelcomeTourModal from '@/Components/WelcomeTourModal';
 import RECKONER_CATALOG from './ReckonerCatalog.json';
 
 /* ══ human copy ════════════════════════════════════════════════════════════
@@ -2811,7 +2812,9 @@ function cardFrame(c, opts){
   const place = pinned
     ? `grid-column:${colStart} / span ${colSpan};grid-row:${rowStart} / span ${rowSpan};`
     : "";
-  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${colSpan}" data-h="${rowSpan}"
+  const readingKey = c.reading || c.key || '';
+  const cardDomId = c.reading ? `vqc-reading-${String(c.reading).replace(/\./g, '-')}` : (c.id ? `vqc-card-${c.id}` : '');
+  return `<article class="${cls}" data-id="${c.id}" data-cat="${cat}" data-w="${colSpan}" data-h="${rowSpan}" data-reading="${esc(readingKey)}" ${cardDomId ? `id="${cardDomId}"` : ''}
     tabindex="0" draggable="false"
     style="--i:${CARDS.indexOf(c)};--vqw:${colSpan};--vqh:${rowSpan};${place}">
     ${opts.body}
@@ -4517,7 +4520,7 @@ const PANEL_DESIGNS = [
 ];
 
 const RAIL_DEFS = [
-  { id: 'v6_cockpit', name: 'VenQore V6 Financial Cockpit', modules: ['bank_accounts', 'pos'],
+  { id: 'v6_cockpit', name: 'VenQore V6 Financial Cockpit', modules: [],
     desc: 'Total balance, instant action buttons, cash in hand, stock value, bank accounts and expanded activity.' },
   { id: 'classic_panel', name: 'Classic Right Panel', modules: ['bank_accounts'],
     desc: 'Original right panel with quick actions, cash balance, and activity feed.' },
@@ -5055,17 +5058,20 @@ export default function NewDashboard(props) {
   /* ── the right side panel ────────────────────────────────────────────── */
   const RAILS_KEY = `vq-dashboard-v6-rails:${storeSlug || 'default'}`;
   const [railPrefs, setRailPrefsState] = useState(() => {
-    const base = { design: null, sticky: true, width: 340, collapsed: false };
+    const base = { design: 'v6_cockpit', sticky: true, width: 340, collapsed: false };
     try {
-      const v = JSON.parse(localStorage.getItem(RAILS_KEY) || 'null');
-      if (v && typeof v.design === 'string') return { ...base, ...v };
-      /* older payloads composed rails by hand — map them onto the nearest design */
-      const ids = Array.isArray(v) ? v : (v && Array.isArray(v.ids) ? v.ids : null);
-      if (ids && ids.length){
-        const design = ids.includes('balances') ? 'money'
-          : ids.includes('alerts') ? 'operations'
-          : ids.includes('targets') ? 'growth' : 'minimal';
-        return { ...base, ...(v && !Array.isArray(v) ? v : {}), ids: undefined, design };
+      const raw = localStorage.getItem(RAILS_KEY);
+      if (raw !== null) {
+        const v = JSON.parse(raw);
+        if (v && Object.prototype.hasOwnProperty.call(v, 'design')) return { ...base, ...v };
+        /* older payloads composed rails by hand — map them onto the nearest design */
+        const ids = Array.isArray(v) ? v : (v && Array.isArray(v.ids) ? v.ids : null);
+        if (ids && ids.length){
+          const design = ids.includes('balances') ? 'money'
+            : ids.includes('alerts') ? 'operations'
+            : ids.includes('targets') ? 'growth' : 'minimal';
+          return { ...base, ...(v && !Array.isArray(v) ? v : {}), ids: undefined, design };
+        }
       }
     } catch {}
     return base;
@@ -5094,7 +5100,7 @@ export default function NewDashboard(props) {
     return def.modules.some(m => mods.includes(m));
   };
   const availableRailDefs = RAIL_DEFS.filter(railAvailable);
-  const railsFit = vw >= 1360;                    /* the panel needs real width */
+  const railsFit = vw >= 1280;                    /* the panel needs real width */
   const chosenRails = panelDesign
     ? panelDesign.rails.filter(id => availableRailDefs.some(d => d.id === id))
     : [];
@@ -5801,8 +5807,8 @@ export default function NewDashboard(props) {
                   </section>
                 )}
                 <div className="vq-grid" id="board" />
-                <div className="vq-board-foot" role="toolbar" aria-label="Add and arrange cards">
-                  <button type="button" className="vq-foot-add" onClick={() => openPicker(0)}>
+                <div className="vq-board-foot" id="tour-customize-toolbar" role="toolbar" aria-label="Add and arrange cards">
+                  <button type="button" className="vq-foot-add" id="tour-foot-add" onClick={() => openPicker(0)}>
                     <span className="vq-foot-plus" aria-hidden="true"><Plus size={18} strokeWidth={2.4} /></span>
                     <span><b>Add a card</b><small>Pick any reading and how it looks</small></span>
                   </button>
@@ -6173,6 +6179,9 @@ export default function NewDashboard(props) {
           <div className="panel-b" id="lib-body" />
         </div>
       </aside>
+
+      {/* Onboarding Welcome Tour & Empty Dashboard Walkthrough */}
+      <WelcomeTourModal store={store} />
 
       </div>
     </OneGlanceLayout>

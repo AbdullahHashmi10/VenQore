@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Product extends Model
 {
-    use \Illuminate\Database\Eloquent\Factories\HasFactory, SoftDeletes, HasUuids, HasTenant, \App\Traits\HasActivityLog;
+    use \Illuminate\Database\Eloquent\Factories\HasFactory, SoftDeletes, HasUuids, HasTenant, \App\Traits\HasActivityLog, \App\Traits\DemoVisitorScoped;
 
     protected $fillable = [
         'tenant_id', 'name', 'sku', 'type', 'category_id', 'brand_id',

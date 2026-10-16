@@ -10,7 +10,7 @@ use App\Traits\HasTenant;
 
 class Party extends Model
 {
-    use HasUuids, HasTenant, SoftDeletes, HasFactory;
+    use HasUuids, HasTenant, SoftDeletes, HasFactory, \App\Traits\DemoVisitorScoped;
 
     protected $fillable = [
         'tenant_id', 'name', 'phone', 'email', 'type', 'category', 'sub_category',

@@ -1,4 +1,8 @@
-# FEATURES.md — Complete Feature Inventory & Prioritized Backlog
+# FEATURES.md — Feature documentation index and historical backlog
+
+> **Current review, 16 October 2026:** start with the [source-backed feature catalog](product-audit/FEATURE_CATALOG.md), [customer problems and workflows](product-audit/CUSTOMER_PROBLEMS_AND_WORKFLOWS.md), and [outcome-led sector marketing](product-audit/MARKETING_BY_BUSINESS.md). All registered business types and starting setups are mapped in [business coverage](product-audit/BUSINESS_TYPE_COVERAGE.md). Read [verification status](product-audit/VERIFICATION_AND_CLAIMS.md) before treating a capability as tested or ready to promise.
+>
+> The material below is preserved as a **historical inventory/backlog**, not a current availability or release statement. Its version label, approximate counts and missing-feature rankings are stale. For example, the current source includes two-factor authentication, service jobs, Front of House and a mobile pilot. Current internal counts deliberately separate modules, capabilities, report destinations and metrics; customer-facing copy leads with business outcomes.
 
 > Rankings: Impact / Difficulty / Revenue / Retention / Moat / Cost / Demand, each Low–Med–High–VHigh. Derived from code (routes, controllers, pages) — this is what actually exists, not marketing claims.
 

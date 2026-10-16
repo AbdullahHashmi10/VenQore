@@ -1,464 +1,539 @@
 import React, { useState, useEffect } from 'react';
-import { router } from '@inertiajs/react';
-import { Sparkles, ArrowRight, ArrowLeft, Trophy, Home } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { router, usePage } from '@inertiajs/react';
+import { Sparkles, ArrowRight, ArrowLeft, Trophy, Package, X } from 'lucide-react';
 import axios from 'axios';
 import { useTermText } from '@/lib/terms';
 
-export default function PurchaseTourGuide({ store }) {
- const tt = useTermText();
- const [hasSuppliers, setHasSuppliers] = useState(true);
- const [isSupplierCreationPath, setIsSupplierCreationPath] = useState(null);
- const [currentStep, setCurrentStep] = useState(0);
- const [coords, setCoords] = useState(null);
- const [isMobile, setIsMobile] = useState(false);
+export default function PurchaseTourGuide({ store, suppliers = [] }) {
+    const tt = useTermText();
+    const { onboarding_metrics } = usePage().props;
+    const initialEmpty = Array.isArray(suppliers) ? suppliers.length === 0 : false;
+    const [hasSuppliers, setHasSuppliers] = useState(() => !initialEmpty);
+    const [isSupplierCreationPath, setIsSupplierCreationPath] = useState(() => initialEmpty);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [coords, setCoords] = useState(null);
+    const [isMobile, setIsMobile] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(false);
 
- // Only run if the onboarding step is 'purchase_tour' or 'purchase_congratulations'
- const isVisible = store?.onboarding_step === 'purchase_tour' || store?.onboarding_step === 'purchase_congratulations';
+    const renderPortal = (content) => {
+        if (typeof document === 'undefined') return null;
+        return createPortal(content, document.body);
+    };
 
- useEffect(() => {
- if (isVisible) {
- axios.get(route('store.suppliers.search', { store_slug: store?.slug }), { params: { search: '' } })
- .then(res => {
- const list = res.data || [];
- const empty = list.length === 0;
- setHasSuppliers(!empty);
- if (isSupplierCreationPath === null) {
- setIsSupplierCreationPath(empty);
- }
- })
- .catch(err => console.error('Failed to search suppliers:', err));
- }
- }, [isVisible, store?.slug]);
+    const isEarlyOnboarding = !store?.onboarding_completed && !onboarding_metrics?.has_purchases;
+    const isVisible = ['purchase_tour', 'purchase_congratulations', 'purchase_tour_sidebar', 'purchase_tour_start'].includes(store?.onboarding_step)
+        || isEarlyOnboarding;
 
- // Track mobile view
- useEffect(() => {
- const checkMobile = () => setIsMobile(window.innerWidth < 768);
- checkMobile();
- window.addEventListener('resize', checkMobile);
- return () => window.removeEventListener('resize', checkMobile);
- }, []);
+    // Promote step to purchase_tour if entering purchases create during onboarding
+    useEffect(() => {
+        if (store?.slug && !store?.onboarding_completed && (store?.onboarding_step === 'purchase_tour_sidebar' || store?.onboarding_step === 'purchase_tour_start' || isEarlyOnboarding)) {
+            if (store?.onboarding_step !== 'purchase_tour' && store?.onboarding_step !== 'purchase_congratulations') {
+                router.post(
+                    route('store.onboarding.step', { store_slug: store.slug }),
+                    { step: 'purchase_tour' },
+                    { preserveScroll: true }
+                );
+            }
+        }
+    }, [store?.slug, store?.onboarding_step, store?.onboarding_completed, isEarlyOnboarding]);
 
- // Get DOM IDs for each step
- const getTargetId = (step) => {
- if (isSupplierCreationPath) {
- switch (step) {
- case 0: return 'tour-purchase-supplier';
- case 1: return 'tour-add-new-party-btn';
- case 2: return 'tour-party-name';
- case 3: return 'tour-party-phone';
- case 4: return 'tour-party-address';
- case 5: return 'tour-party-submit';
- case 6: return 'tour-purchase-product';
- case 7: return 'tour-purchase-quantity';
- case 8: return 'tour-purchase-cost';
- case 9: return 'tour-purchase-paid';
- case 10: return 'tour-purchase-save';
- case 11: return 'tour-new-transaction';
- default: return null;
- }
- } else {
- switch (step) {
- case 0: return 'tour-purchase-supplier';
- case 1: return 'tour-purchase-product';
- case 2: return 'tour-purchase-quantity';
- case 3: return 'tour-purchase-cost';
- case 4: return 'tour-purchase-paid';
- case 5: return 'tour-purchase-save';
- case 6: return 'tour-new-transaction';
- default: return null;
- }
- }
- };
+    // Check if store has suppliers if suppliers array prop wasn't preloaded
+    useEffect(() => {
+        if (Array.isArray(suppliers) && suppliers.length > 0) {
+            setHasSuppliers(true);
+            setIsSupplierCreationPath(false);
+            return;
+        }
 
- // Auto-advance logic
- useEffect(() => {
- if (!isVisible) return;
+        if (isVisible && (!suppliers || suppliers.length === 0)) {
+            axios.get(route('store.parties.search', { store_slug: store?.slug }), { params: { query: '', type: 'supplier' } })
+                .then(res => {
+                    const list = res.data || [];
+                    const empty = list.length === 0;
+                    setHasSuppliers(!empty);
+                    setIsSupplierCreationPath(empty);
+                })
+                .catch(() => {
+                    // Default to supplier creation path if no suppliers found
+                    setHasSuppliers(false);
+                    setIsSupplierCreationPath(true);
+                });
+        }
+    }, [isVisible, store?.slug, suppliers]);
 
- const interval = setInterval(() => {
- const activeId = document.activeElement?.id;
+    // Track mobile view
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
- if (isSupplierCreationPath) {
- if (currentStep === 0) {
- if (document.getElementById('tour-add-new-party-btn')) setCurrentStep(1);
- } else if (currentStep === 1) {
- if (document.getElementById('tour-party-name')) setCurrentStep(2);
- } else if (currentStep === 2) {
- if (activeId === 'tour-party-phone') setCurrentStep(3);
- } else if (currentStep === 3) {
- if (activeId === 'tour-party-address') setCurrentStep(4);
- } else if (currentStep === 4) {
- if (activeId === 'tour-party-submit') setCurrentStep(5);
- } else if (currentStep === 5) {
- if (!document.getElementById('tour-party-name')) setCurrentStep(6);
- } else if (currentStep === 10) {
- if (document.getElementById('tour-new-transaction')) setCurrentStep(11);
- }
- } else {
- if (currentStep === 5) {
- if (document.getElementById('tour-new-transaction')) setCurrentStep(6);
- }
- }
- }, 150);
+    // Get DOM IDs for each step with fallback awareness
+    const getTargetId = (step) => {
+        if (isSupplierCreationPath) {
+            switch (step) {
+                case 0: return 'tour-purchase-supplier';
+                case 1: return 'tour-add-new-party-btn';
+                case 2: return 'tour-party-name';
+                case 3: return 'tour-party-phone';
+                case 4: return 'tour-party-address';
+                case 5: return 'tour-party-submit';
+                case 6: return 'tour-purchase-product';
+                case 7: return 'tour-purchase-quantity';
+                case 8: return 'tour-purchase-cost';
+                case 9: return 'tour-purchase-paid';
+                case 10: return 'tour-purchase-save';
+                default: return null;
+            }
+        } else {
+            switch (step) {
+                case 0: return 'tour-purchase-supplier';
+                case 1: return 'tour-purchase-product';
+                case 2: return 'tour-purchase-quantity';
+                case 3: return 'tour-purchase-cost';
+                case 4: return 'tour-purchase-paid';
+                case 5: return 'tour-purchase-save';
+                default: return null;
+            }
+        }
+    };
 
- return () => clearInterval(interval);
- }, [currentStep, isVisible, isSupplierCreationPath]);
+    // Auto-advance logic on interaction
+    useEffect(() => {
+        if (!isVisible || isDismissed) return;
 
- // Scroll active element into view and update coordinates
- useEffect(() => {
- if (!isVisible || store?.onboarding_step === 'purchase_congratulations') {
- setCoords(null);
- return;
- }
+        const interval = setInterval(() => {
+            const activeId = document.activeElement?.id;
 
- const targetId = getTargetId(currentStep);
- if (!targetId) {
- setCoords(null);
- return;
- }
+            if (isSupplierCreationPath) {
+                if (currentStep === 0) {
+                    if (document.getElementById('tour-add-new-party-btn')) setCurrentStep(1);
+                } else if (currentStep === 1) {
+                    if (document.getElementById('tour-party-name')) setCurrentStep(2);
+                } else if (currentStep === 2) {
+                    if (activeId === 'tour-party-phone') setCurrentStep(3);
+                } else if (currentStep === 3) {
+                    if (activeId === 'tour-party-address') setCurrentStep(4);
+                } else if (currentStep === 4) {
+                    if (activeId === 'tour-party-submit') setCurrentStep(5);
+                } else if (currentStep === 5) {
+                    if (!document.getElementById('tour-party-name')) setCurrentStep(6);
+                } else if (currentStep === 6) {
+                    if (activeId === 'tour-purchase-quantity') setCurrentStep(7);
+                } else if (currentStep === 7) {
+                    if (activeId === 'tour-purchase-cost' || activeId === 'tour-invoice-rate') setCurrentStep(8);
+                } else if (currentStep === 8) {
+                    if (activeId === 'tour-purchase-paid' || activeId === 'tour-invoice-paid' || document.getElementById('tour-purchase-paid-row')?.contains(document.activeElement)) setCurrentStep(9);
+                } else if (currentStep === 9) {
+                    if (activeId === 'tour-purchase-save' || activeId === 'tour-invoice-complete') setCurrentStep(10);
+                }
+            } else {
+                if (currentStep === 0) {
+                    if (document.getElementById('tour-party-name')) {
+                        setIsSupplierCreationPath(true);
+                        setCurrentStep(2);
+                    } else if (activeId === 'tour-purchase-product' || activeId === 'tour-invoice-product') {
+                        setCurrentStep(1);
+                    }
+                } else if (currentStep === 1) {
+                    if (activeId === 'tour-purchase-quantity') setCurrentStep(2);
+                } else if (currentStep === 2) {
+                    if (activeId === 'tour-purchase-cost' || activeId === 'tour-invoice-rate') setCurrentStep(3);
+                } else if (currentStep === 3) {
+                    if (activeId === 'tour-purchase-paid' || activeId === 'tour-invoice-paid' || document.getElementById('tour-purchase-paid-row')?.contains(document.activeElement)) setCurrentStep(4);
+                } else if (currentStep === 4) {
+                    if (activeId === 'tour-purchase-save' || activeId === 'tour-invoice-complete') setCurrentStep(5);
+                }
+            }
+        }, 150);
 
- const updateCoords = () => {
- const el = document.getElementById(targetId);
- if (el) {
- const rect = el.getBoundingClientRect();
- setCoords({
- top: rect.top,
- left: rect.left,
- width: rect.width,
- height: rect.height,
- });
- } else {
- setCoords(null);
- }
- };
+        return () => clearInterval(interval);
+    }, [currentStep, isVisible, isDismissed, isSupplierCreationPath]);
 
- const el = document.getElementById(targetId);
- if (el) {
- el.scrollIntoView({ behavior: 'smooth', block: 'center' });
- }
+    // Scroll active element into view and update spotlight coordinates
+    useEffect(() => {
+        if (!isVisible || isDismissed || store?.onboarding_step === 'purchase_congratulations') {
+            setCoords(null);
+            return;
+        }
 
- const timer = setTimeout(updateCoords, 300);
- window.addEventListener('resize', updateCoords);
- window.addEventListener('scroll', updateCoords, true);
+        const updateCoords = () => {
+            const targetId = getTargetId(currentStep);
+            if (!targetId) {
+                setCoords(null);
+                return;
+            }
+            const el = document.getElementById(targetId) ||
+                       (targetId === 'tour-purchase-supplier' ? document.getElementById('tour-invoice-customer') : null) ||
+                       (targetId === 'tour-purchase-product' ? document.getElementById('tour-invoice-product') : null) ||
+                       (targetId === 'tour-purchase-cost' ? document.getElementById('tour-invoice-rate') : null) ||
+                       (targetId === 'tour-purchase-paid' ? (document.getElementById('tour-purchase-paid') || document.getElementById('tour-purchase-paid-row') || document.getElementById('tour-invoice-paid')) : null) ||
+                       (targetId === 'tour-purchase-save' ? document.getElementById('tour-invoice-complete') : null);
+            if (el) {
+                const rect = el.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    setCoords({
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height,
+                    });
+                    return;
+                }
+            }
+            setCoords(null);
+        };
 
- const interval = setInterval(updateCoords, 80);
+        const targetId = getTargetId(currentStep);
+        const el = document.getElementById(targetId) ||
+                   (targetId === 'tour-purchase-supplier' ? document.getElementById('tour-invoice-customer') : null);
+        if (el && typeof el.scrollIntoView === 'function') {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
 
- return () => {
- clearTimeout(timer);
- clearInterval(interval);
- window.removeEventListener('resize', updateCoords);
- window.removeEventListener('scroll', updateCoords, true);
- };
- }, [currentStep, isVisible, store?.onboarding_step, isSupplierCreationPath]);
+        const timer = setTimeout(updateCoords, 100);
+        window.addEventListener('resize', updateCoords);
+        window.addEventListener('scroll', updateCoords, true);
 
- const handleStartInvoiceTour = () => {
- router.post(
- route('store.onboarding.step', { store_slug: store?.slug }),
- { step: 'invoice_tour_start' },
- {
- onSuccess: () => {
- router.visit(route('store.dashboard', { store_slug: store?.slug }));
- }
- }
- );
- };
+        const interval = setInterval(updateCoords, 80);
 
- const handleStartPosTour = () => {
- router.post(
- route('store.onboarding.step', { store_slug: store?.slug }),
- { step: 'pos_tour_start' },
- {
- onSuccess: () => {
- router.visit(route('store.dashboard', { store_slug: store?.slug }));
- }
- }
- );
- };
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+            window.removeEventListener('resize', updateCoords);
+            window.removeEventListener('scroll', updateCoords, true);
+        };
+    }, [currentStep, isVisible, isDismissed, store?.onboarding_step, isSupplierCreationPath]);
 
- const handleCompleteTour = () => {
- router.post(
- route('store.onboarding.step', { store_slug: store?.slug }),
- { step: 'completed' },
- {
- onSuccess: () => {
- router.visit(route('store.dashboard', { store_slug: store?.slug }));
- }
- }
- );
- };
+    const handleStartInvoiceTour = () => {
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'invoice_tour_start' },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.visit(route('store.sales.invoice.create', { store_slug: store?.slug }));
+                }
+            }
+        );
+    };
 
- if (!isVisible) return null;
+    const handleStartPosTour = () => {
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'pos_tour_start' },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.visit(route('store.pos', { store_slug: store?.slug }));
+                }
+            }
+        );
+    };
 
- // Renders the Congratulations Modal at the end of the tour
- if (store?.onboarding_step === 'purchase_congratulations') {
- return (
- <div className="fixed inset-0 z-drawer flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
- <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
+    const handleCompleteTour = () => {
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'completed' },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.visit(route('store.dashboard', { store_slug: store?.slug }));
+                }
+            }
+        );
+    };
 
- <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-drawer animate-in zoom-in-95 duration-slow">
- <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
- 
- <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
- <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    if (!isVisible || isDismissed) return null;
 
- <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
- <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-glow mb-6 animate-bounce">
- <Trophy className="text-white w-8 h-8" />
- </div>
+    // Renders the Congratulations Modal at the end of the tour
+    if (store?.onboarding_step === 'purchase_congratulations') {
+        return renderPortal(
+            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 overflow-y-auto">
+                <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300" />
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                    <div className="flex flex-col items-center text-center relative z-10">
+                        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center mb-5 shadow-sm">
+                            <Trophy size={28} className="animate-bounce" />
+                        </div>
 
- <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
- Stock Added! 🎉
- </h2>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 mb-3">
+                            Step 2 Complete
+                        </span>
 
- <p className="text-ink-muted text-sm font-semibold mb-2">
- Your first purchase was recorded successfully!
- </p>
+                        <h2 className="text-2xl md:text-3xl font-extrabold text-ink tracking-tight mb-2">
+                            Stock Added! 🎉
+                        </h2>
 
- <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-6">
- Congratulations! You have successfully added stock to your store catalog. Now let's try making your first sale to generate an invoice or POS receipt!
- </p>
+                        <p className="text-sm font-semibold text-ink-secondary mb-2">
+                            Your first purchase was recorded successfully!
+                        </p>
 
- <div className="flex flex-col gap-2.5 w-full">
- <button
- onClick={handleStartInvoiceTour}
- className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-brand text-white font-bold rounded-xl shadow-md transition-all duration-normal active:scale-[0.99] cursor-pointer text-sm"
- >
- <span>Create B2B Invoice</span>
- </button>
- <button
- onClick={handleStartPosTour}
- className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md transition-all duration-normal active:scale-[0.99] cursor-pointer text-sm"
- >
- <span>Go to POS Register</span>
- </button>
- <button
- onClick={handleCompleteTour}
- className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-neutral-800 hover:bg-interactive-hover text-neutral-300 hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal active:scale-[0.99] cursor-pointer text-xs mt-1"
- >
- <span>Skip & Finish Setup</span>
- </button>
- </div>
- </div>
- </div>
- </div>
- </div>
- );
- }
+                        <p className="text-xs text-ink-muted leading-relaxed max-w-sm mb-6">
+                            Congratulations! You have added stock to your inventory catalog. Now let's try making your first sale to generate an invoice or POS receipt!
+                        </p>
 
- const getTooltipStyle = () => {
- if (!coords) return { display: 'none' };
+                        <div className="flex flex-col gap-2.5 w-full">
+                            <button
+                                type="button"
+                                onClick={handleStartInvoiceTour}
+                                className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-accent-fill hover:bg-accent-fill-hover text-accent-on font-bold text-sm shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                            >
+                                <span>Create B2B Invoice</span>
+                                <ArrowRight size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleStartPosTour}
+                                className="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                            >
+                                <span>Go to POS Register</span>
+                                <ArrowRight size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCompleteTour}
+                                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-sunken hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink font-semibold text-xs transition-all cursor-pointer mt-1"
+                            >
+                                <span>Skip & Finish Setup</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
- if (isMobile) {
- return {
- position: 'fixed',
- bottom: '20px',
- left: '50%',
- transform: 'translateX(-50%)',
- width: 'calc(100% - 32px)',
- maxWidth: '360px',
- zIndex: 115,
- };
- }
+    const getTooltipStyle = () => {
+        if (!coords) {
+            return {
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 'calc(100% - 32px)',
+                maxWidth: '360px',
+                zIndex: 160,
+            };
+        }
 
- const spaceOnRight = window.innerWidth - (coords.left + coords.width);
- const spaceOnLeft = coords.left;
+        if (isMobile) {
+            return {
+                position: 'fixed',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 'calc(100% - 32px)',
+                maxWidth: '360px',
+                zIndex: 160,
+            };
+        }
 
- if (spaceOnRight > 340) {
- return {
- position: 'fixed',
- top: coords.top + (coords.height / 2) - 80,
- left: coords.left + coords.width + 20,
- width: '320px',
- zIndex: 115,
- };
- } else if (spaceOnLeft > 340) {
- return {
- position: 'fixed',
- top: coords.top + (coords.height / 2) - 80,
- left: coords.left - 340,
- width: '320px',
- zIndex: 115,
- };
- } else {
- return {
- position: 'fixed',
- top: coords.top + coords.height + 20,
- left: coords.left + (coords.width / 2) - 160,
- width: '320px',
- zIndex: 115,
- };
- }
- };
+        const spaceOnRight = window.innerWidth - (coords.left + coords.width);
+        const spaceOnLeft = coords.left;
 
- return (
- <div className="fixed inset-0 z-drawer overflow-hidden pointer-events-none">
- {/* Dimming Mask / Spotlight */}
- {coords && (
- <div
- className="fixed pointer-events-none transition-all duration-fast ease-out"
- style={{
- top: coords.top - 6,
- left: coords.left - 6,
- width: coords.width + 12,
- height: coords.height + 12,
- borderRadius: '12px',
- boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 15px 5px rgba(99, 102, 241, 0.4), 0 0 0 2px rgb(99, 102, 241)',
- zIndex: 110,
- }}
- />
- )}
+        if (spaceOnRight > 340) {
+            return {
+                position: 'fixed',
+                top: Math.max(20, Math.min(window.innerHeight - 300, coords.top + (coords.height / 2) - 80)),
+                left: coords.left + coords.width + 20,
+                width: '320px',
+                zIndex: 160,
+            };
+        } else if (spaceOnLeft > 340) {
+            return {
+                position: 'fixed',
+                top: Math.max(20, Math.min(window.innerHeight - 300, coords.top + (coords.height / 2) - 80)),
+                left: coords.left - 340,
+                width: '320px',
+                zIndex: 160,
+            };
+        } else {
+            return {
+                position: 'fixed',
+                top: Math.min(window.innerHeight - 280, coords.top + coords.height + 20),
+                left: Math.max(16, coords.left + (coords.width / 2) - 160),
+                width: '320px',
+                zIndex: 160,
+            };
+        }
+    };
 
- {!coords && (
- <div className="fixed inset-0 bg-neutral-950/75 pointer-events-auto z-drawer"></div>
- )}
+    return renderPortal(
+        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
+            {/* Dimming Mask / Spotlight */}
+            {coords && (
+                <div
+                    className="fixed pointer-events-none transition-all duration-fast ease-out"
+                    style={{
+                        top: coords.top - 6,
+                        left: coords.left - 6,
+                        width: coords.width + 12,
+                        height: coords.height + 12,
+                        borderRadius: '12px',
+                        boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
+                        zIndex: 150,
+                    }}
+                />
+            )}
 
- {/* Floating Tooltip */}
- <div
- style={getTooltipStyle()}
- className="bg-neutral-900/95 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
- >
- <div className="flex items-start gap-3 mb-3">
- <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400 shrink-0">
- <Sparkles size={20} className="animate-pulse" />
- </div>
- <div>
- <h4 className="text-sm font-bold text-white uppercase tracking-wider">
- Purchase Tour
- </h4>
- <span className="text-2xs font-semibold text-brand-400">
- Step {currentStep + 1} of {isSupplierCreationPath ? 12 : 7}
- </span>
- </div>
- </div>
+            {!coords && (
+                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-modal"></div>
+            )}
 
- <div className="space-y-4">
- {isSupplierCreationPath ? (
- <>
- {currentStep === 0 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- {tt("You don't have any suppliers yet! Click on the")} <span className="text-white font-bold">Search Party</span> input.
- </p>
- )}
- {currentStep === 1 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Now click <span className="text-white font-bold">+ Create New Party</span> at the bottom of the dropdown.
- </p>
- )}
- {currentStep === 2 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- {tt("Put in the supplier's")} <span className="text-white font-bold">Name</span> inside the modal.
- </p>
- )}
- {currentStep === 3 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Put in their <span className="text-white font-bold">Phone Number</span>.
- </p>
- )}
- {currentStep === 4 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Put in their <span className="text-white font-bold">Address</span>.
- </p>
- )}
- {currentStep === 5 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- {tt('Click')} <span className="text-white font-bold">{tt('Create Supplier')}</span> {tt('to save the supplier.')}
- </p>
- )}
- {currentStep === 6 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- {tt('Great! Now move toward the')} <span className="text-white font-bold">{tt('Search Product')}</span> {tt('option and select the previously created product.')}
- </p>
- )}
- {currentStep === 7 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Set the <span className="text-white font-bold">Quantity</span> of items purchased.
- </p>
- )}
- {currentStep === 8 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Verify the purchase <span className="text-white font-bold">Unit Price</span>.
- </p>
- )}
- {currentStep === 9 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Enter the <span className="text-white font-bold">Amount Paid</span> (leave as 0 if on credit).
- </p>
- )}
- {currentStep === 10 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">Complete Purchase</span> to save the transaction.
- </p>
- )}
- {currentStep === 11 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">NEW TRANSACTION</span> to continue your setup.
- </p>
- )}
- </>
- ) : (
- <>
- {currentStep === 0 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- {tt('Select a')} <span className="text-white font-bold">{tt('Supplier')}</span> you are purchasing from.
- </p>
- )}
- {currentStep === 1 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- {tt('Search and select the')} <span className="text-white font-bold">{tt('Product')}</span> {tt('you created.')}
- </p>
- )}
- {currentStep === 2 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Set the <span className="text-white font-bold">Quantity</span> of items purchased.
- </p>
- )}
- {currentStep === 3 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Verify the purchase <span className="text-white font-bold">Unit Price</span>.
- </p>
- )}
- {currentStep === 4 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Enter the <span className="text-white font-bold">Amount Paid</span>.
- </p>
- )}
- {currentStep === 5 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">Complete Purchase</span> to save the transaction.
- </p>
- )}
- {currentStep === 6 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">NEW TRANSACTION</span> to continue your setup.
- </p>
- )}
- </>
- )}
+            {/* Floating Tooltip Card */}
+            <div
+                style={getTooltipStyle()}
+                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
+            >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2 bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 rounded-lg shrink-0">
+                            <Sparkles size={18} className="animate-pulse" />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-ink uppercase tracking-wider">
+                                Purchase Tour
+                            </h4>
+                            <span className="text-2xs font-semibold text-accent-text">
+                                Step {currentStep + 1} of {isSupplierCreationPath ? 11 : 6}
+                            </span>
+                        </div>
+                    </div>
 
- <div className="flex gap-2 justify-between items-center">
- {currentStep > 0 ? (
- <button
- onClick={() => setCurrentStep(currentStep - 1)}
- className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
- >
- <ArrowLeft size={12} />
- <span>Back</span>
- </button>
- ) : (
- <div />
- )}
+                    <button
+                        type="button"
+                        onClick={() => setIsDismissed(true)}
+                        aria-label="Close tour"
+                        className="-mr-1.5 -mt-1.5 p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors"
+                    >
+                        <X size={15} />
+                    </button>
+                </div>
 
- {currentStep < (isSupplierCreationPath ? 11 : 6) && (
- <button
- onClick={() => setCurrentStep(currentStep + 1)}
- className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
- >
- <span>Next</span>
- <ArrowRight size={12} />
- </button>
- )}
- </div>
- </div>
- </div>
- </div>
- );
+                <div className="space-y-4">
+                    {isSupplierCreationPath ? (
+                        <>
+                            {currentStep === 0 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    {tt("You don't have any suppliers yet! Click on the")} <span className="text-ink font-bold">Search anyone you buy from</span> input.
+                                </p>
+                            )}
+                            {currentStep === 1 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Now click <span className="text-ink font-bold">+ Add a new one</span> at the bottom of the dropdown.
+                                </p>
+                            )}
+                            {currentStep === 2 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    {tt("Put in the supplier's")} <span className="text-ink font-bold">Name</span> inside the modal.
+                                </p>
+                            )}
+                            {currentStep === 3 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Put in their <span className="text-ink font-bold">Phone Number</span>.
+                                </p>
+                            )}
+                            {currentStep === 4 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Put in their <span className="text-ink font-bold">Address</span>.
+                                </p>
+                            )}
+                            {currentStep === 5 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    {tt('Click')} <span className="text-ink font-bold">{tt('Create Supplier')}</span> {tt('to save the supplier.')}
+                                </p>
+                            )}
+                            {currentStep === 6 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    {tt('Great! Now click on the')} <span className="text-ink font-bold">{tt('Search for an item')}</span> {tt('field and select the product you created.')}
+                                </p>
+                            )}
+                            {currentStep === 7 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Set the <span className="text-ink font-bold">Quantity (QTY)</span> of items purchased.
+                                </p>
+                            )}
+                            {currentStep === 8 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Verify or adjust the purchase <span className="text-ink font-bold">Unit Price</span>.
+                                </p>
+                            )}
+                            {currentStep === 9 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Enter the <span className="text-ink font-bold">Amount Paid</span> (or click Exact to settle in full).
+                                </p>
+                            )}
+                            {currentStep === 10 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Click <span className="text-ink font-bold">Record purchase</span> to save this transaction and add stock!
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {currentStep === 0 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    {tt('Select a')} <span className="text-ink font-bold">{tt('Supplier')}</span> you are purchasing stock from.
+                                </p>
+                            )}
+                            {currentStep === 1 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    {tt('Click')} <span className="text-ink font-bold">{tt('Search for an item')}</span> {tt('and pick the product you cataloged.')}
+                                </p>
+                            )}
+                            {currentStep === 2 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Set the <span className="text-ink font-bold">Quantity (QTY)</span> of items purchased.
+                                </p>
+                            )}
+                            {currentStep === 3 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Verify or set the purchase <span className="text-ink font-bold">Unit Price</span>.
+                                </p>
+                            )}
+                            {currentStep === 4 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Enter the <span className="text-ink font-bold">Amount Paid</span> (click Exact to pay in full, or 0 if on credit).
+                                </p>
+                            )}
+                            {currentStep === 5 && (
+                                <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                    Click <span className="text-ink font-bold">Record purchase</span> to save and complete stock addition!
+                                </p>
+                            )}
+                        </>
+                    )}
+
+                    <div className="flex gap-2 justify-between items-center pt-2 border-t border-line">
+                        {currentStep > 0 ? (
+                            <button
+                                type="button"
+                                onClick={() => setCurrentStep(currentStep - 1)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sunken hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink text-xs font-semibold transition-colors cursor-pointer"
+                            >
+                                <ArrowLeft size={12} />
+                                <span>Back</span>
+                            </button>
+                        ) : (
+                            <div />
+                        )}
+
+                        {currentStep < (isSupplierCreationPath ? 10 : 5) && (
+                            <button
+                                type="button"
+                                onClick={() => setCurrentStep(currentStep + 1)}
+                                className="inline-flex items-center gap-1 px-4 py-1.5 rounded-lg bg-accent-fill hover:bg-accent-fill-hover text-accent-on text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-[0.98]"
+                            >
+                                <span>Next</span>
+                                <ArrowRight size={12} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }

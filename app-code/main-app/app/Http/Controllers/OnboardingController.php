@@ -20,18 +20,24 @@ class OnboardingController extends Controller
             $tenant = app('current.tenant');
             $tenant->onboarding_step = $request->step;
             
+            $done = $tenant->onboarding_steps_done ?? [];
             if ($request->step === 'invoice_congratulations') {
-                $done = $tenant->onboarding_steps_done ?? [];
-                if (!in_array('invoice', $done)) {
-                    $done[] = 'invoice';
-                    $tenant->onboarding_steps_done = $done;
-                }
+                if (!in_array('invoice', $done)) $done[] = 'invoice';
+                if (!in_array('sale', $done)) $done[] = 'sale';
+                $tenant->onboarding_steps_done = $done;
             } elseif ($request->step === 'pos_congratulations') {
-                $done = $tenant->onboarding_steps_done ?? [];
-                if (!in_array('pos', $done)) {
-                    $done[] = 'pos';
-                    $tenant->onboarding_steps_done = $done;
-                }
+                if (!in_array('pos', $done)) $done[] = 'pos';
+                if (!in_array('sale', $done)) $done[] = 'sale';
+                $tenant->onboarding_steps_done = $done;
+            } elseif ($request->step === 'purchase_congratulations') {
+                if (!in_array('purchase', $done)) $done[] = 'purchase';
+                $tenant->onboarding_steps_done = $done;
+            } elseif ($request->step === 'expense_congratulations') {
+                if (!in_array('expense', $done)) $done[] = 'expense';
+                $tenant->onboarding_steps_done = $done;
+            } elseif ($request->step === 'congratulations') {
+                if (!in_array('inventory', $done)) $done[] = 'inventory';
+                $tenant->onboarding_steps_done = $done;
             }
 
             if ($request->completed_step) {

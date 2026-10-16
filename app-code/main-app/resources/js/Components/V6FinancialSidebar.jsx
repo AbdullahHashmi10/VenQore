@@ -341,6 +341,7 @@ export default function V6FinancialSidebar({
 
       {/* 3. Cash in Hand Card (rounded-[20px], Label on left, Number on right) */}
       {canViewBalances && <button
+        id="tour-cash-in-hand"
         type="button"
         aria-label="View Cash in Hand Details"
         onClick={() => setIsCashModalOpen(true)}
@@ -362,6 +363,7 @@ export default function V6FinancialSidebar({
 
       {/* 4. Stock Value Card (rounded-[20px], Label on left, Number on right) */}
       {canViewStockValue && <button
+        id="tour-stock-value"
         type="button"
         aria-label="View Stock Inventory Details"
         onClick={() => handleNavigate('store.inventory.index')}

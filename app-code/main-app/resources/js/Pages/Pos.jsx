@@ -114,7 +114,7 @@ const POSInterface = ({
     warehouses = [],
     fohRedirect = false,
 }) => {
-    const { auth, store, modules = [] } = usePage().props;
+    const { auth, store, modules = [], onboarding_metrics } = usePage().props;
     const isPosStaff = Boolean(!auth?.user?.is_owner && auth?.user?.role !== 'owner' && (auth?.user?.is_pos_staff || auth?.user?.membership_type === 'pos'));
 
     /* THE TILL IS A COUNTER. Tables, takeaway tickets, delivery and the floor
@@ -2286,7 +2286,10 @@ const POSInterface = ({
                 </div>
             );
             
-            if (store?.onboarding_step === 'pos_tour') {
+            const isTourActive = ['pos_tour', 'pos_tour_start'].includes(store?.onboarding_step)
+                || (!store?.onboarding_completed && !onboarding_metrics?.has_sales);
+
+            if (isTourActive) {
                 router.post(
                     route('store.onboarding.step', { store_slug: store?.slug }),
                     { step: 'pos_congratulations' },
@@ -3928,7 +3931,7 @@ const POSInterface = ({
     const renderCartLine = (item, index) => {
         const isPaid = !!item.paidSaleId;
         return (
-        <div key={item.cartItemId} className="vq-line bg-surface border border-line hover:border-brand-300 shadow-xs hover:shadow-md group transition-all py-3">
+        <div key={item.cartItemId} id={index === 0 ? 'tour-pos-cart-line' : undefined} className="vq-line bg-surface border border-line hover:border-brand-300 shadow-xs hover:shadow-md group transition-all py-3">
             {/* Index Badge */}
             <span className="vq-line-idx vq-num text-xs sm:text-sm font-bold text-brand-800 dark:text-brand-300 bg-brand-50/80 dark:bg-brand-950/50 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 border border-brand-200/60 font-mono">
                 {index + 1}
@@ -4322,6 +4325,7 @@ const POSInterface = ({
                         {getCurrencySymbol(store || settings)}
                     </span>
                     <input
+                        id="tour-pos-paid-input"
                         ref={cashReceivedInputRef}
                         type="number"
                         value={activeSale.cashReceived}
@@ -6677,7 +6681,7 @@ export default function Pos({
                 warehouses={warehouses}
                 fohRedirect={fohRedirect}
             />
-            <PosTourGuide store={store} />
+            <PosTourGuide store={store} cart={activeSale.cart} />
         </>
     );
 }

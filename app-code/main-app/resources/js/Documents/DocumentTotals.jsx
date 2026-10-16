@@ -169,7 +169,7 @@ export default function DocumentTotals({
                     </div>
 
                     {settles && row('settled') && (
-                        <div id="tour-invoice-paid" className="vqdoc-sum-row edit">
+                        <div id={doc.id === 'purchase-invoice' ? 'tour-purchase-paid-row' : 'tour-invoice-paid-row'} className="vqdoc-sum-row edit">
                             <span className="k">
                                 {totals.settleLabel}
                                 {!locked && (
@@ -206,6 +206,7 @@ export default function DocumentTotals({
                             <span className="v">
                                 <span className="cur">{currency}</span>
                                 <input
+                                    id={doc?.id === 'purchase-invoice' ? 'tour-purchase-paid' : 'tour-invoice-paid'}
                                     type="number" className="vqdoc-cell" value={d.amountPaid ?? 0}
                                     disabled={locked} placeholder="0"
                                     onFocus={(e) => e.target.select()}

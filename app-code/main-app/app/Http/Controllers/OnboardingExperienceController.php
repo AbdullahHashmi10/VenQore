@@ -217,6 +217,13 @@ class OnboardingExperienceController extends Controller
         $tenant->onboarding_step = 'building';
         $tenant->save();
 
+        // Seed tailored categories if the store has no categories yet
+        try {
+            \Database\Seeders\TenantDefaultSeeder::seedCategories($tenant);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return response()->json([
             'success' => true,
             'next_step' => 'building',

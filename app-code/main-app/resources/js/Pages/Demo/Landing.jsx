@@ -1,88 +1,93 @@
-import React from 'react';
-import { Head, useForm } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, User, Shield, Briefcase, Calculator, ShoppingCart, Eye, RefreshCw } from 'lucide-react';
+/**
+ * /demo — one page, one button.
+ *
+ * The button opens a two-step picker: the business first, then who you are in
+ * it. Submitting posts to demo.login, which provisions the shared demo store
+ * with that business's modules and signs the visitor in under that role.
+ * Business types come from the server (BusinessTypes — the same catalogue the
+ * builder uses); the page never keeps a second list.
+ */
+import React, { useEffect, useRef, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import SiteChrome from '@/Components/Site/SiteChrome';
+import DemoPicker from '@/Components/Demo/DemoPicker';
 
-/* Live demo role picker — now inside the shared site chrome (header, footer,
-   cookie consent) and on V6 tokens, so it reads in both themes. The role
-   login is unchanged: a full-page navigation to route('demo.login', {role}). */
-export default function DemoLanding() {
-    const { post, processing } = useForm();
+export default function DemoLanding({
+    businessTypes,
+    primaryRoles = [],
+    specializedRoles = [],
+    initialBusinessType = null,
+    initialRole = 'owner',
+    flash = {},
+}) {
+    const [open, setOpen] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState(flash?.error || null);
+    const triggerRef = useRef(null);
 
-    const roles = [
-        { id: 'owner', name: 'Store Owner', icon: Shield, desc: 'Full access to all features', tone: 'var(--vq-accent-text)' },
-        { id: 'admin', name: 'Store Admin', icon: Briefcase, desc: 'Operations & staff management', tone: 'var(--vq-accent-text)' },
-        { id: 'manager', name: 'Manager', icon: User, desc: 'Reports and floor supervision', tone: 'var(--vq-info)' },
-        { id: 'cashier', name: 'Cashier', icon: ShoppingCart, desc: 'POS checkout only', tone: 'var(--vq-success)' },
-        { id: 'accountant', name: 'Accountant', icon: Calculator, desc: 'Finance and journals', tone: 'var(--vq-danger)' },
-        { id: 'viewer', name: 'Viewer', icon: Eye, desc: 'Read-only reports', tone: 'var(--vq-text-2)' },
-    ];
+    // The server answers "regenerating, try again" as a flash message, not an exception.
+    useEffect(() => { if (flash?.error) setError(flash.error); }, [flash?.error]);
 
-    const loginAs = (roleId) => {
-        window.location.href = route('demo.login', { role: roleId });
+    const close = () => { setOpen(false); triggerRef.current?.focus(); };
+
+    const launch = ({ business, role }) => {
+        if (!business || !role || submitting) return;
+        setSubmitting(true);
+        setError(null);
+        router.post('/demo/login', { business_type: business, role }, {
+            onError: () => setError('Something went wrong opening the demo. Please try again.'),
+            onFinish: () => setSubmitting(false),
+        });
     };
 
     return (
         <SiteChrome underHeader>
-            <Head title="VenQore Live Demo" />
+            <Head>
+                <title>Live demo | VenQore</title>
+                <meta name="description" content="Open a live VenQore store with sample data. Pick your kind of business and who you are in it — no sign-up." />
+                <link rel="canonical" href="https://venqore.com/demo" />
+            </Head>
 
-            <section className="vq-section vq-mc-top">
+            <section className="vq-section vq-dm-hero">
                 <div className="vq-amb" aria-hidden="true"><span className="vq-amb__aurora" style={{ opacity: 0.26 }} /></div>
                 <div className="vq-container" style={{ position: 'relative' }}>
-                    <div className="vq-mc-back">
-                        <a href="/" className="vq-link">
-                            <ArrowLeft size={16} aria-hidden="true" /> Back to VenQore
-                        </a>
-                    </div>
-
-                    <div className="vq-mc-head">
+                    <div className="vq-mc-head vq-mc-head--center">
                         <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">Live demo · no sign-up</span>
-                        <h1 className="vq-display vq-mt-4">Live demo <em className="vq-italic">store.</em></h1>
+                        <h1 className="vq-display vq-mt-4">See your business <em className="vq-italic">running.</em></h1>
                         <p className="vq-lede vq-mt-6">
-                            A real, shared environment with sample data. No sign-up required. Choose a role below to see exactly what that staff member sees.
+                            A real store with real sample data, set up for your kind of business. Two quick choices and you are inside.
                         </p>
+                        <div className="vq-mt-10">
+                            <button
+                                ref={triggerRef}
+                                type="button"
+                                className="vq-btn vq-btn--primary vq-dm-cta"
+                                onClick={() => { setError(null); setOpen(true); }}
+                                aria-haspopup="dialog"
+                            >
+                                <Sparkles size={20} aria-hidden="true" />
+                                Open the live demo
+                                <span className="vq-btn__arrow"><ArrowRight size={18} aria-hidden="true" /></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section className="vq-section vq-mc-body">
-                <div className="vq-container">
-                    <div className="vq-mc-rowhead">
-                        <h2 className="vq-h2">Choose a role</h2>
-                    </div>
-
-                    <div className="vq-grid vq-grid--3">
-                        {roles.map((role) => {
-                            const Icon = role.icon;
-                            return (
-                                <button
-                                    key={role.id}
-                                    type="button"
-                                    onClick={() => loginAs(role.id)}
-                                    disabled={processing}
-                                    className="vq-card vq-card--interactive vq-mc-role"
-                                >
-                                    <span className="vq-mc-icon" style={{ '--tone': role.tone }}>
-                                        <Icon size={22} aria-hidden="true" />
-                                    </span>
-                                    <span className="vq-mc-lcard__title">{role.name}</span>
-                                    <span className="vq-body vq-text-2">{role.desc}</span>
-                                    <span className="vq-mc-lcard__cta vq-mc-role__go">
-                                        Enter as {role.name} <ArrowRight size={15} aria-hidden="true" />
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="vq-mc-callout vq-mc-callout--warning vq-mt-12" role="note">
-                        <RefreshCw size={20} aria-hidden="true" />
-                        <p style={{ color: 'var(--vq-text)', maxWidth: 'none' }}>
-                            The demo store resets automatically every 24 hours. Data is shared among all active demo visitors.
-                        </p>
-                    </div>
-                </div>
-            </section>
+            {open && (
+                <DemoPicker
+                    types={businessTypes}
+                    primaryRoles={primaryRoles}
+                    specializedRoles={specializedRoles}
+                    initialBusiness={initialBusinessType}
+                    initialRole={initialRole}
+                    submitting={submitting}
+                    error={error}
+                    onSubmit={launch}
+                    onClose={close}
+                />
+            )}
         </SiteChrome>
     );
 }

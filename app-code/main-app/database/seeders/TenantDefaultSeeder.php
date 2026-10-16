@@ -7,6 +7,7 @@ use App\Models\Warehouse;
 use App\Models\BankAccount;
 use App\Models\Setting;
 use App\Models\ExpenseCategory;
+use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -27,6 +28,7 @@ class TenantDefaultSeeder
         static::seedDefaultSettings($tenant);
         static::seedDefaultWarehouse($tenant);
         static::seedExpenseCategories($tenant);
+        static::seedCategories($tenant);
         static::seedInitialCashAccount($tenant);
         static::seedAiSettings($tenant);
         static::seedDefaultDashboards($tenant);
@@ -314,6 +316,149 @@ class TenantDefaultSeeder
             ExpenseCategory::updateOrCreate(
                 ['tenant_id' => $tenant->id, 'name' => $name],
                 ['is_active' => true]
+            );
+        }
+    }
+
+    /**
+     * Seeds base product & service categories tailored to the tenant's business type.
+     * Users can keep them, rename them, or delete them anytime.
+     */
+    public static function seedCategories(Tenant $tenant): void
+    {
+        // If the tenant already has categories created, do not overwrite/duplicate
+        if (Category::withoutGlobalScopes()->where('tenant_id', $tenant->id)->exists()) {
+            return;
+        }
+
+        $businessType = $tenant->business_type;
+        $categoryNames = [];
+
+        // 1. Direct business_type category mapping
+        $typeCategoryMap = [
+            // Services & Trades
+            'phone_repair'       => ['Screen Replacements', 'Batteries & Charging', 'Repair Services', 'Accessories & Cables', 'Tempered Glass'],
+            'computer_repair'    => ['Hardware Upgrades', 'Diagnostic & Software', 'Laptop Parts', 'Networking', 'Accessories'],
+            'auto_repair'        => ['Mechanical Repairs', 'Oil & Lubricants', 'Brake Systems', 'Engine Tuning', 'Electrical & Battery'],
+            'appliance_repair'   => ['Spare Parts', 'Inspection & Labour', 'Compressors & Motors', 'Maintenance Kits'],
+            'bike_service'       => ['Tuning & Overhaul', 'Chain & Sprockets', 'Brake Pads & Cables', 'Tyres & Tubes', 'Engine Oil'],
+            'salon_barber'       => ['Haircuts & Styling', 'Beard Grooming', 'Facials & Skincare', 'Hair Treatments', 'Retail Products'],
+            'nail_spa'           => ['Manicure & Pedicure', 'Nail Art & Extensions', 'Polish & Gel', 'Hand & Foot Care'],
+            'pet_care'           => ['Grooming & Wash', 'Veterinary Consultation', 'Pet Boarding', 'Vaccinations'],
+            'freelance_creative' => ['Design & Branding', 'Copywriting & Content', 'Consultation', 'Revisions & Retainers'],
+            'marketing_agency'   => ['Digital Marketing', 'SEO & Analytics', 'Social Media Management', 'Campaign Strategy'],
+            'consultant'         => ['Advisory Sessions', 'Auditing & Review', 'Implementation Support', 'Strategy Retainers'],
+            'accounting_firm'    => ['Bookkeeping Services', 'Tax Filing & Prep', 'Auditing Services', 'Payroll Processing'],
+            'law_firm'           => ['Legal Consultation', 'Contract Drafting', 'Dispute Resolution', 'Retainer Services'],
+            'architect_interior' => ['Architectural Drawings', 'Interior Design Concepts', 'Site Supervision', '3D Visualisation'],
+            'photo_video'        => ['Event Photography', 'Video Production', 'Portrait Sessions', 'Editing & Retouching'],
+            'electrician'        => ['Wiring & Installation', 'Repairs & Troubleshooting', 'Lighting Fixtures', 'Breakers & Panels'],
+            'plumber'            => ['Leak Repair & Piping', 'Sanitary Fittings', 'Drain Cleaning', 'Water Heaters & Pumps'],
+            'carpenter'          => ['Custom Woodwork', 'Furniture Repair', 'Cabinetry & Shelving', 'Door & Window Fitting'],
+            'painter_renovation' => ['Interior Painting', 'Exterior Painting', 'Wall Putty & Prep', 'Waterproofing'],
+            'cleaning'           => ['Deep Cleaning', 'Office & Commercial', 'Carpet & Sofa Cleaning', 'Janitorial Supplies'],
+            'hvac'               => ['AC Installation', 'AC Servicing & Gas', 'Duct Cleaning', 'Heating Maintenance'],
+            'pest_control'       => ['Termite Treatment', 'General Fumigation', 'Rodent Control', 'Preventative Sprays'],
+            'equipment_rental'   => ['Power Tools', 'Heavy Machinery', 'Ladders & Scaffolding', 'Generators'],
+            'event_hire'         => ['Tents & Canopies', 'Sound & Stage', 'Tables & Chairs', 'Lighting & Decor'],
+            'gym_fitness'        => ['Monthly Memberships', 'Personal Training', 'Day Passes', 'Supplements & Drinks'],
+            'tuition_academy'    => ['Subject Courses', 'Exam Prep Coaching', 'Private Tutoring', 'Study Material & Notes'],
+
+            // Retail & Merchandising
+            'grocery'             => ['Fresh Produce', 'Dairy & Eggs', 'Beverages', 'Snacks & Confectionery', 'Staples & Grains', 'Household Cleaners'],
+            'supermarket'         => ['Bakery', 'Frozen Foods', 'Personal Care', 'Dairy & Drinks', 'Household Essentials', 'Canned Goods'],
+            'pharmacy'            => ['Prescription Medicine', 'OTC & Pain Relief', 'Vitamins & Supplements', 'First Aid & Surgical', 'Personal Hygiene', 'Baby Care'],
+            'surgical_supplies'   => ['Surgical Instruments', 'Disposable Supplies', 'Diagnostic Devices', 'Orthopedic Supports', 'Hospital Consumables', 'Sterilization & PPE'],
+            'mobile_retail'       => ['Smartphones', 'Tablets', 'Chargers & Cables', 'Cases & Protectors', 'Earphones & Audio', 'Power Banks'],
+            'electronics'         => ['Televisions & Home Video', 'Laptops & Computers', 'Home Appliances', 'Audio & Speakers', 'Cables & Accessories'],
+            'fashion'             => ["Men's Wear", "Women's Wear", "Kids Wear", 'Footwear', 'Accessories & Bags'],
+            'footwear'            => ['Casual Shoes', 'Formal Shoes', 'Sports & Running', 'Sandals & Slippers', 'Shoe Care Accessories'],
+            'jewellery'           => ['Rings', 'Necklaces & Chains', 'Earrings', 'Bracelets & Bangles', 'Gold & Silver Coins', 'Gemstones'],
+            'cosmetics'           => ['Makeup & Face', 'Skincare', 'Hair Care', 'Fragrances & Perfumes', 'Brushes & Tools', 'Bath & Body'],
+            'hardware'            => ['Hand Tools', 'Power Tools', 'Fasteners & Screws', 'Electrical & Wiring', 'Plumbing & Pipes', 'Paints & Finishes'],
+            'sanitary_supply'     => ['Faucets & Mixers', 'Sanitary Ware & Basins', 'Shower Fittings', 'PVC & PPRC Pipes', 'Tile Adhesives'],
+            'building_materials'  => ['Cement & Concrete', 'Steel & Rebar', 'Bricks & Blocks', 'Aggregates & Sand', 'Waterproofing'],
+            'furniture_store'     => ['Living Room Sofas', 'Beds & Mattresses', 'Dining Sets', 'Office Desks & Chairs', 'Storage & Wardrobes'],
+            'books_stationery'    => ['Fiction & Literature', 'Academic & Textbooks', 'Notebooks & Registers', 'Pens & Writing', 'Art & Craft Supplies', 'Office Supplies'],
+            'toys'                => ['Action Figures & Dolls', 'Educational & STEM', 'Board Games & Puzzles', 'Outdoor & Ride-ons', 'Baby & Toddler Toys'],
+            'pet_supply'          => ['Dog Food', 'Cat Food', 'Treats & Chews', 'Toys & Training', 'Grooming & Shampoo', 'Leashes & Collars'],
+            'auto_parts'          => ['Engine Components', 'Brake Pads & Rotors', 'Suspension & Steering', 'Filters & Plugs', 'Oils & Lubricants', 'Lighting & Bulbs'],
+            'tyre_battery'        => ['Car Tyres', 'Motorcycle Tyres', 'Batteries', 'Alloy Rims', 'Tire Repair & Tubes'],
+            'optical'             => ['Eyeglass Frames', 'Sunglasses', 'Prescription Lenses', 'Contact Lenses', 'Cases & Lens Cleaning'],
+            'gift_flower'         => ['Fresh Bouquets', 'Gift Hampers', 'Greeting Cards', 'Perfume Gifts', 'Custom Keepsakes'],
+            'vape_tobacco'        => ['E-Liquids & Juices', 'Vape Devices & Pods', 'Coils & Cartridges', 'Cigars & Accessories'],
+            'sports'              => ['Cricket & Football Gear', 'Fitness & Gym Gear', 'Racquets & Balls', 'Sportswear & Jerseys', 'Water Bottles & Accessories'],
+            'electrical_lighting' => ['LED Bulbs & Tubes', 'Chandeliers & Lamps', 'Switches & Sockets', 'Wires & Cables', 'Circuit Breakers'],
+            'kitchenware'         => ['Cookware & Pots', 'Tableware & Plates', 'Cutlery & Utensils', 'Kitchen Appliances', 'Storage Jars & Containers'],
+
+            // Food, Beverage & Hospitality
+            'restaurant'    => ['Appetizers & Starters', 'Main Courses', 'BBQ & Grills', 'Sides & Salads', 'Beverages', 'Desserts'],
+            'cafe'          => ['Hot Coffees & Espresso', 'Iced Drinks & Frappes', 'Tea & Infusions', 'Bakery & Sandwiches', 'Breakfast Specials'],
+            'tea_shop'      => ['Karak & Chai', 'Green & Herbal Teas', 'Biscuits & Snacks', 'Cold Beverages'],
+            'bakery'        => ['Fresh Breads & Buns', 'Cakes & Pastries', 'Cookies & Biscuits', 'Savouries & Patties', 'Custom Order Cakes'],
+            'fast_food'     => ['Burgers & Wraps', 'Fried Chicken', 'Pizzas', 'Fries & Sides', 'Cold Drinks & Shakes'],
+            'dessert'       => ['Ice Cream & Gelato', 'Waffles & Crepes', 'Puddings & Custards', 'Chocolates & Brownies'],
+            'juice_bar'     => ['Fresh Fruit Juices', 'Smoothies & Shakes', 'Detox Blends', 'Fruit Bowls & Chaat'],
+            'food_truck'    => ['Signature Specials', 'Quick Bites & Rolls', 'Combo Meals', 'Drinks & Cans'],
+            'sweets'        => ['Traditional Mithai', 'Halwas & Ladoos', 'Barfi & Milk Sweets', 'Dry Fruit Treats'],
+            'catering'      => ['Buffet Packages', 'Corporate Lunch Boxes', 'Wedding Menus', 'Live Cooking Stations'],
+            'cloud_kitchen' => ['Combo Platters', 'Bowls & Rice', 'Wraps & Sandwiches', 'Beverages & Desserts'],
+            'pub_lounge'    => ['Mocktails & Drinks', 'Bar Snacks & Platters', 'Sliders & Wings', 'Main Entrees'],
+
+            // Wholesale, Trade & B2B Distribution
+            'fmcg_wholesale'        => ['Bulk Staples & Rice', 'Edible Oils & Ghee', 'Beverages & Soft Drinks', 'Packaged Confectionery', 'Cleaning Detergents'],
+            'grain_commodities'     => ['Wheat & Flour', 'Rice Varieties', 'Pulses & Lentils', 'Sugar & Salt', 'Animal Feed'],
+            'fabric_stockist'       => ['Cotton & Lawn', 'Silk & Chiffon', 'Linen & Blends', 'Wool & Winter Fabrics', 'Printed Rolls'],
+            'hardware_wholesale'    => ['Bulk Fasteners', 'Hand Tools Cartons', 'Plumbing Supplies', 'Abrasives & Cutting Wheels'],
+            'electrical_wholesale'  => ['Cable Drums', 'Distribution Boards', 'Conduit Pipes & Fittings', 'Switchgear & Breakers'],
+            'pharma_wholesale'      => ['Tablets & Capsules (Cartons)', 'Syrups & Suspensions', 'Injectables', 'Surgical Disposables Bulk'],
+            'tech_distributor'      => ['Laptops & Desktops Bulk', 'Peripherals & Cables', 'Printers & Cartridges', 'Network Switches & APs'],
+            'auto_parts_distributor'=> ['Fast Moving Filters', 'Brake Friction Bulk', 'Suspension Units', 'Engine Lubricants (Drums)'],
+            'packaging'             => ['Corrugated Cartons', 'Plastic Bags & Pouches', 'Tapes & Shrink Film', 'Disposable Containers'],
+            'office_supplies'       => ['A4 Paper Reams', 'Stationery Bundles', 'Cartridges & Toners', 'Filing & Folders'],
+            'chemicals'             => ['Industrial Cleaning Agents', 'Solvents & Thinners', 'Agricultural Fertilizers', 'Raw Chemical Compounds'],
+            'import_export'         => ['General Merchandise', 'Raw Commodities', 'Packaged Goods', 'Clearance Lots'],
+
+            // Light Manufacturing & Assembly
+            'commercial_bakery' => ['Breads & Loaves', 'Buns & Rolls', 'Packaged Cakes', 'Bulk Pastry Sheets'],
+            'tailoring'         => ['Stitching Services', 'Alterations', 'Custom Suits', 'Traditional Wear', 'Fabric & Linings'],
+            'furniture_maker'   => ['Beds & Headboards', 'Dining Tables', 'Wardrobes & Cabinets', 'Custom Joinery'],
+            'coffee_spice'      => ['Roasted Coffee Beans', 'Ground Spices', 'Whole Spices', 'Specialty Blends'],
+            'signage_print'     => ['Banners & Flex Printing', 'Acrylic & 3D Letters', 'Stickers & Labels', 'Digital Signage Panels'],
+            'soap_candle'       => ['Handmade Soaps', 'Scented Candles', 'Wax Melts & Diffusers', 'Body Care Products'],
+            'kit_assembly'      => ['Assembled Toolkits', 'Hardware Kits', 'Electronic Starter Packs', 'Packing Supplies'],
+            'aluminium_glass'   => ['Aluminium Windows', 'Glass Partitions', 'Doors & Entrances', 'Curtain Wall Fittings'],
+            'leather_goods'     => ['Leather Wallets', 'Bags & Backpacks', 'Belts & Accessories', 'Jackets & Wearables'],
+            'custom_merch'      => ['Printed T-Shirts', 'Customised Mugs', 'Corporate Gifts', 'Keychains & Promotional'],
+        ];
+
+        if ($businessType && isset($typeCategoryMap[$businessType])) {
+            $categoryNames = $typeCategoryMap[$businessType];
+        } else {
+            // 2. Fallback to industries.php lookup
+            $industryKey = $tenant->industry ?? 'Retail';
+            $allIndustries = (array) config('industries', []);
+            $matchedKey = collect(array_keys($allIndustries))->first(fn ($k) => strtolower($k) === strtolower((string)$industryKey));
+            if ($matchedKey && !empty($allIndustries[$matchedKey]['categories'])) {
+                $categoryNames = array_keys($allIndustries[$matchedKey]['categories']);
+            }
+        }
+
+        // 3. Fallback to basic retail categories if none matched
+        if (empty($categoryNames)) {
+            $categoryNames = ['General Products', 'Fast Moving Items', 'Special Items', 'Accessories'];
+        }
+
+        foreach ($categoryNames as $name) {
+            Category::firstOrCreate(
+                [
+                    'tenant_id' => $tenant->id,
+                    'name'      => $name,
+                ],
+                [
+                    'id'   => (string) Str::uuid(),
+                    'code' => strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 4)) ?: 'CAT',
+                ]
             );
         }
     }

@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Box, HelpCircle, Trophy, Home, Plus, Upload, Minimize2 } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
 
 export default function ProductTourGuide({ isModalOpen, store, categories = [] }) {
  const tt = useTermText();
+ const { onboarding_metrics } = usePage().props;
+ const isEarlyOnboarding = !store?.onboarding_completed && !onboarding_metrics?.has_products;
+ const isVisible = ['inventory_tour', 'sidebar_stock', 'congratulations', 'inventory_tour_more'].includes(store?.onboarding_step)
+  || isEarlyOnboarding;
  const [isCategoryCreationPath, setIsCategoryCreationPath] = useState(() => categories.length === 0);
  const [currentStep, setCurrentStep] = useState(0);
  const [isMinimized, setIsMinimized] = useState(() => {
@@ -33,6 +37,19 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  setCurrentStep(0);
  }
  }, [isModalOpen]);
+
+ // If arriving on inventory page during onboarding, promote step to inventory_tour
+ useEffect(() => {
+  if (store?.slug && !store?.onboarding_completed && isEarlyOnboarding) {
+   if (store?.onboarding_step !== 'inventory_tour' && store?.onboarding_step !== 'congratulations' && store?.onboarding_step !== 'inventory_tour_more') {
+    router.post(
+     route('store.onboarding.step', { store_slug: store.slug }),
+     { step: 'inventory_tour' },
+     { preserveScroll: true }
+    );
+   }
+  }
+ }, [store?.slug, store?.onboarding_step, store?.onboarding_completed, isEarlyOnboarding]);
 
  // Track mobile view
  useEffect(() => {
@@ -224,12 +241,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  );
  };
 
- if (
- store?.is_demo ||
- (store?.onboarding_step !== 'inventory_tour' &&
- store?.onboarding_step !== 'congratulations' &&
- store?.onboarding_step !== 'inventory_tour_more')
- ) return null;
+ if (store?.is_demo || !isVisible) return null;
 
  if (store?.onboarding_step === 'inventory_tour_more') {
  if (isMinimized) {
@@ -241,12 +253,12 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  <div 
  onClick={() => toggleMinimized(false)}
  title="Onboarding Active: Cataloging Mode (33% Complete). Click to expand."
- className="fixed bottom-24 right-6 z-drawer w-14 h-14 bg-neutral-900/90 dark:bg-app border border-brand-500/30 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto active:scale-95 hover:border-brand-400/50 transition-all duration-slow group"
+ className="fixed bottom-24 right-6 z-drawer w-14 h-14 bg-surface border border-line rounded-full shadow-xl backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto active:scale-95 hover:border-teal-400 transition-all duration-slow group"
  >
  <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 44 44">
  {/* Background Ring */}
  <circle
- className="text-ink dark:text-ink"
+ className="text-line"
  strokeWidth="3.5"
  stroke="currentColor"
  fill="transparent"
@@ -256,7 +268,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  />
  {/* Progress Segment */}
  <circle
- className="text-brand-500 transition-all duration-slower ease-out"
+ className="text-accent-text transition-all duration-slower ease-out"
  strokeWidth="3.5"
  strokeDasharray={circumference}
  strokeDashoffset={progressOffset}
@@ -269,11 +281,11 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  />
  </svg>
  {/* Inner Icon */}
- <div className="relative z-10 text-brand-400 group-hover:text-white transition-colors duration-normal">
+ <div className="relative z-10 text-accent-text group-hover:text-ink transition-colors duration-normal">
  <Sparkles size={18} className="animate-pulse" />
  </div>
  {/* Small badge */}
- <span className="absolute -top-1 -right-1 bg-brand-600 text-4xs font-bold text-white px-1.5 py-0.5 rounded-full shadow">
+ <span className="absolute -top-1 -right-1 bg-accent-fill text-accent-on text-4xs font-bold px-1.5 py-0.5 rounded-full shadow">
  33%
  </span>
  </div>
@@ -282,39 +294,39 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
 
  // Expanded Glassmorphic Banner/Card
  return (
- <div className="fixed bottom-24 right-6 z-drawer max-w-sm w-full bg-neutral-900/95 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-slow pointer-events-auto">
+ <div className="fixed bottom-24 right-6 z-drawer max-w-sm w-full bg-surface border border-line text-ink rounded-2xl shadow-2xl p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-slow pointer-events-auto">
  {/* Minimize Button */}
  <button 
  onClick={() => toggleMinimized(true)}
- className="absolute top-4 right-4 p-1.5 rounded-lg bg-neutral-800 hover:bg-interactive-hover text-ink-muted hover:text-white transition-colors border border-neutral-700/50"
+ className="absolute top-4 right-4 p-1.5 rounded-lg bg-sunken hover:bg-interactive-hover text-ink-muted hover:text-ink transition-colors border border-line"
  title="Minimize to widget"
  >
  <Minimize2 size={12} />
  </button>
 
  <div className="flex items-start gap-3 mb-3">
- <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400 shrink-0">
+ <div className="p-2 bg-accent-quiet text-accent-text rounded-lg shrink-0">
  <Sparkles size={20} className="animate-pulse" />
  </div>
  <div>
- <h4 className="text-sm font-bold text-white uppercase tracking-wider">Onboarding Active</h4>
- <p className="text-2xs text-brand-400 font-semibold uppercase tracking-wide">Cataloging Mode (33%)</p>
+ <h4 className="text-sm font-bold text-ink uppercase tracking-wider">Onboarding Active</h4>
+ <p className="text-2xs text-accent-text font-semibold uppercase tracking-wide">Cataloging Mode (33%)</p>
  </div>
  </div>
- <p className="text-xs text-neutral-300 leading-relaxed font-medium mb-4 pr-6">
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium mb-4 pr-6">
  You can add as many products as you like. When you are done cataloging, click below to proceed or load products in bulk.
  </p>
  <div className="flex flex-col gap-2">
  <button
  onClick={handleGoToDashboard}
- className="w-full py-2.5 px-3 bg-gradient-brand text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]"
+ className="w-full py-2.5 px-3 bg-accent-fill hover:bg-accent-fill-hover text-accent-on font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]"
  >
  <span>Proceed to Buy Stock</span>
  <ArrowRight size={12} />
  </button>
  <button
  onClick={() => handleUpdateStep('completed')}
- className="w-full py-2.5 px-3 bg-neutral-800 hover:bg-interactive-hover border border-neutral-700 text-ink-muted hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.99]"
+ className="w-full py-2.5 px-3 bg-sunken hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink font-semibold rounded-xl text-xs transition-all cursor-pointer active:scale-[0.99]"
  >
  Exit Tour
  </button>
@@ -329,42 +341,45 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
  <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-modal animate-in zoom-in-95 duration-slow">
- <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+ <div className="relative flex flex-col w-full bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink">
  
- <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
- <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+ <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 pointer-events-none opacity-40 dark:opacity-20" style={{ background: 'radial-gradient(ellipse at 50% -20%, #23C4A6 0%, transparent 70%)' }}></div>
 
- <div className="p-4 sm:p-8 flex flex-col items-center text-center relative z-10">
- <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-glow mb-6 animate-bounce">
- <Trophy className="text-white w-8 h-8" />
+ <div className="flex flex-col items-center text-center relative z-10">
+ <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center mb-5 shadow-sm">
+ <Trophy size={28} className="animate-bounce" />
  </div>
 
- <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight mb-3">
+ <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 mb-3">
+ First Step Complete
+ </span>
+
+ <h2 className="text-2xl md:text-3xl font-extrabold text-ink tracking-tight mb-2">
  Congratulations! 🎉
  </h2>
 
- <p className="text-ink-muted text-sm font-semibold mb-2">
+ <p className="text-sm font-semibold text-accent-text mb-2">
  {tt('You have successfully created your first product!')}
  </p>
 
- <p className="text-neutral-300 text-sm leading-relaxed max-w-sm mb-8">
- Great job setting up your initial inventory catalog. What would you like to do next?
+ <p className="text-xs sm:text-sm text-ink-muted leading-relaxed max-w-sm mb-8">
+ Great job setting up your initial catalog! Now you can either return to the dashboard to record purchases/stock or create more items.
  </p>
 
  <div className="flex flex-col gap-3 w-full">
  <button
  onClick={handleGoToDashboard}
- className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-brand text-white font-bold rounded-xl shadow-lg transition-all duration-normal active:scale-[0.98] cursor-pointer"
+ className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-accent-fill hover:bg-accent-fill-hover text-accent-on font-bold rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-sm"
  >
- <Home size={18} />
- <span>Go to Dashboard</span>
+ <Home size={16} />
+ <span>Next: Go to Dashboard</span>
  </button>
 
  <button
  onClick={handleMakeMore}
- className="w-full py-3 px-5 bg-neutral-800/80 hover:bg-interactive-hover text-neutral-300 hover:text-white font-bold rounded-xl border border-neutral-700/60 transition-all duration-normal flex items-center justify-center gap-2 cursor-pointer"
+ className="w-full py-3 px-5 bg-sunken hover:bg-interactive-hover text-ink-secondary hover:text-ink font-semibold rounded-xl border border-line transition-all flex items-center justify-center gap-2 cursor-pointer text-sm"
  >
- <Plus size={18} />
+ <Plus size={16} />
  <span>{tt('Make More Products')}</span>
  </button>
  </div>
@@ -442,31 +457,31 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  width: coords.width + 12,
  height: coords.height + 12,
  borderRadius: currentStep === 0 ? '8px' : '12px',
- boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 15px 5px rgba(99, 102, 241, 0.4), 0 0 0 2px rgb(99, 102, 241)',
+ boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
  zIndex: 150,
  }}
  />
  )}
 
  {!coords && (
- <div className="fixed inset-0 bg-neutral-950/75 pointer-events-none z-modal"></div>
+ <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-modal"></div>
  )}
 
  {/* Floating Tooltip */}
  <div
  style={getTooltipStyle()}
- className="bg-neutral-900/95 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
+ className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
  >
  {/* Content */}
  <div className="flex items-start gap-3 mb-3">
- <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400 shrink-0">
- <Sparkles size={20} className="animate-pulse" />
+ <div className="p-2 bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 rounded-lg shrink-0">
+ <Sparkles size={18} className="animate-pulse" />
  </div>
  <div>
- <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+ <h4 className="text-sm font-bold text-ink uppercase tracking-wider">
  {currentStep === 0 ? tt('Create Product') : tt('Product Guide')}
  </h4>
- <span className="text-2xs font-semibold text-brand-400">
+ <span className="text-2xs font-semibold text-accent-text">
  Step {currentStep + 1} of {isCategoryCreationPath ? 12 : 10}
  </span>
  </div>
@@ -476,49 +491,49 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  {isCategoryCreationPath ? (
  <>
  {currentStep === 0 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Let's add your first product. Click on the highlighted <span className="text-white font-bold">{tt('Add Product')}</span> button to open the product creator form.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Let's add your first product. Click on the highlighted <span className="text-ink font-bold">{tt('Add Product')}</span> button to open the product creator form.
  </p>
  )}
  {currentStep === 1 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Type a <span className="text-white font-bold">Product Name</span> here.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Type a <span className="text-ink font-bold">Product Name</span> here.
  </p>
  )}
  {currentStep === 2 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Type a custom product code in the <span className="text-white font-bold">SKU</span> box, or auto-generate one.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Type a custom product code in the <span className="text-ink font-bold">SKU</span> box, or auto-generate one.
  </p>
  )}
  {currentStep === 3 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- You don't have any categories yet! Click on the <span className="text-white font-bold">Category</span> selection box.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ You don't have any categories yet! Click on the <span className="text-ink font-bold">Category</span> selection box.
  </p>
  )}
  {currentStep === 4 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Click <span className="text-white font-bold">+ Create New Category</span> at the bottom of the dropdown list.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Click <span className="text-ink font-bold">+ Create New Category</span> at the bottom of the dropdown list.
  </p>
  )}
  {currentStep === 5 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Type a name for your new category (e.g. <span className="text-white font-bold">Beverages</span>) to create it inline.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Type a name for your new category (e.g. <span className="text-ink font-bold">Beverages</span>) to create it inline.
  </p>
  )}
  {currentStep === 6 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Set your <span className="text-white font-bold">Cost Price</span>.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Set your <span className="text-ink font-bold">Cost Price</span>.
  </p>
  )}
  {currentStep === 7 && (
  <div className="space-y-2">
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Set your <span className="text-white font-bold">Selling Price</span>.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Set your <span className="text-ink font-bold">Selling Price</span>.
  </p>
  {liveMargin ? (
- <div className="p-2.5 rounded-xl bg-neutral-800 border border-neutral-700/50">
+ <div className="p-2.5 rounded-xl bg-sunken border border-line">
  <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">Live Profit Analysis</p>
- <p className="text-xs font-bold text-neutral-200 mt-0.5">
+ <p className="text-xs font-bold text-ink mt-0.5">
  Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
  </p>
  </div>
@@ -526,62 +541,62 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  </div>
  )}
  {currentStep === 8 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- In the <span className="text-white font-bold">Barcodes</span> section, you can add barcode tags if needed.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ In the <span className="text-ink font-bold">Barcodes</span> section, you can add barcode tags if needed.
  </p>
  )}
  {currentStep === 9 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- The <span className="text-white font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ The <span className="text-ink font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices.
  </p>
  )}
  {currentStep === 10 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- The <span className="text-white font-bold">Extra</span> tab handles additional details like images and descriptions.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ The <span className="text-ink font-bold">Extra</span> tab handles additional details like images and descriptions.
  </p>
  )}
  {currentStep === 11 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- All done! Click <span className="text-white font-bold">Save Changes</span> to create your product.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ All done! Click <span className="text-ink font-bold">Save Changes</span> to create your product.
  </p>
  )}
  </>
  ) : (
  <>
  {currentStep === 0 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Let's add your first product. Click on the highlighted <span className="text-white font-bold">{tt('Add Product')}</span> button to open the product creator form.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Let's add your first product. Click on the highlighted <span className="text-ink font-bold">{tt('Add Product')}</span> button to open the product creator form.
  </p>
  )}
  {currentStep === 1 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Type a <span className="text-white font-bold">Product Name</span> here.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Type a <span className="text-ink font-bold">Product Name</span> here.
  </p>
  )}
  {currentStep === 2 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Type a custom product code in the <span className="text-white font-bold">SKU</span> box, or auto-generate one.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Type a custom product code in the <span className="text-ink font-bold">SKU</span> box, or auto-generate one.
  </p>
  )}
  {currentStep === 3 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Select a <span className="text-white font-bold">Category</span>.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Select a <span className="text-ink font-bold">Category</span>.
  </p>
  )}
  {currentStep === 4 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Set your <span className="text-white font-bold">Cost Price</span>.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Set your <span className="text-ink font-bold">Cost Price</span>.
  </p>
  )}
  {currentStep === 5 && (
  <div className="space-y-2">
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- Set your <span className="text-white font-bold">Selling Price</span>.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ Set your <span className="text-ink font-bold">Selling Price</span>.
  </p>
  {liveMargin ? (
- <div className="p-2.5 rounded-xl bg-neutral-800 border border-neutral-700/50">
+ <div className="p-2.5 rounded-xl bg-sunken border border-line">
  <p className="text-2xs font-bold text-ink-muted uppercase tracking-wider">Live Profit Analysis</p>
- <p className="text-xs font-bold text-neutral-200 mt-0.5">
+ <p className="text-xs font-bold text-ink mt-0.5">
  Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
  </p>
  </div>
@@ -589,23 +604,23 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  </div>
  )}
  {currentStep === 6 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- In the <span className="text-white font-bold">Barcodes</span> section, you can add barcode tags if needed.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ In the <span className="text-ink font-bold">Barcodes</span> section, you can add barcode tags if needed.
  </p>
  )}
  {currentStep === 7 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- The <span className="text-white font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ The <span className="text-ink font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices.
  </p>
  )}
  {currentStep === 8 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- The <span className="text-white font-bold">Extra</span> tab handles additional details like images and descriptions.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ The <span className="text-ink font-bold">Extra</span> tab handles additional details like images and descriptions.
  </p>
  )}
  {currentStep === 9 && (
- <p className="text-xs text-neutral-300 leading-relaxed font-medium">
- All done! Click <span className="text-white font-bold">Save Changes</span> to create your product and finalize the setup tour.
+ <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+ All done! Click <span className="text-ink font-bold">Save Changes</span> to create your product and finalize the setup tour.
  </p>
  )}
  </>
@@ -629,7 +644,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  }
  setCurrentStep(currentStep - 1);
  }}
- className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+ className="px-3 py-1.5 bg-sunken hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
  >
  <ArrowLeft size={12} />
  <span>Back</span>
@@ -654,7 +669,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
  }
  setCurrentStep(currentStep + 1);
  }}
- className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
+ className="px-4 py-1.5 bg-accent-fill hover:bg-accent-fill-hover text-accent-on rounded-xl text-xs font-bold shadow-sm flex items-center gap-1 transition-all"
  >
  <span>Next</span>
  <ArrowRight size={12} />

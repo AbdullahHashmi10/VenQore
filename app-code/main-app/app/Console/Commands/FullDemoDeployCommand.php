@@ -226,10 +226,14 @@ class FullDemoDeployCommand extends Command
             }
             $email = "demo-{$role}@venqore-demo.internal";
             $user = \App\Models\User::firstOrCreate(['email' => $email], [
-                'name'         => 'Demo ' . ucfirst(str_replace('_', ' ', $role)),
-                'password'     => bcrypt(\Illuminate\Support\Str::random(64)),
-                'last_store_id'=> $tenantId,
+                'name'              => 'Demo ' . ucfirst(str_replace('_', ' ', $role)),
+                'password'          => bcrypt(\Illuminate\Support\Str::random(64)),
+                'last_store_id'     => $tenantId,
+                'email_verified_at' => now(),
             ]);
+            if (!$user->email_verified_at) {
+                $user->update(['email_verified_at' => now()]);
+            }
             DB::table('tenant_users')->updateOrInsert(
                 ['tenant_id' => $tenantId, 'user_id' => $user->id],
                 ['role' => $dbRole, 'status' => 'active', 'display_name' => ucfirst($role), 'created_at' => now(), 'updated_at' => now()]

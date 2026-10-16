@@ -1,5 +1,15 @@
 # VenQore Documentation Index (2026-07-07 master audit)
 
+## Current product coverage and selling reference — 16 October 2026
+
+- [Feature catalog](product-audit/FEATURE_CATALOG.md)
+- [Customer problems and workflows](product-audit/CUSTOMER_PROBLEMS_AND_WORKFLOWS.md)
+- [Outcome-led marketing by business](product-audit/MARKETING_BY_BUSINESS.md)
+- [All business types and starting setups](product-audit/BUSINESS_TYPE_COVERAGE.md)
+- [Evidence, page coverage and verification limits](product-audit/README.md)
+
+The index below describes the older audit. Its strategic and feature claims need comparison with the current evidence before reuse.
+
 Read in this order:
 
 | # | File | What it is |

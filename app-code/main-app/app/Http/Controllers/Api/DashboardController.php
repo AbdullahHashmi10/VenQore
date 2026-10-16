@@ -348,7 +348,8 @@ class DashboardController extends Controller
                 $card->delete();
             }
 
-            $dashboard->update(['frame_dirty' => true]);
+            $isDirty = $request->has('frame_dirty') ? $request->boolean('frame_dirty') : true;
+            $dashboard->update(['frame_dirty' => $isDirty]);
         });
 
         return response()->json(['message' => 'Layout saved successfully']);

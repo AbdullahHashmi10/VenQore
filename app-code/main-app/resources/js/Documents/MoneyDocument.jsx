@@ -509,7 +509,7 @@ export default function MoneyDocument({
                                 required={doc.party.required !== false}
                                 error={errors.party}
                             >
-                                <div id="tour-invoice-customer" className="vqdoc-combo" data-bad={errors.party ? 'true' : undefined}>
+                                <div id={partyRole === 'supplier' ? 'tour-purchase-supplier' : 'tour-invoice-customer'} className="vqdoc-combo" data-bad={errors.party ? 'true' : undefined}>
                                     <AsyncPartyCombobox
                                         type={doc.party.search || partyRole}
                                         selectedItem={d.party}
@@ -601,7 +601,7 @@ export default function MoneyDocument({
                         actions: (
                             <div className="vqdoc-actions">
                                 {!locked && (
-                                    <button type="button" id="tour-invoice-complete" className="vqdoc-btn pri" disabled={saving} onClick={() => save()}>
+                                    <button type="button" id={doc.id === 'purchase-invoice' ? 'tour-purchase-save' : 'tour-invoice-complete'} className="vqdoc-btn pri" disabled={saving} onClick={() => save()}>
                                         <CheckCircle2 size={17} />
                                         {saving ? 'Saving' : (saveLabel || (isEdit ? `Update ${doc.name.toLowerCase()}` : `Save ${doc.name.toLowerCase()}`))}
                                     </button>

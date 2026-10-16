@@ -176,7 +176,7 @@ export default function DashboardTourGuide({ store }) {
                         width: coords.width + 12,
                         height: coords.height + 12,
                         borderRadius: currentStep === 5 ? '50%' : '12px',
-                        boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 15px 5px rgba(99, 102, 241, 0.4), 0 0 0 2px rgb(99, 102, 241)',
+                        boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
                         zIndex: 151,
                     }}
                 />
@@ -186,18 +186,16 @@ export default function DashboardTourGuide({ store }) {
                 className="pointer-events-auto transition-all duration-slow ease-out"
                 style={getTooltipStyle()}
             >
-                <div className="bg-neutral-900/90 dark:bg-app backdrop-blur-xl border border-brand-500/30 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.2)] p-6 relative overflow-hidden animate-in zoom-in-95 duration-normal">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
-                    
+                <div className="bg-surface border border-line rounded-2xl shadow-2xl p-6 text-ink relative overflow-hidden animate-in zoom-in-95 duration-normal">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 rounded-lg bg-brand-500/20 text-brand-400">
+                        <div className="p-2 rounded-lg bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50">
                             <CheckCircle2 size={18} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                            <h4 className="text-sm font-bold text-ink uppercase tracking-wider">
                                 Dashboard Overview
                             </h4>
-                            <span className="text-2xs font-semibold text-brand-400">
+                            <span className="text-2xs font-semibold text-accent-text">
                                 Step {currentStep + 1} of 6
                             </span>
                         </div>
@@ -205,43 +203,44 @@ export default function DashboardTourGuide({ store }) {
 
                     <div className="min-h-[60px] mb-6">
                         {currentStep === 0 && (
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                                Here you can view your overall <span className="text-white font-bold">Sales Performance</span> and <span className="text-white font-bold">Gross Profit</span>. Use the dropdown to filter by different time periods to see how you are doing.
+                            <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                Here you can view your overall <span className="text-ink font-bold">Sales Performance</span> and <span className="text-ink font-bold">Gross Profit</span>. Use the dropdown to filter by different time periods to see how you are doing.
                             </p>
                         )}
                         {currentStep === 1 && (
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                                This section shows your pending <span className="text-white font-bold">Outstanding</span> receivables and payables. Keep an eye here to maintain healthy cash flow!
+                            <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                This section shows your pending <span className="text-ink font-bold">Outstanding</span> receivables and payables. Keep an eye here to maintain healthy cash flow!
                             </p>
                         )}
                         {currentStep === 2 && (
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                                Your <span className="text-white font-bold">Net Profit</span> summary. It instantly calculates your true bottom line based on your income and expenses.
+                            <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                Your <span className="text-ink font-bold">Net Profit</span> summary. It instantly calculates your true bottom line based on your income and expenses.
                             </p>
                         )}
                         {currentStep === 3 && (
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                                The <span className="text-white font-bold">Sales Chart</span> gives you a visual representation of your sales trends over time, making it easy to spot peaks and valleys.
+                            <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                The <span className="text-ink font-bold">Sales Chart</span> gives you a visual representation of your sales trends over time, making it easy to spot peaks and valleys.
                             </p>
                         )}
                         {currentStep === 4 && (
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                                The <span className="text-white font-bold">Admin Panel</span>. You can configure advanced settings, manage users, and more! <br/><br/>
-                                <span className="text-brand-400">{tt('Need a training session for you or your staff?')}</span> Check the <span className="text-white font-bold">{tt('Billing Page > Services')}</span> to arrange a meeting!
+                            <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                The <span className="text-ink font-bold">Admin Panel</span>. You can configure advanced settings, manage users, and more! <br/><br/>
+                                <span className="text-accent-text font-bold">{tt('Need a training session for you or your staff?')}</span> Check the <span className="text-ink font-bold">{tt('Billing Page > Services')}</span> to arrange a meeting!
                             </p>
                         )}
                         {currentStep === 5 && (
-                            <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                                And finally, the <span className="text-white font-bold">Chat Widget</span>! If you want to know how to do anything extra, you can ask us here and we will guide you through every single thing. We're always here to help!
+                            <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                                And finally, the <span className="text-ink font-bold">Chat Widget</span>! If you want to know how to do anything extra, you can ask us here and we will guide you through every single thing. We're always here to help!
                             </p>
                         )}
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-y-2 mt-auto">
+                    <div className="flex flex-wrap items-center justify-between gap-y-2 mt-auto pt-2 border-t border-line">
                         {currentStep > 0 ? (
                             <button
+                                type="button"
                                 onClick={() => setCurrentStep(currentStep - 1)}
-                                className="px-3 py-1.5 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 bg-surface hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             >
                                 <ArrowLeft size={12} />
                                 <span>Back</span>
@@ -252,16 +251,18 @@ export default function DashboardTourGuide({ store }) {
 
                         {currentStep < 5 ? (
                             <button
+                                type="button"
                                 onClick={() => setCurrentStep(currentStep + 1)}
-                                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                                className="px-4 py-1.5 bg-accent-fill hover:bg-accent-fill-hover text-accent-on rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
                             >
                                 <span>Next</span>
                                 <ArrowRight size={12} />
                             </button>
                         ) : (
                             <button
+                                type="button"
                                 onClick={handleCompleteTour}
-                                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer animate-pulse"
+                                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer active:scale-[0.98]"
                             >
                                 Finish Setup
                             </button>

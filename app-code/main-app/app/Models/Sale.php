@@ -28,7 +28,7 @@ use App\Traits\HasTenant;
  */
 class Sale extends Model
 {
-    use HasFactory, SoftDeletes, HasUuids, HasTenant, \App\Traits\HasActivityLog;
+    use HasFactory, SoftDeletes, HasUuids, HasTenant, \App\Traits\HasActivityLog, \App\Traits\DemoVisitorScoped;
 
     protected $guarded = [];
 

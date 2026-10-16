@@ -178,6 +178,20 @@ class TenantMiddleware
             }
         }
 
+        // ── Shared demo store: each visitor sees THEIR business type ───────
+        // The demo is one tenant used by many people at once, and DemoController
+        // stores each visitor's pick in their session. Overlay it on this request's
+        // in-memory tenant (and mark it clean so nothing ever saves it back) so
+        // every reader of ->business_type — dashboard frames, terminology,
+        // onboarding — agrees with the modules the session already isolates.
+        if ($tenant->is_demo && $request->hasSession()) {
+            $visitorType = $request->session()->get('demo_business_type');
+            if (is_string($visitorType) && $visitorType !== '') {
+                $tenant->setAttribute('business_type', $visitorType);
+                $tenant->syncOriginal('business_type');
+            }
+        }
+
         // ── Bind to DI container ───────────────────────────────────────────
         // HasTenant global scope reads app('current.tenant').
         // Everything downstream is unchanged.
@@ -277,6 +291,16 @@ class TenantMiddleware
                 'has_expenses' => \App\Models\Expense::exists(),
                 'has_drive_sync' => (bool)$tenant->google_backup_enabled,
                 'has_team' => $tenant->users()->count() > 1,
+                'has_custom_dashboard' => \App\Models\Dashboard::where('tenant_id', $tenant->id)->where('frame_dirty', true)->exists(),
+                'has_online_store' => \App\Models\Commerce\Storefront::where('tenant_id', $tenant->id)
+                    ->where(function ($q) {
+                        $q->where('status', 'published')
+                          ->orWhereNotNull('published_at');
+                    })->exists() || \Illuminate\Support\Facades\DB::table('storefront_products')
+                        ->join('storefronts', 'storefronts.id', '=', 'storefront_products.storefront_id')
+                        ->where('storefronts.tenant_id', $tenant->id)
+                        ->where('storefront_products.is_published', 1)
+                        ->exists(),
             ],
             'limit_grace_status_legacy' => [
                 'is_over_limit'     => $limitStatus['is_over_limit'],

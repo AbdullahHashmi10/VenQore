@@ -26,6 +26,7 @@ import {
 import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
 import DashboardTourGuide from '@/Components/DashboardTourGuide';
+import WelcomeTourModal from '@/Components/WelcomeTourModal';
 import { usePermission } from '@/Hooks/usePermission';
 
 export default function Dashboard({
@@ -621,7 +622,9 @@ export default function Dashboard({
                 </div>
             </div>
 
-            
+            {/* Onboarding Welcome Tour & Empty Dashboard Walkthrough */}
+            <WelcomeTourModal store={store} />
+
             {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
                 <DashboardTourGuide store={store} />
             )}

@@ -268,6 +268,18 @@ class PurchaseController extends Controller
         // Direct path
         $purchase = $this->purchaseService->store($payload);
 
+        if ($tenant && ($tenant->onboarding_step === 'purchase_tour' || !$tenant->onboarding_completed)) {
+            $done = $tenant->onboarding_steps_done ?? [];
+            if (!in_array('purchase', $done)) {
+                $done[] = 'purchase';
+                $tenant->onboarding_steps_done = $done;
+            }
+            if ($tenant->onboarding_step === 'purchase_tour') {
+                $tenant->onboarding_step = 'purchase_congratulations';
+            }
+            $tenant->save();
+        }
+
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'purchase' => $purchase], 200);
         }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Upload, FileSpreadsheet, Play, CheckCircle } from 'lucide-react';
 import { useTermText } from '@/lib/terms';
@@ -241,9 +242,9 @@ export default function ImportTourGuide({ store }) {
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-drawer overflow-hidden pointer-events-none">
-            {/* Dimming Mask / Spotlight */}
+    return createPortal(
+        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
+            {/* Dimming Mask / Spotlight without green borders or glowing rings */}
             {coords && (
                 <div
                     className="fixed pointer-events-none transition-all duration-fast ease-out"
@@ -253,31 +254,31 @@ export default function ImportTourGuide({ store }) {
                         width: coords.width + 12,
                         height: coords.height + 12,
                         borderRadius: '12px',
-                        boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 15px 5px rgba(99, 102, 241, 0.4), 0 0 0 2px rgb(99, 102, 241)',
-                        zIndex: 110,
+                        boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
+                        zIndex: 150,
                     }}
                 />
             )}
 
             {!coords && (
-                <div className="fixed inset-0 bg-neutral-950/75 pointer-events-none z-drawer"></div>
+                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-modal"></div>
             )}
 
-            {/* Floating Tooltip */}
+            {/* Floating Tooltip Card */}
             <div
                 style={getTooltipStyle()}
-                className="bg-neutral-900/95 dark:bg-app border border-brand-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
+                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
             >
                 {/* Content */}
                 <div className="flex items-start gap-3 mb-3">
-                    <div className="p-2 bg-brand-500/10 rounded-lg text-brand-400 shrink-0">
-                        <Sparkles size={20} className="animate-pulse" />
+                    <div className="p-2 bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 rounded-lg shrink-0">
+                        <Sparkles size={18} className="animate-pulse" />
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">
+                        <h4 className="text-sm font-bold text-ink uppercase tracking-wider">
                             Bulk Import Tour
                         </h4>
-                        <span className="text-2xs font-semibold text-brand-400">
+                        <span className="text-2xs font-semibold text-accent-text">
                             Step {currentStep} of 8
                         </span>
                     </div>
@@ -285,59 +286,60 @@ export default function ImportTourGuide({ store }) {
 
                 <div className="space-y-4">
                     {currentStep === 1 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                            First, switch to the <span className="text-white font-bold">Import Data</span> tab by clicking on it.
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                            First, switch to the <span className="text-ink font-bold">Import Data</span> tab by clicking on it.
                         </p>
                     )}
 
                     {currentStep === 2 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                            Select the target module you want to import. Make sure it is set to <span className="text-white font-bold">Products & Stock</span>.
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                            Select the target module you want to import. Make sure it is set to <span className="text-ink font-bold">Products & Stock</span>.
                         </p>
                     )}
 
                     {currentStep === 3 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                            Click <span className="text-white font-bold">Download Excel Template</span>. Fill in your products, cost prices, and selling prices exactly as structured in the downloaded sheet.
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                            Click <span className="text-ink font-bold">Download Excel Template</span>. Fill in your products, cost prices, and selling prices exactly as structured in the downloaded sheet.
                         </p>
                     )}
 
                     {currentStep === 4 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
                             Drag & drop your filled Excel file here, or click inside the zone to browse and select it from your device.
                         </p>
                     )}
 
                     {currentStep === 5 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                            All ready! Click <span className="text-white font-bold">Start Import Process</span> to upload your file and proceed to the Column Mapping screen.
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                            All ready! Click <span className="text-ink font-bold">Start Import Process</span> to upload your file and proceed to the Column Mapping screen.
                         </p>
                     )}
 
                     {currentStep === 6 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
                             On the mapping screen, select which column of your file maps to which system attribute (e.g. name, SKU, price, cost).
                         </p>
                     )}
 
                     {currentStep === 7 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                            Click <span className="text-white font-bold">Run Pre-Import Validation</span> to verify formatting, inspect for duplicate rows, and prepare the database records.
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                            Click <span className="text-ink font-bold">Run Pre-Import Validation</span> to verify formatting, inspect for duplicate rows, and prepare the database records.
                         </p>
                     )}
 
                     {currentStep === 8 && (
-                        <p className="text-xs text-neutral-300 leading-relaxed font-medium">
-                            Everything looks good! Click <span className="text-white font-bold">Confirm & Process Import</span> to load all products into your database and finalize setup.
+                        <p className="text-xs text-ink-secondary leading-relaxed font-medium">
+                            Everything looks good! Click <span className="text-ink font-bold">Confirm & Process Import</span> to load all products into your database and finalize setup.
                         </p>
                     )}
 
                     {/* Navigation Buttons */}
-                    <div className="flex gap-2 justify-between items-center">
+                    <div className="flex gap-2 justify-between items-center pt-2 border-t border-line">
                         {currentStep > 1 && currentStep !== 6 ? (
                             <button
+                                type="button"
                                 onClick={() => setCurrentStep(currentStep - 1)}
-                                className="px-3 py-1.5 bg-neutral-800 text-ink-muted hover:text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                                className="px-3 py-1.5 bg-surface hover:bg-interactive-hover border border-line text-ink-secondary hover:text-ink rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             >
                                 <ArrowLeft size={12} />
                                 <span>Back</span>
@@ -348,6 +350,7 @@ export default function ImportTourGuide({ store }) {
 
                         {currentStep > 0 && currentStep < 5 && (
                             <button
+                                type="button"
                                 onClick={() => {
                                     // Skip over target tab click step if element is already present
                                     if (currentStep === 1 && document.getElementById('tour-import-type')) {
@@ -356,7 +359,7 @@ export default function ImportTourGuide({ store }) {
                                         setCurrentStep(currentStep + 1);
                                     }
                                 }}
-                                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                                className="px-4 py-1.5 bg-accent-fill hover:bg-accent-fill-hover text-accent-on rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
                             >
                                 <span>Next</span>
                                 <ArrowRight size={12} />
@@ -365,8 +368,9 @@ export default function ImportTourGuide({ store }) {
 
                         {currentStep === 6 && (
                             <button
+                                type="button"
                                 onClick={() => setCurrentStep(7)}
-                                className="px-4 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                                className="px-4 py-1.5 bg-accent-fill hover:bg-accent-fill-hover text-accent-on rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
                             >
                                 <span>Next</span>
                                 <ArrowRight size={12} />
@@ -375,6 +379,7 @@ export default function ImportTourGuide({ store }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

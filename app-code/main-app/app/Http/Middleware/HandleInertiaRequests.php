@@ -267,8 +267,15 @@ class HandleInertiaRequests extends Middleware
             // make the app change appearance as you navigate. Resolution is a
             // single indexed lookup and falls back to defaults on any failure —
             // see App\Support\Appearance.
-            'appearance' => fn () => \App\Support\Appearance::forRequest(),
-            'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
+            'store' => function () use ($request) {
+                if (!app()->bound('current.tenant')) return null;
+                $tenant = app('current.tenant');
+                if ($tenant && $tenant->is_demo && $request->hasSession()) {
+                    $tenant->demo_business_type = $request->session()->get('demo_business_type', $tenant->business_type);
+                    $tenant->demo_business_label = $request->session()->get('demo_business_label');
+                }
+                return $tenant;
+            },
 
             // ── Modules & nav (unified shell, 2026-08-21) ─────────────────────
             // The sidebar is DERIVED from enabled modules — never stored, so it

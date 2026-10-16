@@ -299,7 +299,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
 
  {/* 1. Cash in Hand (Protected) */}
  {canViewBalances && (
- <div onClick={() => setIsCashModalOpen(true)} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
+ <div id="tour-cash-in-hand" onClick={() => setIsCashModalOpen(true)} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all cursor-pointer group">
  <div className="flex justify-between items-start mb-3">
  <div className="flex items-center gap-2">
  <Wallet size={18} className="text-emerald-300" />

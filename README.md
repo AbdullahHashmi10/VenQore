@@ -2,6 +2,8 @@
 
 ## Product planning documents
 
+- [Product feature catalog, customer workflows and sector marketing](app-code/main-app/docs/product-audit/README.md)
+
 - [POS staff, paid seats, permissions, and shifts plan](app-code/main-app/docs/POS_STAFF_AND_SEATS_PLAN.md)
 - [Future product ideas backlog, including riders](app-code/main-app/docs/FUTURE_IDEAS.md)
 

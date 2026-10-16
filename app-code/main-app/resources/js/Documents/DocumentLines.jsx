@@ -128,7 +128,7 @@ const CELLS = {
         /* The onboarding tour points at the first item cell. It was pointing at
            an id nothing rendered, so that step of the tour had no spotlight and
            never advanced by itself. */
-        <div id={idx === 0 ? 'tour-invoice-product' : undefined}
+        <div id={idx === 0 ? (c.doc?.id === 'purchase-invoice' ? 'tour-purchase-product' : 'tour-invoice-product') : undefined}
             className="vqdoc-combo" style={{ position: 'relative', minWidth: 0 }}>
                 <AsyncProductCombobox
                     selectedItem={item.product}
@@ -181,6 +181,7 @@ const CELLS = {
         return (
             <>
                 <WheelInput
+                    id={idx === 0 ? (c.doc?.id === 'purchase-invoice' ? 'tour-purchase-quantity' : 'tour-invoice-quantity') : undefined}
                     type="number"
                     className={`vqdoc-cell c w-qty ${over ? 'bad' : ''}`}
                     value={item.quantity ?? 1}
@@ -276,7 +277,8 @@ const CELLS = {
        server ignores is the exact defect this kit exists to prevent. */
     rate: (item, idx, c) => (
         <WheelInput
-                type="number" className="vqdoc-cell w-num"
+            id={idx === 0 ? (c.doc?.id === 'purchase-invoice' ? 'tour-purchase-cost' : 'tour-invoice-rate') : undefined}
+            type="number" className="vqdoc-cell w-num"
                 value={item.price ?? 0} disabled={c.locked || c.readOnly?.rate}
                 onChange={(e) => c.update(item.id, 'price', num(e.target.value))}
             onWheel={(e) => { e.preventDefault(); const step = num(item.price) >= 100 ? 10 : 1; c.update(item.id, 'price', Math.max(0, num(item.price) + ((e.deltaY < 0 ? 1 : -1) * step))); }}
@@ -435,7 +437,7 @@ export default function DocumentLines({ doc, chrome, items = [], ctx, onQuickAdd
     }
 
     return (
-        <div id="tour-invoice-product" className="vqdoc-linesbox" ref={boxRef}>
+        <div className="vqdoc-linesbox" ref={boxRef}>
             <table className="vqdoc-lines">
                 <thead>
                     <tr>
@@ -487,7 +489,7 @@ function CardList({ doc, chrome, items, ctx, visible }) {
     const priced = doc.money.lines === 'priced';
 
     return (
-        <div id="tour-invoice-product" className="vqdoc-linesbox">
+        <div className="vqdoc-linesbox">
             {!items.length && (
                 <div className="vqdoc-empty">
                     <span className="ico"><FileText size={22} /></span>

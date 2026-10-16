@@ -89,21 +89,27 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.jsx'),
         ).catch((error) => {
             const errStr = String(error || '');
-            if (errStr.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module')) {
+            if (errStr.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module') || errStr.includes('error loading dynamically imported module')) {
                 const now = Date.now();
                 const lastReload = parseInt(sessionStorage.getItem('last_vite_reload') || '0', 10);
                 if (now - lastReload > 15000) {
                     sessionStorage.setItem('last_vite_reload', String(now));
                     console.warn('[Vite] Dynamic import failed. Forcing single reload to get latest assets.');
                     window.location.reload();
-                    return;
+                    return new Promise(() => {}); // Halt promise chain while reloading
                 } else {
                     console.error('[Vite] Repeated dynamic import failure detected. Suppressing reload loop.');
                 }
             }
             throw error;
         }).then((module) => {
-            const page = module.default;
+            if (!module) {
+                throw new Error(`[Inertia] Empty module resolved for page: ${name}`);
+            }
+            const page = module.default || module;
+            if (!page || (typeof page !== 'function' && typeof page !== 'object')) {
+                throw new Error(`[Inertia] Invalid component resolved for page: ${name}`);
+            }
 
             // Inertia resolves the page component again on EVERY visit, and the
             // module object is cached — so without this guard each visit wrapped

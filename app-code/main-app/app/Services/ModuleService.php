@@ -330,6 +330,16 @@ class ModuleService
     /** module_key => bool, or [] when the tenant has no configuration at all. */
     private static function allFor(Tenant $tenant): array
     {
+        // For the shared demo store, isolate active modules by visitor session
+        // so different concurrent visitors (e.g. one testing a Factory and another testing a Restaurant)
+        // each experience their tailored trade without clashing or overwriting each other.
+        if ($tenant->is_demo && function_exists('request') && request() && request()->hasSession()) {
+            $sessionMap = request()->session()->get('demo_modules');
+            if (is_array($sessionMap) && !empty($sessionMap)) {
+                return $sessionMap;
+            }
+        }
+
         return self::$memo[$tenant->id] ??= Cache::remember("tenant_modules:{$tenant->id}", self::TTL, function () use ($tenant) {
             // A genuinely un-migrated table is the only case the safety rail covers.
             // Any other database failure must surface, not silently enable everything.

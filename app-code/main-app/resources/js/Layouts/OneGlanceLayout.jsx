@@ -6,7 +6,7 @@ import PhoneDockDrawer from '@/Components/PhoneDockDrawer';
 import CommandPalette from '@/Components/CommandPalette';
 import OmniSearch from '@/Components/OmniSearch';
 import AiIsland from '@/Components/AiIsland';
-import DemoBanner from '@/Components/DemoBanner';
+import DemoPill from '@/Components/Demo/DemoPill';
 import HeaderCalculatorButton from '@/Components/Calculator/HeaderCalculatorButton';
 import CalculatorPopover from '@/Components/Calculator/CalculatorPopover';
 import {
@@ -82,7 +82,7 @@ import Toast from '@/Components/Toast';
 import ApprovalSubmissionModal from '@/Components/ApprovalSubmissionModal';
 import UpgradeModal from '@/Components/UpgradeModal';
 import GlobalOnboardingWidget from '@/Components/GlobalOnboardingWidget';
-import GuidedTour from '@/Components/GuidedTour';
+import { GETTING_STARTED, isStepDone } from '@/lib/gettingStarted';
 import ImpersonationBanner from '@/Components/ImpersonationBanner';
 import PlanUsageBanner from '@/Components/PlanUsageBanner';
 import SubscriptionExpiryBanner from '@/Components/SubscriptionExpiryBanner';
@@ -111,7 +111,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId, activePreSaleInvoices, setCurrentPreSaleId } = useWorkspace();
  // Server value (auth.user.nav_preferences) wins, then localStorage, then defaults.
  const serverNav = sharedAuth?.user?.nav_preferences || null;
- const [navMode, setNavMode] = useState(() => { if (serverNav?.mode === 'rail' || serverNav?.mode === 'dock') return serverNav.mode; try { return localStorage.getItem('vq_nav_mode') === 'rail' ? 'rail' : 'dock'; } catch (e) { return 'dock'; } });
+ const [navMode, setNavMode] = useState(() => { if (serverNav?.mode === 'rail' || serverNav?.mode === 'dock') return serverNav.mode; try { const local = localStorage.getItem('vq_nav_mode'); if (local === 'rail' || local === 'dock') return local; return 'rail'; } catch (e) { return 'rail'; } });
  const [railLabels, setRailLabels] = useState(() => { if (serverNav?.labels === 'below' || serverNav?.labels === 'beside') return serverNav.labels; try { return localStorage.getItem('vq_rail_labels') === 'below' ? 'below' : 'beside'; } catch (e) { return 'beside'; } });
  const navSaveTimer = useRef(null);
  const navPending = useRef({});
@@ -739,33 +739,39 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  return () => clearInterval(interval);
  }, []);
 
- // Auto-expand sidebar & menu during onboarding steps
- useEffect(() => {
- const handleTourStep = (e) => {
- const step = e.detail;
- if (step === 'sidebar_stock') {
- setIsSidebarOpen(true);
- setExpandedMenu('Stock');
- } else if (step === 'purchase_tour_sidebar') {
- setIsSidebarOpen(true);
- setExpandedMenu('Purchase');
- }
- };
- window.addEventListener('onboarding-step-changed', handleTourStep);
+	// Auto-expand sidebar & menu during onboarding steps
+	useEffect(() => {
+		const handleTourStep = (e) => {
+			const step = e.detail;
+			if (step === 'sidebar_stock') {
+				setIsSidebarOpen(true);
+				setExpandedMenu('Stock');
+			} else if (step === 'purchase_tour_sidebar') {
+				setIsSidebarOpen(true);
+				setExpandedMenu('Purchase');
+			} else if (step === 'online_store_sidebar') {
+				setIsSidebarOpen(true);
+				setExpandedMenu('Online Store');
+			}
+		};
+		window.addEventListener('onboarding-step-changed', handleTourStep);
 
- // Also check initial load step
- if (window.activeOnboardingStep === 'sidebar_stock') {
- setIsSidebarOpen(true);
- setExpandedMenu('Stock');
- } else if (window.activeOnboardingStep === 'purchase_tour_sidebar') {
- setIsSidebarOpen(true);
- setExpandedMenu('Purchase');
- }
+		// Also check initial load step
+		if (window.activeOnboardingStep === 'sidebar_stock') {
+			setIsSidebarOpen(true)
+			setExpandedMenu('Stock');
+		} else if (window.activeOnboardingStep === 'purchase_tour_sidebar') {
+			setIsSidebarOpen(true);
+			setExpandedMenu('Purchase');
+		} else if (window.activeOnboardingStep === 'online_store_sidebar') {
+			setIsSidebarOpen(true);
+			setExpandedMenu('Online Store');
+		}
 
- return () => {
- window.removeEventListener('onboarding-step-changed', handleTourStep);
- };
- }, [store]);
+		return () => {
+			window.removeEventListener('onboarding-step-changed', handleTourStep);
+		};
+	}, [store]);
 
  // Growth Engine AI Popup State
  const [isGrowthOpen, setIsGrowthOpen] = useState(false);
@@ -876,15 +882,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		has_purchases: false,
 		has_sales: false,
 		has_expenses: false,
-		has_drive_sync: false
+		has_drive_sync: false,
+		has_custom_dashboard: false,
+		has_online_store: false,
 	};
-	const setupChecklist = useMemo(() => [
-		{ key: 'inventory', label: tt('Catalog First Product'), isDone: !!onboardingMetrics.has_products },
-		{ key: 'purchase', label: 'Record First Purchase', isDone: !!onboardingMetrics.has_purchases },
-		{ key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: !!onboardingMetrics.has_sales },
-		{ key: 'expense', label: 'Record Store Expense', isDone: !!onboardingMetrics.has_expenses },
-		{ key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: !!onboardingMetrics.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected }
-	], [onboardingMetrics, store?.google_backup_enabled, store?.google_connected, tt]);
+	const setupChecklist = useMemo(
+		() => GETTING_STARTED.filter((g) => g.key !== 'team').map((g) => ({
+			...g,
+			isDone: isStepDone(g, onboardingMetrics, store),
+		})),
+		[onboardingMetrics, store?.google_backup_enabled, store?.google_connected, store?.dashboard_customized, store?.storefront_published]
+	);
 	const setupRemainingCount = useMemo(() => setupChecklist.filter(item => !item.isDone).length, [setupChecklist]);
 	const showSetupBadge = !!(store && !store?.onboarding_completed && store?.onboarding_step && store?.onboarding_step !== 'completed' && setupRemainingCount > 0 && !store?.is_demo);
 
@@ -1784,12 +1792,26 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   )}
  <button
  onClick={() => {
- localStorage.removeItem('amd_onboarding_driver_complete');
- window.location.reload();
+ setIsUserMenuOpen(false);
+ if (store?.slug) {
+ try {
+ localStorage.removeItem(`vq-tour-done:welcome:${store.slug}`);
+ localStorage.removeItem(`vq-tour-offered:${store.slug}`);
+ } catch (e) {}
+ }
+ if (!window.location.pathname.includes('/dashboard')) {
+ router.visit(route('store.dashboard', { store_slug: store?.slug }), {
+ onSuccess: () => {
+ setTimeout(() => window.dispatchEvent(new CustomEvent('vq-tour-start', { detail: 'welcome' })), 350);
+ },
+ });
+ } else {
+ window.dispatchEvent(new CustomEvent('vq-tour-start', { detail: 'welcome' }));
+ }
  }}
- className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors text-sm font-medium text-brand-600 dark:indigo-400"
+ className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover transition-colors text-sm font-semibold text-accent-text"
  >
- <Sparkles size={16} /> Take a Tour
+ <Sparkles size={16} className="text-accent-text" /> Take a Tour
  </button>
  {(userRole === 'platform_admin') && (
  <Link href="/updater" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors text-sm font-medium text-amber-600 dark:text-amber-400">
@@ -1928,7 +1950,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   {menuItems.map((item) => (
     <SidebarItem
       key={item.name}
-      id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
+      id={item.name === 'Stock' ? 'tour-sidebar-stock' : (item.name === 'Online Store' ? 'tour-sidebar-online-store' : `tour-sidebar-${item.name.toLowerCase().replace(/\s+/g, '-')}`)}
       name={tt(item.name)}
       icon={item.icon}
       subItems={item.subs}
@@ -2132,8 +2154,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  {/* --- MAIN CONTENT --- */}
  <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-[var(--vq-bg)] transition-opacity duration-slower ease-in-out opacity-100 ${(fullScreen || hideHeader) ? 'max-lg:pt-14' : ''}`}>
- <DemoBanner />
-
+ 
  {/* Limit Grace Countdown Banner */}
  <LimitGraceBanner />
 
@@ -2238,6 +2259,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
   {/* RIGHT SECTION */}
   <div className="flex items-center justify-end gap-2 sm:gap-3 min-w-[100px] z-10 lg:translate-y-1 max-lg:min-w-0 max-lg:ml-auto max-lg:gap-1.5 max-lg:shrink-0">
+  {is_demo && <DemoPill />}
+
   {isTrial && !is_demo && (
   <Link
   href={route('store.billing', { store_slug: store?.slug })}
@@ -2303,7 +2326,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
               </button>
               {settingsSec === 'nav' && (<div className="space-y-2 pb-1">
                   <div className="flex items-center p-1 bg-sunken rounded-xl gap-1">
-                      {[['dock', 'Bottom'], ['rail', 'Side']].map(([m, l]) => (
+                      {[['rail', 'Side'], ['dock', 'Bottom']].map(([m, l]) => (
                           <button key={m} type="button" onClick={() => changeNavMode(m)}
                               className={`flex-1 h-8 rounded-[12px] text-xs font-semibold transition-colors ${navMode === m ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'}`}>{l}</button>
                       ))}
@@ -2760,7 +2783,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  </div >
  <PwaInstallPrompt />
  <VersionChecker />
- <GuidedTour />
  <GlobalOnboardingWidget
      store={store}
      isOpen={isChecklistModalOpen}

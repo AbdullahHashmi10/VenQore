@@ -10,6 +10,7 @@ export const AttendanceProvider = ({ children }) => {
     const { props } = usePage();
     const auth = props.auth;
     const store = props.store || {};
+    const modules = props.modules;
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [attendance, setAttendance] = useState(null);
 
@@ -17,8 +18,15 @@ export const AttendanceProvider = ({ children }) => {
     const heartbeatIntervalRef = useRef(null);
     const INACTIVITY_LIMIT = 60 * 60 * 1000; // 1 hour
 
+    // Only run attendance check-in & heartbeat if staff_attendance module is enabled for this store
+    const isAttendanceEnabled = Boolean(
+        store?.slug && (
+            !Array.isArray(modules) || modules.includes('staff_attendance')
+        )
+    );
+
     useEffect(() => {
-        if (!auth?.user || !store?.slug) {
+        if (!auth?.user || !store?.slug || !isAttendanceEnabled) {
             setIsCheckedIn(false);
             setAttendance(null);
             return;
@@ -53,9 +61,11 @@ export const AttendanceProvider = ({ children }) => {
             window.removeEventListener('click', handleActivity);
             if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
         };
-    }, [auth?.user]);
+    }, [auth?.user?.id, store?.slug, isAttendanceEnabled]);
 
     const checkIn = async (isRetry = false) => {
+        if (!isAttendanceEnabled || !store?.slug) return;
+
         // Safety: If this is the very first check-in after login, we MUST wait for the page to finish loading.
         // This ensures bootstrap.js has had time to sync the new CSRF token from the new page's meta tags.
         if (!isRetry && !window.__attendanceFirstCheckInvoked) {
@@ -92,11 +102,17 @@ export const AttendanceProvider = ({ children }) => {
                 await new Promise(r => setTimeout(r, 200));
                 return checkIn(true);
             }
+            if (error.response?.status === 403) {
+                // Module disabled or unauthorized: quietly ignore
+                return;
+            }
             console.error('Check-in error handled.');
         }
     };
 
     const sendHeartbeat = async () => {
+        if (!isAttendanceEnabled || !store?.slug) return;
+
         try {
             await axios.post(
                 route('store.attendance.heartbeat', { store_slug: store.slug }),
@@ -104,11 +120,14 @@ export const AttendanceProvider = ({ children }) => {
                 { _skipGlobalErrorHandler: true }
             );
         } catch (error) {
+            if (error.response?.status === 403) return;
             console.error('Heartbeat error:', error);
         }
     };
 
     const logGapSilently = async (start, end) => {
+        if (!isAttendanceEnabled || !store?.slug) return;
+
         try {
             await axios.post(
                 route('store.attendance.log-gap', { store_slug: store.slug }),
@@ -121,6 +140,7 @@ export const AttendanceProvider = ({ children }) => {
                 { _skipGlobalErrorHandler: true }
             );
         } catch (error) {
+            if (error.response?.status === 403) return;
             console.error('Log gap error:', error);
         }
     };

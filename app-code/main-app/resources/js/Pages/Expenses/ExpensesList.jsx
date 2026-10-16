@@ -238,9 +238,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
 export default function ExpensesIndex({ expenses = [], categories = [], stats = {}, bankAccounts = [], cashBalance = 0, filters = {}, serviceJobs = [] }) {
  const { t, tp } = useTerms();
  const tt = useTermText();
- const {
- store
- } = usePage().props;
+ const { store, onboarding_metrics } = usePage().props;
 
  // Infinite Scroll State
  const moneyNavGroups = useMoneyNavGroups();
@@ -596,15 +594,18 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  return;
  }
 
- if (store?.onboarding_step === 'expense_tour') {
- router.post(
- route('store.onboarding.step', { store_slug: store?.slug }),
- { step: 'expense_congratulations' },
- { preserveScroll: true }
- );
- } else {
- router.reload({ only: ['expenses', 'stats'] });
- }
+ const isEarlyOnboarding = !store?.onboarding_completed && !onboarding_metrics?.has_expenses;
+	const isTourActive = ['expense_tour', 'expense_tour_start'].includes(store?.onboarding_step) || isEarlyOnboarding;
+
+	if (isTourActive) {
+		router.post(
+			route('store.onboarding.step', { store_slug: store?.slug }),
+			{ step: 'expense_congratulations' },
+			{ preserveScroll: true }
+		);
+	} else {
+		router.reload({ only: ['expenses', 'stats'] });
+	}
  } catch (error) {
  if (error.response?.status === 422) {
  setErrors(error.response.data.errors || {});
@@ -1318,6 +1319,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <div className="relative flex items-center">
  <span className="text-3xl font-bold text-brand-300/40 mr-3 select-none">{getCurrencySymbol()}</span>
  <input
+ id="tour-expense-amount-input"
  type="number"
  step="0.01"
  value={formData.amount}
@@ -1453,6 +1455,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
  <div id="tour-expense-description" className="group">
  <label className="block text-2xs font-bold text-ink-muted uppercase tracking-widest mb-2 ml-1">Description <span className="text-rose-500">*</span></label>
  <textarea
+ id="tour-expense-desc-input"
  value={formData.description}
  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
  placeholder="Specify the operational purpose..."
