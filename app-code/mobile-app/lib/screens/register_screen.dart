@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_side.dart';
 import '../core/google_sign_in_service.dart';
 import '../core/web_autofill.dart';
 import '../theme/app_colors.dart';
@@ -19,7 +20,14 @@ import 'sign_in_screen.dart';
 /// join a business. The business itself (name, trade, modules) is set up by the AI workspace
 /// builder, which is why that is offered first.
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key, this.googleService});
+  const RegisterScreen({
+    super.key,
+    this.googleService,
+    this.side = AppSide.store,
+  });
+
+  /// Customer: a plain account for ordering. Store: the business workspace sign-up.
+  final AppSide side;
 
   /// Replaceable in tests.
   final GoogleSignInService? googleService;
@@ -142,7 +150,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(builder: (_) => const SignInScreen()),
+          MaterialPageRoute<void>(
+            builder: (_) => SignInScreen(side: widget.side),
+          ),
         );
       case GoogleSignInOutcome.unavailable:
         _openWeb('/auth/google', 'Sign in with Google');
@@ -206,11 +216,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 70),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 70),
                 child: Text(
-                  'Start your business workspace',
-                  style: TextStyle(
+                  widget.side == AppSide.customer
+                      ? 'Create your account'
+                      : 'Start your business workspace',
+                  style: const TextStyle(
                     fontSize: 30,
                     height: 1.1,
                     fontWeight: FontWeight.w800,
@@ -220,11 +232,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 120),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 120),
                 child: Text(
-                  '14 days, the full product. Cancel anytime.',
-                  style: TextStyle(
+                  widget.side == AppSide.customer
+                      ? 'Order from any store and follow every order in one place. Free.'
+                      : '14 days, the full product. Cancel anytime.',
+                  style: const TextStyle(
                     fontSize: 15,
                     height: 1.45,
                     color: AppColors.inkMuted,
@@ -232,73 +246,74 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 18),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 170),
-                child: PressableScale(
-                  borderRadius: 20,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AiBuilderIntroScreen(),
-                    ),
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColors.teal950, AppColors.teal900],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.tealBright.withValues(alpha: 0.3),
+              if (widget.side == AppSide.store)
+                FadeSlideIn(
+                  delay: const Duration(milliseconds: 170),
+                  child: PressableScale(
+                    borderRadius: 20,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AiBuilderIntroScreen(),
                       ),
                     ),
-                    child: const Row(
-                      children: [
-                        ThinkingOrb(
-                          size: 52,
-                          state: OrbState.solving,
-                          speed: 1.0,
-                          accentColor: AppColors.tealBright,
-                          showCore: true,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.teal950, AppColors.teal900],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Want AI to set it up for you?',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15.5,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              SizedBox(height: 3),
-                              Text(
-                                'Describe your business and review the workspace before you create anything.',
-                                style: TextStyle(
-                                  color: Color(0xFFC6F5E9),
-                                  fontSize: 12.5,
-                                  height: 1.35,
-                                ),
-                              ),
-                            ],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.tealBright.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Row(
+                        children: [
+                          ThinkingOrb(
+                            size: 52,
+                            state: OrbState.solving,
+                            speed: 1.0,
+                            accentColor: AppColors.tealBright,
+                            showCore: true,
                           ),
-                        ),
-                        SizedBox(width: 6),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: AppColors.tealBright,
-                          size: 20,
-                        ),
-                      ],
+                          SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Want AI to set it up for you?',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15.5,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                SizedBox(height: 3),
+                                Text(
+                                  'Describe your business and review the workspace before you create anything.',
+                                  style: TextStyle(
+                                    color: Color(0xFFC6F5E9),
+                                    fontSize: 12.5,
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: AppColors.tealBright,
+                            size: 20,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(height: 18),
               AnimatedSize(
                 duration: const Duration(milliseconds: 220),
@@ -599,7 +614,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onPressed: () =>
                               Navigator.of(context).pushReplacement(
                                 MaterialPageRoute<void>(
-                                  builder: (_) => const SignInScreen(),
+                                  builder: (_) =>
+                                      SignInScreen(side: widget.side),
                                 ),
                               ),
                           child: const Text(

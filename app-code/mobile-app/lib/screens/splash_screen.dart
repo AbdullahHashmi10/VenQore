@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/thinking_orb.dart';
-import 'welcome_screen.dart';
+import '../core/app_side.dart';
+import 'business_web_screen.dart';
+import 'side_choice_screen.dart';
 
 /// Motion graphics animated splash screen featuring the canonical VenQore logo,
 /// 3D orbital particle resonance, and smooth spring-driven typography entrance.
@@ -104,7 +106,25 @@ class _SplashScreenState extends State<SplashScreen>
     _introController.forward();
 
     // Automatically transition to WelcomeScreen after 1800ms
-    _transitionTimer = Timer(const Duration(milliseconds: 1850), _proceed);
+    _transitionTimer = Timer(const Duration(milliseconds: 2300), _proceed);
+  }
+
+  /// First launch asks which side; after that the app opens straight on the chosen side.
+  Widget _next() {
+    switch (AppSideStore.current) {
+      case AppSide.customer:
+        return const BusinessWebScreen(
+          initialPath: '/shop',
+          initialTitle: 'Explore stores',
+        );
+      case AppSide.store:
+        return const BusinessWebScreen(
+          initialPath: '/dashboard',
+          initialTitle: 'VenQore Business',
+        );
+      case null:
+        return const SideChoiceScreen();
+    }
   }
 
   void _proceed() {
@@ -124,8 +144,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Navigator.of(context).pushReplacement(
       PageRouteBuilder<void>(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const WelcomeScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) => _next(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },

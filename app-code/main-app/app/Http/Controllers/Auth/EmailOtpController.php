@@ -210,6 +210,11 @@ class EmailOtpController extends Controller
             return $redirect;
         }
 
+        // A new account made on the customer side of the phone app is a customer, not a store owner.
+        if (PostLoginRedirect::appSide() === 'customer') {
+            return redirect('/my-orders');
+        }
+
         return redirect()->intended(route('hub', absolute: false));
     }
 

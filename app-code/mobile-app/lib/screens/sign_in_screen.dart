@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_side.dart';
 import '../core/google_sign_in_service.dart';
 import '../core/web_autofill.dart';
 import '../theme/app_colors.dart';
@@ -19,9 +20,17 @@ import 'register_screen.dart';
 /// What is typed here is handed once to VenQore's own sign-in page, which still does the emailed
 /// code and any two-step check.
 class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key, this.initialEmail = '', this.googleService});
+  const SignInScreen({
+    super.key,
+    this.initialEmail = '',
+    this.googleService,
+    this.side = AppSide.store,
+  });
 
   final String initialEmail;
+
+  /// Which side of the app this sign-in belongs to (wording and the links it offers).
+  final AppSide side;
 
   /// Replaceable in tests.
   final GoogleSignInService? googleService;
@@ -208,11 +217,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 120),
+              FadeSlideIn(
+                delay: const Duration(milliseconds: 120),
                 child: Text(
-                  'Sign in once. VenQore opens the right place for you: your dashboard, the till, or your rides.',
-                  style: TextStyle(
+                  widget.side == AppSide.customer
+                      ? 'Sign in to track your orders and keep your points across every store.'
+                      : 'Sign in once. VenQore opens the right place for you: your dashboard, the till, or your rides.',
+                  style: const TextStyle(
                     fontSize: 15,
                     height: 1.45,
                     color: AppColors.inkMuted,
@@ -394,22 +405,23 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextButton.icon(
-                      key: const Key('signin-pin'),
-                      onPressed: _openCashierPin,
-                      icon: const Icon(
-                        Icons.dialpad_rounded,
-                        size: 18,
-                        color: AppColors.inkMuted,
-                      ),
-                      label: const Text(
-                        'Use a cashier PIN',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
+                    if (widget.side == AppSide.store)
+                      TextButton.icon(
+                        key: const Key('signin-pin'),
+                        onPressed: _openCashierPin,
+                        icon: const Icon(
+                          Icons.dialpad_rounded,
+                          size: 18,
                           color: AppColors.inkMuted,
                         ),
+                        label: const Text(
+                          'Use a cashier PIN',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.inkMuted,
+                          ),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -432,7 +444,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         TextButton(
                           onPressed: () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
-                              builder: (_) => const RegisterScreen(),
+                              builder: (_) => RegisterScreen(side: widget.side),
                             ),
                           ),
                           child: const Text(
@@ -445,26 +457,27 @@ class _SignInScreenState extends State<SignInScreen> {
                         ),
                       ],
                     ),
-                    TextButton.icon(
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const AiBuilderIntroScreen(),
+                    if (widget.side == AppSide.store)
+                      TextButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AiBuilderIntroScreen(),
+                          ),
+                        ),
+                        icon: const Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 16,
+                          color: AppColors.teal,
+                        ),
+                        label: const Text(
+                          'Let AI build my workspace',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.teal600,
+                          ),
                         ),
                       ),
-                      icon: const Icon(
-                        Icons.auto_awesome_rounded,
-                        size: 16,
-                        color: AppColors.teal,
-                      ),
-                      label: const Text(
-                        'Let AI build my workspace',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.teal600,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

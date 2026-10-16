@@ -84,3 +84,16 @@ Package `com.venqore.app`, release-signed (SHA-1 `21:8C:2C:D5:...:15:A6`), verif
 - The real service account was checked: Google issued an access token for the project. **No real notification has been sent to a real phone yet.**
 
 To switch on at the server: set `FCM_SERVICE_ACCOUNT_PATH` in `.env` to the service-account JSON (outside the web folder and outside git), run `php artisan migrate` and `php artisan config:clear`.
+
+---
+
+# 1.4.0 (build 12) — customer side and store side
+
+**Artifact:** `VenQore-Mobile-1.4.0-build12.apk` · 52,075,847 bytes · SHA256 `6521C9AB7C945B53950A7F0924A030E16975164A70E53D73DD1D876F5C4DD7CB`
+`com.venqore.app`, release-signed (SHA-1 `21:8C:2C:D5:…:15:A6`), verified with apksigner.
+
+- Splash first, then "I want to order" / "I run a store". The choice is remembered.
+- Customer side: stores, orders and the customer account only. Store side: business pages only. Pages never link across; changing sides is a confirmed button in the account sheet.
+- Sign-in lands where the side says (customer: My orders; store: the role's home or create-or-join). A new account made on the customer side is a customer.
+- Location is asked natively; marketplace uses the same pill bar as the store bar; guests see Sign in / Create account.
+- Needs the server deployed (app-nav, app/context, my-orders, side-aware sign-in, device tokens). Not run on a phone yet.

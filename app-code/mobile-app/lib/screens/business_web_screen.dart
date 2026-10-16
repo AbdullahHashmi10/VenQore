@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import '../config/app_config.dart';
+import '../core/app_side.dart';
 import '../core/navigation_policy.dart';
 import '../core/push_service.dart';
 import '../core/web_autofill.dart';
@@ -15,6 +18,8 @@ import 'account_center_screen.dart';
 import 'activity_center_screen.dart';
 import 'business_menu_screen.dart';
 import 'help_screen.dart';
+import 'register_screen.dart';
+import 'sign_in_screen.dart';
 import 'quick_actions_screen.dart';
 import 'welcome_screen.dart';
 import 'workspace_screen.dart';
@@ -47,10 +52,13 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   bool _autofilled = false;
   Uri? _currentUri;
 
-  static const String _defaultUserAgent =
+  AppSide? get _side => AppSideStore.current;
+
+  /// `VenQoreSide/customer` or `VenQoreSide/store` tells the server which side of the app is asking.
+  String get _defaultUserAgent =>
       'Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 '
       '(KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 '
-      'VenQoreMobile/1.0';
+      'VenQoreMobile/1.0${_side == null ? '' : ' VenQoreSide/${_side!.name}'}';
 
   static const String _cleanBrowserUserAgent =
       'Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 '
@@ -59,7 +67,7 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   @override
   void initState() {
     super.initState();
-    _policy = NavigationPolicy();
+    _policy = NavigationPolicy(side: AppSideStore.current);
     PushService.addOpener(_openPath);
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -105,6 +113,35 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         ),
       )
       ..loadRequest(AppConfig.baseUri.resolve(widget.initialPath));
+    _allowLocation();
+  }
+
+  /// Pages ask for the phone's location (find stores near me, delivery address). Android needs the app
+  /// itself to hold the permission and to answer the web view's prompt; only VenQore's own site is answered.
+  static const _permissions = MethodChannel('venqore/permissions');
+
+  void _allowLocation() {
+    final platform = _controller.platform;
+    if (platform is! AndroidWebViewController) return;
+    platform.setGeolocationPermissionsPromptCallbacks(
+      onShowPrompt: (request) async {
+        final origin = Uri.tryParse(request.origin);
+        if (origin == null || !_policy.isSameOrigin(origin)) {
+          return const GeolocationPermissionsResponse(
+            allow: false,
+            retain: false,
+          );
+        }
+        bool granted;
+        try {
+          granted =
+              await _permissions.invokeMethod<bool>('requestLocation') ?? false;
+        } catch (_) {
+          granted = false;
+        }
+        return GeolocationPermissionsResponse(allow: granted, retain: granted);
+      },
+    );
   }
 
   @override
@@ -199,10 +236,13 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
       case NavigationAction.block:
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
+          final other = _policy.belongsToOtherSide(uri);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
-                'That page is not available inside the VenQore app.',
+                other
+                    ? 'That page is on the ${_side == AppSide.customer ? 'store' : 'customer'} side of VenQore. Change sides from your account if you need it.'
+                    : 'That page is not available inside the VenQore app.',
               ),
             ),
           );
@@ -308,7 +348,7 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   // ── The phone bar (same as the website's), drawn natively ─────────────────
   AppNavConfig? _nav;
   String? _navSlug;
-  bool? _padApplied;
+  int? _padApplied;
 
   String? get _slug {
     final segs = _currentUri?.pathSegments ?? const <String>[];
@@ -334,14 +374,18 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   /// The bar floats over the page, so the scrolling area gets room under its last row.
   void _syncPadding() {
     final show = _showBottomNav;
-    if (_padApplied == show) return;
-    _padApplied = show;
+    final market = _showMarketNav;
+    final key = (show ? 1 : 0) + (market ? 2 : 0);
+    if (_padApplied == key) return;
+    _padApplied = key;
     _controller.runJavaScript(
       "(function(){var s=document.getElementById('vq-native-nav-pad');"
       "if(!s){s=document.createElement('style');s.id='vq-native-nav-pad';"
-      "s.textContent='html.vq-native-nav [data-vq-content]{padding-bottom:104px !important}';"
+      "s.textContent='html.vq-native-nav [data-vq-content]{padding-bottom:104px !important}"
+      "html.vq-native-market body{padding-bottom:96px !important}';"
       "document.head.appendChild(s);}"
-      "document.documentElement.classList.toggle('vq-native-nav',$show);})();",
+      "document.documentElement.classList.toggle('vq-native-nav',$show);"
+      "document.documentElement.classList.toggle('vq-native-market',$market);})();",
     );
   }
 
@@ -354,7 +398,21 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         path == '/my-orders';
   }
 
-  int get _marketIndex => (_currentUri?.path ?? '').startsWith('/shop') ? 0 : 1;
+  /// The marketplace uses the same floating pill as the store bar (no quick actions here).
+  static final _marketConfig = AppNavConfig(
+    tabs: const [
+      AppNavTab(id: 'stores', label: 'Stores', path: '/shop', match: ['/shop']),
+      AppNavTab(
+        id: 'orders',
+        label: 'My orders',
+        path: '/my-orders',
+        match: ['/my-orders', '/order-lookup', '/order-status'],
+      ),
+      AppNavTab(id: 'account', label: 'Account', path: 'vq:account', match: []),
+    ],
+    actions: const [],
+    hideOn: const [],
+  );
 
   /// Pages with no bottom bar (a rider's rides) still need a way to reach the account sheet.
   bool get _showProfileButton {
@@ -391,6 +449,56 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
       "fetch('/app/context',{credentials:'same-origin',headers:{'Accept':'application/json'}})"
       ".then(function(r){return r.ok?r.json():null}).catch(function(){return null})"
       ".then(function(j){VQ.postMessage(JSON.stringify({t:'ctx',d:j}))});",
+    );
+  }
+
+  /// Native sign-in / register screens (the sheet closes first).
+  void _openNative(Widget page) {
+    Navigator.pop(context);
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+  }
+
+  /// The one way across: an explicit, confirmed switch. The pages themselves can never link across.
+  Future<void> _switchSide(BuildContext sheet, bool hasStore) async {
+    final to = (_side ?? AppSide.store).other;
+    final toCustomer = to == AppSide.customer;
+    final ok = await showDialog<bool>(
+      context: sheet,
+      builder: (c) => AlertDialog(
+        title: Text(
+          toCustomer ? 'Switch to the customer side?' : 'Become a store owner?',
+        ),
+        content: Text(
+          toCustomer
+              ? 'You will see stores and your orders instead of business tools. You can switch back from your account.'
+              : hasStore
+              ? 'You will open your business tools. You can switch back from your account.'
+              : 'You will set up your own store. You can switch back to customer from your account.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            child: Text(toCustomer ? 'Switch' : 'Continue'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await AppSideStore.set(to);
+    if (!mounted) return;
+    Navigator.pop(context); // the sheet
+    final path = toCustomer ? '/shop' : (hasStore ? '/dashboard' : '/start');
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            BusinessWebScreen(initialPath: path, initialTitle: 'VenQore'),
+      ),
+      (_) => false,
     );
   }
 
@@ -435,46 +543,76 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
                 ),
                 const SizedBox(height: 14),
               ],
-              const Text(
-                'Go to',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.inkFaint,
-                  letterSpacing: 0.6,
+              if (ctx == null) ...[
+                Text(
+                  _side == AppSide.customer
+                      ? 'You are browsing as a guest. Sign in to track your orders and keep your points, or create a free account.'
+                      : 'Sign in to your business, or create one.',
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    height: 1.4,
+                    color: AppColors.inkMuted,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              _AccountTile(
-                icon: Icons.shopping_bag_outlined,
-                title: 'Customer dashboard',
-                subtitle: 'Browse stores and track your orders',
-                onTap: () =>
-                    _goTo((ctx?['customer_home'] as String?) ?? '/shop'),
-              ),
-              for (final store in stores)
-                _AccountTile(
-                  icon: Icons.storefront_rounded,
-                  title: 'Seller dashboard · ${store['name']}',
-                  subtitle: _roleLabel(store['role'] as String?),
-                  onTap: () => _goTo(store['home'] as String),
-                ),
-              if (ctx != null && stores.isEmpty)
-                _AccountTile(
-                  icon: Icons.add_business_outlined,
-                  title: 'Create your own store',
-                  subtitle: 'Start selling with VenQore',
-                  highlight: true,
-                  onTap: () =>
-                      _goTo((ctx['create_store'] as String?) ?? '/new-store'),
-                ),
-              if (ctx == null)
+                const SizedBox(height: 10),
                 _AccountTile(
                   icon: Icons.login_rounded,
                   title: 'Sign in',
                   subtitle: 'Use your VenQore account',
-                  onTap: () => _goTo('/login'),
+                  onTap: () =>
+                      _openNative(SignInScreen(side: _side ?? AppSide.store)),
                 ),
+                _AccountTile(
+                  icon: Icons.person_add_alt_1_rounded,
+                  title: 'Create an account',
+                  subtitle: _side == AppSide.customer
+                      ? 'Order and track from any store'
+                      : 'Start your business workspace',
+                  onTap: () =>
+                      _openNative(RegisterScreen(side: _side ?? AppSide.store)),
+                ),
+              ],
+              // ── Customer side: orders and the customer account only ──
+              if (ctx != null && _side == AppSide.customer) ...[
+                _AccountTile(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'My orders',
+                  subtitle: 'Orders and points from every store',
+                  onTap: () => _goTo('/my-orders'),
+                ),
+                _AccountTile(
+                  icon: Icons.add_business_outlined,
+                  title: 'Become a store owner',
+                  subtitle: 'Switch to the store side and set up your business',
+                  highlight: true,
+                  onTap: () => _switchSide(sheet, stores.isNotEmpty),
+                ),
+              ],
+              // ── Store side: the businesses you belong to, or set one up ──
+              if (ctx != null && _side != AppSide.customer) ...[
+                for (final store in stores)
+                  _AccountTile(
+                    icon: Icons.storefront_rounded,
+                    title: store['name'] as String,
+                    subtitle: _roleLabel(store['role'] as String?),
+                    onTap: () => _goTo(store['home'] as String),
+                  ),
+                if (stores.isEmpty)
+                  _AccountTile(
+                    icon: Icons.add_business_outlined,
+                    title: 'Create your store',
+                    subtitle: 'Start selling with VenQore',
+                    highlight: true,
+                    onTap: () =>
+                        _goTo((ctx['create_store'] as String?) ?? '/new-store'),
+                  ),
+                _AccountTile(
+                  icon: Icons.swap_horiz_rounded,
+                  title: 'Switch to customer side',
+                  subtitle: 'Order from stores instead',
+                  onTap: () => _switchSide(sheet, stores.isNotEmpty),
+                ),
+              ],
               const SizedBox(height: 8),
               const Divider(),
               if (_storeHomeUri != null)
@@ -814,6 +952,22 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
                     ),
                   ),
                 ),
+              if (_showMarketNav)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: AppNavBar(
+                    config: _marketConfig,
+                    path: _currentUri?.path ?? '',
+                    onOpen: (path) => path == 'vq:account'
+                        ? _openAccount()
+                        : _controller.loadRequest(
+                            AppConfig.baseUri.resolve(path),
+                          ),
+                    onPlus: null,
+                  ),
+                ),
               if (_showProfileButton)
                 Positioned(
                   right: 12,
@@ -823,44 +977,6 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: _showMarketNav
-            ? NavigationBar(
-                height: 68,
-                selectedIndex: _marketIndex,
-                indicatorColor: const Color(0xFFE6F8F3),
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.storefront_outlined),
-                    selectedIcon: Icon(Icons.storefront_rounded),
-                    label: 'Stores',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.receipt_long_outlined),
-                    selectedIcon: Icon(Icons.receipt_long_rounded),
-                    label: 'My orders',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.account_circle_outlined),
-                    selectedIcon: Icon(Icons.account_circle_rounded),
-                    label: 'Account',
-                  ),
-                ],
-                onDestinationSelected: (index) {
-                  switch (index) {
-                    case 0:
-                      _controller.loadRequest(
-                        AppConfig.baseUri.resolve('/shop'),
-                      );
-                    case 1:
-                      _controller.loadRequest(
-                        AppConfig.baseUri.resolve('/my-orders'),
-                      );
-                    case 2:
-                      _openAccount();
-                  }
-                },
-              )
-            : null,
       ),
     );
   }

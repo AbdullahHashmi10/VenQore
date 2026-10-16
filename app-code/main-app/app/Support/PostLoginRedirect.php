@@ -19,6 +19,15 @@ use Illuminate\Http\RedirectResponse;
  */
 class PostLoginRedirect
 {
+    /**
+     * Which side of the phone app is asking: 'customer' or 'store' (the app adds VenQoreSide/<side> to its
+     * browser identity), or null for the website and for older app builds.
+     */
+    public static function appSide(): ?string
+    {
+        return preg_match('~VenQoreSide/(customer|store)~', (string) request()->userAgent(), $m) ? $m[1] : null;
+    }
+
     public static function for(User $user): RedirectResponse
     {
         if ($redirect = InviteRedirect::pending()) {
@@ -29,6 +38,11 @@ class PostLoginRedirect
             return $redirect;
         }
 
+        // The customer side of the app only ever opens the customer pages, whatever else the account holds.
+        if (self::appSide() === 'customer') {
+            return redirect('/my-orders');
+        }
+
         $memberships = TenantUser::where('user_id', $user->id)
             ->where('status', 'active')
             ->with('tenant')
@@ -36,6 +50,14 @@ class PostLoginRedirect
             ->filter(fn ($m) => in_array($m->tenant?->status, ['trial', 'active', 'suspended']));
 
         if ($memberships->isEmpty()) {
+            // Signing in does not make anyone a store owner. In the phone app a person with no store is a
+            // customer: they land on their orders, with "Create your own store" offered there. On the
+            // website they still go to the create-or-join page.
+            // The store side chose to run a business, so it goes on to create or join one.
+            if (self::appSide() !== 'store' && preg_match('/VenQoreMobile/i', (string) request()->userAgent())) {
+                return redirect('/my-orders');
+            }
+
             return redirect()->route('store.create-or-join');
         }
 

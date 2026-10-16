@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
+
+import 'core/app_side.dart';
 import 'core/push_service.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await PushService.init();
+  await AppSideStore.load();
+  // Notifications start in the background: the splash must never wait on Firebase.
+  unawaited(PushService.init());
   runApp(const AmdErpApp());
 }
 

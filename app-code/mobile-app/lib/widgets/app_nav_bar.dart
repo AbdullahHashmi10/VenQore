@@ -75,6 +75,9 @@ class AppNavTab {
     'contacts' => Icons.people_alt_rounded,
     'stock' => Icons.inventory_2_rounded,
     'settings' => Icons.settings_rounded,
+    'stores' => Icons.storefront_rounded,
+    'orders' => Icons.receipt_long_rounded,
+    'account' => Icons.account_circle_rounded,
     _ => Icons.circle,
   };
 }
@@ -139,13 +142,21 @@ class AppNavBar extends StatelessWidget {
   final AppNavConfig config;
   final String path;
   final ValueChanged<String> onOpen;
-  final VoidCallback onPlus;
+
+  /// Null on bars with no quick actions (the marketplace): the tabs share the pill.
+  final VoidCallback? onPlus;
 
   @override
   Widget build(BuildContext context) {
     final byId = {for (final t in config.tabs) t.id: t};
-    final left = [byId['home'], byId['contacts']].whereType<AppNavTab>();
-    final right = [byId['stock'], byId['settings']].whereType<AppNavTab>();
+    final plus = onPlus;
+    final all = config.tabs;
+    final left = plus == null
+        ? all
+        : [byId['home'], byId['contacts']].whereType<AppNavTab>();
+    final right = plus == null
+        ? const <AppNavTab>[]
+        : [byId['stock'], byId['settings']].whereType<AppNavTab>();
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -183,7 +194,7 @@ class AppNavBar extends StatelessWidget {
                       onTap: () => onOpen(t.path),
                     ),
                   ),
-                _PlusButton(onTap: onPlus),
+                if (plus != null) _PlusButton(onTap: plus),
                 for (final t in right)
                   Flexible(
                     child: _TabButton(

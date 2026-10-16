@@ -82,8 +82,9 @@ class PushService {
         settings = await messaging.requestPermission();
       }
 
-      if (settings.authorizationStatus == AuthorizationStatus.denied)
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
         return null;
+      }
       // ignore: deprecated_member_use
       _token ??= await messaging.getToken();
       return _token;

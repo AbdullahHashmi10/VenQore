@@ -57,9 +57,7 @@ void main() {
 
   test('recognizes only the scoped Google OAuth navigation', () {
     expect(
-      policy.isGoogleOAuthStart(
-        Uri.parse('https://venqore.com/auth/google'),
-      ),
+      policy.isGoogleOAuthStart(Uri.parse('https://venqore.com/auth/google')),
       isTrue,
     );
     expect(

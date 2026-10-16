@@ -1,7 +1,9 @@
+import 'package:amd_erp_mobile/core/app_side.dart';
 import 'package:amd_erp_mobile/core/google_sign_in_service.dart';
 import 'package:amd_erp_mobile/screens/ai_builder_intro_screen.dart';
 import 'package:amd_erp_mobile/screens/register_screen.dart';
 import 'package:amd_erp_mobile/screens/sign_in_screen.dart';
+import 'package:amd_erp_mobile/screens/side_choice_screen.dart';
 import 'package:amd_erp_mobile/screens/splash_screen.dart';
 import 'package:amd_erp_mobile/screens/welcome_screen.dart';
 import 'package:amd_erp_mobile/widgets/brand_logo.dart';
@@ -49,60 +51,119 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
   });
 
-  testWidgets('WelcomeScreen offers customers, staff and owners without pilot tags',
-      (tester) async {
+  testWidgets(
+    'SideChoiceScreen asks customer or store, and nothing about roles',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(const MaterialApp(home: SideChoiceScreen()));
+      await settle(tester);
+
+      expect(find.text('I want to order'), findsOneWidget);
+      expect(find.text('I run a store'), findsOneWidget);
+      expect(find.textContaining('Owner or manager'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'WelcomeScreen is the store side only: sign in or create a business',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(const MaterialApp(home: WelcomeScreen()));
+      await settle(tester);
+
+      expect(find.text('Sign in'), findsOneWidget);
+      expect(find.text('Create my business'), findsOneWidget);
+      expect(find.text('Order from stores'), findsNothing);
+      expect(
+        find.textContaining(RegExp(r'pilot', caseSensitive: false)),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'the customer sign-in has no cashier PIN and no business builder',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(
+        const MaterialApp(home: SignInScreen(side: AppSide.customer)),
+      );
+      await settle(tester);
+
+      expect(find.byKey(const Key('signin-pin')), findsNothing);
+      expect(find.text('Let AI build my workspace'), findsNothing);
+      expect(find.textContaining('track your orders'), findsOneWidget);
+    },
+  );
+
+  testWidgets('the customer sign-up is a plain account, not a business', (
+    tester,
+  ) async {
     phone(tester);
-    await tester.pumpWidget(const MaterialApp(home: WelcomeScreen()));
+    await tester.pumpWidget(
+      const MaterialApp(home: RegisterScreen(side: AppSide.customer)),
+    );
     await settle(tester);
 
-    expect(find.text('Welcome to\nVenQore.'), findsOneWidget);
-    expect(find.text('Order from stores'), findsOneWidget);
-    expect(find.text('I work at a store'), findsOneWidget);
-    expect(find.text('Run my business'), findsOneWidget);
-    expect(find.textContaining(RegExp(r'pilot', caseSensitive: false)), findsNothing);
-    // Nobody is asked whether they are an owner or an employee.
-    expect(find.textContaining('Owner or manager'), findsNothing);
+    expect(find.text('Create your account'), findsOneWidget);
+    expect(find.text('Want AI to set it up for you?'), findsNothing);
   });
 
-  testWidgets('SignInScreen is one form for every role, with the real Google mark',
-      (tester) async {
-    phone(tester);
-    await tester.pumpWidget(const MaterialApp(home: SignInScreen()));
-    await settle(tester);
+  testWidgets(
+    'SignInScreen is one form for every role, with the real Google mark',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(const MaterialApp(home: SignInScreen()));
+      await settle(tester);
 
-    expect(find.text('Welcome back.'), findsOneWidget);
-    expect(find.byKey(const Key('signin-email')), findsOneWidget);
-    expect(find.byKey(const Key('signin-password')), findsOneWidget);
-    expect(find.text('Continue with Google'), findsOneWidget);
-    expect(find.byType(GoogleMark), findsOneWidget);
-    // No role picker and no separate staff tab.
-    expect(find.text('Staff / POS PIN'), findsNothing);
-    expect(find.textContaining('Owner'), findsNothing);
-  });
+      expect(find.text('Welcome back.'), findsOneWidget);
+      expect(find.byKey(const Key('signin-email')), findsOneWidget);
+      expect(find.byKey(const Key('signin-password')), findsOneWidget);
+      expect(find.text('Continue with Google'), findsOneWidget);
+      expect(find.byType(GoogleMark), findsOneWidget);
+      // No role picker and no separate staff tab.
+      expect(find.text('Staff / POS PIN'), findsNothing);
+      expect(find.textContaining('Owner'), findsNothing);
+    },
+  );
 
-  testWidgets('SignInScreen checks the form before leaving the app screen', (tester) async {
+  testWidgets('SignInScreen checks the form before leaving the app screen', (
+    tester,
+  ) async {
     phone(tester);
     await tester.pumpWidget(const MaterialApp(home: SignInScreen()));
     await settle(tester);
 
     await tester.tap(find.byKey(const Key('signin-submit')));
     await settle(tester);
-    expect(find.text('Enter the email address you sign in with.'), findsOneWidget);
+    expect(
+      find.text('Enter the email address you sign in with.'),
+      findsOneWidget,
+    );
 
-    await tester.enterText(find.byKey(const Key('signin-email')), 'cashier@shop.com');
+    await tester.enterText(
+      find.byKey(const Key('signin-email')),
+      'cashier@shop.com',
+    );
     await tester.tap(find.byKey(const Key('signin-submit')));
     await settle(tester);
     expect(find.text('Enter your password.'), findsOneWidget);
     expect(find.byType(SignInScreen), findsOneWidget);
   });
 
-  testWidgets('Google sign-in: a failure is explained on the sign-in screen', (tester) async {
+  testWidgets('Google sign-in: a failure is explained on the sign-in screen', (
+    tester,
+  ) async {
     phone(tester);
-    final google = _FakeGoogle(const GoogleSignInResult(
-      GoogleSignInOutcome.failed,
-      message: 'Google could not confirm this sign-in.',
-    ));
-    await tester.pumpWidget(MaterialApp(home: SignInScreen(googleService: google)));
+    final google = _FakeGoogle(
+      const GoogleSignInResult(
+        GoogleSignInOutcome.failed,
+        message: 'Google could not confirm this sign-in.',
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: SignInScreen(googleService: google)),
+    );
     await settle(tester);
 
     await tester.ensureVisible(find.byKey(const Key('signin-google')));
@@ -113,10 +174,16 @@ void main() {
     expect(find.text('Google could not confirm this sign-in.'), findsOneWidget);
   });
 
-  testWidgets('Google sign-in: closing the picker changes nothing', (tester) async {
+  testWidgets('Google sign-in: closing the picker changes nothing', (
+    tester,
+  ) async {
     phone(tester);
-    final google = _FakeGoogle(const GoogleSignInResult(GoogleSignInOutcome.cancelled));
-    await tester.pumpWidget(MaterialApp(home: SignInScreen(googleService: google)));
+    final google = _FakeGoogle(
+      const GoogleSignInResult(GoogleSignInOutcome.cancelled),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: SignInScreen(googleService: google)),
+    );
     await settle(tester);
 
     await tester.ensureVisible(find.byKey(const Key('signin-google')));
@@ -128,31 +195,42 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
   });
 
-  testWidgets('RegisterScreen asks only what the server asks, and needs the terms',
-      (tester) async {
-    phone(tester);
-    await tester.pumpWidget(const MaterialApp(home: RegisterScreen()));
-    await settle(tester);
+  testWidgets(
+    'RegisterScreen asks only what the server asks, and needs the terms',
+    (tester) async {
+      phone(tester);
+      await tester.pumpWidget(const MaterialApp(home: RegisterScreen()));
+      await settle(tester);
 
-    expect(find.text('Start your business workspace'), findsOneWidget);
-    expect(find.text('Want AI to set it up for you?'), findsOneWidget);
-    expect(find.byKey(const Key('register-name')), findsOneWidget);
-    expect(find.byKey(const Key('register-email')), findsOneWidget);
-    expect(find.byKey(const Key('register-password')), findsOneWidget);
-    // Fields the server never receives are not collected.
-    expect(find.text('Retail & Shop'), findsNothing);
+      expect(find.text('Start your business workspace'), findsOneWidget);
+      expect(find.text('Want AI to set it up for you?'), findsOneWidget);
+      expect(find.byKey(const Key('register-name')), findsOneWidget);
+      expect(find.byKey(const Key('register-email')), findsOneWidget);
+      expect(find.byKey(const Key('register-password')), findsOneWidget);
+      // Fields the server never receives are not collected.
+      expect(find.text('Retail & Shop'), findsNothing);
 
-    await tester.enterText(find.byKey(const Key('register-name')), 'Sam Owner');
-    await tester.enterText(find.byKey(const Key('register-email')), 'sam@shop.com');
-    await tester.enterText(find.byKey(const Key('register-password')), 'longenough1');
-    await tester.ensureVisible(find.byKey(const Key('register-submit')));
-    await tester.tap(find.byKey(const Key('register-submit')));
-    await settle(tester);
-    expect(
-      find.text('Please agree to the Terms and Privacy Policy to continue.'),
-      findsOneWidget,
-    );
-  });
+      await tester.enterText(
+        find.byKey(const Key('register-name')),
+        'Sam Owner',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register-email')),
+        'sam@shop.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('register-password')),
+        'longenough1',
+      );
+      await tester.ensureVisible(find.byKey(const Key('register-submit')));
+      await tester.tap(find.byKey(const Key('register-submit')));
+      await settle(tester);
+      expect(
+        find.text('Please agree to the Terms and Privacy Policy to continue.'),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('RegisterScreen rejects a short password', (tester) async {
     phone(tester);
@@ -160,15 +238,23 @@ void main() {
     await settle(tester);
 
     await tester.enterText(find.byKey(const Key('register-name')), 'Sam Owner');
-    await tester.enterText(find.byKey(const Key('register-email')), 'sam@shop.com');
+    await tester.enterText(
+      find.byKey(const Key('register-email')),
+      'sam@shop.com',
+    );
     await tester.enterText(find.byKey(const Key('register-password')), 'short');
     await tester.ensureVisible(find.byKey(const Key('register-submit')));
     await tester.tap(find.byKey(const Key('register-submit')));
     await settle(tester);
-    expect(find.text('Your password needs at least 8 characters.'), findsOneWidget);
+    expect(
+      find.text('Your password needs at least 8 characters.'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('AiBuilderIntroScreen renders ThinkingOrb and trade examples', (tester) async {
+  testWidgets('AiBuilderIntroScreen renders ThinkingOrb and trade examples', (
+    tester,
+  ) async {
     phone(tester);
     await tester.pumpWidget(const MaterialApp(home: AiBuilderIntroScreen()));
     await settle(tester);
@@ -180,12 +266,14 @@ void main() {
   });
 
   for (final entry in <String, Widget Function()>{
-    "WelcomeScreen": () => const WelcomeScreen(),
-    "SignInScreen": () => const SignInScreen(),
-    "RegisterScreen": () => const RegisterScreen(),
-    "AiBuilderIntroScreen": () => const AiBuilderIntroScreen(),
+    'WelcomeScreen': () => const WelcomeScreen(),
+    'SignInScreen': () => const SignInScreen(),
+    'RegisterScreen': () => const RegisterScreen(),
+    'AiBuilderIntroScreen': () => const AiBuilderIntroScreen(),
   }.entries) {
-    testWidgets("${entry.key} fits a narrow phone with large text", (tester) async {
+    testWidgets('${entry.key} fits a narrow phone with large text', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(280, 640);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
@@ -194,7 +282,10 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: MediaQuery(
-            data: const MediaQueryData(size: Size(280, 640), textScaler: TextScaler.linear(1.35)),
+            data: const MediaQueryData(
+              size: Size(280, 640),
+              textScaler: TextScaler.linear(1.35),
+            ),
             child: entry.value(),
           ),
         ),
