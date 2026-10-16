@@ -69,3 +69,18 @@ Package `com.venqore.app`, signed with the new release key (SHA-1 `21:8C:2C:D5:8
 - Customer account across all stores: `/my-orders` (orders and points by verified email).
 - Phone calls, WhatsApp and maps links open in the phone's own apps.
 - Not yet: Firebase push in the app, Google sign-in on a device (needs the Android OAuth client; see `app-code/mobile-app/GOOGLE_AND_FIREBASE_SETUP.md`). Not run on a phone yet.
+
+---
+
+# 1.3.0 (build 9) — app notifications (Firebase)
+
+**Artifact:** `VenQore-Mobile-1.3.0-build9.apk` · 51,709,006 bytes · SHA256 `19A7779471032AABD0A87F909BC9AE95C671C97F57A1DA227EE69C56214F2409`
+Package `com.venqore.app`, release-signed (SHA-1 `21:8C:2C:D5:...:15:A6`), verified with apksigner. Firebase project `venqore-pos-496612`.
+
+- Asks once, in plain words, on a signed-in store page whether to allow alerts (Android 13+ permission), then registers the phone to the signed-in account through the web session. Signing out removes the phone.
+- Server: `device_tokens` table, `POST /app/device-token` (+`/off`), `FcmService` (HTTP v1, token minted from the service account), and the rider-assigned alert now also goes to the rider's phone. Dead tokens are dropped.
+- Tap on a notification opens its page inside the app; a notification while the app is open shows an in-app banner with "Open".
+- Alerts carry order number, pickup and cash only: no address or phone.
+- The real service account was checked: Google issued an access token for the project. **No real notification has been sent to a real phone yet.**
+
+To switch on at the server: set `FCM_SERVICE_ACCOUNT_PATH` in `.env` to the service-account JSON (outside the web folder and outside git), run `php artisan migrate` and `php artisan config:clear`.

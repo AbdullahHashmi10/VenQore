@@ -2,7 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Services\Push\FcmService;
 use App\Services\Push\WebPushService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -31,5 +33,12 @@ class SendWebPush implements ShouldQueue
     public function handle(): void
     {
         WebPushService::toEmployee($this->tenantId, $this->employeeId, $this->message);
+
+        // The same alert to the rider's phone app, through the login linked to this rider.
+        $userIds = DB::table('commerce_rider_accounts')->where('tenant_id', $this->tenantId)
+            ->where('employee_id', $this->employeeId)->pluck('user_id');
+        foreach ($userIds as $userId) {
+            FcmService::toUser((int) $userId, $this->message);
+        }
     }
 }

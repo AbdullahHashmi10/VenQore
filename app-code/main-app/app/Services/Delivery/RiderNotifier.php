@@ -103,7 +103,7 @@ class RiderNotifier
 
     private static function push(int $tenantId, string $employeeId, array $message): bool
     {
-        if (! WebPushService::enabled()) {
+        if (! WebPushService::enabled() && ! \App\Services\Push\FcmService::enabled()) {
             return false;
         }
         SendWebPush::dispatch($tenantId, $employeeId, $message);

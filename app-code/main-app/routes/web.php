@@ -371,6 +371,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::c
     // Store hub (shown to users with 2+ stores)
     Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
     // What the phone app's profile sheet offers: customer side, and each store with its role-based home.
+    Route::post('/app/device-token', [\App\Http\Controllers\DeviceTokenController::class, 'store'])->middleware('throttle:30,1')->name('account.device-token');
+    Route::post('/app/device-token/off', [\App\Http\Controllers\DeviceTokenController::class, 'destroy'])->middleware('throttle:30,1')->name('account.device-token.off');
     Route::get('/app/context', [\App\Http\Controllers\AppContextController::class, 'show'])->middleware('throttle:60,1')->name('account.app-context');
     Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
 

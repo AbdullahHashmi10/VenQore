@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../config/app_config.dart';
 import '../core/navigation_policy.dart';
+import '../core/push_service.dart';
 import '../core/web_autofill.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_nav_bar.dart';
@@ -59,6 +60,7 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   void initState() {
     super.initState();
     _policy = NavigationPolicy();
+    PushService.addOpener(_openPath);
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent(_defaultUserAgent)
@@ -103,6 +105,30 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         ),
       )
       ..loadRequest(AppConfig.baseUri.resolve(widget.initialPath));
+  }
+
+  @override
+  void dispose() {
+    PushService.removeOpener(_openPath);
+    super.dispose();
+  }
+
+  /// A tapped notification opens its page here (the newest web screen handles it).
+  void _openPath(String path) {
+    if (mounted) _controller.loadRequest(PushService.resolve(path));
+  }
+
+  bool _pushTried = false;
+
+  /// Once per screen, on a signed-in store page: ask in plain words, then give this phone's address to
+  /// the signed-in account (from inside the web view, so it uses the same session).
+  Future<void> _registerPush() async {
+    if (_pushTried || _slug == null) return;
+    _pushTried = true;
+    final token = await PushService.token(context);
+    if (token != null && mounted) {
+      await _controller.runJavaScript(PushService.registerScript(token));
+    }
   }
 
   /// Hands the native form's input to the web page, once, and only on our own site.
@@ -200,6 +226,12 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   }
 
   Future<void> _signOut() async {
+    final pushToken = PushService.currentToken;
+    if (pushToken != null) {
+      // Stop alerts to this phone for this account before the session ends.
+      await _controller.runJavaScript(PushService.removeScript(pushToken));
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+    }
     await _controller.loadRequest(AppConfig.baseUri.resolve('/logout'));
     await WebViewCookieManager().clearCookies();
     await _controller.clearCache();
@@ -296,6 +328,7 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
       );
     }
     _syncPadding();
+    _registerPush();
   }
 
   /// The bar floats over the page, so the scrolling area gets room under its last row.

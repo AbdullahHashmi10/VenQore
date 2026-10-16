@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'core/push_service.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_colors.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await PushService.init();
   runApp(const AmdErpApp());
 }
 
@@ -14,6 +16,8 @@ class AmdErpApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: PushService.navigatorKey,
+      scaffoldMessengerKey: PushService.messengerKey,
       title: 'VenQore ERP Mobile',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

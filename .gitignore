@@ -76,3 +76,7 @@ app-code/production/
 
 _private/
 /app-code/windows-app/dist-local/
+
+# Secrets (service accounts, keys): never commit
+/Secret/
+/app-code/mobile-app/android/app/google-services.json
