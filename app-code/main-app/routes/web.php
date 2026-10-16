@@ -370,6 +370,8 @@ Route::get('/google/callback', [\App\Http\Controllers\GoogleDriveAuthController:
 Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
     // Store hub (shown to users with 2+ stores)
     Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
+    // What the phone app's profile sheet offers: customer side, and each store with its role-based home.
+    Route::get('/app/context', [\App\Http\Controllers\AppContextController::class, 'show'])->middleware('throttle:60,1')->name('account.app-context');
     Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
 
     // Staff Hub (unified dashboard for store employees)
@@ -424,6 +426,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             }
             return \redirect()->route('store.dashboard', ['store_slug' => $tenant->slug]);
         })->name('root');
+
+        // The phone app draws its bottom bar natively from this (mirrors BottomNavBar.jsx).
+        Route::get('/app-nav', [\App\Http\Controllers\AppNavController::class, 'show'])->middleware('throttle:60,1')->name('app-nav');
 
         // Setup wizard (no plan gate — always accessible)
         Route::get('/setup',  [\App\Http\Controllers\SetupController::class, 'index'])->name('setup');

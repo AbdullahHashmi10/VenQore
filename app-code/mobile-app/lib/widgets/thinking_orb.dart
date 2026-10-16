@@ -65,7 +65,8 @@ class _ThinkingOrbState extends State<ThinkingOrb>
               time: t,
               state: widget.state,
               accentColor: widget.accentColor,
-              ghostColor: widget.ghostColor ??
+              ghostColor:
+                  widget.ghostColor ??
                   widget.accentColor.withValues(alpha: 0.35),
               showCore: widget.showCore,
             ),
@@ -135,14 +136,17 @@ class _OrbPainter extends CustomPainter {
     if (showCore) {
       final pulse = (math.sin(time * 1.5) + 1.0) / 2.0;
       final corePaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            accentColor.withValues(alpha: 0.22 + 0.12 * pulse),
-            accentColor.withValues(alpha: 0.05),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.55, 1.0],
-        ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.7));
+        ..shader =
+            RadialGradient(
+              colors: [
+                accentColor.withValues(alpha: 0.22 + 0.12 * pulse),
+                accentColor.withValues(alpha: 0.05),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.55, 1.0],
+            ).createShader(
+              Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.7),
+            );
       canvas.drawCircle(Offset(cx, cy), r * 0.7, corePaint);
     }
 
@@ -219,7 +223,8 @@ class _OrbPainter extends CustomPainter {
 
       // Active traveling energy particles
       for (int m = 0; m < particlesPerOrbit; m++) {
-        final a = time * speed + (m / particlesPerOrbit) * 2 * math.pi + h2 * 6.0;
+        final a =
+            time * speed + (m / particlesPerOrbit) * 2 * math.pi + h2 * 6.0;
         final lx = (ux * math.cos(a) + vx * math.sin(a)) * ro;
         final ly = (uy * math.cos(a) + vy * math.sin(a)) * ro;
         final lz = (uz * math.cos(a) + vz * math.sin(a)) * ro;
@@ -234,10 +239,7 @@ class _OrbPainter extends CustomPainter {
         final depth = ((z2 / ro) + 1.0) / 2.0;
         final clampedDepth = depth.clamp(0.0, 1.0);
 
-        final partRadius = math.max(
-          1.5,
-          (1.8 + 2.8 * clampedDepth) * rs,
-        );
+        final partRadius = math.max(1.5, (1.8 + 2.8 * clampedDepth) * rs);
         final alpha = (0.45 + 0.55 * clampedDepth).clamp(0.0, 1.0);
 
         dots.add(

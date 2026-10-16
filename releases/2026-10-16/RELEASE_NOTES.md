@@ -3,7 +3,7 @@
 **Date:** 2026-10-16
 **Artifact:** `VenQore-Mobile-1.1.5-build7.apk`
 **Size:** 50,981,591 bytes (48.6 MB)
-**SHA256:** `76B05C2073AA96329D023B7F1E7E8638030E5A1A370001AECC459F681BE24486`
+**SHA256:** `A1B8F9CFFB4BD27587EF512E55C425D96796E8E156BB114A1F76D36F0D14DCDF`
 
 Read, built and unit-tested. **Not yet run on a real phone or against the live server**; see "Not verified" below before publishing.
 
@@ -56,3 +56,16 @@ The 1.1.4 notes described things the build did not do. Fixed in 1.1.5:
 - Flutter: `flutter analyze` clean; `flutter test` all pass (screens, narrow-phone/large-text layouts, autofill script, navigation policy).
 - PHP: FohBackendTest 18/18, RiderAlertsTest 10/10, NativeGoogleAuthTest 10/10, RiderDeliveryTest passes except one pre-existing failure (`pickup orders and inactive...`, a checkout "cart changed" error that also fails on the untouched code).
 - Wider run (Hardening, Routes, Auth, Commerce): 420 pass, 29 fail. The 29 are in storefront/checkout tests and a route-namespace tripwire (`commerce`, `fiscal-year`, `station` were never declared) that were already failing and do not touch these changes.
+
+---
+
+# 1.2.0 (build 8) — package com.venqore.app, release-signed
+
+**Artifact:** `VenQore-Mobile-1.2.0-build8.apk` · 50990416 bytes · SHA256 `19bb96517298870baa92ea64d9523f46cf09f7b7f1a0e1b5ec3f247a8fbd1d43`
+Package `com.venqore.app`, signed with the new release key (SHA-1 `21:8C:2C:D5:8E:3B:F0:F8:E7:51:0A:95:45:C7:AA:CC:26:E3:15:A6`), checked with apksigner. Replaces the `com.example` / debug-key builds; it installs as a separate app from 1.1.x.
+
+- Full-screen web content: no top bar, no three-dot button. Account sheet with Customer dashboard / Seller dashboard / Create your own store.
+- Phone bar identical to the website's (Dashboard, Contacts, raised +, Stock, Settings) drawn natively; web's own phone bar stays hidden in the app.
+- Customer account across all stores: `/my-orders` (orders and points by verified email).
+- Phone calls, WhatsApp and maps links open in the phone's own apps.
+- Not yet: Firebase push in the app, Google sign-in on a device (needs the Android OAuth client; see `app-code/mobile-app/GOOGLE_AND_FIREBASE_SETUP.md`). Not run on a phone yet.

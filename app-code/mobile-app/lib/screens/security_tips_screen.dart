@@ -33,7 +33,8 @@ class SecurityTipsScreen extends StatelessWidget {
     (
       icon: Icons.system_update_alt_rounded,
       title: 'Install trusted builds only',
-      body: 'Always install updates and APKs directly from the authorized VenQore release channels.',
+      body:
+          'Always install updates and APKs directly from the authorized VenQore release channels.',
     ),
   ];
 

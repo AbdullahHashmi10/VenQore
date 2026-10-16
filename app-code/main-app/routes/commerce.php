@@ -38,6 +38,7 @@ Route::get('/rider/{token}', [\App\Http\Controllers\Commerce\RiderPortalControll
 Route::post('/rider/{token}/step', [\App\Http\Controllers\Commerce\RiderPortalController::class, 'step'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:60,1')->name('commerce.rider.step');
 Route::post('/rider/{token}/push', [\App\Http\Controllers\Commerce\RiderPushController::class, 'subscribeByToken'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('commerce.rider.push');
 Route::post('/rider/{token}/push/off', [\App\Http\Controllers\Commerce\RiderPushController::class, 'unsubscribeByToken'])->where('token', '[A-Za-z0-9]{48}')->middleware('throttle:20,1')->name('commerce.rider.push.off');
+Route::get('/my-orders', [\App\Http\Controllers\Commerce\CustomerHubController::class, 'show'])->middleware('throttle:60,1')->name('commerce.my-orders');
 Route::get('/order-lookup', [PublicStoreController::class, 'lookupForm'])->name('commerce.order-lookup');
 Route::post('/order-lookup', [PublicStoreController::class, 'lookup'])->middleware('throttle:6,1')->name('commerce.order-lookup.find');
 Route::post('/shop/{slug}/customer/otp', [PublicStoreController::class, 'customerOtpStart'])->where('slug', '[a-z0-9-]+')->middleware('throttle:8,1')->name('commerce.customer.otp');

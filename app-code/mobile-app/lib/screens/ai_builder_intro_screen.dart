@@ -24,27 +24,32 @@ class _AiBuilderIntroScreenState extends State<AiBuilderIntroScreen> {
     {
       'title': 'Grocery Store',
       'icon': Icons.local_grocery_store_outlined,
-      'prompt': 'I run a grocery store with two POS counters, barcode scanning and customer ledger credit.',
+      'prompt':
+          'I run a grocery store with two POS counters, barcode scanning and customer ledger credit.',
     },
     {
       'title': 'Restaurant & Cafe',
       'icon': Icons.restaurant_rounded,
-      'prompt': 'Cafe & kitchen with table service, takeaway orders, rider delivery and split bills.',
+      'prompt':
+          'Cafe & kitchen with table service, takeaway orders, rider delivery and split bills.',
     },
     {
       'title': 'Repair Workshop',
       'icon': Icons.build_circle_outlined,
-      'prompt': 'Phone and electronics repair shop with parts inventory, service jobs and walk-in sales.',
+      'prompt':
+          'Phone and electronics repair shop with parts inventory, service jobs and walk-in sales.',
     },
     {
       'title': 'Salon & Spa',
       'icon': Icons.spa_outlined,
-      'prompt': 'Salon with 4 chairs, appointment scheduling, staff commission tracking and product sales.',
+      'prompt':
+          'Salon with 4 chairs, appointment scheduling, staff commission tracking and product sales.',
     },
     {
       'title': 'Wholesale & B2B',
       'icon': Icons.local_shipping_outlined,
-      'prompt': 'Wholesale distributor selling goods to shops on 30-day payment terms with van deliveries.',
+      'prompt':
+          'Wholesale distributor selling goods to shops on 30-day payment terms with van deliveries.',
     },
   ];
 
@@ -109,10 +114,13 @@ class _AiBuilderIntroScreenState extends State<AiBuilderIntroScreen> {
         actions: [
           IconButton(
             tooltip: 'Help',
-            icon: const Icon(Icons.help_outline_rounded, color: AppColors.inkMuted),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const HelpScreen()),
+            icon: const Icon(
+              Icons.help_outline_rounded,
+              color: AppColors.inkMuted,
             ),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const HelpScreen())),
           ),
         ],
       ),
@@ -128,7 +136,11 @@ class _AiBuilderIntroScreenState extends State<AiBuilderIntroScreen> {
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [AppColors.teal950, AppColors.teal900, Color(0xFF082622)],
+                    colors: [
+                      AppColors.teal950,
+                      AppColors.teal900,
+                      Color(0xFF082622),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),

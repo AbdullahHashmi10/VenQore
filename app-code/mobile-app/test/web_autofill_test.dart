@@ -3,6 +3,7 @@ import 'package:amd_erp_mobile/core/web_autofill.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  accountPagesTests();
   test('only applies to the page it was made for', () {
     const fill = WebAutofill(path: '/login', fields: {'email': 'a@b.co'});
     expect(fill.matches(Uri.parse('https://venqore.com/login')), isTrue);
@@ -53,5 +54,15 @@ void main() {
       NavigationAction.block,
     );
     expect(policy.evaluate(Uri.parse('https://venqore.com/auth/other')), NavigationAction.block);
+  });
+}
+
+void accountPagesTests() {
+  test('customer pages for QR menus and account open inside the app', () {
+    final policy = NavigationPolicy(baseUri: Uri.parse('https://venqore.com/'));
+    expect(policy.evaluate(Uri.parse('https://venqore.com/catalogue/my-cafe')), NavigationAction.allow);
+    expect(policy.evaluate(Uri.parse('https://venqore.com/order-lookup')), NavigationAction.allow);
+    expect(policy.evaluate(Uri.parse('https://venqore.com/new-store')), NavigationAction.allow);
+    expect(policy.evaluate(Uri.parse('https://venqore.com/pricing')), NavigationAction.block);
   });
 }

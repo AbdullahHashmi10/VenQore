@@ -1,4 +1,4 @@
-package com.example.amd_erp_mobile
+package com.venqore.app
 
 import io.flutter.embedding.android.FlutterActivity
 

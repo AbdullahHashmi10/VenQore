@@ -55,23 +55,28 @@ class _SplashScreenState extends State<SplashScreen>
     )..repeat();
 
     // Motion curves
-    _logoScale = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.65, end: 1.08)
-            .chain(CurveTween(curve: Curves.easeOutBack)),
-        weight: 65,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.08, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInOut)),
-        weight: 35,
-      ),
-    ]).animate(
-      CurvedAnimation(
-        parent: _introController,
-        curve: const Interval(0.12, 0.68),
-      ),
-    );
+    _logoScale =
+        TweenSequence<double>([
+          TweenSequenceItem(
+            tween: Tween<double>(
+              begin: 0.65,
+              end: 1.08,
+            ).chain(CurveTween(curve: Curves.easeOutBack)),
+            weight: 65,
+          ),
+          TweenSequenceItem(
+            tween: Tween<double>(
+              begin: 1.08,
+              end: 1.0,
+            ).chain(CurveTween(curve: Curves.easeInOut)),
+            weight: 35,
+          ),
+        ]).animate(
+          CurvedAnimation(
+            parent: _introController,
+            curve: const Interval(0.12, 0.68),
+          ),
+        );
 
     _logoOpacity = CurvedAnimation(
       parent: _introController,
@@ -83,15 +88,13 @@ class _SplashScreenState extends State<SplashScreen>
       curve: const Interval(0.38, 0.72, curve: Curves.easeOut),
     );
 
-    _textSlide = Tween<Offset>(
-      begin: const Offset(0, 0.28),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _introController,
-        curve: const Interval(0.38, 0.78, curve: Curves.easeOutCubic),
-      ),
-    );
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.28), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _introController,
+            curve: const Interval(0.38, 0.78, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _subtitleOpacity = CurvedAnimation(
       parent: _introController,
@@ -155,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
                 builder: (context, child) {
                   final pulse =
                       (math.sin(_pulseController.value * 2 * math.pi) + 1.0) /
-                          2.0;
+                      2.0;
                   return CustomPaint(
                     painter: _SplashBackgroundPainter(pulse: pulse),
                   );
@@ -283,10 +286,7 @@ class _SplashScreenState extends State<SplashScreen>
                         builder: (context, child) {
                           final v = _pulseController.value;
                           return FractionallySizedBox(
-                            alignment: Alignment(
-                              -1.0 + (v * 2.0),
-                              0.0,
-                            ),
+                            alignment: Alignment(-1.0 + (v * 2.0), 0.0),
                             widthFactor: 0.35,
                             child: Container(
                               decoration: BoxDecoration(
@@ -328,30 +328,35 @@ class _SplashBackgroundPainter extends CustomPainter {
     // Deep spot glow behind the logo
     final spotRadius = size.width * (0.65 + 0.08 * pulse);
     final spotPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          AppColors.teal500.withValues(alpha: 0.18 + 0.05 * pulse),
-          AppColors.teal800.withValues(alpha: 0.08),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.45, 1.0],
-      ).createShader(
-        Rect.fromCircle(center: Offset(cx, cy), radius: spotRadius),
-      );
+      ..shader =
+          RadialGradient(
+            colors: [
+              AppColors.teal500.withValues(alpha: 0.18 + 0.05 * pulse),
+              AppColors.teal800.withValues(alpha: 0.08),
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.45, 1.0],
+          ).createShader(
+            Rect.fromCircle(center: Offset(cx, cy), radius: spotRadius),
+          );
 
     canvas.drawCircle(Offset(cx, cy), spotRadius, spotPaint);
 
     // Subtle corner accent mesh
     final cornerRadius = size.width * 0.7;
     final cornerPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          AppColors.teal900.withValues(alpha: 0.12),
-          Colors.transparent,
-        ],
-      ).createShader(
-        Rect.fromCircle(center: Offset(size.width, 0), radius: cornerRadius),
-      );
+      ..shader =
+          RadialGradient(
+            colors: [
+              AppColors.teal900.withValues(alpha: 0.12),
+              Colors.transparent,
+            ],
+          ).createShader(
+            Rect.fromCircle(
+              center: Offset(size.width, 0),
+              radius: cornerRadius,
+            ),
+          );
     canvas.drawCircle(Offset(size.width, 0), cornerRadius, cornerPaint);
   }
 

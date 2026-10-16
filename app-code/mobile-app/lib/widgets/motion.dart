@@ -29,7 +29,10 @@ class FadeSlideIn extends StatelessWidget {
       curve: Interval(start, 1, curve: Curves.easeOutCubic),
       builder: (context, t, child) => Opacity(
         opacity: t,
-        child: Transform.translate(offset: Offset(0, (1 - t) * offset), child: child),
+        child: Transform.translate(
+          offset: Offset(0, (1 - t) * offset),
+          child: child,
+        ),
       ),
       child: child,
     );

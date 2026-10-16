@@ -15,9 +15,7 @@ class AboutAppScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(22, 28, 22, 32),
           children: [
-            const Center(
-              child: BrandLogo(size: 76, borderRadius: 23),
-            ),
+            const Center(child: BrandLogo(size: 76, borderRadius: 23)),
             const SizedBox(height: 18),
             const Text(
               'VenQore',
@@ -30,7 +28,7 @@ class AboutAppScreen extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Version 1.1.4',
+              'Version 1.1.5',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.inkMuted),
             ),
@@ -44,10 +42,7 @@ class AboutAppScreen extends StatelessWidget {
               value: 'Online marketplace & store ordering',
             ),
             _InfoRow(label: 'Connected service', value: AppConfig.baseUri.host),
-            const _InfoRow(
-              label: 'Platform',
-              value: 'Android & Web',
-            ),
+            const _InfoRow(label: 'Platform', value: 'Android & Web'),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(17),

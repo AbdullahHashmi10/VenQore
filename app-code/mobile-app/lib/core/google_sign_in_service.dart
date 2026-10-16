@@ -37,7 +37,8 @@ class GoogleSignInResult {
 /// instead of a web page. The ID token Google returns is verified by our server, which answers with a
 /// one-time ticket the app opens to start the session.
 class GoogleSignInService {
-  GoogleSignInService({http.Client? client}) : _client = client ?? http.Client();
+  GoogleSignInService({http.Client? client})
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 
@@ -69,7 +70,8 @@ class GoogleSignInService {
     } on TimeoutException {
       return const GoogleSignInResult(
         GoogleSignInOutcome.failed,
-        message: 'Could not reach VenQore. Check your connection and try again.',
+        message:
+            'Could not reach VenQore. Check your connection and try again.',
       );
     } catch (_) {
       // Most often "the app is not registered with Google yet" or Play services missing.
@@ -86,7 +88,9 @@ class GoogleSignInService {
           .get(AppConfig.baseUri.resolve('/api/mobile/config'))
           .timeout(_timeout);
       if (res.statusCode != 200) return null;
-      final id = (jsonDecode(res.body) as Map<String, dynamic>)['google_server_client_id'];
+      final id =
+          (jsonDecode(res.body)
+              as Map<String, dynamic>)['google_server_client_id'];
       return id is String && id.isNotEmpty ? id : null;
     } catch (_) {
       return null;
@@ -97,23 +101,31 @@ class GoogleSignInService {
     final res = await _client
         .post(
           AppConfig.baseUri.resolve('/api/mobile/auth/google'),
-          headers: const {'Content-Type': 'application/json', 'Accept': 'application/json'},
+          headers: const {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
           body: jsonEncode({'id_token': idToken}),
         )
         .timeout(_timeout);
 
-    final body = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body) as Map<String, dynamic>;
+    final body = res.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(res.body) as Map<String, dynamic>;
 
     if (res.statusCode == 401) {
       return GoogleSignInResult(
         GoogleSignInOutcome.failed,
-        message: (body['message'] as String?) ?? 'Google could not confirm this sign-in.',
+        message:
+            (body['message'] as String?) ??
+            'Google could not confirm this sign-in.',
       );
     }
     if (res.statusCode != 200) {
       return const GoogleSignInResult(
         GoogleSignInOutcome.failed,
-        message: 'VenQore could not finish the Google sign-in. Please try again.',
+        message:
+            'VenQore could not finish the Google sign-in. Please try again.',
       );
     }
 

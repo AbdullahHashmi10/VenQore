@@ -1,18 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../config/app_config.dart';
 import '../core/navigation_policy.dart';
 import '../core/web_autofill.dart';
 import '../theme/app_colors.dart';
+import '../widgets/app_nav_bar.dart';
 import 'about_app_screen.dart';
 import 'account_center_screen.dart';
 import 'activity_center_screen.dart';
 import 'business_menu_screen.dart';
 import 'help_screen.dart';
-import 'pos_center_screen.dart';
 import 'quick_actions_screen.dart';
-import 'sales_center_screen.dart';
 import 'welcome_screen.dart';
 import 'workspace_screen.dart';
 
@@ -42,7 +44,6 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   bool _replacingRoot = false;
   bool _googleOAuthActive = false;
   bool _autofilled = false;
-  late String _title;
   Uri? _currentUri;
 
   static const String _defaultUserAgent =
@@ -57,12 +58,15 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   @override
   void initState() {
     super.initState();
-    _title = widget.initialTitle;
     _policy = NavigationPolicy();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent(_defaultUserAgent)
       ..setBackgroundColor(AppColors.canvas)
+      ..addJavaScriptChannel(
+        'VQ',
+        onMessageReceived: (m) => _onBridge(m.message),
+      )
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (progress) {
@@ -74,33 +78,21 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
           onPageFinished: (url) {
             if (!mounted) return;
             final uri = Uri.tryParse(url);
-            final path = uri?.path ?? '';
             _runAutofill(uri);
-            final isGoogle = _googleOAuthActive ||
-                (uri != null && _policy.isGoogleOAuthProvider(uri));
             setState(() {
               _progress = 100;
               _currentUri = uri;
-              if (isGoogle) {
-                _title = 'Sign in with Google';
-              } else {
-                _title = switch (path) {
-                  final value when value.endsWith('/dashboard') => 'My dashboard',
-                  final value when value.endsWith('/my-rides') => 'My rides',
-                  '/login' => 'Sign in',
-                  final value when value.startsWith('/auth/native-ticket/') => 'Signing you in',
-                  final value when value.startsWith('/s/') => 'VenQore Business',
-                  '/shop' => 'Explore Stores',
-                  final value when value.startsWith('/shop/') => 'Store',
-                  final value when value.startsWith('/order-status') => 'Order status',
-                  '/register' => 'Create account',
-                  '/build-workspace' => 'Build your workspace',
-                  '/verify-code' => 'Verify your email',
-                  final value when value.startsWith('/2fa/') => 'Security check',
-                  _ => widget.initialTitle,
-                };
-              }
+              _padApplied = null;
             });
+            _syncNav();
+          },
+          // In-page moves (the site changes screens without reloading) still update the app's bars.
+          onUrlChange: (change) {
+            final uri = change.url == null ? null : Uri.tryParse(change.url!);
+            if (mounted && uri != null) {
+              setState(() => _currentUri = uri);
+              _syncNav();
+            }
           },
           onWebResourceError: (error) {
             if (error.isForMainFrame == true && mounted) {
@@ -122,9 +114,34 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
     _controller.runJavaScript(autofill.script());
   }
 
+  /// Phone calls, messages, WhatsApp and maps belong to the phone's own apps, not the web view.
+  bool _opensOutsideApp(Uri uri) {
+    if (const {
+      'tel',
+      'sms',
+      'mailto',
+      'geo',
+      'whatsapp',
+    }.contains(uri.scheme)) {
+      return true;
+    }
+    final host = uri.host.toLowerCase();
+    if (host == 'wa.me' ||
+        host == 'api.whatsapp.com' ||
+        host == 'maps.app.goo.gl') {
+      return true;
+    }
+    return (host == 'www.google.com' || host == 'google.com') &&
+        uri.path.startsWith('/maps');
+  }
+
   NavigationDecision _handleNavigation(NavigationRequest request) {
-    if (!request.isMainFrame) return NavigationDecision.navigate;
     final uri = Uri.tryParse(request.url);
+    if (uri != null && _opensOutsideApp(uri)) {
+      launchUrl(uri, mode: LaunchMode.externalApplication);
+      return NavigationDecision.prevent;
+    }
+    if (!request.isMainFrame) return NavigationDecision.navigate;
     if (uri == null) return NavigationDecision.prevent;
 
     if (_policy.isGoogleOAuthStart(uri)) {
@@ -251,8 +268,235 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         path.startsWith('/rider/')) {
       return false;
     }
-    return _storeHomeUri != null;
+    final nav = _nav;
+    if (_storeHomeUri == null || nav == null) return false;
+    return !nav.hiddenAt(path);
   }
+
+  // ── The phone bar (same as the website's), drawn natively ─────────────────
+  AppNavConfig? _nav;
+  String? _navSlug;
+  bool? _padApplied;
+
+  String? get _slug {
+    final segs = _currentUri?.pathSegments ?? const <String>[];
+    return segs.length >= 2 && segs.first == 's' ? segs[1] : null;
+  }
+
+  /// Fetches the bar for the store being viewed (once per store) and keeps the page clear of it.
+  void _syncNav() {
+    final slug = _slug;
+    if (slug != null && slug != _navSlug) {
+      _navSlug = slug;
+      _nav = null;
+      _controller.runJavaScript(
+        "fetch('/s/$slug/app-nav',{credentials:'same-origin',headers:{'Accept':'application/json'}})"
+        ".then(function(r){return r.ok?r.json():null}).catch(function(){return null})"
+        ".then(function(j){VQ.postMessage(JSON.stringify({t:'nav',slug:'$slug',d:j}))});",
+      );
+    }
+    _syncPadding();
+  }
+
+  /// The bar floats over the page, so the scrolling area gets room under its last row.
+  void _syncPadding() {
+    final show = _showBottomNav;
+    if (_padApplied == show) return;
+    _padApplied = show;
+    _controller.runJavaScript(
+      "(function(){var s=document.getElementById('vq-native-nav-pad');"
+      "if(!s){s=document.createElement('style');s.id='vq-native-nav-pad';"
+      "s.textContent='html.vq-native-nav [data-vq-content]{padding-bottom:104px !important}';"
+      "document.head.appendChild(s);}"
+      "document.documentElement.classList.toggle('vq-native-nav',$show);})();",
+    );
+  }
+
+  bool get _showMarketNav {
+    if (_googleOAuthActive) return false;
+    final path = _currentUri?.path ?? '';
+    return path.startsWith('/shop') ||
+        path.startsWith('/order-status') ||
+        path == '/order-lookup' ||
+        path == '/my-orders';
+  }
+
+  int get _marketIndex => (_currentUri?.path ?? '').startsWith('/shop') ? 0 : 1;
+
+  /// Pages with no bottom bar (a rider's rides) still need a way to reach the account sheet.
+  bool get _showProfileButton {
+    if (_googleOAuthActive || _showBottomNav || _showMarketNav) return false;
+    final path = _currentUri?.path ?? '';
+    return path.endsWith('/my-rides');
+  }
+
+  // ── Account sheet: customer side, seller side, create a store ──────────────
+  Map<String, dynamic>? _context;
+
+  void _onBridge(String message) {
+    try {
+      final data = jsonDecode(message) as Map<String, dynamic>;
+      if (data['t'] == 'nav' && mounted && data['slug'] == _navSlug) {
+        final d = data['d'];
+        setState(() {
+          _nav = d is Map<String, dynamic> ? AppNavConfig.fromJson(d) : null;
+          _padApplied = null;
+        });
+        _syncPadding();
+        return;
+      }
+      if (data['t'] == 'ctx' && mounted) {
+        _context = data['d'] as Map<String, dynamic>?;
+        _showAccountSheet();
+      }
+    } catch (_) {}
+  }
+
+  /// Asks the signed-in web session who this is (same cookies, no second login).
+  Future<void> _openAccount() async {
+    await _controller.runJavaScript(
+      "fetch('/app/context',{credentials:'same-origin',headers:{'Accept':'application/json'}})"
+      ".then(function(r){return r.ok?r.json():null}).catch(function(){return null})"
+      ".then(function(j){VQ.postMessage(JSON.stringify({t:'ctx',d:j}))});",
+    );
+  }
+
+  void _goTo(String path) {
+    Navigator.pop(context);
+    _controller.loadRequest(AppConfig.baseUri.resolve(path));
+  }
+
+  void _showAccountSheet() {
+    final ctx = _context;
+    final stores = ((ctx?['stores'] as List?) ?? const [])
+        .cast<Map<String, dynamic>>();
+    final user = ctx?['user'] as Map<String, dynamic>?;
+
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      builder: (sheet) => SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (user != null) ...[
+                Text(
+                  (user['name'] as String?) ?? '',
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+                Text(
+                  (user['email'] as String?) ?? '',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.inkMuted,
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
+              const Text(
+                'Go to',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.inkFaint,
+                  letterSpacing: 0.6,
+                ),
+              ),
+              const SizedBox(height: 6),
+              _AccountTile(
+                icon: Icons.shopping_bag_outlined,
+                title: 'Customer dashboard',
+                subtitle: 'Browse stores and track your orders',
+                onTap: () =>
+                    _goTo((ctx?['customer_home'] as String?) ?? '/shop'),
+              ),
+              for (final store in stores)
+                _AccountTile(
+                  icon: Icons.storefront_rounded,
+                  title: 'Seller dashboard · ${store['name']}',
+                  subtitle: _roleLabel(store['role'] as String?),
+                  onTap: () => _goTo(store['home'] as String),
+                ),
+              if (ctx != null && stores.isEmpty)
+                _AccountTile(
+                  icon: Icons.add_business_outlined,
+                  title: 'Create your own store',
+                  subtitle: 'Start selling with VenQore',
+                  highlight: true,
+                  onTap: () =>
+                      _goTo((ctx['create_store'] as String?) ?? '/new-store'),
+                ),
+              if (ctx == null)
+                _AccountTile(
+                  icon: Icons.login_rounded,
+                  title: 'Sign in',
+                  subtitle: 'Use your VenQore account',
+                  onTap: () => _goTo('/login'),
+                ),
+              const SizedBox(height: 8),
+              const Divider(),
+              if (_storeHomeUri != null)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.apps_rounded),
+                  title: const Text('Business tools'),
+                  onTap: () {
+                    Navigator.pop(sheet);
+                    _openMore();
+                  },
+                ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.help_outline_rounded),
+                title: const Text('Help & security'),
+                onTap: () {
+                  Navigator.pop(sheet);
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const HelpScreen()),
+                  );
+                },
+              ),
+              if (ctx != null)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.logout_rounded,
+                    color: AppColors.danger,
+                  ),
+                  title: const Text(
+                    'Sign out',
+                    style: TextStyle(color: AppColors.danger),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheet);
+                    _confirmSignOut();
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _roleLabel(String? role) => switch (role) {
+    'owner' => 'Owner',
+    'admin' => 'Admin',
+    'manager' => 'Manager',
+    'cashier' => 'Cashier',
+    'custom' => 'Staff',
+    null || '' => 'Team member',
+    final r => r[0].toUpperCase() + r.substring(1),
+  };
 
   Future<void> _openDashboardAction(String action) async {
     final dashboard = _storeHomeUri;
@@ -277,14 +521,6 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
     final segments = _currentUri?.pathSegments ?? const <String>[];
     if (segments.length < 2 || segments.first != 's') return null;
     return AppConfig.baseUri.resolve('/s/${segments[1]}$path');
-  }
-
-  int get _selectedNavigationIndex {
-    final path = _currentUri?.path ?? '';
-    if (path.endsWith('/dashboard')) return 0;
-    if (path.endsWith('/pos') || path.contains('/pos/')) return 2;
-    if (path.contains('/sales')) return 1;
-    return 3;
   }
 
   Future<void> _openNativePage(Widget page) async {
@@ -373,7 +609,9 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
                   ListTile(
                     leading: const Icon(Icons.manage_accounts_outlined),
                     title: const Text('Account & business'),
-                    subtitle: const Text('Profile, team, and business settings'),
+                    subtitle: const Text(
+                      'Profile, team, and business settings',
+                    ),
                     onTap: () {
                       Navigator.pop(context);
                       _openNativePage(const AccountCenterScreen());
@@ -500,95 +738,92 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         if (!didPop) _goBack();
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            tooltip: 'Back',
-            onPressed: _goBack,
-            icon: const Icon(Icons.arrow_back_rounded),
-          ),
-          titleSpacing: 0,
-          title: Text(
-            _title,
-            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-          ),
-          actions: [
-            if (!_googleOAuthActive && !_isMarketplace && _storeHomeUri != null)
-              IconButton(
-                tooltip: 'Activity',
-                onPressed: () => _openNativePage(const ActivityCenterScreen()),
-                icon: const Icon(Icons.notifications_none_rounded),
+        backgroundColor: AppColors.canvas,
+        body: SafeArea(
+          bottom: false,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: _hasError
+                    ? _ConnectionError(onRetry: () => _controller.reload())
+                    : WebViewWidget(controller: _controller),
               ),
-            if (!_googleOAuthActive && !_isMarketplace && _isDashboard)
-              IconButton(
-                tooltip: 'Add dashboard card',
-                onPressed: () => _openDashboardAction('add_card'),
-                icon: const Icon(Icons.add_chart_rounded),
-              ),
-            if (!_googleOAuthActive && !_isMarketplace && _isDashboard)
-              IconButton(
-                tooltip: 'Edit dashboard layout',
-                onPressed: () => _openDashboardAction('edit'),
-                icon: const Icon(Icons.dashboard_customize_outlined),
-              ),
-            if (!_googleOAuthActive)
-              IconButton(
-                tooltip: 'More',
-                onPressed: _openMore,
-                icon: const Icon(Icons.more_horiz_rounded),
-              ),
-          ],
-          bottom: _progress < 100
-              ? PreferredSize(
-                  preferredSize: const Size.fromHeight(2),
+              if (_progress < 100)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
                   child: LinearProgressIndicator(
                     value: _progress / 100,
                     minHeight: 2,
-                    backgroundColor: AppColors.line,
+                    backgroundColor: Colors.transparent,
                     color: AppColors.teal,
                   ),
-                )
-              : null,
+                ),
+              if (_showBottomNav && _nav != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: AppNavBar(
+                    config: _nav!,
+                    path: _currentUri?.path ?? '',
+                    onOpen: (path) => _controller.loadRequest(
+                      AppConfig.baseUri.resolve(path),
+                    ),
+                    onPlus: () => showQuickActions(
+                      context,
+                      actions: _nav!.actions,
+                      onOpen: (path) => _controller.loadRequest(
+                        AppConfig.baseUri.resolve(path),
+                      ),
+                      onAccount: _openAccount,
+                    ),
+                  ),
+                ),
+              if (_showProfileButton)
+                Positioned(
+                  right: 12,
+                  bottom: 12 + MediaQuery.of(context).padding.bottom,
+                  child: _ProfileButton(onTap: _openAccount),
+                ),
+            ],
+          ),
         ),
-        body: _hasError
-            ? _ConnectionError(onRetry: () => _controller.reload())
-            : WebViewWidget(controller: _controller),
-        bottomNavigationBar: _showBottomNav
+        bottomNavigationBar: _showMarketNav
             ? NavigationBar(
-                height: 72,
-                selectedIndex: _selectedNavigationIndex,
+                height: 68,
+                selectedIndex: _marketIndex,
                 indicatorColor: const Color(0xFFE6F8F3),
                 destinations: const [
                   NavigationDestination(
-                    icon: Icon(Icons.dashboard_outlined),
-                    selectedIcon: Icon(Icons.dashboard_rounded),
-                    label: 'Dashboard',
+                    icon: Icon(Icons.storefront_outlined),
+                    selectedIcon: Icon(Icons.storefront_rounded),
+                    label: 'Stores',
                   ),
                   NavigationDestination(
                     icon: Icon(Icons.receipt_long_outlined),
                     selectedIcon: Icon(Icons.receipt_long_rounded),
-                    label: 'Sales',
+                    label: 'My orders',
                   ),
                   NavigationDestination(
-                    icon: Icon(Icons.point_of_sale_outlined),
-                    selectedIcon: Icon(Icons.point_of_sale_rounded),
-                    label: 'POS',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.more_horiz_rounded),
-                    label: 'More',
+                    icon: Icon(Icons.account_circle_outlined),
+                    selectedIcon: Icon(Icons.account_circle_rounded),
+                    label: 'Account',
                   ),
                 ],
                 onDestinationSelected: (index) {
                   switch (index) {
                     case 0:
-                      final home = _storeHomeUri;
-                      _controller.loadRequest(home ?? AppConfig.loginUri);
+                      _controller.loadRequest(
+                        AppConfig.baseUri.resolve('/shop'),
+                      );
                     case 1:
-                      _openNativePage(const SalesCenterScreen());
+                      _controller.loadRequest(
+                        AppConfig.baseUri.resolve('/my-orders'),
+                      );
                     case 2:
-                      _openNativePage(const PosCenterScreen());
-                    case 3:
-                      _openMore();
+                      _openAccount();
                   }
                 },
               )
@@ -630,6 +865,102 @@ class _ConnectionError extends StatelessWidget {
             const SizedBox(height: 20),
             FilledButton(onPressed: onRetry, child: const Text('Try again')),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileButton extends StatelessWidget {
+  const _ProfileButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.pine,
+      shape: const CircleBorder(),
+      elevation: 3,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: const SizedBox(
+          width: 46,
+          height: 46,
+          child: Icon(Icons.person_rounded, color: Colors.white, size: 24),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountTile extends StatelessWidget {
+  const _AccountTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.highlight = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: highlight ? AppColors.pine : AppColors.surface2,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: highlight ? AppColors.tealBright : AppColors.teal600,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: highlight ? Colors.white : AppColors.ink,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: highlight
+                              ? const Color(0xFFC6F5E9)
+                              : AppColors.inkMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: highlight ? Colors.white70 : AppColors.inkFaint,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

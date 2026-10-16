@@ -66,6 +66,19 @@ class PostLoginRedirect
         return redirect()->route('hub');
     }
 
+    /** The page a membership opens on: rides for a rider, the till for POS staff, otherwise the dashboard. */
+    public static function homeUrl(TenantUser $m): string
+    {
+        $slug = $m->tenant->slug;
+        if (self::isRider($m)) {
+            return route('store.commerce.my-rides', ['store_slug' => $slug], false);
+        }
+        if ($m->isPosStaff()) {
+            return route('store.pos', ['store_slug' => $slug], false);
+        }
+        return route('store.dashboard', ['store_slug' => $slug], false);
+    }
+
     /** A Custom-role member linked to a rider employee opens straight on their rides. */
     private static function isRider(TenantUser $m): bool
     {

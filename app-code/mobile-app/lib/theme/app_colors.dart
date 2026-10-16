@@ -83,18 +83,10 @@ class AppColors {
   );
 
   static const List<BoxShadow> cardShadow = [
-    BoxShadow(
-      color: Color(0x0A0D1412),
-      blurRadius: 16,
-      offset: Offset(0, 4),
-    ),
+    BoxShadow(color: Color(0x0A0D1412), blurRadius: 16, offset: Offset(0, 4)),
   ];
 
   static const List<BoxShadow> accentGlow = [
-    BoxShadow(
-      color: Color(0x440BAA8F),
-      blurRadius: 20,
-      offset: Offset(0, 6),
-    ),
+    BoxShadow(color: Color(0x440BAA8F), blurRadius: 20, offset: Offset(0, 6)),
   ];
 }
