@@ -47,6 +47,12 @@ class CustomerHubTest extends CommerceTestCase
             $this->assertEqualsCanonicalizing([$a, $b], $numbers);
             $stores = collect($page->toArray()['props']['orders'])->pluck('store')->unique()->all();
             $this->assertCount(2, $stores);
+
+            // The dashboard also knows what they order most, across both stores, and who they are.
+            $props = $page->toArray()['props'];
+            $this->assertNotEmpty($props['topItems']);
+            $this->assertSame(2, (int) $props['topItems'][0]['times']);
+            $this->assertSame('sam@example.com', $props['info']['email']);
         });
     }
 

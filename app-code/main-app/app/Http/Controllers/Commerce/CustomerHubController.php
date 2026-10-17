@@ -30,6 +30,9 @@ class CustomerHubController extends Controller
             'verified' => $hub['verified'],
             'orders' => $hub['orders'],
             'loyalty' => $hub['loyalty'],
+            'topItems' => $hub['top_items'],
+            'addresses' => $hub['addresses'],
+            'info' => $hub['info'],
             'hasStore' => $hasStore,
         ])->withViewData(['noindex' => true]);
     }

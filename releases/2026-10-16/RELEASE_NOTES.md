@@ -97,3 +97,16 @@ To switch on at the server: set `FCM_SERVICE_ACCOUNT_PATH` in `.env` to the serv
 - Sign-in lands where the side says (customer: My orders; store: the role's home or create-or-join). A new account made on the customer side is a customer.
 - Location is asked natively; marketplace uses the same pill bar as the store bar; guests see Sign in / Create account.
 - Needs the server deployed (app-nav, app/context, my-orders, side-aware sign-in, device tokens). Not run on a phone yet.
+
+---
+
+# 1.5.0 (build 13) — customer dashboard, native sign-in everywhere
+
+**Artifact:** `VenQore-Mobile-1.5.0-build13.apk` · 52,075,847 bytes · SHA256 `7110C1977AB5DEE129776935F3AFDB8A5FAA3B4C5B215CF073E135BF811E8732`
+`com.venqore.app`, release-signed (SHA-1 `21:8C:2C:D5:…:15:A6`), verified with apksigner.
+
+- Customer dashboard (`/my-orders`) with a hamburger menu: orders, most ordered, saved addresses, my information, history, loyalty (coming soon), profile settings.
+- "Create your own store" only in Profile settings; it switches to the store side after a confirmation.
+- Public customer pages: no bottom bar; a profile button in the top-right opens the account sheet / dashboard.
+- Any web `/login` or `/register` is replaced by the app's native screens.
+- Not done: checkout prefill, map-pin location picker, editing details in the dashboard. Google native sign-in still needs the Android OAuth client; server needs deploying.

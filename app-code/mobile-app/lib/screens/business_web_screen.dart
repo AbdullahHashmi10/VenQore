@@ -84,6 +84,8 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
           },
           onPageStarted: (url) {
             if (mounted) setState(() => _hasError = false);
+            final uri = Uri.tryParse(url);
+            if (uri != null) _useNativeSignIn(uri);
           },
           onPageFinished: (url) {
             if (!mounted) return;
@@ -198,6 +200,60 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         uri.path.startsWith('/maps');
   }
 
+  bool _nativeShown = false;
+
+  /// Sign-in and sign-up are always the app's own screens. A page here only keeps the website's form when
+  /// the native screen just handed it the details to submit (autofill).
+  void _useNativeSignIn(Uri uri) {
+    if (widget.autofill != null || _nativeShown || !_policy.isSameOrigin(uri)) {
+      return;
+    }
+    if (uri.path != '/login' && uri.path != '/register') return;
+    _nativeShown = true;
+    final side = _side ?? AppSide.store;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => uri.path == '/register'
+            ? RegisterScreen(side: side)
+            : SignInScreen(side: side),
+      ),
+    );
+  }
+
+  /// The customer dashboard's "Create your own store" is the one door to the store side.
+  Future<void> _becomeOwner(String path) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Become a store owner?'),
+        content: const Text(
+          'You will switch to the store side and set up your own store. You can switch back to customer from your account.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text('Not now'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(c, true),
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await AppSideStore.set(AppSide.store);
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            BusinessWebScreen(initialPath: path, initialTitle: 'VenQore'),
+      ),
+      (_) => false,
+    );
+  }
+
   NavigationDecision _handleNavigation(NavigationRequest request) {
     final uri = Uri.tryParse(request.url);
     if (uri != null && _opensOutsideApp(uri)) {
@@ -206,6 +262,21 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
     }
     if (!request.isMainFrame) return NavigationDecision.navigate;
     if (uri == null) return NavigationDecision.prevent;
+
+    if (_policy.isSameOrigin(uri)) {
+      if (_side == AppSide.customer &&
+          (uri.path == '/new-store' ||
+              uri.path == '/start' ||
+              uri.path == '/dashboard')) {
+        _becomeOwner(uri.path == '/dashboard' ? '/dashboard' : '/new-store');
+        return NavigationDecision.prevent;
+      }
+      if (widget.autofill == null &&
+          (uri.path == '/login' || uri.path == '/register')) {
+        _useNativeSignIn(uri);
+        return NavigationDecision.prevent;
+      }
+    }
 
     if (_policy.isGoogleOAuthStart(uri)) {
       _googleOAuthActive = true;
@@ -398,26 +469,14 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
         path == '/my-orders';
   }
 
-  /// The marketplace uses the same floating pill as the store bar (no quick actions here).
-  static final _marketConfig = AppNavConfig(
-    tabs: const [
-      AppNavTab(id: 'stores', label: 'Stores', path: '/shop', match: ['/shop']),
-      AppNavTab(
-        id: 'orders',
-        label: 'My orders',
-        path: '/my-orders',
-        match: ['/my-orders', '/order-lookup', '/order-status'],
-      ),
-      AppNavTab(id: 'account', label: 'Account', path: 'vq:account', match: []),
-    ],
-    actions: const [],
-    hideOn: const [],
-  );
 
   /// Pages with no bottom bar (a rider's rides) still need a way to reach the account sheet.
   bool get _showProfileButton {
-    if (_googleOAuthActive || _showBottomNav || _showMarketNav) return false;
+    if (_googleOAuthActive || _showBottomNav) return false;
     final path = _currentUri?.path ?? '';
+    // Public customer pages (stores, ordering): a profile button takes you to your own dashboard.
+    // The dashboard itself has its own menu, so no button there.
+    if (_showMarketNav) return path != '/my-orders';
     return path.endsWith('/my-rides');
   }
 
@@ -427,6 +486,10 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
   void _onBridge(String message) {
     try {
       final data = jsonDecode(message) as Map<String, dynamic>;
+      if (data['t'] == 'signout' && mounted) {
+        _confirmSignOut();
+        return;
+      }
       if (data['t'] == 'nav' && mounted && data['slug'] == _navSlug) {
         final d = data['d'];
         setState(() {
@@ -572,20 +635,19 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
                       _openNative(RegisterScreen(side: _side ?? AppSide.store)),
                 ),
               ],
-              // ── Customer side: orders and the customer account only ──
+              // ── Customer side: the customer dashboard only ──
               if (ctx != null && _side == AppSide.customer) ...[
                 _AccountTile(
-                  icon: Icons.receipt_long_outlined,
-                  title: 'My orders',
-                  subtitle: 'Orders and points from every store',
+                  icon: Icons.dashboard_customize_outlined,
+                  title: 'My dashboard',
+                  subtitle: 'Orders, favourites, addresses and your details',
                   onTap: () => _goTo('/my-orders'),
                 ),
                 _AccountTile(
-                  icon: Icons.add_business_outlined,
-                  title: 'Become a store owner',
-                  subtitle: 'Switch to the store side and set up your business',
-                  highlight: true,
-                  onTap: () => _switchSide(sheet, stores.isNotEmpty),
+                  icon: Icons.settings_outlined,
+                  title: 'Profile settings',
+                  subtitle: 'Your account, and creating your own store',
+                  onTap: () => _goTo('/my-orders?tab=profile'),
                 ),
               ],
               // ── Store side: the businesses you belong to, or set one up ──
@@ -952,26 +1014,13 @@ class _BusinessWebScreenState extends State<BusinessWebScreen> {
                     ),
                   ),
                 ),
-              if (_showMarketNav)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  child: AppNavBar(
-                    config: _marketConfig,
-                    path: _currentUri?.path ?? '',
-                    onOpen: (path) => path == 'vq:account'
-                        ? _openAccount()
-                        : _controller.loadRequest(
-                            AppConfig.baseUri.resolve(path),
-                          ),
-                    onPlus: null,
-                  ),
-                ),
               if (_showProfileButton)
                 Positioned(
                   right: 12,
-                  bottom: 12 + MediaQuery.of(context).padding.bottom,
+                  top: _showMarketNav ? 10 : null,
+                  bottom: _showMarketNav
+                      ? null
+                      : 12 + MediaQuery.of(context).padding.bottom,
                   child: _ProfileButton(onTap: _openAccount),
                 ),
             ],
