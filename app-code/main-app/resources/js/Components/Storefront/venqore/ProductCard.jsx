@@ -46,7 +46,7 @@ export default function ProductCard({ item, store, shop, saved, show = true, can
     else if (out) action = null;
     else if (choice) action = <Link href={href} className="vqsf-optlink">Options<ArrowUpRight size={13} /></Link>;
     else if (inCart > 0) action = <Stepper value={inCart} max={50} label={item.name} onChange={(q) => shop.nudge(item.id, q - inCart)} />;
-    else if (!deal) action = <button type="button" className="vqsf-add" disabled={!canAdd} onClick={add} aria-label={`Add ${item.name} to cart`}><Plus size={16} strokeWidth={2} /></button>;
+    else if (!deal) action = <button type="button" className="vqsf-add" disabled={!canAdd} onClick={add} aria-label={`Add ${item.name} to cart`}><Plus size={16} strokeWidth={2} /><span className="lbl">Add</span></button>;
 
     return (
         <div data-reveal="" style={{ '--d': `${delay}ms` }}>

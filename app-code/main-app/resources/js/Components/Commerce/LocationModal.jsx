@@ -1,26 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Check, LocateFixed, MapPin, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, MapPin, Navigation } from 'lucide-react';
 import { LocationPicker } from '@/Components/Commerce/MarketMap';
+import '../../../css/vq-app.css';
 
-/** "Where are you?" — use my location, pick a city, or drop a pin on the map. Styled by venqore-storefront.css. */
-export default function LocationModal({ cities, country, current, onChoose, onClose, required }) {
+/** "Pin your delivery location" — use GPS, tap the map to drop a pin, or pick a city. Full-screen step before the directory. */
+export default function LocationModal({ cities, country, current, onChoose, onClose, required, shopCount }) {
     const [point, setPoint] = useState(null);
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState('');
-    const [shown, setShown] = useState(false);
     const center = (cities.find((c) => c.slug === current?.slug && c.lat) || cities.find((c) => c.lat));
 
     useEffect(() => {
-        const t = requestAnimationFrame(() => setShown(true));
         const k = (e) => { if (e.key === 'Escape' && !required) onClose(); };
         window.addEventListener('keydown', k);
         const prev = document.documentElement.style.overflowY;
         document.documentElement.style.overflowY = 'hidden';
-        return () => { cancelAnimationFrame(t); window.removeEventListener('keydown', k); document.documentElement.style.overflowY = prev || 'auto'; };
+        return () => { window.removeEventListener('keydown', k); document.documentElement.style.overflowY = prev || 'auto'; };
     }, [required, onClose]);
 
     const locate = () => {
-        if (!navigator.geolocation) { setErr('Your browser cannot share location. Pick a city or tap the map.'); return; }
+        if (!navigator.geolocation) { setErr('Your device cannot share location. Pick a city or tap the map.'); return; }
         setBusy(true); setErr('');
         navigator.geolocation.getCurrentPosition(
             (p) => { setBusy(false); onChoose({ lat: p.coords.latitude, lng: p.coords.longitude }); },
@@ -29,50 +28,54 @@ export default function LocationModal({ cities, country, current, onChoose, onCl
         );
     };
 
-    return (
-        <div className={`vqsf-modal ${shown ? 'on' : ''}`} role="dialog" aria-modal="true" aria-labelledby="vqsf-loc-title" onMouseDown={(e) => { if (e.target === e.currentTarget && !required) onClose(); }}>
-            <div className="vqsf-modal-panel">
-                <div className="vqsf-modal-head">
-                    <div>
-                        <div className="vqsf-eyebrow vqsf-eyebrow--accent" style={{ marginBottom: 10 }}>Your location</div>
-                        <h2 id="vqsf-loc-title">Where should <span className="serif">we look?</span></h2>
-                        <p>Share your location to see shops near you, or choose a city{country?.name ? ` in ${country.name}` : ''}.</p>
-                    </div>
-                    {!required && <button type="button" className="vqsf-ib" onClick={onClose} aria-label="Close"><X size={17} strokeWidth={1.9} /></button>}
-                </div>
+    const zone = point ? `Pinned at ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}` : (current?.name ? `${current.name}${country?.name ? `, ${country.name}` : ''}` : 'Tap the map to move the pin');
 
-                <button type="button" className="vqsf-btn vqsf-btn--accent vqsf-btn--block" onClick={locate} disabled={busy}>
-                    <LocateFixed size={17} strokeWidth={2} />{busy ? 'Finding you…' : 'Use my current location'}
+    return (
+        <div className="vqa vqa-loc vqa-rise" role="dialog" aria-modal="true" aria-labelledby="vqa-loc-title">
+            <div className="vqa-bar vqa-bar--solid">
+                {!required ? <button type="button" className="vqa-iconbtn vqa-spring" onClick={onClose} aria-label="Back"><ArrowLeft size={16} /></button> : <span style={{ width: 32 }} />}
+                <div className="vqa-title">
+                    <h1 id="vqa-loc-title" className="vqa-display">Pin Your Delivery Location</h1>
+                    <p>Tap the map to move the pin or use live GPS</p>
+                </div>
+                {shopCount != null ? <span className="vqa-badge vqa-badge--accent">{shopCount} shops</span> : <span style={{ width: 32 }} />}
+            </div>
+
+            <div className="vqa-loc-map">
+                <LocationPicker center={center ? [center.lat, center.lng] : null} point={point} onPick={setPoint} />
+            </div>
+
+            <div className="vqa-loc-sheet">
+                <button type="button" className="vqa-btn vqa-btn--soft vqa-spring" onClick={locate} disabled={busy}>
+                    <Navigation size={14} className={busy ? 'animate-spin' : ''} />{busy ? 'Finding your location…' : 'Use my current GPS location'}
                 </button>
-                {err && <p className="vqsf-err" role="alert" style={{ marginTop: 10 }}>{err}</p>}
+                {err && <p className="vqa-err" role="alert">{err}</p>}
 
                 {cities.length > 0 && (
-                    <>
-                        <div className="vqsf-modal-or"><span>or choose a city</span></div>
-                        <div className="vqsf-catchips vqsf-modal-cities" role="group" aria-label="Cities">
-                            {cities.map((c) => {
-                                const on = current?.slug === c.slug;
-                                return (
-                                    <button key={c.id} type="button" className={`vqsf-catchip ${on ? 'on' : ''}`} aria-pressed={on}
-                                        onClick={() => onChoose({ city: c.slug, lat: c.lat ?? undefined, lng: c.lng ?? undefined, cityOnly: true })}>
-                                        {on && <Check size={13} strokeWidth={2.4} />}{c.name}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </>
+                    <div className="vqa-chips vqa-noscroll" role="group" aria-label="Cities">
+                        {cities.map((c) => {
+                            const on = current?.slug === c.slug;
+                            return (
+                                <button key={c.id} type="button" className="vqa-chip vqa-spring" aria-pressed={on}
+                                    onClick={() => onChoose({ city: c.slug, lat: c.lat ?? undefined, lng: c.lng ?? undefined, cityOnly: true })}>
+                                    {on && <Check size={12} strokeWidth={2.6} />}{c.name}
+                                </button>
+                            );
+                        })}
+                    </div>
                 )}
 
-                <div className="vqsf-modal-or"><span>or tap the map to drop a pin</span></div>
-                <div className="vqsf-modal-map">
-                    <LocationPicker center={center ? [center.lat, center.lng] : null} point={point} onPick={setPoint} />
-                    <span className={`vqsf-modal-pin ${point ? 'on' : ''}`}><MapPin size={13} />{point ? `Pin at ${point.lat.toFixed(4)}, ${point.lng.toFixed(4)}` : 'No pin yet — tap anywhere'}</span>
+                <div className="vqa-zone">
+                    <MapPin size={16} style={{ color: 'var(--vq-accent-text)', flex: 'none' }} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                        <span className="vqa-eyebrow">Selected delivery zone</span>
+                        <b>{zone}</b>
+                    </div>
                 </div>
 
-                <div className="vqsf-modal-foot">
-                    {!required && <button type="button" className="vqsf-btn vqsf-btn--md vqsf-btn--line" onClick={onClose}>Cancel</button>}
-                    <button type="button" className="vqsf-btn vqsf-btn--md" disabled={!point} onClick={() => onChoose({ lat: point.lat, lng: point.lng })}>Show shops near this pin</button>
-                </div>
+                <button type="button" className="vqa-btn vqa-spring" disabled={!point} style={!point ? { opacity: 0.5, boxShadow: 'none' } : undefined} onClick={() => onChoose({ lat: point.lat, lng: point.lng })}>
+                    Show shops around here<ArrowRight size={16} />
+                </button>
             </div>
         </div>
     );

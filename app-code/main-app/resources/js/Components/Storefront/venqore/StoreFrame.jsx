@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { AlertTriangle, ArrowUpRight, Check, Heart, Info, LayoutGrid, MapPin, Moon, Plus, Search, ShoppingCart, Sparkles, Sun, Trash2, User, X } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ArrowUpRight, Check, Heart, Info, LayoutGrid, MapPin, Moon, Plus, Search, ShoppingCart, Sparkles, Sun, Trash2, User, X } from 'lucide-react';
 import PublicShell, { ShellThemeContext } from '@/Components/Commerce/PublicShell';
 import { useForeignCartNotice, lineKey, modsKey } from '@/lib/shopCart';
 import { DAY_LABEL } from '@/lib/commerce';
@@ -9,6 +9,7 @@ import { initials } from '@/Components/Commerce/shop';
 import { Pic, Stepper, brandTokens, cartUrl, money, productUrl, productsUrl, shopUrl } from '@/Components/Storefront/venqore/kit';
 import { EditPhotosBar, PhotosProvider } from '@/Components/Storefront/venqore/photos';
 import '../../../../css/venqore-storefront.css';
+import '../../../../css/vq-app.css';
 
 const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const t12 = (v) => { if (!v || !v.includes(':')) return ''; const [h, m] = v.split(':').map((n) => parseInt(n, 10) || 0); return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`; };
@@ -475,6 +476,9 @@ export default function StoreFrame({ store = null, shop = null, saved = null, cu
             <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} store={store} initial={searchSeed} suggestions={suggestions} onSubmit={submitSearch}
                 placeholder={store ? (restaurant ? 'Search the menu…' : `Search ${store.name}…`) : 'Search shops, food and products…'} />
             {store && shop && saved && <Drawer open={!!drawer} tab={drawer || 'cart'} setTab={setDrawer} onClose={() => setDrawer(null)} store={store} shop={shop} saved={saved} show={show} maxQty={maxQty} />}
+            {store && shop && !browseOnly && shop.count > 0 && active !== 'cart' && (
+                <div className="vqa-sfbar"><Link href={cartUrl(store.slug)} className="vqa-spring"><span className="l"><span className="n">{shop.count}</span>Proceed to Checkout</span><span className="r"><ArrowRight size={16} /></span></Link></div>
+            )}
             <Toasts />
         </div>
     );
