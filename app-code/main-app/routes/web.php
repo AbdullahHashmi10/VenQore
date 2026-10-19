@@ -1027,6 +1027,7 @@ Route::post('/workspace/discover/search', [\App\Http\Controllers\BuilderDiscover
 Route::post('/workspace/discover/catalogue', [\App\Http\Controllers\BuilderDiscoveryController::class, 'catalogue'])->middleware('throttle:30,1')->name('workspace.discover.catalogue');
 Route::post('/workspace/discover/missing', [\App\Http\Controllers\BuilderDiscoveryController::class, 'missing'])->middleware('throttle:10,1')->name('workspace.discover.missing');
 Route::post('/workspace/discover/readback-confirmed', [\App\Http\Controllers\BuilderDiscoveryController::class, 'confirmReadback'])->middleware('throttle:30,1')->name('workspace.discover.readback-confirmed');
+Route::post('/workspace/discover/plan-fit', [\App\Http\Controllers\BuilderDiscoveryController::class, 'planFit'])->middleware('throttle:30,1')->name('workspace.discover.plan-fit');
 Route::get('/workspace/discover/{id}/review', [\App\Http\Controllers\BuilderDiscoveryController::class, 'review'])->middleware('throttle:60,1')->where('id', '[A-Za-z0-9]{16,64}')->name('workspace.discover.review');
 
 

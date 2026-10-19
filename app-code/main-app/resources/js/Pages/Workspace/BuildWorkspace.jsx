@@ -474,6 +474,18 @@ export default function BuildWorkspace({
               ? 'account'
               : rawPhase;
 
+    /* Plan step: what each plan would leave out of THIS owner's system. The preview was built
+       before a plan was picked; provisioning drops what the plan locks, so say it here first. */
+    const [heldBack, setHeldBack] = useState({});
+    useEffect(() => {
+        if (phase !== 'plan' || !v2Session || !plans.length) return undefined;
+        let live = true;
+        postV2('plan-fit', { session_id: v2Session, plans: plans.map((p) => p.key) }).then((r) => {
+            if (live && r.ok) setHeldBack(r.data?.held_back || {});
+        });
+        return () => { live = false; };
+    }, [phase, v2Session]); // eslint-disable-line react-hooks/exhaustive-deps
+
     /* Identity + account. Business name/currency/phone/address are
        useSessionState (not plain useState) so they survive the same way
        everything else in this attempt does — a tab reload or a trip back to
@@ -2056,10 +2068,33 @@ export default function BuildWorkspace({
                                                             or ${p.price_annual}/yr billed annually
                                                         </span>
                                                     ) : null}
+                                                    {(heldBack[p.key] || []).length > 0 && (
+                                                        <span className="mt-3 block rounded-md bg-sunken px-2.5 py-2 text-3xs text-ink-secondary">
+                                                            Not included on {p.name}: {heldBack[p.key].map((m) => m.label).join(', ')}
+                                                        </span>
+                                                    )}
                                                 </button>
                                             );
                                         })}
                                     </div>
+
+                                    {selectedPlan && (heldBack[selectedPlan.key] || []).length > 0 && (
+                                        <div className="mt-4 rounded-lg border border-line bg-surface p-4 text-sm text-ink" role="status">
+                                            <p className="font-semibold">
+                                                Your system as built needs a bigger plan for {heldBack[selectedPlan.key].length === 1 ? 'one part' : 'some parts'}.
+                                            </p>
+                                            <ul className="mt-2 space-y-1 text-ink-secondary">
+                                                {heldBack[selectedPlan.key].map((m) => (
+                                                    <li key={m.key}>
+                                                        {m.label}{m.needs_plan ? ` comes with ${(plans.find((x) => x.key === m.needs_plan) || {}).name || m.needs_plan}` : ' is not available yet'}.
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                            <p className="mt-2 text-ink-secondary">
+                                                On {selectedPlan.name} we'll set up everything else, and you can add these any time by upgrading.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <p className="mt-3 text-2xs text-ink-muted">
                                         Prices in USD. Local pricing, if available, is shown at checkout.

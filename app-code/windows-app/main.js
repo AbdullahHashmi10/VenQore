@@ -109,7 +109,7 @@ app.setAppUserModelId(IS_LOCAL_BUILD ? 'com.venqore.station.local' : 'com.venqor
 app.userAgentFallback = `${app.userAgentFallback} VenQoreStation/${APP_VER}`;
 logger.install(path.join(app.getPath('userData'), 'logs'));
 const ownerAccess = new (require('./lib/owner-access').OwnerAccess)(prefs);
-const { parsePairingLink, storeSlugFromInput } = require('./lib/pairing-link');
+const { parsePairingLink, storeSlugFromInput, pairErrorMessage } = require('./lib/pairing-link');
 const kioskReadiness = require('./lib/kiosk-readiness').inspectWindows();
 const { finishClose } = require('./lib/close-update');
 const updatePolicy = require('./lib/update-policy');
@@ -1095,10 +1095,7 @@ handle('shell:pair', ['shell'], async (_e, { slug, code } = {}) => {
     }
     if (!r.ok) {
         prefs.set({ connectedStore: previous || null });
-        const msg = r.code === 'PAIRING_REQUIRED' ? 'That pairing code is not valid for this store, or it has expired. Create a new one in Settings → Terminals.'
-            : r.status === 403 ? 'This terminal belongs to a different store.'
-                : r.status === 404 ? 'No store was found with that name.' : r.error || 'Pairing failed.';
-        return { ok: false, error: msg };
+        return { ok: false, error: pairErrorMessage(r) };
     }
     startHeartbeat();
     return { ok: true, slug, replaced: r.replaced || null };

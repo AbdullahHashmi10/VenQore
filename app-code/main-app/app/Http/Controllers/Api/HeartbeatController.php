@@ -143,10 +143,22 @@ class HeartbeatController extends Controller
                 'terminal_id' => $terminal->id, 'tenant_id' => $tenant->id, 'approved_by' => $replacement['approved_by'],
             ]);
         } elseif (!$terminal) {
+            // A mistyped store name is a different problem than a missing/bad
+            // code, and needs a different message — Station already branches
+            // on this status (see shell:pair in main.js), but the server never
+            // sent it, so a typo in the store name always showed "enter the
+            // pairing code" instead of "no store was found with that name".
+            if (!$tenant) {
+                return response()->json([
+                    'error' => 'No store was found with that name. Check the store name and try again.',
+                    'code'  => 'STORE_NOT_FOUND',
+                ], 404);
+            }
+
             // SEC-04: unauthenticated callers can no longer create terminal rows.
             // A new terminal exists only once a valid pairing token is presented.
-            if (!$tenant || !$validPairingToken || !$claimToken()) {
-                return $pairingRequired('Pairing required: enter the pairing code from Settings → Terminals.');
+            if (!$validPairingToken || !$claimToken()) {
+                return $pairingRequired('That pairing code is not valid for this store, or it has expired. Create a new one in Settings → Terminals.');
             }
 
             $nameSuffix = $terminalId ?: substr($deviceId, 0, 8);
@@ -163,6 +175,19 @@ class HeartbeatController extends Controller
             $validPairingToken->forceFill(['terminal_id' => $terminal->id])->save();
             $issuedSecret = \App\Support\TerminalDeviceAuth::issue($terminal);
         } else {
+            // An explicit pairing attempt (a code was typed) against a store
+            // name that does not exist: without this, an already-paired PC
+            // re-pairing with a mistyped name would silently keep serving its
+            // OLD store while Station reported success for the typo'd one. A
+            // plain background heartbeat (no code) is left alone — the slug
+            // it already holds was validated when it first paired.
+            if ($storeSlug && !$tenant && $pairingTokenValue) {
+                return response()->json([
+                    'error' => 'No store was found with that name. Check the store name and try again.',
+                    'code'  => 'STORE_NOT_FOUND',
+                ], 404);
+            }
+
             // Moving this PC to another store: it proves it IS this terminal
             // (its saved device key) and presents a fresh code from the new
             // store. Without this, connecting a used PC to a new store always

@@ -22,17 +22,24 @@ export const SyncService = {
         }
 
         console.log('[Sync] Starting background sync...');
-        try {
-            await this.syncOrders();
-            await this.hydrate(); // Pull fresh data
-            await this.pingHeartbeat(); // Update license timer
-            console.log('[Sync] Background sync complete.');
-        } catch (e) {
-            // Suppress common network errors to avoid scaring the user
-            if (e.message !== 'Network Error' && e.name !== 'ZiggyError') {
-                console.error('[Sync] Background sync failed:', e);
+        // Run independently: a till with orders the server rejects (e.g. POS
+        // module turned off) used to throw out of syncOrders() and skip
+        // hydrate() AND pingHeartbeat() every cycle — silently starving the
+        // licence heartbeat a Station terminal depends on to stay connected,
+        // for a reason that had nothing to do with the heartbeat itself.
+        const step = async (name, fn) => {
+            try {
+                await fn();
+            } catch (e) {
+                if (e.message !== 'Network Error' && e.name !== 'ZiggyError') {
+                    console.error(`[Sync] ${name} failed:`, e);
+                }
             }
-        }
+        };
+        await step('Order upload', () => this.syncOrders());
+        await step('Catalog hydrate', () => this.hydrate());
+        await step('Heartbeat', () => this.pingHeartbeat());
+        console.log('[Sync] Background sync complete.');
     },
 
     getStoreSlug() {

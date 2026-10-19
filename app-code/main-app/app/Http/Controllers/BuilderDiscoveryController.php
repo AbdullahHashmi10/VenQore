@@ -331,6 +331,42 @@ class BuilderDiscoveryController extends Controller
         return response()->json($this->engine()->review($s));
     }
 
+    /**
+     * The plan step: for each plan, which parts of THIS owner's system that plan would leave out.
+     * The preview is composed before a plan is picked; provisioning then drops anything the plan
+     * locks (PlanEntitlement). Saying so on the plan step means nothing silently disappears.
+     */
+    public function planFit(Request $request): JsonResponse
+    {
+        abort_unless(self::enabled(), 404);
+        $v = $request->validate([
+            'session_id' => 'required|string|max:64',
+            'plans' => 'nullable|array|max:10',
+            'plans.*' => 'string|max:32',
+        ]);
+        $s = $this->load($v['session_id']);
+        if (! $s) {
+            return $this->gone();
+        }
+        $engine = $this->engine();
+        $full = $engine->modulesFor($s);
+        $labels = config('modules', []);
+        $out = [];
+        foreach ((array) ($v['plans'] ?? array_keys((array) config('plans'))) as $plan) {
+            if (! is_array(config("plans.{$plan}"))) {
+                continue;
+            }
+            $left = array_values(array_diff($full, $engine->modulesFor($s, $plan)));
+            $out[$plan] = array_map(fn ($k) => [
+                'key' => $k,
+                'label' => $labels[$k]['label'] ?? $k,
+                'needs_plan' => \App\Services\Builder\PlanEntitlement::cheapestPlanFor($k),
+            ], $left);
+        }
+
+        return response()->json(['held_back' => $out]);
+    }
+
     public function confirmReadback(Request $request): JsonResponse
     {
         abort_unless(self::enabled(), 404);

@@ -32,4 +32,16 @@ function storeSlugFromInput(value) {
     } catch { /* not a URL */ }
     return raw.toLowerCase();
 }
-module.exports = { parsePairingLink, storeSlugFromInput };
+// Turns a failed pairing attempt into the one sentence shown on the pairing
+// screen. Pulled out of main.js so the mapping — the thing a typo or an
+// expired code actually shows the owner — has its own test, not just the
+// code path it happens to run inside of.
+function pairErrorMessage(r) {
+    if (r.code === 'STORE_NOT_FOUND') return 'No store was found with that name. Check the store name and try again.';
+    if (r.code === 'PAIRING_REQUIRED') return 'That pairing code is not valid for this store, or it has expired. Create a new one in Settings → Terminals.';
+    if (r.status === 403) return 'This terminal belongs to a different store.';
+    if (r.status === 404) return 'No store was found with that name.';
+    return r.error || 'Pairing failed.';
+}
+
+module.exports = { parsePairingLink, storeSlugFromInput, pairErrorMessage };
