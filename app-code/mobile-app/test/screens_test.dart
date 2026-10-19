@@ -52,28 +52,28 @@ void main() {
   });
 
   testWidgets(
-    'SideChoiceScreen asks customer or store, and nothing about roles',
+    'SideChoiceScreen: marketplace first, store entrance second, no role question',
     (tester) async {
       phone(tester);
       await tester.pumpWidget(const MaterialApp(home: SideChoiceScreen()));
       await settle(tester);
 
-      expect(find.text('I want to order'), findsOneWidget);
-      expect(find.text('I run a store'), findsOneWidget);
+      expect(find.text('Sign in'), findsOneWidget);
+      expect(find.text('Store sign in'), findsOneWidget);
+      expect(find.text('New store'), findsOneWidget);
       expect(find.textContaining('Owner or manager'), findsNothing);
     },
   );
 
   testWidgets(
-    'WelcomeScreen is the store side only: sign in or create a business',
+    'WelcomeScreen is the same front door: marketplace plus store entrance',
     (tester) async {
       phone(tester);
       await tester.pumpWidget(const MaterialApp(home: WelcomeScreen()));
       await settle(tester);
 
-      expect(find.text('Sign in'), findsOneWidget);
-      expect(find.text('Create my business'), findsOneWidget);
-      expect(find.text('Order from stores'), findsNothing);
+      expect(find.text('Store sign in'), findsOneWidget);
+      expect(find.text('New store'), findsOneWidget);
       expect(
         find.textContaining(RegExp(r'pilot', caseSensitive: false)),
         findsNothing,
@@ -92,7 +92,7 @@ void main() {
 
       expect(find.byKey(const Key('signin-pin')), findsNothing);
       expect(find.text('Let AI build my workspace'), findsNothing);
-      expect(find.textContaining('track your orders'), findsOneWidget);
+      expect(find.textContaining('your orders'), findsOneWidget);
     },
   );
 
@@ -116,7 +116,7 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: SignInScreen()));
       await settle(tester);
 
-      expect(find.text('Welcome back.'), findsOneWidget);
+      expect(find.text('Sign in to your workspace'), findsOneWidget);
       expect(find.byKey(const Key('signin-email')), findsOneWidget);
       expect(find.byKey(const Key('signin-password')), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
@@ -202,7 +202,7 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: RegisterScreen()));
       await settle(tester);
 
-      expect(find.text('Start your business workspace'), findsOneWidget);
+      expect(find.text('Register as a store owner'), findsOneWidget);
       expect(find.text('Want AI to set it up for you?'), findsOneWidget);
       expect(find.byKey(const Key('register-name')), findsOneWidget);
       expect(find.byKey(const Key('register-email')), findsOneWidget);

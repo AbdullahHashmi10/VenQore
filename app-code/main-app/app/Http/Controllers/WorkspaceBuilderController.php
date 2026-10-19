@@ -500,7 +500,8 @@ class WorkspaceBuilderController extends Controller
         $validated = $request->validate([
             'business_name' => 'nullable|string|max:255',
             'currency'      => 'nullable|string|max:10',
-            'phone'         => 'nullable|string|max:30',
+            'phone'         => 'required|string|max:30',
+            'address'       => 'nullable|string|max:500',
             'modules'       => 'nullable|array',
             'preset_key'    => 'nullable|string|max:64',
             'business_type' => 'nullable|string|max:64',
@@ -518,7 +519,8 @@ class WorkspaceBuilderController extends Controller
             'country'       => app(\App\Services\GeoPricingService::class)->resolveCountry($request),
             'business_name' => $validated['business_name'] ?? null,
             'currency'      => $validated['currency'] ?? 'USD',
-            'phone'         => $validated['phone'] ?? null,
+            'phone'         => $validated['phone'],
+            'address'       => $validated['address'] ?? null,
             'modules'       => $validated['modules'] ?? [],
             'preset_key'    => $validated['preset_key'] ?? null,
             'business_type' => $validated['business_type'] ?? null,
@@ -548,12 +550,15 @@ class WorkspaceBuilderController extends Controller
                 'timezone'        => $data['timezone'] ?? null,
                 'country'         => $data['country'] ?? null,
                 'phone'           => $data['phone'] ?? null,
+                'address'         => $data['address'] ?? null,
                 'preset_key'      => $data['preset_key'] ?? null,
                 'business_type'   => $data['business_type'] ?? null,
                 'modules'         => (array) ($data['modules'] ?? []),
-                'plan'            => $this->validSignupPlan($data['plan'] ?? null),
-                'setup_completed' => true,
-                'license_source'  => 'registration',
+                'plan'                 => $this->validSignupPlan($data['plan'] ?? null),
+                'setup_completed'      => true,
+                'onboarding_step'      => 'welcome',
+                'onboarding_completed' => false,
+                'license_source'       => 'registration',
             ]);
         } catch (\Throwable $e) {
             report($e);
@@ -570,7 +575,8 @@ class WorkspaceBuilderController extends Controller
             // Optional: blank becomes "My Business" with an auto-suffixed address.
             'business_name' => 'nullable|string|max:255',
             'currency'      => 'nullable|string|max:10',
-            'phone'         => 'nullable|string|max:30',
+            'phone'         => 'required|string|max:30',
+            'address'       => 'nullable|string|max:500',
             // Signed-in users (a second store, or arriving from /start) are not
             // asked for credentials again — the session already proves who they are.
             'email'         => Auth::check() ? 'nullable|email|max:255' : 'required|email|max:255',
@@ -604,14 +610,15 @@ class WorkspaceBuilderController extends Controller
         $builderSession = null;
         if (\App\Http\Controllers\BuilderDiscoveryController::enabled() && $request->filled('builder_session')) {
             $builderSession = \App\Http\Controllers\BuilderDiscoveryController::sessionFor((string) $request->input('builder_session'));
-            if (!$builderSession) {
+            if ($builderSession) {
+                // The client list is advisory only and is never trusted.
+                $modules = \App\Http\Controllers\BuilderDiscoveryController::modulesForSession($builderSession->id, $plan) ?? [];
+                if ($builderSession->typeKey) {
+                    $businessType = $builderSession->typeKey;
+                    $presetKey = $presetKey ?: (config('builder.type_hints.' . $builderSession->typeKey . '.preset'));
+                }
+            } elseif (empty($modules) && empty($presetKey)) {
                 return response()->json(['success' => false, 'message' => 'Your session timed out. Please start again.'], 410);
-            }
-            // The client list is advisory only and is never trusted.
-            $modules = \App\Http\Controllers\BuilderDiscoveryController::modulesForSession($builderSession->id, $plan) ?? [];
-            if ($builderSession->typeKey) {
-                $businessType = $builderSession->typeKey;
-                $presetKey = $presetKey ?: (config('builder.type_hints.' . $builderSession->typeKey . '.preset'));
             }
         }
         if ($plan) {
@@ -654,6 +661,7 @@ class WorkspaceBuilderController extends Controller
                         'business_name' => $name,
                         'currency'      => $request->input('currency'),
                         'phone'         => $request->input('phone'),
+                        'address'       => $request->input('address'),
                         'modules'       => $modules,
                         'preset_key'    => $presetKey,
                         'business_type' => $businessType,
@@ -693,6 +701,7 @@ class WorkspaceBuilderController extends Controller
                 'business_name' => $name,
                 'currency'      => $request->input('currency'),
                 'phone'         => $request->input('phone'),
+                'address'       => $request->input('address'),
                 'modules'       => $modules,
                 'preset_key'    => $presetKey,
                 'business_type' => $businessType,

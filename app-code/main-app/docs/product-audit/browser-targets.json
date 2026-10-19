@@ -1,0 +1,260 @@
+[
+  {
+    "module": "products",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/inventory/list",
+    "status": "live"
+  },
+  {
+    "module": "services",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/service-jobs",
+    "status": "live"
+  },
+  {
+    "module": "customers",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/customers",
+    "status": "live"
+  },
+  {
+    "module": "suppliers",
+    "type": "appliance_repair",
+    "url": "http://127.0.0.1:8000/s/demo/suppliers",
+    "status": "live"
+  },
+  {
+    "module": "pos",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/pos",
+    "status": "live"
+  },
+  {
+    "module": "invoicing",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/sales/list",
+    "status": "live"
+  },
+  {
+    "module": "sales_orders",
+    "type": "building_materials",
+    "url": "http://127.0.0.1:8000/s/demo/sales-orders",
+    "status": "live"
+  },
+  {
+    "module": "sales_returns",
+    "type": "mobile_retail",
+    "url": "http://127.0.0.1:8000/s/demo/returns-history",
+    "status": "live"
+  },
+  {
+    "module": "recurring_invoices",
+    "type": "freelance_creative",
+    "url": "http://127.0.0.1:8000/s/demo/recurring-invoices",
+    "status": "live"
+  },
+  {
+    "module": "b2b_proposals",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/proposals",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/restaurant/dashboard",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/floor-plan",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/restaurant/kitchen",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/restaurant/queue",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/restaurant/dispatch",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/restaurant/riders",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/restaurant/settings",
+    "status": "live"
+  },
+  {
+    "module": "table_service",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/foh-settings",
+    "status": "live"
+  },
+  {
+    "module": "pre_sales",
+    "type": "equipment_rental",
+    "url": "http://127.0.0.1:8000/s/demo/sales/pre-sales",
+    "status": "live"
+  },
+  {
+    "module": "inventory",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/inventory",
+    "status": "live"
+  },
+  {
+    "module": "multi_location",
+    "type": "fmcg_wholesale",
+    "url": "http://127.0.0.1:8000/s/demo/v3/warehouses",
+    "status": "live"
+  },
+  {
+    "module": "stock_transfers",
+    "type": "fmcg_wholesale",
+    "url": "http://127.0.0.1:8000/s/demo/stock-transfers",
+    "status": "live"
+  },
+  {
+    "module": "stock_takes",
+    "type": "supermarket",
+    "url": "http://127.0.0.1:8000/s/demo/stock-audit",
+    "status": "live"
+  },
+  {
+    "module": "batches_expiry",
+    "type": "pharmacy",
+    "url": "http://127.0.0.1:8000/s/demo/batches",
+    "status": "live"
+  },
+  {
+    "module": "serials",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/serials",
+    "status": "live"
+  },
+  {
+    "module": "barcodes_labels",
+    "type": "grocery",
+    "url": "http://127.0.0.1:8000/s/demo/labels",
+    "status": "live"
+  },
+  {
+    "module": "purchases",
+    "type": "appliance_repair",
+    "url": "http://127.0.0.1:8000/s/demo/purchases",
+    "status": "live"
+  },
+  {
+    "module": "purchase_orders",
+    "type": "fmcg_wholesale",
+    "url": "http://127.0.0.1:8000/s/demo/purchase-orders",
+    "status": "live"
+  },
+  {
+    "module": "purchase_returns",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/debit-notes",
+    "status": "live"
+  },
+  {
+    "module": "cookbook",
+    "type": "restaurant",
+    "url": "http://127.0.0.1:8000/s/demo/cookbook",
+    "status": "live"
+  },
+  {
+    "module": "production_runs",
+    "type": "bakery",
+    "url": "http://127.0.0.1:8000/s/demo/inventory/production",
+    "status": "live"
+  },
+  {
+    "module": "payments",
+    "type": "appliance_repair",
+    "url": "http://127.0.0.1:8000/s/demo/payments",
+    "status": "live"
+  },
+  {
+    "module": "expenses",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/expenses",
+    "status": "live"
+  },
+  {
+    "module": "cash_register",
+    "type": "grocery",
+    "url": "http://127.0.0.1:8000/s/demo/funds",
+    "status": "live"
+  },
+  {
+    "module": "bank_accounts",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/bank-accounts",
+    "status": "live"
+  },
+  {
+    "module": "bank_reconciliation",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/bank-reconciliation",
+    "status": "live"
+  },
+  {
+    "module": "accounting_workspace",
+    "type": "fmcg_wholesale",
+    "url": "http://127.0.0.1:8000/s/demo/accounting/chart",
+    "status": "live"
+  },
+  {
+    "module": "tax_compliance",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/e-invoicing",
+    "status": "live"
+  },
+  {
+    "module": "reports",
+    "type": "phone_repair",
+    "url": "http://127.0.0.1:8000/s/demo/reports",
+    "status": "live"
+  },
+  {
+    "module": "ai_insights",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/growth-engine",
+    "status": "live"
+  },
+  {
+    "module": "marketplace_sync",
+    "type": null,
+    "url": "http://127.0.0.1:8000/s/demo/vensynq",
+    "status": "live"
+  },
+  {
+    "module": "online_store",
+    "type": "grocery",
+    "url": "http://127.0.0.1:8000/s/demo/online-store",
+    "status": "live"
+  },
+  {
+    "module": "onsite_catalogue",
+    "type": "grocery",
+    "url": "http://127.0.0.1:8000/s/demo/online-store/catalogue",
+    "status": "live"
+  }
+]

@@ -173,8 +173,9 @@ $('#pair-code').addEventListener('input', (e) => {
 });
 $('#pair-slug').addEventListener('input', (e) => {
   if (e.target.value.includes('/station-pair')) return; // main process validates the complete link
-  const m = /\/s\/([a-z0-9-]+)/i.exec(e.target.value);
-  if (m) e.target.value = m[1];
+  const m = /\/s\/([a-z0-9-]+)/i.exec(e.target.value)
+    || /^(?:https?:\/\/)?(?!www\.|app\.|api\.)([a-z0-9-]+)\.venqore\.com(?:[/?#]|$)/i.exec(e.target.value.trim());
+  if (m) e.target.value = m[1].toLowerCase();
 });
 
 $('#pair-form').addEventListener('submit', async (e) => {

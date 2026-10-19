@@ -43,7 +43,13 @@
         })();
     </script>
 
-    @vite(['resources/css/app.css'])
+    @php
+        try {
+            echo app(\Illuminate\Foundation\Vite::class)(['resources/css/app.css']);
+        } catch (\Throwable $e) {
+            // Mid-deploy or missing manifest — fail gracefully without causing secondary exception
+        }
+    @endphp
 </head>
 
 {{--

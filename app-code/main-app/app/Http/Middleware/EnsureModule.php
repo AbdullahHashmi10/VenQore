@@ -143,8 +143,10 @@ class EnsureModule
                 return $this->refusePlanUpgrade($request, $tenant, $suffix);
             }
 
-            // Plan gate passes, module gate fails -> add_module refusal
-            if (!$moduleVisible) {
+            // Plan gate passes, module gate fails -> add_module refusal — for OPENING the report.
+            // A lookup behind a report, or an action on a report screen they can open, goes through
+            // (same rule as below: we gate screens, not the work a screen does).
+            if (!$moduleVisible && !$this->isBackgroundRead($request) && !$this->calledFromAllowedScreen($request, $tenant)) {
                 return $this->refuseReport($request, $tenant, $suffix);
             }
         }
@@ -173,7 +175,90 @@ class EnsureModule
             }
         }
 
+        // WE GATE SCREENS, NOT THE WORK A SCREEN DOES. A purchase form lists payment accounts
+        // (claimed by Accounting), the till quick-adds a bank account, an invoice offers a return.
+        // If the owner can open that screen, everything on it has to work — refusing the call
+        // behind it is the "you can't do this, you don't have module X" paradox. Opening a screen
+        // that belongs to a switched-off module is still refused below, with the "add it?" door.
+        if ($this->isBackgroundRead($request) || $this->calledFromAllowedScreen($request, $tenant)) {
+            // A save often ends in a redirect to that module's own page (bank account added from
+            // the till → Bank Accounts). Let that one follow-up page load instead of refusing it.
+            if (!$request->isMethod('GET') && !$request->isMethod('HEAD') && $request->hasSession()) {
+                $request->session()->flash('module_gate.after_action', true);
+            }
+
+            return $next($request);
+        }
+        if ($request->isMethod('GET') && $request->hasSession() && $request->session()->get('module_gate.after_action')) {
+            return $next($request);
+        }
+
         return $this->refuse($request, $tenant, $owners);
+    }
+
+    /** Route names that produce a document from the current screen rather than a new screen. */
+    private const DOCUMENT_ACTION = '/\.(print|pdf|download|export|receipt|labels?|barcodes?|preview|share)(\.|$)/';
+
+    /** A data lookup (picker, search, Station sync) rather than someone opening a page. */
+    private function isBackgroundRead(Request $request): bool
+    {
+        if (!$request->isMethod('GET') && !$request->isMethod('HEAD')) {
+            return false;
+        }
+        if ($request->header('X-Inertia')) {
+            return false;                      // an Inertia visit IS opening a page
+        }
+        // Browsers label every request: 'document'/'iframe' = opening a page, 'empty' = fetch()/XHR.
+        // This catches plain fetch() lookups that send none of the headers below.
+        $dest = $request->header('Sec-Fetch-Dest');
+        if ($dest !== null && $dest !== '') {
+            return !in_array($dest, ['document', 'iframe', 'frame', 'embed', 'object'], true);
+        }
+
+        return $request->expectsJson() || $request->ajax() || $request->bearerToken() !== null;
+    }
+
+    /**
+     * Work done FROM a screen this business is allowed to use:
+     *  - a save / delete / post (any non-GET), judged by the Referer;
+     *  - a print, PDF, export, download or label opened from that screen (a GET in a new tab
+     *    is still the screen's own button, not someone browsing into another module);
+     *  - the VenQore Station app (token-authenticated): it is a till, so it may do what the
+     *    till does whenever POS is part of this system.
+     */
+    private function calledFromAllowedScreen(Request $request, $tenant): bool
+    {
+        $isRead = $request->isMethod('GET') || $request->isMethod('HEAD');
+
+        if ($request->bearerToken() !== null && !$request->header('X-Inertia')) {
+            return ModuleService::enabled($tenant, 'pos');
+        }
+        if ($isRead && !preg_match(self::DOCUMENT_ACTION, (string) $request->route()?->getName())) {
+            return false;
+        }
+        $referer = (string) $request->headers->get('referer', '');
+        if ($referer === '' || parse_url($referer, PHP_URL_HOST) !== $request->getHost()) {
+            return false;
+        }
+        try {
+            $screen = app('router')->getRoutes()->match(Request::create($referer, 'GET'))->getName();
+        } catch (\Throwable) {
+            return false;
+        }
+        if (!$screen || $screen === $request->route()?->getName() || ModuleRouteMap::isAlwaysOn($screen)) {
+            return (bool) $screen && ModuleRouteMap::isAlwaysOn($screen);
+        }
+        $screenOwners = ModuleRouteMap::ownersOf($screen);
+        if ($screenOwners === []) {
+            return true;                       // an unclaimed core screen
+        }
+        foreach ($screenOwners as $owner) {
+            if (ModuleService::enabled($tenant, $owner)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

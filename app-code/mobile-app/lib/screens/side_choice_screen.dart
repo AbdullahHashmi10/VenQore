@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 
 import '../core/app_side.dart';
 import '../theme/app_colors.dart';
+import '../theme/vq.dart';
 import '../widgets/brand_logo.dart';
 import '../widgets/motion.dart';
+import '../widgets/vq_widgets.dart';
 import 'business_web_screen.dart';
 import 'help_screen.dart';
-import 'welcome_screen.dart';
+import 'register_screen.dart';
+import 'sign_in_screen.dart';
 
-/// The first choice, after the splash: are you here to buy, or to run a store?
-///
-/// The two sides never mix. Customers only see stores, orders and their customer account; store people
-/// only see their business. Switching later is an explicit button in the account sheet.
+/// The front door. One big mesh card for people who want to order (the marketplace), one smaller card
+/// for people who work at or own a store. Nobody is asked their role: the server knows it at sign-in.
 class SideChoiceScreen extends StatelessWidget {
   const SideChoiceScreen({super.key});
 
-  /// Opens the chosen side (used here, and by the splash for someone who already chose).
+  /// Opens the chosen side (used by the splash for someone who already chose).
   static Route<void> routeFor(AppSide side) {
     return MaterialPageRoute<void>(
       builder: (_) => side == AppSide.customer
@@ -23,14 +24,23 @@ class SideChoiceScreen extends StatelessWidget {
               initialPath: '/shop',
               initialTitle: 'Explore stores',
             )
-          : const WelcomeScreen(),
+          : const BusinessWebScreen(
+              initialPath: '/dashboard',
+              initialTitle: 'VenQore Business',
+            ),
     );
   }
 
-  Future<void> _choose(BuildContext context, AppSide side) async {
+  Future<void> _go(BuildContext context, AppSide side, Widget page) async {
     await AppSideStore.set(side);
     if (!context.mounted) return;
-    Navigator.of(context).pushReplacement(routeFor(side));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
+  }
+
+  Future<void> _explore(BuildContext context) async {
+    await AppSideStore.set(AppSide.customer);
+    if (!context.mounted) return;
+    Navigator.of(context).pushReplacement(routeFor(AppSide.customer));
   }
 
   @override
@@ -38,209 +48,387 @@ class SideChoiceScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.canvas,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const BrandLogo(size: 44, borderRadius: 14),
-                  const SizedBox(width: 12),
-                  const Flexible(
-                    child: Text(
-                      'VenQore',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.ink,
-                        letterSpacing: -0.4,
+        child: CustomScrollView(
+          physics: const ClampingScrollPhysics(),
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  children: [
+                    _Header(
+                      onHelp: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const HelpScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Help',
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const HelpScreen(),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minHeight: 560),
+                        child: FadeSlideIn(
+                          child: _MarketplaceHero(
+                            onExplore: () => _explore(context),
+                            onSignIn: () => _go(
+                              context,
+                              AppSide.customer,
+                              const SignInScreen(side: AppSide.customer),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    icon: const Icon(
-                      Icons.help_outline_rounded,
-                      color: AppColors.inkMuted,
+                    const SizedBox(height: 12),
+                    FadeSlideIn(
+                      delay: const Duration(milliseconds: 120),
+                      child: _StoreCard(
+                        onSignIn: () => _go(
+                          context,
+                          AppSide.store,
+                          const SignInScreen(side: AppSide.store),
+                        ),
+                        onCreate: () => _go(
+                          context,
+                          AppSide.store,
+                          const RegisterScreen(side: AppSide.store),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 34),
-              const FadeSlideIn(
-                child: Text(
-                  'Who are you\nhere as?',
-                  style: TextStyle(
-                    fontSize: 38,
-                    height: 1.08,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                    letterSpacing: -0.8,
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 80),
-                child: Text(
-                  'Pick one. You can change sides later from your account.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.45,
-                    color: AppColors.inkMuted,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 26),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 160),
-                child: _SideCard(
-                  icon: Icons.shopping_bag_outlined,
-                  iconColor: AppColors.teal600,
-                  iconBackground: AppColors.teal50,
-                  badge: 'Customer',
-                  title: 'I want to order',
-                  subtitle:
-                      'Find local restaurants, cafes and shops. Order for delivery or collection and follow every order.',
-                  onTap: () => _choose(context, AppSide.customer),
-                ),
-              ),
-              const SizedBox(height: 14),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 240),
-                child: _SideCard(
-                  icon: Icons.storefront_rounded,
-                  iconColor: AppColors.pine,
-                  iconBackground: const Color(0xFFE4F6EC),
-                  badge: 'Store',
-                  title: 'I run a store',
-                  subtitle:
-                      'Owners, managers, cashiers and riders: sign in to your business, or start one in minutes.',
-                  onTap: () => _choose(context, AppSide.store),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _SideCard extends StatelessWidget {
-  const _SideCard({
-    required this.icon,
-    required this.iconColor,
-    required this.iconBackground,
-    required this.badge,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
+class _Header extends StatelessWidget {
+  const _Header({required this.onHelp});
 
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBackground;
-  final String badge;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback onHelp;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.line),
+            boxShadow: Vq.elev1,
+          ),
+          child: const BrandLogo(size: 36, borderRadius: 12),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      'VenQore',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Vq.display(18),
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                'Order. Sell. Deliver.',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Vq.sans(13, color: AppColors.inkFaint, weight: 500),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          tooltip: 'Help',
+          onPressed: onHelp,
+          icon: const Icon(
+            Icons.help_outline_rounded,
+            color: AppColors.inkMuted,
+            size: 22,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MarketplaceHero extends StatelessWidget {
+  const _MarketplaceHero({required this.onExplore, required this.onSignIn});
+
+  final VoidCallback onExplore;
+  final VoidCallback onSignIn;
+
+  static const _categories = <(IconData, String)>[
+    (Icons.restaurant_rounded, 'Restaurants'),
+    (Icons.local_grocery_store_rounded, 'Groceries'),
+    (Icons.local_pharmacy_rounded, 'Pharmacy'),
+    (Icons.checkroom_rounded, 'Fashion'),
+    (Icons.devices_rounded, 'Electronics'),
+    (Icons.more_horiz_rounded, 'And more'),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return PressableScale(
-      onTap: onTap,
-      borderRadius: 22,
-      child: Container(
+      onTap: onExplore,
+      borderRadius: Vq.r2xl,
+      child: VqMesh(
+        borderRadius: BorderRadius.circular(Vq.r2xl),
+        shadow: Vq.glowStrong,
+        border: Border.all(color: const Color(0x4759DBC0)),
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.line),
-          boxShadow: AppColors.cardShadow,
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: iconBackground,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Icon(icon, color: iconColor, size: 28),
-                ),
-                const SizedBox(width: 14),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
-                          vertical: 3.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.sunken,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          badge,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.inkMuted,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'MARKETPLACE',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Vq.eyebrow(color: AppColors.teal200),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(top: 10),
-                  child: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 15,
-                    color: AppColors.inkFaint,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onSignIn,
+                    child: VqGlass(
+                      fill: const Color(0x29FFFFFF),
+                      line: const Color(0x47FFFFFF),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.person_rounded,
+                            size: 14,
+                            color: AppColors.teal300,
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'Sign in',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Vq.sans(
+                                14,
+                                color: const Color(0xFFF4FFFB),
+                                weight: 600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const Spacer(),
             Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 14.5,
-                color: AppColors.inkMuted,
-                height: 1.45,
+              'Everything you need, from stores near you.',
+              style: Vq.display(
+                28,
+                color: const Color(0xFFF4FFFB),
+                height: 1.06,
               ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Food, groceries, medicine, clothes and electronics. Pin your location, pick a store and order for delivery or pickup.',
+              style: Vq.sans(14, color: const Color(0xD1EAFBF5), height: 1.5),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final c in _categories)
+                  VqGlass(
+                    fill: const Color(0x1AFFFFFF),
+                    line: const Color(0x29FFFFFF),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(c.$1, size: 14, color: AppColors.teal200),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            c.$2,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Vq.sans(
+                              13.5,
+                              color: const Color(0xFFF4FFFB),
+                              weight: 600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const Spacer(),
+            VqButton(
+              label: 'Find stores near me',
+              icon: Icons.location_on_rounded,
+              trailing: Icons.arrow_forward_rounded,
+              kind: VqButtonKind.white,
+              height: 50,
+              onTap: onExplore,
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _StoreCard extends StatelessWidget {
+  const _StoreCard({required this.onSignIn, required this.onCreate});
+
+  final VoidCallback onSignIn;
+  final VoidCallback onCreate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(Vq.rXl),
+        border: Border.all(color: AppColors.line),
+        boxShadow: Vq.elev2,
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.teal50,
+                  borderRadius: BorderRadius.circular(Vq.rMd),
+                  border: Border.all(color: AppColors.teal200),
+                ),
+                child: const Icon(
+                  Icons.storefront_rounded,
+                  size: 18,
+                  color: AppColors.teal700,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Own or work at a store?',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Vq.display(16),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Owners, staff & riders',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Vq.sans(
+                        13,
+                        color: AppColors.inkFaint,
+                        weight: 500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              const SizedBox(
+                width: 54,
+                height: 24,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 0,
+                      child: VqAvatar(
+                        name: 'Owner',
+                        size: 24,
+                        color: AppColors.teal400,
+                      ),
+                    ),
+                    Positioned(
+                      left: 15,
+                      child: VqAvatar(
+                        name: 'Staff',
+                        size: 24,
+                        color: Vq.butter400,
+                      ),
+                    ),
+                    Positioned(
+                      left: 30,
+                      child: VqAvatar(
+                        name: 'Rider',
+                        size: 24,
+                        color: Vq.coral400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: VqButton(
+                  label: 'Store sign in',
+                  icon: Icons.lock_outline_rounded,
+                  kind: VqButtonKind.plain,
+                  height: 38,
+                  onTap: onSignIn,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: VqButton(
+                  label: 'New store',
+                  icon: Icons.add_rounded,
+                  kind: VqButtonKind.quiet,
+                  height: 38,
+                  onTap: onCreate,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

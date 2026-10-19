@@ -52,7 +52,7 @@ import { Head } from '@inertiajs/react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
     ArrowRight, Building2, Check, ChevronDown, Compass, FastForward, Lock, Mail,
-    MessageSquareText, Phone, Rocket, Send, ShieldCheck, Sliders, Sparkles,
+    MapPin, MessageSquareText, Phone, Rocket, Send, ShieldCheck, Sliders, Sparkles,
 } from 'lucide-react';
 import { ThinkingOrb } from '@/Components/ThinkingOrbs';
 import useTurnstile from '@/Components/Builder/useTurnstile';
@@ -474,11 +474,22 @@ export default function BuildWorkspace({
               ? 'account'
               : rawPhase;
 
-    /* Identity + account */
-    const [businessName, setBusinessName] = useState('');
-    const [currency, setCurrency] = useState(initialCurrency || 'USD');
-    const [phone, setPhone] = useState('');
-    const [showPhone, setShowPhone] = useState(false);
+    /* Identity + account. Business name/currency/phone/address are
+       useSessionState (not plain useState) so they survive the same way
+       everything else in this attempt does — a tab reload or a trip back to
+       "Change plan" never makes the owner retype them. Phone/currency/address
+       are also written to localStorage on submit (see `rememberContactDetails`
+       below) and read back here, so a second store on this browser starts
+       with them already filled in instead of asking again. */
+    const remembered = useMemo(() => {
+        try {
+            return JSON.parse(window.localStorage.getItem('vq-business-contact') || '{}') || {};
+        } catch (e) { return {}; }
+    }, []);
+    const [businessName, setBusinessName] = useSessionState(`${STORAGE_KEY}:businessName`, '');
+    const [currency, setCurrency] = useSessionState(`${STORAGE_KEY}:currency`, initialCurrency || remembered.currency || 'USD');
+    const [phone, setPhone] = useSessionState(`${STORAGE_KEY}:phone`, remembered.phone || '');
+    const [address, setAddress] = useSessionState(`${STORAGE_KEY}:address`, remembered.address || '');
     const [email, setEmail] = useState(initialEmail || '');
     const [password, setPassword] = useState('');
     const [provisionError, setProvisionError] = useState('');
@@ -1115,9 +1126,19 @@ export default function BuildWorkspace({
         }
     };
 
+    /* So the next store on this browser does not ask for these again. */
+    const rememberContactDetails = () => {
+        try {
+            window.localStorage.setItem('vq-business-contact', JSON.stringify({
+                phone: phone.trim(), address: address.trim(), currency,
+            }));
+        } catch (e) { /* storage blocked — nothing to fall back to, just skip it */ }
+    };
+
     const provision = async (e) => {
         e.preventDefault();
         setProvisionError('');
+        rememberContactDetails();
         setPhase('building');
         setBuildIndex(0);
         try {
@@ -1128,6 +1149,7 @@ export default function BuildWorkspace({
                 currency,
                 timezone: browserTimezone(),
                 phone,
+                address: address.trim(),
                 // Signed-in users are identified by their session, not the form.
                 ...(authUser ? {} : { email, password }),
                 ...(v2Session ? { builder_session: v2Session } : {}),
@@ -1146,6 +1168,12 @@ export default function BuildWorkspace({
                 }, 520);
                 return;
             }
+            if (data?.message?.includes?.('timed out')) {
+                setV2Session('');
+                try {
+                    window.sessionStorage.removeItem(`${STORAGE_KEY}:v2session`);
+                } catch (_) {}
+            }
             setProvisionError(data?.message || 'We could not finish that. Please try again.');
             setPhase('account');
         } catch (err) {
@@ -1155,14 +1183,20 @@ export default function BuildWorkspace({
     };
 
     const handleGoogleSignUp = async () => {
+        if (!phone.trim()) {
+            setProvisionError('Please add a phone number — it is needed for receipts and account recovery.');
+            return;
+        }
         setGoogleBusy(true);
         setProvisionError('');
+        rememberContactDetails();
         try {
             const data = await postJson(route('workspace.prepare-google'), {
                 business_name: businessName.trim(),
                 currency,
                 timezone: browserTimezone(),
                 phone,
+                address: address.trim(),
                 modules: activeModules,
                 preset_key: presetKey || null,
                 business_type: businessType || null,
@@ -2118,30 +2152,31 @@ export default function BuildWorkspace({
                                             />
                                         </Field>
 
-                                        <div className={showPhone ? 'grid gap-4 sm:grid-cols-2' : ''}>
+                                        <div className="grid gap-4 sm:grid-cols-2">
                                             <CurrencyDropdown value={currency} onChange={setCurrency} />
-                                            {showPhone && (
-                                                <Field label="Phone (optional)" icon={Phone}>
-                                                    <input
-                                                        type="tel"
-                                                        value={phone}
-                                                        onChange={(e) => setPhone(e.target.value)}
-                                                        placeholder="For receipts"
-                                                        autoComplete="tel"
-                                                        className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
-                                                    />
-                                                </Field>
-                                            )}
+                                            <Field label="Phone" icon={Phone}>
+                                                <input
+                                                    type="tel"
+                                                    required
+                                                    value={phone}
+                                                    onChange={(e) => setPhone(e.target.value)}
+                                                    placeholder="For receipts and account recovery"
+                                                    autoComplete="tel"
+                                                    className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                                />
+                                            </Field>
                                         </div>
-                                        {!showPhone && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPhone(true)}
-                                                className="text-xs font-semibold text-accent-text underline-offset-4 hover:underline"
-                                            >
-                                                + Add a phone number for receipts (optional)
-                                            </button>
-                                        )}
+
+                                        <Field label="Business address (optional)" icon={MapPin}>
+                                            <input
+                                                type="text"
+                                                value={address}
+                                                onChange={(e) => setAddress(e.target.value)}
+                                                placeholder="Street, city — shown on receipts and invoices"
+                                                autoComplete="street-address"
+                                                className="h-12 w-full rounded-md border border-line bg-surface pl-11 pr-4 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none focus:ring-2 focus:ring-focus"
+                                            />
+                                        </Field>
                                     </div>
 
                                     {authUser ? (

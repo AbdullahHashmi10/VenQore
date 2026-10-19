@@ -30,10 +30,10 @@ export default function Redeem({ app_name = 'VenQore' }) {
  };
 
  const planTiers = [
- { codes: 1, plan: 'Starter', color: 'text-neutral-300', bg: 'bg-neutral-800/60', features: ['1,000 products', '3 staff', '1 warehouse', 'Full POS & Invoicing'] },
- { codes: 2, plan: 'Growth', color: 'text-brand-300', bg: 'bg-brand-900/20', features: ['Unlimited products', '10 staff', '3 warehouses', 'WooCommerce + AI Engine'] },
- { codes: 3, plan: 'Business', color: 'text-amber-300', bg: 'bg-amber-900/20', features: ['Everything unlimited', 'Unlimited staff', 'API access', 'White-label ready'] },
- ];
+        { codes: 1, plan: 'Tier 1', color: 'text-slate-300',  bg: 'bg-slate-800/60',  features: ['5,000 products', '1 full seat', '1 location, 2 registers', '12,000 AI credits/year'] },
+        { codes: 2, plan: 'Tier 2', color: 'text-indigo-300', bg: 'bg-indigo-900/20', features: ['25,000 products', '2 full seats', '2 locations, 4 registers', '30,000 AI credits/year'] },
+        { codes: 3, plan: 'Tier 3', color: 'text-amber-300',  bg: 'bg-amber-900/20',  features: ['50,000 products', '5 full seats', '5 locations, 10 registers', '60,000 AI credits/year + 1 channel sync'] },
+    ];
 
  return (
  <div className="min-h-screen bg-void-950 text-white font-sans">
@@ -74,7 +74,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
  </span>
  </h1>
  <p className="text-ink-muted leading-relaxed mb-10">
- Stack up to 3 codes to unlock higher tiers. One code is all you need to get started — add more later from your account.
+ Every tier includes the whole system with unlimited transactions. Stack up to 3 codes to unlock higher limits — one code is all you need to start, and you can add more later from your account.
  </p>
 
  {/* Tier cards */}
@@ -110,7 +110,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
  <div className="lg:w-[55%] p-10 lg:p-16 flex flex-col justify-center">
  <h2 className="text-2xl font-bold text-white mb-2">Enter Your Code</h2>
  <p className="text-ink-muted text-sm mb-8">
- Already have an account?{''}
+ Already have an account?{' '}
  <Link href={route('login')} className="text-brand-400 hover:text-brand-300 underline">
  Sign in to stack codes
  </Link>
@@ -230,7 +230,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
  </form>
 
  <p className="text-ink-secondary text-xs mt-6 text-center leading-relaxed">
- By activating, you agree to VenQore's{''}
+ By activating, you agree to VenQore's{' '}
  <Link href="/refund-policy" className="text-ink-muted hover:text-neutral-300 underline">Refund Policy</Link>.
  AppSumo's 60-day guarantee applies.
  </p>

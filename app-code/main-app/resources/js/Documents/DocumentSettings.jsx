@@ -21,8 +21,8 @@ import { useTermText } from '@/lib/terms';
 
 const SECTIONS = [
     { id: 'layout', name: 'Layout', icon: LayoutGrid },
-    { id: 'items', name: 'Items', icon: Table2 },
-    { id: 'fields', name: 'Fields', icon: ListChecks },
+    { id: 'columns', name: 'Columns', icon: Table2 },
+    { id: 'fields', name: 'Header Fields', icon: ListChecks },
     { id: 'charges', name: 'Charges', icon: Wallet },
     { id: 'display', name: 'Display', icon: Type },
 ];
@@ -339,6 +339,11 @@ export default function DocumentSettings({
     defaultDelivery, setDefaultDelivery,
     defaultExtraLabel, setDefaultExtraLabel,
     defaultExtraValue, setDefaultExtraValue,
+    lineCols, setLineCol,
+    showAmountSolver, setShowAmountSolver,
+    defaultAmountSolver, setDefaultAmountSolver,
+    showDiscountType, setShowDiscountType,
+    defaultDiscountType, setDefaultDiscountType,
     currency, onReset,
 }) {
     /* Not every document has every one of these. A switch whose setter was not
@@ -365,6 +370,11 @@ export default function DocumentSettings({
     setApplyDefaults = setApplyDefaults || noop('setApplyDefaults');
     setShowMargin = setShowMargin || noop('setShowMargin');
     setShowStock = setShowStock || noop('setShowStock');
+    setLineCol = setLineCol || noop('setLineCol');
+    setShowAmountSolver = setShowAmountSolver || noop('setShowAmountSolver');
+    setDefaultAmountSolver = setDefaultAmountSolver || noop('setDefaultAmountSolver');
+    setShowDiscountType = setShowDiscountType || noop('setShowDiscountType');
+    setDefaultDiscountType = setDefaultDiscountType || noop('setDefaultDiscountType');
     onReset = onReset || noop('onReset');
     const tt = useTermText();
     const [section, setSection] = useState('layout');
@@ -387,6 +397,35 @@ export default function DocumentSettings({
             .map((k) => [k, FIELD_LIBRARY[k].label, FIELD_LIBRARY[k].hint]),
         [doc],
     );
+
+    const availableLineCols = useMemo(() => {
+        const list = [
+            { id: 'taxpct', label: 'Tax %', hint: 'Sales tax or VAT percentage applied to this line.' },
+            { id: 'bizpct', label: 'Business %', hint: 'Percentage of line purchase allocated to business use vs. personal.' },
+            { id: 'disc', label: 'Discount', hint: 'Discount input box on each line item.' },
+            { id: 'uom', label: 'Unit of measure', hint: 'Unit label (e.g. pcs, kg, box).' },
+            { id: 'idx', label: 'Line number (#)', hint: 'Sequential line item row numbering.' },
+            { id: 'pickbatch', label: 'Batch selector (FIFO / manual)', hint: 'Select from available stock batches or use oldest first (FIFO).' },
+            { id: 'batch', label: 'Batch number', hint: 'Batch or lot identifier text box for tracking.' },
+            { id: 'expiry', label: 'Expiry date', hint: 'Expiration date for batch or dated inventory.' },
+            { id: 'free', label: 'Free quantity', hint: 'Bonus or sample units given/received at zero charge.' },
+        ];
+        return list.filter((col) => {
+            if (col.id === 'bizpct') {
+                return doc?.id === 'purchase-invoice' || (doc?.columns || []).includes('bizpct') || doc?.party?.role === 'supplier';
+            }
+            if (col.id === 'taxpct') {
+                return doc?.money?.tax !== false || (doc?.columns || []).includes('taxpct');
+            }
+            if (col.id === 'pickbatch' || col.id === 'batch' || col.id === 'expiry') {
+                return doc?.stock?.effect !== 'none' || doc?.money?.lines === 'priced';
+            }
+            if (col.id === 'free') {
+                return doc?.money?.lines === 'priced' || (doc?.columns || []).includes('free');
+            }
+            return true;
+        });
+    }, [doc]);
     const [deviceId, setDeviceId] = useState('laptop');
     const device = PREVIEW_DEVICES.find(d => d.id === deviceId) || PREVIEW_DEVICES[2];
     const chosen = useMemo(() => matchLayout(comp), [comp]);
@@ -469,11 +508,85 @@ export default function DocumentSettings({
                             </>
                         )}
 
-                        {section === 'items' && (
+                        {(section === 'columns' || section === 'items') && (
                             <>
                                 <div className="vqdoc-group">
-                                    <h4>Detail on each row</h4>
-                                    <p>How much of each line you want to see while you type. Nothing is ever lost — anything a simpler row leaves out is still on the document and one click away.</p>
+                                    <h4>Line item columns</h4>
+                                    <p>Add or remove columns from the table. Turning off columns you don't need gives you more space and removes clutter.</p>
+                                    {availableLineCols.map(({ id, label, hint }) => {
+                                        const isOn = lineCols && typeof lineCols[id] === 'boolean'
+                                            ? lineCols[id]
+                                            : (doc?.columns || []).includes(id);
+                                        return (
+                                            <Opt key={id} title={label} hint={hint}>
+                                                <Switch
+                                                    checked={isOn}
+                                                    onChange={(v) => setLineCol(id, v)}
+                                                    label={label}
+                                                />
+                                            </Opt>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="vqdoc-group">
+                                    <h4>Amount &amp; Discount Converters</h4>
+                                    <p>Configure the toggle buttons on each row. Turning them off hides the buttons to give more space and keep rows uncluttered, while new edits will use your chosen defaults.</p>
+                                    <Opt
+                                        title="Amount converter button ($ / #)"
+                                        hint="Shows the button beside the line amount to switch between calculating Price or Quantity. Turn off to remove the button and give full space to the amount."
+                                    >
+                                        <Switch
+                                            checked={showAmountSolver !== false}
+                                            onChange={setShowAmountSolver}
+                                            label="Amount converter button"
+                                        />
+                                    </Opt>
+                                    <Opt
+                                        stack
+                                        title="Default amount calculation mode"
+                                        hint="When editing the amount, choose whether it recalculates the unit price or the quantity."
+                                    >
+                                        <Seg
+                                            fill
+                                            value={defaultAmountSolver || 'price'}
+                                            options={[
+                                                ['price', `Calculate Price (${currency})`],
+                                                ['qty', 'Calculate Quantity (#)'],
+                                            ]}
+                                            onChange={setDefaultAmountSolver}
+                                        />
+                                    </Opt>
+                                    <Opt
+                                        title="Discount converter button ($ / %)"
+                                        hint="Shows the toggle button beside line discount. Turn off to hide the button and keep the discount column clean."
+                                    >
+                                        <Switch
+                                            checked={showDiscountType !== false}
+                                            onChange={setShowDiscountType}
+                                            label="Discount converter button"
+                                        />
+                                    </Opt>
+                                    <Opt
+                                        stack
+                                        title="Default discount type"
+                                        hint="Choose whether line item discounts default to a flat cash amount or a percentage."
+                                    >
+                                        <Seg
+                                            fill
+                                            value={defaultDiscountType || 'fixed'}
+                                            options={[
+                                                ['fixed', `Fixed Amount (${currency})`],
+                                                ['percent', 'Percentage (%)'],
+                                            ]}
+                                            onChange={setDefaultDiscountType}
+                                        />
+                                    </Opt>
+                                </div>
+
+                                <div className="vqdoc-group">
+                                    <h4>Detail presets</h4>
+                                    <p>Quick presets for how much of each line you want to see. You can also fine-tune any individual column above.</p>
                                     {['simple', 'standard', 'detailed'].map(id => {
                                         const L = LEVELS[id];
                                         const on = comp.level === id;

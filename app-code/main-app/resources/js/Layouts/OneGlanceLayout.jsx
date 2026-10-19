@@ -894,7 +894,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 		[onboardingMetrics, store?.google_backup_enabled, store?.google_connected, store?.dashboard_customized, store?.storefront_published]
 	);
 	const setupRemainingCount = useMemo(() => setupChecklist.filter(item => !item.isDone).length, [setupChecklist]);
-	const showSetupBadge = !!(store && !store?.onboarding_completed && store?.onboarding_step && store?.onboarding_step !== 'completed' && setupRemainingCount > 0 && !store?.is_demo);
+	const showSetupBadge = !!(store && setupRemainingCount > 0 && !store?.is_demo);
 
 	const enabledModuleSet = Array.isArray(props?.modules)
 		? new Set(
@@ -1729,31 +1729,32 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
  const renderUserMenuPopup = (pos) => isUserMenuOpen && (
 <div className={`${pos} w-60 bg-surface rounded-[14px] shadow-xl border border-line p-2 z-50 animate-in fade-in slide-in-from-bottom-2`}>
-  {/* Setup Checklist in Profile Menu */}
-  {showSetupBadge && (
-   <button
-    onClick={() => {
-     setIsUserMenuOpen(false);
-     setIsChecklistModalOpen(true);
-    }}
-    className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex flex-wrap items-center justify-between gap-y-2 group shadow-xs cursor-pointer"
-   >
-    <div className="flex items-center gap-2.5">
-     <div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
-      <Sparkles size={14} className="animate-pulse" />
-     </div>
-     <div>
-      <div className="text-xs font-bold text-ink">Setup Checklist</div>
-      <div className="text-3xs font-semibold text-brand-600 dark:text-brand-400">
-       {setupRemainingCount} step{setupRemainingCount > 1 ? 's' : ''} remaining
-      </div>
-     </div>
-    </div>
-    <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
-     {setupRemainingCount}
-    </span>
-   </button>
-  )}
+		{store && !store?.is_demo && (
+			<button
+				onClick={() => {
+					setIsUserMenuOpen(false);
+					setIsChecklistModalOpen(true);
+				}}
+				className="w-full p-2.5 mb-2 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left flex flex-wrap items-center justify-between gap-y-2 group shadow-xs cursor-pointer"
+			>
+				<div className="flex items-center gap-2.5">
+					<div className="w-7 h-7 rounded-lg bg-brand-500 text-white flex items-center justify-center shadow-xs shrink-0">
+						<Sparkles size={14} className={setupRemainingCount > 0 ? "animate-pulse" : ""} />
+					</div>
+					<div>
+						<div className="text-xs font-bold text-ink">Setup Checklist</div>
+						<div className="text-3xs font-semibold text-brand-600 dark:text-brand-400">
+							{setupRemainingCount > 0 ? `${setupRemainingCount} step${setupRemainingCount > 1 ? 's' : ''} remaining` : 'All 100% completed'}
+						</div>
+					</div>
+				</div>
+				{setupRemainingCount > 0 && (
+					<span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-xs">
+						{setupRemainingCount}
+					</span>
+				)}
+			</button>
+		)}
  						{props.auth?.my_stores_count > 1 && (
 							<button
 								onClick={() => {
@@ -1771,11 +1772,18 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 								</span>
 							</button>
 						)}
- {store && (
- <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
- <User size={16} /> Profile Settings
- </Link>
- )}
+		{store && (
+			<Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+				<div className="flex items-center gap-3">
+					<User size={16} /> Profile Settings
+				</div>
+				{setupRemainingCount > 0 && (
+					<span className="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+						{setupRemainingCount} left
+					</span>
+				)}
+			</Link>
+		)}
   {store && (
   <Link href={route('store.ai-usage.index', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
       <div className="flex items-center gap-3">
@@ -2122,6 +2130,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
   isOpen={mobileSidebarOpen}
   onClose={() => setMobileSidebarOpen(false)}
   items={menuItems}
+  setupRemainingCount={setupRemainingCount}
+  onOpenChecklist={() => {
+      setMobileSidebarOpen(false);
+      setIsChecklistModalOpen(true);
+  }}
   isItemActive={(item) => activeMenu === item.name || (item.name === 'Dashboard' && activeMenu === 'Home') || (!activeMenu && isMenuItemActive(item))}
   pos={(!enabledModuleSet || enabledModuleSet.has('pos') || runsFoh)
    && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos'))
@@ -2695,7 +2708,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
               {/* User Settings */}
               <div className="border-t border-line pt-2 space-y-1">
-                  {showSetupBadge && (
+                  {store && !store?.is_demo && (
                       <button
                           onClick={() => {
                               setIsMobileMenuOpen(false);
@@ -2704,17 +2717,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                           className="w-full flex flex-wrap items-center justify-between gap-y-2 p-2.5 rounded-xl bg-brand-50/90 dark:bg-brand-900/30 border border-brand-200 dark:border-brand-800 hover:bg-brand-100 dark:hover:bg-brand-900/50 text-ink dark:text-white transition-all text-left group"
                       >
                           <div className="flex items-center gap-2.5">
-                              <Sparkles size={16} className="text-brand-500 shrink-0 animate-pulse" />
+                              <Sparkles size={16} className={`text-brand-500 shrink-0 ${setupRemainingCount > 0 ? "animate-pulse" : ""}`} />
                               <span className="text-sm font-semibold">Setup Checklist</span>
                           </div>
                           <span className="text-2xs font-extrabold px-2 py-0.5 rounded-full bg-brand-500 text-white shadow-xs">
-                              {setupRemainingCount}
+                              {setupRemainingCount > 0 ? `${setupRemainingCount} left` : 'Done'}
                           </span>
                       </button>
                   )}
                   {store && (
-                      <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
-                          <User size={16} /> Profile Settings
+                      <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex flex-wrap items-center justify-between gap-y-2 w-full p-2.5 rounded-xl hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors text-sm font-medium text-ink-secondary dark:text-ink">
+                          <div className="flex items-center gap-3">
+                              <User size={16} /> Profile Settings
+                          </div>
+                          {setupRemainingCount > 0 && (
+                              <span className="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                  {setupRemainingCount} left
+                              </span>
+                          )}
                       </Link>
                   )}
                   {store && (

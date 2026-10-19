@@ -1,0 +1,9 @@
+{
+  "checks": 678,
+  "errors": [],
+  "capability_rows": 228,
+  "page_references": 393,
+  "business_types": 85,
+  "presets": 23,
+  "qualification": "Documentation integrity only; not an application test pass."
+}

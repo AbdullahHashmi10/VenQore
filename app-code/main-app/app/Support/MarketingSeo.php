@@ -59,7 +59,7 @@ class MarketingSeo
                         'title' => $title,
                         'description' => $description,
                         'keywords' => 'VenQore Blog, ' . $post->category . ', retail management, POS software',
-                        'og_image' => $post->image ? url($post->image) : url('/images/logo.png'),
+                        'og_image' => $post->image ? url($post->image) : url('/images/og/venqore-og.png'),
                         'canonical' => 'https://venqore.com/blog/' . $post->slug,
                         'jsonld' => [
                             [
@@ -105,7 +105,7 @@ class MarketingSeo
                 return [
                     'title' => $title,
                     'description' => $description,
-                    'og_image' => $image ?: url('/images/logo.png'),
+                    'og_image' => $image ?: url('/images/og/venqore-og.png'),
                     'canonical' => url('/shop/' . $shop->slug),
                     'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem"><h1>' . htmlspecialchars($name) . '</h1><p>' . htmlspecialchars($description) . '</p></main>',
                 ];
@@ -126,7 +126,7 @@ class MarketingSeo
                 return [
                     'title' => $pname . ' — ' . $shop->display_name,
                     'description' => $pdesc,
-                    'og_image' => $pimg ?: ($shop->logo_path ? \App\Services\Commerce\StorefrontPresenter::mediaUrl($shop->logo_path) : url('/images/logo.png')),
+                    'og_image' => $pimg ?: ($shop->logo_path ? \App\Services\Commerce\StorefrontPresenter::mediaUrl($shop->logo_path) : url('/images/og/venqore-og.png')),
                     'canonical' => url('/shop/' . $shop->slug . '/p/' . $route->parameter('id')),
                     'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem"><h1>' . htmlspecialchars($pname) . '</h1><p>' . htmlspecialchars($pdesc) . '</p></main>',
                 ];
@@ -146,7 +146,7 @@ class MarketingSeo
                 return [
                     'title' => $title,
                     'description' => $description,
-                    'og_image' => url('/images/logo.png'),
+                    'og_image' => url('/images/og/venqore-og.png'),
                     'canonical' => $canonical,
                     'jsonld' => [[
                         '@context' => 'https://schema.org',
@@ -230,7 +230,7 @@ class MarketingSeo
                     'title' => $title . ' — VenQore Docs',
                     'description' => $description,
                     'keywords' => 'VenQore Help Center, documentation, ' . $category . ', POS instructions, user guide',
-                    'og_image' => url('/images/logo.png'),
+                    'og_image' => url('/images/og/venqore-og.png'),
                     'canonical' => 'https://venqore.com/docs' . ($slug === 'getting-started' ? '' : '/' . $slug),
                     'jsonld' => empty($faqList) ? [] : [ self::faq($faqList) ],
                     'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
@@ -263,7 +263,7 @@ class MarketingSeo
             $path = '/' . $path;
         }
         $def['canonical'] = 'https://venqore.com' . $path;
-        $def['og_image']  = $def['og_image'] ?? url('/images/logo.png');
+        $def['og_image']  = $def['og_image'] ?? url('/images/og/venqore-og.png');
 
         return $def;
     }
@@ -327,22 +327,14 @@ class MarketingSeo
                                 'applicationSubCategory' => 'Point of Sale (POS) and ERP',
                                 'operatingSystem' => 'Web browser (offline-capable PWA)',
                                 'url' => url('/'),
-                                'description' => 'Describe your business. See what it becomes.. Offline-first POS and ERP with built-in verified double-entry accounting, FIFO inventory, all 40 reports, multi-store support and WooCommerce sync.',
-                                'offers' => [
-                                    '@type' => 'AggregateOffer',
-                                    'priceCurrency' => 'USD',
-                                    'lowPrice' => '18',
-                                    'highPrice' => '129',
-                                    'offerCount' => '3',
-                                    'url' => url('/pricing'),
-                                ],
+                                'description' => 'Describe your business. See what it becomes. Offline-first POS and ERP with built-in verified double-entry accounting, FIFO inventory, all 40 reports, multi-store support and WooCommerce sync.',
                                 'featureList' => 'Offline-first POS checkout; Double-entry accounting engine; FIFO inventory with batch and serial tracking; 40 verified reports; Multi-store management; Customer credit (khata) tracking; WooCommerce synchronization; Barcode scanning and thermal printing; Staff roles and permissions; Loyalty points and gift cards',
                             ],
                         ],
                     ],
                 ],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
-                    . '<h1>Describe your business. See what it becomes..</h1>'
+                    . '<h1>Describe your business. See what it becomes.</h1>'
                     . '<p><strong>Point of sale, stock, purchases, invoices, customers and real accounting — one system instead of five subscriptions and a notebook.</strong> Enter it once; VenQore does the rest. The accounting engine is guarded by eight correctness laws that run on every release.</p>'
                     . '<h2>Why VenQore Exists</h2>'
                     . '<p>Businesses don&#39;t fail because they lack software. They fail because they spend their best hours making five apps and a notebook agree with each other. A sale happens in seconds — then gets typed into the stock app, the accounts, the spreadsheet, and the online store. VenQore is one system where it happens once.</p>'
@@ -364,7 +356,7 @@ class MarketingSeo
                 'jsonld' => [],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Features</h1>'
-                    . '<p><strong>144 verified features across POS, inventory, accounting, reporting and growth — all writing to one verified double-entry ledger.</strong></p>'
+                    . '<p><strong>140+ capabilities across POS, inventory, accounting, reporting and growth — all writing to one verified double-entry ledger.</strong></p>'
                     . '<ul><li><strong>POS:</strong> offline-first checkout, barcode scanning, multi-tab carts, hold &amp; recall, split payments, WebUSB thermal printing</li>'
                     . '<li><strong>Inventory:</strong> FIFO batches with expiry, serial/IMEI tracking, variants, multi-unit, composite products &amp; recipes, purchase orders with partial receiving</li>'
                     . '<li><strong>Accounting:</strong> automatic balanced journal entries, derived account balances that cannot drift, immutable posted history, bank reconciliation</li>'
@@ -430,12 +422,12 @@ class MarketingSeo
                     . '<li>Immutable posted ledger — corrections flow through reversal entries, as auditors require</li>'
                     . '<li>FIFO Cost of Goods Sold — exact batch costs, not averages or guesses</li>'
                     . '<li>all 40 reports: P&amp;L, Balance Sheet, Cash Flow, Trial Balance, AR &amp; AP Aging, Stock Valuation</li>'
-                    . '<li>Bank Reconciliation (Growth &amp; Scale)</li>'
+                    . '<li>Bank Reconciliation</li>'
                     . '<li>Configurable Chart of Accounts with sub-accounts and cost centres</li>'
                     . '</ul>'
                     . '<h2>No QuickBooks. No Xero. No extra cost.</h2>'
                     . '<p>Most POS systems charge $30–$80/month for an accounting integration that still requires manual sync. VenQore includes a full double-entry engine at no extra cost. The trial balance is always zero — enforced by the engine.</p>'
-                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/pricing">Pricing from $18/month</a> · <a href="/features/inventory-management">FIFO Inventory</a> · <a href="/features/point-of-sale">Point of Sale</a></p>'
+                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/pricing">Pricing from $49/month, or free</a> · <a href="/features/inventory-management">FIFO Inventory</a> · <a href="/features/point-of-sale">Point of Sale</a></p>'
                     . $nav . '</main>',
             ],
 
@@ -525,7 +517,7 @@ class MarketingSeo
                     . '<li>Acting on a warning and preventing the problem counts as a success, not a failed forecast</li>'
                     . '<li>No AI key, no per-message cost, identical results every run</li>'
                     . '</ul>'
-                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/features/accounting">Built-in accounting</a> · <a href="/features/inventory-management">FIFO inventory</a> · <a href="/pricing">Pricing from $18/month</a></p>'
+                    . '<p><a href="/demo"><strong>Try live demo</strong></a> · <a href="/features/accounting">Built-in accounting</a> · <a href="/features/inventory-management">FIFO inventory</a> · <a href="/pricing">Pricing from $49/month, or free</a></p>'
                     . $nav . '</main>',
             ],
 
@@ -810,7 +802,7 @@ class MarketingSeo
                         ],
                     ],
                     self::faq([
-                        ['How many branches or locations can I manage?', 'Our Growth plan supports up to 3 branches, while the Scale plan supports up to 10 locations. Contact our support team for custom franchise configurations past 10 outlets.'],
+                        ['How many branches or locations can I manage?', 'Every plan includes one store location; add more locations for $45/month each. Contact our support team for custom franchise configurations past 10 outlets.'],
                         ['Can branch cashiers see product stock levels at other branches?', 'Yes. If permitted by manager role permissions, cashiers can search a product SKU to see stock levels across all other outlets and warehouses.'],
                         ['Is my data secure across cashier terminals?', 'Yes. Cashiers log in using unique numerical PIN passcodes. All cashier actions are logged with date and operator details in the audit trail.'],
                     ]),
@@ -937,7 +929,7 @@ class MarketingSeo
                     . '<li>Professional POS: fast checkout shortcuts and a crash-proof, offline-first architecture</li>'
                     . '<li>Dozens of verified financial reports: Profit &amp; Loss, Balance Sheet, Cash Flow and more</li>'
                     . '<li>Full inventory control: FIFO costing, batch tracking, multi-warehouse support</li></ul>'
-                    . '<p><a href="/pricing">See plans from $18/month</a> &middot; <a href="/demo">Try the live demo first, no signup</a></p>'
+                    . '<p><a href="/pricing">See plans from $49/month, or start free</a> &middot; <a href="/demo">Try the live demo first, no signup</a></p>'
                     . $nav . '</main>',
             ],
 

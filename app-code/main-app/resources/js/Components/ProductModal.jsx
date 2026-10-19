@@ -4,7 +4,8 @@ import { useForm, usePage, router } from '@inertiajs/react';
 import { 
     X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, 
     Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink, AlertTriangle,
-    Wrench, Sparkles, CheckCircle2, Shield, HelpCircle, Briefcase, MapPin, Tag, Sliders, Layers
+    Wrench, Sparkles, CheckCircle2, Shield, HelpCircle, Briefcase, MapPin, Tag, Sliders, Layers,
+    Star
 } from 'lucide-react';
 import PremiumButton from '@/Components/PremiumButton';
 import axios from 'axios';
@@ -61,9 +62,11 @@ export default function ProductModal({
     const isEditable = currentMode === 'create' || currentMode === 'edit';
     const { settings, store, modules } = usePage().props;
     const tt = useTermText();
+    const hasServices = !Array.isArray(modules) || modules.includes('services');
+    const defaultType = (!hasServices && initialType === 'service') ? 'standard' : (product?.type || initialType || 'standard');
 
     const { data, setData, post, processing, errors, reset } = useForm({
-        type: product?.type || initialType || 'standard',
+        type: defaultType,
         name: product?.name || initialName || '',
         sku: product?.sku || '',
         category_id: product?.category_id || '',
@@ -71,7 +74,7 @@ export default function ProductModal({
         base_unit: '',
         secondary_unit: '',
         conversion_rate: '',
-        unit: product?.unit || (initialType === 'service' || product?.type === 'service' ? 'service' : 'pcs'),
+        unit: product?.unit || (defaultType === 'service' ? 'service' : 'pcs'),
         stock: product?.stock ?? product?.stock_quantity ?? 0,
         price: product?.price || product?.default_rate || 0,
         cost_price: product?.cost_price || product?.cost || 0,
@@ -168,7 +171,7 @@ export default function ProductModal({
         if (isOpen && mode === 'create') {
             reset();
             setIsNewCategory(false);
-            const chosenType = initialType || 'standard';
+            const chosenType = (!hasServices && initialType === 'service') ? 'standard' : (initialType || 'standard');
             setData(d => ({
                 ...d,
                 type: chosenType,
@@ -842,7 +845,7 @@ export default function ProductModal({
  <span>{tt('Edit Product')}</span>
  </button>
  )}
- {currentMode === 'create' && (
+ {currentMode === 'create' && (!Array.isArray(modules) || (modules.includes('products') && modules.includes('services'))) && (
  <div className="hidden sm:flex items-center gap-1 bg-sunken p-1 rounded-xl border border-line">
  <button
  type="button"
@@ -1401,6 +1404,7 @@ export default function ProductModal({
  </h3>
  {isEditable && (
  <button
+ id="tour-add-barcode-btn"
  onClick={handleAddBarcode}
  className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 flex items-center gap-1"
  >
@@ -2459,14 +2463,14 @@ export default function ProductModal({
 
  {/* Barcode Modal */}
  {(!Array.isArray(modules) || modules.includes('barcodes_labels')) && isBarcodeModalOpen && createPortal(
- <div className="fixed inset-0 z-drawer flex items-center justify-center p-4">
+ <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
  <div className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm" onClick={() => setIsBarcodeModalOpen(false)}></div>
- <div className="relative w-full max-w-lg bg-surface rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-normal">
+ <div id="tour-barcode-modal" className="relative w-full max-w-lg bg-surface rounded-2xl shadow-2xl p-6 animate-in zoom-in-95 duration-normal">
  <div className="flex flex-wrap items-center justify-between gap-y-2 mb-6">
  <h3 className="text-xl font-bold text-ink">
  {editingBarcode ? 'Edit Barcode' : 'Add New Barcode'}
  </h3>
- <button onClick={() => setIsBarcodeModalOpen(false)} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
+ <button id="tour-barcode-close-btn" onClick={() => setIsBarcodeModalOpen(false)} className="p-2 hover:bg-interactive-hover dark:hover:bg-interactive-hover rounded-lg transition-colors">
  <X size={20} />
  </button>
  </div>
@@ -2485,7 +2489,7 @@ export default function ProductModal({
  </div>
 
  {/* Barcode Type */}
- <div>
+ <div id="tour-barcode-type">
  <label className="block text-sm font-bold text-ink-secondary mb-2">Barcode Type</label>
  <PremiumSelect
  options={[
@@ -2511,8 +2515,9 @@ export default function ProductModal({
  onChange={(e) => setBarcodeForm({ ...barcodeForm, is_primary: e.target.checked })}
  className="w-5 h-5 rounded border-line dark:border-line text-brand-600 focus:ring-2 focus:ring-brand-500/20"
  />
- <label htmlFor="is_primary" className="text-sm font-semibold text-ink-secondary cursor-pointer">
- Set as Primary Barcode â­
+ <label htmlFor="is_primary" className="text-sm font-semibold text-ink-secondary cursor-pointer flex items-center gap-1.5">
+ <span>Set as Primary Barcode</span>
+ <Star size={14} className="text-amber-500 fill-amber-500 inline" />
  </label>
  </div>
 
@@ -2531,12 +2536,13 @@ export default function ProductModal({
  {/* Actions */}
  <div className="flex justify-end gap-3 pt-4 border-t border-line">
  <button
+ id="tour-barcode-cancel-btn"
  onClick={() => setIsBarcodeModalOpen(false)}
  className="px-6 py-2.5 rounded-lg font-semibold text-ink-secondary hover:bg-interactive-hover dark:hover:bg-interactive-hover transition-colors"
  >
  Cancel
  </button>
- <PremiumButton onClick={handleSaveBarcode} className="px-6 py-2.5">
+ <PremiumButton id="tour-barcode-save-btn" onClick={handleSaveBarcode} className="px-6 py-2.5">
  <Save size={16} />
  {editingBarcode ? 'Update Barcode' : 'Add Barcode'}
  </PremiumButton>

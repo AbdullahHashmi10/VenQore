@@ -337,6 +337,93 @@ class EnsureModuleTest extends VenQoreTestCase
         return $this->createTenant(plan: 'business', status: 'active');
     }
 
+    // ══════════════ A SCREEN WE GAVE THEM MUST WORK IN FULL ═══════════════
+    // The paradox: a new store's purchase form loads payment accounts from a route
+    // Accounting owns; with Accounting off the form broke with "you don't have
+    // Accounting". The gate guards screens, not the calls a screen makes.
+
+    #[Test]
+    public function a_lookup_behind_a_screen_works_even_when_its_owning_module_is_off(): void
+    {
+        $tenant = $this->makeTenant();
+        $this->actingAsOwnerOf($tenant);
+        ModuleService::disable($tenant, 'accounting_workspace');
+
+        $this->getJson(route('store.accounting.accounts.api', ['store_slug' => $tenant->slug, 'type' => 'asset']))
+            ->assertJsonMissing(['code' => 'module_disabled']);
+    }
+
+    #[Test]
+    public function opening_a_switched_off_modules_screen_is_still_refused(): void
+    {
+        $tenant = $this->makeTenant();
+        $this->actingAsOwnerOf($tenant);
+        ModuleService::disable($tenant, 'accounting_workspace');
+
+        $this->get(route('store.accounting.index', ['store_slug' => $tenant->slug]))->assertStatus(403);
+        $this->withHeaders(['X-Inertia' => 'true'])
+            ->get(route('store.accounting.index', ['store_slug' => $tenant->slug]))->assertStatus(403);
+    }
+
+    #[Test]
+    public function an_action_sent_from_an_allowed_screen_is_not_refused(): void
+    {
+        $tenant = $this->makeTenant();
+        $this->actingAsOwnerOf($tenant);
+        ModuleService::enable($tenant, 'pos');
+        ModuleService::disable($tenant, 'bank_accounts');
+        $url = route('store.bank-accounts.store', ['store_slug' => $tenant->slug]);
+
+        // From the till (allowed): the quick-add reaches the controller.
+        $this->withHeaders(['Referer' => route('store.pos', ['store_slug' => $tenant->slug])])
+            ->postJson($url, [])->assertJsonMissing(['code' => 'module_disabled']);
+
+        // A hand-made request from no screen: still refused.
+        $this->flushHeaders();
+        $this->postJson($url, [])->assertJsonPath('code', 'module_disabled');
+    }
+
+    #[Test]
+    public function a_print_opened_from_an_allowed_screen_is_not_refused(): void
+    {
+        $tenant = $this->makeTenant();
+        $this->actingAsOwnerOf($tenant);
+        ModuleService::enable($tenant, 'pos');
+        ModuleService::disable($tenant, 'invoicing');
+
+        // Reaching the controller (which then finds no such sale) proves the gate let it through.
+        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        $this->withoutExceptionHandling()
+            ->withHeaders(['Referer' => route('store.pos', ['store_slug' => $tenant->slug])])
+            ->get(route('store.sales.print', ['store_slug' => $tenant->slug, 'sale' => 999999]));
+    }
+
+    #[Test]
+    public function the_page_a_save_redirects_to_is_shown_not_refused(): void
+    {
+        $tenant = $this->makeTenant();
+        $this->actingAsOwnerOf($tenant);
+        ModuleService::enable($tenant, 'pos');
+        ModuleService::disable($tenant, 'bank_accounts');
+
+        $this->withHeaders(['Referer' => route('store.pos', ['store_slug' => $tenant->slug])])
+            ->post(route('store.bank-accounts.store', ['store_slug' => $tenant->slug]), []);
+        $this->flushHeaders();
+        $this->assertNotSame(403, $this->get(route('store.bank-accounts.index', ['store_slug' => $tenant->slug]))->status());
+        // …but only that one page: browsing there again later is the normal "add it?" door.
+        $this->get(route('store.bank-accounts.index', ['store_slug' => $tenant->slug]))->assertStatus(403);
+    }
+
+    #[Test]
+    public function form_pickers_are_never_behind_a_plan_gate(): void
+    {
+        $route = app('router')->getRoutes()->getByName('store.accounting.accounts.api');
+        foreach ($route->gatherMiddleware() as $m) {
+            $this->assertStringNotContainsString('plan.feature', (string) $m,
+                'The payment-account picker feeds the purchase and pre-sale forms; a plan gate here breaks those forms on cheaper plans.');
+        }
+    }
+
     private function actingAsOwnerOf($tenant): void
     {
         $this->actingAsTenantUser($tenant, 'owner');

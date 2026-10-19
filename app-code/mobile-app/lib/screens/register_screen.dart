@@ -4,21 +4,20 @@ import '../core/app_side.dart';
 import '../core/google_sign_in_service.dart';
 import '../core/web_autofill.dart';
 import '../theme/app_colors.dart';
-import '../widgets/brand_logo.dart';
-import '../widgets/google_mark.dart';
+import '../theme/vq.dart';
 import '../widgets/motion.dart';
 import '../widgets/thinking_orb.dart';
+import '../widgets/vq_widgets.dart';
 import 'ai_builder_intro_screen.dart';
 import 'business_web_screen.dart';
 import 'help_screen.dart';
-import 'sign_in_screen.dart';
+import 'sign_in_screen.dart' show SignInScreen, GoogleContinueButton;
 
-/// Native VenQore V6 account creation.
+/// Native VenQore account creation, for both sides of the app.
 ///
 /// Asks only what the server's register page asks (name, email, password, terms). What is typed
-/// is handed once to that page, which sends the emailed code and then lets the person create or
-/// join a business. The business itself (name, trade, modules) is set up by the AI workspace
-/// builder, which is why that is offered first.
+/// is handed once to that page, which sends the emailed code. The side chosen on the front door decides
+/// what the account becomes: a store owner (then the AI builder makes the workspace) or a customer.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({
     super.key,
@@ -26,7 +25,7 @@ class RegisterScreen extends StatefulWidget {
     this.side = AppSide.store,
   });
 
-  /// Customer: a plain account for ordering. Store: the business workspace sign-up.
+  /// Customer: a plain account for ordering. Store: the business owner sign-up.
   final AppSide side;
 
   /// Replaceable in tests.
@@ -48,6 +47,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _agreed = false;
   bool _googleBusy = false;
   String? _error;
+
+  bool get _isCustomer => widget.side == AppSide.customer;
 
   @override
   void initState() {
@@ -155,7 +156,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
       case GoogleSignInOutcome.unavailable:
-        _openWeb('/auth/google', 'Sign in with Google');
+        setState(
+          () => _error =
+              'Google sign-in is not ready on this phone yet. Create the account with your email instead.',
+        );
       case GoogleSignInOutcome.failed:
         setState(
           () => _error =
@@ -169,489 +173,302 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: const BackButton(color: AppColors.ink),
-        actions: [
-          IconButton(
-            tooltip: 'Help',
-            icon: const Icon(
-              Icons.help_outline_rounded,
-              color: AppColors.inkMuted,
+      body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Column(
+          children: [
+            VqAuthHeader(
+              badge: _isCustomer ? 'Marketplace customer' : 'Partner',
+              title: _isCustomer
+                  ? 'Create your account'
+                  : 'Register as a store owner',
+              subtitle: _isCustomer
+                  ? 'Order from any store and follow every order in one place. Free.'
+                  : 'You entered through the store door, so this account becomes a store owner and opens the AI store builder. 14 days, the full product.',
+              tabs: _isCustomer
+                  ? const ['Customer sign in', 'New customer']
+                  : const ['Existing store', 'New store owner'],
+              tabIndex: 1,
+              onTab: (i) {
+                if (i == 0) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute<void>(
+                      builder: (_) => SignInScreen(side: widget.side),
+                    ),
+                  );
+                }
+              },
+              onHelp: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const HelpScreen()),
+              ),
             ),
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const HelpScreen())),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const FadeSlideIn(
-                child: Row(
-                  children: [
-                    BrandLogo(size: 46, borderRadius: 14),
-                    SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        'VenQore',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 70),
-                child: Text(
-                  widget.side == AppSide.customer
-                      ? 'Create your account'
-                      : 'Start your business workspace',
-                  style: const TextStyle(
-                    fontSize: 30,
-                    height: 1.1,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                    letterSpacing: -0.8,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 120),
-                child: Text(
-                  widget.side == AppSide.customer
-                      ? 'Order from any store and follow every order in one place. Free.'
-                      : '14 days, the full product. Cancel anytime.',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    height: 1.45,
-                    color: AppColors.inkMuted,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              if (widget.side == AppSide.store)
-                FadeSlideIn(
-                  delay: const Duration(milliseconds: 170),
-                  child: PressableScale(
-                    borderRadius: 20,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const AiBuilderIntroScreen(),
-                      ),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.teal950, AppColors.teal900],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppColors.tealBright.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: const Row(
-                        children: [
-                          ThinkingOrb(
-                            size: 52,
-                            state: OrbState.solving,
-                            speed: 1.0,
-                            accentColor: AppColors.tealBright,
-                            showCore: true,
-                          ),
-                          SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Want AI to set it up for you?',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                SizedBox(height: 3),
-                                Text(
-                                  'Describe your business and review the workspace before you create anything.',
-                                  style: TextStyle(
-                                    color: Color(0xFFC6F5E9),
-                                    fontSize: 12.5,
-                                    height: 1.35,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Icon(
-                            Icons.arrow_forward_rounded,
-                            color: AppColors.tealBright,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 18),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                alignment: Alignment.topCenter,
-                child: _error == null
-                    ? const SizedBox(width: double.infinity)
-                    : Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: _Banner(message: _error!),
-                      ),
-              ),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 230),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: AppColors.line),
-                    boxShadow: AppColors.cardShadow,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const _FieldLabel('Your name'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('register-name'),
-                        controller: _name,
-                        textCapitalization: TextCapitalization.words,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.name],
-                        onSubmitted: (_) => _emailFocus.requestFocus(),
-                        decoration: const InputDecoration(
-                          hintText: 'Full name',
-                          prefixIcon: Icon(
-                            Icons.person_outline_rounded,
-                            color: AppColors.inkMuted,
-                            size: 20,
-                          ),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 15,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!_isCustomer)
+                    FadeSlideIn(
+                      child: PressableScale(
+                        borderRadius: 20,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AiBuilderIntroScreen(),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      const _FieldLabel('Work email'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('register-email'),
-                        controller: _email,
-                        focusNode: _emailFocus,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
-                        onSubmitted: (_) => _passwordFocus.requestFocus(),
-                        decoration: const InputDecoration(
-                          hintText: 'you@business.com',
-                          prefixIcon: Icon(
-                            Icons.mail_outline_rounded,
-                            color: AppColors.inkMuted,
-                            size: 20,
-                          ),
-                          helperText: 'We email your sign-in code here.',
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 15,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const _FieldLabel('Password'),
-                      const SizedBox(height: 8),
-                      TextField(
-                        key: const Key('register-password'),
-                        controller: _password,
-                        focusNode: _passwordFocus,
-                        obscureText: _obscure,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.newPassword],
-                        onSubmitted: (_) => FocusScope.of(context).unfocus(),
-                        decoration: InputDecoration(
-                          hintText: 'At least 8 characters',
-                          prefixIcon: const Icon(
-                            Icons.lock_outline_rounded,
-                            color: AppColors.inkMuted,
-                            size: 20,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 15,
-                          ),
-                          suffixIcon: IconButton(
-                            tooltip: _obscure
-                                ? 'Show password'
-                                : 'Hide password',
-                            icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                              color: AppColors.inkMuted,
-                              size: 20,
-                            ),
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      InkWell(
-                        key: const Key('register-terms'),
-                        onTap: () => setState(() => _agreed = !_agreed),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: VqMesh(
+                          borderRadius: BorderRadius.circular(Vq.rLg),
+                          padding: const EdgeInsets.all(14),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 140),
-                                width: 22,
-                                height: 22,
-                                margin: const EdgeInsets.only(top: 1),
-                                decoration: BoxDecoration(
-                                  color: _agreed
-                                      ? AppColors.teal
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(7),
-                                  border: Border.all(
-                                    color: _agreed
-                                        ? AppColors.teal
-                                        : AppColors.lineStrong,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: _agreed
-                                    ? const Icon(
-                                        Icons.check_rounded,
-                                        size: 16,
-                                        color: Colors.white,
-                                      )
-                                    : null,
+                              const ThinkingOrb(
+                                size: 48,
+                                state: OrbState.solving,
+                                speed: 1.0,
+                                accentColor: AppColors.tealBright,
+                                showCore: true,
                               ),
-                              const SizedBox(width: 10),
-                              const Expanded(
-                                child: Text(
-                                  'I agree to the Terms and the Privacy Policy.',
-                                  style: TextStyle(
-                                    fontSize: 13.5,
-                                    height: 1.35,
-                                    color: AppColors.inkMuted,
-                                  ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Want AI to set it up for you?',
+                                      style: Vq.display(
+                                        15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      'Describe your business and review the workspace before you create anything.',
+                                      style: Vq.sans(
+                                        13.5,
+                                        color: AppColors.teal100,
+                                        height: 1.35,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                color: AppColors.tealBright,
+                                size: 20,
                               ),
                             ],
                           ),
                         ),
                       ),
-                      Wrap(
-                        spacing: 4,
-                        children: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                              ),
-                            ),
-                            onPressed: () => _openWeb('/terms', 'Terms'),
-                            child: const Text(
-                              'Read the Terms',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.teal600,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                              ),
-                            ),
-                            onPressed: () =>
-                                _openWeb('/privacy', 'Privacy Policy'),
-                            child: const Text(
-                              'Privacy Policy',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.teal600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                        key: const Key('register-submit'),
-                        onPressed: _submit,
-                        child: const Text('Create account'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 290),
-                child: Column(
-                  children: [
-                    const Row(
-                      children: [
-                        Expanded(
-                          child: Divider(color: AppColors.line, height: 1),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            'or',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppColors.inkFaint,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(color: AppColors.line, height: 1),
-                        ),
-                      ],
                     ),
-                    const SizedBox(height: 14),
-                    OutlinedButton(
-                      key: const Key('register-google'),
-                      onPressed: _googleBusy ? null : _signUpWithGoogle,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(54),
-                        backgroundColor: AppColors.surface,
-                        side: const BorderSide(color: AppColors.line),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                  if (!_isCustomer) const SizedBox(height: 14),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                    alignment: Alignment.topCenter,
+                    child: _error == null
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: _Banner(message: _error!),
+                          ),
+                  ),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 100),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        VqField(
+                          fieldKey: const Key('register-name'),
+                          label: _isCustomer ? 'Full name' : 'Owner full name',
+                          controller: _name,
+                          icon: Icons.person_outline_rounded,
+                          hint: 'Your name',
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.name],
+                          onSubmitted: (_) => _emailFocus.requestFocus(),
                         ),
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 180),
-                        child: _googleBusy
-                            ? const SizedBox(
-                                key: ValueKey('busy'),
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
-                                  color: AppColors.teal,
-                                ),
-                              )
-                            : const Row(
-                                key: ValueKey('idle'),
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GoogleMark(size: 22),
-                                  SizedBox(width: 12),
-                                  Flexible(
-                                    child: Text(
-                                      'Continue with Google',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 15.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.ink,
-                                      ),
+                        const SizedBox(height: 12),
+                        VqField(
+                          fieldKey: const Key('register-email'),
+                          label: _isCustomer
+                              ? 'Email address'
+                              : 'Business email',
+                          controller: _email,
+                          focusNode: _emailFocus,
+                          icon: Icons.mail_outline_rounded,
+                          hint: 'We email your sign-in code here',
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                          onSubmitted: (_) => _passwordFocus.requestFocus(),
+                        ),
+                        const SizedBox(height: 12),
+                        VqField(
+                          fieldKey: const Key('register-password'),
+                          label: 'Create password',
+                          controller: _password,
+                          focusNode: _passwordFocus,
+                          icon: Icons.lock_outline_rounded,
+                          hint: 'At least 8 characters',
+                          obscure: _obscure,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.newPassword],
+                          onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                          suffix: GestureDetector(
+                            onTap: () => setState(() => _obscure = !_obscure),
+                            child: Icon(
+                              _obscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: AppColors.inkFaint,
+                              size: 19,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        InkWell(
+                          key: const Key('register-terms'),
+                          onTap: () => setState(() => _agreed = !_agreed),
+                          borderRadius: BorderRadius.circular(10),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 140),
+                                  width: 22,
+                                  height: 22,
+                                  margin: const EdgeInsets.only(top: 1),
+                                  decoration: BoxDecoration(
+                                    color: _agreed
+                                        ? AppColors.teal600
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(7),
+                                    border: Border.all(
+                                      color: _agreed
+                                          ? AppColors.teal600
+                                          : AppColors.lineStrong,
+                                      width: 1.5,
                                     ),
                                   ),
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        const Text(
-                          'Already have an account?',
-                          style: TextStyle(
-                            color: AppColors.inkMuted,
-                            fontSize: 14,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute<void>(
-                                  builder: (_) =>
-                                      SignInScreen(side: widget.side),
+                                  child: _agreed
+                                      ? const Icon(
+                                          Icons.check_rounded,
+                                          size: 16,
+                                          color: Colors.white,
+                                        )
+                                      : null,
                                 ),
-                              ),
-                          child: const Text(
-                            'Sign in',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.teal600,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'I agree to the Terms and the Privacy Policy.',
+                                    style: Vq.sans(
+                                      14,
+                                      color: AppColors.inkMuted,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
+                        Wrap(
+                          spacing: 4,
+                          children: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
+                              ),
+                              onPressed: () => _openWeb('/terms', 'Terms'),
+                              child: Text(
+                                'Read the Terms',
+                                style: Vq.sans(
+                                  14.5,
+                                  color: AppColors.teal700,
+                                  weight: 700,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                ),
+                              ),
+                              onPressed: () =>
+                                  _openWeb('/privacy', 'Privacy Policy'),
+                              child: Text(
+                                'Privacy Policy',
+                                style: Vq.sans(
+                                  14.5,
+                                  color: AppColors.teal700,
+                                  weight: 700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        VqButton(
+                          key: const Key('register-submit'),
+                          label: _isCustomer
+                              ? 'Create account'
+                              : 'Create owner account',
+                          icon: _isCustomer ? null : Icons.auto_awesome_rounded,
+                          trailing: Icons.arrow_forward_rounded,
+                          height: 48,
+                          onTap: _submit,
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 180),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Divider(color: AppColors.line, height: 1),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Text(
+                                'or',
+                                style: Vq.eyebrow(color: AppColors.inkFaint),
+                              ),
+                            ),
+                            const Expanded(
+                              child: Divider(color: AppColors.line, height: 1),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        GoogleContinueButton(
+                          key: const Key('register-google'),
+                          busy: _googleBusy,
+                          onTap: _signUpWithGoogle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
-        color: AppColors.ink,
       ),
     );
   }
@@ -687,11 +504,11 @@ class _Banner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                fontSize: 13.5,
-                height: 1.35,
+              style: Vq.sans(
+                14,
                 color: AppColors.danger,
-                fontWeight: FontWeight.w600,
+                weight: 600,
+                height: 1.35,
               ),
             ),
           ),

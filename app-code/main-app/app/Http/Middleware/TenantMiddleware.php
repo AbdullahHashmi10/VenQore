@@ -256,6 +256,8 @@ class TenantMiddleware
                 'view_only_since' => $tenant->view_only_since,
                 'setup_completed' => $tenant->setup_completed,
                 'onboarding_step' => $tenant->onboarding_step,
+                'onboarding_completed' => (bool)$tenant->onboarding_completed,
+                'is_demo'         => (bool)$tenant->is_demo,
                 'logo_url'        => $tenant->logo_url,
                 'logo_style'      => $tenant->logo_style,
                 'google_connected'      => (bool)$tenant->google_connected,

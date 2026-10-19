@@ -190,7 +190,7 @@ export default function CompareShow({ slug }) {
                         </p>
                         <div className="vq-row vq-wrap vq-gap-3 vq-mkt-cta__actions">
                             <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg">
-                                Start building <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                                Build my system <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
                             </Link>
                             <Link href="/demo" className="vq-btn vq-btn--secondary vq-btn--lg">Try the live interactive demo</Link>
                         </div>

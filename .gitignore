@@ -80,3 +80,24 @@ _private/
 # Secrets (service accounts, keys): never commit
 /Secret/
 /app-code/mobile-app/android/app/google-services.json
+
+.fuse_hidden*
+
+/app-code/mobile-app/android/build/
+**/flutter/ephemeral/
+
+/app-code/main-app/storage/station-*-web-build/
+
+/app-code/main-app/public/downloads/
+
+/launch-film/
+/releases/station-*/
+
+/assets/
+
+/app-code/main-app/tests/_archive/
+
+
+/.tmpwork/
+/Claude outputs/
+

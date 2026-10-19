@@ -1,0 +1,44 @@
+key,title,description,route
+owner-daily-pulse,Owner's Daily Pulse,"Seven vital numbers for today, protected by your passcode",store.reports.owner-daily-pulse
+analytics,Sales Analytics,"Revenue trends, peak hours and top performers in charts",store.reports.analytics
+day-book,Day Book,"Everything that happened, day by day",store.reports.day-book
+sales,Sales Report,"Every sale with filters by date, customer and status",store.reports.sales
+sale-orders,Sales Orders,"Orders placed, confirmed and fulfilled",store.reports.sale-orders
+sale-order-items,Sale Order Items,Item-level detail of every order,store.reports.sale-order-items
+discount,Discount Report,Where price concessions are going,store.reports.discount
+profit-loss,Profit & Loss,Income minus costs for any period,store.reports.profit-loss
+item-wise-profit,Item-wise Profit,Profit and margin per product,store.reports.item-wise-profit
+item-category-wise-profit-loss,Category Profitability,Which categories earn and which cost you,store.reports.item-category-wise-profit-loss
+bill-wise-profit,Bill-wise Profit,Profit on each invoice,store.reports.bill-wise-profit
+party-wise-profit-loss,Customer Profitability,Profit earned from each customer,store.reports.party-wise-profit-loss
+customer-insights,Customer Insights,"Buying patterns, repeat customers and top spenders",store.reports.customer-insights
+loyalty,Loyalty Points,"Who holds points, what was earned and redeemed, and the current rates",store.loyalty.index
+sale-aging,Receivables Aging,Who owes you money and for how long,store.reports.sale-aging
+party-statement,Party Statement,Full ledger for one customer or supplier,store.reports.party-statement
+item-report-by-party,What Each Customer Buys,Items bought by a chosen customer,store.reports.item-report-by-party
+party-report-by-item,Who Buys Each Item,Customers behind a chosen product,store.reports.party-report-by-item
+all-parties,All Parties,Customers and suppliers with their balances,store.reports.all-parties
+loan-statement,Loan Statement,Loans taken and given,store.reports.loan-statement
+purchases,Purchase Report,Every purchase with filters,store.reports.purchases
+purchase-returns,Purchase Returns,Debit notes and goods sent back,store.reports.purchase-returns
+supplier-insights,Supplier Insights,"Spend, reliability and top suppliers",store.reports.supplier-insights
+sale-purchase-by-party,Party Volume,Sales and purchases by party,store.reports.sale-purchase-by-party
+stock-valuation,Stock Valuation,Current value of your inventory,store.reports.stock-valuation
+stock-summary-by-category,Stock Summary,Quantity and value by category,store.reports.stock-summary-by-category
+movement-history,Stock Movement,Audit trail of every stock change,store.reports.movement-history
+point-in-time-inventory,Inventory on a Past Date,What you held on any day,store.reports.point-in-time-inventory
+item-detail,Item Details,Everything about one product,store.reports.item-detail
+low-stock,Low Stock,Items below their reorder level,store.reports.low-stock
+expiry,Expiry Report,Batches expiring soon or already expired,store.reports.expiry
+stock-aging,Stock Aging,How long stock has been sitting,store.reports.stock-aging
+expenses,Expense Report,Every expense in the period,store.reports.expenses
+expense-by-category,Expense by Category,Spending split by cost centre,store.reports.expense-by-category
+tax,Tax Report,Input versus output tax,store.reports.tax
+tax-rate,Tax by Rate,Taxable amounts grouped by rate,store.reports.tax-rate
+balance-sheet,Balance Sheet,"Assets, liabilities and equity",store.reports.balance-sheet
+trial-balance,Trial Balance,Debit and credit totals per account,store.reports.trial-balance
+cash-flow,Cash Flow,"Cash in, cash out, and what is left",store.reports.cash-flow
+bank-statement,Bank Statement,Bank transactions for reconciliation,store.reports.bank-statement
+account-ledger,Journal Entries,"The general ledger, account by account",store.reports.account-ledger
+transactions,All Transactions,Every transaction in one list,store.reports.transactions
+chart-of-accounts,Chart of Accounts,Your account structure,store.accounting.index

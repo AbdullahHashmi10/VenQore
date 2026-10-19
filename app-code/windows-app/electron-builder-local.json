@@ -1,0 +1,70 @@
+{
+  "appId": "com.venqore.station.local",
+  "productName": "VenQore Station Local",
+  "copyright": "Copyright © 2026 VenQore Group (Local Dev)",
+  "directories": {
+    "output": "dist-local",
+    "buildResources": "build"
+  },
+  "files": [
+    "package.json",
+    "local-build.json",
+    "main.js",
+    "preload.js",
+    "shell-preload.js",
+    "display-preload.js",
+    "print-payload.js",
+    "shell.html",
+    "shell.css",
+    "shell-renderer.js",
+    "customer-display.html",
+    "customer-display.js",
+    "lib/**/*",
+    "assets/**/*"
+  ],
+  "asar": true,
+  "asarUnpack": [
+    "node_modules/@serialport/**/*",
+    "node_modules/serialport/**/*"
+  ],
+  "npmRebuild": false,
+  "electronLanguages": [
+    "en-US"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "assets/icon.ico",
+    "requestedExecutionLevel": "asInvoker",
+    "legalTrademarks": "VenQore Local"
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "assets/icon.ico",
+    "uninstallerIcon": "assets/icon.ico",
+    "installerHeaderIcon": "assets/icon.ico",
+    "createDesktopShortcut": "always",
+    "createStartMenuShortcut": true,
+    "shortcutName": "VenQore Station Local",
+    "runAfterFinish": true,
+    "deleteAppDataOnUninstall": false,
+    "artifactName": "VenQore-Station-Local-Setup-${version}.${ext}"
+  },
+  "portable": {
+    "artifactName": "VenQore-Station-Local-${version}-Portable.${ext}"
+  }
+}

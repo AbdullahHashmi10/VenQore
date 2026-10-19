@@ -99,48 +99,74 @@ export default function InvoiceTourGuide({ store }) {
 
             if (isCustomerCreationPath) {
                 if (currentStep === 0) {
-                    if (document.getElementById('tour-add-new-party-btn')) setCurrentStep(1);
+                    if (document.getElementById('tour-add-new-party-btn')) {
+                        setCurrentStep(1);
+                    } else if (document.getElementById('tour-party-name')) {
+                        setCurrentStep(2);
+                    }
                 } else if (currentStep === 1) {
-                    if (document.getElementById('tour-party-name')) setCurrentStep(2);
-                } else if (currentStep === 2) {
-                    if (activeId === 'tour-party-phone') setCurrentStep(3);
-                } else if (currentStep === 3) {
-                    if (activeId === 'tour-party-address') setCurrentStep(4);
-                } else if (currentStep === 4) {
-                    if (activeId === 'tour-party-submit') setCurrentStep(5);
-                } else if (currentStep === 5) {
-                    if (!document.getElementById('tour-party-name')) setCurrentStep(6);
+                    if (document.getElementById('tour-party-name')) {
+                        setCurrentStep(2);
+                    } else if (!document.getElementById('tour-add-new-party-btn')) {
+                        setCurrentStep(0);
+                    }
+                } else if (currentStep >= 2 && currentStep <= 5) {
+                    if (!document.getElementById('tour-party-name')) {
+                        // Modal closed: proceed to product selection step
+                        setCurrentStep(6);
+                    } else {
+                        if (activeId === 'tour-party-phone' && currentStep < 3) {
+                            setCurrentStep(3);
+                        } else if (activeId === 'tour-party-address' && currentStep < 4) {
+                            setCurrentStep(4);
+                        } else if ((activeId === 'tour-party-submit' || document.getElementById('tour-party-submit')?.contains(document.activeElement)) && currentStep < 5) {
+                            setCurrentStep(5);
+                        } else if (activeId === 'tour-party-name' && currentStep !== 2) {
+                            setCurrentStep(2);
+                        }
+                    }
                 } else if (currentStep === 6) {
-                    if (activeId === 'tour-invoice-quantity') setCurrentStep(7);
+                    if (activeId === 'tour-invoice-quantity' || activeId === 'tour-purchase-quantity' || document.activeElement?.classList?.contains('w-qty')) setCurrentStep(7);
                 } else if (currentStep === 7) {
-                    if (activeId === 'tour-invoice-rate') setCurrentStep(8);
+                    if (activeId === 'tour-invoice-rate' || activeId === 'tour-purchase-cost' || document.activeElement?.classList?.contains('w-num')) setCurrentStep(8);
                 } else if (currentStep === 8) {
-                    if (activeId === 'tour-invoice-paid' || document.getElementById('tour-invoice-paid-row')?.contains(document.activeElement)) setCurrentStep(9);
+                    if (activeId === 'tour-invoice-paid' || activeId === 'tour-purchase-paid' || document.getElementById('tour-invoice-paid-row')?.contains(document.activeElement)) setCurrentStep(9);
                 } else if (currentStep === 9) {
-                    if (activeId === 'tour-invoice-complete') setCurrentStep(10);
+                    if (activeId === 'tour-invoice-complete' || activeId === 'tour-purchase-save') setCurrentStep(10);
                 }
             } else {
                 if (currentStep === 0) {
                     if (document.getElementById('tour-party-name')) {
                         setIsCustomerCreationPath(true);
                         setCurrentStep(2);
-                    } else if (activeId === 'tour-invoice-product') {
+                    } else if (activeId === 'tour-invoice-product' || activeId === 'tour-purchase-product') {
                         setCurrentStep(1);
                     }
                 } else if (currentStep === 1) {
-                    if (activeId === 'tour-invoice-quantity') setCurrentStep(2);
+                    if (activeId === 'tour-invoice-quantity' || activeId === 'tour-purchase-quantity' || document.activeElement?.classList?.contains('w-qty')) setCurrentStep(2);
                 } else if (currentStep === 2) {
-                    if (activeId === 'tour-invoice-rate') setCurrentStep(3);
+                    if (activeId === 'tour-invoice-rate' || activeId === 'tour-purchase-cost' || document.activeElement?.classList?.contains('w-num')) setCurrentStep(3);
                 } else if (currentStep === 3) {
-                    if (activeId === 'tour-invoice-paid' || document.getElementById('tour-invoice-paid-row')?.contains(document.activeElement)) setCurrentStep(4);
+                    if (activeId === 'tour-invoice-paid' || activeId === 'tour-purchase-paid' || document.getElementById('tour-invoice-paid-row')?.contains(document.activeElement)) setCurrentStep(4);
                 } else if (currentStep === 4) {
-                    if (activeId === 'tour-invoice-complete') setCurrentStep(5);
+                    if (activeId === 'tour-invoice-complete' || activeId === 'tour-purchase-save') setCurrentStep(5);
                 }
             }
         }, 150);
 
         return () => clearInterval(interval);
     }, [currentStep, isVisible, isCustomerCreationPath]);
+
+    const resolveTargetEl = (targetId) => {
+        if (!targetId) return null;
+        return document.getElementById(targetId) ||
+            (targetId === 'tour-invoice-customer' ? document.getElementById('tour-purchase-supplier') : null) ||
+            (targetId === 'tour-invoice-product' ? (document.getElementById('tour-purchase-product') || document.querySelector('.vqdoc-combo input')) : null) ||
+            (targetId === 'tour-invoice-quantity' ? (document.getElementById('tour-purchase-quantity') || document.querySelector('input.w-qty') || document.querySelector('.w-qty input')) : null) ||
+            (targetId === 'tour-invoice-rate' ? (document.getElementById('tour-purchase-cost') || document.querySelector('input.w-num') || document.querySelector('.w-num input')) : null) ||
+            (targetId === 'tour-invoice-paid' ? (document.getElementById('tour-invoice-paid') || document.getElementById('tour-invoice-paid-row') || document.getElementById('tour-purchase-paid') || document.getElementById('tour-purchase-paid-row')) : null) ||
+            (targetId === 'tour-invoice-complete' ? document.getElementById('tour-purchase-save') : null);
+    };
 
     // Scroll active element into view and update spotlight coordinates
     useEffect(() => {
@@ -149,35 +175,31 @@ export default function InvoiceTourGuide({ store }) {
             return;
         }
 
-        const targetId = getTargetId(currentStep);
-        if (!targetId) {
-            setCoords(null);
-            return;
-        }
-
         const updateCoords = () => {
-            const el = document.getElementById(targetId) ||
-                       (targetId === 'tour-invoice-paid' ? (document.getElementById('tour-invoice-paid') || document.getElementById('tour-invoice-paid-row')) : null);
+            const targetId = getTargetId(currentStep);
+            const el = resolveTargetEl(targetId);
             if (el) {
                 const rect = el.getBoundingClientRect();
-                setCoords({
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height,
-                });
-            } else {
-                setCoords(null);
+                if (rect.width > 0 && rect.height > 0) {
+                    setCoords({
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height,
+                    });
+                    return;
+                }
             }
+            setCoords(null);
         };
 
-        const el = document.getElementById(targetId) ||
-                   (targetId === 'tour-invoice-paid' ? (document.getElementById('tour-invoice-paid') || document.getElementById('tour-invoice-paid-row')) : null);
-        if (el) {
+        const targetId = getTargetId(currentStep);
+        const el = resolveTargetEl(targetId);
+        if (el && typeof el.scrollIntoView === 'function') {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        const timer = setTimeout(updateCoords, 300);
+        const timer = setTimeout(updateCoords, 100);
         window.addEventListener('resize', updateCoords);
         window.addEventListener('scroll', updateCoords, true);
 
@@ -238,9 +260,9 @@ export default function InvoiceTourGuide({ store }) {
         const isPosDone = doneSteps.includes('pos');
 
         return renderPortal(
-            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300" />
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <div className="flex flex-col items-center text-center relative z-10">
                         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center mb-5 shadow-sm">
                             <Trophy size={28} className="animate-bounce" />
@@ -309,7 +331,7 @@ export default function InvoiceTourGuide({ store }) {
                 transform: 'translate(-50%, -50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 160,
+                zIndex: 10000110,
             };
         }
 
@@ -321,42 +343,45 @@ export default function InvoiceTourGuide({ store }) {
                 transform: 'translateX(-50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 160,
+                zIndex: 10000110,
             };
         }
 
         const spaceOnRight = window.innerWidth - (coords.left + coords.width);
         const spaceOnLeft = coords.left;
 
-        if (spaceOnRight > 340) {
+        if (spaceOnRight >= 300) {
             return {
                 position: 'fixed',
                 top: Math.max(20, Math.min(window.innerHeight - 300, coords.top + (coords.height / 2) - 80)),
-                left: coords.left + coords.width + 20,
-                width: '320px',
-                zIndex: 160,
+                left: coords.left + coords.width + 16,
+                width: Math.min(320, spaceOnRight - 24),
+                zIndex: 10000110,
             };
-        } else if (spaceOnLeft > 340) {
+        } else if (spaceOnLeft >= 300) {
             return {
                 position: 'fixed',
                 top: Math.max(20, Math.min(window.innerHeight - 300, coords.top + (coords.height / 2) - 80)),
-                left: coords.left - 340,
-                width: '320px',
-                zIndex: 160,
+                left: Math.max(16, coords.left - Math.min(320, spaceOnLeft - 24) - 16),
+                width: Math.min(320, spaceOnLeft - 24),
+                zIndex: 10000110,
             };
         } else {
+            const placeAbove = coords.top > 220 && (window.innerHeight - (coords.top + coords.height)) < 220;
             return {
                 position: 'fixed',
-                top: Math.min(window.innerHeight - 280, coords.top + coords.height + 20),
-                left: Math.max(16, coords.left + (coords.width / 2) - 160),
+                top: placeAbove
+                    ? Math.max(16, coords.top - 200)
+                    : Math.min(window.innerHeight - 240, coords.top + coords.height + 16),
+                left: Math.max(16, Math.min(window.innerWidth - 336, coords.left + (coords.width / 2) - 160)),
                 width: '320px',
-                zIndex: 160,
+                zIndex: 10000110,
             };
         }
     };
 
     return renderPortal(
-        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-[10000100] overflow-hidden pointer-events-none">
             {/* Dimming Mask / Spotlight without green borders or pill outline */}
             {coords && (
                 <div
@@ -368,19 +393,20 @@ export default function InvoiceTourGuide({ store }) {
                         height: coords.height + 12,
                         borderRadius: '12px',
                         boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
-                        zIndex: 150,
+                        border: '2px solid rgba(45, 212, 191, 0.45)',
+                        zIndex: 10000105,
                     }}
                 />
             )}
 
             {!coords && (
-                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-modal"></div>
+                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-[10000100]"></div>
             )}
 
             {/* Floating Tooltip Card */}
             <div
                 style={getTooltipStyle()}
-                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
+                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-[10000110] animate-in fade-in duration-slow"
             >
                 <div className="flex items-start gap-3 mb-3">
                     <div className="p-2 bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 rounded-lg shrink-0">

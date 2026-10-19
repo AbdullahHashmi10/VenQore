@@ -4213,7 +4213,7 @@ export default function FohIndex({ settings = {}, bankAccounts = [], warehouses 
     const renderCartLine = (item, index) => {
         const isPaid = !!item.paidSaleId;
         return (
-        <div key={item.cartItemId} className="vq-line bg-surface border border-line hover:border-brand-300 shadow-xs hover:shadow-md group transition-all py-3">
+        <div key={item.cartItemId} id={index === 0 ? 'tour-pos-cart-line' : undefined} className="vq-line bg-surface border border-line hover:border-brand-300 shadow-xs hover:shadow-md group transition-all py-3">
             {/* Index Badge */}
             <span className="vq-line-idx vq-num text-xs sm:text-sm font-bold text-brand-800 dark:text-brand-300 bg-brand-50/80 dark:bg-brand-950/50 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 border border-brand-200/60 font-mono">
                 {index + 1}

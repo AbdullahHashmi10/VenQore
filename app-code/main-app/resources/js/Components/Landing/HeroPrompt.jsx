@@ -19,7 +19,8 @@
  */
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowRight, Building2, Check, Mic, Square, X } from 'lucide-react';
+import { ArrowRight, Building2, Check, Loader2, Mic, Square, X } from 'lucide-react';
+import { router } from '@inertiajs/react';
 
 const MAX = 600;
 const MAX_ROWS = 6;
@@ -46,12 +47,29 @@ import BusinessPickerModal from './BusinessPickerModal';
 export default function HeroPrompt({ action = '/build-workspace' }) {
     const [value, setValue] = useState('');
     const [focused, setFocused] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [exampleIx, setExampleIx] = useState(0);
     const [picker, setPicker] = useState(false);
     const [listening, setListening] = useState(false);
-    const [speechOk, setSpeechOk] = useState(false);
+    const [speechOk] = useState(() => typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition));
     const taRef = useRef(null);
     const recRef = useRef(null);
+
+    /* Prefetch builder chunk and data so transition is instant */
+    const prefetchBuilder = useCallback(() => {
+        import('@/Pages/Workspace/BuildWorkspace').catch(() => {});
+        if (typeof router?.prefetch === 'function') {
+            try {
+                router.prefetch(action, {}, { cacheFor: '1m' });
+            } catch (_) {}
+        }
+    }, [action]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const timer = setTimeout(prefetchBuilder, 1200);
+        return () => clearTimeout(timer);
+    }, [prefetchBuilder]);
 
     /* Grow with the content; scroll only past MAX_ROWS lines. */
     const fit = useCallback(() => {
@@ -74,7 +92,12 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
 
     /* Back/forward cache restores the whole page, React state included. */
     useEffect(() => {
-        const onShow = (e) => { if (e.persisted) setValue(''); };
+        const onShow = (e) => {
+            if (e.persisted) {
+                setValue('');
+                setSubmitting(false);
+            }
+        };
         window.addEventListener('pageshow', onShow);
         return () => window.removeEventListener('pageshow', onShow);
     }, []);
@@ -86,29 +109,43 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
         return () => window.clearInterval(t);
     }, [value, focused]);
 
-    useEffect(() => {
-        setSpeechOk(typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition));
-        return () => recRef.current?.abort?.();
-    }, []);
+    useEffect(() => () => recRef.current?.abort?.(), []);
+
+    const navigateTo = (url) => {
+        setSubmitting(true);
+        if (typeof router?.visit === 'function') {
+            router.visit(url, {
+                onFinish: () => setSubmitting(false),
+                onError: () => {
+                    window.location.assign(url);
+                },
+            });
+        } else {
+            window.location.assign(url);
+        }
+    };
 
     const submit = (e) => {
         e?.preventDefault();
+        if (submitting) return;
         const v = value.trim();
-        if (!v) { taRef.current?.focus(); return; }
-        window.location.href = `${action}?prompt=${encodeURIComponent(v.slice(0, MAX))}`;
+        const url = v ? `${action}?prompt=${encodeURIComponent(v.slice(0, MAX))}` : action;
+        navigateTo(url);
     };
 
     const handlePresetSelect = (c) => {
+        if (submitting) return;
         const p = c.preset || c.key;
-        window.location.href = `${action}?preset=${encodeURIComponent(p)}&prompt=${encodeURIComponent(c.text)}`;
+        navigateTo(`${action}?preset=${encodeURIComponent(p)}&prompt=${encodeURIComponent(c.text)}`);
     };
 
     const handlePickerSelect = (p) => {
+        if (submitting) return;
         setPicker(false);
         const presetKey = p.preset || p.key || '';
         const promptText = p.text || p.promptText || p.label || p.name || '';
         const typeKey = p.key || '';
-        window.location.href = `${action}?type=${encodeURIComponent(typeKey)}&preset=${encodeURIComponent(presetKey)}&prompt=${encodeURIComponent(promptText)}`;
+        navigateTo(`${action}?type=${encodeURIComponent(typeKey)}&preset=${encodeURIComponent(presetKey)}&prompt=${encodeURIComponent(promptText)}`);
     };
 
     const fill = (text) => {
@@ -164,7 +201,10 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
                         spellCheck
                         enterKeyHint="go"
                         onChange={(e) => setValue(e.target.value)}
-                        onFocus={() => setFocused(true)}
+                        onFocus={() => {
+                            setFocused(true);
+                            prefetchBuilder();
+                        }}
                         onBlur={() => setFocused(false)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
@@ -186,14 +226,30 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
                             {listening ? <Square size={14} aria-hidden="true" /> : <Mic size={17} aria-hidden="true" />}
                         </button>
                     )}
-                    <button type="submit" className="vq-hp__go" disabled={!value.trim()}>
-                        Build my system <ArrowRight size={16} aria-hidden="true" className="vq-btn__arrow" />
+                    <button
+                        type="submit"
+                        className={`vq-hp__go${submitting ? ' is-submitting' : ''}`}
+                        disabled={submitting}
+                        onMouseEnter={prefetchBuilder}
+                        aria-busy={submitting}
+                        aria-label={submitting ? 'Opening builder…' : 'Build my system'}
+                    >
+                        {submitting ? (
+                            <>Opening builder… <Loader2 size={16} aria-hidden="true" className="animate-spin" /></>
+                        ) : (
+                            <>Build my system <ArrowRight size={16} aria-hidden="true" className="vq-btn__arrow" /></>
+                        )}
                     </button>
                 </div>
             </form>
 
             <div className="vq-hp__chips-row" role="group" aria-label="Examples">
-                <button type="button" className="vq-hp__pick-btn" onClick={() => setPicker(true)}>
+                <button
+                    type="button"
+                    className="vq-hp__pick-btn"
+                    onClick={() => setPicker(true)}
+                    onMouseEnter={prefetchBuilder}
+                >
                     <Building2 size={15} aria-hidden="true" /> Select your business
                 </button>
                 {CHIPS.map((c) => (
@@ -202,6 +258,7 @@ export default function HeroPrompt({ action = '/build-workspace' }) {
                         type="button"
                         className="vq-chip vq-chip--onHero vq-hp__chip"
                         onClick={() => handlePresetSelect(c)}
+                        onMouseEnter={prefetchBuilder}
                         title={`Start setup for ${c.label}`}
                     >
                         {c.label}

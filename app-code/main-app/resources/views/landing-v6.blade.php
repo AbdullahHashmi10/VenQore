@@ -258,7 +258,7 @@
 
         <div class="vq-hero-subclaims" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:18px;font-size:clamp(15.5px, 1.25vw, 17.5px);font-weight:500;line-height:1.5;font-family:var(--vq-font-sans);color:var(--vq-hero-subclaim-color, #132622);">
           <span>85+ business types, 5 sectors</span><span style="opacity:.5;font-size:1.2em">·</span>
-          <span>140+ modules, only yours switched on</span><span style="opacity:.5;font-size:1.2em">·</span>
+          <span>140+ capabilities, only yours switched on</span><span style="opacity:.5;font-size:1.2em">·</span>
           <span>58 readings, one definition each</span><span style="opacity:.5;font-size:1.2em">·</span>
           <span>8 correctness laws on every post</span>
         </div>

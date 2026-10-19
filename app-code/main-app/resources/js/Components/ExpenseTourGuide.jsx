@@ -75,20 +75,25 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
         }
     };
 
+    const resolveTargetEl = (targetId) => {
+        if (!targetId) return null;
+        return document.getElementById(targetId) ||
+            (targetId === 'tour-expense-create-btn' ? (document.getElementById('tour-expense-create-btn-mobile') || document.querySelector('[data-add-expense]') || document.querySelector('button[title*="Record"]')) : null) ||
+            (targetId === 'tour-expense-category' ? document.querySelector('.vq-expense-category') : null) ||
+            (targetId === 'tour-expense-amount' ? (document.getElementById('tour-expense-amount-input') || document.querySelector('input[name="amount"]')) : null) ||
+            (targetId === 'tour-expense-description' ? (document.getElementById('tour-expense-desc-input') || document.querySelector('input[name="title"]')) : null) ||
+            (targetId === 'tour-expense-submit' ? document.querySelector('button[type="submit"]') : null);
+    };
+
     useEffect(() => {
         if (!isVisible || store?.onboarding_step === 'expense_congratulations') {
             setCoords(null);
             return;
         }
 
-        const targetId = getTargetId(currentStep);
-        if (!targetId) {
-            setCoords(null);
-            return;
-        }
-
         const updateCoords = () => {
-            const el = document.getElementById(targetId);
+            const targetId = getTargetId(currentStep);
+            const el = resolveTargetEl(targetId);
             if (el) {
                 const rect = el.getBoundingClientRect();
                 let top = rect.top;
@@ -117,8 +122,9 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
             }
         };
 
-        const el = document.getElementById(targetId);
-        if (el) {
+        const targetId = getTargetId(currentStep);
+        const el = resolveTargetEl(targetId);
+        if (el && typeof el.scrollIntoView === 'function') {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
@@ -195,9 +201,9 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
     // Renders the Congratulations Modal at the end of the tour
     if (store?.onboarding_step === 'expense_congratulations') {
         return renderPortal(
-            <div className="fixed inset-0 z-modal flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300" />
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <div className="flex flex-col items-center text-center relative z-10">
                         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center mb-5 shadow-sm">
                             <Trophy size={28} className="animate-bounce" />
@@ -254,7 +260,7 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
                 transform: 'translate(-50%, -50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 160,
+                zIndex: 10000110,
             };
         }
 
@@ -266,42 +272,45 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
                 transform: 'translateX(-50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 160,
+                zIndex: 10000110,
             };
         }
 
         const spaceOnRight = window.innerWidth - (coords.left + coords.width);
         const spaceOnLeft = coords.left;
 
-        if (spaceOnRight > 340) {
+        if (spaceOnRight >= 300) {
             return {
                 position: 'fixed',
                 top: Math.max(20, Math.min(window.innerHeight - 300, coords.top + (coords.height / 2) - 80)),
-                left: coords.left + coords.width + 20,
-                width: '320px',
-                zIndex: 160,
+                left: coords.left + coords.width + 16,
+                width: Math.min(320, spaceOnRight - 24),
+                zIndex: 10000110,
             };
-        } else if (spaceOnLeft > 340) {
+        } else if (spaceOnLeft >= 300) {
             return {
                 position: 'fixed',
                 top: Math.max(20, Math.min(window.innerHeight - 300, coords.top + (coords.height / 2) - 80)),
-                left: coords.left - 340,
-                width: '320px',
-                zIndex: 160,
+                left: Math.max(16, coords.left - Math.min(320, spaceOnLeft - 24) - 16),
+                width: Math.min(320, spaceOnLeft - 24),
+                zIndex: 10000110,
             };
         } else {
+            const placeAbove = coords.top > 220 && (window.innerHeight - (coords.top + coords.height)) < 220;
             return {
                 position: 'fixed',
-                top: Math.min(window.innerHeight - 280, coords.top + coords.height + 20),
-                left: Math.max(16, coords.left + (coords.width / 2) - 160),
+                top: placeAbove
+                    ? Math.max(16, coords.top - 200)
+                    : Math.min(window.innerHeight - 240, coords.top + coords.height + 16),
+                left: Math.max(16, Math.min(window.innerWidth - 336, coords.left + (coords.width / 2) - 160)),
                 width: '320px',
-                zIndex: 160,
+                zIndex: 10000110,
             };
         }
     };
 
     return renderPortal(
-        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-[10000100] overflow-hidden pointer-events-none">
             {/* Dimming Mask / Spotlight without green borders or glowing rings */}
             {coords && currentStep > 0 && (
                 <div
@@ -313,19 +322,20 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
                         height: coords.height + 12,
                         borderRadius: '12px',
                         boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
-                        zIndex: 150,
+                        border: '2px solid rgba(45, 212, 191, 0.45)',
+                        zIndex: 10000105,
                     }}
                 />
             )}
 
             {(!coords || currentStep === 0) && (
-                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-modal"></div>
+                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-[10000100]"></div>
             )}
 
             {/* Floating Tooltip Card */}
             <div
                 style={getTooltipStyle()}
-                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
+                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-[10000110] animate-in fade-in duration-slow"
             >
                 <div className="flex items-start gap-3 mb-3">
                     <div className="p-2 bg-accent-quiet text-accent-text border border-teal-200/50 dark:border-teal-800/50 rounded-lg shrink-0">

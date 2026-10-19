@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class SupplierController extends Controller
@@ -59,26 +60,44 @@ class SupplierController extends Controller
             'lead_time_days' => 'nullable|integer|min:0',
             'performance_rating' => 'nullable|integer|min:1|max:5',
             'credit_limit' => 'nullable|numeric|min:0',
+            'opening_balance' => 'nullable|numeric',
+            'opening_balance_type' => 'nullable|in:receivable,payable',
+            'default_discount' => 'nullable|numeric|between:0,100',
         ]);
 
-        // Create Shadow Party for consistency
-        $party = \App\Models\Party::create([
-            'type' => 'supplier',
-            'name' => $validated['name'],
-            'email' => $validated['email'] ?? null,
-            'phone' => $validated['phone'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'opening_balance' => 0,
-            'opening_balance_type' => 'payable',
-            'current_balance' => 0
-        ]);
+        $ob = floatval($request->input('opening_balance', 0));
+        $obType = $request->input('opening_balance_type', 'payable');
+        $currBal = $obType === 'receivable' ? -abs($ob) : abs($ob);
 
-        $validated['party_id'] = $party->id;
-        $supplier = Supplier::create($validated);
+        [$party, $supplier] = DB::transaction(function () use ($validated, $ob, $obType, $currBal) {
+            // Create Shadow Party for consistency
+            $party = \App\Models\Party::create([
+                'type' => 'supplier',
+                'name' => $validated['name'],
+                'email' => $validated['email'] ?? null,
+                'phone' => $validated['phone'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'opening_balance' => $ob,
+                'opening_balance_type' => $obType,
+                'current_balance' => $currBal,
+                'default_discount' => $validated['default_discount'] ?? 0,
+            ]);
+
+            $validated['party_id'] = $party->id;
+            $supplier = Supplier::create($validated);
+
+            return [$party, $supplier];
+        });
 
         if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'party' => $supplier]);
+            return response()->json([
+                'success' => true,
+                'party'   => array_merge($party->toArray(), [
+                    'supplier_id' => $supplier->id,
+                ]),
+                'supplier' => $supplier,
+            ]);
         }
 
         return redirect()->back()->with('success', 'Supplier created successfully.');

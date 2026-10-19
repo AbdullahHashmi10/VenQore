@@ -13,6 +13,7 @@ export default defineConfig({
         react(),
     ],
     build: {
+        emptyOutDir: false,
         chunkSizeWarningLimit: 1000,
         rollupOptions: {
             output: {

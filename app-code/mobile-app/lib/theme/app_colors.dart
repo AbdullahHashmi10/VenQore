@@ -45,7 +45,12 @@ class AppColors {
   // ── Ink (Typography) ───────────────────────────────────────────────────────
   static const Color ink = Color(0xFF17201B); // High contrast text
   static const Color inkMuted = Color(0xFF536159); // Secondary text
-  static const Color inkFaint = Color(0xFF8B9A93); // Placeholder / captions
+  static const Color inkFaint = Color(
+    0xFF7F8E87,
+  ); // ink-400: placeholder, disabled
+  static const Color inkSoft = Color(
+    0xFF627169,
+  ); // ink-500: lightest legal text
   static const Color inkInverted = Colors.white;
 
   // Dark text

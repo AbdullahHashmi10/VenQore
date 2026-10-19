@@ -418,12 +418,12 @@ export default function WelcomeTourModal({ store }) {
 
     if (showSkipConfirm && typeof document !== 'undefined') {
         return createPortal(
-            <div className="fixed inset-0 z-[1300] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4">
                 <div 
                     className="fixed inset-0 bg-[#06100D]/80 backdrop-blur-md transition-opacity"
                     onClick={() => setShowSkipConfirm(false)}
                 />
-                <div className="relative w-full max-w-md bg-surface border border-line rounded-2xl shadow-2xl p-6 text-ink z-[1301] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-md bg-surface border border-line rounded-2xl shadow-2xl p-6 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center mb-4">
                         <Rocket size={24} />
                     </div>
@@ -575,7 +575,7 @@ export default function WelcomeTourModal({ store }) {
     // ─────────────────────────────────────────────────────────────
     if (currentStep === 'welcome') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 {/* Backdrop */}
                 <div
                     className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300"
@@ -587,7 +587,7 @@ export default function WelcomeTourModal({ store }) {
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="welcome-title"
-                    className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200"
+                    className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200"
                 >
                     {/* Top Accent Radial Wash (V6 Mint Signature) */}
                     <div
@@ -666,10 +666,10 @@ export default function WelcomeTourModal({ store }) {
     // ─────────────────────────────────────────────────────────────
     if (currentStep === 'purchase_tour_start') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300" onClick={handleDismissModal} />
 
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <button
                         type="button"
                         onClick={handleDismissModal}
@@ -738,10 +738,10 @@ export default function WelcomeTourModal({ store }) {
 
     if (currentStep === 'pos_tour_start') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md" onClick={handleDismissModal} />
 
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <button type="button" onClick={handleDismissModal} className="absolute top-5 right-5 p-2 rounded-full text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors">
                         <X size={18} />
                     </button>
@@ -773,10 +773,10 @@ export default function WelcomeTourModal({ store }) {
 
     if (currentStep === 'invoice_tour_start') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md" onClick={handleDismissModal} />
 
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <button type="button" onClick={handleDismissModal} className="absolute top-5 right-5 p-2 rounded-full text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors">
                         <X size={18} />
                     </button>
@@ -805,10 +805,10 @@ export default function WelcomeTourModal({ store }) {
 
     if (currentStep === 'expense_tour_start') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md" onClick={handleDismissModal} />
 
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <button type="button" onClick={handleDismissModal} className="absolute top-5 right-5 p-2 rounded-full text-ink-muted hover:text-ink hover:bg-interactive-hover transition-colors">
                         <X size={18} />
                     </button>
@@ -837,10 +837,10 @@ export default function WelcomeTourModal({ store }) {
 
     if (currentStep === 'customize_dashboard_tour') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300" onClick={handleDismissModal} />
 
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <button
                         type="button"
                         onClick={handleDismissModal}
@@ -930,10 +930,10 @@ export default function WelcomeTourModal({ store }) {
 
     if (currentStep === 'online_store_tour') {
         return createPortal(
-            <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center p-4 overflow-y-auto">
                 <div className="fixed inset-0 bg-[#06100D]/70 backdrop-blur-md transition-opacity duration-300" onClick={handleDismissModal} />
 
-                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[1101] animate-in zoom-in-95 fade-in duration-200">
+                <div className="relative w-full max-w-lg bg-surface border border-line rounded-3xl shadow-2xl overflow-hidden p-6 sm:p-8 text-ink z-[10000201] animate-in zoom-in-95 fade-in duration-200">
                     <button
                         type="button"
                         onClick={handleDismissModal}
@@ -1027,7 +1027,7 @@ export default function WelcomeTourModal({ store }) {
     const tooltipStyle = getTooltipPlacement();
 
     return createPortal(
-        <div className="fixed inset-0 z-[1100] pointer-events-none" aria-live="polite">
+        <div className="fixed inset-0 z-[10000100] pointer-events-none" aria-live="polite">
             {/* Cutout Spotlight Mask (Clean spotlight dimming, no colored border) */}
             {coords ? (
                 <div
@@ -1039,11 +1039,11 @@ export default function WelcomeTourModal({ store }) {
                         height: coords.height + 8,
                         borderRadius: '12px',
                         boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
-                        zIndex: 1102,
+                        zIndex: 10000105,
                     }}
                 />
             ) : (
-                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-auto z-[1102]" />
+                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-auto z-[10000105]" />
             )}
 
             {/* Floating Tooltip Card (V6 Surface, Border, & Accent Styling) */}
@@ -1051,7 +1051,7 @@ export default function WelcomeTourModal({ store }) {
                 style={tooltipStyle}
                 role="dialog"
                 aria-modal="true"
-                className="pointer-events-auto bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink relative z-[1105] animate-in fade-in duration-200"
+                className="pointer-events-auto bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink relative z-[10000110] animate-in fade-in duration-200"
             >
                 {/* Arrow Pointer on desktop */}
                 {!isMobile && tooltipStyle.arrow === 'left' && (

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { usePage } from '@inertiajs/react';
 import { useTermText } from '@/lib/terms';
 
-export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'customer', initialName = '', editingParty = null }) {
+export default function QuickPartyModal({ isOpen, onClose, onSuccess, onCreated, type = 'customer', initialName = '', editingParty = null }) {
     const {
         store
     } = usePage().props;
@@ -84,9 +84,17 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                 response = await axios.post(url, formData);
             }
 
-            if (response.data.success || response.status === 200 || response.status === 201) {
-                onSuccess(response.data.party || { ...formData, id: editingParty?.id });
-                onClose();
+            if (response.data?.success || response.status === 200 || response.status === 201) {
+                const created = response.data?.party || response.data?.supplier || { ...formData, id: editingParty?.id };
+                if (typeof onSuccess === 'function') {
+                    onSuccess(created);
+                }
+                if (typeof onCreated === 'function') {
+                    onCreated(created);
+                }
+                if (typeof onClose === 'function') {
+                    onClose();
+                }
             }
         } catch (error) {
             if (error.response && error.response.data.errors) {

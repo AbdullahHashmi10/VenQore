@@ -301,7 +301,9 @@ export default function StockTransferCreate({ warehouses = [], products = [] }) 
                     showRail={chrome.showRail} setShowRail={chrome.setShowRail}
                     showQuickEntry={chrome.showQuickEntry} setShowQuickEntry={chrome.setShowQuickEntry}
                     showStock={chrome.showStock} setShowStock={chrome.setShowStock}
+                    lineCols={chrome.lineCols} setLineCol={chrome.setLineCol}
                     canSeeMargin={false}
+                    onReset={chrome.reset}
                 />
             )}
 

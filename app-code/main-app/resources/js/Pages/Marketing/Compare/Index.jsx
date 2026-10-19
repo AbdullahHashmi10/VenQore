@@ -78,8 +78,8 @@ export default function CompareIndex({ competitors = [] }) {
                         <h2 className="vq-h1">Ready to take control of your margins?</h2>
                         <p className="vq-lede">Start a 14-day free trial with full feature access — cancel anytime.</p>
                         <div className="vq-row vq-wrap vq-gap-3 vq-mkt-cta__actions">
-                            <Link href="/register" className="vq-btn vq-btn--primary vq-btn--lg">
-                                Start free trial <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
+                            <Link href="/build-workspace" className="vq-btn vq-btn--primary vq-btn--lg">
+                                Build my system <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
                             </Link>
                             <Link href="/demo" className="vq-btn vq-btn--secondary vq-btn--lg">Explore the interactive demo</Link>
                         </div>

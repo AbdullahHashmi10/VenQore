@@ -105,6 +105,8 @@ class PresetSmokeTest extends VenQoreTestCase
             'business_name' => 'Smoke Test Cafe',
             'email'         => $email,
             'password'      => 'password123',
+            'phone'         => '+1 555 0100',
+            'address'       => '123 Smoke Test Ave',
             'modules'       => config('ai_builder.presets.cafe.modules'),
             'preset_key'    => 'cafe',
         ]);

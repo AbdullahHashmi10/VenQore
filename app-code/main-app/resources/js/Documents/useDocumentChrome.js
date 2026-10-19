@@ -45,6 +45,11 @@ const keysFor = (typeId) => ({
     quick: `vqdoc_${typeId}_quick`,
     margin: `vqdoc_${typeId}_margin`,
     defaults: `vqdoc_${typeId}_defaults`,
+    lineCols: `vqdoc_${typeId}_line_cols`,
+    showAmountSolver: `vqdoc_${typeId}_show_amount_solver`,
+    defaultAmountSolver: `vqdoc_${typeId}_amount_solver`,
+    showDiscountType: `vqdoc_${typeId}_show_discount_type`,
+    defaultDiscountType: `vqdoc_${typeId}_discount_type`,
 });
 
 /* A document's field list says what it CAN carry; this turns that into the
@@ -138,6 +143,61 @@ export default function useDocumentChrome({
 
     const [applyDefaults, setApplyDefaultsState] = useState(() => read(K.defaults, false));
     const setApplyDefaults = useCallback((v) => { setApplyDefaultsState(v); write(K.defaults, v); }, [K.defaults]);
+
+    const [lineCols, setLineColsState] = useState(() => {
+        const saved = readK(K.lineCols, null, null);
+        return saved && typeof saved === 'object' ? saved : {};
+    });
+    const setLineCol = useCallback((colId, on) => {
+        setLineColsState((prev) => {
+            const next = { ...prev, [colId]: on };
+            write(K.lineCols, next);
+            return next;
+        });
+    }, [K.lineCols]);
+
+    const [showAmountSolver, setShowAmountSolverState] = useState(() => readK(K.showAmountSolver, null, true));
+    const setShowAmountSolver = useCallback((v) => {
+        setShowAmountSolverState(v);
+        write(K.showAmountSolver, v);
+    }, [K.showAmountSolver]);
+
+    const [defaultAmountSolver, setDefaultAmountSolverState] = useState(() => readK(K.defaultAmountSolver, null, 'price'));
+    const setDefaultAmountSolver = useCallback((v) => {
+        setDefaultAmountSolverState(v);
+        write(K.defaultAmountSolver, v);
+    }, [K.defaultAmountSolver]);
+
+    const [showDiscountType, setShowDiscountTypeState] = useState(() => readK(K.showDiscountType, null, true));
+    const setShowDiscountType = useCallback((v) => {
+        setShowDiscountTypeState(v);
+        write(K.showDiscountType, v);
+    }, [K.showDiscountType]);
+
+    const [defaultDiscountType, setDefaultDiscountTypeState] = useState(() => readK(K.defaultDiscountType, null, 'fixed'));
+    const setDefaultDiscountType = useCallback((v) => {
+        setDefaultDiscountTypeState(v);
+        write(K.defaultDiscountType, v);
+    }, [K.defaultDiscountType]);
+
+    const reset = useCallback(() => {
+        Object.values(K).forEach((k) => {
+            try { localStorage.removeItem(k); } catch (_) {}
+        });
+        setCompState({ ...DEFAULT_COMP });
+        setTextSizeState(seniorMode ? 4 : 1);
+        setShowRailState(true);
+        setFieldsState(defaultFields(doc));
+        setShowStockState(true);
+        setShowQuickEntryState(false);
+        setShowMarginState(marginDefault);
+        setApplyDefaultsState(false);
+        setLineColsState({});
+        setShowAmountSolverState(true);
+        setDefaultAmountSolverState('price');
+        setShowDiscountTypeState(true);
+        setDefaultDiscountTypeState('fixed');
+    }, [K, doc, seniorMode, marginDefault]);
 
     /* ── things that are true only right now ────────────────────────────── */
 
@@ -341,6 +401,12 @@ export default function useDocumentChrome({
         quickQuery, setQuickQuery, focusQuick,
         showMargin, setShowMargin,
         applyDefaults, setApplyDefaults,
+        lineCols, setLineCol,
+        showAmountSolver, setShowAmountSolver,
+        defaultAmountSolver, setDefaultAmountSolver,
+        showDiscountType, setShowDiscountType,
+        defaultDiscountType, setDefaultDiscountType,
+        reset,
 
         /* right now */
         fold, setFold, detailsOpen, onLinesFocus,

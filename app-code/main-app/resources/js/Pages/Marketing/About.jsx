@@ -19,7 +19,7 @@ const QUESTIONS_AND_ANSWERS = [
     {
         id: '03',
         title: 'How does the AI builder assemble your system?',
-        content: 'VenQore maintains an architectural library of 140+ battle-tested operational modules (POS, FIFO inventory, multi-branch dispatch, recipe costing, batch tracking, customer Khata, SP-API sync). The AI composer maps your plain-language description to the exact modules, fields, and approval tiers your business needs — turning on only what you use with zero extraneous clutter.',
+        content: 'VenQore maintains an architectural library of 140+ battle-tested operational capabilities (POS, FIFO inventory, multi-branch dispatch, recipe costing, batch tracking, customer Khata, SP-API sync). The AI composer maps your plain-language description to the exact modules, fields, and approval tiers your business needs — turning on only what you use with zero extraneous clutter.',
     },
     {
         id: '04',
@@ -239,7 +239,7 @@ export default function About() {
           <span className="vq-stat__note">Tests &amp; 135,000+ assertions verified on every update</span>
         </div>
         <div className="vq-card vq-stat">
-          <span className="vq-stat__label">Universal ERP Modules</span>
+          <span className="vq-stat__label">Built-in capabilities</span>
           <span className="vq-stat__value vq-stat__value--sm">140+</span>
           <span className="vq-stat__note">POS, FIFO Stock, Ledger, Documents, Sync</span>
         </div>

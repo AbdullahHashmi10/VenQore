@@ -1,0 +1,242 @@
+# Each heading: customer domain | canonical evidence paths relative to main-app, or repo: prefix.
+# Rows: capability | customer purpose | how to use / qualification
+## Workspace and getting started | config/business_types.php;config/ai_builder.php;app/Http/Controllers/BuilderDiscoveryController.php;app/Http/Controllers/BuilderController.php;app/Http/Controllers/WorkspaceBuilderController.php
+Business description discovery | Start with how the business operates | Describe the business in the workspace builder; review its questions and recommendations.
+Business type selection | Start from a relevant operating setup | Select a matching business type; a label is not proof of specialist industry functionality.
+Review configuration before applying | Avoid committing to the wrong setup | Review the proposed workspace and adjust it before provisioning.
+Enable and disable work areas | Keep navigation relevant | Use System Builder; respect dependency and data-retention explanations.
+Business terminology | Use familiar words for customers, jobs and goods | Business presets and tenant terminology adapt labels.
+Create another store | Separate another business or branch workspace | Use the store creation workflow; distinguish tenant stores from warehouses.
+Module dependency handling | Avoid a setup missing required components | Builder resolves hard requirements and alternative dependencies.
+Configuration history | Understand changes to a workspace | Inspect builder history and available restore actions; verify target behavior before promising full rollback.
+## Selling and invoicing | app/Http/Controllers/SaleController.php;app/Http/Controllers/PosController.php;app/Http/Controllers/NewInvoiceController.php;app/Http/Controllers/ParkedSaleController.php;app/Http/Controllers/CommunicationController.php;resources/js/NewPos;resources/js/NewInvoice;app/Engines/SaleService.php
+Counter checkout | Serve customers at the till | Add items, review totals, select payment and complete the sale.
+Barcode item entry | Reduce manual product selection | Scan a configured product barcode into the till.
+Product search | Find items without their barcode | Search the product catalogue from checkout.
+Customer-linked sales | Keep the sale in the customer's history | Select the customer before completing the transaction.
+Quantity and price editing | Handle the actual deal being made | Edit allowed fields; approval rules can restrict changes.
+Line and bill discounts | Apply agreed price concessions | Apply a permitted discount and check the resulting total.
+Price tiers | Maintain different selling prices | Configure tiers and use the appropriate customer or transaction price.
+Tax calculation | Calculate the configured taxes on a sale | Set tax treatment and inspect line and document totals.
+Split tender | Receive one bill across payment accounts | Allocate the amount across available payment methods.
+Partial payment and outstanding balance | Record what is paid and what remains due | Associate the customer and payment allocation; verify credit permissions.
+Park and recall a bill | Serve another person while a bill waits | Hold the cart, then reopen the parked sale.
+Invoice creation | Bill work or products away from the counter | Open the invoice editor, select the customer and lines, then save or post.
+Service lines on invoices | Charge for work alongside goods | Add an appropriate service or permitted ad hoc line.
+Invoice printing and PDFs | Give customers a transaction record | Use the transaction's print or PDF action.
+Digital receipt links | Let a customer reopen a receipt | Use the signed public receipt flow; access expires and is token protected.
+Email a receipt | Deliver a supported issued receipt to a customer | Send from the transaction workflow; requires configured email and permission.
+WhatsApp document draft | Prepare a supported transaction message for manual sharing | Review the prepared draft and send it yourself; this does not automatically call a messaging service.
+Sales history | Find earlier business transactions | Open Sales and filter or search the list.
+Original-sale returns | Correct a transaction when goods come back | Open the return flow against the original transaction.
+Refund and credit handling | Record money or credit owed after a return | Review return quantities and permitted settlement options.
+Pre-sales | Record a possible future sale | Create and review a pre-sale, then convert when accepted; separate from the unfinished Quotations module.
+Sales orders | Track an order before fulfilment | Create an order, review its progress and convert through the supported workflow.
+B2B proposals | Present a business offer with multiple lines | Create a proposal and use its supported conversion actions.
+Recurring invoices | Repeat agreed billing on a schedule | Set customer, lines and recurrence; scheduler and delivery configuration matter.
+Invoice reminders | Follow up on amounts due | Configure reminders and delivery; do not promise automatic WhatsApp.
+Delivery challan preview and print | Give dispatch a goods document | Preview from a sale or print an existing dispatched challan.
+## Inventory and purchasing | app/Http/Controllers/InventoryController.php;app/Http/Controllers/BatchTrackingController.php;app/Http/Controllers/SerialTrackingController.php;app/Http/Controllers/PurchaseOrderController.php;app/Engines/InventoryService.php;app/Engines/FifoService.php;config/modules.php
+Product catalogue | Keep a consistent list of goods | Create products with identity, category, price and stock settings.
+Categories | Organise a large catalogue | Group products and filter relevant lists.
+Product variants | Distinguish sizes, colours and other choices | Configure supported variants; online grouped options have different restrictions.
+Multiple barcodes | Recognise the codes used for the same goods | Configure supported product barcode mappings.
+Units of measure | Buy and sell in different pack sizes | Define base units and conversions before transacting.
+Weighed quantities | Sell goods measured by weight | Configure weighted products and verify the scale and unit workflow.
+Stock balances | Know what is recorded as available | Open Inventory for the selected location; offline data may be stale.
+FIFO stock costing | Connect cost of sales to received stock | Record purchases accurately; the stock engine consumes costed batches.
+Stock movement trail | Explain why quantities changed | Inspect movements from purchases, sales, transfers and adjustments.
+Low-stock visibility | Identify items needing attention | Set reorder-related fields and inspect stock readings and reports.
+Negative-stock rules | Control selling beyond recorded availability | Configure and test the relevant stock policy and approval path.
+Warehouse locations | Separate stock held in different places | Create locations and use the correct warehouse on transactions.
+Stock transfers | Move goods with a recorded trail | Select source, destination and items; verify both sides afterwards.
+Physical stock takes | Compare shelf counts with recorded quantities | Open Stock Take, count and review differences before posting.
+Stock adjustments | Record corrections and losses | Use a permitted adjustment with a clear reason.
+Batch tracking | Identify groups of received goods | Capture batch information and inspect its lifecycle.
+Expiry tracking | See dated stock requiring attention | Record expiry dates and review expiry reports; verify checkout blocking separately.
+Serial and IMEI tracking | Follow an individual unit | Record serials on intake and use serial tracking through sales and returns.
+Purchases | Record incoming goods and supplier obligations | Enter the supplier, goods, costs, tax and payment.
+Supplier purchase orders | Tell a supplier what you need | Create a purchase order and receive through its supported flow.
+Partial purchase-order receiving | Record deliveries that arrive in parts | Receive a subset of ordered goods and inspect remaining quantities.
+Purchase returns and debit notes | Correct supplier stock and balances | Create the supported return or debit note from the original records.
+Supplier balances | Know what remains payable | Inspect supplier statements and payment allocations.
+Bulk import and mapping | Move existing catalogue data into the system | Use import templates, map fields and review validation before importing.
+Data export | Work with business data outside the app | Use the relevant export action; supported formats vary by screen.
+Recycle bin | Recover supported deleted records | Open Recycle Bin and restore eligible items; not every deletion is reversible.
+Landed cost allocation | Include freight and duty in stock cost | BETA in the module registry; do not sell as a completed workflow.
+## Production and recipes | app/Http/Controllers/CookbookController.php;app/Http/Controllers/ProductionController.php;app/Http/Controllers/ProductionBomListController.php;config/modules.php
+Recipe and bill of materials | Define what a made product consumes | Create a recipe with ingredients and quantities.
+Recipe costing | Understand ingredient cost before pricing | Review recipe cost using accurate input costs and units.
+Recipe simulation | Preview the supported recipe calculation | Use Simulate on a recipe and review its output before a real run; output correctness remains untested here.
+Production runs | Record a batch of finished goods | Choose recipe and quantity, review availability and post production.
+Ingredient consumption | Connect made goods to raw-material stock | Production reduces inputs through the stock engine.
+Finished-goods output | Keep ready-made stock visible | Posted production adds the resulting finished units.
+Production history | Find when goods were made | Inspect production runs and logs.
+Automatic composite deduction | Consume recipe inputs when an item sells | BETA in the module registry; validate the specific selling path before offering it.
+## Restaurant and front of house | app/Http/Controllers/FohController.php;app/Http/Controllers/TableServiceController.php;app/Http/Controllers/RestaurantDashboardController.php;app/Http/Controllers/ReservationController.php;app/Http/Controllers/RiderController.php;app/Support/FohSettings.php;resources/js/Pages/Foh;docs/OFFLINE_CONTRACT.md
+Front of House overview | See restaurant work in one operating area | Open FOH and choose the lanes used by the business.
+Floor plan and zones | Represent the dining room | Configure zones and table positions in the floor builder.
+Table occupancy | Know which tables are in use | Seat guests and open the relevant table order.
+Restaurant reservations and waitlist | Record guests expected or waiting | Use the supported reservation list, creation, seating and cancellation actions.
+Edit an open table order | Keep changes attached to the right guests | Add, remove or change items on the active table.
+Move or merge table work | Handle guests changing seats or joining | Use the supported table actions and inspect the resulting bill.
+Courses and kitchen firing | Tell preparation staff what is ready to make | Send the intended course or items to the kitchen.
+Kitchen display | Follow preparation from a shared screen | Open the kitchen view; live updates require connectivity.
+Kitchen unavailable-item list | Tell staff which dishes cannot currently be served | Use the kitchen 86 List; verify enforcement across each ordering channel.
+Kitchen performance view | Review recorded preparation activity | Open kitchen Stats and verify its definitions and periods.
+Customer order display | Show order progress on a counter or TV screen | Open the customer order screen and test the connected ticket updates.
+Kitchen ticket printing | Give preparation staff a paper order | Print tickets; Station handles configured printer routing.
+Kitchen ticket reprinting | Recover a ticket without inventing a new order | Use the supported KOT reprint action and verify duplicate handling.
+Kitchen station routing | Direct connected preparation work to the right station | Configure kitchen routing; offline multi-station routing is not promised.
+Kitchen recall and cancellation handling | Handle changed preparation work visibly | Use supported recall and cancellation actions and inspect the kitchen state.
+Takeaway lane | Manage orders collected at the counter | Open Takeaway, create the ticket and advance its state.
+Delivery lane | Keep delivery orders separate from tables | Open Delivery and record the customer and fulfilment details.
+Rider records and assignments | Know who is handling a delivery | Use delivery rider management and the supported assignment workflow.
+Delivery address lookup | Reuse supported delivery contact information | Use the FOH address book and verify the customer and address before assignment.
+Modifiers and add-ons | Record customisations and extras | Configure add-on groups and select them while ordering.
+Service charges, tips and delivery fees | Include configured charges clearly | Set FOH charging rules and inspect totals before payment.
+Tip reporting | Review recorded staff tip information | Open the supported tips report and verify the calculation and period.
+Print bill without checkout rights | Let waiting staff request payment safely | Staff with FOH access can print; taking payment needs checkout permission.
+Guest requests from table QR | Keep supported guest calls attached to the table | Inspect incoming requests and clear handled calls; validate the customer-facing QR journey.
+Bill splitting | Let a group settle separately | Use the supported online split flow; not available offline.
+FOH cash checkout | Settle the restaurant bill | Use the shared sale checkout and record the selected tender.
+Restaurant stock policy | Decide whether dishes track stock | Set the supported FOH stock policy; recipe automation remains a separate beta concern.
+Single-device offline service | Continue tables, takeaway and delivery during outages | Previously opened and saved device; queue replays later; no shared offline floor.
+Offline conflict review | Find table changes needing a person | Inspect Needs a look after reconnect; do not promise automatic conflict resolution.
+## Service businesses | app/Http/Controllers/ServiceJobController.php;app/Http/Controllers/ToolController.php;resources/js/Pages/Services
+Work orders and job cards | Keep each piece of work in one record | Create a job with the customer and work requested.
+Quick booking | Record a new request promptly | Use the service quick-booking flow.
+Appointment calendar | See scheduled work | Open the service calendar and inspect assigned times.
+Rescheduling | Keep the plan current when dates change | Edit the job schedule through the supported action.
+Employee job assignment | Make responsibility visible | Assign staff to the job and review the assignment.
+Job status tracking | Find delayed or unfinished work | Move jobs through scheduled, in progress, on hold, awaiting parts and completion.
+Job detail and activity | Recover context without asking every employee | Open the job detail and review its recorded history.
+Convert completed work to invoice | Reduce re-entry at billing | Use the job's invoice conversion action and review the resulting invoice.
+Tool register | Know which tools belong to the business | Create tools with the supported tool information.
+Tool checkout to a job | Keep issued equipment accountable | Check out the tool against the job or employee workflow.
+Tool returns | Record equipment coming back | Check in or return the issued tool.
+Tool maintenance | Flag equipment needing attention | Record maintenance through the tool management action.
+## Money and accounting | app/Http/Controllers/AccountingController.php;app/Http/Controllers/PaymentController.php;app/Http/Controllers/FinanceController.php;app/Http/Controllers/BankReconciliationController.php;app/Http/Controllers/ChequeBookController.php;app/Http/Controllers/V3;app/Engines/AccountingService.php;config/modules.php
+Customer credit accounts | Record buy-now-pay-later trade | Assign the customer, credit terms and outstanding balance.
+Credit limits and approvals | Restrict exposure beyond agreed terms | Configure limits and verify how blocked sales request approval.
+Customer and supplier statements | Explain balances with transaction history | Select the party and period in statements.
+Receivables aging | Prioritise overdue customer follow-up | Review debt grouped by age and open the underlying party records.
+Receive customer money | Record collections against actual bills | Receive payment and allocate it to the correct documents.
+Pay supplier balances | Keep outgoing settlement attached to trade | Record payment to supplier and review the allocation.
+Payment allocation | Separate money received from invoices settled | Inspect allocations and remaining balances.
+Cash and bank accounts | Keep money sources distinct | Configure accounts and choose the correct account per transaction.
+Inter-account transfers | Record money moved within the business | Use the funds or transfer workflow and inspect both accounts.
+Register shifts | Account for a counter's working period | Open the shift with the correct till and staff context.
+Cash closing and variance | Compare counted cash with expected cash | Count, close and investigate any difference.
+Expense categories | Understand where money is spent | Set categories and enter expenses consistently.
+Expense records and receipts | Keep evidence with expenditure | Add the amount, account, category and supported attachment.
+Double-entry journal posting | Connect business activity to accounting records | Supported posted transactions generate balanced journal entries.
+Chart of accounts | Organise accounting classification | Open Accounting Workspace with the correct permissions.
+Manual journals | Record accountant-led adjustments | Use permitted journal entry and review debits and credits.
+Trial balance | Review account balances together | Open the report for the relevant date or period.
+Profit and loss | Separate revenue, cost and operating expenses | Review the period and definition before interpreting profit.
+Balance sheet | See assets, liabilities and equity | Review the as-of date and opening balances.
+Cash flow | Understand movements in business cash | Use the cash-flow report and inspect its classification.
+Bank reconciliation workspace (incomplete) | Preserve the intended statement-to-books workflow for review | Current controller supplies an empty list and import is a placeholder; do not promise working bank-statement matching.
+Cheque books and leaves | Track issued cheque stationery and usage | Create a cheque book and inspect available and issued leaves.
+Received cheques | Follow cheques received from customers | Record and update through the supported cheque lifecycle.
+Bounced payment records | Correct supported bounced-cheque situations | Use the bounce workflow and inspect reversal, party balance and fees.
+Customer advances | Record money received before the final bill | Use the supported advance and later settlement workflow.
+Supplier advances | Record supplier money paid ahead of delivery | Use the supported advance and allocation workflow.
+Loan tracking | See borrowing and repayment obligations | Use loan workflows and statements.
+Fixed assets | Record longer-lived business assets | Add asset details and review the account treatment.
+Depreciation | Recognise asset cost over time | Configure and run supported depreciation with accountant review.
+Fiscal years and opening balances | Begin and close accounting periods | Set opening balances and use the supported fiscal-year workflow.
+Tax summaries | Review configured tax-related records | Use the relevant report with correct tax settings; no blanket compliance claim.
+E-invoicing and waybill generation (incomplete) | Preserve intended government-document workflows for review | Current generate and waybill endpoints return HTTP 501 coming soon; do not sell them as working integrations.
+Bad debt and write-offs | Record balances that will not be recovered | Use the permitted adjustment and approval workflow.
+Loss and shortage records | Explain missing cash or stock | Record the supported loss event with evidence and review its posting.
+Payroll and staff settlement | Record supported staff money movements | Verify the payroll flow for the target business; do not imply statutory payroll coverage.
+Donations and charity records | Record supported charitable business movements | Frozen/niche surface in the Qore registry; verify availability and posting before offering.
+Disaster claims | Record supported exceptional business claims | Inspect the actual claim workflow and accounting; not an insurance filing integration.
+## Other retained or incomplete surfaces | app/Http/Controllers/MarketingCampaignController.php;config/qore.php;routes/web.php
+Marketing campaign workspace | Retain visibility of a previously advertised area | Incomplete: index supplies empty data and create/store contain implementation placeholders; do not sell campaign automation.
+Visitor chatbot and human support handoff | Explore the retained visitor assistance surface | Separate from Vena and Builder; frozen/unowned in Qore metadata; verify actual availability and provider behavior.
+Money pipeline and clearing surfaces | Preserve older finance namespaces in the audit | Qore metadata explicitly asks for verification; no customer promise from the namespace alone.
+Digital hub surfaces | Preserve older digital product/chat namespaces in the audit | Qore metadata explicitly asks for verification; inspect active routes before describing an end-user workflow.
+Disassembly records | Retain the reverse-production surface for review | Qore metadata leaves ownership unresolved; verify runtime behavior and accounting before offering.
+## Customers, staff and control | app/Http/Controllers/PartyController.php;app/Http/Controllers/StaffInvitationController.php;app/Http/Controllers/AttendanceController.php;resources/js/Pages/Loyalty;resources/js/Pages/Approvals;config/permissions.php;resources/js/Data/staff_presets.json
+Customer directory | Reuse customer contact and trading history | Create a customer once and attach later trade to that record.
+Supplier directory | Keep buying relationships organised | Create suppliers and inspect purchases and balances.
+Loyalty points | Recognise repeat purchases | Configure supported earning and redemption rules and test reversals.
+Gift cards | Record prepaid gifting value | Issue and redeem through the supported gift-card workflow.
+Store credit | Keep customer credit available for future trade | Use the supported issue, balance and redemption workflow.
+Staff invitations | Bring staff into the correct store | Invite by email or supported join code.
+Role presets | Start with suitable access for a job | Select the cashier, waiter, manager or other supported preset.
+Granular permissions | Limit sensitive actions to authorised staff | Review permissions for sales, stock, money and reports.
+Cashier identification and PIN | Attribute counter actions to staff | Configure staff PINs; offline sign-in is not promised.
+Attendance | Record staff presence | Use attendance and inspect the corresponding history.
+Approval inbox | Let managers review sensitive requests | Managers open pending requests and inspect the evidence.
+Staff approval submissions | Let staff follow requests they made | Open My submissions and inspect status.
+Activity log | Trace who performed an action | Filter recorded activity by user, action or time.
+Two-factor authentication | Add a second step to account sign-in | Use the supported setup and recovery-code flow.
+Profile and appearance | Keep personal access and display preferences usable | Use Profile and Appearance; verify mobile behavior separately.
+## Online shop and QR catalogue | routes/commerce.php;app/Http/Controllers/Commerce;resources/js/Pages/Commerce;resources/js/Pages/OnlineStore;resources/js/Pages/OnsiteCatalogue
+Publish a public store | Let customers find and order published goods | Complete merchant settings and product publication, then publish.
+Pause online ordering | Stop new orders when the business cannot fulfil them | Use the pause control while keeping the catalogue visible.
+Online product publication | Choose what shoppers can buy | Publish eligible products; weighted, serial and legacy-variant cases need explicit support.
+Product photos and featured items | Help shoppers recognise what they want | Add supported photos and choose featured goods.
+Shop search and category filters | Make a catalogue easier to browse | Use product search and category chips.
+Grouped online options | Present separate size or colour products together | Group separate products with option labels; this differs from internal variants.
+Customer cart and checkout | Turn product choices into an order | Review items, customer details, fulfilment and payment instructions.
+Pickup and delivery choices | Match ordering to how the business fulfils | Enable the desired fulfilment options and review checkout rules.
+Delivery areas, fees and minimums | Avoid accepting unsuitable delivery orders | Configure supported zones and the corresponding thresholds.
+Opening-hour checkout rules | Control when orders are accepted | Set opening hours and whether out-of-hours ordering is allowed.
+Bank-transfer and cash instructions | Give shoppers supported payment choices | Configure manual payment instructions; these are not a payment gateway.
+Online order inbox | Keep incoming orders visible | Review and accept or decline before the deadline.
+Prepare, ready and complete states | Tell staff and shoppers where an order stands | Advance the supported order status workflow.
+Customer-approved substitutions | Resolve unavailable goods transparently | Propose changes and wait for the customer to agree.
+Order stock reservations | Protect accepted or waiting online demand | Inspect stock holds; disconnected selling still needs reconciliation.
+Customer status links | Let a shopper follow their order | Open the token-protected status page.
+Reorder | Make a repeat order easier | Rebuild from the old order with current prices and availability.
+Order lookup and cancellation | Help customers recover or stop an order | Use the supported lost-link and cancellation flows; state rules apply.
+Offers and coupon codes | Run a defined promotion | Set dates, discount, eligible category or store scope and usage rules.
+Online order analytics | Review recent online trading | Inspect order, completion, discount and timing measures.
+Customer contact links | Make a manual call or WhatsApp follow-up easier | Use the contact link; it does not imply automated message delivery.
+Order email notifications | Keep people informed through configured mail | Requires working mail configuration and notification processing.
+QR catalogue | Let visitors browse from their own phone | Configure the onsite catalogue and share its QR code.
+Table-linked QR ordering | Attach supported phone orders to a dining context | Configure QR ordering and verify the exact customer-to-FOH flow.
+## AI, reporting and connected devices | app/Services/Vena;app/Reckoner;app/Services/Dashboard;resources/js/lib/reportCatalog.js;app/Http/Controllers/SmartCapture;repo:app-code/windows-app/README.md;repo:app-code/windows-app/package.json;repo:app-code/mobile-app/README.md
+Dashboard card selection | Put relevant business information first | Add only permitted cards from the available catalogue.
+Dashboard layout editing | Arrange the workspace around the owner | Move and resize cards and save the layout.
+Report hub | Find the right view for a question | Choose the report category and relevant date or party filters.
+Shared metric definitions | Understand what a displayed number means | Inspect Reckoner definitions and supported evidence links.
+Owner Daily Pulse | Review a focused business summary | Open the protected owner report with the required access.
+Vena how-to assistance | Find a workflow without searching every menu | Ask how to perform a task; follow the linked guide.
+Vena business questions | Explore available business readings | Ask about supported numbers and review the evidence and permissions.
+SmartCapture document input | Reduce copying from bills and invoices | Upload supported input, check extracted fields and confirm.
+SmartCapture voice input | Start supported entry from spoken information | Provide supported audio and review every proposed line.
+AI usage visibility | Know how the allowance is being used | Open AI Usage and inspect the remaining allowance.
+Bring your own AI key | Use a supported provider account | Configure keys through the permitted settings; provider charges still apply.
+Growth insights | Surface business patterns for review | Open Growth Engine and verify the data behind recommendations.
+Offline POS sales queue | Keep supported till selling during an outage | Previously saved device; cash/manual-entry workflow; sync and review afterwards.
+Saved offline page copies | Consult previously saved business information | Offline pages are marked not live; general saving needs internet.
+Seven-day reconnect rule | Keep the device's offline access within policy | Reconnect within the contract limit; queued sales are retained on lock.
+Windows thermal receipt printing | Print receipts directly from a counter PC | Configure the compatible printer in Station and test its driver or ESC/POS path.
+Cash-drawer pulse | Open a compatible drawer from Station | Wire to the supported printer interface and test the configured pulse.
+Kitchen and bar printer roles | Send different documents to intended printers | Configure role and backup printer mappings in Station.
+A4 and label printing | Print invoices and labels at the intended size | Configure the destination and dimensions and test actual hardware.
+Serial barcode scanner | Use supported COM-connected scanners | Configure Station scanner settings and verify terminators.
+Weighing scale connection | Bring supported scale readings into the till | Configure serial settings and verify unit, stability and calibration.
+Pole and customer displays | Show the sale to the customer | Configure the VFD or second-monitor display and test cart updates.
+Terminal pairing and replacement | Move a licensed till to a new device | Use the supported pairing or replacement flow; verify seat limits.
+Station app lock and owner controls | Restrict access to counter administration | Configure supported owner controls; this is not universal Windows lockdown.
+Station update handling | Keep an installed companion current | Check current update policy; installed and portable builds differ.
+Mobile business shell | Reach business workflows from a phone | Pilot WebView with native navigation; not a fully native offline POS.
+Backups | Keep a recoverable copy of store data | Create and download through Backups; perform a separate restore rehearsal.
+WooCommerce connection | Connect supported shop and back-office flows | Configure credentials, product matching and sync; demonstrate one complete order.
+Marketplace channel connections | Connect approved marketplace accounts | Feature flags and external approval apply; a connector file is not proof of live service.
+## Platform operations (internal, not merchant feature claims) | app/Http/Controllers/SuperAdmin;app/Http/Controllers/Admin;app/Http/Controllers/BillingController.php;app/Support/PlanCatalog.php;routes/web.php
+Plans and entitlement administration | Control what an account is allowed to use | Platform administrators manage plan definitions, limits and overrides.
+Subscription and add-on billing | Manage the commercial account lifecycle | Use configured checkout and billing provider workflows.
+Trial and grace lifecycle | Handle accounts before and after payment | Verify trial expiry and restricted-account behavior.
+Coupons and deal redemption | Apply supported commercial offers | Validate eligibility and redemption behavior before quoting a promotion.
+Store administration and support | Investigate and assist account issues | Use authorised platform store and support tools.
+Platform health and audit surfaces | See operational issues | Inspect authorised logs, health pages and audit tools.
+Public marketing and resources | Explain the product and offer help | Landing, features, solutions, comparisons, pricing, docs, tools, blog and contact are public surfaces.
+Installer and updater | Maintain supported self-hosted installations | Release policy applies; existence of update tooling is not release approval.

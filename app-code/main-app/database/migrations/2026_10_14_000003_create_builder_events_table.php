@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        if (Schema::hasTable('builder_events')) {
+            return;
+        }
+        Schema::create('builder_events', function (Blueprint $t) {
+            $t->id();
+            $t->string('session_id', 64)->nullable()->index();
+            $t->unsignedBigInteger('tenant_id')->nullable()->index();
+            $t->string('event', 64)->index();
+            $t->string('type_key', 64)->nullable();
+            $t->string('policy_version', 32)->nullable();
+            $t->text('props')->nullable();
+            $t->timestamp('created_at')->nullable()->index();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('builder_events');
+    }
+};

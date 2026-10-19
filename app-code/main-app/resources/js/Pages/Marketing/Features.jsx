@@ -64,17 +64,17 @@ export default function Features() {
     return (
         <>
             <Head>
-                <title>Features — 140+ modules, nothing charged extra | VenQore</title>
-                <meta name="description" content="Everything VenQore ships today: 140+ modules, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
+                <title>Features — 140+ capabilities, nothing charged extra | VenQore</title>
+                <meta name="description" content="Everything VenQore ships today: 140+ capabilities, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
                 <link rel="canonical" href="https://venqore.com/features" />
-                <meta property="og:title" content="Features — 140+ modules, nothing charged extra | VenQore" />
-                <meta property="og:description" content="Everything VenQore ships today: 140+ modules, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
+                <meta property="og:title" content="Features — 140+ capabilities, nothing charged extra | VenQore" />
+                <meta property="og:description" content="Everything VenQore ships today: 140+ capabilities, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content="https://venqore.com/features" />
                 <meta property="og:image" content="https://venqore.com/images/og/venqore-og.png" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Features — 140+ modules, nothing charged extra | VenQore" />
-                <meta name="twitter:description" content="Everything VenQore ships today: 140+ modules, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
+                <meta name="twitter:title" content="Features — 140+ capabilities, nothing charged extra | VenQore" />
+                <meta name="twitter:description" content="Everything VenQore ships today: 140+ capabilities, 58 dashboard readings, 13 document types and 40 reports. Every plan includes the whole system." />
                 <meta name="twitter:image" content="https://venqore.com/images/og/venqore-og.png" />
             </Head>
 
@@ -92,7 +92,7 @@ export default function Features() {
     <div style={{"maxWidth":"820px"}}>
       <span className="vq-eyebrow vq-eyebrow--accent vq-eyebrow--dot">What's inside</span>
       <h1 className="vq-display vq-mt-4">Everything the business actually runs on. Nothing charged as a <em className="vq-italic">module</em>.</h1>
-      <p className="vq-lede vq-mt-6">Everything VenQore ships today, across ten groups: point of sale with offline mode, FIFO inventory with batch and expiry tracking, purchasing, invoicing, customer credit, expenses, staff and permissions, multi-channel sync, AI capture, and double-entry accounting. 140+ modules, 13 document types, 40 reports and 58 dashboard readings — all of it on every plan.</p>
+      <p className="vq-lede vq-mt-6">Everything VenQore ships today, across ten groups: point of sale with offline mode, FIFO inventory with batch and expiry tracking, purchasing, invoicing, customer credit, expenses, staff and permissions, multi-channel sync, AI capture, and double-entry accounting. 140+ capabilities, 13 document types, 40 reports and 58 dashboard readings — all of it on every plan.</p>
       <div className="vq-row vq-wrap vq-gap-3 vq-mt-8"><a className="vq-btn vq-btn--primary vq-btn--lg" href="/build-workspace">Start building <span className="vq-btn__arrow"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></a>
         <a className="vq-btn vq-btn--secondary vq-btn--lg" href="/pricing">See pricing</a></div>
     </div>

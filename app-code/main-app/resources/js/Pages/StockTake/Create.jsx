@@ -362,7 +362,9 @@ export default function StockTakeCreate({ warehouses = [], products = [], stocks
                     fields={chrome.fields} setField={chrome.setField}
                     showRail={chrome.showRail} setShowRail={chrome.setShowRail}
                     showQuickEntry={chrome.showQuickEntry} setShowQuickEntry={chrome.setShowQuickEntry}
+                    lineCols={chrome.lineCols} setLineCol={chrome.setLineCol}
                     canSeeMargin={false}
+                    onReset={chrome.reset}
                 />
             )}
 

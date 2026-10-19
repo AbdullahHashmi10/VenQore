@@ -36,6 +36,25 @@ class PartyController extends Controller
             'updated_at'   => now(),
         ]);
 
+        if ($validated['type'] === 'supplier') {
+            \App\Models\Supplier::create([
+                'name'      => $validated['name'],
+                'email'     => $validated['email'] ?? null,
+                'phone'     => $validated['phone'] ?? null,
+                'address'   => $validated['address'] ?? null,
+                'party_id'  => $id,
+                'tenant_id' => $tenantId,
+            ]);
+        }
+
+        if ($request->wantsJson()) {
+            $party = DB::table('parties')->where('id', $id)->first();
+            return response()->json([
+                'success' => true,
+                'party'   => $party,
+            ]);
+        }
+
         return redirect()->back()->with('success', 'Party created.');
     }
 

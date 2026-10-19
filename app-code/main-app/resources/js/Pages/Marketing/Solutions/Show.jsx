@@ -84,8 +84,8 @@ export default function Show({ slug }) {
                             <Link href="/demo" className="vq-btn vq-btn--primary vq-btn--lg">
                                 Try the live demo — no signup <ArrowRight size={16} className="vq-btn__arrow" aria-hidden="true" />
                             </Link>
-                            <Link href="/register" className="vq-btn vq-btn--secondary vq-btn--lg">
-                                Start free 14-day trial
+                            <Link href="/build-workspace" className="vq-btn vq-btn--secondary vq-btn--lg">
+                                Build my system — 14-day trial
                             </Link>
                         </div>
                     </div>

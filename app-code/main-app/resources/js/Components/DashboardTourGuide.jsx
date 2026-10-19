@@ -161,12 +161,12 @@ export default function DashboardTourGuide({ store }) {
             top: `${top}px`,
             left: `${left}px`,
             width: `${tooltipWidth}px`,
-            zIndex: 115,
+            zIndex: 10000110,
         };
     };
 
     return renderPortal(
-        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-[10000100] overflow-hidden pointer-events-none">
             {coords && (
                 <div
                     className="fixed pointer-events-none transition-all duration-slow ease-out"
@@ -177,7 +177,8 @@ export default function DashboardTourGuide({ store }) {
                         height: coords.height + 12,
                         borderRadius: currentStep === 5 ? '50%' : '12px',
                         boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
-                        zIndex: 151,
+                        border: '2px solid rgba(45, 212, 191, 0.45)',
+                        zIndex: 10000105,
                     }}
                 />
             )}

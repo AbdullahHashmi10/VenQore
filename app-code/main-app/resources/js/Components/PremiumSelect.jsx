@@ -72,7 +72,7 @@ const PremiumSelect = ({
         : options;
 
     return (
-        <div className={`relative ${className}`} ref={dropdownRef}>
+        <div className={`relative ${className}`} ref={dropdownRef} data-premium-select-root="true">
             <div
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 className={`
@@ -98,6 +98,8 @@ const PremiumSelect = ({
             {isOpen && createPortal(
                 <div
                     ref={portalRef}
+                    id="tour-premium-select-portal"
+                    data-premium-select-portal="open"
                     className="fixed mt-1.5 bg-surface rounded-xl shadow-2xl border border-line z-modal overflow-hidden animate-in fade-in zoom-in-95 duration-fast"
                     style={{
                         top: coords.top,

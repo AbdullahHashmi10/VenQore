@@ -163,8 +163,29 @@ class HeartbeatController extends Controller
             $validPairingToken->forceFill(['terminal_id' => $terminal->id])->save();
             $issuedSecret = \App\Support\TerminalDeviceAuth::issue($terminal);
         } else {
+            // Moving this PC to another store: it proves it IS this terminal
+            // (its saved device key) and presents a fresh code from the new
+            // store. Without this, connecting a used PC to a new store always
+            // failed with "belongs to a different store". A caller that only
+            // knows the device_id cannot do this (no key → 403 below), and a
+            // PC that lost its key re-pairs under a new device_id instead.
+            $secretMismatch = \App\Support\TerminalDeviceAuth::hasSecret($terminal)
+                && !\App\Support\TerminalDeviceAuth::verify($terminal, $request);
+            if ($tenant && $validPairingToken && !empty($terminal->tenant_id) && !$secretMismatch
+                && \App\Support\TerminalDeviceAuth::hasSecret($terminal)
+                && (string) $terminal->tenant_id !== (string) $tenant->id) {
+                if (!$claimToken()) {
+                    return $pairingRequired('That pairing code was already used. Create a new one in Settings → Terminals.');
+                }
+                $terminal->update(['tenant_id' => $tenant->id, 'paired_at' => now(), 'status' => 'OPEN']);
+                $validPairingToken->forceFill(['terminal_id' => $terminal->id])->save();
+                $issuedSecret = \App\Support\TerminalDeviceAuth::issue($terminal);
+                $secretMismatch = false;
+                \Illuminate\Support\Facades\Log::info('Terminal re-paired with a code', ['terminal_id' => $terminal->id, 'tenant_id' => $tenant->id]);
+            }
+
             // SEC-04: a terminal that holds a device secret must prove it.
-            if (\App\Support\TerminalDeviceAuth::hasSecret($terminal) && !\App\Support\TerminalDeviceAuth::verify($terminal, $request)) {
+            if ($secretMismatch) {
                 return response()->json(['error' => 'Unauthorized device', 'code' => 'DEVICE_AUTH_FAILED'], 401);
             }
 

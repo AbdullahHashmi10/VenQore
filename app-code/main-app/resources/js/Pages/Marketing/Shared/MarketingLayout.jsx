@@ -207,7 +207,7 @@ export const SITE = {
     build: [
         { label: 'Blueprint', href: '/blueprint', desc: 'Describe it. Approve the plan.' },
         { label: 'See a build', href: '/onboarding', desc: 'Four minutes, start to live.' },
-        { label: 'Watch it assemble', href: '/features', desc: '140+ modules in, only yours out.' },
+        { label: 'Watch it assemble', href: '/features', desc: '140+ capabilities in, only yours out.' },
     ],
     run: [
         { label: 'The register', href: '/pos', desc: 'A till you compose yourself.' },

@@ -39,9 +39,9 @@ import computeTotals, { moneyPayload, linePayload } from '@/Documents/documentMo
 
 const num = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 export const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-export const blankLine = (extra) => ({
+export const blankLine = (extra, defaultDiscountType = 'fixed') => ({
     id: uid(), product: null, quantity: 1, freeQuantity: 0,
-    price: 0, discount: 0, discountType: 'fixed', ...(extra || {}),
+    price: 0, discount: 0, discountType: defaultDiscountType, ...(extra || {}),
 });
 export const today = () => new Date().toISOString().split('T')[0];
 
@@ -231,9 +231,9 @@ export default function MoneyDocument({
         setItems((prev) => prev.map((i) => (i.id === id ? { ...i, [key]: value } : i)));
     }, [setItems]);
     const remove = useCallback((id) => {
-        setItems((prev) => (prev.length > 1 ? prev.filter((i) => i.id !== id) : [blankLine()]));
-    }, [setItems]);
-    const addLine = useCallback(() => setItems((prev) => [...prev, blankLine()]), [setItems]);
+        setItems((prev) => (prev.length > 1 ? prev.filter((i) => i.id !== id) : [blankLine({}, chrome.defaultDiscountType)]));
+    }, [setItems, chrome.defaultDiscountType]);
+    const addLine = useCallback(() => setItems((prev) => [...prev, blankLine({}, chrome.defaultDiscountType)]), [setItems, chrome.defaultDiscountType]);
 
     const onPickProduct = useCallback((product, id) => {
         if (!product) return;
@@ -246,14 +246,14 @@ export default function MoneyDocument({
                 cost: num(product.cost ?? product.cost_price),
                 available_stock: availableOf(product),
             } : i));
-            return (isLast && canAddLines && !lockItems) ? [...updated, blankLine()] : updated;
+            return (isLast && canAddLines && !lockItems) ? [...updated, blankLine({}, chrome.defaultDiscountType)] : updated;
         });
         setInvalid([]);
-    }, [setItems, priceOf, canAddLines, lockItems]);
+    }, [setItems, priceOf, canAddLines, lockItems, chrome.defaultDiscountType]);
 
     const onTotalChange = useCallback((item, value) => {
         const target = num(value);
-        const mode = totalModes[item.id] || 'price';
+        const mode = totalModes[item.id] || chrome.defaultAmountSolver || 'price';
         if (mode === 'price') {
             const qty = num(item.quantity) || 1;
             update(item.id, 'price', Math.max(0, (target + num(item.discount)) / qty));
@@ -261,7 +261,7 @@ export default function MoneyDocument({
             const price = num(item.price) || 1;
             update(item.id, 'quantity', Math.max(0, (target + num(item.discount)) / price));
         }
-    }, [totalModes, update]);
+    }, [totalModes, update, chrome.defaultAmountSolver]);
 
     const validLines = items.filter((i) => (doc.money.lines === 'amount' ? (i.category_id || i.desc) : (i.product || i.description || i.desc || i.name)));
 
@@ -392,8 +392,12 @@ export default function MoneyDocument({
         update, remove, addLine, onPickProduct, onTotalChange, priceOf,
         onCreateProduct: (name) => setProductModal({ mode: 'create', product: { name } }),
         onEditProduct: (product) => setProductModal({ mode: 'edit', product }),
-        totalMode: (id) => totalModes[id] || 'price',
-        toggleTotalMode: (id) => setTotalModes((p) => ({ ...p, [id]: (p[id] || 'price') === 'price' ? 'qty' : 'price' })),
+        totalMode: (id) => totalModes[id] || chrome.defaultAmountSolver || 'price',
+        toggleTotalMode: (id) => setTotalModes((p) => ({ ...p, [id]: (p[id] || chrome.defaultAmountSolver || 'price') === 'price' ? 'qty' : 'price' })),
+        showAmountSolver: chrome.showAmountSolver,
+        showDiscountType: chrome.showDiscountType,
+        defaultDiscountType: chrome.defaultDiscountType,
+        defaultAmountSolver: chrome.defaultAmountSolver,
         draggedIndex, invalid,
         onCellFocus: () => {},
         onDragStart: (e, idx) => { setDraggedIndex(idx); e.dataTransfer.effectAllowed = 'move'; },
@@ -653,7 +657,13 @@ export default function MoneyDocument({
                     showMargin={chrome.showMargin} setShowMargin={chrome.setShowMargin}
                     canSeeMargin={!!doc.money.margin && isAdmin}
                     applyDefaults={chrome.applyDefaults} setApplyDefaults={chrome.setApplyDefaults}
+                    lineCols={chrome.lineCols} setLineCol={chrome.setLineCol}
+                    showAmountSolver={chrome.showAmountSolver} setShowAmountSolver={chrome.setShowAmountSolver}
+                    defaultAmountSolver={chrome.defaultAmountSolver} setDefaultAmountSolver={chrome.setDefaultAmountSolver}
+                    showDiscountType={chrome.showDiscountType} setShowDiscountType={chrome.setShowDiscountType}
+                    defaultDiscountType={chrome.defaultDiscountType} setDefaultDiscountType={chrome.setDefaultDiscountType}
                     currency={currency}
+                    onReset={chrome.reset}
                     {...(settingsExtras || {})}
                 />
             )}
@@ -684,6 +694,7 @@ export default function MoneyDocument({
             {partyModal && (
                 <QuickPartyModal isOpen initialName={partyModal.name} type={partyRole}
                     onClose={() => setPartyModal(null)}
+                    onSuccess={(p) => { patch({ party: p }); setPartyModal(null); }}
                     onCreated={(p) => { patch({ party: p }); setPartyModal(null); }} />
             )}
         </DocumentShell>

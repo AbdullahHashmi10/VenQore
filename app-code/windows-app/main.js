@@ -109,7 +109,7 @@ app.setAppUserModelId(IS_LOCAL_BUILD ? 'com.venqore.station.local' : 'com.venqor
 app.userAgentFallback = `${app.userAgentFallback} VenQoreStation/${APP_VER}`;
 logger.install(path.join(app.getPath('userData'), 'logs'));
 const ownerAccess = new (require('./lib/owner-access').OwnerAccess)(prefs);
-const { parsePairingLink } = require('./lib/pairing-link');
+const { parsePairingLink, storeSlugFromInput } = require('./lib/pairing-link');
 const kioskReadiness = require('./lib/kiosk-readiness').inspectWindows();
 const { finishClose } = require('./lib/close-update');
 const updatePolicy = require('./lib/update-policy');
@@ -1080,15 +1080,19 @@ handle('shell:pair', ['shell'], async (_e, { slug, code } = {}) => {
     if (secretStore.has() && prefs.hasPin() && !ownerAccess.authorized()) return { ok: false, error: 'Unlock Station settings before changing pairing.' };
     const link = parsePairingLink(slug, IS_LOCAL_BUILD ? TRUSTED_ORIGIN : null);
     if (link) { slug = link.slug; code = link.code; }
-    slug = String(slug || '').trim().toLowerCase();
-    const m = /\/s\/([a-z0-9-]{1,63})(\/|$)/i.exec(slug); // pasted a full POS link
-    if (m) slug = m[1].toLowerCase();
-    if (!/^[a-z0-9-]{1,63}$/.test(slug)) return { ok: false, error: 'That store link is not valid. Use the part after /s/ in your POS address.' };
+    slug = storeSlugFromInput(slug); // a pasted POS / store URL → its store name
+    if (!/^[a-z0-9-]{1,63}$/.test(slug)) return { ok: false, error: 'That store link is not valid. Paste your POS address or type your store name (the part after /s/).' };
     const cleanCode = String(code || '').trim().toUpperCase().replace(/\s+/g, '');
     if (!secretStore.has() && !cleanCode) return { ok: false, error: 'Enter the pairing code from Settings → Terminals.' };
     const previous = prefs.get('connectedStore');
     prefs.set({ connectedStore: slug });
-    const r = await sendHeartbeat(cleanCode || null);
+    let r = await sendHeartbeat(cleanCode || null);
+    // This PC's old identity cannot be used (it lost its device key, or the
+    // server will not move it). With a fresh code, pair as a new terminal.
+    if (!r.ok && cleanCode && (r.code === 'DEVICE_AUTH_FAILED' || r.status === 403 && r.code !== 'PAIRING_REQUIRED')) {
+        prefs.set({ deviceId: crypto.randomUUID(), terminalId: null, deviceSecret: null, deviceSecretEnc: null }, { immediate: true });
+        r = await sendHeartbeat(cleanCode);
+    }
     if (!r.ok) {
         prefs.set({ connectedStore: previous || null });
         const msg = r.code === 'PAIRING_REQUIRED' ? 'That pairing code is not valid for this store, or it has expired. Create a new one in Settings → Terminals.'

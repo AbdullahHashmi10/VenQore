@@ -147,6 +147,11 @@ class SeatAllocationService
         $isPosEnabled = PlanGate::check('pos', $tenant);
 
         return [
+            // Shape read by Pages/Admin/Users.jsx (seat_capacity.full / .pos).
+            // Without these the page fell back to "0 available" and ignored
+            // every plan limit and admin add-on.
+            'full' => self::uiCapacity($full, true),
+            'pos'  => self::uiCapacity($pos, $isPosEnabled),
             'full_seats' => [
                 'type'            => 'full',
                 'title'           => 'Full staff seat',
@@ -180,6 +185,29 @@ class SeatAllocationService
                 'is_unlimited'    => $pos['is_unlimited'],
                 'is_pos_enabled'  => $isPosEnabled,
             ],
+        ];
+    }
+
+    /** One seat type in the field names the Users page uses. */
+    private static function uiCapacity(array $cap, bool $enabled): array
+    {
+        $available = $cap['is_unlimited'] ? 999999 : (int) $cap['remaining'];
+        if (!$enabled) {
+            $available = 0;
+        }
+
+        return [
+            'plan_limit'      => $cap['included'],
+            'purchased'       => $cap['purchased'],
+            'effective_limit' => $cap['total_available'],
+            'total'           => $cap['total_available'],
+            'active'          => $cap['active'],
+            'reserved'        => $cap['reserved'],
+            'available'       => $available,
+            'remaining'       => $available,
+            'is_unlimited'    => $cap['is_unlimited'],
+            'is_at_capacity'  => $available <= 0,
+            'addon_price'     => $cap['price_per_month'],
         ];
     }
 

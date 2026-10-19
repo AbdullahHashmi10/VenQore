@@ -384,9 +384,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::c
     Route::get('/new-store', [\App\Http\Controllers\StoreController::class, 'create'])->name('store.create');
     Route::post('/new-store',[\App\Http\Controllers\StoreController::class, 'store'])->name('store.store');
 
-    // AppSumo Code Redemption
-    Route::get('/redeem',    [\App\Http\Controllers\AppSumoController::class, 'index'])->name('appsumo.redeem');
-    Route::post('/redeem',   [\App\Http\Controllers\AppSumoController::class, 'redeem'])->middleware('throttle:5,1')->name('appsumo.redeem.submit');
+    // AppSumo Code Redemption: hidden unless APPSUMO_PUBLIC=true (same switch as the public /redeem below)
+    if (config('venqore.appsumo_public', false) || app()->runningUnitTests()) {
+        Route::get('/redeem',    [\App\Http\Controllers\AppSumoController::class, 'index'])->name('appsumo.redeem');
+        Route::post('/redeem',   [\App\Http\Controllers\AppSumoController::class, 'redeem'])->middleware('throttle:5,1')->name('appsumo.redeem.submit');
+    }
 
     // Join by store code
     Route::get('/join',  [\App\Http\Controllers\StaffController::class, 'joinForm'])->name('store.join');
@@ -1980,7 +1982,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     Route::get('/accounting/chart', [\App\Http\Controllers\AccountingController::class, 'index'])->middleware('plan.feature:report_ledger')->name('accounting.index');
     Route::get('/accounting/p-and-l', [\App\Http\Controllers\AccountingController::class, 'profitAndLoss'])->middleware('plan.feature:report_profit_loss')->name('accounting.pnl');
     Route::get('/accounting/balance-sheet', [\App\Http\Controllers\AccountingController::class, 'balanceSheet'])->middleware('plan.feature:report_balance_sheet')->name('accounting.balance-sheet');
-    Route::get('/accounting/api/accounts', [\App\Http\Controllers\AccountingController::class, 'apiIndex'])->middleware('plan.feature:report_ledger')->name('accounting.accounts.api');
+    Route::get('/accounting/api/accounts', [\App\Http\Controllers\AccountingController::class, 'apiIndex'])->name('accounting.accounts.api');   // a picker for forms (purchase, pre-sale, documents), not a ledger report: never plan-gated
 
     // Recurring Invoices
     Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');

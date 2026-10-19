@@ -1,0 +1,23 @@
+{
+  "files_catalogued": 36893,
+  "source_files_read": 5134,
+  "source_lines": 1319739,
+  "pages": 393,
+  "documents_indexed": 832,
+  "route_entries": 1378,
+  "module_status": {
+    "live": 45,
+    "building": 1,
+    "beta": 2
+  },
+  "manifest": {
+    "guides": 37,
+    "modules": 48,
+    "screens": 290,
+    "readings": 438,
+    "cards": 20,
+    "ai": 12
+  },
+  "read_errors": [],
+  "page_without_literal_render": 62
+}

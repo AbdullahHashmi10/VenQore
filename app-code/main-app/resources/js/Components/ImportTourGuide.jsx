@@ -138,10 +138,10 @@ export default function ImportTourGuide({ store }) {
     // Centered Welcome Modal
     if (store?.onboarding_step === 'import_tour_start' && currentStep === 0) {
         return (
-            <div className="fixed inset-0 z-drawer flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+            <div className="fixed inset-0 z-[10000200] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-neutral-950/65 backdrop-blur-md transition-opacity duration-slow animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-drawer animate-in zoom-in-95 duration-slow">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[10000201] animate-in zoom-in-95 duration-slow">
                     <div className="relative flex flex-col w-full bg-neutral-900/90 dark:bg-app border border-brand-500/20 rounded-2xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -237,13 +237,13 @@ export default function ImportTourGuide({ store }) {
                 top: coords.top + coords.height + 20,
                 left: coords.left + (coords.width / 2) - 160,
                 width: '320px',
-                zIndex: 115,
+                zIndex: 10000110,
             };
         }
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-modal overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-[10000100] overflow-hidden pointer-events-none">
             {/* Dimming Mask / Spotlight without green borders or glowing rings */}
             {coords && (
                 <div
@@ -255,19 +255,20 @@ export default function ImportTourGuide({ store }) {
                         height: coords.height + 12,
                         borderRadius: '12px',
                         boxShadow: '0 0 0 9999px rgba(6, 16, 13, 0.72)',
-                        zIndex: 150,
+                        border: '2px solid rgba(45, 212, 191, 0.45)',
+                        zIndex: 10000105,
                     }}
                 />
             )}
 
             {!coords && (
-                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-modal"></div>
+                <div className="fixed inset-0 bg-[#06100D]/70 pointer-events-none z-[10000100]"></div>
             )}
 
             {/* Floating Tooltip Card */}
             <div
                 style={getTooltipStyle()}
-                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-drawer animate-in fade-in duration-slow"
+                className="bg-surface border border-line rounded-2xl shadow-2xl p-5 text-ink pointer-events-auto relative z-[10000110] animate-in fade-in duration-slow"
             >
                 {/* Content */}
                 <div className="flex items-start gap-3 mb-3">

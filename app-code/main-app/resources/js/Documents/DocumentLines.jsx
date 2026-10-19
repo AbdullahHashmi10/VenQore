@@ -310,25 +310,30 @@ const CELLS = {
         />
     ),
 
-    disc: (item, idx, c) => (
-        <div className="vqdoc-pair">
+    disc: (item, idx, c) => {
+        const dType = item.discountType || c.defaultDiscountType || 'fixed';
+        return (
+            <div className="vqdoc-pair">
                 <WheelInput
                     type="number" className="vqdoc-cell w-num disc"
                     value={item.discount ?? 0} disabled={c.locked || c.readOnly?.disc}
                     onChange={(e) => c.update(item.id, 'discount', num(e.target.value))}
-                    onWheel={(e) => { e.preventDefault(); const step = item.discountType === 'percent' ? 1 : (num(item.price) >= 100 ? 5 : 1); c.update(item.id, 'discount', Math.max(0, num(item.discount) + ((e.deltaY < 0 ? 1 : -1) * step))); }}
+                    onWheel={(e) => { e.preventDefault(); const step = dType === 'percent' ? 1 : (num(item.price) >= 100 ? 5 : 1); c.update(item.id, 'discount', Math.max(0, num(item.discount) + ((e.deltaY < 0 ? 1 : -1) * step))); }}
                 />
-                <button
-                    type="button" className="vqdoc-flip"
-                    data-on={item.discountType === 'percent' ? 'true' : 'false'}
-                    disabled={c.locked || c.readOnly?.disc}
-                    title={item.discountType === 'percent' ? 'Percentage off' : 'Amount off'}
-                    onClick={() => !c.locked && c.update(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                >
-                {item.discountType === 'percent' ? '%' : c.currency}
-            </button>
-        </div>
-    ),
+                {c.showDiscountType !== false && (
+                    <button
+                        type="button" className="vqdoc-flip"
+                        data-on={dType === 'percent' ? 'true' : 'false'}
+                        disabled={c.locked || c.readOnly?.disc}
+                        title={dType === 'percent' ? 'Percentage off' : 'Amount off'}
+                        onClick={() => !c.locked && c.update(item.id, 'discountType', dType === 'fixed' ? 'percent' : 'fixed')}
+                    >
+                        {dType === 'percent' ? '%' : c.currency}
+                    </button>
+                )}
+            </div>
+        );
+    },
 
     amount: (item, idx, c) => (
         <WheelInput
@@ -343,6 +348,7 @@ const CELLS = {
        solved when you edit it — change the price, or change the quantity. */
     total: (item, idx, c) => (
         <div className="vqdoc-pair">
+            {c.showAmountSolver !== false && (
                 <button
                     type="button" className="vqdoc-flip"
                     data-on={c.totalMode(item.id) === 'price' ? 'true' : 'false'}
@@ -352,11 +358,12 @@ const CELLS = {
                 >
                     {c.totalMode(item.id) === 'price' ? c.currency : '#'}
                 </button>
-                <WheelInput
-                    type="number" className="vqdoc-cell total w-amt"
-                    value={parseFloat(lineTotal(item).toFixed(2))} disabled={c.locked || c.readOnly?.total}
-                    onChange={(e) => c.onTotalChange(item, e.target.value)}
-                    onWheel={(e) => { e.preventDefault(); const cur = lineTotal(item); const step = cur >= 100 ? 10 : 1; c.onTotalChange(item, String(Math.max(0, cur + ((e.deltaY < 0 ? 1 : -1) * step)))); }}
+            )}
+            <WheelInput
+                type="number" className="vqdoc-cell total w-amt"
+                value={parseFloat(lineTotal(item).toFixed(2))} disabled={c.locked || c.readOnly?.total}
+                onChange={(e) => c.onTotalChange(item, e.target.value)}
+                onWheel={(e) => { e.preventDefault(); const cur = lineTotal(item); const step = cur >= 100 ? 10 : 1; c.onTotalChange(item, String(Math.max(0, cur + ((e.deltaY < 0 ? 1 : -1) * step)))); }}
                 onFocus={(e) => e.target.select()}
             />
         </div>
@@ -374,24 +381,46 @@ export default function DocumentLines({ doc, chrome, items = [], ctx, onQuickAdd
     const boxRef = useRef(null);
     const count = items.length;
 
-    /* Three things decide whether a column is on screen: the document has to
-       carry it at all, the detail level has to want it, and — for the ones
-       with a switch — the operator has to want it. A column the document does
-       not list can never come back, whatever is in saved preferences. */
-    const visible = doc.columns.filter((id) => {
-        if (id === 'del' || id === 'item' || id === 'category' || id === 'desc') return true;
+    const isColVisible = (id) => {
+        if (id === 'del') return true;
+        if (id === 'item' && (doc.columns.includes('item') || !doc.columns.includes('category'))) return true;
+        if (id === 'category' && doc.columns.includes('category')) return true;
+        if (id === 'desc' && doc.columns.includes('desc') && !doc.columns.includes('item')) return true;
+        if (id === 'qty' && doc.columns.includes('qty')) return true;
+        if (id === 'counted' && doc.columns.includes('counted')) return true;
+        if (id === 'ordered' && doc.columns.includes('ordered')) return true;
+        if (id === 'expected' && doc.columns.includes('expected')) return true;
+        if (id === 'diff' && doc.columns.includes('diff')) return true;
+        if (id === 'cost' && doc.columns.includes('cost')) return true;
+        if (id === 'amount' && doc.columns.includes('amount')) return true;
+        if (id === 'total' && doc.columns.includes('total')) return true;
+
+        if (chrome?.lineCols && typeof chrome.lineCols[id] === 'boolean') {
+            const on = chrome.lineCols[id];
+            if (!on) return false;
+            if (asCards && (id === 'idx' || id === 'del')) return false;
+            return true;
+        }
+
+        if (!doc.columns.includes(id)) return false;
         if (id === 'free') return ctx.freeOn && (level.cols.includes('free') || items.some((i) => num(i.freeQuantity) > 0));
         if (id === 'disc') return ctx.canDiscount && level.cols.includes('disc');
         if (id === 'idx' || id === 'uom') return level.cols.includes(id);
-        /* A document that lists these lists them because they are the point:
-           the rate the supplier actually billed, and how much of the line was
-           bought for the business. Hiding them behind the detail level meant a
-           fresh install had neither column, so the rate fell back to the
-           product's and a part-private purchase claimed its input tax in full —
-           with nothing on screen to say either had happened. They still drop
-           out on a narrow screen, like every other column. */
         if (id === 'taxpct' || id === 'bizpct') return !asCards;
         return true;
+    };
+
+    const ALL_COLS_ORDER = [
+        'idx', 'item', 'category', 'desc', 'ordered', 'counted',
+        'expected', 'diff', 'qty', 'free', 'uom', 'batch',
+        'pickbatch', 'expiry', 'rate', 'cost', 'taxpct', 'bizpct',
+        'disc', 'amount', 'total', 'del',
+    ];
+
+    const visible = ALL_COLS_ORDER.filter((id) => {
+        if (!CELLS[id]) return false;
+        if (asCards && (id === 'idx' || id === 'del')) return false;
+        return isColVisible(id);
     });
 
     /* Picking a product into the LAST row grows the document by one, so entry
@@ -401,7 +430,7 @@ export default function DocumentLines({ doc, chrome, items = [], ctx, onQuickAdd
         if (!product) return;
         ctx.onPickProduct(product, id);
     }, [ctx]);
-    const cellCtx = { ...ctx, onPickProduct: pick };
+    const cellCtx = { ...ctx, doc, onPickProduct: pick };
 
     /* A new row that appears below the fold may as well not have appeared. */
     const grew = useRef(count);

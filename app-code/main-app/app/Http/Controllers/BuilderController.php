@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Builder\PlanEntitlement;
 use App\Engines\ModuleDependencyResolver;
 use App\Models\Tenant;
 use App\Services\AiBuilder\ApplyConfigurationService;
@@ -56,7 +57,7 @@ class BuilderController extends Controller
         $sector = $businessInfo['sector'] ?? $presetInfo['sector'] ?? 'Retail & Services';
 
         $modules = collect(config('modules', []))
-            ->map(function (array $m, string $key) use ($enabled, $recommendedModules) {
+            ->map(function (array $m, string $key) use ($enabled, $recommendedModules, $tenant) {
                 $cards = (array) ($m['cards'] ?? []);
                 $cardsCount = count(\App\Reckoner\CardRegistry::moduleCards($key)) ?: count($cards);
 
@@ -74,6 +75,9 @@ class BuilderController extends Controller
                     'aliases'      => $m['aliases'] ?? [],
                     'cards_count'  => $cardsCount,
                     'recommended'  => in_array($key, $recommendedModules, true),
+                    // Shown, never hidden: it tells them there is more. But it says which plan it needs.
+                    'plan_locked'  => ! PlanEntitlement::allowsTenant($key, $tenant),
+                    'needs_plan'   => PlanEntitlement::allowsTenant($key, $tenant) ? null : PlanEntitlement::cheapestPlanFor($key),
                 ];
             })
             ->filter(fn ($m) => $m['status'] === 'live')   // never offer beta/building here — same rule ApplyConfigurationService's validator enforces
@@ -172,6 +176,26 @@ class BuilderController extends Controller
         }
 
         $registry = config('modules', []);
+
+        // Adding a module the plan locks would put it in their system and then refuse them on
+        // every click. Say so now, with the plan that unlocks it, instead.
+        foreach (array_diff($result['modules'], $currentlyEnabled) as $key) {
+            if (! PlanEntitlement::allowsTenant($key, $tenant)) {
+                $needs = PlanEntitlement::cheapestPlanFor($key);
+                $label = $registry[$key]['label'] ?? $key;
+
+                return response()->json([
+                    'success'    => false,
+                    'reason'     => 'plan_locked',
+                    'module'     => $key,
+                    'needs_plan' => $needs,
+                    'message'    => $needs
+                        ? sprintf('%s is part of the %s plan. Upgrade to add it to your system.', $label, ucfirst($needs))
+                        : sprintf('%s is not available on your plan yet.', $label),
+                ], 422);
+            }
+        }
+
         $beingRemoved = array_diff($currentlyEnabled, $result['modules']);
         foreach ($beingRemoved as $key) {
             $dependentsStillOn = array_values(array_filter(

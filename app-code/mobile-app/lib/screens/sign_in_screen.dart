@@ -4,19 +4,20 @@ import '../core/app_side.dart';
 import '../core/google_sign_in_service.dart';
 import '../core/web_autofill.dart';
 import '../theme/app_colors.dart';
-import '../widgets/brand_logo.dart';
+import '../theme/vq.dart';
 import '../widgets/google_mark.dart';
 import '../widgets/motion.dart';
-import 'ai_builder_intro_screen.dart';
+import '../widgets/vq_widgets.dart';
 import 'business_web_screen.dart';
 import 'help_screen.dart';
 import 'recover_access_screen.dart';
 import 'register_screen.dart';
 
-/// Native VenQore V6 sign-in.
+/// Native VenQore sign-in, for both sides of the app.
 ///
-/// One form for everyone: owner, manager, cashier, waiter or rider. Nobody is asked which one they
-/// are; the server knows their role and opens the right home (dashboard, POS, or My rides).
+/// Store side: one form for everyone (owner, manager, cashier, waiter, rider). Nobody is asked which one
+/// they are; the server knows their role and opens the right home. Customer side: the same form, and the
+/// person lands on their own customer dashboard.
 /// What is typed here is handed once to VenQore's own sign-in page, which still does the emailed
 /// code and any two-step check.
 class SignInScreen extends StatefulWidget {
@@ -48,6 +49,8 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _obscure = true;
   bool _googleBusy = false;
   String? _error;
+
+  bool get _isCustomer => widget.side == AppSide.customer;
 
   @override
   void initState() {
@@ -133,6 +136,7 @@ class _SignInScreenState extends State<SignInScreen> {
       case GoogleSignInOutcome.cancelled:
         break;
       case GoogleSignInOutcome.linkRequired:
+        // The one case that needs the browser: proving, once, that this email is yours.
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -140,9 +144,13 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           ),
         );
-        _openWeb('/auth/google', 'Sign in with Google');
+        _openWeb('/auth/google', 'Confirm your account');
       case GoogleSignInOutcome.unavailable:
-        _openWeb('/auth/google', 'Sign in with Google');
+        // Never fall back to a Google web page asking for a password: say so and offer email sign-in.
+        setState(
+          () => _error =
+              'Google sign-in is not ready on this phone yet. Use your email and password for now.',
+        );
       case GoogleSignInOutcome.failed:
         setState(
           () => _error =
@@ -156,376 +164,232 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.canvas,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: const BackButton(color: AppColors.ink),
-        actions: [
-          IconButton(
-            tooltip: 'Help',
-            icon: const Icon(
-              Icons.help_outline_rounded,
-              color: AppColors.inkMuted,
+      body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+        child: Column(
+          children: [
+            VqAuthHeader(
+              badge: _isCustomer ? 'Marketplace customer' : 'Partner',
+              title: _isCustomer
+                  ? 'Welcome back to VenQore'
+                  : 'Sign in to your workspace',
+              subtitle: _isCustomer
+                  ? 'Sign in to see your orders, saved addresses and favourites.'
+                  : 'No role questions. VenQore knows if you are an owner, staff or a rider and opens your own place.',
+              tabs: _isCustomer
+                  ? const ['Customer sign in', 'New customer']
+                  : const ['Existing store', 'New store owner'],
+              onTab: (i) {
+                if (i == 1) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute<void>(
+                      builder: (_) => RegisterScreen(side: widget.side),
+                    ),
+                  );
+                }
+              },
+              onHelp: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const HelpScreen()),
+              ),
             ),
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const HelpScreen())),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const FadeSlideIn(
-                child: Row(
-                  children: [
-                    BrandLogo(size: 46, borderRadius: 14),
-                    SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        'VenQore',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.ink,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 26),
-              const FadeSlideIn(
-                delay: Duration(milliseconds: 70),
-                child: Text(
-                  'Welcome back.',
-                  style: TextStyle(
-                    fontSize: 32,
-                    height: 1.1,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
-                    letterSpacing: -0.8,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                    alignment: Alignment.topCenter,
+                    child: _error == null
+                        ? const SizedBox(width: double.infinity)
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 14),
+                            child: _ErrorBanner(message: _error!),
+                          ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 120),
-                child: Text(
-                  widget.side == AppSide.customer
-                      ? 'Sign in to track your orders and keep your points across every store.'
-                      : 'Sign in once. VenQore opens the right place for you: your dashboard, the till, or your rides.',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    height: 1.45,
-                    color: AppColors.inkMuted,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 22),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                alignment: Alignment.topCenter,
-                child: _error == null
-                    ? const SizedBox(width: double.infinity)
-                    : Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: _ErrorBanner(message: _error!),
-                      ),
-              ),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 170),
-                child: _FormCard(
-                  children: [
-                    const _Label('Email'),
-                    const SizedBox(height: 8),
-                    TextField(
-                      key: const Key('signin-email'),
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [
-                        AutofillHints.username,
-                        AutofillHints.email,
-                      ],
-                      onSubmitted: (_) => _passwordFocus.requestFocus(),
-                      decoration: const InputDecoration(
-                        hintText: 'you@business.com',
-                        prefixIcon: Icon(
-                          Icons.mail_outline_rounded,
-                          color: AppColors.inkMuted,
-                          size: 20,
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 15,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
+                  FadeSlideIn(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Expanded(child: _Label('Password')),
-                        Flexible(
-                          child: InkWell(
-                            onTap: () => Navigator.of(context).push(
+                        VqField(
+                          fieldKey: const Key('signin-email'),
+                          label: _isCustomer ? 'Email address' : 'Work email',
+                          controller: _emailController,
+                          icon: Icons.mail_outline_rounded,
+                          hint: _isCustomer
+                              ? 'you@email.com'
+                              : 'you@business.com',
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [
+                            AutofillHints.username,
+                            AutofillHints.email,
+                          ],
+                          onSubmitted: (_) => _passwordFocus.requestFocus(),
+                        ),
+                        const SizedBox(height: 12),
+                        VqField(
+                          fieldKey: const Key('signin-password'),
+                          label: 'Password',
+                          controller: _passwordController,
+                          focusNode: _passwordFocus,
+                          icon: Icons.lock_outline_rounded,
+                          hint: 'Your password',
+                          obscure: _obscure,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
+                          onSubmitted: (_) => _submit(),
+                          suffix: GestureDetector(
+                            onTap: () => setState(() => _obscure = !_obscure),
+                            child: Icon(
+                              _obscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: AppColors.inkFaint,
+                              size: 19,
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Navigator.of(context).push(
                               MaterialPageRoute<void>(
                                 builder: (_) => const RecoverAccessScreen(),
                               ),
                             ),
-                            borderRadius: BorderRadius.circular(6),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                vertical: 2,
-                                horizontal: 2,
-                              ),
-                              child: Text(
-                                'Forgot password?',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.teal600,
-                                ),
+                            child: Text(
+                              'Forgot password?',
+                              style: Vq.sans(
+                                14.5,
+                                color: AppColors.teal700,
+                                weight: 700,
                               ),
                             ),
                           ),
                         ),
+                        VqButton(
+                          key: const Key('signin-submit'),
+                          label: _isCustomer
+                              ? 'Sign in'
+                              : 'Sign in to my workspace',
+                          trailing: Icons.arrow_forward_rounded,
+                          height: 48,
+                          onTap: _submit,
+                        ),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Text(
+                            'For your security we may email you a one-time code.',
+                            textAlign: TextAlign.center,
+                            style: Vq.sans(13.5, color: AppColors.inkFaint),
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      key: const Key('signin-password'),
-                      controller: _passwordController,
-                      focusNode: _passwordFocus,
-                      obscureText: _obscure,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.password],
-                      onSubmitted: (_) => _submit(),
-                      decoration: InputDecoration(
-                        hintText: 'Your password',
-                        prefixIcon: const Icon(
-                          Icons.lock_outline_rounded,
-                          color: AppColors.inkMuted,
-                          size: 20,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 15,
-                        ),
-                        suffixIcon: IconButton(
-                          tooltip: _obscure ? 'Show password' : 'Hide password',
-                          icon: Icon(
-                            _obscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: AppColors.inkMuted,
-                            size: 20,
-                          ),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      key: const Key('signin-submit'),
-                      onPressed: _submit,
-                      child: const Text('Sign in'),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'For your security we may email you a one-time code.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: AppColors.inkFaint),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 230),
-                child: Column(
-                  children: [
-                    const _OrDivider(),
-                    const SizedBox(height: 14),
-                    OutlinedButton(
-                      key: const Key('signin-google'),
-                      onPressed: _googleBusy ? null : _signInWithGoogle,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(54),
-                        backgroundColor: AppColors.surface,
-                        side: const BorderSide(color: AppColors.line),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 180),
-                        child: _googleBusy
-                            ? const SizedBox(
-                                key: ValueKey('busy'),
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
-                                  color: AppColors.teal,
-                                ),
-                              )
-                            : const Row(
-                                key: ValueKey('idle'),
-                                mainAxisSize: MainAxisSize.min,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GoogleMark(size: 22),
-                                  SizedBox(width: 12),
-                                  Flexible(
-                                    child: Text(
-                                      'Continue with Google',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 15.5,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.ink,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (widget.side == AppSide.store)
-                      TextButton.icon(
-                        key: const Key('signin-pin'),
-                        onPressed: _openCashierPin,
-                        icon: const Icon(
-                          Icons.dialpad_rounded,
-                          size: 18,
-                          color: AppColors.inkMuted,
-                        ),
-                        label: const Text(
-                          'Use a cashier PIN',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.inkMuted,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              FadeSlideIn(
-                delay: const Duration(milliseconds: 290),
-                child: Column(
-                  children: [
-                    Wrap(
-                      alignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                  ),
+                  const SizedBox(height: 16),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 100),
+                    child: Column(
                       children: [
-                        const Text(
-                          'New to VenQore?',
-                          style: TextStyle(
-                            color: AppColors.inkMuted,
-                            fontSize: 14,
-                          ),
+                        const _OrDivider(),
+                        const SizedBox(height: 14),
+                        GoogleContinueButton(
+                          key: const Key('signin-google'),
+                          busy: _googleBusy,
+                          onTap: _signInWithGoogle,
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => RegisterScreen(side: widget.side),
+                        if (!_isCustomer) ...[
+                          const SizedBox(height: 6),
+                          TextButton.icon(
+                            key: const Key('signin-pin'),
+                            onPressed: _openCashierPin,
+                            icon: const Icon(
+                              Icons.dialpad_rounded,
+                              size: 17,
+                              color: AppColors.inkMuted,
+                            ),
+                            label: Text(
+                              'Use a cashier PIN',
+                              style: Vq.sans(
+                                14,
+                                color: AppColors.inkMuted,
+                                weight: 700,
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'Create an account',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.teal600,
-                            ),
-                          ),
-                        ),
+                        ],
                       ],
                     ),
-                    if (widget.side == AppSide.store)
-                      TextButton.icon(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const AiBuilderIntroScreen(),
-                          ),
-                        ),
-                        icon: const Icon(
-                          Icons.auto_awesome_rounded,
-                          size: 16,
-                          color: AppColors.teal,
-                        ),
-                        label: const Text(
-                          'Let AI build my workspace',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.teal600,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _FormCard extends StatelessWidget {
-  const _FormCard({required this.children});
+/// "Continue with Google": the phone's own account picker, no password and no browser.
+/// Shared by sign-in and register.
+class GoogleContinueButton extends StatelessWidget {
+  const GoogleContinueButton({
+    required this.busy,
+    required this.onTap,
+    super.key,
+  });
 
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.line),
-        boxShadow: AppColors.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
-}
-
-class _Label extends StatelessWidget {
-  const _Label(this.text);
-
-  final String text;
+  final bool busy;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w700,
-        color: AppColors.ink,
+    return PressableScale(
+      onTap: busy ? null : onTap,
+      borderRadius: 999,
+      child: Container(
+        height: 48,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppColors.line),
+          boxShadow: Vq.elev1,
+        ),
+        child: Center(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: busy
+                ? const SizedBox(
+                    key: ValueKey('busy'),
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.4,
+                      color: AppColors.teal500,
+                    ),
+                  )
+                : Row(
+                    key: const ValueKey('idle'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const GoogleMark(size: 20),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          'Continue with Google',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Vq.sans(15, weight: 700),
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
       ),
     );
   }
@@ -536,21 +400,14 @@ class _OrDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
-        Expanded(child: Divider(color: AppColors.line, height: 1)),
+        const Expanded(child: Divider(color: AppColors.line, height: 1)),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'or',
-            style: TextStyle(
-              fontSize: 13,
-              color: AppColors.inkFaint,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text('or', style: Vq.eyebrow(color: AppColors.inkFaint)),
         ),
-        Expanded(child: Divider(color: AppColors.line, height: 1)),
+        const Expanded(child: Divider(color: AppColors.line, height: 1)),
       ],
     );
   }
@@ -586,11 +443,11 @@ class _ErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                fontSize: 13.5,
-                height: 1.35,
+              style: Vq.sans(
+                14,
                 color: AppColors.danger,
-                fontWeight: FontWeight.w600,
+                weight: 600,
+                height: 1.35,
               ),
             ),
           ),

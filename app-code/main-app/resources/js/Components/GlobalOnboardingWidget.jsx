@@ -38,18 +38,18 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
         }
     }, [remainingCount, store?.onboarding_completed, step, store?.slug]);
 
-    if (!isOpen) {
-        return null;
-    }
-
-    // If onboarding is marked as completed in DB or is demo store, don't show
-    if (store?.onboarding_completed || store?.is_demo || step === 'completed') {
+    if (!isOpen || store?.is_demo) {
         return null;
     }
 
     const handleResume = () => {
         onClose();
-        if (step === 'skipped' || step === 'welcome' || !step) {
+        if (step === 'skipped' || step === 'completed' || step === 'welcome' || !step) {
+            const firstUnfinished = checklist.find(item => !item.isDone);
+            if (firstUnfinished) {
+                startStep(store, firstUnfinished);
+                return;
+            }
             router.post(
                 route('store.onboarding.step', { store_slug: store?.slug }),
                 { step: 'welcome' },
@@ -159,10 +159,10 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
     };
 
     return (
-        <div className="fixed inset-0 z-modal flex items-end sm:items-center justify-center sm:justify-start sm:left-20 sm:bottom-20 p-4 pointer-events-none">
+        <div className="fixed inset-0 z-[10000200] flex items-end sm:items-center justify-center sm:justify-start sm:left-20 sm:bottom-20 p-4 pointer-events-none">
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-[#06100D]/50 backdrop-blur-xs pointer-events-auto transition-opacity animate-in fade-in"
+                className="fixed inset-0 bg-[#06100D]/50 backdrop-blur-xs pointer-events-auto transition-opacity animate-in fade-in z-[10000201]"
                 onClick={handleClose}
                 aria-hidden="true"
             />
@@ -171,7 +171,7 @@ export default function GlobalOnboardingWidget({ store, isOpen = false, onClose 
             <div
                 role="dialog"
                 aria-label="Setup Checklist"
-                className="relative z-10 w-full max-w-sm bg-surface border border-line rounded-2xl shadow-2xl p-5 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-4 duration-fast pointer-events-auto text-ink"
+                className="relative z-[10000202] w-full max-w-sm bg-surface border border-line rounded-2xl shadow-2xl p-5 backdrop-blur-md animate-in zoom-in-95 slide-in-from-bottom-4 duration-fast pointer-events-auto text-ink"
             >
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 mb-3">

@@ -147,6 +147,9 @@
     <meta property="og:description" content="{{ $seo['description'] }}" inertia>
     <meta property="og:url" content="{{ $seo['canonical'] }}" inertia>
     <meta property="og:image" content="{{ $seo['og_image'] }}" inertia>
+    <meta property="og:image:width" content="1200" inertia>
+    <meta property="og:image:height" content="630" inertia>
+    <meta property="og:image:alt" content="{{ $seo['title'] }}" inertia>
     <meta name="twitter:card" content="summary_large_image" inertia>
     <meta name="twitter:title" content="{{ $seo['title'] }}" inertia>
     <meta name="twitter:description" content="{{ $seo['description'] }}" inertia>
@@ -173,10 +176,15 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" href="/images/logo.png">
 
-    <!-- Scripts -->
     @routes
-    @viteReactRefresh
-    @vite('resources/js/app.jsx')
+    @php
+        try {
+            echo app(\Illuminate\Foundation\Vite::class)->reactRefresh();
+            echo app(\Illuminate\Foundation\Vite::class)('resources/js/app.jsx');
+        } catch (\Illuminate\Foundation\ViteManifestNotFoundException $e) {
+            echo '<script>setTimeout(function() { window.location.reload(); }, 1200);</script>';
+        }
+    @endphp
     @inertiaHead
     <script>
         if ('serviceWorker' in navigator) {

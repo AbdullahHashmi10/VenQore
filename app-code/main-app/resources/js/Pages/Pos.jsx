@@ -2286,6 +2286,8 @@ const POSInterface = ({
                 </div>
             );
             
+            showAlert('Sale Completed!', messageElement, 'success');
+
             const isTourActive = ['pos_tour', 'pos_tour_start'].includes(store?.onboarding_step)
                 || (!store?.onboarding_completed && !onboarding_metrics?.has_sales);
 
@@ -2295,29 +2297,13 @@ const POSInterface = ({
                     { step: 'pos_congratulations' },
                     { preserveScroll: true }
                 );
-            } else {
-                showAlert('Sale Completed!', messageElement, 'success');
+            }
 
-                // Let Enter key dismiss this alert instantly for the next sale
-                const handleEnterDismiss = (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        setAlertState(prev => {
-                            if (prev.show && prev.title === 'Sale Completed!') {
-                                return { ...prev, show: false };
-                            }
-                            return prev;
-                        });
-                        document.removeEventListener('keydown', handleEnterDismiss);
-                        if (searchInputRef.current) searchInputRef.current.focus();
-                    }
-                };
-                document.addEventListener('keydown', handleEnterDismiss);
-
-                // Auto-close after 30 seconds (30000ms) to allow cashier/customer time to inspect
-                setTimeout(() => {
+            // Let Enter key dismiss this alert instantly for the next sale
+            const handleEnterDismiss = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
                     setAlertState(prev => {
-                        // Only auto-close if the specific success modal is still open
                         if (prev.show && prev.title === 'Sale Completed!') {
                             return { ...prev, show: false };
                         }
@@ -2325,8 +2311,22 @@ const POSInterface = ({
                     });
                     document.removeEventListener('keydown', handleEnterDismiss);
                     if (searchInputRef.current) searchInputRef.current.focus();
-                }, 30000);
-            }
+                }
+            };
+            document.addEventListener('keydown', handleEnterDismiss);
+
+            // Auto-close after 30 seconds (30000ms) to allow cashier/customer time to inspect
+            setTimeout(() => {
+                setAlertState(prev => {
+                    // Only auto-close if the specific success modal is still open
+                    if (prev.show && prev.title === 'Sale Completed!') {
+                        return { ...prev, show: false };
+                    }
+                    return prev;
+                });
+                document.removeEventListener('keydown', handleEnterDismiss);
+                if (searchInputRef.current) searchInputRef.current.focus();
+            }, 30000);
         }
     };
 
@@ -6659,6 +6659,8 @@ const POSInterface = ({
                         router.reload({ only: ['settings'], preserveScroll: true, preserveState: true });
                     }}
                 />
+
+                <PosTourGuide store={store} cart={activeSale?.cart || []} />
             </React.Fragment>
         </OneGlanceLayout>
     );
@@ -6667,7 +6669,6 @@ const POSInterface = ({
 export default function Pos({
     settings, bankAccounts, recalledSale, warehouses = [], fohRedirect = false,
 }) {
-    const { store } = usePage().props;
     return (
         <>
             {/* `warehouses` was sent by PosController and stopped here: this
@@ -6681,7 +6682,6 @@ export default function Pos({
                 warehouses={warehouses}
                 fohRedirect={fohRedirect}
             />
-            <PosTourGuide store={store} cart={activeSale.cart} />
         </>
     );
 }

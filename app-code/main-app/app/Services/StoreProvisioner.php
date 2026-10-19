@@ -198,7 +198,12 @@ class StoreProvisioner
                 ->lockForUpdate()
                 ->first();
 
-            $plan        = $license ? $license->plan : 'trial';
+            // A self-serve plan picked at signup is the plan the store runs on
+            // from day one (status stays 'trial' until it is paid for). It used
+            // to be saved only as billing intent, so the store ran on the
+            // generic trial/Starter limits instead of the plan chosen.
+            $chosen      = PlanCatalog::canonical($data['plan'] ?? null);
+            $plan        = $license ? $license->plan : (PlanCatalog::isSelfServe($chosen) ? $chosen : 'trial');
             $trialDays   = $license ? (optional(Plan::where('slug', $plan)->first())->trial_days ?? self::TRIAL_DAYS) : self::TRIAL_DAYS;
             $trialEndsAt = now()->addDays($trialDays);
 
@@ -214,14 +219,12 @@ class StoreProvisioner
                 'timezone'          => self::resolveTimezone($data['timezone'] ?? null, $country),
                 'industry'          => 'retail',
                 'business_type'     => $businessType,
-                'setup_completed'   => (bool) ($data['setup_completed'] ?? false),
-                'onboarding_step'   => !empty($data['setup_completed']) ? 'completed' : null,
-                'terms_accepted_at' => now(),
-                'terms_version'     => 'v4.0',
+                'setup_completed'      => (bool) ($data['setup_completed'] ?? false),
+                'onboarding_step'      => $data['onboarding_step'] ?? 'welcome',
+                'onboarding_completed' => (bool) ($data['onboarding_completed'] ?? false),
+                'terms_accepted_at'    => now(),
+                'terms_version'        => 'v4.0',
             ];
-            if ($attributes['onboarding_step'] === null) {
-                unset($attributes['onboarding_step']);
-            }
 
             // Gift access: a real paid window, not a trial.
             if ($license && $license->source === 'gift' && $license->valid_until) {
@@ -270,7 +273,7 @@ class StoreProvisioner
                     'tenant_id'   => $tenant->id,
                     'type'        => 'trial',
                     'status'      => 'consumed',
-                    'plan'        => 'trial',
+                    'plan'        => $plan,
                     'source'      => $data['license_source'] ?? 'registration',
                     'consumed_at' => now(),
                     'valid_until' => $trialEndsAt,
@@ -283,6 +286,14 @@ class StoreProvisioner
                 Setting::updateOrCreate(
                     ['tenant_id' => $tenant->id, 'key' => 'store_phone'],
                     ['value' => (string) $data['phone']]
+                );
+            }
+
+            // Saved once at signup so the owner never re-types it in Settings.
+            if (!empty($data['address'])) {
+                Setting::updateOrCreate(
+                    ['tenant_id' => $tenant->id, 'key' => 'store_address'],
+                    ['value' => (string) $data['address']]
                 );
             }
 

@@ -42,7 +42,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\Builder\BuilderPolicy::class, fn () => \App\Services\Builder\BuilderPolicy::fromConfig());
         $this->app->singleton(\App\Services\Builder\BuilderEngine::class, fn ($app) => new \App\Services\Builder\BuilderEngine(
             $app->make(\App\Services\Builder\BuilderPolicy::class),
-            new \App\Services\Builder\CapabilityGate($app->make(\App\Services\Builder\BuilderPolicy::class))
+            // Never compose a module the chosen plan locks: it would be in their system and still refuse them.
+            new \App\Services\Builder\CapabilityGate(
+                $app->make(\App\Services\Builder\BuilderPolicy::class),
+                fn (string $module, ?string $plan) => \App\Services\Builder\PlanEntitlement::allows($module, $plan)
+            ),
+            $app->make(\App\Services\Builder\AiFactReader::class)
         ));
     }
 
